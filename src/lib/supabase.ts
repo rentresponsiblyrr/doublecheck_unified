@@ -1,29 +1,104 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
 
-// These would be your actual Supabase credentials
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+// Export the real Supabase client
+export { supabase };
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Helper function to upload media files to Supabase Storage
+export const uploadMedia = async (
+  file: File, 
+  inspectionId: string, 
+  checklistItemId: string
+): Promise<{ url: string; error: null } | { url: null; error: string }> => {
+  try {
+    console.log('Starting media upload...', { inspectionId, checklistItemId, fileName: file.name });
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${inspectionId}/${checklistItemId}/${fileName}`;
+    
+    const { data, error } = await supabase.storage
+      .from('inspection-evidence')
+      .upload(filePath, file);
 
-// Mock client for demo purposes
-export const mockSupabase = {
-  from: (table: string) => ({
-    select: (columns: string) => ({
-      eq: (column: string, value: any) => ({
-        is: (column: string, value: any) => Promise.resolve({ data: [], error: null })
+    if (error) {
+      console.error('Storage upload error:', error);
+      return { url: null, error: error.message };
+    }
+
+    console.log('Upload successful:', data);
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('inspection-evidence')
+      .getPublicUrl(filePath);
+
+    console.log('Public URL generated:', publicUrl);
+
+    return { url: publicUrl, error: null };
+  } catch (error) {
+    console.error('Upload function error:', error);
+    return { url: null, error: 'Upload failed' };
+  }
+};
+
+// Helper function to save media record to database
+export const saveMediaRecord = async (
+  checklistItemId: string,
+  type: 'photo' | 'video',
+  url: string
+) => {
+  try {
+    console.log('Saving media record...', { checklistItemId, type, url });
+    
+    const { data, error } = await supabase
+      .from('media')
+      .insert({
+        checklist_item_id: checklistItemId,
+        type,
+        url,
+        created_at: new Date().toISOString()
       })
-    }),
-    insert: (data: any) => Promise.resolve({ data: null, error: null }),
-    update: (data: any) => ({
-      eq: (column: string, value: any) => Promise.resolve({ data: null, error: null })
-    })
-  }),
-  storage: {
-    from: (bucket: string) => ({
-      upload: (path: string, file: File) => Promise.resolve({ data: { path }, error: null }),
-      getPublicUrl: (path: string) => ({ data: { publicUrl: `https://example.com/${path}` } })
-    })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database insert error:', error);
+      throw error;
+    }
+
+    console.log('Media record saved:', data);
+    return data;
+  } catch (error) {
+    console.error('Save media record error:', error);
+    throw error;
+  }
+};
+
+// Helper function to update checklist item status
+export const updateChecklistItemStatus = async (
+  checklistItemId: string,
+  status: 'completed' | null
+) => {
+  try {
+    console.log('Updating checklist item status...', { checklistItemId, status });
+    
+    const { data, error } = await supabase
+      .from('checklist_items')
+      .update({ status })
+      .eq('id', checklistItemId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Status update error:', error);
+      throw error;
+    }
+
+    console.log('Status updated:', data);
+    return data;
+  } catch (error) {
+    console.error('Update status error:', error);
+    throw error;
   }
 };

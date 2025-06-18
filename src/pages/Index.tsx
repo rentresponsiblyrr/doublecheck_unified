@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { ChecklistItem } from "@/components/ChecklistItem";
 import { InspectionHeader } from "@/components/InspectionHeader";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
 
-// Mock inspection ID for demo - in real app this would come from routing/context
-const CURRENT_INSPECTION_ID = "demo-inspection-001";
+// Demo inspection ID - in a real app this would come from routing/context
+const CURRENT_INSPECTION_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
 const Index = () => {
   const [showCompleted, setShowCompleted] = useState(false);
@@ -16,56 +16,36 @@ const Index = () => {
   const { data: checklistItems = [], isLoading, refetch } = useQuery({
     queryKey: ['checklist-items', CURRENT_INSPECTION_ID, showCompleted],
     queryFn: async () => {
-      console.log('Fetching checklist items...');
+      console.log('Fetching checklist items from Supabase...');
       
-      // For demo purposes, we'll return mock data since Supabase isn't connected
-      // In real implementation: 
-      // const { data, error } = await supabase
-      //   .from('checklist_items')
-      //   .select('*')
-      //   .eq('inspection_id', CURRENT_INSPECTION_ID)
-      //   .is(showCompleted ? null : 'status', showCompleted ? false : null);
-      
-      const mockData: ChecklistItemType[] = [
-        {
-          id: "item-1",
-          inspection_id: CURRENT_INSPECTION_ID,
-          label: "Smoke detector present and functional",
-          category: "safety",
-          evidence_type: "photo",
-          status: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "item-2", 
-          inspection_id: CURRENT_INSPECTION_ID,
-          label: "Fire extinguisher accessible",
-          category: "safety",
-          evidence_type: "photo",
-          status: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "item-3",
-          inspection_id: CURRENT_INSPECTION_ID,
-          label: "Pool area safety demonstration",
-          category: "amenity", 
-          evidence_type: "video",
-          status: null,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "item-4",
-          inspection_id: CURRENT_INSPECTION_ID,
-          label: "Kitchen appliances operational",
-          category: "amenity",
-          evidence_type: "photo", 
-          status: "completed",
-          created_at: new Date().toISOString()
-        }
-      ];
+      let query = supabase
+        .from('checklist_items')
+        .select('*')
+        .eq('inspection_id', CURRENT_INSPECTION_ID);
 
-      return showCompleted ? mockData : mockData.filter(item => !item.status);
+      if (!showCompleted) {
+        query = query.is('status', null);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching checklist items:', error);
+        throw error;
+      }
+
+      console.log('Fetched checklist items:', data);
+      
+      // Transform the data to match our TypeScript interface
+      return (data || []).map(item => ({
+        id: item.id,
+        inspection_id: item.inspection_id,
+        label: item.label || '',
+        category: item.category as 'safety' | 'amenity' | 'cleanliness' | 'maintenance',
+        evidence_type: item.evidence_type as 'photo' | 'video',
+        status: item.status === 'completed' ? 'completed' : null,
+        created_at: item.created_at || new Date().toISOString()
+      })) as ChecklistItemType[];
     },
   });
 

@@ -14,6 +14,7 @@ export type Database = {
           ai_status: string | null
           category: string | null
           created_at: string | null
+          evidence_type: string | null
           id: string
           inspection_id: string | null
           label: string | null
@@ -25,6 +26,7 @@ export type Database = {
           ai_status?: string | null
           category?: string | null
           created_at?: string | null
+          evidence_type?: string | null
           id?: string
           inspection_id?: string | null
           label?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           ai_status?: string | null
           category?: string | null
           created_at?: string | null
+          evidence_type?: string | null
           id?: string
           inspection_id?: string | null
           label?: string | null
@@ -100,6 +103,7 @@ export type Database = {
           checklist_item_id: string | null
           created_at: string | null
           id: string
+          notes: string | null
           type: string | null
           url: string | null
         }
@@ -107,6 +111,7 @@ export type Database = {
           checklist_item_id?: string | null
           created_at?: string | null
           id?: string
+          notes?: string | null
           type?: string | null
           url?: string | null
         }
@@ -114,6 +119,7 @@ export type Database = {
           checklist_item_id?: string | null
           created_at?: string | null
           id?: string
+          notes?: string | null
           type?: string | null
           url?: string | null
         }

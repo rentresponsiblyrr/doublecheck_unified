@@ -2,26 +2,68 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Video, Upload } from "lucide-react";
+import { uploadMedia, saveMediaRecord, updateChecklistItemStatus } from "@/lib/supabase";
 
 interface MediaUploaderProps {
   evidenceType: 'photo' | 'video';
   onUpload: (file: File) => void;
   isUploading: boolean;
   uploadedUrl?: string | null;
+  checklistItemId: string;
+  inspectionId: string;
+  onComplete: () => void;
 }
 
 export const MediaUploader = ({ 
   evidenceType, 
   onUpload, 
   isUploading, 
-  uploadedUrl 
+  uploadedUrl,
+  checklistItemId,
+  inspectionId,
+  onComplete
 }: MediaUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    console.log('File selected:', file.name, file.type, file.size);
+    
+    try {
+      // Call the onUpload prop to set loading state
       onUpload(file);
+      
+      // Upload to Supabase Storage
+      const uploadResult = await uploadMedia(file, inspectionId, checklistItemId);
+      
+      if (uploadResult.error) {
+        console.error('Upload failed:', uploadResult.error);
+        alert('Upload failed: ' + uploadResult.error);
+        return;
+      }
+
+      if (!uploadResult.url) {
+        console.error('No URL returned from upload');
+        alert('Upload failed: No URL returned');
+        return;
+      }
+
+      // Save media record to database
+      await saveMediaRecord(checklistItemId, evidenceType, uploadResult.url);
+      
+      // Mark checklist item as completed
+      await updateChecklistItemStatus(checklistItemId, 'completed');
+      
+      // Trigger refresh of the checklist
+      onComplete();
+      
+      console.log('Media upload and save completed successfully');
+      
+    } catch (error) {
+      console.error('Error in file upload process:', error);
+      alert('Upload failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
