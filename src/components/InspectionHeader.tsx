@@ -25,7 +25,7 @@ export const InspectionHeader = ({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-shrink-0">
             <img 
-              src="/placeholder.svg" 
+              src="/lovable-uploads/0a50e8a6-9077-4594-a62f-b9afd7bac687.png" 
               alt="DoubleCheck Logo" 
               className="w-12 h-12 object-contain"
             />
