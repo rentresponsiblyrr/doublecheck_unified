@@ -17,9 +17,14 @@ export const uploadMedia = async (
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${inspectionId}/${checklistItemId}/${fileName}`;
     
+    console.log('Upload path:', filePath);
+    
     const { data, error } = await supabase.storage
       .from('inspection-evidence')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (error) {
       console.error('Storage upload error:', error);
@@ -38,7 +43,7 @@ export const uploadMedia = async (
     return { url: publicUrl, error: null };
   } catch (error) {
     console.error('Upload function error:', error);
-    return { url: null, error: 'Upload failed' };
+    return { url: null, error: error instanceof Error ? error.message : 'Upload failed' };
   }
 };
 
@@ -99,6 +104,37 @@ export const updateChecklistItemStatus = async (
     return data;
   } catch (error) {
     console.error('Update status error:', error);
+    throw error;
+  }
+};
+
+// Helper function to get inspection details
+export const getInspectionDetails = async (inspectionId: string) => {
+  try {
+    console.log('Fetching inspection details...', { inspectionId });
+    
+    const { data, error } = await supabase
+      .from('inspections')
+      .select(`
+        *,
+        properties (
+          name,
+          address,
+          vrbo_url
+        )
+      `)
+      .eq('id', inspectionId)
+      .single();
+
+    if (error) {
+      console.error('Inspection fetch error:', error);
+      throw error;
+    }
+
+    console.log('Inspection details fetched:', data);
+    return data;
+  } catch (error) {
+    console.error('Get inspection details error:', error);
     throw error;
   }
 };
