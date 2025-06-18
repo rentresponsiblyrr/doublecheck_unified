@@ -88,9 +88,6 @@ export const MediaUploader = ({
       // Save media record to database
       await saveMediaRecord(checklistItemId, evidenceType, uploadResult.url);
       
-      // Mark checklist item as completed
-      await updateChecklistItemStatus(checklistItemId, 'completed');
-      
       toast({
         title: "Upload successful",
         description: `${evidenceType} evidence uploaded and saved.`,
@@ -129,91 +126,52 @@ export const MediaUploader = ({
         disabled={isUploading}
       />
       
-      {uploadedUrl ? (
-        <div className="space-y-3">
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 relative">
+      <div className="space-y-2">
+        <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
+          <div className="flex flex-col items-center gap-3">
             {evidenceType === 'photo' ? (
-              <img 
-                src={uploadedUrl} 
-                alt="Uploaded evidence" 
-                className="w-full h-48 object-cover rounded"
-                onError={(e) => {
-                  console.error('Image failed to load:', uploadedUrl);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <Camera className="w-12 h-12 text-blue-500" />
             ) : (
-              <video 
-                src={uploadedUrl} 
-                controls 
-                className="w-full h-48 rounded"
-                onError={(e) => {
-                  console.error('Video failed to load:', uploadedUrl);
-                }}
-              />
+              <Video className="w-12 h-12 text-blue-500" />
             )}
-            <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-              <CheckCircle className="w-4 h-4" />
+            <div>
+              <p className="text-lg font-medium text-blue-900 mb-1">
+                {evidenceType === 'photo' ? 'Take Photo' : 'Record Video'}
+              </p>
+              <p className="text-sm text-blue-600">
+                Add evidence for this inspection item
+              </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full h-12"
-            disabled={isUploading}
-          >
-            <Upload className="w-5 h-5 mr-2" />
-            Replace {evidenceType}
-          </Button>
         </div>
-      ) : (
-        <div className="space-y-2">
-          <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
-            <div className="flex flex-col items-center gap-3">
+        
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="w-full h-16 text-lg bg-blue-600 hover:bg-blue-700"
+        >
+          {isUploading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+              Uploading...
+            </>
+          ) : (
+            <>
               {evidenceType === 'photo' ? (
-                <Camera className="w-12 h-12 text-blue-500" />
+                <Camera className="w-6 h-6 mr-3" />
               ) : (
-                <Video className="w-12 h-12 text-blue-500" />
+                <Video className="w-6 h-6 mr-3" />
               )}
-              <div>
-                <p className="text-lg font-medium text-blue-900 mb-1">
-                  {evidenceType === 'photo' ? 'Take Photo' : 'Record Video'}
-                </p>
-                <p className="text-sm text-blue-600">
-                  Required for inspection completion
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="w-full h-16 text-lg bg-blue-600 hover:bg-blue-700"
-          >
-            {isUploading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                Uploading...
-              </>
-            ) : (
-              <>
-                {evidenceType === 'photo' ? (
-                  <Camera className="w-6 h-6 mr-3" />
-                ) : (
-                  <Video className="w-6 h-6 mr-3" />
-                )}
-                Capture {evidenceType}
-              </>
-            )}
-          </Button>
-          
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-            <AlertCircle className="w-3 h-3" />
-            <span>Max file size: {maxFileSize} • {evidenceType === 'photo' ? 'JPG, PNG, WebP' : 'MP4, MOV, WebM'}</span>
-          </div>
+              Capture {evidenceType}
+            </>
+          )}
+        </Button>
+        
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+          <AlertCircle className="w-3 h-3" />
+          <span>Max file size: {maxFileSize} • {evidenceType === 'photo' ? 'JPG, PNG, WebP' : 'MP4, MOV, WebM'}</span>
         </div>
-      )}
+      </div>
     </div>
   );
 };

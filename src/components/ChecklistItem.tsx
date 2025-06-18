@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, Video, Check, Clock, AlertTriangle } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
 import { MediaUploader } from "@/components/MediaUploader";
+import { UploadedEvidence } from "@/components/UploadedEvidence";
 import { useToast } from "@/hooks/use-toast";
 
 interface ChecklistItemProps {
@@ -90,6 +91,11 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             </div>
           </div>
         </div>
+        
+        {/* Show uploaded evidence for completed items */}
+        <div className="mt-4">
+          <UploadedEvidence checklistItemId={item.id} />
+        </div>
       </div>
     );
   }
@@ -119,6 +125,9 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             </div>
           </div>
         </div>
+
+        {/* Show existing uploaded evidence */}
+        <UploadedEvidence checklistItemId={item.id} />
 
         {/* Media Upload */}
         <div>
