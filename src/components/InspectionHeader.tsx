@@ -23,8 +23,12 @@ export const InspectionHeader = ({
       <div className="px-4 py-4">
         {/* Brand Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center">
-            <div className="w-8 h-8 bg-blue-400 rounded transform rotate-45"></div>
+          <div className="flex-shrink-0">
+            <img 
+              src="/placeholder.svg" 
+              alt="DoubleCheck Logo" 
+              className="w-12 h-12 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">DoubleCheck Inspection</h1>
