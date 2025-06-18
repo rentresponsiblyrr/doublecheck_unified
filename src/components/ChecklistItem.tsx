@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Video, Upload, Check } from "lucide-react";
+import { Camera, Video, Check } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
 import { MediaUploader } from "@/components/MediaUploader";
 import { useToast } from "@/hooks/use-toast";
@@ -34,29 +34,6 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
     try {
       console.log('Uploading media for item:', item.id);
       
-      // In real implementation:
-      // const fileName = `${Date.now()}-${file.name}`;
-      // const filePath = `inspection-media/${item.inspection_id}/${item.id}/${fileName}`;
-      // 
-      // const { data: uploadData, error: uploadError } = await supabase.storage
-      //   .from('inspection-evidence')
-      //   .upload(filePath, file);
-      //
-      // if (uploadError) throw uploadError;
-      //
-      // const { data: urlData } = supabase.storage
-      //   .from('inspection-evidence')
-      //   .getPublicUrl(filePath);
-      //
-      // const { error: insertError } = await supabase
-      //   .from('media')
-      //   .insert({
-      //     checklist_item_id: item.id,
-      //     type: item.evidence_type,
-      //     url: urlData.publicUrl,
-      //     created_at: new Date().toISOString()
-      //   });
-
       // Mock success for demo
       const mockUrl = URL.createObjectURL(file);
       setMediaUrl(mockUrl);
@@ -74,41 +51,6 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
       });
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!mediaUrl) {
-      toast({
-        title: "Evidence required",
-        description: `Please upload a ${item.evidence_type} before submitting.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // In real implementation:
-      // const { error } = await supabase
-      //   .from('checklist_items')
-      //   .update({ status: 'completed' })
-      //   .eq('id', item.id);
-
-      console.log('Submitting item:', item.id, 'with notes:', notes);
-      
-      toast({
-        title: "Item completed",
-        description: "Evidence submitted successfully.",
-      });
-      
-      onComplete();
-    } catch (error) {
-      console.error('Submit error:', error);
-      toast({
-        title: "Submission failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -159,6 +101,9 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
           onUpload={handleMediaUpload}
           isUploading={isUploading}
           uploadedUrl={mediaUrl}
+          checklistItemId={item.id}
+          inspectionId={item.inspection_id}
+          onComplete={onComplete}
         />
 
         {/* Notes */}
@@ -176,7 +121,17 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
 
         {/* Submit Button */}
         <Button
-          onClick={handleSubmit}
+          onClick={() => {
+            if (!mediaUrl) {
+              toast({
+                title: "Evidence required",
+                description: `Please upload a ${item.evidence_type} before submitting.`,
+                variant: "destructive",
+              });
+              return;
+            }
+            onComplete();
+          }}
           disabled={!mediaUrl || isUploading}
           className="w-full h-12 text-lg font-medium"
         >
