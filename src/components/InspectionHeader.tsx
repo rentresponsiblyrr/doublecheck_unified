@@ -1,0 +1,69 @@
+
+import { Switch } from "@/components/ui/switch";
+
+interface InspectionHeaderProps {
+  inspectionId: string;
+  showCompleted: boolean;
+  onToggleCompleted: () => void;
+  completedCount: number;
+  totalCount: number;
+}
+
+export const InspectionHeader = ({
+  inspectionId,
+  showCompleted,
+  onToggleCompleted,
+  completedCount,
+  totalCount
+}: InspectionHeaderProps) => {
+  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  return (
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="px-4 py-4">
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-400 rounded transform rotate-45"></div>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">DoubleCheck Inspection</h1>
+            <p className="text-sm text-gray-600">Powered by Rent Responsibly</p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Progress: {completedCount}/{totalCount}
+            </span>
+            <span className="text-sm font-medium text-blue-600">
+              {progressPercentage}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-gray-500 font-mono">
+            ID: {inspectionId}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">Show completed</span>
+            <Switch
+              checked={showCompleted}
+              onCheckedChange={onToggleCompleted}
+            />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
