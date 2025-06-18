@@ -20,7 +20,7 @@ export const uploadMedia = async (
     console.log('Upload path:', filePath);
     
     const { data, error } = await supabase.storage
-      .from('inspection-evidence')
+      .from('inspection-media')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
@@ -35,7 +35,7 @@ export const uploadMedia = async (
 
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('inspection-evidence')
+      .from('inspection-media')
       .getPublicUrl(filePath);
 
     console.log('Public URL generated:', publicUrl);
