@@ -1,17 +1,17 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect authenticated users to properties page
-    navigate('/properties');
+    // Immediate redirect to properties page
+    navigate('/properties', { replace: true });
   }, [navigate]);
 
-  return <LoadingSpinner />;
+  // Return null to avoid any flash of content during redirect
+  return null;
 };
 
 export default Index;
