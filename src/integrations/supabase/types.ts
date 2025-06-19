@@ -14,10 +14,10 @@ export type Database = {
           ai_status: string | null
           category: string | null
           created_at: string | null
-          evidence_type: string | null
+          evidence_type: string
           id: string
-          inspection_id: string | null
-          label: string | null
+          inspection_id: string
+          label: string
           notes: string | null
           source_photo_url: string | null
           static_item_id: string | null
@@ -27,10 +27,10 @@ export type Database = {
           ai_status?: string | null
           category?: string | null
           created_at?: string | null
-          evidence_type?: string | null
+          evidence_type: string
           id?: string
-          inspection_id?: string | null
-          label?: string | null
+          inspection_id: string
+          label: string
           notes?: string | null
           source_photo_url?: string | null
           static_item_id?: string | null
@@ -40,10 +40,10 @@ export type Database = {
           ai_status?: string | null
           category?: string | null
           created_at?: string | null
-          evidence_type?: string | null
+          evidence_type?: string
           id?: string
-          inspection_id?: string | null
-          label?: string | null
+          inspection_id?: string
+          label?: string
           notes?: string | null
           source_photo_url?: string | null
           static_item_id?: string | null
@@ -73,7 +73,7 @@ export type Database = {
           end_time: string | null
           id: string
           inspector_id: string | null
-          property_id: string | null
+          property_id: string
           start_time: string | null
           status: string | null
         }
@@ -83,7 +83,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           inspector_id?: string | null
-          property_id?: string | null
+          property_id: string
           start_time?: string | null
           status?: string | null
         }
@@ -93,7 +93,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           inspector_id?: string | null
-          property_id?: string | null
+          property_id?: string
           start_time?: string | null
           status?: string | null
         }
@@ -148,27 +148,27 @@ export type Database = {
       }
       media: {
         Row: {
-          checklist_item_id: string | null
+          checklist_item_id: string
           created_at: string | null
           id: string
           notes: string | null
-          type: string | null
+          type: string
           url: string | null
         }
         Insert: {
-          checklist_item_id?: string | null
+          checklist_item_id: string
           created_at?: string | null
           id?: string
           notes?: string | null
-          type?: string | null
+          type: string
           url?: string | null
         }
         Update: {
-          checklist_item_id?: string | null
+          checklist_item_id?: string
           created_at?: string | null
           id?: string
           notes?: string | null
-          type?: string | null
+          type?: string
           url?: string | null
         }
         Relationships: [
