@@ -1,73 +1,61 @@
 
-import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Home } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { InspectionProgress } from "@/components/InspectionProgress";
+import { UserMenu } from "@/components/UserMenu";
 
 interface InspectionHeaderProps {
-  inspectionId: string;
-  showCompleted: boolean;
-  onToggleCompleted: () => void;
+  propertyName?: string;
+  propertyAddress?: string;
   completedCount: number;
   totalCount: number;
 }
 
-export const InspectionHeader = ({
-  inspectionId,
-  showCompleted,
-  onToggleCompleted,
-  completedCount,
-  totalCount
+export const InspectionHeader = ({ 
+  propertyName, 
+  propertyAddress, 
+  completedCount, 
+  totalCount 
 }: InspectionHeaderProps) => {
-  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const navigate = useNavigate();
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div className="px-4 py-4">
-        {/* Brand Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-shrink-0">
-            <img 
-              src="/lovable-uploads/0a50e8a6-9077-4594-a62f-b9afd7bac687.png" 
-              alt="DoubleCheck Logo" 
-              className="w-12 h-12 object-contain"
-            />
-          </div>
+    <div className="bg-white border-b border-gray-200 px-4 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate('/properties')}
+            className="p-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">DoubleCheck Inspection</h1>
-            <p className="text-sm text-gray-600">Powered by Rent Responsibly</p>
+            <h1 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Home className="w-4 h-4" />
+              {propertyName || 'Property Inspection'}
+            </h1>
+            {propertyAddress && (
+              <p className="text-sm text-gray-600">{propertyAddress}</p>
+            )}
           </div>
         </div>
-
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Progress: {completedCount}/{totalCount}
-            </span>
-            <span className="text-sm font-medium text-blue-600">
-              {progressPercentage}%
-            </span>
+        
+        <div className="flex items-center gap-2">
+          <div className="text-right hidden sm:block">
+            <div className="text-sm font-medium text-blue-600">DoubleCheck</div>
+            <div className="text-xs text-gray-500">Powered by Rent Responsibly</div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-500 font-mono">
-            ID: {inspectionId}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">Show completed</span>
-            <Switch
-              checked={showCompleted}
-              onCheckedChange={onToggleCompleted}
-            />
-          </div>
+          <UserMenu />
         </div>
       </div>
-    </header>
+      
+      <InspectionProgress 
+        completed={completedCount} 
+        total={totalCount}
+      />
+    </div>
   );
 };
