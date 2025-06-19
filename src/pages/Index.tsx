@@ -5,8 +5,10 @@ import { useNavigate } from "react-router-dom";
 const Index = () => {
   const navigate = useNavigate();
 
+  console.log('🏠 Index page loading - redirecting to properties');
+
   useEffect(() => {
-    // Immediate redirect to properties page
+    // Immediate redirect to properties page without any loading state
     navigate('/properties', { replace: true });
   }, [navigate]);
 
