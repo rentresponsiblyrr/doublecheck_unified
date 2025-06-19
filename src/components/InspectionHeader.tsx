@@ -50,6 +50,9 @@ export const InspectionHeader = ({
             {propertyAddress && (
               <p className="text-sm text-gray-600">{propertyAddress}</p>
             )}
+            {checklistItems.length === 0 && (
+              <p className="text-sm text-blue-600">Setting up inspection...</p>
+            )}
           </div>
         </div>
         
@@ -63,7 +66,9 @@ export const InspectionHeader = ({
         </div>
       </div>
       
-      <InspectionProgress items={checklistItems} />
+      {checklistItems.length > 0 && (
+        <InspectionProgress items={checklistItems} />
+      )}
     </div>
   );
 };

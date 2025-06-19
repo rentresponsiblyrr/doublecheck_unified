@@ -5,6 +5,7 @@ import { InspectionLayout } from "@/components/InspectionLayout";
 import { InspectionFilters } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ChecklistGenerationStatus } from "@/components/ChecklistGenerationStatus";
 import { useInspectionData } from "@/hooks/useInspectionData";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +34,22 @@ const Inspection = () => {
     );
   }
 
-  const { checklistItems, isLoading, refetch, isRefetching } = useInspectionData(inspectionId);
+  const { 
+    checklistItems, 
+    isLoading, 
+    refetch, 
+    isRefetching,
+    isGeneratingChecklist,
+    hasTimedOut
+  } = useInspectionData(inspectionId);
+
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  const handleGoBack = () => {
+    navigate('/properties');
+  };
 
   const filteredItems = checklistItems.filter(item => {
     const matchesCompletedFilter = showCompleted || !item.status;
@@ -86,6 +102,29 @@ const Inspection = () => {
 
   if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  // Show checklist generation status if items are being generated or timed out
+  if (isGeneratingChecklist || hasTimedOut) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <InspectionLayout
+          inspectionId={inspectionId}
+          checklistItems={[]}
+          showCompleted={showCompleted}
+          onToggleCompleted={() => setShowCompleted(!showCompleted)}
+        >
+          <ChecklistGenerationStatus
+            isGenerating={isGeneratingChecklist}
+            hasTimedOut={hasTimedOut}
+            pollCount={0}
+            maxPollAttempts={20}
+            onRefresh={handleRefresh}
+            onGoBack={handleGoBack}
+          />
+        </InspectionLayout>
+      </div>
+    );
   }
 
   return (
