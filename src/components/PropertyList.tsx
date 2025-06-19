@@ -23,6 +23,7 @@ interface PropertyListProps {
   inspections: Inspection[];
   selectedProperty: string | null;
   onPropertySelect: (propertyId: string) => void;
+  onPropertyDeleted: () => void;
   getPropertyStatus: (propertyId: string) => {
     status: string;
     color: string;
@@ -35,6 +36,7 @@ export const PropertyList = ({
   inspections, 
   selectedProperty, 
   onPropertySelect, 
+  onPropertyDeleted,
   getPropertyStatus 
 }: PropertyListProps) => {
   if (properties.length === 0) {
@@ -54,6 +56,7 @@ export const PropertyList = ({
             status={status}
             isSelected={isSelected}
             onSelect={onPropertySelect}
+            onPropertyDeleted={onPropertyDeleted}
           />
         );
       })}

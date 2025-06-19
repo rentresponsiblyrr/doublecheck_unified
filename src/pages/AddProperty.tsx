@@ -1,307 +1,265 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PropertyHeader } from "@/components/PropertyHeader";
+import { ArrowLeft, Save, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
-
-interface PropertyFormData {
-  name: string;
-  address: string;
-  vrbo_url?: string;
-  airbnb_url?: string;
-  notes?: string;
-}
-
-// Webhook notification function
-const sendWebhookNotification = async (propertyData: any) => {
-  try {
-    console.log('Sending webhook notification for property:', propertyData.id);
-    
-    // Log the notification attempt
-    const { error: logError } = await supabase
-      .from('webhook_notifications')
-      .insert({
-        property_id: propertyData.id,
-        webhook_url: 'https://hook.eu2.make.com/3h8a4vv5fzf3tcxpho1ypxfvp10cdkzp',
-        status: 'sending'
-      });
-
-    if (logError) {
-      console.error('Error logging webhook notification:', logError);
-    }
-
-    // Send the webhook
-    const webhookPayload = {
-      event: 'property_inserted',
-      timestamp: new Date().toISOString(),
-      property: {
-        id: propertyData.id,
-        name: propertyData.name,
-        address: propertyData.address,
-        vrbo_url: propertyData.vrbo_url,
-        airbnb_url: propertyData.airbnb_url,
-        status: propertyData.status,
-        created_at: propertyData.created_at,
-        added_by: propertyData.added_by
-      }
-    };
-
-    const response = await fetch('https://hook.eu2.make.com/3h8a4vv5fzf3tcxpho1ypxfvp10cdkzp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(webhookPayload)
-    });
-
-    // Update the notification status
-    const status = response.ok ? 'success' : 'failed';
-    const responseText = await response.text();
-    
-    await supabase
-      .from('webhook_notifications')
-      .update({
-        status,
-        response: responseText,
-        sent_at: new Date().toISOString()
-      })
-      .eq('property_id', propertyData.id)
-      .eq('status', 'sending');
-
-    console.log('Webhook notification sent successfully:', status);
-    
-  } catch (error) {
-    console.error('Error sending webhook notification:', error);
-    
-    // Update status to failed
-    await supabase
-      .from('webhook_notifications')
-      .update({
-        status: 'failed',
-        response: error instanceof Error ? error.message : 'Unknown error',
-        sent_at: new Date().toISOString()
-      })
-      .eq('property_id', propertyData.id)
-      .eq('status', 'sending');
-  }
-};
 
 const AddProperty = () => {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  const editId = searchParams.get('edit');
+  const isEditing = !!editId;
 
-  const form = useForm<PropertyFormData>({
-    defaultValues: {
-      name: "",
-      address: "",
-      vrbo_url: "",
-      airbnb_url: "",
-      notes: ""
-    }
+  const [formData, setFormData] = useState({
+    name: "",
+    address: "",
+    vrbo_url: "",
+    airbnb_url: ""
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
 
-  const onSubmit = async (data: PropertyFormData) => {
-    setIsSubmitting(true);
-    
+  // Load property data if editing
+  useEffect(() => {
+    if (isEditing && editId) {
+      setIsLoadingProperty(true);
+      console.log('📝 Loading property for editing:', editId);
+      
+      const loadProperty = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('properties')
+            .select('*')
+            .eq('id', editId)
+            .single();
+
+          if (error) {
+            console.error('❌ Error loading property:', error);
+            toast({
+              title: "Error",
+              description: "Failed to load property data.",
+              variant: "destructive",
+            });
+            navigate('/properties');
+            return;
+          }
+
+          console.log('✅ Property loaded:', data);
+          setFormData({
+            name: data.name || "",
+            address: data.address || "",
+            vrbo_url: data.vrbo_url || "",
+            airbnb_url: data.airbnb_url || ""
+          });
+        } catch (error) {
+          console.error('💥 Failed to load property:', error);
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred.",
+            variant: "destructive",
+          });
+          navigate('/properties');
+        } finally {
+          setIsLoadingProperty(false);
+        }
+      };
+
+      loadProperty();
+    }
+  }, [isEditing, editId, navigate, toast]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      console.log('Submitting property data:', data);
-      
-      // Insert new property
-      const { data: property, error: propertyError } = await supabase
-        .from('properties')
-        .insert({
-          name: data.name,
-          address: data.address,
-          vrbo_url: data.vrbo_url || null,
-          airbnb_url: data.airbnb_url || null,
-          status: 'active'
-        })
-        .select()
-        .single();
+      console.log(`${isEditing ? '📝 Updating' : '➕ Creating'} property:`, formData);
 
-      if (propertyError) {
-        console.error('Error creating property:', propertyError);
-        throw propertyError;
+      if (isEditing) {
+        const { error } = await supabase
+          .from('properties')
+          .update({
+            name: formData.name,
+            address: formData.address,
+            vrbo_url: formData.vrbo_url || null,
+            airbnb_url: formData.airbnb_url || null,
+          })
+          .eq('id', editId);
+
+        if (error) {
+          console.error('❌ Error updating property:', error);
+          throw error;
+        }
+
+        console.log('✅ Property updated successfully');
+        toast({
+          title: "Property Updated",
+          description: "The property has been updated successfully.",
+        });
+      } else {
+        const { error } = await supabase
+          .from('properties')
+          .insert({
+            name: formData.name,
+            address: formData.address,
+            vrbo_url: formData.vrbo_url || null,
+            airbnb_url: formData.airbnb_url || null,
+          });
+
+        if (error) {
+          console.error('❌ Error creating property:', error);
+          throw error;
+        }
+
+        console.log('✅ Property created successfully');
+        toast({
+          title: "Property Added",
+          description: "The property has been added successfully.",
+        });
       }
 
-      console.log('Property created:', property);
-
-      // Create inspection for the new property
-      const { data: inspection, error: inspectionError } = await supabase
-        .from('inspections')
-        .insert({
-          property_id: property.id,
-          status: 'available',
-          completed: false
-        })
-        .select()
-        .single();
-
-      if (inspectionError) {
-        console.error('Error creating inspection:', inspectionError);
-        throw inspectionError;
-      }
-
-      console.log('Inspection created:', inspection);
-
-      // Send webhook notification asynchronously (don't await to avoid blocking)
-      sendWebhookNotification(property).catch(error => {
-        console.error('Webhook notification failed, but property was created successfully:', error);
-      });
-
-      toast.success("Property added successfully!");
-      
-      // Navigate back to home screen
-      navigate('/');
-      
+      navigate('/properties');
     } catch (error) {
-      console.error('Failed to add property:', error);
-      toast.error("Failed to add property. Please try again.");
+      console.error(`💥 Failed to ${isEditing ? 'update' : 'create'} property:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditing ? 'update' : 'add'} property. Please try again.`,
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  if (isSubmitting) {
-    return <LoadingSpinner />;
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  if (isLoadingProperty) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="px-4 py-6">
+          <LoadingSpinner message="Loading property data..." />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PropertyHeader 
-        title="Add New Property" 
-        subtitle="Submit property for inspection" 
-      />
+      <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate('/properties')}
+            className="p-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              {isEditing ? 'Edit Property' : 'Add New Property'}
+            </h1>
+            <p className="text-sm text-gray-600">
+              {isEditing ? 'Update property information' : 'Enter property details to add to your inspection list'}
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="px-4 py-6">
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="p-0 h-auto text-blue-600 hover:text-blue-700"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Properties
-          </Button>
-        </div>
-
-        <Card>
+        <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-xl">Property Details</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              {isEditing ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+              {isEditing ? 'Update Property' : 'Property Information'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  rules={{ required: "Property name is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Property Name *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter property name"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Property Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="e.g., Cozy Mountain Cabin"
+                  required
                 />
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="address"
-                  rules={{ required: "Address is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address *</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Enter full address"
-                          className="min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="address">Address *</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="e.g., 123 Main St, Mountain View, CA 94041"
+                  required
                 />
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="vrbo_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vrbo URL</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="https://www.vrbo.com/..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="vrbo_url">Vrbo Listing URL</Label>
+                <Input
+                  id="vrbo_url"
+                  type="url"
+                  value={formData.vrbo_url}
+                  onChange={(e) => handleInputChange('vrbo_url', e.target.value)}
+                  placeholder="https://www.vrbo.com/..."
                 />
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="airbnb_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Airbnb URL</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="https://www.airbnb.com/..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div className="space-y-2">
+                <Label htmlFor="airbnb_url">Airbnb Listing URL</Label>
+                <Input
+                  id="airbnb_url"
+                  type="url"
+                  value={formData.airbnb_url}
+                  onChange={(e) => handleInputChange('airbnb_url', e.target.value)}
+                  placeholder="https://www.airbnb.com/..."
                 />
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Any additional notes about this property..."
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/properties')}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {isEditing ? 'Updating...' : 'Adding...'}
+                    </>
+                  ) : (
+                    <>
+                      {isEditing ? <Save className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                      {isEditing ? 'Update Property' : 'Add Property'}
+                    </>
                   )}
-                />
-
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                    size="lg"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Adding Property..." : "Add Property & Create Inspection"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>

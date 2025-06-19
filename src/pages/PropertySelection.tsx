@@ -51,7 +51,7 @@ const PropertySelection = () => {
     staleTime: 30000,
   });
 
-  const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError } = useQuery({
+  const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useQuery({
     queryKey: ['inspections'],
     queryFn: async () => {
       console.log('📊 Fetching inspections from database...');
@@ -79,6 +79,13 @@ const PropertySelection = () => {
     getPropertyStatus,
     isCreatingInspection
   } = usePropertySelection(inspections);
+
+  const handlePropertyDeleted = () => {
+    console.log('🔄 Property deleted, refreshing data...');
+    refetchProperties();
+    refetchInspections();
+    setSelectedProperty(null); // Clear selection if deleted property was selected
+  };
 
   // Handle errors
   if (propertiesError || inspectionsError) {
@@ -148,6 +155,7 @@ const PropertySelection = () => {
           inspections={inspections}
           selectedProperty={selectedProperty}
           onPropertySelect={setSelectedProperty}
+          onPropertyDeleted={handlePropertyDeleted}
           getPropertyStatus={getPropertyStatus}
         />
 

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ExternalLink } from "lucide-react";
+import { PropertyActions } from "@/components/PropertyActions";
 
 interface Property {
   id: string;
@@ -23,12 +24,13 @@ interface PropertyCardProps {
   status: PropertyStatus;
   isSelected: boolean;
   onSelect: (propertyId: string) => void;
+  onPropertyDeleted: () => void;
 }
 
-export const PropertyCard = ({ property, status, isSelected, onSelect }: PropertyCardProps) => {
+export const PropertyCard = ({ property, status, isSelected, onSelect, onPropertyDeleted }: PropertyCardProps) => {
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't select the property if user clicked on a link
-    if ((e.target as HTMLElement).closest('a')) {
+    // Don't select the property if user clicked on a link or actions menu
+    if ((e.target as HTMLElement).closest('a') || (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
       return;
     }
     onSelect(property.id);
@@ -67,9 +69,15 @@ export const PropertyCard = ({ property, status, isSelected, onSelect }: Propert
               {property.address}
             </CardDescription>
           </div>
-          <Badge className={`${status.color} text-white`}>
-            {status.text}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={`${status.color} text-white`}>
+              {status.text}
+            </Badge>
+            <PropertyActions 
+              property={property} 
+              onPropertyDeleted={onPropertyDeleted}
+            />
+          </div>
         </div>
       </CardHeader>
       
