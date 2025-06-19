@@ -48,7 +48,7 @@ const PropertySelection = () => {
       return data as Property[];
     },
     retry: 2,
-    staleTime: 30000,
+    staleTime: 0, // Always refetch to ensure fresh data
   });
 
   const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useQuery({
@@ -69,7 +69,7 @@ const PropertySelection = () => {
       return data as Inspection[];
     },
     retry: 2,
-    staleTime: 30000,
+    staleTime: 0, // Always refetch to ensure fresh data
   });
 
   const {
@@ -81,18 +81,35 @@ const PropertySelection = () => {
   } = usePropertySelection(inspections);
 
   const handlePropertyDeleted = async () => {
-    console.log('🔄 Property deleted, refreshing data...');
+    console.log('🔄 Property deleted, performing comprehensive data refresh...');
     
-    // Clear selection immediately if the deleted property was selected
+    // Clear selection immediately
     setSelectedProperty(null);
     
-    // Force immediate refresh of both properties and inspections
-    await Promise.all([
-      refetchProperties(),
-      refetchInspections()
-    ]);
-    
-    console.log('✅ Data refresh completed after property deletion');
+    try {
+      // Force immediate refresh of both properties and inspections with fresh data
+      await Promise.all([
+        refetchProperties(),
+        refetchInspections()
+      ]);
+      
+      console.log('✅ Data refresh completed successfully after property deletion');
+    } catch (error) {
+      console.error('❌ Error during data refresh:', error);
+      // Force a hard refresh if normal refetch fails
+      window.location.reload();
+    }
+  };
+
+  const handleRetry = async () => {
+    try {
+      await Promise.all([
+        refetchProperties(),
+        refetchInspections()
+      ]);
+    } catch (error) {
+      console.error('❌ Retry failed:', error);
+    }
   };
 
   // Handle errors
@@ -110,7 +127,7 @@ const PropertySelection = () => {
           <p className="text-gray-600 mb-4">
             {error?.message || 'Failed to load properties and inspections.'}
           </p>
-          <Button onClick={() => refetchProperties()} className="w-full">
+          <Button onClick={handleRetry} className="w-full">
             Try Again
           </Button>
         </div>

@@ -49,10 +49,10 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    console.log('🗑️ Starting property deletion process for:', property.id);
+    console.log('🗑️ Starting comprehensive property deletion for:', property.id);
 
     try {
-      // First, get all inspections for this property
+      // Step 1: Get all inspections for this property
       const { data: inspections, error: inspectionsQueryError } = await supabase
         .from('inspections')
         .select('id')
@@ -65,11 +65,41 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
 
       console.log('📋 Found inspections to delete:', inspections?.length || 0);
 
-      // Delete checklist items for all inspections
       if (inspections && inspections.length > 0) {
         const inspectionIds = inspections.map(i => i.id);
         
-        console.log('🗂️ Deleting checklist items for inspections:', inspectionIds);
+        // Step 2: Get all checklist items for these inspections
+        const { data: checklistItems, error: checklistQueryError } = await supabase
+          .from('checklist_items')
+          .select('id')
+          .in('inspection_id', inspectionIds);
+
+        if (checklistQueryError) {
+          console.error('❌ Error querying checklist items:', checklistQueryError);
+          throw checklistQueryError;
+        }
+
+        console.log('📝 Found checklist items to delete:', checklistItems?.length || 0);
+
+        // Step 3: Delete media files for checklist items
+        if (checklistItems && checklistItems.length > 0) {
+          const checklistItemIds = checklistItems.map(ci => ci.id);
+          
+          console.log('🎬 Deleting media for checklist items...');
+          const { error: mediaError } = await supabase
+            .from('media')
+            .delete()
+            .in('checklist_item_id', checklistItemIds);
+
+          if (mediaError) {
+            console.error('❌ Error deleting media:', mediaError);
+            throw mediaError;
+          }
+          console.log('✅ Media deleted successfully');
+        }
+
+        // Step 4: Delete checklist items
+        console.log('🗂️ Deleting checklist items...');
         const { error: checklistItemsError } = await supabase
           .from('checklist_items')
           .delete()
@@ -79,12 +109,37 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
           console.error('❌ Error deleting checklist items:', checklistItemsError);
           throw checklistItemsError;
         }
-
         console.log('✅ Checklist items deleted successfully');
       }
 
-      // Delete all related inspections
-      console.log('🗂️ Deleting inspections for property:', property.id);
+      // Step 5: Delete listing photos for this property
+      console.log('📸 Deleting listing photos...');
+      const { error: listingPhotosError } = await supabase
+        .from('listing_photos')
+        .delete()
+        .eq('property_id', property.id);
+
+      if (listingPhotosError) {
+        console.error('❌ Error deleting listing photos:', listingPhotosError);
+        throw listingPhotosError;
+      }
+      console.log('✅ Listing photos deleted successfully');
+
+      // Step 6: Delete webhook notifications for this property
+      console.log('🔔 Deleting webhook notifications...');
+      const { error: webhookError } = await supabase
+        .from('webhook_notifications')
+        .delete()
+        .eq('property_id', property.id);
+
+      if (webhookError) {
+        console.error('❌ Error deleting webhook notifications:', webhookError);
+        throw webhookError;
+      }
+      console.log('✅ Webhook notifications deleted successfully');
+
+      // Step 7: Delete all inspections for this property
+      console.log('🔍 Deleting inspections...');
       const { error: inspectionsError } = await supabase
         .from('inspections')
         .delete()
@@ -94,11 +149,10 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
         console.error('❌ Error deleting inspections:', inspectionsError);
         throw inspectionsError;
       }
-
       console.log('✅ Inspections deleted successfully');
 
-      // Finally, delete the property
-      console.log('🏠 Deleting property:', property.id);
+      // Step 8: Finally, delete the property itself
+      console.log('🏠 Deleting property...');
       const { error: propertyError } = await supabase
         .from('properties')
         .delete()
@@ -109,21 +163,21 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
         throw propertyError;
       }
 
-      console.log('✅ Property deleted successfully');
+      console.log('✅ Property deleted successfully!');
       
       toast({
         title: "Property Deleted",
-        description: "The property and all associated data have been removed successfully.",
+        description: "The property and all associated data have been permanently removed.",
       });
 
       // Trigger UI refresh
       onPropertyDeleted();
       
     } catch (error) {
-      console.error('💥 Failed to delete property:', error);
+      console.error('💥 Comprehensive deletion failed:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete property. Please try again.",
+        title: "Deletion Failed",
+        description: `Failed to delete property: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -174,17 +228,17 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Property</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{property.name}"? This action cannot be undone and will permanently remove the property, all associated inspections, and checklist items.
+              Are you sure you want to delete "{property.name}"? This action cannot be undone and will permanently remove the property and ALL associated data including inspections, checklist items, media files, and notifications.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
