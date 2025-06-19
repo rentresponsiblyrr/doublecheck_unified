@@ -358,6 +358,36 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          response: string | null
+          sent_at: string | null
+          status: string | null
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          response?: string | null
+          sent_at?: string | null
+          status?: string | null
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          response?: string | null
+          sent_at?: string | null
+          status?: string | null
+          webhook_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

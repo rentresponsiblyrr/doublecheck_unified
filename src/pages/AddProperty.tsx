@@ -21,6 +21,80 @@ interface PropertyFormData {
   notes?: string;
 }
 
+// Webhook notification function
+const sendWebhookNotification = async (propertyData: any) => {
+  try {
+    console.log('Sending webhook notification for property:', propertyData.id);
+    
+    // Log the notification attempt
+    const { error: logError } = await supabase
+      .from('webhook_notifications')
+      .insert({
+        property_id: propertyData.id,
+        webhook_url: 'https://hook.eu2.make.com/3h8a4vv5fzf3tcxpho1ypxfvp10cdkzp',
+        status: 'sending'
+      });
+
+    if (logError) {
+      console.error('Error logging webhook notification:', logError);
+    }
+
+    // Send the webhook
+    const webhookPayload = {
+      event: 'property_inserted',
+      timestamp: new Date().toISOString(),
+      property: {
+        id: propertyData.id,
+        name: propertyData.name,
+        address: propertyData.address,
+        vrbo_url: propertyData.vrbo_url,
+        airbnb_url: propertyData.airbnb_url,
+        status: propertyData.status,
+        created_at: propertyData.created_at,
+        added_by: propertyData.added_by
+      }
+    };
+
+    const response = await fetch('https://hook.eu2.make.com/3h8a4vv5fzf3tcxpho1ypxfvp10cdkzp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookPayload)
+    });
+
+    // Update the notification status
+    const status = response.ok ? 'success' : 'failed';
+    const responseText = await response.text();
+    
+    await supabase
+      .from('webhook_notifications')
+      .update({
+        status,
+        response: responseText,
+        sent_at: new Date().toISOString()
+      })
+      .eq('property_id', propertyData.id)
+      .eq('status', 'sending');
+
+    console.log('Webhook notification sent successfully:', status);
+    
+  } catch (error) {
+    console.error('Error sending webhook notification:', error);
+    
+    // Update status to failed
+    await supabase
+      .from('webhook_notifications')
+      .update({
+        status: 'failed',
+        response: error instanceof Error ? error.message : 'Unknown error',
+        sent_at: new Date().toISOString()
+      })
+      .eq('property_id', propertyData.id)
+      .eq('status', 'sending');
+  }
+};
+
 const AddProperty = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +152,11 @@ const AddProperty = () => {
       }
 
       console.log('Inspection created:', inspection);
+
+      // Send webhook notification asynchronously (don't await to avoid blocking)
+      sendWebhookNotification(property).catch(error => {
+        console.error('Webhook notification failed, but property was created successfully:', error);
+      });
 
       toast.success("Property added successfully!");
       
