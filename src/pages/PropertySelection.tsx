@@ -5,6 +5,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { PropertyList } from "@/components/PropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
+import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
 
 interface Property {
@@ -97,6 +98,10 @@ const PropertySelection = () => {
           onPropertySelect={setSelectedProperty}
           getPropertyStatus={getPropertyStatus}
         />
+
+        <div className="mt-6">
+          <AddPropertyButton />
+        </div>
 
         {selectedProperty && (
           <StartInspectionButton onStartInspection={handleStartInspection} />

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PropertySelection from "./pages/PropertySelection";
+import AddProperty from "./pages/AddProperty";
 import Inspection from "./pages/Inspection";
 import InspectionComplete from "./pages/InspectionComplete";
 import NotFound from "./pages/NotFound";
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<PropertySelection />} />
+          <Route path="/add-property" element={<AddProperty />} />
           <Route path="/inspection/:inspectionId" element={<Inspection />} />
           <Route path="/inspection/:inspectionId/complete" element={<InspectionComplete />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
