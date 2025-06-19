@@ -28,40 +28,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch user role
-  const fetchUserRole = async (userId: string) => {
+  // Function to fetch user role with error handling and timeout
+  const fetchUserRole = async (userId: string): Promise<string | null> => {
     try {
-      console.log('Fetching user role for:', userId);
-      const { data, error } = await supabase.rpc('get_user_roles', { 
+      console.log('🔍 Fetching user role for:', userId);
+      
+      // Create a timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Role fetch timeout')), 10000); // 10 second timeout
+      });
+
+      // Race the actual fetch against the timeout
+      const fetchPromise = supabase.rpc('get_user_roles', { 
         _user_id: userId 
       });
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
       
       if (error) {
-        console.error('Error fetching user role:', error);
-        return null;
+        console.error('❌ Error fetching user role:', error);
+        return 'inspector'; // Default fallback role
       }
       
-      console.log('User roles:', data);
-      // Return the first role if multiple exist
-      return data && data.length > 0 ? data[0] : null;
+      console.log('✅ User roles fetched:', data);
+      // Return the first role if multiple exist, or default to inspector
+      return data && data.length > 0 ? data[0] : 'inspector';
     } catch (error) {
-      console.error('Error in fetchUserRole:', error);
-      return null;
+      console.error('💥 Error in fetchUserRole:', error);
+      return 'inspector'; // Default fallback role
     }
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const role = await fetchUserRole(session.user.id);
-        setUserRole(role);
+      try {
+        console.log('🔍 Getting initial session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('👤 User found, fetching role...');
+          const role = await fetchUserRole(session.user.id);
+          if (isMounted) {
+            setUserRole(role);
+          }
+        }
+        
+        if (isMounted) {
+          console.log('✅ Initial session setup complete');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('💥 Error getting initial session:', error);
+        if (isMounted) {
+          setLoading(false); // Always resolve loading state
+        }
       }
-      
-      setLoading(false);
     };
 
     getSession();
@@ -69,22 +97,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        if (!isMounted) return;
+        
+        console.log('🔄 Auth state changed:', event, session?.user?.email);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('👤 User authenticated, fetching role...');
           // Fetch role for the user
           const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
+          if (isMounted) {
+            setUserRole(role);
+          }
         } else {
-          setUserRole(null);
+          if (isMounted) {
+            setUserRole(null);
+          }
         }
         
-        setLoading(false);
+        if (isMounted) {
+          console.log('✅ Auth state change complete');
+          setLoading(false); // Always resolve loading state
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -96,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    console.log('Signing up user with email:', email);
+    console.log('📝 Signing up user with email:', email);
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -107,9 +149,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     
     if (error) {
-      console.error('Signup error:', error);
+      console.error('❌ Signup error:', error);
     } else {
-      console.log('Signup successful - role will be assigned automatically');
+      console.log('✅ Signup successful - role will be assigned automatically');
     }
     
     return { error };
@@ -130,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   if (loading) {
+    console.log('⏳ AuthProvider still loading...');
     return <LoadingSpinner />;
   }
 
