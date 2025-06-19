@@ -80,11 +80,19 @@ const PropertySelection = () => {
     isCreatingInspection
   } = usePropertySelection(inspections);
 
-  const handlePropertyDeleted = () => {
+  const handlePropertyDeleted = async () => {
     console.log('🔄 Property deleted, refreshing data...');
-    refetchProperties();
-    refetchInspections();
-    setSelectedProperty(null); // Clear selection if deleted property was selected
+    
+    // Clear selection immediately if the deleted property was selected
+    setSelectedProperty(null);
+    
+    // Force immediate refresh of both properties and inspections
+    await Promise.all([
+      refetchProperties(),
+      refetchInspections()
+    ]);
+    
+    console.log('✅ Data refresh completed after property deletion');
   };
 
   // Handle errors

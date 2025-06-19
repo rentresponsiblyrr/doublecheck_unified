@@ -49,10 +49,42 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    console.log('🗑️ Deleting property:', property.id);
+    console.log('🗑️ Starting property deletion process for:', property.id);
 
     try {
-      // First, delete any related inspections
+      // First, get all inspections for this property
+      const { data: inspections, error: inspectionsQueryError } = await supabase
+        .from('inspections')
+        .select('id')
+        .eq('property_id', property.id);
+
+      if (inspectionsQueryError) {
+        console.error('❌ Error querying inspections:', inspectionsQueryError);
+        throw inspectionsQueryError;
+      }
+
+      console.log('📋 Found inspections to delete:', inspections?.length || 0);
+
+      // Delete checklist items for all inspections
+      if (inspections && inspections.length > 0) {
+        const inspectionIds = inspections.map(i => i.id);
+        
+        console.log('🗂️ Deleting checklist items for inspections:', inspectionIds);
+        const { error: checklistItemsError } = await supabase
+          .from('checklist_items')
+          .delete()
+          .in('inspection_id', inspectionIds);
+
+        if (checklistItemsError) {
+          console.error('❌ Error deleting checklist items:', checklistItemsError);
+          throw checklistItemsError;
+        }
+
+        console.log('✅ Checklist items deleted successfully');
+      }
+
+      // Delete all related inspections
+      console.log('🗂️ Deleting inspections for property:', property.id);
       const { error: inspectionsError } = await supabase
         .from('inspections')
         .delete()
@@ -63,7 +95,10 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
         throw inspectionsError;
       }
 
-      // Then delete the property
+      console.log('✅ Inspections deleted successfully');
+
+      // Finally, delete the property
+      console.log('🏠 Deleting property:', property.id);
       const { error: propertyError } = await supabase
         .from('properties')
         .delete()
@@ -78,10 +113,12 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
       
       toast({
         title: "Property Deleted",
-        description: "The property has been removed successfully.",
+        description: "The property and all associated data have been removed successfully.",
       });
 
+      // Trigger UI refresh
       onPropertyDeleted();
+      
     } catch (error) {
       console.error('💥 Failed to delete property:', error);
       toast({
@@ -137,7 +174,7 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Property</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{property.name}"? This action cannot be undone and will also delete any associated inspections.
+              Are you sure you want to delete "{property.name}"? This action cannot be undone and will permanently remove the property, all associated inspections, and checklist items.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
