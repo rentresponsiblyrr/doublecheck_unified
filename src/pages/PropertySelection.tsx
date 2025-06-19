@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PropertyHeader } from "@/components/PropertyHeader";
-import { PropertyCard } from "@/components/PropertyCard";
-import { EmptyPropertiesState } from "@/components/EmptyPropertiesState";
+import { PropertyList } from "@/components/PropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
 
@@ -91,26 +90,13 @@ const PropertySelection = () => {
           </p>
         </div>
 
-        {properties.length === 0 ? (
-          <EmptyPropertiesState />
-        ) : (
-          <div className="space-y-4">
-            {properties.map((property) => {
-              const status = getPropertyStatus(property.id);
-              const isSelected = selectedProperty === property.id;
-              
-              return (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  status={status}
-                  isSelected={isSelected}
-                  onSelect={setSelectedProperty}
-                />
-              );
-            })}
-          </div>
-        )}
+        <PropertyList
+          properties={properties}
+          inspections={inspections}
+          selectedProperty={selectedProperty}
+          onPropertySelect={setSelectedProperty}
+          getPropertyStatus={getPropertyStatus}
+        />
 
         {selectedProperty && (
           <StartInspectionButton onStartInspection={handleStartInspection} />
