@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Camera, Video, Upload, AlertCircle, CheckCircle } from "lucide-react";
 import { uploadMedia, saveMediaRecord, updateChecklistItemStatus } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { PhotoCaptureGuide } from "@/components/PhotoCaptureGuide";
+import { useOfflineStorage } from "@/hooks/useOfflineStorage";
 
 interface MediaUploaderProps {
   evidenceType: 'photo' | 'video';
@@ -13,6 +15,8 @@ interface MediaUploaderProps {
   checklistItemId: string;
   inspectionId: string;
   onComplete: () => void;
+  category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
+  label: string;
 }
 
 export const MediaUploader = ({ 
@@ -22,10 +26,13 @@ export const MediaUploader = ({
   uploadedUrl,
   checklistItemId,
   inspectionId,
-  onComplete
+  onComplete,
+  category,
+  label
 }: MediaUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { isOnline, savePhotoOffline } = useOfflineStorage();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,11 +69,30 @@ export const MediaUploader = ({
       // Call the onUpload prop to set loading state
       onUpload(file);
       
+      // If offline, save photo locally
+      if (!isOnline && evidenceType === 'photo') {
+        await savePhotoOffline(file, checklistItemId, inspectionId);
+        onComplete();
+        return;
+      }
+      
       // Upload to Supabase Storage
       const uploadResult = await uploadMedia(file, inspectionId, checklistItemId);
       
       if (uploadResult.error) {
         console.error('Upload failed:', uploadResult.error);
+        
+        // If upload fails and it's a photo, try saving offline
+        if (evidenceType === 'photo') {
+          await savePhotoOffline(file, checklistItemId, inspectionId);
+          toast({
+            title: "Saved offline",
+            description: "Upload failed, but photo saved locally for later sync.",
+          });
+          onComplete();
+          return;
+        }
+        
         toast({
           title: "Upload failed",
           description: uploadResult.error,
@@ -100,6 +126,22 @@ export const MediaUploader = ({
       
     } catch (error) {
       console.error('Error in file upload process:', error);
+      
+      // If error and it's a photo, try saving offline as fallback
+      if (evidenceType === 'photo') {
+        try {
+          await savePhotoOffline(file, checklistItemId, inspectionId);
+          toast({
+            title: "Saved offline",
+            description: "Upload failed, but photo saved locally for later sync.",
+          });
+          onComplete();
+          return;
+        } catch (offlineError) {
+          console.error('Offline save also failed:', offlineError);
+        }
+      }
+      
       toast({
         title: "Upload failed",
         description: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -115,7 +157,12 @@ export const MediaUploader = ({
   const maxFileSize = "10MB";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Photo Guidelines - only show for photos */}
+      {evidenceType === 'photo' && (
+        <PhotoCaptureGuide category={category} label={label} />
+      )}
+      
       <input
         ref={fileInputRef}
         type="file"
@@ -126,7 +173,7 @@ export const MediaUploader = ({
         disabled={isUploading}
       />
       
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
           <div className="flex flex-col items-center gap-3">
             {evidenceType === 'photo' ? (
@@ -141,6 +188,11 @@ export const MediaUploader = ({
               <p className="text-sm text-blue-600">
                 Add evidence for this inspection item
               </p>
+              {!isOnline && evidenceType === 'photo' && (
+                <p className="text-xs text-yellow-600 mt-1">
+                  📱 Offline mode: Photo will be saved locally
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -153,7 +205,7 @@ export const MediaUploader = ({
           {isUploading ? (
             <>
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-              Uploading...
+              {isOnline ? 'Uploading...' : 'Saving offline...'}
             </>
           ) : (
             <>

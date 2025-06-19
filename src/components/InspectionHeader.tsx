@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { InspectionProgress } from "@/components/InspectionProgress";
 import { UserMenu } from "@/components/UserMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ChecklistItemType } from "@/types/inspection";
 
 interface InspectionHeaderProps {
@@ -52,7 +53,8 @@ export const InspectionHeader = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <OfflineIndicator />
           <div className="text-right hidden sm:block">
             <div className="text-sm font-medium text-blue-600">DoubleCheck</div>
             <div className="text-xs text-gray-500">Powered by Rent Responsibly</div>

@@ -142,6 +142,8 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             checklistItemId={item.id}
             inspectionId={item.inspection_id}
             onComplete={onComplete}
+            category={item.category}
+            label={item.label}
           />
         </div>
 
