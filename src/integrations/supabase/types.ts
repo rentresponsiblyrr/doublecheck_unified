@@ -19,6 +19,7 @@ export type Database = {
           inspection_id: string | null
           label: string | null
           notes: string | null
+          source_photo_url: string | null
           static_item_id: string | null
           status: string | null
         }
@@ -31,6 +32,7 @@ export type Database = {
           inspection_id?: string | null
           label?: string | null
           notes?: string | null
+          source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
         }
@@ -43,6 +45,7 @@ export type Database = {
           inspection_id?: string | null
           label?: string | null
           notes?: string | null
+          source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
         }
@@ -65,6 +68,7 @@ export type Database = {
       }
       inspections: {
         Row: {
+          certification_status: string | null
           completed: boolean | null
           end_time: string | null
           id: string
@@ -73,6 +77,7 @@ export type Database = {
           start_time: string | null
         }
         Insert: {
+          certification_status?: string | null
           completed?: boolean | null
           end_time?: string | null
           id?: string
@@ -81,6 +86,7 @@ export type Database = {
           start_time?: string | null
         }
         Update: {
+          certification_status?: string | null
           completed?: boolean | null
           end_time?: string | null
           id?: string
@@ -91,6 +97,45 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "inspections_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_photos: {
+        Row: {
+          created_at: string | null
+          id: string
+          inspection_id: string | null
+          property_id: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inspection_id?: string | null
+          property_id?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inspection_id?: string | null
+          property_id?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_photos_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_photos_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
