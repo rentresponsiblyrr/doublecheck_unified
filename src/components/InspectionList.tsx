@@ -21,16 +21,16 @@ export const InspectionList = ({
   onCategoryChange,
   inspectionId
 }: InspectionListProps) => {
-  // Show AddItem component if no items exist at all
+  // Show welcome state if no items exist at all
   if (items.length === 0 && !showCompleted && !selectedCategory) {
     return (
       <div className="space-y-6">
         <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No Checklist Items Yet
+            Welcome to Your Inspection
           </h3>
           <p className="text-gray-600 mb-6">
-            Get started by adding your first checklist item for this inspection.
+            Start by adding checklist items to begin your property inspection. You can add safety checks, amenity verifications, cleanliness assessments, and maintenance items.
           </p>
         </div>
         <AddItem inspectionId={inspectionId} onItemAdded={onComplete} />

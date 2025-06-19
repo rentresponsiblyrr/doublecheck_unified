@@ -7,5 +7,10 @@ interface InspectionProgressProps {
 }
 
 export const InspectionProgress = ({ items }: InspectionProgressProps) => {
+  // Only show progress indicator if there are items
+  if (items.length === 0) {
+    return null;
+  }
+
   return <EnhancedProgressIndicator items={items} />;
 };

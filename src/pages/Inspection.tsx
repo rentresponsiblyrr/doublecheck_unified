@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { InspectionLayout } from "@/components/InspectionLayout";
 import { InspectionFilters } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useInspectionData } from "@/hooks/useInspectionData";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +34,7 @@ const Inspection = () => {
 
   const { 
     checklistItems, 
-    isLoading, 
+    isLoading,
     refetch, 
     isRefetching
   } = useInspectionData(inspectionId);
@@ -88,10 +87,6 @@ const Inspection = () => {
       });
     }
   };
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <InspectionLayout

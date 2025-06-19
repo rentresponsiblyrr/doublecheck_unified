@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
@@ -36,16 +36,17 @@ export const useInspectionData = (inspectionId: string) => {
     },
     refetchOnWindowFocus: false,
     staleTime: 30000, // 30 seconds
+    retry: false, // Don't retry failed requests
   });
 
-  // Regular refresh for existing items
+  // Only set up periodic refresh if we have items to refresh
   useEffect(() => {
     if (checklistItems.length > 0) {
       const interval = setInterval(() => {
         if (!isRefetching) {
           refetch();
         }
-      }, 30000);
+      }, 60000); // Reduced frequency to 60 seconds
 
       return () => clearInterval(interval);
     }
