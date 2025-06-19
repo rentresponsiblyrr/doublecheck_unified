@@ -4,19 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { InspectionProgress } from "@/components/InspectionProgress";
 import { UserMenu } from "@/components/UserMenu";
+import { ChecklistItemType } from "@/types/inspection";
 
 interface InspectionHeaderProps {
+  inspectionId: string;
   propertyName?: string;
   propertyAddress?: string;
   completedCount: number;
   totalCount: number;
+  showCompleted: boolean;
+  onToggleCompleted: () => void;
+  checklistItems: ChecklistItemType[];
 }
 
 export const InspectionHeader = ({ 
+  inspectionId,
   propertyName, 
   propertyAddress, 
   completedCount, 
-  totalCount 
+  totalCount,
+  showCompleted,
+  onToggleCompleted,
+  checklistItems
 }: InspectionHeaderProps) => {
   const navigate = useNavigate();
 
@@ -52,10 +61,7 @@ export const InspectionHeader = ({
         </div>
       </div>
       
-      <InspectionProgress 
-        completed={completedCount} 
-        total={totalCount}
-      />
+      <InspectionProgress items={checklistItems} />
     </div>
   );
 };
