@@ -8,6 +8,7 @@ interface Property {
   name: string;
   address: string;
   vrbo_url: string | null;
+  airbnb_url: string | null;
   status: string | null;
 }
 
@@ -25,12 +26,37 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard = ({ property, status, isSelected, onSelect }: PropertyCardProps) => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't select the property if user clicked on a link
+    if ((e.target as HTMLElement).closest('a')) {
+      return;
+    }
+    onSelect(property.id);
+  };
+
+  const handleLinkClick = (e: React.MouseEvent, url: string) => {
+    e.stopPropagation();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const getListingInfo = () => {
+    if (property.vrbo_url) {
+      return { url: property.vrbo_url, platform: 'Vrbo' };
+    }
+    if (property.airbnb_url) {
+      return { url: property.airbnb_url, platform: 'Airbnb' };
+    }
+    return null;
+  };
+
+  const listingInfo = getListingInfo();
+
   return (
     <Card 
       className={`cursor-pointer transition-all hover:shadow-md ${
         isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
       }`}
-      onClick={() => onSelect(property.id)}
+      onClick={handleCardClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -48,11 +74,14 @@ export const PropertyCard = ({ property, status, isSelected, onSelect }: Propert
       </CardHeader>
       
       <CardContent className="pt-0">
-        {property.vrbo_url && (
-          <div className="flex items-center gap-2 text-sm text-blue-600">
+        {listingInfo && (
+          <button
+            onClick={(e) => handleLinkClick(e, listingInfo.url)}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors p-2 -m-2 rounded hover:bg-blue-50"
+          >
             <ExternalLink className="w-4 h-4" />
-            <span>View Vrbo Listing</span>
-          </div>
+            <span>View {listingInfo.platform} Listing</span>
+          </button>
         )}
       </CardContent>
     </Card>

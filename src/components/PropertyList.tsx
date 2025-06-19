@@ -7,6 +7,7 @@ interface Property {
   name: string;
   address: string;
   vrbo_url: string | null;
+  airbnb_url: string | null;
   status: string | null;
 }
 

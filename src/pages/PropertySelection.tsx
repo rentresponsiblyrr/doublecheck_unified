@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -13,6 +12,7 @@ interface Property {
   name: string;
   address: string;
   vrbo_url: string | null;
+  airbnb_url: string | null;
   status: string | null;
 }
 
@@ -31,7 +31,7 @@ const PropertySelection = () => {
       
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select('id, name, address, vrbo_url, airbnb_url, status')
         .order('created_at', { ascending: false });
       
       if (error) {
