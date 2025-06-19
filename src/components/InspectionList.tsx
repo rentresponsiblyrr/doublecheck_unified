@@ -1,5 +1,6 @@
 
 import { ChecklistItem } from "@/components/ChecklistItem";
+import { AddItem } from "@/components/AddItem";
 import { Button } from "@/components/ui/button";
 import { ChecklistItemType } from "@/types/inspection";
 
@@ -9,6 +10,7 @@ interface InspectionListProps {
   selectedCategory: string | null;
   onComplete: () => void;
   onCategoryChange: (category: string | null) => void;
+  inspectionId: string;
 }
 
 export const InspectionList = ({
@@ -16,28 +18,52 @@ export const InspectionList = ({
   showCompleted,
   selectedCategory,
   onComplete,
-  onCategoryChange
+  onCategoryChange,
+  inspectionId
 }: InspectionListProps) => {
+  // Show AddItem component if no items exist at all
+  if (items.length === 0 && !showCompleted && !selectedCategory) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No Checklist Items Yet
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Get started by adding your first checklist item for this inspection.
+          </p>
+        </div>
+        <AddItem inspectionId={inspectionId} onItemAdded={onComplete} />
+      </div>
+    );
+  }
+
+  // Show filtered empty states
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
-        <p className="text-gray-500 text-lg">
-          {showCompleted 
-            ? "No completed items yet" 
-            : selectedCategory 
-              ? `No ${selectedCategory} items remaining`
-              : "All items completed! 🎉"
-          }
-        </p>
-        {!showCompleted && selectedCategory && (
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => onCategoryChange(null)}
-          >
-            View All Items
-          </Button>
-        )}
+      <div className="space-y-6">
+        <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
+          <p className="text-gray-500 text-lg mb-4">
+            {showCompleted 
+              ? "No completed items yet" 
+              : selectedCategory 
+                ? `No ${selectedCategory} items remaining`
+                : "All items completed! 🎉"
+            }
+          </p>
+          {!showCompleted && selectedCategory && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => onCategoryChange(null)}
+            >
+              View All Items
+            </Button>
+          )}
+        </div>
+        
+        {/* Allow adding more items even when filtered */}
+        <AddItem inspectionId={inspectionId} onItemAdded={onComplete} />
       </div>
     );
   }
@@ -51,6 +77,11 @@ export const InspectionList = ({
           onComplete={onComplete}
         />
       ))}
+      
+      {/* Always show AddItem at the bottom when there are existing items */}
+      <div className="pt-6">
+        <AddItem inspectionId={inspectionId} onItemAdded={onComplete} />
+      </div>
     </div>
   );
 };

@@ -5,11 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
 
 export const useInspectionData = (inspectionId: string) => {
-  const [pollCount, setPollCount] = useState(0);
-  const maxPollAttempts = 20; // Poll for up to 10 minutes (30s intervals)
-
   const { data: checklistItems = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['checklist-items', inspectionId, pollCount],
+    queryKey: ['checklist-items', inspectionId],
     queryFn: async () => {
       console.log('Fetching checklist items from Supabase...');
       
@@ -41,18 +38,6 @@ export const useInspectionData = (inspectionId: string) => {
     staleTime: 30000, // 30 seconds
   });
 
-  // Auto-polling when no checklist items are found
-  useEffect(() => {
-    if (checklistItems.length === 0 && !isLoading && pollCount < maxPollAttempts) {
-      const timer = setTimeout(() => {
-        console.log(`Polling for checklist items (attempt ${pollCount + 1}/${maxPollAttempts})`);
-        setPollCount(prev => prev + 1);
-      }, 30000); // Poll every 30 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, [checklistItems.length, isLoading, pollCount, maxPollAttempts]);
-
   // Regular refresh for existing items
   useEffect(() => {
     if (checklistItems.length > 0) {
@@ -66,17 +51,10 @@ export const useInspectionData = (inspectionId: string) => {
     }
   }, [refetch, isRefetching, checklistItems.length]);
 
-  const isGeneratingChecklist = checklistItems.length === 0 && pollCount < maxPollAttempts;
-  const hasTimedOut = pollCount >= maxPollAttempts && checklistItems.length === 0;
-
   return {
     checklistItems,
     isLoading,
     refetch,
-    isRefetching,
-    isGeneratingChecklist,
-    hasTimedOut,
-    pollCount,
-    maxPollAttempts
+    isRefetching
   };
 };
