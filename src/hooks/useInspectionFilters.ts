@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 
-export type FilterStatus = 'all' | 'pending' | 'completed' | 'failed';
+export type FilterStatus = 'all' | 'completed' | 'pending';
 
 export const useInspectionFilters = (items: ChecklistItemType[]) => {
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
@@ -15,12 +15,10 @@ export const useInspectionFilters = (items: ChecklistItemType[]) => {
     if (statusFilter !== 'all') {
       filtered = filtered.filter(item => {
         switch (statusFilter) {
-          case 'pending':
-            return item.status === 'pending';
           case 'completed':
             return item.status === 'completed';
-          case 'failed':
-            return item.status === 'failed';
+          case 'pending':
+            return item.status === null || item.status === undefined;
           default:
             return true;
         }
@@ -31,7 +29,7 @@ export const useInspectionFilters = (items: ChecklistItemType[]) => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
-        item.description?.toLowerCase().includes(query) ||
+        item.label?.toLowerCase().includes(query) ||
         item.category?.toLowerCase().includes(query)
       );
     }

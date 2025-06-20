@@ -29,18 +29,29 @@ export const useMediaUpload = () => {
 
       console.log('📤 Uploading file:', filePath);
 
-      const { data, error } = await supabase.storage
+      // Note: Supabase doesn't support onUploadProgress in the current version
+      // We'll simulate progress for better UX
+      const uploadPromise = supabase.storage
         .from('inspection-media')
-        .upload(filePath, file, {
-          onUploadProgress: (progress) => {
-            const percentage = Math.round((progress.loaded / progress.total) * 100);
-            setUploadProgress({
-              uploaded: progress.loaded,
-              total: progress.total,
-              percentage
-            });
-          }
+        .upload(filePath, file);
+
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (!prev) return null;
+          const newPercentage = Math.min(prev.percentage + 10, 90);
+          return {
+            ...prev,
+            percentage: newPercentage,
+            uploaded: Math.round((newPercentage / 100) * file.size)
+          };
         });
+      }, 200);
+
+      const { data, error } = await uploadPromise;
+      
+      clearInterval(progressInterval);
+      setUploadProgress({ uploaded: file.size, total: file.size, percentage: 100 });
 
       if (error) {
         console.error('❌ Upload error:', error);
