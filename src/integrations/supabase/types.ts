@@ -474,6 +474,31 @@ export type Database = {
         Args: { _user_id: string; _email: string }
         Returns: undefined
       }
+      get_properties_with_inspections: {
+        Args: { _user_id?: string }
+        Returns: {
+          property_id: string
+          property_name: string
+          property_address: string
+          property_vrbo_url: string
+          property_airbnb_url: string
+          property_status: string
+          property_created_at: string
+          inspection_count: number
+          completed_inspection_count: number
+          active_inspection_count: number
+          latest_inspection_id: string
+          latest_inspection_completed: boolean
+        }[]
+      }
+      get_property_status: {
+        Args: { _completed_count: number; _active_count: number }
+        Returns: {
+          status: string
+          color: string
+          text_label: string
+        }[]
+      }
       get_user_role_simple: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

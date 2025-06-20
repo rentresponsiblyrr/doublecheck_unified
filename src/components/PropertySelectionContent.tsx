@@ -1,6 +1,6 @@
 
 import { PropertyHeader } from "@/components/PropertyHeader";
-import { PropertyList } from "@/components/PropertyList";
+import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 
@@ -33,6 +33,7 @@ interface PropertySelectionContentProps {
   };
   isCreatingInspection: boolean;
   onPropertyDeleted: () => void;
+  isLoading?: boolean;
 }
 
 export const PropertySelectionContent = ({
@@ -43,13 +44,15 @@ export const PropertySelectionContent = ({
   handleStartInspection,
   getPropertyStatus,
   isCreatingInspection,
-  onPropertyDeleted
+  onPropertyDeleted,
+  isLoading = false
 }: PropertySelectionContentProps) => {
-  console.log('🎯 PropertySelection rendering with:', {
+  console.log('🎯 PropertySelectionContent rendering with:', {
     propertiesCount: properties.length,
     inspectionsCount: inspections.length,
     selectedProperty,
-    isCreatingInspection
+    isCreatingInspection,
+    isLoading
   });
 
   return (
@@ -69,13 +72,14 @@ export const PropertySelectionContent = ({
           </p>
         </div>
 
-        <PropertyList
+        <OptimizedPropertyList
           properties={properties}
           inspections={inspections}
           selectedProperty={selectedProperty}
           onPropertySelect={setSelectedProperty}
           onPropertyDeleted={onPropertyDeleted}
           getPropertyStatus={getPropertyStatus}
+          isLoading={isLoading}
         />
 
         <div className="mt-6">

@@ -8,7 +8,7 @@ import { FastAuthProvider } from "@/components/FastAuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import PropertySelection from "./pages/PropertySelection";
+import OptimizedPropertySelection from "./pages/OptimizedPropertySelection";
 import AddProperty from "./pages/AddProperty";
 import Inspection from "./pages/Inspection";
 import InspectionComplete from "./pages/InspectionComplete";
@@ -22,11 +22,13 @@ const queryClient = new QueryClient({
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        // Retry up to 3 times for other errors
-        return failureCount < 3;
+        // Retry up to 2 times for other errors (reduced from 3)
+        return failureCount < 2;
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      staleTime: 60 * 1000, // 1 minute (reduced from 5 minutes)
+      gcTime: 5 * 60 * 1000, // 5 minutes (reduced from 10 minutes)
+      refetchOnWindowFocus: false, // Disable automatic refetch on window focus
+      refetchOnReconnect: true, // Keep refetch on reconnect for better UX
     },
   },
 });
@@ -47,7 +49,7 @@ const App = () => (
               } />
               <Route path="/properties" element={
                 <ProtectedRoute>
-                  <PropertySelection />
+                  <OptimizedPropertySelection />
                 </ProtectedRoute>
               } />
               <Route path="/add-property" element={
