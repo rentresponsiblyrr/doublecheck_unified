@@ -154,10 +154,15 @@ export const usePropertySubmissionMonitoring = () => {
       .slice(0, 5)
       .map(([error, count]) => ({ error, count }));
 
+    // Fix the arithmetic operation by ensuring both operands are numbers
+    const averageDuration = submissionsWithDuration.length > 0 
+      ? Number(totalDuration) / Number(submissionsWithDuration.length) 
+      : 0;
+
     return {
       totalSubmissions: recentSubmissions.length,
       successRate: (successCount / recentSubmissions.length) * 100,
-      averageDuration: submissionsWithDuration.length > 0 ? totalDuration / submissionsWithDuration.length : 0,
+      averageDuration,
       commonErrors
     };
   };
