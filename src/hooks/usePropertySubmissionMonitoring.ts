@@ -138,8 +138,12 @@ export const usePropertySubmissionMonitoring = () => {
 
     const successCount = recentSubmissions.filter(s => s.success).length;
     const submissionsWithDuration = recentSubmissions.filter(s => s.duration && typeof s.duration === 'number');
-    const totalDuration = submissionsWithDuration.reduce((sum, s) => {
-      return sum + (s.duration as number);
+    
+    // Calculate total duration with proper type safety
+    const totalDuration = submissionsWithDuration.reduce((sum: number, s) => {
+      const duration = s.duration;
+      // TypeScript now knows duration exists and is a number due to the filter above
+      return sum + (duration!);
     }, 0);
     
     const allErrors = recentSubmissions.flatMap(s => s.errors);
@@ -154,10 +158,9 @@ export const usePropertySubmissionMonitoring = () => {
       .slice(0, 5)
       .map(([error, count]) => ({ error, count }));
 
-    // Fix the arithmetic operation by ensuring both operands are numbers
-    const averageDuration = submissionsWithDuration.length > 0 
-      ? Number(totalDuration) / Number(submissionsWithDuration.length) 
-      : 0;
+    // Calculate average duration with explicit number types
+    const submissionCount = submissionsWithDuration.length;
+    const averageDuration = submissionCount > 0 ? totalDuration / submissionCount : 0;
 
     return {
       totalSubmissions: recentSubmissions.length,
