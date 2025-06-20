@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/components/FastAuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shield } from 'lucide-react';
 

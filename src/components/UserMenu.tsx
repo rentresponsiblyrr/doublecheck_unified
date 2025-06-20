@@ -9,11 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/AuthProvider';
-import { LogOut, User, Shield, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/components/FastAuthProvider';
+import { LogOut, User, Shield, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const UserMenu = () => {
-  const { user, userRole, signOut } = useAuth();
+  const { user, userRole, signOut, loadUserRole } = useAuth();
 
   if (!user) return null;
 
@@ -60,6 +60,10 @@ export const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={loadUserRole}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh Role
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut} className="text-red-600">
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
