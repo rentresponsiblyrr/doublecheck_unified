@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 interface SubmissionMetrics {
@@ -136,9 +137,8 @@ export const usePropertySubmissionMonitoring = () => {
     }
 
     const successCount = recentSubmissions.filter(s => s.success).length;
-    const totalDuration = recentSubmissions
-      .filter(s => s.duration)
-      .reduce((sum, s) => sum + (s.duration || 0), 0);
+    const submissionsWithDuration = recentSubmissions.filter(s => s.duration && typeof s.duration === 'number');
+    const totalDuration = submissionsWithDuration.reduce((sum, s) => sum + (s.duration || 0), 0);
     
     const allErrors = recentSubmissions.flatMap(s => s.errors);
     const errorCounts = allErrors.reduce((acc, errorEntry) => {
@@ -155,7 +155,7 @@ export const usePropertySubmissionMonitoring = () => {
     return {
       totalSubmissions: recentSubmissions.length,
       successRate: (successCount / recentSubmissions.length) * 100,
-      averageDuration: totalDuration / recentSubmissions.filter(s => s.duration).length,
+      averageDuration: submissionsWithDuration.length > 0 ? totalDuration / submissionsWithDuration.length : 0,
       commonErrors
     };
   };

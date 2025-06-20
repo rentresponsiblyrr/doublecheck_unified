@@ -6,18 +6,21 @@ export interface SubmissionDebugInfo {
     code?: string;
     details?: string;
     hint?: string;
+    attempts?: number;
     duration: number;
     timestamp: string;
   };
   unexpectedSubmitError?: {
     error: string;
     stack?: string;
+    attempts?: number;
     duration: number;
     timestamp: string;
   };
   submitSuccess?: {
     operation: 'update' | 'insert';
     propertyId?: string;
+    attempts?: number;
     duration: number;
     timestamp: string;
   };
