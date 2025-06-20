@@ -138,7 +138,9 @@ export const usePropertySubmissionMonitoring = () => {
 
     const successCount = recentSubmissions.filter(s => s.success).length;
     const submissionsWithDuration = recentSubmissions.filter(s => s.duration && typeof s.duration === 'number');
-    const totalDuration = submissionsWithDuration.reduce((sum, s) => sum + (s.duration || 0), 0);
+    const totalDuration = submissionsWithDuration.reduce((sum, s) => {
+      return sum + (s.duration as number);
+    }, 0);
     
     const allErrors = recentSubmissions.flatMap(s => s.errors);
     const errorCounts = allErrors.reduce((acc, errorEntry) => {

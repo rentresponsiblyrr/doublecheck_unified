@@ -42,6 +42,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
     
     // Start monitoring
     const submissionId = startSubmissionTracking();
+    const submitStartTime = Date.now();
     
     // Pre-submission validation
     if (!validateSubmission(user, isOnline, formData)) {
@@ -69,6 +70,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
         const { data, error } = result;
 
         if (error) {
+          const submitDuration = Date.now() - submitStartTime;
           console.error(`❌ Database error on attempt ${retryCount + 1}:`, {
             error: {
               message: error.message,
@@ -105,6 +107,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
                 details: error.details,
                 hint: error.hint,
                 attempts: retryCount + 1,
+                duration: submitDuration,
                 timestamp: new Date().toISOString()
               }
             });
@@ -116,6 +119,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
         }
 
         // Success!
+        const submitDuration = Date.now() - submitStartTime;
         console.log(`✅ Property ${isEditing ? 'updated' : 'created'} successfully:`, {
           data,
           attempts: retryCount + 1,
@@ -127,6 +131,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
             operation: isEditing ? 'update' : 'insert',
             propertyId: data?.id,
             attempts: retryCount + 1,
+            duration: submitDuration,
             timestamp: new Date().toISOString()
           }
         });
@@ -146,6 +151,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
         return true;
 
       } catch (error) {
+        const submitDuration = Date.now() - submitStartTime;
         console.error(`💥 Unexpected error on attempt ${retryCount + 1}:`, {
           error: error instanceof Error ? {
             message: error.message,
@@ -170,6 +176,7 @@ export const useEnhancedPropertySubmission = (user: any, userRole: string) => {
               error: error instanceof Error ? error.message : 'Unknown error',
               stack: error instanceof Error ? error.stack : undefined,
               attempts: retryCount + 1,
+              duration: submitDuration,
               timestamp: new Date().toISOString()
             }
           });
