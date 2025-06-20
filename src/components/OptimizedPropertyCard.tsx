@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,6 @@ export const OptimizedPropertyCard = ({
             </div>
           </div>
           <PropertyActionsDropdown
-            propertyId={property.property_id}
             onEdit={() => onEdit?.(property.property_id)}
             onDelete={() => onDelete?.(property.property_id)}
           />

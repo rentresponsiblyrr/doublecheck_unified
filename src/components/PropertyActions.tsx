@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { PropertyActionsDropdown } from "@/components/PropertyActionsDropdown";
 import { PropertyDeleteDialog } from "@/components/PropertyDeleteDialog";
 import { usePropertyActions } from "@/hooks/usePropertyActions";
@@ -18,18 +19,32 @@ interface PropertyActionsProps {
 }
 
 export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActionsProps) => {
-  const {
-    showDeleteDialog,
-    setShowDeleteDialog,
-    isDeleting,
-    handleEdit,
-    handleDelete
-  } = usePropertyActions(property, onPropertyDeleted);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { handleEdit, handleDelete } = usePropertyActions();
+
+  const handleEditClick = () => {
+    handleEdit(property.id);
+  };
+
+  const handleDeleteClick = async () => {
+    setIsDeleting(true);
+    try {
+      await handleDelete(property.id);
+      onPropertyDeleted();
+    } catch (error) {
+      // Error is already handled in the hook
+      console.error('Delete failed:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
 
   return (
     <>
       <PropertyActionsDropdown
-        onEdit={handleEdit}
+        onEdit={handleEditClick}
         onDelete={() => setShowDeleteDialog(true)}
       />
 
@@ -37,7 +52,7 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
         property={property}
         isOpen={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        onConfirmDelete={handleDelete}
+        onConfirmDelete={handleDeleteClick}
         isDeleting={isDeleting}
       />
     </>
