@@ -1,7 +1,7 @@
 
 import { usePropertyFormAuth } from "./usePropertyFormAuth";
 import { usePropertyLoader } from "./usePropertyLoader";
-import { usePropertySubmission } from "./usePropertySubmission";
+import { useEnhancedPropertySubmission } from "./useEnhancedPropertySubmission";
 import { useDebugInfoCombiner } from "./useDebugInfoCombiner";
 
 export const usePropertyFormState = () => {
@@ -11,8 +11,8 @@ export const usePropertyFormState = () => {
   // Get property loading functionality
   const { isEditing, isLoadingProperty, loadProperty, loadDebugInfo } = usePropertyLoader(user);
 
-  // Get property submission functionality
-  const { isLoading, submitProperty, submissionDebugInfo } = usePropertySubmission(user, userRole || '');
+  // Get enhanced property submission functionality
+  const { isLoading, submitProperty, submissionDebugInfo, getSubmissionStats } = useEnhancedPropertySubmission(user, userRole || '');
 
   // Combine all debug info
   const debugInfo = useDebugInfoCombiner(authDebugInfo, loadDebugInfo, submissionDebugInfo);
@@ -23,6 +23,7 @@ export const usePropertyFormState = () => {
     isLoadingProperty,
     debugInfo,
     loadProperty,
-    submitProperty
+    submitProperty,
+    getSubmissionStats
   };
 };
