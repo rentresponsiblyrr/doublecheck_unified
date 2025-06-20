@@ -198,6 +198,7 @@ export type Database = {
         Row: {
           checklist_item_id: string
           created_at: string | null
+          file_path: string | null
           id: string
           notes: string | null
           type: string
@@ -206,6 +207,7 @@ export type Database = {
         Insert: {
           checklist_item_id: string
           created_at?: string | null
+          file_path?: string | null
           id?: string
           notes?: string | null
           type: string
@@ -214,6 +216,7 @@ export type Database = {
         Update: {
           checklist_item_id?: string
           created_at?: string | null
+          file_path?: string | null
           id?: string
           notes?: string | null
           type?: string
@@ -340,6 +343,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_audit_log: {
+        Row: {
+          action_type: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -451,6 +484,32 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      log_user_activity: {
+        Args: {
+          target_user_id: string
+          activity_type: string
+          activity_description?: string
+          activity_metadata?: Json
+        }
+        Returns: undefined
+      }
+      update_user_profile: {
+        Args: {
+          target_user_id: string
+          new_name: string
+          new_email: string
+          changed_by_user_id: string
+        }
+        Returns: undefined
+      }
+      update_user_status: {
+        Args: {
+          target_user_id: string
+          new_status: string
+          changed_by_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

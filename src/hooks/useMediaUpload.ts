@@ -70,7 +70,7 @@ export const useMediaUpload = () => {
         .from('inspection-media')
         .getPublicUrl(data.path);
 
-      // Save media record to database
+      // Save media record to database with file_path
       const { error: dbError } = await supabase
         .from('media')
         .insert({

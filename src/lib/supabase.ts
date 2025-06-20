@@ -51,10 +51,11 @@ export const uploadMedia = async (
 export const saveMediaRecord = async (
   checklistItemId: string,
   type: 'photo' | 'video',
-  url: string
+  url: string,
+  filePath?: string
 ) => {
   try {
-    console.log('Saving media record...', { checklistItemId, type, url });
+    console.log('Saving media record...', { checklistItemId, type, url, filePath });
     
     const { data, error } = await supabase
       .from('media')
@@ -62,6 +63,7 @@ export const saveMediaRecord = async (
         checklist_item_id: checklistItemId,
         type,
         url,
+        file_path: filePath,
         created_at: new Date().toISOString()
       })
       .select()
