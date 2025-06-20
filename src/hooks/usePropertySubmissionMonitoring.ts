@@ -140,7 +140,7 @@ export const usePropertySubmissionMonitoring = () => {
     const submissionsWithDuration = recentSubmissions.filter(s => s.duration && typeof s.duration === 'number');
     
     // Calculate total duration
-    const totalDuration = submissionsWithDuration.reduce((sum, s) => {
+    const totalDuration = submissionsWithDuration.reduce((sum: number, s) => {
       return sum + (s.duration as number);
     }, 0);
     
@@ -152,14 +152,14 @@ export const usePropertySubmissionMonitoring = () => {
     }, {} as Record<string, number>);
 
     const commonErrors = Object.entries(errorCounts)
-      .sort(([, a], [, b]) => b - a)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
       .slice(0, 5)
       .map(([error, count]) => ({ error, count }));
 
-    // Calculate average duration using Number() to ensure proper typing
-    const count = Number(submissionsWithDuration.length);
-    const total = Number(totalDuration);
-    const averageDuration = count > 0 ? total / count : 0;
+    // Calculate average duration
+    const averageDuration = submissionsWithDuration.length > 0 
+      ? totalDuration / submissionsWithDuration.length 
+      : 0;
 
     return {
       totalSubmissions: recentSubmissions.length,
