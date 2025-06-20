@@ -74,8 +74,8 @@ export const OptimizedPropertyCard = ({
           </div>
           <PropertyActionsDropdown
             propertyId={property.property_id}
-            onEdit={onEdit}
-            onDelete={onDelete}
+            onEdit={() => onEdit?.(property.property_id)}
+            onDelete={() => onDelete?.(property.property_id)}
           />
         </div>
       </CardHeader>

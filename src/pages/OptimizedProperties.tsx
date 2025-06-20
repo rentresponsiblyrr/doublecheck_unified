@@ -29,7 +29,10 @@ const OptimizedProperties = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PropertyHeader />
+      <PropertyHeader 
+        title="Properties"
+        subtitle="Manage your DoubleCheck property inspections"
+      />
       
       {/* Performance Dashboard */}
       <div className="px-4 py-2">

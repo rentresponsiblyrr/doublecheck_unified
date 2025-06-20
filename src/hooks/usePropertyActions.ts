@@ -1,42 +1,30 @@
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { deletePropertyData } from "@/utils/propertyDeletion";
+import { useSmartCache } from "@/hooks/useSmartCache";
 
-interface Property {
-  id: string;
-  name: string;
-  address: string;
-  vrbo_url: string | null;
-  airbnb_url: string | null;
-  status: string | null;
-}
-
-export const usePropertyActions = (property: Property, onPropertyDeleted: () => void) => {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+export const usePropertyActions = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { invalidatePropertyData } = useSmartCache();
 
-  const handleEdit = () => {
-    console.log('🔧 Editing property:', property.id);
-    navigate(`/add-property?edit=${property.id}`);
+  const handleEdit = (propertyId: string) => {
+    console.log('🔧 Editing property:', propertyId);
+    navigate(`/add-property?edit=${propertyId}`);
   };
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-
+  const handleDelete = async (propertyId: string) => {
     try {
-      await deletePropertyData(property.id);
+      await deletePropertyData(propertyId);
       
       toast({
         title: "Property Deleted",
         description: "The property and all associated data have been permanently removed.",
       });
 
-      // Trigger UI refresh
-      onPropertyDeleted();
+      // Invalidate cache to refresh the UI
+      invalidatePropertyData();
       
     } catch (error) {
       console.error('💥 Comprehensive deletion failed:', error);
@@ -45,17 +33,17 @@ export const usePropertyActions = (property: Property, onPropertyDeleted: () => 
         description: `Failed to delete property: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
     }
   };
 
+  const handleStartInspection = (propertyId: string) => {
+    console.log('🚀 Starting inspection for property:', propertyId);
+    navigate(`/property-selection?propertyId=${propertyId}`);
+  };
+
   return {
-    showDeleteDialog,
-    setShowDeleteDialog,
-    isDeleting,
     handleEdit,
-    handleDelete
+    handleDelete,
+    handleStartInspection
   };
 };
