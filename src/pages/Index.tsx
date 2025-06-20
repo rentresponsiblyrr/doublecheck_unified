@@ -1,19 +1,27 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/FastAuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import OptimizedProperties from "./OptimizedProperties";
 
 const Index = () => {
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  console.log('🏠 Index page loading - redirecting to properties');
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading DoubleCheck...</p>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    // Immediate redirect to properties page without any loading state
-    navigate('/properties', { replace: true });
-  }, [navigate]);
-
-  // Return null to avoid any flash of content during redirect
-  return null;
+  return (
+    <ProtectedRoute>
+      <OptimizedProperties />
+    </ProtectedRoute>
+  );
 };
 
 export default Index;
