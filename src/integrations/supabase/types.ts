@@ -313,6 +313,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -339,24 +366,30 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          last_login_at: string | null
           name: string | null
           role: string | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name?: string | null
           role?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name?: string | null
           role?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []

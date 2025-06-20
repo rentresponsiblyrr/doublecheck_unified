@@ -6,10 +6,15 @@ import { useNavigate } from "react-router-dom";
 export const AddPropertyButton = () => {
   const navigate = useNavigate();
 
+  const handleAddProperty = () => {
+    console.log('🎯 Navigating to add property page');
+    navigate('/add-property');
+  };
+
   return (
     <div className="px-4 pb-4">
       <Button
-        onClick={() => navigate('/add-property')}
+        onClick={handleAddProperty}
         variant="outline"
         className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
         size="lg"
