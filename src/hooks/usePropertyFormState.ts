@@ -1,16 +1,10 @@
 
-import { useState } from "react";
 import { usePropertyFormAuth } from "./usePropertyFormAuth";
 import { usePropertyLoader } from "./usePropertyLoader";
 import { usePropertySubmission } from "./usePropertySubmission";
-
-interface DebugInfo {
-  [key: string]: any;
-}
+import { useDebugInfoCombiner } from "./useDebugInfoCombiner";
 
 export const usePropertyFormState = () => {
-  const [debugInfo, setDebugInfo] = useState<DebugInfo>({});
-
   // Get authentication state
   const { user, userRole, authDebugInfo } = usePropertyFormAuth();
 
@@ -21,20 +15,14 @@ export const usePropertyFormState = () => {
   const { isLoading, submitProperty, submissionDebugInfo } = usePropertySubmission(user, userRole || '');
 
   // Combine all debug info
-  const combinedDebugInfo = {
-    ...debugInfo,
-    ...authDebugInfo,
-    ...loadDebugInfo,
-    ...submissionDebugInfo
-  };
+  const debugInfo = useDebugInfoCombiner(authDebugInfo, loadDebugInfo, submissionDebugInfo);
 
   return {
     isEditing,
     isLoading,
     isLoadingProperty,
-    debugInfo: combinedDebugInfo,
+    debugInfo,
     loadProperty,
-    submitProperty,
-    setDebugInfo
+    submitProperty
   };
 };
