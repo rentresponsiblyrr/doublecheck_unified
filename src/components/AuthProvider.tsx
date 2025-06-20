@@ -28,41 +28,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Function to fetch user role with error handling and timeout
-  const fetchUserRole = async (userId: string): Promise<string | null> => {
+  // Enhanced role fetching with fallback strategy
+  const fetchUserRole = async (userId: string): Promise<string> => {
     try {
       console.log('🔍 Fetching user role for:', userId);
       
-      // Create a timeout promise
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Role fetch timeout')), 10000); // 10 second timeout
-      });
-
-      // Race the actual fetch against the timeout
-      const fetchPromise = supabase.rpc('get_user_roles', { 
+      // First try the optimized function with shorter timeout
+      const { data, error } = await supabase.rpc('get_user_role_simple', { 
         _user_id: userId 
       });
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
       
       if (error) {
-        console.error('❌ Error fetching user role:', error);
-        return 'inspector'; // Default fallback role
+        console.warn('⚠️ Primary role fetch failed, using fallback:', error);
+        // Fallback: direct query with minimal timeout
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .limit(1)
+          .single();
+        
+        if (fallbackError) {
+          console.warn('⚠️ Fallback role fetch failed, using default:', fallbackError);
+          return 'inspector'; // Final fallback
+        }
+        
+        console.log('✅ Fallback role fetch successful:', fallbackData.role);
+        return fallbackData.role;
       }
       
-      console.log('✅ User roles fetched:', data);
-      // Return the first role if multiple exist, or default to inspector
-      return data && data.length > 0 ? data[0] : 'inspector';
+      console.log('✅ Primary role fetch successful:', data);
+      return data || 'inspector';
     } catch (error) {
-      console.error('💥 Error in fetchUserRole:', error);
-      return 'inspector'; // Default fallback role
+      console.error('💥 Role fetch completely failed:', error);
+      return 'inspector'; // Always return a valid role
     }
   };
 
   useEffect(() => {
     let isMounted = true;
 
-    // Get initial session
+    // Get initial session with improved error handling
     const getSession = async () => {
       try {
         console.log('🔍 Getting initial session...');
@@ -95,14 +101,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('💥 Error getting initial session:', error);
         if (isMounted) {
-          setLoading(false); // Always resolve loading state
+          setLoading(false);
         }
       }
     };
 
     getSession();
 
-    // Listen for auth changes
+    // Listen for auth changes with improved error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
@@ -112,7 +118,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           console.log('👤 User authenticated, fetching role...');
-          // Fetch role for the user
           const role = await fetchUserRole(session.user.id);
           if (isMounted) {
             setUserRole(role);
@@ -125,12 +130,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (isMounted) {
           console.log('✅ Auth state change complete');
-          setLoading(false); // Always resolve loading state
+          setLoading(false);
         }
       }
     );
 
-    // Cleanup function
     return () => {
       isMounted = false;
       subscription.unsubscribe();

@@ -9,6 +9,7 @@ interface AuthDebugInfo {
     userEmail?: string;
     userRole?: string;
     timestamp: string;
+    roleSource: 'database' | 'fallback' | 'default';
   };
 }
 
@@ -16,18 +17,22 @@ export const usePropertyFormAuth = () => {
   const { user, userRole } = useAuth();
   const [authDebugInfo, setAuthDebugInfo] = useState<AuthDebugInfo>({} as AuthDebugInfo);
 
-  // Enhanced authentication validation
+  // Enhanced authentication validation with role source tracking
   useEffect(() => {
     if (!user) {
-      console.warn('⚠️ User not authenticated, redirecting to login');
+      console.warn('⚠️ User not authenticated');
       return;
     }
 
-    console.log('👤 Auth Status:', {
+    // Determine role source for debugging
+    const roleSource = userRole === 'inspector' ? 'default' : 'database';
+
+    console.log('👤 Enhanced Auth Status:', {
       user: {
         id: user.id,
         email: user.email,
-        role: userRole
+        role: userRole,
+        roleSource
       },
       timestamp: new Date().toISOString()
     });
@@ -38,6 +43,7 @@ export const usePropertyFormAuth = () => {
         userId: user?.id,
         userEmail: user?.email,
         userRole,
+        roleSource,
         timestamp: new Date().toISOString()
       }
     });
