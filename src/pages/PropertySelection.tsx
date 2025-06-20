@@ -1,14 +1,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { PropertyHeader } from "@/components/PropertyHeader";
-import { PropertyList } from "@/components/PropertyList";
-import { StartInspectionButton } from "@/components/StartInspectionButton";
-import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PropertySelectionError } from "@/components/PropertySelectionError";
+import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
+import { PropertySelectionContent } from "@/components/PropertySelectionContent";
 
 interface Property {
   id: string;
@@ -115,87 +111,30 @@ const PropertySelection = () => {
   // Handle errors
   if (propertiesError || inspectionsError) {
     const error = propertiesError || inspectionsError;
-    console.error('💥 PropertySelection error:', error);
-    
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Error Loading Data
-          </h2>
-          <p className="text-gray-600 mb-4">
-            {error?.message || 'Failed to load properties and inspections.'}
-          </p>
-          <Button onClick={handleRetry} className="w-full">
-            Try Again
-          </Button>
-        </div>
-      </div>
+      <PropertySelectionError 
+        error={error}
+        onRetry={handleRetry}
+      />
     );
   }
 
   // Show loading state
   if (propertiesLoading || inspectionsLoading) {
-    console.log('⏳ PropertySelection showing loading state');
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <PropertyHeader 
-          title="DoubleCheck" 
-          subtitle="Loading your properties..." 
-        />
-        <div className="px-4 py-6">
-          <LoadingSpinner message="Loading properties and inspections..." />
-        </div>
-      </div>
-    );
+    return <PropertySelectionLoading />;
   }
 
-  console.log('🎯 PropertySelection rendering with:', {
-    propertiesCount: properties.length,
-    inspectionsCount: inspections.length,
-    selectedProperty,
-    isCreatingInspection
-  });
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PropertyHeader 
-        title="Choose a Property to Inspect" 
-        subtitle="Select a property below to begin your inspection" 
-      />
-
-      <div className="px-4 py-6">
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Choose a Property to Inspect
-          </h2>
-          <p className="text-gray-600">
-            Select a property below to begin your inspection
-          </p>
-        </div>
-
-        <PropertyList
-          properties={properties}
-          inspections={inspections}
-          selectedProperty={selectedProperty}
-          onPropertySelect={setSelectedProperty}
-          onPropertyDeleted={handlePropertyDeleted}
-          getPropertyStatus={getPropertyStatus}
-        />
-
-        <div className="mt-6">
-          <AddPropertyButton />
-        </div>
-
-        {selectedProperty && (
-          <StartInspectionButton 
-            onStartInspection={handleStartInspection}
-            isLoading={isCreatingInspection}
-          />
-        )}
-      </div>
-    </div>
+    <PropertySelectionContent
+      properties={properties}
+      inspections={inspections}
+      selectedProperty={selectedProperty}
+      setSelectedProperty={setSelectedProperty}
+      handleStartInspection={handleStartInspection}
+      getPropertyStatus={getPropertyStatus}
+      isCreatingInspection={isCreatingInspection}
+      onPropertyDeleted={handlePropertyDeleted}
+    />
   );
 };
 
