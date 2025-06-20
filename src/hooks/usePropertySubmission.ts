@@ -1,114 +1,45 @@
 
-import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-
-interface SubmissionDebugInfo {
-  submitError?: {
-    operation: 'update' | 'insert';
-    error: string;
-    code?: string;
-    details?: string;
-    hint?: string;
-    duration: number;
-    timestamp: string;
-  };
-  unexpectedSubmitError?: {
-    error: string;
-    stack?: string;
-    duration: number;
-    timestamp: string;
-  };
-  submitSuccess?: {
-    operation: 'update' | 'insert';
-    propertyId?: string;
-    duration: number;
-    timestamp: string;
-  };
-}
+import { usePropertyValidation } from "./usePropertyValidation";
+import { usePropertyMutation } from "./usePropertyMutation";
+import { usePropertySubmissionState } from "./usePropertySubmissionState";
+import { usePropertyErrorHandler } from "@/utils/propertySubmissionErrors";
+import type { PropertyFormData } from "@/types/propertySubmission";
 
 export const usePropertySubmission = (user: any, userRole: string) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   const editId = searchParams.get('edit');
   const isEditing = !!editId;
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [submissionDebugInfo, setSubmissionDebugInfo] = useState<SubmissionDebugInfo>({});
+  // Use the smaller, focused hooks
+  const { validateSubmission } = usePropertyValidation();
+  const { executePropertyMutation } = usePropertyMutation();
+  const { 
+    isLoading, 
+    setIsLoading, 
+    submissionDebugInfo, 
+    updateDebugInfo 
+  } = usePropertySubmissionState();
+  const { 
+    handleSubmissionError, 
+    handleUnexpectedError, 
+    handleSuccess 
+  } = usePropertyErrorHandler();
 
-  const submitProperty = async (formData: any, isOnline: boolean) => {
+  const submitProperty = async (formData: PropertyFormData, isOnline: boolean) => {
     console.log('🚀 Starting form submission process...');
     
     // Pre-submission validation
-    if (!user) {
-      console.error('❌ No authenticated user found');
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to add or edit properties.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!isOnline) {
-      console.error('❌ No network connection');
-      toast({
-        title: "Network Error",
-        description: "Please check your internet connection and try again.",
-        variant: "destructive",
-      });
+    if (!validateSubmission(user, isOnline, formData)) {
       return false;
     }
 
     setIsLoading(true);
-    
     const submitStartTime = Date.now();
-    const submitData = {
-      name: formData.name.trim(),
-      address: formData.address.trim(),
-      vrbo_url: formData.vrbo_url.trim() || null,
-      airbnb_url: formData.airbnb_url.trim() || null,
-    };
-
-    console.log(`${isEditing ? '📝 Updating' : '➕ Creating'} property with data:`, {
-      ...submitData,
-      userId: user.id,
-      userEmail: user.email,
-      userRole,
-      isEditing,
-      editId,
-      timestamp: new Date().toISOString()
-    });
 
     try {
-      let result;
-      
-      if (isEditing) {
-        console.log('🔄 Executing UPDATE operation...');
-        result = await supabase
-          .from('properties')
-          .update({
-            ...submitData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editId)
-          .select()
-          .single();
-      } else {
-        console.log('🆕 Executing INSERT operation...');
-        result = await supabase
-          .from('properties')
-          .insert({
-            ...submitData,
-            added_by: user.id,
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-      }
-
+      const result = await executePropertyMutation(formData, user, isEditing, editId);
       const { data, error } = result;
       const submitDuration = Date.now() - submitStartTime;
 
@@ -126,8 +57,7 @@ export const usePropertySubmission = (user: any, userRole: string) => {
           timestamp: new Date().toISOString()
         });
 
-        setSubmissionDebugInfo(prev => ({
-          ...prev,
+        updateDebugInfo({
           submitError: {
             operation: isEditing ? 'update' : 'insert',
             error: error.message,
@@ -137,30 +67,9 @@ export const usePropertySubmission = (user: any, userRole: string) => {
             duration: submitDuration,
             timestamp: new Date().toISOString()
           }
-        }));
-
-        // Enhanced error handling with specific messages
-        let errorMessage = "An error occurred while saving the property.";
-        
-        if (error.code === '23505') {
-          errorMessage = "A property with this information already exists.";
-        } else if (error.code === '42501') {
-          errorMessage = "You don't have permission to perform this action.";
-        } else if (error.code === 'PGRST116') {
-          errorMessage = "The property could not be found.";
-        } else if (error.message.includes('JWT')) {
-          errorMessage = "Your session has expired. Please log in again.";
-        } else if (error.message.includes('violates row-level security')) {
-          errorMessage = "You don't have permission to access this property.";
-        } else if (error.message.includes('null value in column "added_by"')) {
-          errorMessage = "Authentication error: Please try logging out and back in.";
-        }
-
-        toast({
-          title: `Error ${isEditing ? 'Updating' : 'Creating'} Property`,
-          description: errorMessage,
-          variant: "destructive",
         });
+
+        handleSubmissionError(error, isEditing);
         return false;
       }
 
@@ -170,20 +79,16 @@ export const usePropertySubmission = (user: any, userRole: string) => {
         timestamp: new Date().toISOString()
       });
 
-      setSubmissionDebugInfo(prev => ({
-        ...prev,
+      updateDebugInfo({
         submitSuccess: {
           operation: isEditing ? 'update' : 'insert',
           propertyId: data?.id,
           duration: submitDuration,
           timestamp: new Date().toISOString()
         }
-      }));
-
-      toast({
-        title: `Property ${isEditing ? 'Updated' : 'Added'}`,
-        description: `The property "${submitData.name}" has been ${isEditing ? 'updated' : 'added'} successfully.`,
       });
+
+      handleSuccess(formData.name.trim(), isEditing);
 
       // Small delay to ensure UI feedback is seen
       setTimeout(() => {
@@ -203,21 +108,16 @@ export const usePropertySubmission = (user: any, userRole: string) => {
         timestamp: new Date().toISOString()
       });
 
-      setSubmissionDebugInfo(prev => ({
-        ...prev,
+      updateDebugInfo({
         unexpectedSubmitError: {
           error: error instanceof Error ? error.message : 'Unknown error',
           stack: error instanceof Error ? error.stack : undefined,
           duration: submitDuration,
           timestamp: new Date().toISOString()
         }
-      }));
-
-      toast({
-        title: "Unexpected Error",
-        description: `An unexpected error occurred. Please try again or contact support if the problem persists.`,
-        variant: "destructive",
       });
+
+      handleUnexpectedError();
       return false;
     } finally {
       setIsLoading(false);
