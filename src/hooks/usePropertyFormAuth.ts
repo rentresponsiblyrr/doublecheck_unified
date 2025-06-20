@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useAuthRecovery } from "@/hooks/useAuthRecovery";
 
 interface AuthDebugInfo {
   authStatus: {
@@ -11,35 +12,67 @@ interface AuthDebugInfo {
     timestamp: string;
     roleSource: 'database' | 'fallback' | 'default';
     loadingState: boolean;
+    error?: string;
+    recoveryState?: any;
   };
 }
 
 export const usePropertyFormAuth = () => {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, error } = useAuth();
+  const { recoveryState, attemptRecovery, canRecover } = useAuthRecovery();
   const [authDebugInfo, setAuthDebugInfo] = useState<AuthDebugInfo>({} as AuthDebugInfo);
 
-  // Enhanced authentication validation with loading state tracking
+  // Enhanced authentication validation with recovery support
   useEffect(() => {
     console.log('🔍 PropertyFormAuth - Auth state updated:', {
       user: !!user,
       userRole,
       loading,
+      error,
+      recoveryState,
       timestamp: new Date().toISOString()
     });
 
-    if (loading) {
+    if (loading && !recoveryState.isRecovering) {
       console.log('⏳ Auth still loading...');
+      setAuthDebugInfo({
+        authStatus: {
+          authenticated: false,
+          loadingState: loading,
+          roleSource: 'default',
+          timestamp: new Date().toISOString(),
+          error: error || undefined,
+          recoveryState
+        }
+      });
       return;
     }
 
-    if (!user) {
+    if (error && canRecover) {
+      console.warn('⚠️ Auth error detected:', error);
+      setAuthDebugInfo({
+        authStatus: {
+          authenticated: false,
+          loadingState: loading,
+          roleSource: 'default',
+          timestamp: new Date().toISOString(),
+          error,
+          recoveryState
+        }
+      });
+      return;
+    }
+
+    if (!user && !loading) {
       console.warn('⚠️ User not authenticated');
       setAuthDebugInfo({
         authStatus: {
           authenticated: false,
           loadingState: loading,
           roleSource: 'default',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          error: error || undefined,
+          recoveryState
         }
       });
       return;
@@ -50,12 +83,14 @@ export const usePropertyFormAuth = () => {
 
     console.log('👤 Enhanced Auth Status:', {
       user: {
-        id: user.id,
-        email: user.email,
+        id: user?.id,
+        email: user?.email,
         role: userRole,
         roleSource,
-        loading
+        loading,
+        error
       },
+      recoveryState,
       timestamp: new Date().toISOString()
     });
 
@@ -67,15 +102,21 @@ export const usePropertyFormAuth = () => {
         userRole: userRole || 'inspector',
         roleSource,
         loadingState: loading,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        error: error || undefined,
+        recoveryState
       }
     });
-  }, [user, userRole, loading]);
+  }, [user, userRole, loading, error, recoveryState, canRecover]);
 
   return {
     user,
     userRole,
     loading,
-    authDebugInfo
+    error,
+    authDebugInfo,
+    recoveryState,
+    attemptRecovery,
+    canRecover
   };
 };
