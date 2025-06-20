@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 interface SubmissionMetrics {
@@ -139,11 +138,10 @@ export const usePropertySubmissionMonitoring = () => {
     const successCount = recentSubmissions.filter(s => s.success).length;
     const submissionsWithDuration = recentSubmissions.filter(s => s.duration && typeof s.duration === 'number');
     
-    // Calculate total duration with proper type safety
-    const totalDuration = submissionsWithDuration.reduce((sum: number, s) => {
-      const duration = s.duration;
-      // TypeScript now knows duration exists and is a number due to the filter above
-      return sum + (duration!);
+    // Calculate total duration with explicit number typing
+    const totalDuration: number = submissionsWithDuration.reduce((sum: number, s) => {
+      const duration = s.duration as number; // We know it's a number from the filter
+      return sum + duration;
     }, 0);
     
     const allErrors = recentSubmissions.flatMap(s => s.errors);
@@ -159,8 +157,8 @@ export const usePropertySubmissionMonitoring = () => {
       .map(([error, count]) => ({ error, count }));
 
     // Calculate average duration with explicit number types
-    const submissionCount = submissionsWithDuration.length;
-    const averageDuration = submissionCount > 0 ? totalDuration / submissionCount : 0;
+    const submissionCount: number = submissionsWithDuration.length;
+    const averageDuration: number = submissionCount > 0 ? totalDuration / submissionCount : 0;
 
     return {
       totalSubmissions: recentSubmissions.length,
