@@ -66,7 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSession = async () => {
       try {
         console.log('🔍 Getting initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error getting initial session:', error);
+          if (isMounted) {
+            setLoading(false);
+          }
+          return;
+        }
         
         if (!isMounted) return;
         

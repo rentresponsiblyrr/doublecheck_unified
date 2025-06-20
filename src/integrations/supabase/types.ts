@@ -231,33 +231,36 @@ export type Database = {
       }
       properties: {
         Row: {
-          added_by: string | null
+          added_by: string
           address: string | null
           airbnb_url: string | null
           created_at: string | null
           id: string
           name: string | null
           status: string | null
+          updated_at: string | null
           vrbo_url: string | null
         }
         Insert: {
-          added_by?: string | null
+          added_by: string
           address?: string | null
           airbnb_url?: string | null
           created_at?: string | null
           id?: string
           name?: string | null
           status?: string | null
+          updated_at?: string | null
           vrbo_url?: string | null
         }
         Update: {
-          added_by?: string | null
+          added_by?: string
           address?: string | null
           airbnb_url?: string | null
           created_at?: string | null
           id?: string
           name?: string | null
           status?: string | null
+          updated_at?: string | null
           vrbo_url?: string | null
         }
         Relationships: []

@@ -113,6 +113,12 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
 
     if (propertyError) {
       console.error('❌ Error deleting property:', propertyError);
+      
+      // Provide better error messages for common RLS issues
+      if (propertyError.message.includes('violates row-level security')) {
+        throw new Error('You can only delete properties you created or you need admin permissions.');
+      }
+      
       throw new Error(`Failed to delete property: ${propertyError.message}`);
     }
 

@@ -152,6 +152,8 @@ export const usePropertySubmission = (user: any, userRole: string) => {
           errorMessage = "Your session has expired. Please log in again.";
         } else if (error.message.includes('violates row-level security')) {
           errorMessage = "You don't have permission to access this property.";
+        } else if (error.message.includes('null value in column "added_by"')) {
+          errorMessage = "Authentication error: Please try logging out and back in.";
         }
 
         toast({
