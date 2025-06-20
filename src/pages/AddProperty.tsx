@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Plus, Wifi, WifiOff } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/components/FastAuthProvider";
 import { PropertyFormFields } from "@/components/PropertyFormFields";
 import { PropertyFormAlerts } from "@/components/PropertyFormAlerts";
 import { DebugInfo } from "@/components/DebugInfo";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { usePropertyForm } from "@/hooks/usePropertyForm";
-import { usePropertyFormState } from "@/hooks/usePropertyFormState";
+import { useFastPropertyFormState } from "@/hooks/useFastPropertyFormState";
 
 const AddProperty = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const AddProperty = () => {
     debugInfo,
     loadProperty,
     submitProperty
-  } = usePropertyFormState();
+  } = useFastPropertyFormState();
 
   const {
     formData,

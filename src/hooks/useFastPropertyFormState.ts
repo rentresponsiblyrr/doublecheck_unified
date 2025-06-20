@@ -16,8 +16,8 @@ export const useFastPropertyFormState = () => {
   // Get property loading functionality
   const { isEditing, isLoadingProperty, loadProperty, loadDebugInfo } = usePropertyLoader(user);
 
-  // Get enhanced property submission functionality
-  const { isLoading, submitProperty, submissionDebugInfo, getSubmissionStats } = useEnhancedPropertySubmission(user, userRole || '');
+  // Get enhanced property submission functionality with proper fallback
+  const { isLoading, submitProperty, submissionDebugInfo, getSubmissionStats } = useEnhancedPropertySubmission(user, userRole || 'inspector');
 
   // Combine all debug info
   const debugInfo = useDebugInfoCombiner(authDebugInfo, loadDebugInfo, submissionDebugInfo);

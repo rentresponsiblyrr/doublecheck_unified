@@ -16,20 +16,30 @@ interface PropertyFormFieldsProps {
 }
 
 export const PropertyFormFields = ({ formData, formErrors, onInputChange }: PropertyFormFieldsProps) => {
+  // Ensure formData has all required fields with defaults
+  const safeFormData = {
+    name: formData?.name || "",
+    address: formData?.address || "",
+    vrbo_url: formData?.vrbo_url || "",
+    airbnb_url: formData?.airbnb_url || ""
+  };
+
+  const safeFormErrors = formErrors || {};
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="name">Property Name *</Label>
         <Input
           id="name"
-          value={formData.name}
+          value={safeFormData.name}
           onChange={(e) => onInputChange('name', e.target.value)}
           placeholder="e.g., Cozy Mountain Cabin"
           required
-          className={formErrors.name ? "border-red-500" : ""}
+          className={safeFormErrors.name ? "border-red-500" : ""}
         />
-        {formErrors.name && (
-          <p className="text-sm text-red-600">{formErrors.name}</p>
+        {safeFormErrors.name && (
+          <p className="text-sm text-red-600">{safeFormErrors.name}</p>
         )}
       </div>
 
@@ -37,14 +47,14 @@ export const PropertyFormFields = ({ formData, formErrors, onInputChange }: Prop
         <Label htmlFor="address">Address *</Label>
         <Input
           id="address"
-          value={formData.address}
+          value={safeFormData.address}
           onChange={(e) => onInputChange('address', e.target.value)}
           placeholder="e.g., 123 Main St, Mountain View, CA 94041"
           required
-          className={formErrors.address ? "border-red-500" : ""}
+          className={safeFormErrors.address ? "border-red-500" : ""}
         />
-        {formErrors.address && (
-          <p className="text-sm text-red-600">{formErrors.address}</p>
+        {safeFormErrors.address && (
+          <p className="text-sm text-red-600">{safeFormErrors.address}</p>
         )}
       </div>
 
@@ -53,13 +63,13 @@ export const PropertyFormFields = ({ formData, formErrors, onInputChange }: Prop
         <Input
           id="vrbo_url"
           type="url"
-          value={formData.vrbo_url}
+          value={safeFormData.vrbo_url}
           onChange={(e) => onInputChange('vrbo_url', e.target.value)}
           placeholder="https://www.vrbo.com/..."
-          className={formErrors.vrbo_url ? "border-red-500" : ""}
+          className={safeFormErrors.vrbo_url ? "border-red-500" : ""}
         />
-        {formErrors.vrbo_url && (
-          <p className="text-sm text-red-600">{formErrors.vrbo_url}</p>
+        {safeFormErrors.vrbo_url && (
+          <p className="text-sm text-red-600">{safeFormErrors.vrbo_url}</p>
         )}
       </div>
 
@@ -68,13 +78,13 @@ export const PropertyFormFields = ({ formData, formErrors, onInputChange }: Prop
         <Input
           id="airbnb_url"
           type="url"
-          value={formData.airbnb_url}
+          value={safeFormData.airbnb_url}
           onChange={(e) => onInputChange('airbnb_url', e.target.value)}
           placeholder="https://www.airbnb.com/..."
-          className={formErrors.airbnb_url ? "border-red-500" : ""}
+          className={safeFormErrors.airbnb_url ? "border-red-500" : ""}
         />
-        {formErrors.airbnb_url && (
-          <p className="text-sm text-red-600">{formErrors.airbnb_url}</p>
+        {safeFormErrors.airbnb_url && (
+          <p className="text-sm text-red-600">{safeFormErrors.airbnb_url}</p>
         )}
       </div>
     </div>
