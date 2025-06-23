@@ -26,8 +26,8 @@ export const Logo = ({
     lg: 'text-lg'
   };
 
-  // Use the provided DoubleCheck logo by default
-  const logoUrl = imageUrl || '/lovable-uploads/11946ab3-fcf7-42b0-8e3e-d3b341838f83.png';
+  // Use the new DoubleCheck logo by default
+  const logoUrl = imageUrl || '/lovable-uploads/ea9dd662-995b-4cd0-95d4-9f31b2aa8d3b.png';
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -56,7 +56,7 @@ export const Logo = ({
             DoubleCheck
           </div>
           <div className="text-xs text-gray-500 leading-none">
-            Powered by Rent Responsibly
+            powered by Rent Responsibly
           </div>
         </div>
       )}
