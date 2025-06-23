@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Video, Check, Clock, AlertTriangle } from "lucide-react";
+import { Camera, Video, Check, Clock, AlertTriangle, Trash2 } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
 import { MediaUploader } from "@/components/MediaUploader";
 import { UploadedEvidence } from "@/components/UploadedEvidence";
 import { useToast } from "@/hooks/use-toast";
+import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChecklistItemProps {
   item: ChecklistItemType;
@@ -17,8 +19,9 @@ interface ChecklistItemProps {
 export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
   const [notes, setNotes] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -45,11 +48,6 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
     try {
       console.log('Uploading media for item:', item.id);
       
-      // Create a temporary URL for immediate preview
-      const tempUrl = URL.createObjectURL(file);
-      setMediaUrl(tempUrl);
-      
-      // The actual upload will be handled by MediaUploader
       toast({
         title: "Upload started",
         description: `Uploading ${item.evidence_type}...`,
@@ -65,6 +63,55 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
       setIsUploading(false);
     }
   };
+
+  const handleDeleteMedia = async () => {
+    if (mediaItems.length === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      // Delete all media items for this checklist item
+      const { error: mediaError } = await supabase
+        .from('media')
+        .delete()
+        .eq('checklist_item_id', item.id);
+
+      if (mediaError) throw mediaError;
+
+      // Update checklist item status back to null (incomplete)
+      const { error: statusError } = await supabase
+        .from('checklist_items')
+        .update({ status: null })
+        .eq('id', item.id);
+
+      if (statusError) throw statusError;
+
+      toast({
+        title: "Media deleted",
+        description: "Evidence has been removed. You can now upload new evidence.",
+      });
+
+      // Refresh media and trigger parent refresh
+      await refetchMedia();
+      onComplete();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete evidence. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUploadComplete = async () => {
+    setIsUploading(false);
+    await refetchMedia();
+    onComplete();
+  };
+
+  const hasUploadedMedia = mediaItems.length > 0;
 
   if (item.status === 'completed') {
     return (
@@ -95,6 +142,29 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
         {/* Show uploaded evidence for completed items */}
         <div className="mt-4">
           <UploadedEvidence checklistItemId={item.id} />
+        </div>
+
+        {/* Add option to retake/delete for completed items */}
+        <div className="mt-4 pt-4 border-t border-green-200">
+          <Button
+            onClick={handleDeleteMedia}
+            disabled={isDeleting}
+            variant="outline"
+            size="sm"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            {isDeleting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete & Retake
+              </>
+            )}
+          </Button>
         </div>
       </div>
     );
@@ -127,7 +197,9 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
         </div>
 
         {/* Show existing uploaded evidence */}
-        <UploadedEvidence checklistItemId={item.id} />
+        {hasUploadedMedia && (
+          <UploadedEvidence checklistItemId={item.id} />
+        )}
 
         {/* Media Upload */}
         <div>
@@ -138,12 +210,13 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             evidenceType={item.evidence_type}
             onUpload={handleMediaUpload}
             isUploading={isUploading}
-            uploadedUrl={mediaUrl}
             checklistItemId={item.id}
             inspectionId={item.inspection_id}
-            onComplete={onComplete}
+            onComplete={handleUploadComplete}
             category={item.category}
             label={item.label}
+            hasUploadedMedia={hasUploadedMedia}
+            onDelete={handleDeleteMedia}
           />
         </div>
 
@@ -159,35 +232,6 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             className="min-h-[100px] resize-none"
           />
         </div>
-
-        {/* Submit Button */}
-        <Button
-          onClick={() => {
-            if (!mediaUrl) {
-              toast({
-                title: "Evidence required",
-                description: `Please upload a ${item.evidence_type} before completing this item.`,
-                variant: "destructive",
-              });
-              return;
-            }
-            onComplete();
-          }}
-          disabled={!mediaUrl || isUploading}
-          className="w-full h-14 text-lg font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isUploading ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-              Processing...
-            </>
-          ) : (
-            <>
-              <Check className="w-6 h-6 mr-3" />
-              Complete Item
-            </>
-          )}
-        </Button>
       </div>
     </div>
   );

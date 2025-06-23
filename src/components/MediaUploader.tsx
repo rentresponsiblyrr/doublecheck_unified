@@ -1,7 +1,7 @@
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Video, Upload, AlertCircle, CheckCircle } from "lucide-react";
+import { Camera, Video, Upload, AlertCircle, CheckCircle, X, RotateCcw } from "lucide-react";
 import { uploadMedia, saveMediaRecord, updateChecklistItemStatus } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoCaptureGuide } from "@/components/PhotoCaptureGuide";
@@ -17,6 +17,8 @@ interface MediaUploaderProps {
   onComplete: () => void;
   category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
   label: string;
+  hasUploadedMedia?: boolean;
+  onDelete?: () => void;
 }
 
 export const MediaUploader = ({ 
@@ -28,11 +30,14 @@ export const MediaUploader = ({
   inspectionId,
   onComplete,
   category,
-  label
+  label,
+  hasUploadedMedia = false,
+  onDelete
 }: MediaUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { isOnline, savePhotoOffline } = useOfflineStorage();
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,6 +77,11 @@ export const MediaUploader = ({
       // If offline, save photo locally
       if (!isOnline && evidenceType === 'photo') {
         await savePhotoOffline(file, checklistItemId, inspectionId);
+        setUploadSuccess(true);
+        toast({
+          title: "Saved offline",
+          description: "Photo saved locally and will sync when online.",
+        });
         onComplete();
         return;
       }
@@ -85,6 +95,7 @@ export const MediaUploader = ({
         // If upload fails and it's a photo, try saving offline
         if (evidenceType === 'photo') {
           await savePhotoOffline(file, checklistItemId, inspectionId);
+          setUploadSuccess(true);
           toast({
             title: "Saved offline",
             description: "Upload failed, but photo saved locally for later sync.",
@@ -114,9 +125,13 @@ export const MediaUploader = ({
       // Save media record to database
       await saveMediaRecord(checklistItemId, evidenceType, uploadResult.url);
       
+      // Update checklist item status to completed
+      await updateChecklistItemStatus(checklistItemId, 'completed');
+      
+      setUploadSuccess(true);
       toast({
         title: "Upload successful",
-        description: `${evidenceType} evidence uploaded and saved.`,
+        description: `${evidenceType} evidence uploaded successfully.`,
       });
       
       // Trigger refresh of the checklist
@@ -131,6 +146,7 @@ export const MediaUploader = ({
       if (evidenceType === 'photo') {
         try {
           await savePhotoOffline(file, checklistItemId, inspectionId);
+          setUploadSuccess(true);
           toast({
             title: "Saved offline",
             description: "Upload failed, but photo saved locally for later sync.",
@@ -150,11 +166,60 @@ export const MediaUploader = ({
     }
   };
 
+  const handleRetake = () => {
+    setUploadSuccess(false);
+    fileInputRef.current?.click();
+  };
+
   const acceptTypes = evidenceType === 'photo' 
     ? 'image/*' 
     : 'video/*';
 
   const maxFileSize = "10MB";
+
+  // Show success state with options
+  if (uploadSuccess || hasUploadedMedia) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <CheckCircle className="w-12 h-12 text-green-500" />
+            <div>
+              <p className="text-lg font-medium text-green-900 mb-1">
+                {evidenceType === 'photo' ? 'Photo Uploaded' : 'Video Uploaded'}
+              </p>
+              <p className="text-sm text-green-600">
+                Evidence successfully captured and saved
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <Button
+            onClick={handleRetake}
+            variant="outline"
+            className="flex-1 h-12"
+            disabled={isUploading}
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Retake {evidenceType}
+          </Button>
+          
+          {onDelete && (
+            <Button
+              onClick={onDelete}
+              variant="destructive"
+              className="h-12 px-4"
+              disabled={isUploading}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
