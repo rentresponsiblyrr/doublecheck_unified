@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { InspectionProgress } from "@/components/InspectionProgress";
 import { UserMenu } from "@/components/UserMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { Logo } from "@/components/Logo";
 import { ChecklistItemType } from "@/types/inspection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,6 +134,13 @@ export const InspectionHeader = ({
                 <Eye className="w-4 h-4" />
               )}
             </Button>
+            
+            {/* Logo - visible on mobile and small screens */}
+            <Logo 
+              size="sm" 
+              showText={false}
+              className="md:hidden"
+            />
             
             {/* Brand info - hidden on mobile */}
             <div className="text-right hidden lg:block">

@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/UserMenu";
+import { Logo } from "@/components/Logo";
 
 interface PropertyHeaderProps {
   title: string;
@@ -43,8 +44,13 @@ export const PropertyHeader = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="text-right hidden sm:block">
+        <div className="flex items-center gap-3">
+          <Logo 
+            size="sm" 
+            showText={false}
+            className="hidden sm:flex"
+          />
+          <div className="text-right hidden lg:block">
             <div className="text-sm font-medium text-blue-600">DoubleCheck</div>
             <div className="text-xs text-gray-500">Powered by Rent Responsibly</div>
           </div>
