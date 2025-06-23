@@ -1,5 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MobilePropertyData {

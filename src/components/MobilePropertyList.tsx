@@ -101,7 +101,7 @@ export const MobilePropertyList = memo(({
             key={property.property_id}
             property={property}
             onEdit={onEdit}
-            onDelete={onDelete}
+            onDelete={(id: string) => onDelete(id, property.property_name)}
             onStartInspection={onStartInspection}
           />
         ))}
