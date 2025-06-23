@@ -8,10 +8,10 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/components/FastAuthProvider";
 import { PropertyFormFields } from "@/components/PropertyFormFields";
 import { PropertyFormAlerts } from "@/components/PropertyFormAlerts";
-import { DebugInfo } from "@/components/DebugInfo";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { usePropertyForm } from "@/hooks/usePropertyForm";
-import { useFastPropertyFormState } from "@/hooks/useFastPropertyFormState";
+import { useReliablePropertySubmission } from "@/hooks/useReliablePropertySubmission";
+import { usePropertyLoader } from "@/hooks/usePropertyLoader";
 
 const AddProperty = () => {
   const navigate = useNavigate();
@@ -19,13 +19,12 @@ const AddProperty = () => {
   const isOnline = useNetworkStatus();
   
   const {
-    isEditing,
     isLoading,
-    isLoadingProperty,
-    debugInfo,
-    loadProperty,
-    submitProperty
-  } = useFastPropertyFormState();
+    submitProperty,
+    isEditing
+  } = useReliablePropertySubmission(user);
+
+  const { isLoadingProperty, loadProperty } = usePropertyLoader(user);
 
   const {
     formData,
@@ -39,9 +38,13 @@ const AddProperty = () => {
   useEffect(() => {
     if (isEditing) {
       const loadData = async () => {
-        const propertyData = await loadProperty();
-        if (propertyData) {
-          setFormData(propertyData);
+        try {
+          const propertyData = await loadProperty();
+          if (propertyData) {
+            setFormData(propertyData);
+          }
+        } catch (error) {
+          console.error('Failed to load property:', error);
         }
       };
       loadData();
@@ -50,6 +53,8 @@ const AddProperty = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🎯 Form submission triggered', { formData });
     
     if (!validateForm()) {
       console.warn('⚠️ Form validation failed');
@@ -143,8 +148,6 @@ const AddProperty = () => {
                 </Button>
               </div>
             </form>
-
-            <DebugInfo debugInfo={debugInfo} />
           </CardContent>
         </Card>
       </div>
