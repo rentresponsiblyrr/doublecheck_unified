@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Video, AlertCircle } from "lucide-react";
@@ -21,7 +20,7 @@ export const UploadInterface = ({
   onFileSelect 
 }: UploadInterfaceProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isOnline } = useNetworkStatus();
+  const isOnline = useNetworkStatus();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
