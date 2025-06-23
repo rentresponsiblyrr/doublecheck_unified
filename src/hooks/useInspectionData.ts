@@ -18,6 +18,19 @@ export const useInspectionData = (inspectionId: string) => {
       }
       
       try {
+        // First, check for any audit entries indicating duplicate detection
+        const { data: auditData } = await supabase
+          .from('checklist_operations_audit')
+          .select('*')
+          .eq('inspection_id', inspectionId)
+          .eq('operation_type', 'duplicate_detected')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (auditData && auditData.length > 0) {
+          console.warn('⚠️ Duplicate checklist items detected for inspection:', inspectionId);
+        }
+
         const { data, error } = await supabase
           .from('checklist_items')
           .select('*')
@@ -31,8 +44,18 @@ export const useInspectionData = (inspectionId: string) => {
 
         console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
         
+        // Client-side duplicate removal as a safety measure
+        const uniqueItems = data ? removeDuplicates(data) : [];
+        
+        if (uniqueItems.length !== (data?.length || 0)) {
+          console.warn('⚠️ Client-side duplicate removal occurred:', {
+            original: data?.length || 0,
+            cleaned: uniqueItems.length
+          });
+        }
+        
         // If no items found, try to trigger the population
-        if (!data || data.length === 0) {
+        if (!uniqueItems || uniqueItems.length === 0) {
           console.warn('⚠️ No checklist items found, checking if inspection exists...');
           
           const { data: inspection, error: inspectionError } = await supabase
@@ -48,13 +71,12 @@ export const useInspectionData = (inspectionId: string) => {
           
           if (inspection) {
             console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
-            // Return empty array for now - the trigger should have populated items
             return [];
           }
         }
         
         // Transform the data to match our TypeScript interface
-        const transformedData = (data || []).map(item => ({
+        const transformedData = uniqueItems.map(item => ({
           id: item.id,
           inspection_id: item.inspection_id,
           label: item.label || '',
@@ -100,3 +122,25 @@ export const useInspectionData = (inspectionId: string) => {
     error
   };
 };
+
+// Helper function to remove duplicates based on inspection_id + static_item_id + label
+function removeDuplicates(items: any[]): any[] {
+  const seen = new Set<string>();
+  const uniqueItems: any[] = [];
+  
+  for (const item of items) {
+    const key = `${item.inspection_id}-${item.static_item_id}-${item.label}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueItems.push(item);
+    } else {
+      console.warn('🔄 Removing duplicate item:', {
+        id: item.id,
+        label: item.label,
+        static_item_id: item.static_item_id
+      });
+    }
+  }
+  
+  return uniqueItems;
+}

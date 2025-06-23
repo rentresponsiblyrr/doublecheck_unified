@@ -114,6 +114,75 @@ export type Database = {
           },
         ]
       }
+      checklist_items_backup: {
+        Row: {
+          ai_status: string | null
+          category: string | null
+          created_at: string | null
+          evidence_type: string | null
+          id: string | null
+          inspection_id: string | null
+          label: string | null
+          notes: string | null
+          source_photo_url: string | null
+          static_item_id: string | null
+          status: string | null
+        }
+        Insert: {
+          ai_status?: string | null
+          category?: string | null
+          created_at?: string | null
+          evidence_type?: string | null
+          id?: string | null
+          inspection_id?: string | null
+          label?: string | null
+          notes?: string | null
+          source_photo_url?: string | null
+          static_item_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          ai_status?: string | null
+          category?: string | null
+          created_at?: string | null
+          evidence_type?: string | null
+          id?: string | null
+          inspection_id?: string | null
+          label?: string | null
+          notes?: string | null
+          source_photo_url?: string | null
+          static_item_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      checklist_operations_audit: {
+        Row: {
+          created_at: string | null
+          id: string
+          inspection_id: string
+          items_affected: number | null
+          metadata: Json | null
+          operation_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inspection_id: string
+          items_affected?: number | null
+          metadata?: Json | null
+          operation_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inspection_id?: string
+          items_affected?: number | null
+          metadata?: Json | null
+          operation_type?: string
+        }
+        Relationships: []
+      }
       inspections: {
         Row: {
           certification_status: string | null
@@ -470,6 +539,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_checklist_duplicates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          inspection_id: string
+          static_item_id: string
+          label: string
+          duplicate_count: number
+        }[]
+      }
       assign_user_role: {
         Args: { _user_id: string; _email: string }
         Returns: undefined
@@ -477,6 +555,13 @@ export type Database = {
       bytea_to_text: {
         Args: { data: string }
         Returns: string
+      }
+      cleanup_duplicate_checklist_items: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          inspection_id: string
+          items_removed: number
+        }[]
       }
       get_properties_with_inspections: {
         Args: { _user_id?: string }

@@ -4,6 +4,7 @@ import { InspectionLayout } from "@/components/InspectionLayout";
 import { InspectionFilters } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
+import { ChecklistDiagnostics } from "@/components/ChecklistDiagnostics";
 import { ChecklistItemType } from "@/types/inspection";
 
 interface InspectionContentProps {
@@ -50,6 +51,8 @@ export const InspectionContent = ({
       showCompleted={showCompleted}
       onToggleCompleted={() => setShowCompleted(!showCompleted)}
     >
+      <ChecklistDiagnostics inspectionId={inspectionId} />
+
       <InspectionFilters
         checklistItems={checklistItems}
         selectedCategory={selectedCategory}

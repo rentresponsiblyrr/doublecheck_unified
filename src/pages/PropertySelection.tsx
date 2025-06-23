@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
+import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
 import { PropertySelectionError } from "@/components/PropertySelectionError";
 import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
@@ -71,10 +72,32 @@ const PropertySelection = () => {
   const {
     selectedProperty,
     setSelectedProperty,
-    handleStartInspection,
-    getPropertyStatus,
-    isCreatingInspection
+    getPropertyStatus
   } = usePropertySelection(inspections);
+
+  const { createInspection, isCreating } = useRobustInspectionCreation();
+
+  const handleStartInspection = async () => {
+    if (!selectedProperty) {
+      console.error('❌ No property selected for inspection');
+      return;
+    }
+
+    console.log('🚀 Starting inspection for property:', selectedProperty.id);
+    
+    const inspectionId = await createInspection(selectedProperty.id);
+    
+    if (inspectionId) {
+      // Refresh data after successful creation
+      await Promise.all([
+        refetchProperties(),
+        refetchInspections()
+      ]);
+      
+      // Navigate to the inspection
+      window.location.href = `/inspection/${inspectionId}`;
+    }
+  };
 
   const handlePropertyDeleted = async () => {
     console.log('🔄 Property deleted, performing comprehensive data refresh...');
@@ -132,7 +155,7 @@ const PropertySelection = () => {
       setSelectedProperty={setSelectedProperty}
       handleStartInspection={handleStartInspection}
       getPropertyStatus={getPropertyStatus}
-      isCreatingInspection={isCreatingInspection}
+      isCreatingInspection={isCreating}
       onPropertyDeleted={handlePropertyDeleted}
     />
   );
