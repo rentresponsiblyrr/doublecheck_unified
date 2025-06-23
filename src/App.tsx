@@ -15,30 +15,29 @@ import Inspection from "./pages/Inspection";
 import InspectionComplete from "./pages/InspectionComplete";
 import NotFound from "./pages/NotFound";
 
-// Mobile-optimized query client with aggressive caching
-const createQueryClient = (isMobile: boolean) => new QueryClient({
+// Highly optimized query client for mobile performance
+const createMobileOptimizedQueryClient = (isMobile: boolean) => new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
-        }
-        // Fewer retries on mobile
-        return failureCount < (isMobile ? 1 : 2);
-      },
-      staleTime: isMobile ? 2 * 60 * 1000 : 60 * 1000, // 2 minutes on mobile, 1 minute on desktop
-      gcTime: isMobile ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10 minutes on mobile, 5 minutes on desktop
+      retry: isMobile ? 1 : 2, // Fewer retries on mobile
+      staleTime: isMobile ? 60 * 1000 : 30 * 1000, // 1 minute on mobile, 30 seconds on desktop
+      gcTime: isMobile ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10 minutes on mobile
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
+      networkMode: 'online', // Only fetch when online
+    },
+    mutations: {
+      retry: isMobile ? 1 : 2,
+      networkMode: 'online',
     },
   },
 });
 
 const AppContent = () => {
   const isMobile = useIsMobile();
-  const queryClient = createQueryClient(isMobile);
+  const queryClient = createMobileOptimizedQueryClient(isMobile);
 
-  console.log('📱 App loading, mobile detected:', isMobile);
+  console.log('📱 App optimized for mobile:', isMobile);
 
   return (
     <ErrorBoundary>
