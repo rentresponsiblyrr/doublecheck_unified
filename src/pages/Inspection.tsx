@@ -109,18 +109,22 @@ const Inspection = () => {
   }
 
   const filteredItems = checklistItems.filter(item => {
-    const matchesCompletedFilter = showCompleted || !item.status;
+    const matchesCompletedFilter = showCompleted || (!item.status || item.status === null);
     const matchesCategoryFilter = !selectedCategory || item.category === selectedCategory;
     return matchesCompletedFilter && matchesCategoryFilter;
   });
 
-  const completedCount = checklistItems.filter(item => item.status === 'completed').length;
+  const completedCount = checklistItems.filter(item => item.status === 'completed' || item.status === 'failed').length;
   const totalCount = checklistItems.length;
+  const passedCount = checklistItems.filter(item => item.status === 'completed').length;
+  const failedCount = checklistItems.filter(item => item.status === 'failed').length;
   const isAllCompleted = completedCount === totalCount && totalCount > 0;
 
   console.log('📊 Inspection render stats:', {
     totalItems: totalCount,
     completedItems: completedCount,
+    passedItems: passedCount,
+    failedItems: failedCount,
     filteredItems: filteredItems.length,
     isAllCompleted
   });
@@ -150,7 +154,7 @@ const Inspection = () => {
       console.log('✅ Inspection completed successfully');
       toast({
         title: "Inspection Complete!",
-        description: "Your inspection has been submitted for review.",
+        description: `Inspection submitted with ${passedCount} passed and ${failedCount} failed items.`,
       });
       
       navigate(`/inspection/${inspectionId}/complete`);
@@ -190,9 +194,20 @@ const Inspection = () => {
         inspectionId={inspectionId}
       />
 
-      {/* Complete Inspection Button */}
+      {/* Complete Inspection Button with improved stats */}
       {isAllCompleted && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+          <div className="mb-3 text-center">
+            <div className="text-sm text-gray-600">
+              <span className="text-green-600 font-medium">✓ {passedCount} Passed</span>
+              {failedCount > 0 && (
+                <>
+                  <span className="mx-2">•</span>
+                  <span className="text-red-600 font-medium">✗ {failedCount} Failed</span>
+                </>
+              )}
+            </div>
+          </div>
           <Button 
             onClick={handleCompleteInspection}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3"

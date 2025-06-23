@@ -582,6 +582,22 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      update_checklist_item_complete: {
+        Args: { item_id: string; item_status: string; item_notes?: string }
+        Returns: {
+          ai_status: string | null
+          category: string | null
+          created_at: string | null
+          evidence_type: string
+          id: string
+          inspection_id: string
+          label: string
+          notes: string | null
+          source_photo_url: string | null
+          static_item_id: string | null
+          status: string | null
+        }
+      }
       update_user_profile: {
         Args: {
           target_user_id: string

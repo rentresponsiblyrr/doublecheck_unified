@@ -60,7 +60,8 @@ export const useInspectionData = (inspectionId: string) => {
           label: item.label || '',
           category: item.category as 'safety' | 'amenity' | 'cleanliness' | 'maintenance',
           evidence_type: item.evidence_type as 'photo' | 'video',
-          status: item.status === 'completed' ? 'completed' : null,
+          status: item.status as 'completed' | 'failed' | null,
+          notes: item.notes,
           created_at: item.created_at || new Date().toISOString()
         })) as ChecklistItemType[];
         
