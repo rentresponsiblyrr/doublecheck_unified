@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/components/FastAuthProvider";
+import { useAuth } from "@/components/MobileFastAuthProvider";
 
 interface FastAuthDebugInfo {
   authStatus: {

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/components/MobileFastAuthProvider";
 import { useAuthRecovery } from "@/hooks/useAuthRecovery";
 
 interface AuthDebugInfo {

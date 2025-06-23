@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/FastAuthProvider';
+import { useAuth } from '@/components/MobileFastAuthProvider';
 import { LogOut, User, Shield, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const UserMenu = () => {
