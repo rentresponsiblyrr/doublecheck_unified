@@ -23,7 +23,7 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
 
-  const isCompleted = item.status === 'completed' || item.status === 'failed';
+  const isCompleted = item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable';
   const hasUploadedMedia = mediaItems.length > 0;
 
   // If item is completed, show the completed state component
@@ -135,7 +135,7 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
           initialNotes={item.notes || ""} 
         />
 
-        {/* Pass/Fail Actions */}
+        {/* Pass/Fail/N/A Actions */}
         <ChecklistItemActions 
           itemId={item.id} 
           notes={notes} 

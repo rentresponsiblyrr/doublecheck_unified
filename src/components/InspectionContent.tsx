@@ -29,10 +29,13 @@ export const InspectionContent = ({
     return matchesCompletedFilter && matchesCategoryFilter;
   });
 
-  const completedCount = checklistItems.filter(item => item.status === 'completed' || item.status === 'failed').length;
+  const completedCount = checklistItems.filter(item => 
+    item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
+  ).length;
   const totalCount = checklistItems.length;
   const passedCount = checklistItems.filter(item => item.status === 'completed').length;
   const failedCount = checklistItems.filter(item => item.status === 'failed').length;
+  const naCount = checklistItems.filter(item => item.status === 'not_applicable').length;
   const isAllCompleted = completedCount === totalCount && totalCount > 0;
 
   console.log('📊 Inspection render stats:', {
@@ -40,6 +43,7 @@ export const InspectionContent = ({
     completedItems: completedCount,
     passedItems: passedCount,
     failedItems: failedCount,
+    naItems: naCount,
     filteredItems: filteredItems.length,
     isAllCompleted
   });

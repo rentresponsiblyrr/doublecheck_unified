@@ -5,7 +5,7 @@ export interface ChecklistItemType {
   label: string;
   category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
   evidence_type: 'photo' | 'video';
-  status?: 'completed' | 'failed' | null;
+  status?: 'completed' | 'failed' | 'not_applicable' | null;
   notes?: string | null;
   created_at: string;
 }

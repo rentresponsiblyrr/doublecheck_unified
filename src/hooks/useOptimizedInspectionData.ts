@@ -68,7 +68,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           label: item.label || '',
           category: item.category as 'safety' | 'amenity' | 'cleanliness' | 'maintenance',
           evidence_type: item.evidence_type as 'photo' | 'video',
-          status: item.status === 'completed' ? 'completed' : null,
+          status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
           created_at: item.created_at || new Date().toISOString()
         })) as ChecklistItemType[];
         
