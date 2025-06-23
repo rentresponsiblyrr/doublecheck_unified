@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
@@ -83,9 +82,9 @@ const PropertySelection = () => {
       return;
     }
 
-    console.log('🚀 Starting inspection for property:', selectedProperty.id);
+    console.log('🚀 Starting inspection for property:', selectedProperty);
     
-    const inspectionId = await createInspection(selectedProperty.id);
+    const inspectionId = await createInspection(selectedProperty);
     
     if (inspectionId) {
       // Refresh data after successful creation
