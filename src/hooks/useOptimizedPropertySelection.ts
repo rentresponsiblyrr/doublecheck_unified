@@ -3,13 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
 
-interface Property {
-  id: string;
-  name: string;
-  address: string;
-  vrbo_url: string | null;
-  airbnb_url: string | null;
-  status: string | null;
+interface PropertyData {
+  property_id: string;
+  property_name: string;
+  property_address: string;
+  property_vrbo_url: string | null;
+  property_airbnb_url: string | null;
+  property_status?: string;
+  property_created_at?: string;
+  inspection_count?: number;
+  completed_inspection_count?: number;
+  active_inspection_count?: number;
+  latest_inspection_id?: string | null;
+  latest_inspection_completed?: boolean | null;
 }
 
 interface Inspection {
@@ -23,12 +29,9 @@ export const useOptimizedPropertySelection = () => {
   const { data: properties = [], isLoading: propertiesLoading, error: propertiesError, refetch: refetchProperties } = useQuery({
     queryKey: ['properties'],
     queryFn: async () => {
-      console.log('📊 Fetching properties from database...');
+      console.log('📊 Fetching properties with inspections from database...');
       
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, name, address, vrbo_url, airbnb_url, status')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_properties_with_inspections');
       
       if (error) {
         console.error('❌ Error fetching properties:', error);
@@ -36,7 +39,7 @@ export const useOptimizedPropertySelection = () => {
       }
 
       console.log('✅ Successfully fetched properties:', data?.length || 0);
-      return data as Property[];
+      return data as PropertyData[];
     },
     retry: 2,
     staleTime: 0,
@@ -75,7 +78,7 @@ export const useOptimizedPropertySelection = () => {
   const onPropertyDeleted = async () => {
     // Clear selection if the deleted property was selected
     if (selectedProperty) {
-      const stillExists = properties.some(p => p.id === selectedProperty);
+      const stillExists = properties.some(p => p.property_id === selectedProperty);
       if (!stillExists) {
         setSelectedProperty(null);
       }
