@@ -72,8 +72,8 @@ export const useRobustInspectionCreation = () => {
           inspectionId = newInspection.id;
           console.log('✅ Inspection created successfully:', inspectionId);
 
-          // Wait a moment for the trigger to populate checklist items
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Now manually populate checklist items with proper category mapping
+          await populateChecklistItems(inspectionId);
 
           // Verify checklist items were created
           const { data: checklistItems, error: checklistError } = await supabase
@@ -85,17 +85,6 @@ export const useRobustInspectionCreation = () => {
             console.error('❌ Error checking checklist items:', checklistError);
           } else {
             console.log(`📋 Verified ${checklistItems?.length || 0} checklist items created`);
-          }
-
-          // Check audit log for any issues
-          const { data: auditData } = await supabase
-            .from('checklist_operations_audit')
-            .select('*')
-            .eq('inspection_id', inspectionId)
-            .order('created_at', { ascending: false });
-
-          if (auditData && auditData.length > 0) {
-            console.log('📊 Audit entries for new inspection:', auditData);
           }
 
         } catch (attemptError) {
@@ -127,6 +116,88 @@ export const useRobustInspectionCreation = () => {
       return null;
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  // Helper function to populate checklist items with proper category mapping
+  const populateChecklistItems = async (inspectionId: string) => {
+    try {
+      console.log('📋 Manually populating checklist items for inspection:', inspectionId);
+      
+      // Get static safety items
+      const { data: staticItems, error: fetchError } = await supabase
+        .from('static_safety_items')
+        .select('*')
+        .eq('deleted', false)
+        .eq('required', true);
+
+      if (fetchError) {
+        console.error('❌ Error fetching static safety items:', fetchError);
+        throw fetchError;
+      }
+
+      if (!staticItems || staticItems.length === 0) {
+        console.warn('⚠️ No static safety items found');
+        return;
+      }
+
+      // Map categories to valid checklist item categories
+      const categoryMapping: Record<string, string> = {
+        'safety': 'safety',
+        'Security': 'safety',
+        'security': 'safety',
+        'Fire Safety': 'safety',
+        'fire_safety': 'safety',
+        'Pool Safety': 'safety',
+        'pool_safety': 'safety',
+        'accessibility': 'accessibility',
+        'Accessibility': 'accessibility',
+        'amenities': 'amenities',
+        'Amenities': 'amenities',
+        'cleanliness': 'cleanliness',
+        'Cleanliness': 'cleanliness',
+        'accuracy': 'accuracy',
+        'Accuracy': 'accuracy',
+        'default': 'safety' // fallback category
+      };
+
+      // Prepare checklist items with mapped categories
+      const checklistItems = staticItems.map(item => ({
+        inspection_id: inspectionId,
+        label: item.label,
+        category: categoryMapping[item.category] || categoryMapping['default'],
+        evidence_type: item.evidence_type,
+        static_item_id: item.id,
+        created_at: new Date().toISOString()
+      }));
+
+      console.log('📝 Inserting checklist items:', checklistItems.length);
+
+      // Insert checklist items
+      const { error: insertError } = await supabase
+        .from('checklist_items')
+        .insert(checklistItems);
+
+      if (insertError) {
+        console.error('❌ Error inserting checklist items:', insertError);
+        throw insertError;
+      }
+
+      // Log successful population
+      await supabase
+        .from('checklist_operations_audit')
+        .insert({
+          inspection_id: inspectionId,
+          operation_type: 'manual_populate',
+          items_affected: checklistItems.length,
+          metadata: { manual_insertion: true, category_mapping_applied: true }
+        });
+
+      console.log('✅ Successfully populated checklist items manually');
+      
+    } catch (error) {
+      console.error('💥 Error in manual checklist population:', error);
+      throw error;
     }
   };
 

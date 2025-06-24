@@ -1,13 +1,13 @@
 
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
 
 export const useMobilePropertyActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isCreatingInspection, setIsCreatingInspection] = useState(false);
+  const { createInspection, isCreating } = useRobustInspectionCreation();
 
   const handleEdit = (propertyId: string) => {
     console.log('📱 Mobile edit property:', propertyId);
@@ -40,36 +40,29 @@ export const useMobilePropertyActions = () => {
   };
 
   const handleStartInspection = async (propertyId: string) => {
-    console.log('📱 Mobile start inspection:', propertyId);
+    console.log('📱 Mobile start inspection for property:', propertyId);
     
-    if (isCreatingInspection) return;
-    
-    setIsCreatingInspection(true);
+    if (isCreating) {
+      console.warn('⚠️ Inspection creation already in progress');
+      return;
+    }
     
     try {
-      const { data, error } = await supabase
-        .from('inspections')
-        .insert({
-          property_id: propertyId,
-          start_time: new Date().toISOString(),
-          completed: false
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      console.log('✅ Mobile inspection created:', data.id);
-      navigate(`/inspection/${data.id}`);
+      const inspectionId = await createInspection(propertyId);
+      
+      if (inspectionId) {
+        console.log('✅ Mobile inspection created successfully:', inspectionId);
+        navigate(`/inspection/${inspectionId}`);
+      } else {
+        console.error('❌ Failed to create inspection - no ID returned');
+      }
     } catch (error) {
-      console.error('❌ Mobile inspection creation error:', error);
+      console.error('💥 Mobile inspection creation error:', error);
       toast({
-        title: "Inspection Failed",
+        title: "Inspection Failed", 
         description: "Failed to start inspection. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsCreatingInspection(false);
     }
   };
 
@@ -77,6 +70,6 @@ export const useMobilePropertyActions = () => {
     handleEdit,
     handleDelete,
     handleStartInspection,
-    isCreatingInspection
+    isCreatingInspection: isCreating
   };
 };

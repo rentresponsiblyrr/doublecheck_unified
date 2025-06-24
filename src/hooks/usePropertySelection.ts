@@ -1,8 +1,8 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
 
 interface Inspection {
   id: string;
@@ -14,8 +14,8 @@ interface Inspection {
 export const usePropertySelection = (inspections: Inspection[]) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createInspection, isCreating } = useRobustInspectionCreation();
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
-  const [isCreatingInspection, setIsCreatingInspection] = useState(false);
 
   const handleStartInspection = async () => {
     if (!selectedProperty) {
@@ -23,42 +23,21 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    setIsCreatingInspection(true);
     console.log('🚀 Starting inspection creation for property:', selectedProperty);
 
     try {
-      const { data: inspection, error } = await supabase
-        .from('inspections')
-        .insert({
-          property_id: selectedProperty,
-          start_time: new Date().toISOString(),
-          completed: false
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Error creating inspection:', error);
+      const inspectionId = await createInspection(selectedProperty);
+      
+      if (inspectionId) {
+        console.log('✅ Created inspection:', inspectionId);
         toast({
-          title: "Error",
-          description: "Failed to create inspection. Please try again.",
-          variant: "destructive",
+          title: "Inspection Started",
+          description: "Your inspection has been created successfully.",
         });
-        throw error;
+        
+        console.log('🧭 Navigating to inspection:', inspectionId);
+        navigate(`/inspection/${inspectionId}`);
       }
-
-      console.log('✅ Created inspection:', inspection.id);
-      
-      // Give a small delay to ensure the database trigger has time to run
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast({
-        title: "Inspection Started",
-        description: "Your inspection has been created successfully.",
-      });
-      
-      console.log('🧭 Navigating to inspection:', inspection.id);
-      navigate(`/inspection/${inspection.id}`);
     } catch (error) {
       console.error('💥 Failed to start inspection:', error);
       toast({
@@ -66,8 +45,6 @@ export const usePropertySelection = (inspections: Inspection[]) => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsCreatingInspection(false);
     }
   };
 
@@ -90,6 +67,6 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     setSelectedProperty,
     handleStartInspection,
     getPropertyStatus,
-    isCreatingInspection
+    isCreatingInspection: isCreating
   };
 };
