@@ -1,80 +1,15 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Activity, Wifi, Clock, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/components/MobileFastAuthProvider';
-
-interface PerformanceMetrics {
-  loadTime: number;
-  networkStatus: 'online' | 'offline' | 'slow';
-  dbResponseTime: number;
-  cacheHitRate: number;
-  memoryUsage: number;
-}
+import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 
 export const PerformanceMonitor = () => {
   const { userRole } = useAuth();
-  const [metrics, setMetrics] = useState<PerformanceMetrics>({
-    loadTime: 0,
-    networkStatus: 'online',
-    dbResponseTime: 0,
-    cacheHitRate: 0,
-    memoryUsage: 0
-  });
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Only show to admin users or in development
-    const showPerfMonitor = (userRole === 'admin') || 
-                           (process.env.NODE_ENV === 'development') || 
-                           localStorage.getItem('showPerformanceMonitor') === 'true';
-    setIsVisible(showPerfMonitor);
-
-    if (!showPerfMonitor) return;
-
-    const updateMetrics = () => {
-      // Calculate load time using correct Performance API
-      const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const loadTime = navigationTiming ? 
-        Math.round(navigationTiming.loadEventEnd - navigationTiming.fetchStart) : 0;
-
-      // Network status
-      const connection = (navigator as any).connection;
-      let networkStatus: 'online' | 'offline' | 'slow' = 'online';
-      if (!navigator.onLine) {
-        networkStatus = 'offline';
-      } else if (connection?.effectiveType === '2g' || connection?.downlink < 1) {
-        networkStatus = 'slow';
-      }
-
-      // Simulate DB response time (would be real in production)
-      const dbResponseTime = Math.random() * 500 + 100;
-
-      // Simulate cache hit rate
-      const cacheHitRate = Math.random() * 30 + 70;
-
-      // Memory usage (approximate)
-      const memoryUsage = (performance as any).memory ? 
-        Math.round(((performance as any).memory.usedJSHeapSize / (performance as any).memory.totalJSHeapSize) * 100) : 
-        Math.random() * 40 + 30;
-
-      setMetrics({
-        loadTime,
-        networkStatus,
-        dbResponseTime: Math.round(dbResponseTime),
-        cacheHitRate: Math.round(cacheHitRate),
-        memoryUsage
-      });
-    };
-
-    updateMetrics();
-    const interval = setInterval(updateMetrics, 5000);
-
-    return () => clearInterval(interval);
-  }, [userRole]);
+  const { metrics, isVisible } = usePerformanceMonitoring();
 
   if (!isVisible) return null;
 

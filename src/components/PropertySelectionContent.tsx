@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
@@ -5,7 +6,7 @@ import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { QuickActions } from "@/components/QuickActions";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
-import { EnhancedErrorRecovery } from "@/components/EnhancedErrorRecovery";
+import { PropertyErrorBoundary } from "@/components/PropertyErrorBoundary";
 import { useRobustPropertyActions } from "@/hooks/useRobustPropertyActions";
 
 interface PropertyData {
@@ -66,7 +67,7 @@ export const PropertySelectionContent = ({
 
   const { actionState, clearError } = useRobustPropertyActions();
 
-  console.log('🎯 PropertySelectionContent rendering with enhanced error recovery:', {
+  console.log('🎯 PropertySelectionContent rendering with consolidated auth:', {
     propertiesCount: properties.length,
     inspectionsCount: inspections.length,
     selectedProperty,
@@ -131,13 +132,11 @@ export const PropertySelectionContent = ({
       />
 
       <div className="px-4 py-6 space-y-6">
-        {/* Quick Actions */}
         <QuickActions 
           context="properties" 
           pendingInspections={pendingInspections}
         />
 
-        {/* Search and Filter */}
         <SearchAndFilter
           searchPlaceholder="Search properties by name or address..."
           searchValue={searchValue}
@@ -150,21 +149,26 @@ export const PropertySelectionContent = ({
           onSortChange={setActiveSortId}
         />
 
-        {/* Results Summary */}
         <div className="text-sm text-gray-600">
           Showing {filteredProperties.length} of {properties.length} properties
           {searchValue && ` matching "${searchValue}"`}
         </div>
 
-        <OptimizedPropertyList
-          properties={filteredProperties}
-          inspections={inspections}
-          selectedProperty={selectedProperty}
-          onPropertySelect={setSelectedProperty}
-          onPropertyDeleted={onPropertyDeleted}
-          getPropertyStatus={getPropertyStatus}
-          isLoading={isLoading}
-        />
+        <PropertyErrorBoundary
+          onRetry={() => window.location.reload()}
+          onNavigateHome={() => window.location.href = '/properties'}
+          onAddProperty={() => window.location.href = '/add-property'}
+        >
+          <OptimizedPropertyList
+            properties={filteredProperties}
+            inspections={inspections}
+            selectedProperty={selectedProperty}
+            onPropertySelect={setSelectedProperty}
+            onPropertyDeleted={onPropertyDeleted}
+            getPropertyStatus={getPropertyStatus}
+            isLoading={isLoading}
+          />
+        </PropertyErrorBoundary>
 
         <div className="mt-6">
           <AddPropertyButton />
@@ -179,18 +183,6 @@ export const PropertySelectionContent = ({
           />
         )}
       </div>
-
-      {/* Enhanced Error Recovery Modal */}
-      {actionState.error && (
-        <EnhancedErrorRecovery
-          error={actionState.error.message}
-          onRetry={() => window.location.reload()}
-          onNavigateHome={() => window.location.href = '/properties'}
-          onDismiss={clearError}
-          context={actionState.error.action}
-          currentRetry={actionState.retryCount}
-        />
-      )}
     </div>
   );
 };

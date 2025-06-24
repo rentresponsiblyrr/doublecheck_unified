@@ -7,6 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { MobileFastAuthProvider } from "./components/MobileFastAuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundaryWithRecovery } from "./components/ErrorBoundaryWithRecovery";
+import { NavigationErrorBoundary } from "./components/NavigationErrorBoundary";
+import { PropertyErrorBoundary } from "./components/PropertyErrorBoundary";
+import { InspectionErrorBoundary } from "./components/InspectionErrorBoundary";
+import { FormErrorBoundary } from "./components/FormErrorBoundary";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
 import PropertySelection from "./pages/PropertySelection";
 import AddProperty from "./pages/AddProperty";
@@ -37,41 +41,48 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
-              <div className="min-h-screen bg-gray-50">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route 
-                    path="/properties" 
-                    element={
-                      <ProtectedRoute>
-                        <PropertySelection />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/add-property" 
-                    element={
-                      <ProtectedRoute>
-                        <AddProperty />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/inspection/:id" 
-                    element={
-                      <ProtectedRoute>
-                        <Inspection />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-                
-                {/* Performance Monitor for admins */}
-                <PerformanceMonitor />
-              </div>
-            </BrowserRouter>
+            <NavigationErrorBoundary>
+              <BrowserRouter>
+                <div className="min-h-screen bg-gray-50">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route 
+                      path="/properties" 
+                      element={
+                        <ProtectedRoute>
+                          <PropertyErrorBoundary>
+                            <PropertySelection />
+                          </PropertyErrorBoundary>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/add-property" 
+                      element={
+                        <ProtectedRoute>
+                          <FormErrorBoundary formType="Property">
+                            <AddProperty />
+                          </FormErrorBoundary>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/inspection/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <InspectionErrorBoundary>
+                            <Inspection />
+                          </InspectionErrorBoundary>
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                  
+                  <PerformanceMonitor />
+                </div>
+              </BrowserRouter>
+            </NavigationErrorBoundary>
           </TooltipProvider>
         </MobileFastAuthProvider>
       </QueryClientProvider>
