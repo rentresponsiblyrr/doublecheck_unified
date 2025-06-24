@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { uploadMedia, saveMediaRecord, updateChecklistItemStatus } from "@/lib/supabase";
+import { uploadMedia, updateChecklistItemStatus } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/useOfflineStorage";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useFileValidation } from "@/utils/fileValidation";
+import { useMediaRecordService } from "@/services/mediaRecordService";
 
 interface UseFileUploadProps {
   evidenceType: 'photo' | 'video';
@@ -23,82 +23,8 @@ export const useFileUpload = ({
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const { toast } = useToast();
   const { isOnline, savePhotoOffline } = useOfflineStorage();
-  const { user } = useAuth();
-
-  const validateFile = (file: File): { isValid: boolean; detectedType: 'photo' | 'video' } => {
-    // Detect the actual file type based on MIME type
-    const isPhoto = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-    const detectedType: 'photo' | 'video' = isPhoto ? 'photo' : 'video';
-
-    if (!isPhoto && !isVideo) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select a photo or video file.",
-        variant: "destructive",
-      });
-      return { isValid: false, detectedType };
-    }
-
-    // Validate file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      toast({
-        title: "File too large",
-        description: "Please select a file smaller than 10MB.",
-        variant: "destructive",
-      });
-      return { isValid: false, detectedType };
-    }
-
-    return { isValid: true, detectedType };
-  };
-
-  const saveMediaRecordWithAttribution = async (
-    checklistItemId: string,
-    type: 'photo' | 'video',
-    url: string,
-    filePath?: string
-  ) => {
-    try {
-      console.log('Saving media record with user attribution...', { 
-        checklistItemId, 
-        type, 
-        url, 
-        filePath,
-        userId: user?.id,
-        userEmail: user?.email 
-      });
-      
-      // Get user name from auth metadata or email
-      const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Unknown Inspector';
-      
-      const { data, error } = await supabase
-        .from('media')
-        .insert({
-          checklist_item_id: checklistItemId,
-          type,
-          url,
-          file_path: filePath,
-          user_id: user?.id,
-          uploaded_by_name: userName,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database insert error:', error);
-        throw error;
-      }
-
-      console.log('Media record saved with attribution:', data);
-      return data;
-    } catch (error) {
-      console.error('Save media record error:', error);
-      throw error;
-    }
-  };
+  const { validateFile } = useFileValidation();
+  const { saveMediaRecordWithAttribution } = useMediaRecordService();
 
   const handleFileUpload = async (file: File) => {
     const validation = validateFile(file);
