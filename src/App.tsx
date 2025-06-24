@@ -6,7 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MobileFastAuthProvider } from "@/components/MobileFastAuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundaryWithRecovery } from "@/components/ErrorBoundaryWithRecovery";
+import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import OptimizedPropertySelection from "./pages/OptimizedPropertySelection";
@@ -15,71 +16,91 @@ import Inspection from "./pages/Inspection";
 import InspectionComplete from "./pages/InspectionComplete";
 import NotFound from "./pages/NotFound";
 
-// Highly optimized query client for mobile performance
-const createMobileOptimizedQueryClient = (isMobile: boolean) => new QueryClient({
+// Enhanced query client with better error handling and mobile optimization
+const createOptimizedQueryClient = (isMobile: boolean) => new QueryClient({
   defaultOptions: {
     queries: {
-      retry: isMobile ? 1 : 2, // Fewer retries on mobile
-      staleTime: isMobile ? 60 * 1000 : 30 * 1000, // 1 minute on mobile, 30 seconds on desktop
-      gcTime: isMobile ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10 minutes on mobile
+      retry: (failureCount, error: any) => {
+        // Don't retry on authentication errors
+        if (error?.message?.includes('JWT') || error?.status === 401) {
+          return false;
+        }
+        // Fewer retries on mobile to save battery/data
+        return failureCount < (isMobile ? 1 : 2);
+      },
+      staleTime: isMobile ? 2 * 60 * 1000 : 60 * 1000, // 2 minutes on mobile, 1 minute on desktop
+      gcTime: isMobile ? 15 * 60 * 1000 : 5 * 60 * 1000, // 15 minutes on mobile for offline capability
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      networkMode: 'online', // Only fetch when online
+      networkMode: 'offlineFirst', // Better offline support
     },
     mutations: {
-      retry: isMobile ? 1 : 2,
-      networkMode: 'online',
+      retry: (failureCount, error: any) => {
+        if (error?.message?.includes('JWT') || error?.status === 401) {
+          return false;
+        }
+        return failureCount < 1;
+      },
+      networkMode: 'offlineFirst',
     },
   },
 });
 
 const AppContent = () => {
   const isMobile = useIsMobile();
-  const queryClient = createMobileOptimizedQueryClient(isMobile);
+  const queryClient = createOptimizedQueryClient(isMobile);
 
-  console.log('📱 App optimized for mobile:', isMobile);
+  const handleGlobalError = (error: Error) => {
+    console.error('🚨 Global error:', error);
+    // Could integrate with error monitoring service here
+  };
+
+  console.log('📱 App optimized for mobile with enhanced error handling:', isMobile);
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundaryWithRecovery onError={handleGlobalError}>
       <QueryClientProvider client={queryClient}>
         <MobileFastAuthProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/properties" element={
-                  <ProtectedRoute>
-                    <OptimizedPropertySelection />
-                  </ProtectedRoute>
-                } />
-                <Route path="/add-property" element={
-                  <ProtectedRoute>
-                    <AddProperty />
-                  </ProtectedRoute>
-                } />
-                <Route path="/inspection/:inspectionId" element={
-                  <ProtectedRoute>
-                    <Inspection />
-                  </ProtectedRoute>
-                } />
-                <Route path="/inspection/:inspectionId/complete" element={
-                  <ProtectedRoute>
-                    <InspectionComplete />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <div className="min-h-screen bg-gray-50">
+                <NetworkStatusIndicator />
+                <Routes>
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/properties" element={
+                    <ProtectedRoute>
+                      <OptimizedPropertySelection />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/add-property" element={
+                    <ProtectedRoute>
+                      <AddProperty />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/inspection/:inspectionId" element={
+                    <ProtectedRoute>
+                      <Inspection />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/inspection/:inspectionId/complete" element={
+                    <ProtectedRoute>
+                      <InspectionComplete />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
             </BrowserRouter>
           </TooltipProvider>
         </MobileFastAuthProvider>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </ErrorBoundaryWithRecovery>
   );
 };
 

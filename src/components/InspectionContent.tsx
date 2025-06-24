@@ -1,11 +1,17 @@
 
 import { useState } from "react";
-import { InspectionLayout } from "@/components/InspectionLayout";
+import { MobileOptimizedLayout } from "@/components/MobileOptimizedLayout";
+import { InspectionProgressTracker } from "@/components/InspectionProgressTracker";
 import { InspectionFilters } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
 import { ChecklistDiagnostics } from "@/components/ChecklistDiagnostics";
+import { LoadingStateManager } from "@/components/LoadingStateManager";
+import { useDataIntegrity } from "@/hooks/useDataIntegrity";
 import { ChecklistItemType } from "@/types/inspection";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, CheckCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface InspectionContentProps {
   inspectionId: string;
@@ -22,6 +28,8 @@ export const InspectionContent = ({
 }: InspectionContentProps) => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const { checks, isChecking, runIntegrityChecks, fixIssue, hasIssues, highPriorityIssues } = useDataIntegrity(inspectionId);
 
   const filteredItems = checklistItems.filter(item => {
     const matchesCompletedFilter = showCompleted || (!item.status || item.status === null);
@@ -45,43 +53,108 @@ export const InspectionContent = ({
     failedItems: failedCount,
     naItems: naCount,
     filteredItems: filteredItems.length,
-    isAllCompleted
+    isAllCompleted,
+    hasDataIssues: hasIssues,
+    highPriorityIssues
   });
 
+  const headerActions = (
+    <div className="flex items-center gap-2">
+      {hasIssues && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={runIntegrityChecks}
+          className="text-red-600 border-red-200"
+        >
+          <AlertTriangle className="w-4 h-4" />
+          {highPriorityIssues > 0 && (
+            <span className="ml-1">{highPriorityIssues}</span>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+
   return (
-    <InspectionLayout
-      inspectionId={inspectionId}
-      checklistItems={checklistItems}
-      showCompleted={showCompleted}
-      onToggleCompleted={() => setShowCompleted(!showCompleted)}
+    <MobileOptimizedLayout
+      title="Inspection Checklist"
+      subtitle={`${completedCount}/${totalCount} items completed`}
+      showBackButton
+      backTo="/properties"
+      actions={headerActions}
     >
-      <ChecklistDiagnostics inspectionId={inspectionId} />
+      <div className="px-3 sm:px-4 py-4 space-y-4 max-w-4xl mx-auto">
+        {/* Data Integrity Alerts */}
+        {hasIssues && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <div className="space-y-2">
+                <p className="font-medium">Data integrity issues detected:</p>
+                {checks.map(check => (
+                  <div key={check.id} className="flex items-center justify-between">
+                    <span className="text-sm">{check.message}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fixIssue(check.id)}
+                      className="ml-2"
+                    >
+                      Fix
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <InspectionFilters
-        checklistItems={checklistItems}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        showCompleted={showCompleted}
-        onToggleCompleted={() => setShowCompleted(!showCompleted)}
-        onRefresh={onRefetch}
-        isRefetching={isRefetching}
-      />
+        {/* Progress Tracker */}
+        <InspectionProgressTracker checklistItems={checklistItems} showDetailed />
 
-      <InspectionList
-        items={filteredItems}
-        showCompleted={showCompleted}
-        selectedCategory={selectedCategory}
-        onComplete={onRefetch}
-        onCategoryChange={setSelectedCategory}
-        inspectionId={inspectionId}
-      />
+        {/* Diagnostics (Development only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <ChecklistDiagnostics inspectionId={inspectionId} />
+        )}
 
-      <InspectionCompleteButton
-        inspectionId={inspectionId}
-        isAllCompleted={isAllCompleted}
-        passedCount={passedCount}
-        failedCount={failedCount}
-      />
-    </InspectionLayout>
+        {/* Filters */}
+        <InspectionFilters
+          checklistItems={checklistItems}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          showCompleted={showCompleted}
+          onToggleCompleted={() => setShowCompleted(!showCompleted)}
+          onRefresh={onRefetch}
+          isRefetching={isRefetching}
+        />
+
+        {/* Checklist Items */}
+        <LoadingStateManager
+          isLoading={isRefetching}
+          error={null}
+          isEmpty={filteredItems.length === 0}
+          loadingMessage="Refreshing checklist..."
+          emptyMessage={showCompleted ? "No completed items to show" : "No pending items remaining"}
+        >
+          <InspectionList
+            items={filteredItems}
+            showCompleted={showCompleted}
+            selectedCategory={selectedCategory}
+            onComplete={onRefetch}
+            onCategoryChange={setSelectedCategory}
+            inspectionId={inspectionId}
+          />
+        </LoadingStateManager>
+
+        {/* Complete Button */}
+        <InspectionCompleteButton
+          inspectionId={inspectionId}
+          isAllCompleted={isAllCompleted}
+          passedCount={passedCount}
+          failedCount={failedCount}
+        />
+      </div>
+    </MobileOptimizedLayout>
   );
 };
