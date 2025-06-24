@@ -67,6 +67,7 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
         };
       default:
         // Generic guidelines for any other category
+        const IconComponent = categoryObj ? getCategoryIcon(categoryObj) : Info;
         return {
           tips: [
             "Document the current condition clearly",
@@ -79,7 +80,7 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
             "Multiple angles if the item is complex",
             "Close-ups of important details or features"
           ],
-          icon: categoryObj ? getCategoryIcon(categoryObj) : <Info className="w-5 h-5 text-gray-500" />,
+          icon: <IconComponent className="w-5 h-5 text-gray-500" />,
           color: categoryObj ? getCategoryColor(categoryObj).replace('text-', 'border-').replace('bg-', 'bg-') + " bg-opacity-50" : "border-gray-200 bg-gray-50"
         };
     }

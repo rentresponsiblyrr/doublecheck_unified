@@ -11,7 +11,7 @@ interface MediaUploaderProps {
   checklistItemId: string;
   inspectionId: string;
   onComplete: () => void;
-  category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
+  category: string; // Changed from hardcoded union to string
   label: string;
   hasUploadedMedia?: boolean;
   onDelete?: () => void;
