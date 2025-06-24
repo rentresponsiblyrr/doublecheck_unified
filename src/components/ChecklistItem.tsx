@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 import { MediaUploader } from "@/components/MediaUploader";
 import { UploadedEvidence } from "@/components/UploadedEvidence";
@@ -11,6 +11,7 @@ import { NotesPromptDialog } from "@/components/NotesPromptDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
 import { useNotesHistory } from "@/hooks/useNotesHistory";
+import { useInspectorPresence } from "@/hooks/useInspectorPresence";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ChecklistItemProps {
@@ -23,12 +24,49 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showNotesPrompt, setShowNotesPrompt] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
   const { saveNote } = useNotesHistory(item.id);
+  const { updatePresence } = useInspectorPresence(item.inspection_id);
 
   const isCompleted = item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable';
   const hasUploadedMedia = mediaItems.length > 0;
+
+  // Track when this item comes into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          updatePresence('viewing', item.id);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    const element = document.getElementById(`checklist-item-${item.id}`);
+    if (element) {
+      observer.observe(element);
+    }
+
+    return () => {
+      if (element) {
+        observer.unobserve(element);
+      }
+    };
+  }, [item.id, updatePresence]);
+
+  // Update presence when user starts working on item
+  useEffect(() => {
+    if (isInView && (isUploading || currentNotes.length > 0)) {
+      updatePresence('working', item.id, { 
+        hasNotes: currentNotes.length > 0,
+        isUploading 
+      });
+    }
+  }, [isInView, isUploading, currentNotes, item.id, updatePresence]);
 
   // If item is completed, show the completed state component
   if (isCompleted) {
@@ -37,6 +75,8 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
 
   const handleMediaUpload = async (file: File) => {
     setIsUploading(true);
+    updatePresence('working', item.id, { isUploading: true });
+    
     try {
       console.log('Uploading media for item:', item.id);
       
@@ -108,11 +148,18 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
 
   const handleNotesChange = (notes: string) => {
     setCurrentNotes(notes);
+    // Update presence when user is actively writing notes
+    if (notes.length > 0) {
+      updatePresence('working', item.id, { hasNotes: true });
+    }
   };
 
   return (
     <>
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div 
+        id={`checklist-item-${item.id}`}
+        className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+      >
         <div className="space-y-6">
           {/* Header */}
           <ChecklistItemHeader item={item} />
@@ -148,11 +195,12 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
             onNotesChange={handleNotesChange}
           />
 
-          {/* Pass/Fail/N/A Actions */}
+          {/* Pass/Fail/N/A Actions with Collaboration Features */}
           <ChecklistItemActions 
             itemId={item.id} 
             currentNotes={currentNotes} 
             onComplete={onComplete} 
+            inspectionId={item.inspection_id}
           />
         </div>
       </div>

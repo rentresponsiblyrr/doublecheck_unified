@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useInspectionData } from "@/hooks/useInspectionData";
+import { useInspectorPresence } from "@/hooks/useInspectorPresence";
 import { InspectionInvalidState } from "@/components/InspectionInvalidState";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionErrorState } from "@/components/InspectionErrorState";
@@ -28,6 +29,9 @@ const Inspection = () => {
     error
   } = useInspectionData(inspectionId);
 
+  // Initialize inspector presence tracking
+  const { updatePresence } = useInspectorPresence(inspectionId);
+
   // Log component state changes
   useEffect(() => {
     console.log('🔄 Inspection component state:', {
@@ -38,6 +42,13 @@ const Inspection = () => {
       hasError: !!error
     });
   }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
+
+  // Update presence when page loads
+  useEffect(() => {
+    if (inspectionId) {
+      updatePresence('online');
+    }
+  }, [inspectionId, updatePresence]);
 
   // Handle errors
   if (error) {

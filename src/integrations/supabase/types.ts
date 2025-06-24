@@ -93,48 +93,111 @@ export type Database = {
           },
         ]
       }
+      checklist_item_change_log: {
+        Row: {
+          change_reason: string | null
+          change_type: string
+          checklist_item_id: string
+          conflict_id: string | null
+          created_at: string
+          id: string
+          inspector_id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: string
+          checklist_item_id: string
+          conflict_id?: string | null
+          created_at?: string
+          id?: string
+          inspector_id: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: string
+          checklist_item_id?: string
+          conflict_id?: string | null
+          created_at?: string
+          id?: string
+          inspector_id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_item_change_log_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_item_change_log_conflict_id_fkey"
+            columns: ["conflict_id"]
+            isOneToOne: false
+            referencedRelation: "collaboration_conflicts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_items: {
         Row: {
           ai_status: string | null
+          assigned_inspector_id: string | null
           category: string | null
           created_at: string | null
           evidence_type: string
           id: string
           inspection_id: string
           label: string
+          last_modified_at: string | null
+          last_modified_by: string | null
           notes: string | null
           notes_history: Json | null
           source_photo_url: string | null
           static_item_id: string | null
           status: string | null
+          version: number | null
         }
         Insert: {
           ai_status?: string | null
+          assigned_inspector_id?: string | null
           category?: string | null
           created_at?: string | null
           evidence_type: string
           id?: string
           inspection_id: string
           label: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           notes?: string | null
           notes_history?: Json | null
           source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
+          version?: number | null
         }
         Update: {
           ai_status?: string | null
+          assigned_inspector_id?: string | null
           category?: string | null
           created_at?: string | null
           evidence_type?: string
           id?: string
           inspection_id?: string
           label?: string
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           notes?: string | null
           notes_history?: Json | null
           source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -229,6 +292,72 @@ export type Database = {
         }
         Relationships: []
       }
+      collaboration_conflicts: {
+        Row: {
+          checklist_item_id: string | null
+          conflict_type: string
+          created_at: string
+          id: string
+          inspection_id: string
+          inspector_1: string
+          inspector_1_action: Json
+          inspector_2: string
+          inspector_2_action: Json
+          resolution_notes: string | null
+          resolution_status: Database["public"]["Enums"]["conflict_resolution_status"]
+          resolved_at: string | null
+          resolved_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_item_id?: string | null
+          conflict_type: string
+          created_at?: string
+          id?: string
+          inspection_id: string
+          inspector_1: string
+          inspector_1_action: Json
+          inspector_2: string
+          inspector_2_action: Json
+          resolution_notes?: string | null
+          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_item_id?: string | null
+          conflict_type?: string
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          inspector_1?: string
+          inspector_1_action?: Json
+          inspector_2?: string
+          inspector_2_action?: Json
+          resolution_notes?: string | null
+          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_conflicts_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaboration_conflicts_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspections: {
         Row: {
           certification_status: string | null
@@ -266,6 +395,104 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspector_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          inspection_id: string
+          inspector_id: string
+          notes: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["inspector_assignment_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          inspection_id: string
+          inspector_id: string
+          notes?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["inspector_assignment_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          inspector_id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["inspector_assignment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspector_assignments_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspector_presence: {
+        Row: {
+          created_at: string
+          current_item_id: string | null
+          id: string
+          inspection_id: string
+          inspector_id: string
+          last_seen: string
+          metadata: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          current_item_id?: string | null
+          id?: string
+          inspection_id: string
+          inspector_id: string
+          last_seen?: string
+          metadata?: Json | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          current_item_id?: string | null
+          id?: string
+          inspection_id?: string
+          inspector_id?: string
+          last_seen?: string
+          metadata?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspector_presence_current_item_id_fkey"
+            columns: ["current_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspector_presence_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
         ]
@@ -317,6 +544,7 @@ export type Database = {
           id: string
           notes: string | null
           type: string
+          uploaded_by: string | null
           uploaded_by_name: string | null
           url: string | null
           user_id: string | null
@@ -328,6 +556,7 @@ export type Database = {
           id?: string
           notes?: string | null
           type: string
+          uploaded_by?: string | null
           uploaded_by_name?: string | null
           url?: string | null
           user_id?: string | null
@@ -339,6 +568,7 @@ export type Database = {
           id?: string
           notes?: string | null
           type?: string
+          uploaded_by?: string | null
           uploaded_by_name?: string | null
           url?: string | null
           user_id?: string | null
@@ -627,17 +857,42 @@ export type Database = {
         }
         Returns: {
           ai_status: string | null
+          assigned_inspector_id: string | null
           category: string | null
           created_at: string | null
           evidence_type: string
           id: string
           inspection_id: string
           label: string
+          last_modified_at: string | null
+          last_modified_by: string | null
           notes: string | null
           notes_history: Json | null
           source_photo_url: string | null
           static_item_id: string | null
           status: string | null
+          version: number | null
+        }
+      }
+      assign_checklist_item: {
+        Args: { p_item_id: string; p_inspector_id?: string }
+        Returns: {
+          ai_status: string | null
+          assigned_inspector_id: string | null
+          category: string | null
+          created_at: string | null
+          evidence_type: string
+          id: string
+          inspection_id: string
+          label: string
+          last_modified_at: string | null
+          last_modified_by: string | null
+          notes: string | null
+          notes_history: Json | null
+          source_photo_url: string | null
+          static_item_id: string | null
+          status: string | null
+          version: number | null
         }
       }
       assign_user_role: {
@@ -763,17 +1018,39 @@ export type Database = {
         Args: { item_id: string; item_status: string; item_notes?: string }
         Returns: {
           ai_status: string | null
+          assigned_inspector_id: string | null
           category: string | null
           created_at: string | null
           evidence_type: string
           id: string
           inspection_id: string
           label: string
+          last_modified_at: string | null
+          last_modified_by: string | null
           notes: string | null
           notes_history: Json | null
           source_photo_url: string | null
           static_item_id: string | null
           status: string | null
+          version: number | null
+        }
+      }
+      update_inspector_presence: {
+        Args: {
+          p_inspection_id: string
+          p_status?: string
+          p_current_item_id?: string
+          p_metadata?: Json
+        }
+        Returns: {
+          created_at: string
+          current_item_id: string | null
+          id: string
+          inspection_id: string
+          inspector_id: string
+          last_seen: string
+          metadata: Json | null
+          status: string
         }
       }
       update_user_profile: {
@@ -800,6 +1077,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "inspector" | "reviewer"
+      conflict_resolution_status: "pending" | "resolved" | "escalated"
+      inspector_assignment_status:
+        | "assigned"
+        | "active"
+        | "completed"
+        | "reassigned"
     }
     CompositeTypes: {
       http_header: {
@@ -932,6 +1215,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "inspector", "reviewer"],
+      conflict_resolution_status: ["pending", "resolved", "escalated"],
+      inspector_assignment_status: [
+        "assigned",
+        "active",
+        "completed",
+        "reassigned",
+      ],
     },
   },
 } as const
