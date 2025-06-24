@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { validateCategory } from "@/utils/categoryMapping";
 
 export interface StaticSafetyItem {
   id: string;
@@ -44,9 +45,29 @@ export class ChecklistDataService {
   async insertChecklistItems(checklistItems: ChecklistItem[]): Promise<void> {
     console.log('📝 Inserting checklist items:', checklistItems.length);
 
+    // Final validation before insertion
+    const validatedItems = checklistItems.map((item, index) => {
+      if (!validateCategory(item.category)) {
+        console.error(`❌ Invalid category "${item.category}" detected for item at index ${index}: ${item.label}`);
+        // Force to safety category as last resort
+        return {
+          ...item,
+          category: 'safety'
+        };
+      }
+      return item;
+    });
+
+    console.log('📊 Category distribution:', 
+      validatedItems.reduce((acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    );
+
     const { error: insertError } = await supabase
       .from('checklist_items')
-      .insert(checklistItems);
+      .insert(validatedItems);
 
     if (insertError) {
       console.error('❌ Error inserting checklist items:', insertError);
