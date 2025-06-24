@@ -393,6 +393,7 @@ export type Database = {
         Row: {
           active_date: string | null
           category: string | null
+          category_id: string | null
           checklist_id: number
           created_at: string | null
           deleted: boolean | null
@@ -408,6 +409,7 @@ export type Database = {
         Insert: {
           active_date?: string | null
           category?: string | null
+          category_id?: string | null
           checklist_id?: number
           created_at?: string | null
           deleted?: boolean | null
@@ -423,6 +425,7 @@ export type Database = {
         Update: {
           active_date?: string | null
           category?: string | null
+          category_id?: string | null
           checklist_id?: number
           created_at?: string | null
           deleted?: boolean | null
@@ -442,6 +445,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "static_safety_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
           },
         ]
       }

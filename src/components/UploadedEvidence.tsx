@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Play, Image as ImageIcon, Calendar, Download, ExternalLink, User } from "lucide-react";
 import { MediaUpload } from "@/types/inspection";
@@ -33,7 +32,18 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
 
         if (error) throw error;
 
-        setMediaItems(data || []);
+        // Transform the data to match our TypeScript interface
+        const transformedData: MediaUploadWithAttribution[] = (data || []).map(item => ({
+          id: item.id,
+          checklist_item_id: item.checklist_item_id,
+          type: item.type as 'photo' | 'video', // Cast to proper union type
+          url: item.url || '',
+          user_id: item.user_id || undefined,
+          uploaded_by_name: item.uploaded_by_name || undefined,
+          created_at: item.created_at || new Date().toISOString()
+        }));
+
+        setMediaItems(transformedData);
       } catch (error) {
         console.error('Failed to load media items:', error);
       } finally {
@@ -60,12 +70,31 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           console.log('Media update received:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setMediaItems(prev => [payload.new as MediaUploadWithAttribution, ...prev]);
+            // Transform the new data to match our interface
+            const newItem: MediaUploadWithAttribution = {
+              id: payload.new.id,
+              checklist_item_id: payload.new.checklist_item_id,
+              type: payload.new.type as 'photo' | 'video',
+              url: payload.new.url || '',
+              user_id: payload.new.user_id || undefined,
+              uploaded_by_name: payload.new.uploaded_by_name || undefined,
+              created_at: payload.new.created_at || new Date().toISOString()
+            };
+            setMediaItems(prev => [newItem, ...prev]);
           } else if (payload.eventType === 'DELETE') {
             setMediaItems(prev => prev.filter(item => item.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
+            const updatedItem: MediaUploadWithAttribution = {
+              id: payload.new.id,
+              checklist_item_id: payload.new.checklist_item_id,
+              type: payload.new.type as 'photo' | 'video',
+              url: payload.new.url || '',
+              user_id: payload.new.user_id || undefined,
+              uploaded_by_name: payload.new.uploaded_by_name || undefined,
+              created_at: payload.new.created_at || new Date().toISOString()
+            };
             setMediaItems(prev => prev.map(item => 
-              item.id === payload.new.id ? payload.new as MediaUploadWithAttribution : item
+              item.id === payload.new.id ? updatedItem : item
             ));
           }
         }

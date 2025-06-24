@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +38,10 @@ export const ChecklistItemNotes = ({ itemId, initialNotes }: ChecklistItemNotesP
 
         if (error) throw error;
 
-        const history = data.notes_history || [];
+        // Properly cast the JSON data to our expected type
+        const history = Array.isArray(data.notes_history) 
+          ? data.notes_history as NotesHistoryEntry[] 
+          : [];
         setNotesHistory(history);
       } catch (error) {
         console.error('Failed to load notes history:', error);
@@ -64,7 +66,10 @@ export const ChecklistItemNotes = ({ itemId, initialNotes }: ChecklistItemNotesP
           filter: `id=eq.${itemId}`
         },
         (payload) => {
-          const newHistory = payload.new.notes_history || [];
+          // Properly cast the payload data
+          const newHistory = Array.isArray(payload.new.notes_history) 
+            ? payload.new.notes_history as NotesHistoryEntry[] 
+            : [];
           setNotesHistory(newHistory);
           
           // Update current notes if it's different from what we have
