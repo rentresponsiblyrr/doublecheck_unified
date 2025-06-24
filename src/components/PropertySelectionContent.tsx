@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
@@ -56,7 +57,7 @@ export const PropertySelectionContent = ({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [activeSortId, setActiveSortId] = useState('name-asc');
 
-  console.log('🎯 PropertySelectionContent rendering with Phase 2 enhancements:', {
+  console.log('🎯 PropertySelectionContent rendering with simplified approach:', {
     propertiesCount: properties.length,
     inspectionsCount: inspections.length,
     selectedProperty,

@@ -1,8 +1,8 @@
 
-import { PropertyCard } from "@/components/PropertyCard";
+import React from "react";
+import { OptimizedPropertyCard } from "@/components/OptimizedPropertyCard";
 import { EmptyPropertiesState } from "@/components/EmptyPropertiesState";
-import { Skeleton } from "@/components/ui/skeleton";
-import { memo } from "react";
+import { Loader2 } from "lucide-react";
 
 interface Property {
   id: string;
@@ -10,7 +10,6 @@ interface Property {
   address: string;
   vrbo_url: string | null;
   airbnb_url: string | null;
-  status: string | null;
 }
 
 interface Inspection {
@@ -24,53 +23,32 @@ interface OptimizedPropertyListProps {
   properties: Property[];
   inspections: Inspection[];
   selectedProperty: string | null;
-  onPropertySelect: (propertyId: string) => void;
+  onPropertySelect: (propertyId: string | null) => void;
   onPropertyDeleted: () => void;
   getPropertyStatus: (propertyId: string) => {
     status: string;
     color: string;
     text: string;
+    activeInspectionId?: string | null;
   };
   isLoading?: boolean;
 }
 
-const PropertyCardSkeleton = () => (
-  <div className="p-4 border border-gray-200 rounded-lg">
-    <div className="flex items-start justify-between mb-3">
-      <div className="flex-1">
-        <Skeleton className="h-5 w-48 mb-2" />
-        <Skeleton className="h-4 w-64" />
-      </div>
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-6 w-20" />
-        <Skeleton className="h-8 w-8" />
-      </div>
-    </div>
-    <Skeleton className="h-4 w-32" />
-  </div>
-);
-
-export const OptimizedPropertyList = memo(({ 
-  properties, 
-  inspections, 
-  selectedProperty, 
-  onPropertySelect, 
+export const OptimizedPropertyList = ({
+  properties,
+  inspections,
+  selectedProperty,
+  onPropertySelect,
   onPropertyDeleted,
   getPropertyStatus,
   isLoading = false
 }: OptimizedPropertyListProps) => {
-  console.log('🏗️ OptimizedPropertyList rendering:', {
-    propertiesCount: properties.length,
-    isLoading,
-    selectedProperty
-  });
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <PropertyCardSkeleton key={index} />
-        ))}
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Loading properties...</span>
       </div>
     );
   }
@@ -80,24 +58,28 @@ export const OptimizedPropertyList = memo(({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {properties.map((property) => {
         const status = getPropertyStatus(property.id);
         const isSelected = selectedProperty === property.id;
-        
+
         return (
-          <PropertyCard
+          <OptimizedPropertyCard
             key={property.id}
             property={property}
-            status={status}
             isSelected={isSelected}
-            onSelect={onPropertySelect}
+            onSelect={() => {
+              if (isSelected) {
+                onPropertySelect(null);
+              } else {
+                onPropertySelect(property.id);
+              }
+            }}
+            status={status}
             onPropertyDeleted={onPropertyDeleted}
           />
         );
       })}
     </div>
   );
-});
-
-OptimizedPropertyList.displayName = 'OptimizedPropertyList';
+};
