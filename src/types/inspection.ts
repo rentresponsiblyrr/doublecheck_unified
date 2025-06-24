@@ -7,7 +7,15 @@ export interface ChecklistItemType {
   evidence_type: 'photo' | 'video';
   status?: 'completed' | 'failed' | 'not_applicable' | null;
   notes?: string | null;
+  notes_history?: NotesHistoryEntry[];
   created_at: string;
+}
+
+export interface NotesHistoryEntry {
+  text: string;
+  user_id: string;
+  user_name: string;
+  timestamp: string;
 }
 
 export interface MediaUpload {
@@ -15,5 +23,7 @@ export interface MediaUpload {
   checklist_item_id: string;
   type: 'photo' | 'video';
   url: string;
+  user_id?: string;
+  uploaded_by_name?: string;
   created_at: string;
 }

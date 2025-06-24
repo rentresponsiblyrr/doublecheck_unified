@@ -1,18 +1,81 @@
 
-import { useState } from "react";
-import { Play, Image as ImageIcon, Calendar, Download, ExternalLink } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Play, Image as ImageIcon, Calendar, Download, ExternalLink, User } from "lucide-react";
 import { MediaUpload } from "@/types/inspection";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+
+interface MediaUploadWithAttribution extends MediaUpload {
+  user_id?: string;
+  uploaded_by_name?: string;
+}
 
 interface UploadedEvidenceProps {
   checklistItemId: string;
 }
 
 export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => {
-  const [selectedMedia, setSelectedMedia] = useState<MediaUpload | null>(null);
-  const { data: mediaItems = [], isLoading } = useChecklistItemMedia(checklistItemId);
+  const [selectedMedia, setSelectedMedia] = useState<MediaUploadWithAttribution | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaUploadWithAttribution[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load media items with user attribution
+  useEffect(() => {
+    const loadMediaItems = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('media')
+          .select('*')
+          .eq('checklist_item_id', checklistItemId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setMediaItems(data || []);
+      } catch (error) {
+        console.error('Failed to load media items:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMediaItems();
+  }, [checklistItemId]);
+
+  // Real-time subscription for media updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`media-${checklistItemId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'media',
+          filter: `checklist_item_id=eq.${checklistItemId}`
+        },
+        (payload) => {
+          console.log('Media update received:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setMediaItems(prev => [payload.new as MediaUploadWithAttribution, ...prev]);
+          } else if (payload.eventType === 'DELETE') {
+            setMediaItems(prev => prev.filter(item => item.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            setMediaItems(prev => prev.map(item => 
+              item.id === payload.new.id ? payload.new as MediaUploadWithAttribution : item
+            ));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [checklistItemId]);
 
   if (isLoading) {
     return (
@@ -29,7 +92,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     return null;
   }
 
-  const handleDownload = async (media: MediaUpload) => {
+  const handleDownload = async (media: MediaUploadWithAttribution) => {
     try {
       const response = await fetch(media.url);
       const blob = await response.blob();
@@ -101,7 +164,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
               
               {/* Media Info and Actions */}
               <div className="p-3 bg-white">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Calendar className="w-3 h-3" />
                     <span>
@@ -133,10 +196,18 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
                   </div>
                 </div>
                 
-                <div className="mt-2">
+                <div className="space-y-1">
                   <div className="text-xs text-gray-500 capitalize">
                     {media.type} Evidence
                   </div>
+                  
+                  {/* User Attribution */}
+                  {media.uploaded_by_name && (
+                    <div className="flex items-center gap-1 text-xs text-blue-600">
+                      <User className="w-3 h-3" />
+                      <span>Uploaded by {media.uploaded_by_name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

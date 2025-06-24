@@ -103,6 +103,7 @@ export type Database = {
           inspection_id: string
           label: string
           notes: string | null
+          notes_history: Json | null
           source_photo_url: string | null
           static_item_id: string | null
           status: string | null
@@ -116,6 +117,7 @@ export type Database = {
           inspection_id: string
           label: string
           notes?: string | null
+          notes_history?: Json | null
           source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
@@ -129,6 +131,7 @@ export type Database = {
           inspection_id?: string
           label?: string
           notes?: string | null
+          notes_history?: Json | null
           source_photo_url?: string | null
           static_item_id?: string | null
           status?: string | null
@@ -314,7 +317,9 @@ export type Database = {
           id: string
           notes: string | null
           type: string
+          uploaded_by_name: string | null
           url: string | null
+          user_id: string | null
         }
         Insert: {
           checklist_item_id: string
@@ -323,7 +328,9 @@ export type Database = {
           id?: string
           notes?: string | null
           type: string
+          uploaded_by_name?: string | null
           url?: string | null
+          user_id?: string | null
         }
         Update: {
           checklist_item_id?: string
@@ -332,7 +339,9 @@ export type Database = {
           id?: string
           notes?: string | null
           type?: string
+          uploaded_by_name?: string | null
           url?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -599,6 +608,28 @@ export type Database = {
           duplicate_count: number
         }[]
       }
+      append_user_note: {
+        Args: {
+          item_id: string
+          note_text: string
+          user_id: string
+          user_name: string
+        }
+        Returns: {
+          ai_status: string | null
+          category: string | null
+          created_at: string | null
+          evidence_type: string
+          id: string
+          inspection_id: string
+          label: string
+          notes: string | null
+          notes_history: Json | null
+          source_photo_url: string | null
+          static_item_id: string | null
+          status: string | null
+        }
+      }
       assign_user_role: {
         Args: { _user_id: string; _email: string }
         Returns: undefined
@@ -729,6 +760,7 @@ export type Database = {
           inspection_id: string
           label: string
           notes: string | null
+          notes_history: Json | null
           source_photo_url: string | null
           static_item_id: string | null
           status: string | null
