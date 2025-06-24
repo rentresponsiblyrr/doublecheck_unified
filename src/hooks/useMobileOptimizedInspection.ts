@@ -39,7 +39,21 @@ export const useMobileOptimizedInspection = (inspectionId: string) => {
       }
 
       console.log('✅ Mobile inspection loaded:', data?.length || 0, 'items');
-      return data || [];
+      
+      // Transform data to match TypeScript interface
+      const transformedData: ChecklistItemType[] = (data || []).map(item => ({
+        id: item.id,
+        inspection_id: item.inspection_id,
+        label: item.label || '',
+        category: item.category || 'safety',
+        evidence_type: item.evidence_type as 'photo' | 'video', // Type assertion for database string
+        status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
+        notes: item.notes,
+        notes_history: item.notes_history,
+        created_at: item.created_at || new Date().toISOString()
+      }));
+      
+      return transformedData;
     },
     enabled: !!inspectionId,
     staleTime: 60000, // 1 minute stale time for mobile
@@ -96,8 +110,8 @@ export const useMobileOptimizedInspection = (inspectionId: string) => {
       
       if (error) throw error;
       
-      // Optimistically update local state
-      const updatedItems = checklistItems.map(item =>
+      // Optimistically update local state with proper typing
+      const updatedItems: ChecklistItemType[] = checklistItems.map(item =>
         item.id === itemId ? { ...item, status } : item
       );
       
