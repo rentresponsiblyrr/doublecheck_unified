@@ -2,10 +2,12 @@
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
 
 export const useMobilePropertyActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { startOrJoinInspection } = useMobileInspectionFlow();
 
   const handleEdit = (propertyId: string) => {
     console.log('📱 Mobile edit property:', propertyId);
@@ -66,8 +68,14 @@ export const useMobilePropertyActions = () => {
     }
   };
 
+  const handleStartInspection = async (propertyId: string) => {
+    console.log('📱 Mobile start inspection for property:', propertyId);
+    await startOrJoinInspection(propertyId);
+  };
+
   return {
     handleEdit,
-    handleDelete
+    handleDelete,
+    handleStartInspection
   };
 };
