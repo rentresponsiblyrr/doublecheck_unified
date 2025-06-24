@@ -1,8 +1,10 @@
-
+import { useState } from 'react';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
+import { QuickActions } from "@/components/QuickActions";
+import { SearchAndFilter } from "@/components/SearchAndFilter";
 
 interface Property {
   id: string;
@@ -50,17 +52,65 @@ export const PropertySelectionContent = ({
   onPropertyDeleted,
   isLoading = false
 }: PropertySelectionContentProps) => {
-  console.log('🎯 PropertySelectionContent rendering with:', {
+  const [searchValue, setSearchValue] = useState('');
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [activeSortId, setActiveSortId] = useState('name-asc');
+
+  console.log('🎯 PropertySelectionContent rendering with Phase 2 enhancements:', {
     propertiesCount: properties.length,
     inspectionsCount: inspections.length,
     selectedProperty,
     isCreatingInspection,
-    isLoading
+    isLoading,
+    searchValue,
+    activeFilters
   });
 
   const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
   const buttonText = selectedProperty ? getButtonText(selectedProperty) : "Start Inspection";
   const isJoining = selectedPropertyStatus?.status === 'in-progress';
+  const pendingInspections = inspections.filter(i => !i.completed).length;
+
+  // Filter and sort properties
+  const filteredProperties = properties.filter(property => {
+    const matchesSearch = !searchValue || 
+      property.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      property.address?.toLowerCase().includes(searchValue.toLowerCase());
+    
+    const matchesFilters = activeFilters.length === 0 || 
+      activeFilters.some(filter => {
+        const status = getPropertyStatus(property.id);
+        return filter === status.status;
+      });
+
+    return matchesSearch && matchesFilters;
+  }).sort((a, b) => {
+    switch (activeSortId) {
+      case 'name-asc':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'name-desc':
+        return (b.name || '').localeCompare(a.name || '');
+      case 'status-asc':
+        return getPropertyStatus(a.id).status.localeCompare(getPropertyStatus(b.id).status);
+      case 'status-desc':
+        return getPropertyStatus(b.id).status.localeCompare(getPropertyStatus(a.id).status);
+      default:
+        return 0;
+    }
+  });
+
+  const filterOptions = [
+    { id: 'available', label: 'Available', count: properties.filter(p => getPropertyStatus(p.id).status === 'available').length },
+    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => getPropertyStatus(p.id).status === 'in-progress').length },
+    { id: 'completed', label: 'Completed', count: properties.filter(p => getPropertyStatus(p.id).status === 'completed').length }
+  ];
+
+  const sortOptions = [
+    { id: 'name-asc', label: 'Name A-Z', direction: 'asc' as const },
+    { id: 'name-desc', label: 'Name Z-A', direction: 'desc' as const },
+    { id: 'status-asc', label: 'Status A-Z', direction: 'asc' as const },
+    { id: 'status-desc', label: 'Status Z-A', direction: 'desc' as const }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,18 +119,34 @@ export const PropertySelectionContent = ({
         subtitle="Select a property below to begin your inspection" 
       />
 
-      <div className="px-4 py-6">
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Choose a Property to Inspect
-          </h2>
-          <p className="text-gray-600">
-            Select a property below to begin your inspection
-          </p>
+      <div className="px-4 py-6 space-y-6">
+        {/* Quick Actions */}
+        <QuickActions 
+          context="properties" 
+          pendingInspections={pendingInspections}
+        />
+
+        {/* Search and Filter */}
+        <SearchAndFilter
+          searchPlaceholder="Search properties by name or address..."
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          filterOptions={filterOptions}
+          activeFilters={activeFilters}
+          onFilterChange={setActiveFilters}
+          sortOptions={sortOptions}
+          activeSortId={activeSortId}
+          onSortChange={setActiveSortId}
+        />
+
+        {/* Results Summary */}
+        <div className="text-sm text-gray-600">
+          Showing {filteredProperties.length} of {properties.length} properties
+          {searchValue && ` matching "${searchValue}"`}
         </div>
 
         <OptimizedPropertyList
-          properties={properties}
+          properties={filteredProperties}
           inspections={inspections}
           selectedProperty={selectedProperty}
           onPropertySelect={setSelectedProperty}

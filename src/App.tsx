@@ -8,6 +8,8 @@ import { MobileFastAuthProvider } from "@/components/MobileFastAuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundaryWithRecovery } from "@/components/ErrorBoundaryWithRecovery";
 import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import { EnhancedBreadcrumb } from "@/components/EnhancedBreadcrumb";
+import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import OptimizedPropertySelection from "./pages/OptimizedPropertySelection";
@@ -55,7 +57,7 @@ const AppContent = () => {
     // Could integrate with error monitoring service here
   };
 
-  console.log('📱 App optimized for mobile with enhanced error handling:', isMobile);
+  console.log('📱 App optimized for mobile with enhanced navigation and performance monitoring:', isMobile);
 
   return (
     <ErrorBoundaryWithRecovery onError={handleGlobalError}>
@@ -67,6 +69,7 @@ const AppContent = () => {
             <BrowserRouter>
               <div className="min-h-screen bg-gray-50">
                 <NetworkStatusIndicator />
+                <EnhancedBreadcrumb />
                 <Routes>
                   <Route path="/" element={
                     <ProtectedRoute>
@@ -95,6 +98,7 @@ const AppContent = () => {
                   } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <PerformanceMonitor />
               </div>
             </BrowserRouter>
           </TooltipProvider>
