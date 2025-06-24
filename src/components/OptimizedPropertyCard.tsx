@@ -23,12 +23,16 @@ interface PropertyData {
 interface PropertyStatus {
   status: string;
   color: string;
-  textLabel: string;
-  badgeColor?: string;
+  text: string;
+  activeInspectionId?: string | null;
 }
 
 interface OptimizedPropertyCardProps {
   property: PropertyData;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  status?: PropertyStatus;
+  onPropertyDeleted?: () => void;
   onEdit?: (propertyId: string) => void;
   onDelete?: (propertyId: string) => void;
   onStartInspection?: (propertyId: string) => void;
@@ -36,13 +40,19 @@ interface OptimizedPropertyCardProps {
 
 export const OptimizedPropertyCard = ({ 
   property, 
+  isSelected = false,
+  onSelect,
+  status,
+  onPropertyDeleted,
   onEdit,
   onDelete,
   onStartInspection
 }: OptimizedPropertyCardProps) => {
   
-  // Calculate status based on inspection counts
-  const getPropertyStatus = (): PropertyStatus => {
+  // Calculate status based on inspection counts if not provided
+  const getPropertyStatus = () => {
+    if (status) return status;
+    
     const activeCount = property.active_inspection_count || 0;
     const completedCount = property.completed_inspection_count || 0;
     
@@ -50,8 +60,7 @@ export const OptimizedPropertyCard = ({
       return {
         status: 'in-progress',
         color: 'bg-yellow-500',
-        textLabel: 'In Progress',
-        badgeColor: 'bg-yellow-100 text-yellow-800'
+        text: 'In Progress',
       };
     }
     
@@ -59,20 +68,23 @@ export const OptimizedPropertyCard = ({
       return {
         status: 'completed',
         color: 'bg-green-500',
-        textLabel: 'Completed',
-        badgeColor: 'bg-green-100 text-green-800'
+        text: 'Completed',
       };
     }
     
     return {
       status: 'pending',
       color: 'bg-gray-500',
-      textLabel: 'Not Started',
-      badgeColor: 'bg-gray-100 text-gray-800'
+      text: 'Not Started',
     };
   };
 
-  const status = getPropertyStatus();
+  const currentStatus = getPropertyStatus();
+  const badgeColor = currentStatus.status === 'in-progress' 
+    ? 'bg-yellow-100 text-yellow-800'
+    : currentStatus.status === 'completed'
+    ? 'bg-green-100 text-green-800'
+    : 'bg-gray-100 text-gray-800';
 
   const handleEdit = () => {
     if (onEdit) {
@@ -93,7 +105,12 @@ export const OptimizedPropertyCard = ({
   };
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200">
+    <Card 
+      className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+        isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+      }`}
+      onClick={onSelect}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -102,8 +119,8 @@ export const OptimizedPropertyCard = ({
               <h3 className="font-semibold text-gray-900 truncate">
                 {property.property_name}
               </h3>
-              <Badge className={`${status.badgeColor} text-xs`}>
-                {status.textLabel}
+              <Badge className={`${badgeColor} text-xs`}>
+                {currentStatus.text}
               </Badge>
             </div>
 
@@ -121,6 +138,7 @@ export const OptimizedPropertyCard = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="w-3 h-3" />
                   Vrbo
@@ -132,6 +150,7 @@ export const OptimizedPropertyCard = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-pink-600 hover:text-pink-800"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink className="w-3 h-3" />
                   Airbnb
@@ -152,10 +171,10 @@ export const OptimizedPropertyCard = ({
             <SimplePropertyActions
               propertyId={property.property_id}
               propertyName={property.property_name}
-              onPropertyDeleted={() => {
+              onPropertyDeleted={onPropertyDeleted || (() => {
                 // Refresh the parent component
                 window.location.reload();
-              }}
+              })}
             />
           </div>
         </div>

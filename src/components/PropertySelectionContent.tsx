@@ -7,13 +7,19 @@ import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { QuickActions } from "@/components/QuickActions";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 
-interface Property {
-  id: string;
-  name: string;
-  address: string;
-  vrbo_url: string | null;
-  airbnb_url: string | null;
-  status: string | null;
+interface PropertyData {
+  property_id: string;
+  property_name: string;
+  property_address: string;
+  property_vrbo_url: string | null;
+  property_airbnb_url: string | null;
+  property_status?: string;
+  property_created_at?: string;
+  inspection_count?: number;
+  completed_inspection_count?: number;
+  active_inspection_count?: number;
+  latest_inspection_id?: string | null;
+  latest_inspection_completed?: boolean | null;
 }
 
 interface Inspection {
@@ -24,7 +30,7 @@ interface Inspection {
 }
 
 interface PropertySelectionContentProps {
-  properties: Property[];
+  properties: PropertyData[];
   inspections: Inspection[];
   selectedProperty: string | null;
   setSelectedProperty: (propertyId: string | null) => void;
@@ -75,12 +81,12 @@ export const PropertySelectionContent = ({
   // Filter and sort properties
   const filteredProperties = properties.filter(property => {
     const matchesSearch = !searchValue || 
-      property.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      property.address?.toLowerCase().includes(searchValue.toLowerCase());
+      property.property_name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      property.property_address?.toLowerCase().includes(searchValue.toLowerCase());
     
     const matchesFilters = activeFilters.length === 0 || 
       activeFilters.some(filter => {
-        const status = getPropertyStatus(property.id);
+        const status = getPropertyStatus(property.property_id);
         return filter === status.status;
       });
 
@@ -88,22 +94,22 @@ export const PropertySelectionContent = ({
   }).sort((a, b) => {
     switch (activeSortId) {
       case 'name-asc':
-        return (a.name || '').localeCompare(b.name || '');
+        return (a.property_name || '').localeCompare(b.property_name || '');
       case 'name-desc':
-        return (b.name || '').localeCompare(a.name || '');
+        return (b.property_name || '').localeCompare(a.property_name || '');
       case 'status-asc':
-        return getPropertyStatus(a.id).status.localeCompare(getPropertyStatus(b.id).status);
+        return getPropertyStatus(a.property_id).status.localeCompare(getPropertyStatus(b.property_id).status);
       case 'status-desc':
-        return getPropertyStatus(b.id).status.localeCompare(getPropertyStatus(a.id).status);
+        return getPropertyStatus(b.property_id).status.localeCompare(getPropertyStatus(a.property_id).status);
       default:
         return 0;
     }
   });
 
   const filterOptions = [
-    { id: 'available', label: 'Available', count: properties.filter(p => getPropertyStatus(p.id).status === 'available').length },
-    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => getPropertyStatus(p.id).status === 'in-progress').length },
-    { id: 'completed', label: 'Completed', count: properties.filter(p => getPropertyStatus(p.id).status === 'completed').length }
+    { id: 'available', label: 'Available', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'available').length },
+    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'in-progress').length },
+    { id: 'completed', label: 'Completed', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'completed').length }
   ];
 
   const sortOptions = [
