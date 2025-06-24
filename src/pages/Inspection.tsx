@@ -11,25 +11,25 @@ import { InspectionContent } from "@/components/InspectionContent";
 const Inspection = () => {
   console.log('🏗️ Inspection component mounting');
   
-  const params = useParams<{ inspectionId?: string }>();
+  const params = useParams<{ id?: string }>();
   
-  // Get inspectionId from route parameters
-  const inspectionId = params.inspectionId;
+  // Get inspectionId from route parameters (using 'id' to match route)
+  const inspectionId = params.id;
 
   console.log('🔗 Inspection route params:', { 
     params, 
     inspectionId,
     paramKeys: Object.keys(params),
     urlPath: window.location.pathname,
-    currentRoute: 'inspection/:inspectionId'
+    currentRoute: 'inspection/:id'
   });
 
   // Early return for missing inspectionId with detailed logging
   if (!inspectionId) {
     console.error('❌ No inspectionId in route params:', {
       params,
-      expectedParam: 'inspectionId',
-      routeDefinition: '/inspection/:inspectionId',
+      expectedParam: 'id',
+      routeDefinition: '/inspection/:id',
       pathname: window.location.pathname,
       search: window.location.search,
       hash: window.location.hash

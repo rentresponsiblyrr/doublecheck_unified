@@ -100,8 +100,8 @@ const PropertySelection = () => {
         refetchInspections()
       ]);
       
-      // Navigate to the inspection using React Router
-      console.log('🧭 PropertySelection navigating using React Router to:', `/inspection/${inspectionId}`);
+      // Navigate to the inspection using correct route parameter
+      console.log('🧭 PropertySelection navigating to:', `/inspection/${inspectionId}`);
       navigate(`/inspection/${inspectionId}`, { replace: true });
     }
   };
