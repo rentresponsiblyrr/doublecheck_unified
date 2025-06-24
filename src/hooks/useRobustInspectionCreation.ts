@@ -141,7 +141,7 @@ export const useRobustInspectionCreation = () => {
         return;
       }
 
-      // Map categories to valid checklist item categories
+      // Updated category mapping based on actual database constraint values
       const categoryMapping: Record<string, string> = {
         'safety': 'safety',
         'Security': 'safety',
@@ -150,6 +150,8 @@ export const useRobustInspectionCreation = () => {
         'fire_safety': 'safety',
         'Pool Safety': 'safety',
         'pool_safety': 'safety',
+        'Emergency': 'safety',
+        'emergency': 'safety',
         'accessibility': 'accessibility',
         'Accessibility': 'accessibility',
         'amenities': 'amenities',
@@ -158,18 +160,25 @@ export const useRobustInspectionCreation = () => {
         'Cleanliness': 'cleanliness',
         'accuracy': 'accuracy',
         'Accuracy': 'accuracy',
+        'listing_accuracy': 'accuracy',
+        'Listing Accuracy': 'accuracy',
         'default': 'safety' // fallback category
       };
 
       // Prepare checklist items with mapped categories
-      const checklistItems = staticItems.map(item => ({
-        inspection_id: inspectionId,
-        label: item.label,
-        category: categoryMapping[item.category] || categoryMapping['default'],
-        evidence_type: item.evidence_type,
-        static_item_id: item.id,
-        created_at: new Date().toISOString()
-      }));
+      const checklistItems = staticItems.map(item => {
+        const mappedCategory = categoryMapping[item.category] || categoryMapping['default'];
+        console.log(`📝 Mapping category "${item.category}" to "${mappedCategory}" for item "${item.label}"`);
+        
+        return {
+          inspection_id: inspectionId,
+          label: item.label,
+          category: mappedCategory,
+          evidence_type: item.evidence_type,
+          static_item_id: item.id,
+          created_at: new Date().toISOString()
+        };
+      });
 
       console.log('📝 Inserting checklist items:', checklistItems.length);
 
@@ -190,7 +199,15 @@ export const useRobustInspectionCreation = () => {
           inspection_id: inspectionId,
           operation_type: 'manual_populate',
           items_affected: checklistItems.length,
-          metadata: { manual_insertion: true, category_mapping_applied: true }
+          metadata: { 
+            manual_insertion: true, 
+            category_mapping_applied: true,
+            mapped_categories: checklistItems.map(item => ({
+              label: item.label,
+              original_category: staticItems.find(si => si.id === item.static_item_id)?.category,
+              mapped_category: item.category
+            }))
+          }
         });
 
       console.log('✅ Successfully populated checklist items manually');
