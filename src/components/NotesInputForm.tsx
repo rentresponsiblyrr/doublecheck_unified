@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { User } from "@supabase/supabase-js";
@@ -7,11 +7,19 @@ import { User } from "@supabase/supabase-js";
 interface NotesInputFormProps {
   user: User | null;
   onSaveNote: (noteText: string) => Promise<boolean>;
+  onNotesChange?: (notes: string) => void;
 }
 
-export const NotesInputForm = ({ user, onSaveNote }: NotesInputFormProps) => {
+export const NotesInputForm = ({ user, onSaveNote, onNotesChange }: NotesInputFormProps) => {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Notify parent of notes changes
+  useEffect(() => {
+    if (onNotesChange) {
+      onNotesChange(notes);
+    }
+  }, [notes, onNotesChange]);
 
   const handleSaveNotes = async () => {
     setIsSaving(true);

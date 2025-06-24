@@ -4,30 +4,45 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, X, MinusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChecklistItemActionsProps {
   itemId: string;
-  notes: string;
+  currentNotes: string;
   onComplete: () => void;
 }
 
-export const ChecklistItemActions = ({ itemId, notes, onComplete }: ChecklistItemActionsProps) => {
+export const ChecklistItemActions = ({ itemId, currentNotes, onComplete }: ChecklistItemActionsProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleStatusChange = async (newStatus: 'completed' | 'failed' | 'not_applicable') => {
     setIsSaving(true);
     try {
       console.log('Updating status to:', newStatus, 'for item:', itemId);
       
+      // Update the checklist item status
       const { error } = await supabase
         .rpc('update_checklist_item_complete', {
           item_id: itemId,
           item_status: newStatus,
-          item_notes: notes || null
+          item_notes: currentNotes || null
         });
 
       if (error) throw error;
+
+      // If there are notes, save them to the notes history
+      if (currentNotes && currentNotes.trim() && user) {
+        const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown Inspector';
+        
+        await supabase.rpc('append_user_note', {
+          item_id: itemId,
+          note_text: currentNotes.trim(),
+          user_id: user.id,
+          user_name: userName
+        });
+      }
 
       let statusMessage = '';
       switch (newStatus) {
@@ -44,7 +59,7 @@ export const ChecklistItemActions = ({ itemId, notes, onComplete }: ChecklistIte
 
       toast({
         title: "Status updated",
-        description: `Item marked as ${statusMessage}.`,
+        description: `Item marked as ${statusMessage}${currentNotes ? ' with notes saved.' : '.'}`,
       });
 
       onComplete();
@@ -110,7 +125,7 @@ export const ChecklistItemActions = ({ itemId, notes, onComplete }: ChecklistIte
       </div>
       
       <p className="text-xs text-gray-500 text-center mt-2">
-        You can change the status later if needed
+        {currentNotes ? 'Your notes will be saved with the status.' : 'Add notes above to include them with your status.'}
       </p>
     </div>
   );

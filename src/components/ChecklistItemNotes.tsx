@@ -6,9 +6,10 @@ import { NotesInputForm } from "@/components/NotesInputForm";
 interface ChecklistItemNotesProps {
   itemId: string;
   initialNotes: string;
+  onNotesChange?: (notes: string) => void;
 }
 
-export const ChecklistItemNotes = ({ itemId }: ChecklistItemNotesProps) => {
+export const ChecklistItemNotes = ({ itemId, onNotesChange }: ChecklistItemNotesProps) => {
   const { notesHistory, isLoading, saveNote, user } = useNotesHistory(itemId);
 
   return (
@@ -20,6 +21,7 @@ export const ChecklistItemNotes = ({ itemId }: ChecklistItemNotesProps) => {
       <NotesInputForm 
         user={user} 
         onSaveNote={saveNote} 
+        onNotesChange={onNotesChange}
       />
     </div>
   );

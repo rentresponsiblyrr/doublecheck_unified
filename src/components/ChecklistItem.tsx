@@ -7,8 +7,10 @@ import { ChecklistItemHeader } from "@/components/ChecklistItemHeader";
 import { ChecklistItemNotes } from "@/components/ChecklistItemNotes";
 import { ChecklistItemActions } from "@/components/ChecklistItemActions";
 import { CompletedChecklistItem } from "@/components/CompletedChecklistItem";
+import { NotesPromptDialog } from "@/components/NotesPromptDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
+import { useNotesHistory } from "@/hooks/useNotesHistory";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ChecklistItemProps {
@@ -17,11 +19,13 @@ interface ChecklistItemProps {
 }
 
 export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
-  const [notes, setNotes] = useState(item.notes || "");
+  const [currentNotes, setCurrentNotes] = useState(item.notes || "");
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showNotesPrompt, setShowNotesPrompt] = useState(false);
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
+  const { saveNote } = useNotesHistory(item.id);
 
   const isCompleted = item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable';
   const hasUploadedMedia = mediaItems.length > 0;
@@ -97,51 +101,69 @@ export const ChecklistItem = ({ item, onComplete }: ChecklistItemProps) => {
     setIsUploading(false);
     await refetchMedia();
     onComplete();
+    
+    // Show notes prompt after successful upload
+    setShowNotesPrompt(true);
+  };
+
+  const handleNotesChange = (notes: string) => {
+    setCurrentNotes(notes);
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="space-y-6">
-        {/* Header */}
-        <ChecklistItemHeader item={item} />
+    <>
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="space-y-6">
+          {/* Header */}
+          <ChecklistItemHeader item={item} />
 
-        {/* Show existing uploaded evidence */}
-        {hasUploadedMedia && (
-          <UploadedEvidence checklistItemId={item.id} />
-        )}
+          {/* Show existing uploaded evidence */}
+          {hasUploadedMedia && (
+            <UploadedEvidence checklistItemId={item.id} />
+          )}
 
-        {/* Media Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Evidence Upload
-          </label>
-          <MediaUploader
-            evidenceType={item.evidence_type}
-            onUpload={handleMediaUpload}
-            isUploading={isUploading}
-            checklistItemId={item.id}
-            inspectionId={item.inspection_id}
-            onComplete={handleUploadComplete}
-            category={item.category}
-            label={item.label}
-            hasUploadedMedia={hasUploadedMedia}
-            onDelete={handleDeleteMedia}
+          {/* Media Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Evidence Upload
+            </label>
+            <MediaUploader
+              evidenceType={item.evidence_type}
+              onUpload={handleMediaUpload}
+              isUploading={isUploading}
+              checklistItemId={item.id}
+              inspectionId={item.inspection_id}
+              onComplete={handleUploadComplete}
+              category={item.category}
+              label={item.label}
+              hasUploadedMedia={hasUploadedMedia}
+              onDelete={handleDeleteMedia}
+            />
+          </div>
+
+          {/* Notes */}
+          <ChecklistItemNotes 
+            itemId={item.id} 
+            initialNotes={item.notes || ""} 
+            onNotesChange={handleNotesChange}
+          />
+
+          {/* Pass/Fail/N/A Actions */}
+          <ChecklistItemActions 
+            itemId={item.id} 
+            currentNotes={currentNotes} 
+            onComplete={onComplete} 
           />
         </div>
-
-        {/* Notes */}
-        <ChecklistItemNotes 
-          itemId={item.id} 
-          initialNotes={item.notes || ""} 
-        />
-
-        {/* Pass/Fail/N/A Actions */}
-        <ChecklistItemActions 
-          itemId={item.id} 
-          notes={notes} 
-          onComplete={onComplete} 
-        />
       </div>
-    </div>
+
+      {/* Notes Prompt Dialog */}
+      <NotesPromptDialog
+        isOpen={showNotesPrompt}
+        onClose={() => setShowNotesPrompt(false)}
+        onSaveNote={saveNote}
+        itemLabel={item.label}
+      />
+    </>
   );
 };
