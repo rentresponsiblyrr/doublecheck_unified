@@ -12,7 +12,6 @@ import { PropertyErrorBoundary } from "./components/PropertyErrorBoundary";
 import { InspectionErrorBoundary } from "./components/InspectionErrorBoundary";
 import { FormErrorBoundary } from "./components/FormErrorBoundary";
 import { MobileNavigationOptimizer } from "./components/MobileNavigationOptimizer";
-import { PerformanceMonitor } from "./components/PerformanceMonitor";
 import PropertySelection from "./pages/PropertySelection";
 import AddProperty from "./pages/AddProperty";
 import Inspection from "./pages/Inspection";
@@ -88,8 +87,6 @@ function App() {
                       />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
-                    
-                    <PerformanceMonitor />
                   </div>
                 </MobileNavigationOptimizer>
               </BrowserRouter>

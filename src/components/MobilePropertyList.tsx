@@ -5,7 +5,7 @@ import { EmptyPropertiesState } from "@/components/EmptyPropertiesState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Smartphone } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 interface MobilePropertyData {
   property_id: string;
@@ -96,20 +96,6 @@ export const MobilePropertyList = memo(({
 
   return (
     <div className="space-y-4">
-      {/* Mobile Performance Indicator */}
-      <div className="px-4">
-        <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
-          <Smartphone className="w-4 h-4" />
-          <span>Mobile optimized • {properties.length} properties</span>
-          {selectedProperty && (
-            <span className="ml-auto text-blue-600 font-medium">1 selected</span>
-          )}
-          {isFetching && (
-            <div className="w-3 h-3 border border-green-600 border-t-transparent rounded-full animate-spin ml-auto" />
-          )}
-        </div>
-      </div>
-
       {/* Property Grid */}
       <div className="grid gap-4 px-4">
         {properties.map((property) => {

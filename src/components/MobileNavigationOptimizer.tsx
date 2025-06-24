@@ -1,7 +1,6 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useMobileAuth } from '@/hooks/useMobileAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,21 +11,8 @@ interface MobileNavigationOptimizerProps {
 export const MobileNavigationOptimizer: React.FC<MobileNavigationOptimizerProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { startMeasure, endMeasure } = usePerformanceMonitoring();
   const { user, isAuthenticated } = useMobileAuth();
   const { toast } = useToast();
-
-  // Track navigation performance
-  useEffect(() => {
-    startMeasure(`navigation-${location.pathname}`);
-    
-    // End measurement when component is fully loaded
-    const timer = setTimeout(() => {
-      endMeasure(`navigation-${location.pathname}`);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname, startMeasure, endMeasure]);
 
   // Mobile-specific navigation guards
   const checkNavigationPermissions = useCallback((path: string) => {
