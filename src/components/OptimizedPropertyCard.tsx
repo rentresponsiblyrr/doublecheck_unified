@@ -65,6 +65,14 @@ export const OptimizedPropertyCard = memo(({
     onStartInspection(property.property_id);
   };
 
+  const handleEdit = () => {
+    onEdit(property.property_id);
+  };
+
+  const handleDelete = () => {
+    onDelete(property.property_id);
+  };
+
   return (
     <Card 
       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
@@ -94,8 +102,8 @@ export const OptimizedPropertyCard = memo(({
             <PropertyActionsDropdown
               propertyId={property.property_id}
               propertyName={property.property_name}
-              onEdit={onEdit}
-              onDelete={onDelete}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           </div>
         </div>

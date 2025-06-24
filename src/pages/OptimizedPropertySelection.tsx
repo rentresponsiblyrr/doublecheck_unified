@@ -14,6 +14,7 @@ const OptimizedPropertySelection = () => {
     setSelectedProperty,
     handleStartInspection,
     getPropertyStatus,
+    getButtonText,
     isCreatingInspection,
     onPropertyDeleted,
     isLoading,
@@ -44,6 +45,7 @@ const OptimizedPropertySelection = () => {
       setSelectedProperty={setSelectedProperty}
       handleStartInspection={handleStartInspection}
       getPropertyStatus={getPropertyStatus}
+      getButtonText={getButtonText}
       isCreatingInspection={isCreatingInspection}
       onPropertyDeleted={onPropertyDeleted}
     />

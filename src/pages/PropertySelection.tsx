@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
@@ -71,7 +72,8 @@ const PropertySelection = () => {
   const {
     selectedProperty,
     setSelectedProperty,
-    getPropertyStatus
+    getPropertyStatus,
+    getButtonText
   } = usePropertySelection(inspections);
 
   const { createInspection, isCreating } = useRobustInspectionCreation();
@@ -154,6 +156,7 @@ const PropertySelection = () => {
       setSelectedProperty={setSelectedProperty}
       handleStartInspection={handleStartInspection}
       getPropertyStatus={getPropertyStatus}
+      getButtonText={getButtonText}
       isCreatingInspection={isCreating}
       onPropertyDeleted={handlePropertyDeleted}
     />
