@@ -9,6 +9,8 @@ import {
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
 
 interface PropertyActionsDropdownProps {
+  propertyId?: string;
+  propertyName?: string;
   onEdit: () => void;
   onDelete: () => void;
 }
