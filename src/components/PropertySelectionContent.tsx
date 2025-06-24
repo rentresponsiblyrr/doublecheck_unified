@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
@@ -6,6 +5,8 @@ import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { QuickActions } from "@/components/QuickActions";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
+import { EnhancedErrorRecovery } from "@/components/EnhancedErrorRecovery";
+import { useRobustPropertyActions } from "@/hooks/useRobustPropertyActions";
 
 interface PropertyData {
   property_id: string;
@@ -63,14 +64,17 @@ export const PropertySelectionContent = ({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [activeSortId, setActiveSortId] = useState('name-asc');
 
-  console.log('🎯 PropertySelectionContent rendering with simplified approach:', {
+  const { actionState, clearError } = useRobustPropertyActions();
+
+  console.log('🎯 PropertySelectionContent rendering with enhanced error recovery:', {
     propertiesCount: properties.length,
     inspectionsCount: inspections.length,
     selectedProperty,
     isCreatingInspection,
     isLoading,
     searchValue,
-    activeFilters
+    activeFilters,
+    actionError: actionState.error
   });
 
   const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
@@ -169,12 +173,24 @@ export const PropertySelectionContent = ({
         {selectedProperty && (
           <StartInspectionButton 
             onStartInspection={handleStartInspection}
-            isLoading={isCreatingInspection}
+            isLoading={isCreatingInspection || actionState.isLoading}
             buttonText={buttonText}
             isJoining={isJoining}
           />
         )}
       </div>
+
+      {/* Enhanced Error Recovery Modal */}
+      {actionState.error && (
+        <EnhancedErrorRecovery
+          error={actionState.error.message}
+          onRetry={() => window.location.reload()}
+          onNavigateHome={() => window.location.href = '/properties'}
+          onDismiss={clearError}
+          context={actionState.error.action}
+          currentRetry={actionState.retryCount}
+        />
+      )}
     </div>
   );
 };

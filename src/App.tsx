@@ -3,64 +3,35 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { MobileFastAuthProvider } from "@/components/MobileFastAuthProvider";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ErrorBoundaryWithRecovery } from "@/components/ErrorBoundaryWithRecovery";
-import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
-import { EnhancedBreadcrumb } from "@/components/EnhancedBreadcrumb";
-import { PerformanceMonitor } from "@/components/PerformanceMonitor";
-import { useIsMobile } from "@/hooks/use-mobile";
-import Index from "./pages/Index";
-import OptimizedPropertySelection from "./pages/OptimizedPropertySelection";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { MobileFastAuthProvider } from "./components/MobileFastAuthProvider";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ErrorBoundaryWithRecovery } from "./components/ErrorBoundaryWithRecovery";
+import { PerformanceMonitor } from "./components/PerformanceMonitor";
+import PropertySelection from "./pages/PropertySelection";
 import AddProperty from "./pages/AddProperty";
 import Inspection from "./pages/Inspection";
-import InspectionComplete from "./pages/InspectionComplete";
-import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
-// Enhanced query client with better error handling and mobile optimization
-const createOptimizedQueryClient = (isMobile: boolean) => new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on authentication errors
-        if (error?.message?.includes('JWT') || error?.status === 401) {
-          return false;
-        }
-        // Fewer retries on mobile to save battery/data
-        return failureCount < (isMobile ? 1 : 2);
-      },
-      staleTime: isMobile ? 2 * 60 * 1000 : 60 * 1000, // 2 minutes on mobile, 1 minute on desktop
-      gcTime: isMobile ? 15 * 60 * 1000 : 5 * 60 * 1000, // 15 minutes on mobile for offline capability
+      staleTime: 0,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      networkMode: 'offlineFirst', // Better offline support
-    },
-    mutations: {
-      retry: (failureCount, error: any) => {
-        if (error?.message?.includes('JWT') || error?.status === 401) {
-          return false;
+      retry: (failureCount, error) => {
+        if (failureCount < 2) {
+          console.log(`🔄 Retrying query (attempt ${failureCount + 1})`);
+          return true;
         }
-        return failureCount < 1;
+        return false;
       },
-      networkMode: 'offlineFirst',
     },
   },
 });
 
-const AppContent = () => {
-  const isMobile = useIsMobile();
-  const queryClient = createOptimizedQueryClient(isMobile);
-
-  const handleGlobalError = (error: Error) => {
-    console.error('🚨 Global error:', error);
-    // Could integrate with error monitoring service here
-  };
-
-  console.log('📱 App optimized for mobile with enhanced navigation and performance monitoring:', isMobile);
-
+function App() {
   return (
-    <ErrorBoundaryWithRecovery onError={handleGlobalError}>
+    <ErrorBoundaryWithRecovery>
       <QueryClientProvider client={queryClient}>
         <MobileFastAuthProvider>
           <TooltipProvider>
@@ -68,36 +39,36 @@ const AppContent = () => {
             <Sonner />
             <BrowserRouter>
               <div className="min-h-screen bg-gray-50">
-                <NetworkStatusIndicator />
-                <EnhancedBreadcrumb />
                 <Routes>
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/properties" element={
-                    <ProtectedRoute>
-                      <OptimizedPropertySelection />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/add-property" element={
-                    <ProtectedRoute>
-                      <AddProperty />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/inspection/:inspectionId" element={
-                    <ProtectedRoute>
-                      <Inspection />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/inspection/:inspectionId/complete" element={
-                    <ProtectedRoute>
-                      <InspectionComplete />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="/" element={<Index />} />
+                  <Route 
+                    path="/properties" 
+                    element={
+                      <ProtectedRoute>
+                        <PropertySelection />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/add-property" 
+                    element={
+                      <ProtectedRoute>
+                        <AddProperty />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/inspection/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <Inspection />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                
+                {/* Performance Monitor for admins */}
                 <PerformanceMonitor />
               </div>
             </BrowserRouter>
@@ -106,8 +77,6 @@ const AppContent = () => {
       </QueryClientProvider>
     </ErrorBoundaryWithRecovery>
   );
-};
-
-const App = () => <AppContent />;
+}
 
 export default App;

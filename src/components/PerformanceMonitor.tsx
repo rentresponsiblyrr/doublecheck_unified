@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { Activity, Wifi, Clock, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/components/MobileFastAuthProvider';
 
 interface PerformanceMetrics {
   loadTime: number;
@@ -13,6 +15,7 @@ interface PerformanceMetrics {
 }
 
 export const PerformanceMonitor = () => {
+  const { userRole } = useAuth();
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     loadTime: 0,
     networkStatus: 'online',
@@ -24,8 +27,9 @@ export const PerformanceMonitor = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Only show in development or when explicitly enabled
-    const showPerfMonitor = process.env.NODE_ENV === 'development' || 
+    // Only show to admin users or in development
+    const showPerfMonitor = (userRole === 'admin') || 
+                           (process.env.NODE_ENV === 'development') || 
                            localStorage.getItem('showPerformanceMonitor') === 'true';
     setIsVisible(showPerfMonitor);
 
@@ -70,7 +74,7 @@ export const PerformanceMonitor = () => {
     const interval = setInterval(updateMetrics, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [userRole]);
 
   if (!isVisible) return null;
 
@@ -87,7 +91,7 @@ export const PerformanceMonitor = () => {
           <Activity className="w-4 h-4" />
           Performance Monitor
           <Badge variant="outline" className="text-xs ml-auto">
-            Dev Mode
+            {userRole === 'admin' ? 'Admin' : 'Dev'}
           </Badge>
         </CardTitle>
       </CardHeader>
