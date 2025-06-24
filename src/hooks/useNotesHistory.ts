@@ -32,14 +32,14 @@ export const useNotesHistory = (itemId: string) => {
         // Properly validate and cast the JSON data
         let history: NotesHistoryEntry[] = [];
         if (data.notes_history && Array.isArray(data.notes_history)) {
-          history = data.notes_history.filter(entry => 
+          history = (data.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
             entry && 
             typeof entry === 'object' && 
             'text' in entry && 
             'user_id' in entry && 
             'user_name' in entry && 
             'timestamp' in entry
-          ) as NotesHistoryEntry[];
+          );
         }
         setNotesHistory(history);
       } catch (error) {
@@ -68,14 +68,14 @@ export const useNotesHistory = (itemId: string) => {
           // Properly validate and cast the payload data
           let newHistory: NotesHistoryEntry[] = [];
           if (payload.new.notes_history && Array.isArray(payload.new.notes_history)) {
-            newHistory = payload.new.notes_history.filter(entry => 
+            newHistory = (payload.new.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
               entry && 
               typeof entry === 'object' && 
               'text' in entry && 
               'user_id' in entry && 
               'user_name' in entry && 
               'timestamp' in entry
-            ) as NotesHistoryEntry[];
+            );
           }
           setNotesHistory(newHistory);
         }
