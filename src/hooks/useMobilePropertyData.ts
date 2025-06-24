@@ -7,8 +7,8 @@ interface MobilePropertyData {
   property_id: string;
   property_name: string;
   property_address: string;
-  property_vrbo_url: string;
-  property_airbnb_url: string;
+  property_vrbo_url: string | null;
+  property_airbnb_url: string | null;
   property_status: string;
   property_created_at: string;
   inspection_count: number;
@@ -25,38 +25,45 @@ export const useMobilePropertyData = (userId?: string) => {
       console.log('📱 Fetching mobile property data...');
       const startTime = Date.now();
 
-      // Mobile-optimized query with timeout
-      const queryPromise = supabase.rpc('get_properties_with_inspections', {
-        _user_id: userId || null
-      });
+      try {
+        // Mobile-optimized query with timeout
+        const queryPromise = supabase.rpc('get_properties_with_inspections');
 
-      // Mobile timeout (3 seconds)
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Mobile query timeout')), 3000);
-      });
+        // Mobile timeout (5 seconds)
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Mobile query timeout - please check your connection')), 5000);
+        });
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-      const fetchDuration = Date.now() - startTime;
-      
-      if (error) {
-        console.error('❌ Mobile property fetch error:', error);
+        const fetchDuration = Date.now() - startTime;
+        
+        if (error) {
+          console.error('❌ Mobile property fetch error:', error);
+          throw new Error(`Failed to load properties: ${error.message}`);
+        }
+
+        console.log(`✅ Mobile properties loaded in ${fetchDuration}ms`, {
+          count: data?.length || 0,
+          fetchDuration,
+          timestamp: new Date().toISOString()
+        });
+
+        return (data || []) as MobilePropertyData[];
+      } catch (error) {
+        console.error('❌ Mobile property data fetch failed:', error);
         throw error;
       }
-
-      console.log(`✅ Mobile properties loaded in ${fetchDuration}ms`, {
-        count: data?.length || 0,
-        fetchDuration,
-        timestamp: new Date().toISOString()
-      });
-
-      return data as MobilePropertyData[];
     },
-    staleTime: 60000, // 1 minute stale time for mobile
-    gcTime: 600000, // 10 minutes cache for mobile
+    staleTime: 30000, // 30 seconds stale time for mobile
+    gcTime: 300000, // 5 minutes cache for mobile
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    retry: 1, // Only 1 retry on mobile
+    retry: (failureCount, error) => {
+      console.log(`🔄 Mobile property query retry attempt ${failureCount + 1}`);
+      return failureCount < 1; // Only 1 retry on mobile
+    },
+    retryDelay: 2000,
     enabled: !!userId
   });
 };

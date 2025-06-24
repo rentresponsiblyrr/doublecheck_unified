@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
+import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
 
 interface Inspection {
   id: string;
@@ -12,82 +10,17 @@ interface Inspection {
 }
 
 export const usePropertySelection = (inspections: Inspection[]) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { createInspection, isCreating } = useRobustInspectionCreation();
+  const { startOrJoinInspection, isLoading: isCreatingInspection } = useMobileInspectionFlow();
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
 
   const handleStartInspection = async () => {
     if (!selectedProperty) {
       console.warn('⚠️ No property selected for inspection');
-      toast({
-        title: "No Property Selected",
-        description: "Please select a property first.",
-        variant: "destructive",
-      });
       return;
     }
 
     console.log('🚀 Starting inspection for property:', selectedProperty);
-
-    try {
-      // Check if there's an active inspection for this property
-      const activeInspection = inspections.find(
-        i => i.property_id === selectedProperty && !i.completed
-      );
-
-      if (activeInspection) {
-        // Join existing inspection using correct route parameter
-        console.log('🔄 Joining existing inspection:', {
-          inspectionId: activeInspection.id,
-          propertyId: selectedProperty,
-          navigationPath: `/inspection/${activeInspection.id}`
-        });
-        
-        toast({
-          title: "Joining Inspection",
-          description: "Joining inspection already in progress...",
-        });
-        
-        console.log('🧭 Navigating to existing inspection:', activeInspection.id);
-        navigate(`/inspection/${activeInspection.id}`, { replace: true });
-        return;
-      }
-
-      // Create new inspection
-      console.log('🆕 Creating new inspection for property:', selectedProperty);
-      const inspectionId = await createInspection(selectedProperty);
-      
-      if (inspectionId) {
-        console.log('✅ Created new inspection:', {
-          inspectionId,
-          propertyId: selectedProperty,
-          navigationPath: `/inspection/${inspectionId}`
-        });
-        
-        toast({
-          title: "Inspection Started",
-          description: "Your inspection has been created successfully.",
-        });
-        
-        console.log('🧭 Navigating to new inspection:', inspectionId);
-        navigate(`/inspection/${inspectionId}`, { replace: true });
-      } else {
-        console.error('❌ Failed to create inspection - no ID returned');
-        toast({
-          title: "Creation Failed",
-          description: "Failed to create inspection. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('💥 Failed to start inspection:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await startOrJoinInspection(selectedProperty);
   };
 
   const getPropertyStatus = (propertyId: string) => {
@@ -133,6 +66,6 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     handleStartInspection,
     getPropertyStatus,
     getButtonText,
-    isCreatingInspection: isCreating
+    isCreatingInspection
   };
 };

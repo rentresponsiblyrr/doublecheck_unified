@@ -7,15 +7,20 @@ import { StartInspectionButton } from "@/components/StartInspectionButton";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobilePropertyData } from "@/hooks/useMobilePropertyData";
 import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
-import { usePropertySelection } from "@/hooks/usePropertySelection";
+import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const MobileIndex = () => {
-  const { user, isAuthenticated } = useMobileAuth();
+  const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
   const { handleEdit, handleDelete } = useMobilePropertyActions();
+  const { startOrJoinInspection, isLoading: isCreatingInspection, error: inspectionError } = useMobileInspectionFlow();
+
+  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
 
   // Fetch inspections for property selection logic
   const { data: inspections = [] } = useQuery({
@@ -28,25 +33,25 @@ const MobileIndex = () => {
       if (error) throw error;
       return data || [];
     },
-    retry: 2,
-    staleTime: 0,
+    retry: 1,
+    staleTime: 30000,
+    enabled: isAuthenticated
   });
-
-  const {
-    selectedProperty,
-    setSelectedProperty,
-    handleStartInspection,
-    getPropertyStatus,
-    getButtonText,
-    isCreatingInspection
-  } = usePropertySelection(inspections);
 
   const handlePropertySelect = (propertyId: string) => {
     console.log('📱 Mobile property selected:', propertyId);
     setSelectedProperty(propertyId === selectedProperty ? null : propertyId);
   };
 
-  // Simplified handler for property card inspection starts
+  const handleStartInspection = async () => {
+    if (!selectedProperty) {
+      console.warn('⚠️ No property selected for inspection');
+      return;
+    }
+
+    await startOrJoinInspection(selectedProperty);
+  };
+
   const handlePropertyCardInspection = async (propertyId: string) => {
     console.log('📱 Property card inspection start:', propertyId);
     
@@ -55,11 +60,57 @@ const MobileIndex = () => {
       setSelectedProperty(propertyId);
     }
     
-    // Wait for state update, then start inspection
-    setTimeout(async () => {
-      await handleStartInspection();
-    }, 100);
+    await startOrJoinInspection(propertyId);
   };
+
+  const getPropertyStatus = (propertyId: string) => {
+    const propertyInspections = inspections.filter(i => i.property_id === propertyId);
+    const completedInspections = propertyInspections.filter(i => i.completed);
+    const activeInspections = propertyInspections.filter(i => !i.completed);
+
+    if (activeInspections.length > 0) {
+      return { 
+        status: 'in-progress', 
+        color: 'bg-yellow-500', 
+        text: 'In Progress',
+        activeInspectionId: activeInspections[0].id
+      };
+    }
+    if (completedInspections.length > 0) {
+      return { 
+        status: 'completed', 
+        color: 'bg-green-500', 
+        text: 'Completed',
+        activeInspectionId: null
+      };
+    }
+    return { 
+      status: 'pending', 
+      color: 'bg-gray-500', 
+      text: 'Not Started',
+      activeInspectionId: null
+    };
+  };
+
+  const getButtonText = (propertyId: string) => {
+    const status = getPropertyStatus(propertyId);
+    if (status.status === 'in-progress') {
+      return 'Join Inspection';
+    }
+    return 'Start Inspection';
+  };
+
+  // Show loading while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   console.log('📱 MobileIndex optimized rendering:', { 
     isAuthenticated, 
@@ -67,7 +118,8 @@ const MobileIndex = () => {
     isLoading, 
     error: !!error,
     selectedProperty,
-    inspectionsCount: inspections?.length || 0
+    inspectionsCount: inspections?.length || 0,
+    authLoading
   });
 
   return (
@@ -76,6 +128,18 @@ const MobileIndex = () => {
         title="DoubleCheck Mobile"
         subtitle="Select a property to begin inspection"
       />
+
+      {/* Inspection Error Alert */}
+      {inspectionError && (
+        <div className="px-4 py-2">
+          <Alert className="bg-red-50 border-red-200">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              {inspectionError}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Property Selection Status */}
       {selectedProperty && (

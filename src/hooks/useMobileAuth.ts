@@ -4,6 +4,23 @@ import { useAuth } from '@/components/MobileFastAuthProvider';
 export const useMobileAuth = () => {
   const authContext = useAuth();
   
+  if (!authContext) {
+    console.warn('⚠️ useMobileAuth called outside of auth provider context');
+    return {
+      user: null,
+      userRole: null,
+      loading: true,
+      error: null,
+      isAuthenticated: false,
+      signIn: async () => ({ error: new Error('Auth not available') }),
+      signUp: async () => ({ error: new Error('Auth not available') }),
+      signOut: async () => {},
+      forceRefresh: async () => {},
+      clearSession: () => {},
+      loadUserRole: async () => 'inspector' as const,
+    };
+  }
+  
   return {
     user: authContext.user,
     userRole: authContext.userRole,

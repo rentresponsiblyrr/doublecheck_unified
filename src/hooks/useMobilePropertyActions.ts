@@ -16,6 +16,35 @@ export const useMobilePropertyActions = () => {
     console.log('📱 Mobile delete property:', propertyId);
     
     try {
+      // First delete related inspections and their data
+      const { data: inspections, error: fetchError } = await supabase
+        .from('inspections')
+        .select('id')
+        .eq('property_id', propertyId);
+
+      if (fetchError) throw fetchError;
+
+      if (inspections && inspections.length > 0) {
+        const inspectionIds = inspections.map(i => i.id);
+        
+        // Delete checklist items
+        const { error: checklistError } = await supabase
+          .from('checklist_items')
+          .delete()
+          .in('inspection_id', inspectionIds);
+        
+        if (checklistError) console.warn('⚠️ Checklist deletion warning:', checklistError);
+        
+        // Delete inspections
+        const { error: inspectionError } = await supabase
+          .from('inspections')
+          .delete()
+          .eq('property_id', propertyId);
+        
+        if (inspectionError) throw inspectionError;
+      }
+
+      // Finally delete the property
       const { error } = await supabase
         .from('properties')
         .delete()
@@ -37,19 +66,8 @@ export const useMobilePropertyActions = () => {
     }
   };
 
-  // Simplified handler that just triggers property selection
-  const handleStartInspection = async (propertyId: string) => {
-    console.log('📱 Mobile property card inspection trigger for:', propertyId);
-    
-    // This will be handled by the parent component's property selection logic
-    // We return the propertyId to let the parent handle the actual inspection creation
-    return propertyId;
-  };
-
   return {
     handleEdit,
-    handleDelete,
-    handleStartInspection,
-    isCreatingInspection: false // No longer managing creation state here
+    handleDelete
   };
 };
