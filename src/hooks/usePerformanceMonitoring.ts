@@ -11,10 +11,20 @@ interface PerformanceMetrics {
   timestamp: string;
 }
 
+interface PerformanceMeasurement {
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+}
+
 interface PerformanceMonitoringState {
   metrics: PerformanceMetrics;
   isVisible: boolean;
   updateMetrics: () => void;
+  startMeasure: (name: string) => void;
+  endMeasure: (name: string) => void;
+  getAllMetrics: () => PerformanceMeasurement[];
 }
 
 export const usePerformanceMonitoring = (): PerformanceMonitoringState => {
@@ -28,10 +38,49 @@ export const usePerformanceMonitoring = (): PerformanceMonitoringState => {
     timestamp: new Date().toISOString()
   });
 
+  const [measurements, setMeasurements] = useState<PerformanceMeasurement[]>([]);
+
   // Only show to admin users or in development
   const isVisible = (userRole === 'admin') || 
                    (process.env.NODE_ENV === 'development') || 
                    localStorage.getItem('showPerformanceMonitor') === 'true';
+
+  const startMeasure = useCallback((name: string) => {
+    const measurement: PerformanceMeasurement = {
+      name,
+      startTime: performance.now()
+    };
+    
+    setMeasurements(prev => {
+      const filtered = prev.filter(m => m.name !== name);
+      return [...filtered, measurement];
+    });
+    
+    console.log(`⏱️ Started measuring: ${name}`);
+  }, []);
+
+  const endMeasure = useCallback((name: string) => {
+    const endTime = performance.now();
+    
+    setMeasurements(prev => {
+      return prev.map(measurement => {
+        if (measurement.name === name && !measurement.endTime) {
+          const duration = endTime - measurement.startTime;
+          console.log(`✅ Completed measuring: ${name} - ${duration.toFixed(2)}ms`);
+          return {
+            ...measurement,
+            endTime,
+            duration
+          };
+        }
+        return measurement;
+      });
+    });
+  }, []);
+
+  const getAllMetrics = useCallback(() => {
+    return measurements.filter(m => m.duration !== undefined);
+  }, [measurements]);
 
   const updateMetrics = useCallback(() => {
     // Calculate load time using Performance API
@@ -79,6 +128,9 @@ export const usePerformanceMonitoring = (): PerformanceMonitoringState => {
   return {
     metrics,
     isVisible,
-    updateMetrics
+    updateMetrics,
+    startMeasure,
+    endMeasure,
+    getAllMetrics
   };
 };

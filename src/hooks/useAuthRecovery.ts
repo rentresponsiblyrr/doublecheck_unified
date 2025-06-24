@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/components/MobileFastAuthProvider";
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthRecoveryState {
