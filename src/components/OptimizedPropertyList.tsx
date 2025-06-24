@@ -4,12 +4,19 @@ import { OptimizedPropertyCard } from "@/components/OptimizedPropertyCard";
 import { EmptyPropertiesState } from "@/components/EmptyPropertiesState";
 import { Loader2 } from "lucide-react";
 
-interface Property {
-  id: string;
-  name: string;
-  address: string;
-  vrbo_url: string | null;
-  airbnb_url: string | null;
+interface PropertyData {
+  property_id: string;
+  property_name: string;
+  property_address: string;
+  property_vrbo_url: string | null;
+  property_airbnb_url: string | null;
+  property_status?: string;
+  property_created_at?: string;
+  inspection_count?: number;
+  completed_inspection_count?: number;
+  active_inspection_count?: number;
+  latest_inspection_id?: string | null;
+  latest_inspection_completed?: boolean | null;
 }
 
 interface Inspection {
@@ -20,7 +27,7 @@ interface Inspection {
 }
 
 interface OptimizedPropertyListProps {
-  properties: Property[];
+  properties: PropertyData[];
   inspections: Inspection[];
   selectedProperty: string | null;
   onPropertySelect: (propertyId: string | null) => void;
@@ -60,19 +67,19 @@ export const OptimizedPropertyList = ({
   return (
     <div className="space-y-3">
       {properties.map((property) => {
-        const status = getPropertyStatus(property.id);
-        const isSelected = selectedProperty === property.id;
+        const status = getPropertyStatus(property.property_id);
+        const isSelected = selectedProperty === property.property_id;
 
         return (
           <OptimizedPropertyCard
-            key={property.id}
+            key={property.property_id}
             property={property}
             isSelected={isSelected}
             onSelect={() => {
               if (isSelected) {
                 onPropertySelect(null);
               } else {
-                onPropertySelect(property.id);
+                onPropertySelect(property.property_id);
               }
             }}
             status={status}
