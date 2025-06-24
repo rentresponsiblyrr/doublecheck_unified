@@ -1,3 +1,4 @@
+
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Video, AlertCircle } from "lucide-react";
@@ -6,7 +7,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface UploadInterfaceProps {
   evidenceType: 'photo' | 'video';
-  category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
+  category: string; // Changed from hardcoded union to string
   label: string;
   isUploading: boolean;
   onFileSelect: (file: File) => void;

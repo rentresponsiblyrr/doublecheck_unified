@@ -1,13 +1,20 @@
 
 import { Camera, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useCategories } from "@/hooks/useCategories";
+import { getCategoryColor, getCategoryIcon } from "@/utils/categoryUtils";
 
 interface PhotoCaptureGuideProps {
-  category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
+  category: string; // Changed from hardcoded union to string
   label: string;
 }
 
 export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) => {
+  const { data: categories = [] } = useCategories();
+  
+  // Find the category object for this item
+  const categoryObj = categories.find(cat => cat.name === category);
+  
   const getGuidelines = () => {
     switch (category) {
       case 'safety':
@@ -59,6 +66,7 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
           color: "border-green-200 bg-green-50"
         };
       default:
+        // Generic guidelines for any other category
         return {
           tips: [
             "Document the current condition clearly",
@@ -67,12 +75,12 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
             "Capture serial numbers or model information if relevant"
           ],
           examples: [
-            "HVAC filters showing condition and size",
-            "Appliance maintenance records or service dates",
-            "Structural elements showing wear or damage"
+            "Clear, well-lit photos showing the item in context",
+            "Multiple angles if the item is complex",
+            "Close-ups of important details or features"
           ],
-          icon: <Info className="w-5 h-5 text-yellow-500" />,
-          color: "border-yellow-200 bg-yellow-50"
+          icon: categoryObj ? getCategoryIcon(categoryObj) : <Info className="w-5 h-5 text-gray-500" />,
+          color: categoryObj ? getCategoryColor(categoryObj).replace('text-', 'border-').replace('bg-', 'bg-') + " bg-opacity-50" : "border-gray-200 bg-gray-50"
         };
     }
   };
