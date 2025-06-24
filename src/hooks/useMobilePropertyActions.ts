@@ -2,12 +2,10 @@
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
 
 export const useMobilePropertyActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createInspection, isCreating } = useRobustInspectionCreation();
 
   const handleEdit = (propertyId: string) => {
     console.log('📱 Mobile edit property:', propertyId);
@@ -39,57 +37,19 @@ export const useMobilePropertyActions = () => {
     }
   };
 
+  // Simplified handler that just triggers property selection
   const handleStartInspection = async (propertyId: string) => {
-    console.log('📱 Mobile start inspection for property:', propertyId);
+    console.log('📱 Mobile property card inspection trigger for:', propertyId);
     
-    if (isCreating) {
-      console.warn('⚠️ Inspection creation already in progress');
-      return;
-    }
-    
-    try {
-      const inspectionId = await createInspection(propertyId);
-      
-      if (inspectionId) {
-        console.log('✅ Mobile inspection created successfully:', {
-          inspectionId,
-          propertyId,
-          navigationPath: `/inspection/${inspectionId}`
-        });
-        
-        try {
-          console.log('🧭 Mobile navigating using React Router to:', `/inspection/${inspectionId}`);
-          navigate(`/inspection/${inspectionId}`, { replace: true });
-        } catch (navigationError) {
-          console.error('💥 Mobile React Router navigation error:', navigationError);
-          toast({
-            title: "Navigation Error", 
-            description: "Inspection created but failed to navigate. Please check your inspections list.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        console.error('❌ Failed to create mobile inspection - no ID returned');
-        toast({
-          title: "Creation Failed", 
-          description: "Failed to create inspection. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('💥 Mobile inspection creation error:', error);
-      toast({
-        title: "Inspection Failed", 
-        description: error instanceof Error ? error.message : "Failed to start inspection. Please try again.",
-        variant: "destructive",
-      });
-    }
+    // This will be handled by the parent component's property selection logic
+    // We return the propertyId to let the parent handle the actual inspection creation
+    return propertyId;
   };
 
   return {
     handleEdit,
     handleDelete,
     handleStartInspection,
-    isCreatingInspection: isCreating
+    isCreatingInspection: false // No longer managing creation state here
   };
 };

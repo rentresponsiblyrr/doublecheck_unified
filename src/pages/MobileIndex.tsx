@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const MobileIndex = () => {
   const { user, isAuthenticated } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
-  const { handleEdit, handleDelete, handleStartInspection, isCreatingInspection } = useMobilePropertyActions();
+  const { handleEdit, handleDelete } = useMobilePropertyActions();
 
   // Fetch inspections for property selection logic
   const { data: inspections = [] } = useQuery({
@@ -35,28 +35,48 @@ const MobileIndex = () => {
   const {
     selectedProperty,
     setSelectedProperty,
-    handleStartInspection: handlePropertyInspection,
+    handleStartInspection,
     getPropertyStatus,
     getButtonText,
-    isCreatingInspection: isCreatingPropertyInspection
+    isCreatingInspection
   } = usePropertySelection(inspections);
 
-  // Enhanced mobile start inspection handler - use property selection logic
-  const handleMobileStartInspection = async () => {
-    if (!selectedProperty) {
+  // Unified inspection handler for both property cards and the main button
+  const handleMobileStartInspection = async (propertyId?: string) => {
+    console.log('📱 Mobile unified inspection start:', { propertyId, selectedProperty });
+    
+    // If propertyId is provided (from property card), select it first
+    if (propertyId && propertyId !== selectedProperty) {
+      console.log('📱 Selecting property from card:', propertyId);
+      setSelectedProperty(propertyId);
+      
+      // Wait a moment for state to update, then start inspection
+      setTimeout(async () => {
+        console.log('📱 Starting inspection after property selection:', propertyId);
+        await handleStartInspection();
+      }, 100);
+      return;
+    }
+    
+    // If no propertyId provided, use selected property logic
+    if (!selectedProperty && !propertyId) {
       console.warn('⚠️ No property selected for mobile inspection');
       return;
     }
     
-    console.log('📱 Mobile starting inspection for property using property selection logic:', selectedProperty);
-    
-    // Use the property selection hook's logic which has proper React Router navigation
-    await handlePropertyInspection();
+    // Start inspection with current selection
+    await handleStartInspection();
   };
 
   const handlePropertySelect = (propertyId: string) => {
     console.log('📱 Mobile property selected:', propertyId);
     setSelectedProperty(propertyId === selectedProperty ? null : propertyId);
+  };
+
+  // Handle property card inspection starts
+  const handlePropertyCardInspection = async (propertyId: string) => {
+    console.log('📱 Property card inspection start:', propertyId);
+    await handleMobileStartInspection(propertyId);
   };
 
   console.log('📱 MobileIndex optimized rendering:', { 
@@ -99,7 +119,7 @@ const MobileIndex = () => {
         isFetching={isFetching}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onStartInspection={handleStartInspection}
+        onStartInspection={handlePropertyCardInspection}
         selectedProperty={selectedProperty}
         onPropertySelect={handlePropertySelect}
         getPropertyStatus={getPropertyStatus}
@@ -109,11 +129,11 @@ const MobileIndex = () => {
         <AddPropertyButton />
       </div>
 
-      {/* Start/Join Inspection Button - Use property selection logic for consistent navigation */}
+      {/* Start/Join Inspection Button - Uses unified logic */}
       {selectedProperty && (
         <StartInspectionButton 
-          onStartInspection={handleMobileStartInspection}
-          isLoading={isCreatingInspection || isCreatingPropertyInspection}
+          onStartInspection={() => handleMobileStartInspection()}
+          isLoading={isCreatingInspection}
           buttonText={getButtonText(selectedProperty)}
           isJoining={getPropertyStatus(selectedProperty).status === 'in-progress'}
         />
