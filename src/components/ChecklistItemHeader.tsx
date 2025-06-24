@@ -1,32 +1,22 @@
 
 import { Badge } from "@/components/ui/badge";
-import { Camera, Video, Check, Clock, AlertTriangle } from "lucide-react";
+import { Camera, Video } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
+import { useCategories } from "@/hooks/useCategories";
+import { getCategoryColor, getCategoryIcon } from "@/utils/categoryUtils";
 
 interface ChecklistItemHeaderProps {
   item: ChecklistItemType;
 }
 
 export const ChecklistItemHeader = ({ item }: ChecklistItemHeaderProps) => {
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'safety': return 'bg-red-100 text-red-800 border-red-200';
-      case 'amenity': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'cleanliness': return 'bg-green-100 text-green-800 border-green-200';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'safety': return <AlertTriangle className="w-4 h-4" />;
-      case 'amenity': return item.evidence_type === 'photo' ? <Camera className="w-4 h-4" /> : <Video className="w-4 h-4" />;
-      case 'cleanliness': return <Check className="w-4 h-4" />;
-      case 'maintenance': return <Clock className="w-4 h-4" />;
-      default: return <Check className="w-4 h-4" />;
-    }
-  };
+  const { data: categories = [] } = useCategories();
+  
+  // Find the category object for this item
+  const categoryObj = categories.find(cat => cat.name === item.category);
+  
+  const categoryColor = getCategoryColor(categoryObj || item.category);
+  const CategoryIcon = getCategoryIcon(categoryObj || item.category);
 
   return (
     <div>
@@ -34,9 +24,9 @@ export const ChecklistItemHeader = ({ item }: ChecklistItemHeaderProps) => {
         {item.label}
       </h3>
       <div className="flex items-center gap-3 flex-wrap">
-        <Badge className={`${getCategoryColor(item.category)} border`}>
+        <Badge className={`${categoryColor} border`}>
           <div className="flex items-center gap-1">
-            {getCategoryIcon(item.category)}
+            <CategoryIcon className="w-4 h-4" />
             <span className="capitalize font-medium">{item.category}</span>
           </div>
         </Badge>

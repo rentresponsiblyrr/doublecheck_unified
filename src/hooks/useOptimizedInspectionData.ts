@@ -66,7 +66,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           id: item.id,
           inspection_id: item.inspection_id,
           label: item.label || '',
-          category: item.category as 'safety' | 'amenity' | 'cleanliness' | 'maintenance',
+          category: item.category, // Now supports any string value
           evidence_type: item.evidence_type as 'photo' | 'video',
           status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
           created_at: item.created_at || new Date().toISOString()

@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Filter, Eye, EyeOff } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
+import { useCategories } from "@/hooks/useCategories";
+import { getCategoryColor } from "@/utils/categoryUtils";
 
 interface InspectionFiltersProps {
   checklistItems: ChecklistItemType[];
@@ -23,21 +25,16 @@ export const InspectionFilters = ({
   onRefresh,
   isRefetching
 }: InspectionFiltersProps) => {
-  const categories = ['safety', 'amenity', 'cleanliness', 'maintenance'];
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   
-  const getCategoryCount = (category: string) => {
-    return checklistItems.filter(item => item.category === category).length;
+  const getCategoryCount = (categoryName: string) => {
+    return checklistItems.filter(item => item.category === categoryName).length;
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'safety': return 'bg-red-100 text-red-800 border-red-200';
-      case 'amenity': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'cleanliness': return 'bg-green-100 text-green-800 border-green-200';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  // Only show categories that have items
+  const categoriesWithItems = categories.filter(category => 
+    getCategoryCount(category.name) > 0
+  );
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
@@ -67,18 +64,19 @@ export const InspectionFilters = ({
           <Filter className="w-3 h-3" />
           All ({checklistItems.length})
         </Button>
-        {categories.map(category => (
+        
+        {!categoriesLoading && categoriesWithItems.map(category => (
           <Badge
-            key={category}
+            key={category.id}
             className={`cursor-pointer border transition-all hover:shadow-sm ${
-              selectedCategory === category 
+              selectedCategory === category.name 
                 ? getCategoryColor(category) + ' ring-2 ring-offset-1 ring-blue-500' 
                 : getCategoryColor(category) + ' opacity-70 hover:opacity-100'
             }`}
-            onClick={() => onCategoryChange(selectedCategory === category ? null : category)}
+            onClick={() => onCategoryChange(selectedCategory === category.name ? null : category.name)}
           >
-            <span className="capitalize">{category}</span>
-            <span className="ml-1">({getCategoryCount(category)})</span>
+            <span className="capitalize">{category.name}</span>
+            <span className="ml-1">({getCategoryCount(category.name)})</span>
           </Badge>
         ))}
       </div>

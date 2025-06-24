@@ -3,7 +3,7 @@ export interface ChecklistItemType {
   id: string;
   inspection_id: string;
   label: string;
-  category: 'safety' | 'amenity' | 'cleanliness' | 'maintenance';
+  category: string; // Changed from union type to string to support dynamic categories
   evidence_type: 'photo' | 'video';
   status?: 'completed' | 'failed' | 'not_applicable' | null;
   notes?: string | null;
