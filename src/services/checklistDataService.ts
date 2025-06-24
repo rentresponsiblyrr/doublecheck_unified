@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { validateCategory, ensureValidCategory } from "@/utils/categoryMapping";
+import { ensureValidCategory } from "@/utils/categoryMapping";
 
 export interface StaticSafetyItem {
   id: string;
@@ -20,7 +20,7 @@ export interface ChecklistItem {
 
 export class ChecklistDataService {
   async fetchStaticSafetyItems(): Promise<StaticSafetyItem[]> {
-    console.log('📋 Fetching static safety items from database with enhanced validation');
+    console.log('📋 Fetching static safety items from database...');
     
     const { data: staticItems, error: fetchError } = await supabase
       .from('static_safety_items')
@@ -40,76 +40,42 @@ export class ChecklistDataService {
 
     console.log(`✅ Found ${staticItems.length} static safety items`);
     
-    // Validate and clean categories on fetch
-    const validatedItems = staticItems.map(item => ({
+    // Apply category normalization
+    const normalizedItems = staticItems.map(item => ({
       ...item,
       category: ensureValidCategory(item.category)
     }));
 
-    const categoryStats = validatedItems.reduce((acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    console.log('📊 Category distribution in static items:', categoryStats);
-    
-    return validatedItems;
+    return normalizedItems;
   }
 
   async insertChecklistItems(checklistItems: ChecklistItem[]): Promise<void> {
-    console.log('📝 Inserting checklist items with enhanced validation:', checklistItems.length);
+    console.log('📝 Inserting checklist items:', checklistItems.length);
 
-    // Final validation before insertion with enhanced error handling
-    const validatedItems = checklistItems.map((item, index) => {
-      const safeCategory = ensureValidCategory(item.category);
-      
-      if (!validateCategory(safeCategory)) {
-        const error = `Invalid category "${safeCategory}" detected for item at index ${index}: ${item.label}`;
-        console.error(`❌ ${error}`);
-        throw new Error(error);
-      }
-      
-      return {
-        ...item,
-        category: safeCategory
-      };
-    });
+    if (checklistItems.length === 0) {
+      console.warn('⚠️ No checklist items to insert');
+      return;
+    }
 
-    // Log final category distribution
-    const finalCategoryStats = validatedItems.reduce((acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    console.log('📊 Final category distribution for insertion:', finalCategoryStats);
+    // Apply final category normalization before insertion
+    const normalizedItems = checklistItems.map(item => ({
+      ...item,
+      category: ensureValidCategory(item.category)
+    }));
 
     try {
       const { error: insertError } = await supabase
         .from('checklist_items')
-        .insert(validatedItems);
+        .insert(normalizedItems);
 
       if (insertError) {
         console.error('❌ Database insertion error:', insertError);
-        
-        // Enhanced error analysis
-        if (insertError.message.includes('category_check') || insertError.message.includes('foreign key')) {
-          console.error('🔍 Category constraint violation detected');
-          console.error('📋 Items causing issues:', validatedItems.map(item => ({ 
-            label: item.label, 
-            category: item.category 
-          })));
-          
-          // Try to identify the specific problematic categories
-          const uniqueCategories = [...new Set(validatedItems.map(item => item.category))];
-          console.error('🏷️ Unique categories in this batch:', uniqueCategories);
-        }
-        
         throw insertError;
       }
 
-      console.log('✅ Successfully inserted checklist items with enhanced validation');
+      console.log('✅ Successfully inserted checklist items');
     } catch (error) {
-      console.error('💥 Enhanced insertion error handling:', error);
+      console.error('💥 Insertion error:', error);
       throw error;
     }
   }

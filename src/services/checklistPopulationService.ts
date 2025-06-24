@@ -47,10 +47,7 @@ export class ChecklistPopulationService {
       // Enhanced error reporting
       if (error instanceof Error) {
         if (error.message.includes('category')) {
-          console.error('🔍 Category-related error detected. This may indicate:');
-          console.error('   1. Invalid categories in static_safety_items');
-          console.error('   2. Missing categories in categories table');
-          console.error('   3. Database constraint issues');
+          console.error('🔍 Category-related error detected. Check database constraints and category validation.');
         }
       }
       
