@@ -48,8 +48,7 @@ export const ChecklistItemActions = ({
         .from('checklist_items')
         .update({
           last_modified_by: user?.id,
-          last_modified_at: new Date().toISOString(),
-          version: supabase.sql`version + 1`
+          last_modified_at: new Date().toISOString()
         })
         .eq('id', itemId);
 
