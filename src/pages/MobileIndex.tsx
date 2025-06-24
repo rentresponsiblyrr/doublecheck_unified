@@ -4,6 +4,7 @@ import { PropertyHeader } from "@/components/PropertyHeader";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { MobilePropertyList } from "@/components/MobilePropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
+import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobilePropertyData } from "@/hooks/useMobilePropertyData";
 import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
@@ -109,6 +110,18 @@ const MobileIndex = () => {
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Handle critical errors with mobile recovery
+  if (error && !properties) {
+    return (
+      <MobileErrorRecovery
+        error={error}
+        onRetry={refetch}
+        onNavigateHome={() => window.location.reload()}
+        context="Property loading"
+      />
     );
   }
 

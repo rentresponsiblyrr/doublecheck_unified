@@ -5,15 +5,17 @@ import { useInspectionData } from "@/hooks/useInspectionData";
 import { useInspectorPresence } from "@/hooks/useInspectorPresence";
 import { InspectionInvalidState } from "@/components/InspectionInvalidState";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
-import { InspectionErrorState } from "@/components/InspectionErrorState";
 import { InspectionContent } from "@/components/InspectionContent";
+import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
+import { useNavigate } from "react-router-dom";
 
 const Inspection = () => {
   console.log('🏗️ Inspection component mounting');
   
   const params = useParams<{ id?: string }>();
   const { isAuthenticated, loading: authLoading } = useMobileAuth();
+  const navigate = useNavigate();
   
   // Get inspectionId from route parameters (using 'id' to match route)
   const inspectionId = params.id;
@@ -93,10 +95,17 @@ const Inspection = () => {
     }
   }, [inspectionId, isAuthenticated, updatePresence]);
 
-  // Handle errors
+  // Handle errors with mobile-optimized recovery
   if (error) {
     console.error('💥 Inspection page error:', error);
-    return <InspectionErrorState error={error} onRetry={refetch} />;
+    return (
+      <MobileErrorRecovery
+        error={error}
+        onRetry={refetch}
+        onNavigateHome={() => navigate('/properties')}
+        context="Inspection loading"
+      />
+    );
   }
 
   // Show loading state

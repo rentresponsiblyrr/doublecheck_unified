@@ -1,16 +1,17 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { MobileInspectionService } from "@/services/mobileInspectionService";
 
 export const useMobileInspectionFlow = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  // Initialize state with proper defaults to prevent React queue errors
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const startOrJoinInspection = async (propertyId: string) => {
+  const startOrJoinInspection = useCallback(async (propertyId: string) => {
     if (!propertyId) {
       const errorMsg = 'No property ID provided';
       console.error('❌', errorMsg);
@@ -20,6 +21,12 @@ export const useMobileInspectionFlow = () => {
         description: errorMsg,
         variant: "destructive",
       });
+      return null;
+    }
+
+    // Prevent multiple concurrent operations
+    if (isLoading) {
+      console.warn('⚠️ Inspection flow already in progress');
       return null;
     }
 
@@ -67,9 +74,9 @@ export const useMobileInspectionFlow = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading, navigate, toast]);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   return {
     startOrJoinInspection,
