@@ -23,19 +23,38 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    console.log('🚀 Starting inspection creation for property:', selectedProperty);
+    console.log('🚀 Starting inspection for property:', selectedProperty);
 
+    // Check if there's an active inspection for this property
+    const activeInspection = inspections.find(
+      i => i.property_id === selectedProperty && !i.completed
+    );
+
+    if (activeInspection) {
+      // Join existing inspection
+      console.log('🔄 Joining existing inspection:', activeInspection.id);
+      toast({
+        title: "Joining Inspection",
+        description: "Joining inspection already in progress...",
+      });
+      
+      console.log('🧭 Navigating to existing inspection:', activeInspection.id);
+      navigate(`/inspection/${activeInspection.id}`);
+      return;
+    }
+
+    // Create new inspection
     try {
       const inspectionId = await createInspection(selectedProperty);
       
       if (inspectionId) {
-        console.log('✅ Created inspection:', inspectionId);
+        console.log('✅ Created new inspection:', inspectionId);
         toast({
           title: "Inspection Started",
           description: "Your inspection has been created successfully.",
         });
         
-        console.log('🧭 Navigating to inspection:', inspectionId);
+        console.log('🧭 Navigating to new inspection:', inspectionId);
         navigate(`/inspection/${inspectionId}`);
       }
     } catch (error) {
@@ -54,12 +73,35 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     const activeInspections = propertyInspections.filter(i => !i.completed);
 
     if (activeInspections.length > 0) {
-      return { status: 'in-progress', color: 'bg-yellow-500', text: 'In Progress' };
+      return { 
+        status: 'in-progress', 
+        color: 'bg-yellow-500', 
+        text: 'In Progress',
+        activeInspectionId: activeInspections[0].id
+      };
     }
     if (completedInspections.length > 0) {
-      return { status: 'completed', color: 'bg-green-500', text: 'Completed' };
+      return { 
+        status: 'completed', 
+        color: 'bg-green-500', 
+        text: 'Completed',
+        activeInspectionId: null
+      };
     }
-    return { status: 'pending', color: 'bg-gray-500', text: 'Not Started' };
+    return { 
+      status: 'pending', 
+      color: 'bg-gray-500', 
+      text: 'Not Started',
+      activeInspectionId: null
+    };
+  };
+
+  const getButtonText = (propertyId: string) => {
+    const status = getPropertyStatus(propertyId);
+    if (status.status === 'in-progress') {
+      return 'Join Inspection';
+    }
+    return 'Start Inspection';
   };
 
   return {
@@ -67,6 +109,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     setSelectedProperty,
     handleStartInspection,
     getPropertyStatus,
+    getButtonText,
     isCreatingInspection: isCreating
   };
 };

@@ -30,7 +30,9 @@ interface PropertySelectionContentProps {
     status: string;
     color: string;
     text: string;
+    activeInspectionId?: string | null;
   };
+  getButtonText: (propertyId: string) => string;
   isCreatingInspection: boolean;
   onPropertyDeleted: () => void;
   isLoading?: boolean;
@@ -43,6 +45,7 @@ export const PropertySelectionContent = ({
   setSelectedProperty,
   handleStartInspection,
   getPropertyStatus,
+  getButtonText,
   isCreatingInspection,
   onPropertyDeleted,
   isLoading = false
@@ -54,6 +57,10 @@ export const PropertySelectionContent = ({
     isCreatingInspection,
     isLoading
   });
+
+  const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
+  const buttonText = selectedProperty ? getButtonText(selectedProperty) : "Start Inspection";
+  const isJoining = selectedPropertyStatus?.status === 'in-progress';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,6 +97,8 @@ export const PropertySelectionContent = ({
           <StartInspectionButton 
             onStartInspection={handleStartInspection}
             isLoading={isCreatingInspection}
+            buttonText={buttonText}
+            isJoining={isJoining}
           />
         )}
       </div>
