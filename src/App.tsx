@@ -76,7 +76,7 @@ function App() {
                         } 
                       />
                       <Route 
-                        path="/inspection/:id" 
+                        path="/inspection/:inspectionId" 
                         element={
                           <ProtectedRoute>
                             <InspectionErrorBoundary>

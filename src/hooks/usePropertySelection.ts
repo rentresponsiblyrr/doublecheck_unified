@@ -20,6 +20,11 @@ export const usePropertySelection = (inspections: Inspection[]) => {
   const handleStartInspection = async () => {
     if (!selectedProperty) {
       console.warn('⚠️ No property selected for inspection');
+      toast({
+        title: "No Property Selected",
+        description: "Please select a property first.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -32,36 +37,72 @@ export const usePropertySelection = (inspections: Inspection[]) => {
 
     if (activeInspection) {
       // Join existing inspection
-      console.log('🔄 Joining existing inspection:', activeInspection.id);
+      console.log('🔄 Joining existing inspection:', {
+        inspectionId: activeInspection.id,
+        propertyId: selectedProperty,
+        navigationPath: `/inspection/${activeInspection.id}`
+      });
+      
       toast({
         title: "Joining Inspection",
         description: "Joining inspection already in progress...",
       });
       
-      console.log('🧭 Navigating to existing inspection:', activeInspection.id);
-      navigate(`/inspection/${activeInspection.id}`);
+      try {
+        console.log('🧭 Navigating to existing inspection:', activeInspection.id);
+        navigate(`/inspection/${activeInspection.id}`);
+      } catch (navigationError) {
+        console.error('💥 Navigation error:', navigationError);
+        toast({
+          title: "Navigation Error",
+          description: "Failed to join inspection. Please try again.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
     // Create new inspection
     try {
+      console.log('🆕 Creating new inspection for property:', selectedProperty);
       const inspectionId = await createInspection(selectedProperty);
       
       if (inspectionId) {
-        console.log('✅ Created new inspection:', inspectionId);
+        console.log('✅ Created new inspection:', {
+          inspectionId,
+          propertyId: selectedProperty,
+          navigationPath: `/inspection/${inspectionId}`
+        });
+        
         toast({
           title: "Inspection Started",
           description: "Your inspection has been created successfully.",
         });
         
-        console.log('🧭 Navigating to new inspection:', inspectionId);
-        navigate(`/inspection/${inspectionId}`);
+        try {
+          console.log('🧭 Navigating to new inspection:', inspectionId);
+          navigate(`/inspection/${inspectionId}`);
+        } catch (navigationError) {
+          console.error('💥 Navigation error after creation:', navigationError);
+          toast({
+            title: "Navigation Error",
+            description: "Inspection created but failed to navigate. Please check your inspections list.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.error('❌ Failed to create inspection - no ID returned');
+        toast({
+          title: "Creation Failed",
+          description: "Failed to create inspection. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('💥 Failed to start inspection:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }

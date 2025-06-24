@@ -51,16 +51,35 @@ export const useMobilePropertyActions = () => {
       const inspectionId = await createInspection(propertyId);
       
       if (inspectionId) {
-        console.log('✅ Mobile inspection created successfully:', inspectionId);
-        navigate(`/inspection/${inspectionId}`);
+        console.log('✅ Mobile inspection created successfully:', {
+          inspectionId,
+          propertyId,
+          navigationPath: `/inspection/${inspectionId}`
+        });
+        
+        try {
+          navigate(`/inspection/${inspectionId}`);
+        } catch (navigationError) {
+          console.error('💥 Navigation error after mobile inspection creation:', navigationError);
+          toast({
+            title: "Navigation Error", 
+            description: "Inspection created but failed to navigate. Please check your inspections list.",
+            variant: "destructive",
+          });
+        }
       } else {
-        console.error('❌ Failed to create inspection - no ID returned');
+        console.error('❌ Failed to create mobile inspection - no ID returned');
+        toast({
+          title: "Creation Failed", 
+          description: "Failed to create inspection. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('💥 Mobile inspection creation error:', error);
       toast({
         title: "Inspection Failed", 
-        description: "Failed to start inspection. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to start inspection. Please try again.",
         variant: "destructive",
       });
     }

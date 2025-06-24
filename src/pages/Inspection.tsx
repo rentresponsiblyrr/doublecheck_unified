@@ -11,13 +11,25 @@ import { InspectionContent } from "@/components/InspectionContent";
 const Inspection = () => {
   console.log('🏗️ Inspection component mounting');
   
-  const { inspectionId } = useParams<{ inspectionId: string }>();
+  const params = useParams<{ inspectionId?: string; id?: string }>();
+  
+  // Support both old and new parameter names for backward compatibility
+  const inspectionId = params.inspectionId || params.id;
 
-  console.log('🔗 Inspection route params:', { inspectionId });
+  console.log('🔗 Inspection route params:', { 
+    params, 
+    inspectionId,
+    paramKeys: Object.keys(params),
+    urlPath: window.location.pathname
+  });
 
   // Early return for missing inspectionId
   if (!inspectionId) {
-    console.error('❌ No inspectionId in route params');
+    console.error('❌ No inspectionId in route params:', {
+      params,
+      pathname: window.location.pathname,
+      search: window.location.search
+    });
     return <InspectionInvalidState />;
   }
 
@@ -39,13 +51,15 @@ const Inspection = () => {
       isLoading,
       isRefetching,
       itemCount: checklistItems.length,
-      hasError: !!error
+      hasError: !!error,
+      pathname: window.location.pathname
     });
   }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
 
   // Update presence when page loads
   useEffect(() => {
     if (inspectionId) {
+      console.log('📍 Updating inspector presence for:', inspectionId);
       updatePresence('online');
     }
   }, [inspectionId, updatePresence]);
