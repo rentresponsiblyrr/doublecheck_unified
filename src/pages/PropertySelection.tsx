@@ -6,6 +6,7 @@ import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation
 import { PropertySelectionError } from "@/components/PropertySelectionError";
 import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
+import { useNavigate } from "react-router-dom";
 
 interface PropertyData {
   property_id: string;
@@ -31,6 +32,7 @@ interface Inspection {
 
 const PropertySelection = () => {
   console.log('🏠 PropertySelection component mounting');
+  const navigate = useNavigate();
 
   const { data: properties = [], isLoading: propertiesLoading, error: propertiesError, refetch: refetchProperties } = useQuery({
     queryKey: ['properties'],
@@ -98,8 +100,9 @@ const PropertySelection = () => {
         refetchInspections()
       ]);
       
-      // Navigate to the inspection
-      window.location.href = `/inspection/${inspectionId}`;
+      // Navigate to the inspection using React Router
+      console.log('🧭 PropertySelection navigating using React Router to:', `/inspection/${inspectionId}`);
+      navigate(`/inspection/${inspectionId}`, { replace: true });
     }
   };
 

@@ -11,24 +11,28 @@ import { InspectionContent } from "@/components/InspectionContent";
 const Inspection = () => {
   console.log('🏗️ Inspection component mounting');
   
-  const params = useParams<{ inspectionId?: string; id?: string }>();
+  const params = useParams<{ inspectionId?: string }>();
   
-  // Support both old and new parameter names for backward compatibility
-  const inspectionId = params.inspectionId || params.id;
+  // Get inspectionId from route parameters
+  const inspectionId = params.inspectionId;
 
   console.log('🔗 Inspection route params:', { 
     params, 
     inspectionId,
     paramKeys: Object.keys(params),
-    urlPath: window.location.pathname
+    urlPath: window.location.pathname,
+    currentRoute: 'inspection/:inspectionId'
   });
 
-  // Early return for missing inspectionId
+  // Early return for missing inspectionId with detailed logging
   if (!inspectionId) {
     console.error('❌ No inspectionId in route params:', {
       params,
+      expectedParam: 'inspectionId',
+      routeDefinition: '/inspection/:inspectionId',
       pathname: window.location.pathname,
-      search: window.location.search
+      search: window.location.search,
+      hash: window.location.hash
     });
     return <InspectionInvalidState />;
   }
@@ -52,7 +56,8 @@ const Inspection = () => {
       isRefetching,
       itemCount: checklistItems.length,
       hasError: !!error,
-      pathname: window.location.pathname
+      pathname: window.location.pathname,
+      routeMatch: 'success'
     });
   }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
 

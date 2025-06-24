@@ -41,16 +41,16 @@ const MobileIndex = () => {
     isCreatingInspection: isCreatingPropertyInspection
   } = usePropertySelection(inspections);
 
-  // Enhanced mobile start inspection handler
+  // Enhanced mobile start inspection handler - use property selection logic
   const handleMobileStartInspection = async () => {
     if (!selectedProperty) {
       console.warn('⚠️ No property selected for mobile inspection');
       return;
     }
     
-    console.log('📱 Mobile starting inspection for property:', selectedProperty);
+    console.log('📱 Mobile starting inspection for property using property selection logic:', selectedProperty);
     
-    // Use the property selection hook's logic
+    // Use the property selection hook's logic which has proper React Router navigation
     await handlePropertyInspection();
   };
 
@@ -109,7 +109,7 @@ const MobileIndex = () => {
         <AddPropertyButton />
       </div>
 
-      {/* Start/Join Inspection Button - Core Mobile Functionality */}
+      {/* Start/Join Inspection Button - Use property selection logic for consistent navigation */}
       {selectedProperty && (
         <StartInspectionButton 
           onStartInspection={handleMobileStartInspection}

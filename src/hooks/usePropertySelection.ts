@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -36,7 +35,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     );
 
     if (activeInspection) {
-      // Join existing inspection
+      // Join existing inspection using React Router navigate
       console.log('🔄 Joining existing inspection:', {
         inspectionId: activeInspection.id,
         propertyId: selectedProperty,
@@ -49,10 +48,10 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       });
       
       try {
-        console.log('🧭 Navigating to existing inspection:', activeInspection.id);
-        navigate(`/inspection/${activeInspection.id}`);
+        console.log('🧭 Navigating to existing inspection using React Router:', activeInspection.id);
+        navigate(`/inspection/${activeInspection.id}`, { replace: true });
       } catch (navigationError) {
-        console.error('💥 Navigation error:', navigationError);
+        console.error('💥 React Router navigation error:', navigationError);
         toast({
           title: "Navigation Error",
           description: "Failed to join inspection. Please try again.",
@@ -80,10 +79,10 @@ export const usePropertySelection = (inspections: Inspection[]) => {
         });
         
         try {
-          console.log('🧭 Navigating to new inspection:', inspectionId);
-          navigate(`/inspection/${inspectionId}`);
+          console.log('🧭 Navigating to new inspection using React Router:', inspectionId);
+          navigate(`/inspection/${inspectionId}`, { replace: true });
         } catch (navigationError) {
-          console.error('💥 Navigation error after creation:', navigationError);
+          console.error('💥 React Router navigation error after creation:', navigationError);
           toast({
             title: "Navigation Error",
             description: "Inspection created but failed to navigate. Please check your inspections list.",

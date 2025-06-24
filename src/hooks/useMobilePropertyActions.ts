@@ -58,9 +58,10 @@ export const useMobilePropertyActions = () => {
         });
         
         try {
-          navigate(`/inspection/${inspectionId}`);
+          console.log('🧭 Mobile navigating using React Router to:', `/inspection/${inspectionId}`);
+          navigate(`/inspection/${inspectionId}`, { replace: true });
         } catch (navigationError) {
-          console.error('💥 Navigation error after mobile inspection creation:', navigationError);
+          console.error('💥 Mobile React Router navigation error:', navigationError);
           toast({
             title: "Navigation Error", 
             description: "Inspection created but failed to navigate. Please check your inspections list.",
