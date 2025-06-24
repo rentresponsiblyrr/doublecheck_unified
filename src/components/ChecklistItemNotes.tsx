@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +39,7 @@ export const ChecklistItemNotes = ({ itemId, initialNotes }: ChecklistItemNotesP
 
         if (error) throw error;
 
-        // Properly cast the JSON data to our expected type
+        // Properly cast and validate the JSON data
         const history = Array.isArray(data.notes_history) 
           ? data.notes_history as NotesHistoryEntry[] 
           : [];
@@ -66,7 +67,7 @@ export const ChecklistItemNotes = ({ itemId, initialNotes }: ChecklistItemNotesP
           filter: `id=eq.${itemId}`
         },
         (payload) => {
-          // Properly cast the payload data
+          // Properly cast and validate the payload data
           const newHistory = Array.isArray(payload.new.notes_history) 
             ? payload.new.notes_history as NotesHistoryEntry[] 
             : [];

@@ -1,9 +1,9 @@
+
 import { useState, useEffect } from "react";
-import { Play, Image as ImageIcon, Calendar, Download, ExternalLink, User } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import { MediaUpload } from "@/types/inspection";
 import { MediaLightbox } from "@/components/MediaLightbox";
-import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
-import { Button } from "@/components/ui/button";
+import { MediaItem } from "@/components/MediaItem";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MediaUploadWithAttribution extends MediaUpload {
@@ -32,11 +32,11 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
 
         if (error) throw error;
 
-        // Transform the data to match our TypeScript interface
+        // Transform and properly type the data
         const transformedData: MediaUploadWithAttribution[] = (data || []).map(item => ({
           id: item.id,
           checklist_item_id: item.checklist_item_id,
-          type: item.type as 'photo' | 'video', // Cast to proper union type
+          type: item.type as 'photo' | 'video',
           url: item.url || '',
           user_id: item.user_id || undefined,
           uploaded_by_name: item.uploaded_by_name || undefined,
@@ -70,7 +70,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           console.log('Media update received:', payload);
           
           if (payload.eventType === 'INSERT') {
-            // Transform the new data to match our interface
             const newItem: MediaUploadWithAttribution = {
               id: payload.new.id,
               checklist_item_id: payload.new.checklist_item_id,
@@ -106,21 +105,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     };
   }, [checklistItemId]);
 
-  if (isLoading) {
-    return (
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded mb-2 w-24"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (mediaItems.length === 0) {
-    return null;
-  }
-
   const handleDownload = async (media: MediaUploadWithAttribution) => {
     try {
       const response = await fetch(media.url);
@@ -137,6 +121,21 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       console.error('Download failed:', error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-4">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded mb-2 w-24"></div>
+          <div className="h-20 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mediaItems.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -155,91 +154,12 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         
         <div className="grid grid-cols-1 gap-3">
           {mediaItems.map((media) => (
-            <div
+            <MediaItem
               key={media.id}
-              className="relative bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-300 transition-colors"
-            >
-              {/* Media Preview */}
-              <div className="relative">
-                {media.type === 'photo' ? (
-                  <img 
-                    src={media.url} 
-                    alt="Evidence" 
-                    className="w-full h-32 object-cover cursor-pointer"
-                    onClick={() => setSelectedMedia(media)}
-                    onError={(e) => {
-                      console.error('Thumbnail failed to load:', media.url);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div 
-                    className="relative cursor-pointer"
-                    onClick={() => setSelectedMedia(media)}
-                  >
-                    <video 
-                      src={media.url} 
-                      className="w-full h-32 object-cover"
-                      onError={(e) => {
-                        console.error('Video thumbnail failed to load:', media.url);
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Media Info and Actions */}
-              <div className="p-3 bg-white">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Calendar className="w-3 h-3" />
-                    <span>
-                      {new Date(media.created_at).toLocaleDateString()} at{' '}
-                      {new Date(media.created_at).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDownload(media)}
-                      className="h-6 w-6 p-0 hover:bg-gray-100"
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelectedMedia(media)}
-                      className="h-6 w-6 p-0 hover:bg-gray-100"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="text-xs text-gray-500 capitalize">
-                    {media.type} Evidence
-                  </div>
-                  
-                  {/* User Attribution */}
-                  {media.uploaded_by_name && (
-                    <div className="flex items-center gap-1 text-xs text-blue-600">
-                      <User className="w-3 h-3" />
-                      <span>Uploaded by {media.uploaded_by_name}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              media={media}
+              onMediaClick={setSelectedMedia}
+              onDownload={handleDownload}
+            />
           ))}
         </div>
       </div>
