@@ -31,6 +31,14 @@ interface MobilePropertyListProps {
   onEdit: (propertyId: string) => void;
   onDelete: (propertyId: string, propertyName: string) => void;
   onStartInspection: (propertyId: string) => void;
+  selectedProperty?: string | null;
+  onPropertySelect?: (propertyId: string) => void;
+  getPropertyStatus?: (propertyId: string) => {
+    status: string;
+    color: string;
+    text: string;
+    activeInspectionId?: string | null;
+  };
 }
 
 export const MobilePropertyList = memo(({
@@ -41,13 +49,18 @@ export const MobilePropertyList = memo(({
   isFetching,
   onEdit,
   onDelete,
-  onStartInspection
+  onStartInspection,
+  selectedProperty,
+  onPropertySelect,
+  getPropertyStatus
 }: MobilePropertyListProps) => {
   console.log('📱 Mobile Property List rendering:', {
     propertiesCount: properties?.length || 0,
     isLoading,
     error: !!error,
-    isFetching
+    isFetching,
+    selectedProperty,
+    hasSelection: !!onPropertySelect
   });
 
   if (isLoading) {
@@ -88,6 +101,9 @@ export const MobilePropertyList = memo(({
         <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg">
           <Smartphone className="w-4 h-4" />
           <span>Mobile optimized • {properties.length} properties</span>
+          {selectedProperty && (
+            <span className="ml-auto text-blue-600 font-medium">1 selected</span>
+          )}
           {isFetching && (
             <div className="w-3 h-3 border border-green-600 border-t-transparent rounded-full animate-spin ml-auto" />
           )}
@@ -96,15 +112,23 @@ export const MobilePropertyList = memo(({
 
       {/* Property Grid */}
       <div className="grid gap-4 px-4">
-        {properties.map((property) => (
-          <OptimizedPropertyCard
-            key={property.property_id}
-            property={property}
-            onEdit={onEdit}
-            onDelete={(id: string) => onDelete(id, property.property_name)}
-            onStartInspection={onStartInspection}
-          />
-        ))}
+        {properties.map((property) => {
+          const isSelected = selectedProperty === property.property_id;
+          const status = getPropertyStatus ? getPropertyStatus(property.property_id) : undefined;
+
+          return (
+            <OptimizedPropertyCard
+              key={property.property_id}
+              property={property}
+              isSelected={isSelected}
+              onSelect={onPropertySelect ? () => onPropertySelect(property.property_id) : undefined}
+              status={status}
+              onEdit={onEdit}
+              onDelete={(id: string) => onDelete(id, property.property_name)}
+              onStartInspection={onStartInspection}
+            />
+          );
+        })}
       </div>
 
       {/* Mobile Refresh */}
