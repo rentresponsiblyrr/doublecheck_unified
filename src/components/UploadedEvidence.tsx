@@ -36,7 +36,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         const transformedData: MediaUploadWithAttribution[] = (data || []).map(item => ({
           id: item.id,
           checklist_item_id: item.checklist_item_id,
-          type: item.type as 'photo' | 'video',
+          type: (item.type === 'photo' || item.type === 'video') ? item.type : 'photo',
           url: item.url || '',
           user_id: item.user_id || undefined,
           uploaded_by_name: item.uploaded_by_name || undefined,
@@ -73,7 +73,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
             const newItem: MediaUploadWithAttribution = {
               id: payload.new.id,
               checklist_item_id: payload.new.checklist_item_id,
-              type: payload.new.type as 'photo' | 'video',
+              type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
               url: payload.new.url || '',
               user_id: payload.new.user_id || undefined,
               uploaded_by_name: payload.new.uploaded_by_name || undefined,
@@ -86,7 +86,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
             const updatedItem: MediaUploadWithAttribution = {
               id: payload.new.id,
               checklist_item_id: payload.new.checklist_item_id,
-              type: payload.new.type as 'photo' | 'video',
+              type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
               url: payload.new.url || '',
               user_id: payload.new.user_id || undefined,
               uploaded_by_name: payload.new.uploaded_by_name || undefined,
