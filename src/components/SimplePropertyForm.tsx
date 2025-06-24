@@ -13,7 +13,7 @@ import type { PropertyFormData } from "@/types/propertySubmission";
 
 export const SimplePropertyForm = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
-  const { isOnline } = useNetworkStatus();
+  const isOnline = useNetworkStatus();
   const { isLoading, submitProperty, isEditing } = useSimplePropertySubmission();
   
   const [formData, setFormData] = useState<PropertyFormData>({

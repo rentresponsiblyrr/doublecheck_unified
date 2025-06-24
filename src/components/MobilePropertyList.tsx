@@ -11,8 +11,8 @@ interface MobilePropertyData {
   property_id: string;
   property_name: string;
   property_address: string;
-  property_vrbo_url: string;
-  property_airbnb_url: string;
+  property_vrbo_url: string | null;
+  property_airbnb_url: string | null;
   property_status: string;
   property_created_at: string;
   inspection_count: number;
