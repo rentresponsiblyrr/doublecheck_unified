@@ -1,7 +1,7 @@
 
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { UploadSuccessState } from "@/components/UploadSuccessState";
-import { UploadInterface } from "@/components/UploadInterface";
+import { DualUploadInterface } from "@/components/DualUploadInterface";
 
 interface MediaUploaderProps {
   evidenceType: 'photo' | 'video';
@@ -11,7 +11,7 @@ interface MediaUploaderProps {
   checklistItemId: string;
   inspectionId: string;
   onComplete: () => void;
-  category: string; // Changed from hardcoded union to string
+  category: string;
   label: string;
   hasUploadedMedia?: boolean;
   onDelete?: () => void;
@@ -42,10 +42,10 @@ export const MediaUploader = ({
     onComplete
   });
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = async (file: File, selectedType: 'photo' | 'video') => {
     // Call the onUpload prop to set loading state in parent
     onUpload(file);
-    // Handle the actual upload
+    // Handle the actual upload with the selected type
     await handleFileUpload(file);
   };
 
@@ -66,8 +66,7 @@ export const MediaUploader = ({
   }
 
   return (
-    <UploadInterface
-      evidenceType={evidenceType}
+    <DualUploadInterface
       category={category}
       label={label}
       isUploading={isUploading || hookIsUploading}

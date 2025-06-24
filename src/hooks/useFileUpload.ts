@@ -25,19 +25,19 @@ export const useFileUpload = ({
   const { isOnline, savePhotoOffline } = useOfflineStorage();
   const { user } = useAuth();
 
-  const validateFile = (file: File): boolean => {
-    // Validate file type
-    const isValidType = evidenceType === 'photo' 
-      ? file.type.startsWith('image/')
-      : file.type.startsWith('video/');
+  const validateFile = (file: File): { isValid: boolean; detectedType: 'photo' | 'video' } => {
+    // Detect the actual file type based on MIME type
+    const isPhoto = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    const detectedType: 'photo' | 'video' = isPhoto ? 'photo' : 'video';
 
-    if (!isValidType) {
+    if (!isPhoto && !isVideo) {
       toast({
         title: "Invalid file type",
-        description: `Please select a ${evidenceType} file.`,
+        description: "Please select a photo or video file.",
         variant: "destructive",
       });
-      return false;
+      return { isValid: false, detectedType };
     }
 
     // Validate file size (10MB limit)
@@ -48,10 +48,10 @@ export const useFileUpload = ({
         description: "Please select a file smaller than 10MB.",
         variant: "destructive",
       });
-      return false;
+      return { isValid: false, detectedType };
     }
 
-    return true;
+    return { isValid: true, detectedType };
   };
 
   const saveMediaRecordWithAttribution = async (
@@ -101,14 +101,15 @@ export const useFileUpload = ({
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!validateFile(file)) return;
+    const validation = validateFile(file);
+    if (!validation.isValid) return;
 
-    console.log('File selected:', file.name, file.type, file.size);
+    console.log('File selected:', file.name, file.type, file.size, 'Detected type:', validation.detectedType);
     setIsUploading(true);
     
     try {
-      // If offline, save photo locally
-      if (!isOnline && evidenceType === 'photo') {
+      // If offline and it's a photo, save locally
+      if (!isOnline && validation.detectedType === 'photo') {
         await savePhotoOffline(file, checklistItemId, inspectionId);
         setUploadSuccess(true);
         toast({
@@ -126,7 +127,7 @@ export const useFileUpload = ({
         console.error('Upload failed:', uploadResult.error);
         
         // If upload fails and it's a photo, try saving offline
-        if (evidenceType === 'photo') {
+        if (validation.detectedType === 'photo') {
           await savePhotoOffline(file, checklistItemId, inspectionId);
           setUploadSuccess(true);
           toast({
@@ -155,8 +156,8 @@ export const useFileUpload = ({
         return;
       }
 
-      // Save media record to database with user attribution
-      await saveMediaRecordWithAttribution(checklistItemId, evidenceType, uploadResult.url);
+      // Save media record to database with user attribution and detected type
+      await saveMediaRecordWithAttribution(checklistItemId, validation.detectedType, uploadResult.url);
       
       // Update checklist item status to completed
       await updateChecklistItemStatus(checklistItemId, 'completed');
@@ -164,7 +165,7 @@ export const useFileUpload = ({
       setUploadSuccess(true);
       toast({
         title: "Upload successful",
-        description: `${evidenceType} evidence uploaded successfully.`,
+        description: `${validation.detectedType} evidence uploaded successfully.`,
       });
       
       // Trigger refresh of the checklist
@@ -176,7 +177,7 @@ export const useFileUpload = ({
       console.error('Error in file upload process:', error);
       
       // If error and it's a photo, try saving offline as fallback
-      if (evidenceType === 'photo') {
+      if (validation.detectedType === 'photo') {
         try {
           await savePhotoOffline(file, checklistItemId, inspectionId);
           setUploadSuccess(true);
