@@ -6,28 +6,14 @@ import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobilePropertyData } from "@/hooks/useMobilePropertyData";
 import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
-import { usePerformanceMonitoring } from "@/hooks/usePerformanceMonitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Database, Zap, Smartphone } from "lucide-react";
 
 const OptimizedProperties = () => {
-  const { startMeasure, endMeasure, getAllMetrics } = usePerformanceMonitoring();
   const { user } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
   const { handleEdit, handleDelete, handleStartInspection } = useMobilePropertyActions();
-
-  useEffect(() => {
-    startMeasure('optimized-page-load');
-    
-    const timer = setTimeout(() => {
-      endMeasure('optimized-page-load');
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [startMeasure, endMeasure]);
-
-  const metrics = getAllMetrics();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,15 +50,13 @@ const OptimizedProperties = () => {
                   {properties?.length || 0} items
                 </Badge>
               </div>
-              {metrics.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <Activity className="w-3 h-3 text-blue-600" />
-                  <span>Load Time</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {metrics[0]?.duration?.toFixed(0)}ms
-                  </Badge>
-                </div>
-              )}
+              <div className="flex items-center gap-1">
+                <Activity className="w-3 h-3 text-blue-600" />
+                <span>Status</span>
+                <Badge variant="secondary" className="text-xs">
+                  Ready
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>

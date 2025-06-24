@@ -19,7 +19,6 @@ import {
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useEnhancedOfflineStorage } from '@/hooks/useEnhancedOfflineStorage';
 import { useMobileErrorRecovery } from '@/hooks/useMobileErrorRecovery';
-import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useMobileAuth } from '@/hooks/useMobileAuth';
 
 export const MobileStatusIndicator: React.FC = () => {
@@ -28,11 +27,10 @@ export const MobileStatusIndicator: React.FC = () => {
   const isOnline = useNetworkStatus();
   const { getStorageStats, syncOfflinePhotos, forceRetryFailed } = useEnhancedOfflineStorage();
   const { getRecoveryStats, attemptRecovery, resetErrorCount } = useMobileErrorRecovery();
-  const { metrics, isVisible } = usePerformanceMonitoring();
   const { user, userRole } = useMobileAuth();
 
   // Only show to authenticated users
-  if (!user || !isVisible) return null;
+  if (!user) return null;
 
   const storageStats = getStorageStats();
   const recoveryStats = getRecoveryStats();
@@ -118,7 +116,7 @@ export const MobileStatusIndicator: React.FC = () => {
                 </h4>
                 <div className="text-xs text-gray-600 grid grid-cols-2 gap-2">
                   <div>Status: {isOnline ? 'Connected' : 'Disconnected'}</div>
-                  <div>Type: {metrics.networkStatus}</div>
+                  <div>Type: Mobile</div>
                 </div>
               </div>
 
@@ -203,17 +201,17 @@ export const MobileStatusIndicator: React.FC = () => {
                 )}
               </div>
 
-              {/* Performance */}
+              {/* Mobile Performance Info */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <Battery className="w-4 h-4 text-purple-600" />
-                  Performance
+                  Mobile Status
                 </h4>
                 <div className="text-xs text-gray-600 grid grid-cols-2 gap-2">
-                  <div>Load time: {metrics.loadTime}ms</div>
-                  <div>Memory: {metrics.memoryUsage}%</div>
-                  <div>DB response: {metrics.dbResponseTime}ms</div>
-                  <div>Cache rate: {metrics.cacheHitRate}%</div>
+                  <div>Device: Mobile Optimized</div>
+                  <div>Mode: Field Inspector</div>
+                  <div>Network: {isOnline ? 'Online' : 'Offline'}</div>
+                  <div>Cache: Active</div>
                 </div>
               </div>
 
