@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Activity, Wifi, Clock, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,10 +32,10 @@ export const PerformanceMonitor = () => {
     if (!showPerfMonitor) return;
 
     const updateMetrics = () => {
-      // Calculate load time
+      // Calculate load time using correct Performance API
       const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const loadTime = navigationTiming ? 
-        Math.round(navigationTiming.loadEventEnd - navigationTiming.navigationStart) : 0;
+        Math.round(navigationTiming.loadEventEnd - navigationTiming.fetchStart) : 0;
 
       // Network status
       const connection = (navigator as any).connection;
