@@ -2,12 +2,21 @@
 // Category mapping utility to handle conversion between static safety item categories
 // and valid checklist item categories based on database constraints
 
-// Define the valid categories that the database accepts
-const VALID_CATEGORIES = ['safety', 'accessibility', 'amenities', 'cleanliness', 'accuracy'] as const;
-type ValidCategory = typeof VALID_CATEGORIES[number];
+// This will be populated dynamically from the database
+let VALID_CATEGORIES: string[] = ['safety', 'accessibility', 'amenities', 'cleanliness', 'accuracy'];
+
+// Function to update valid categories from database
+export const updateValidCategories = (categories: string[]) => {
+  VALID_CATEGORIES = categories;
+};
+
+// Get current valid categories
+export const getValidCategories = (): readonly string[] => {
+  return VALID_CATEGORIES;
+};
 
 // Create a comprehensive mapping that covers all known category variations
-export const createCategoryMapping = (): Record<string, ValidCategory> => {
+export const createCategoryMapping = (): Record<string, string> => {
   return {
     // Safety variations
     'safety': 'safety',
@@ -81,7 +90,9 @@ export const createCategoryMapping = (): Record<string, ValidCategory> => {
   };
 };
 
-export const mapCategory = (originalCategory: string | null | undefined): ValidCategory => {
+export const mapCategory = (originalCategory: string | null | undefined): string => {
+  console.log(`🔄 mapCategory called with: "${originalCategory}"`);
+  
   // Handle null, undefined, or empty values
   if (!originalCategory || originalCategory.trim() === '') {
     console.warn(`⚠️ Empty or null category found, using default: safety`);
@@ -94,7 +105,7 @@ export const mapCategory = (originalCategory: string | null | undefined): ValidC
   // Try exact match first
   if (categoryMapping[trimmedCategory]) {
     const mappedCategory = categoryMapping[trimmedCategory];
-    console.log(`📝 Mapping category "${trimmedCategory}" to "${mappedCategory}"`);
+    console.log(`📝 Exact mapping: "${trimmedCategory}" -> "${mappedCategory}"`);
     return mappedCategory;
   }
   
@@ -102,7 +113,7 @@ export const mapCategory = (originalCategory: string | null | undefined): ValidC
   const lowerCategory = trimmedCategory.toLowerCase();
   for (const [key, value] of Object.entries(categoryMapping)) {
     if (key.toLowerCase() === lowerCategory) {
-      console.log(`📝 Case-insensitive mapping category "${trimmedCategory}" to "${value}"`);
+      console.log(`📝 Case-insensitive mapping: "${trimmedCategory}" -> "${value}"`);
       return value;
     }
   }
@@ -114,8 +125,14 @@ export const mapCategory = (originalCategory: string | null | undefined): ValidC
   
   if (partialMatches.length > 0) {
     const [, mappedCategory] = partialMatches[0];
-    console.log(`📝 Partial mapping category "${trimmedCategory}" to "${mappedCategory}"`);
+    console.log(`📝 Partial mapping: "${trimmedCategory}" -> "${mappedCategory}"`);
     return mappedCategory;
+  }
+  
+  // Check if it's already a valid category from database
+  if (VALID_CATEGORIES.includes(trimmedCategory)) {
+    console.log(`📝 Direct valid category: "${trimmedCategory}"`);
+    return trimmedCategory;
   }
   
   // Final fallback
@@ -123,12 +140,22 @@ export const mapCategory = (originalCategory: string | null | undefined): ValidC
   return 'safety';
 };
 
-// Validation function to ensure category is valid
+// Enhanced validation function
 export const validateCategory = (category: string): boolean => {
-  return VALID_CATEGORIES.includes(category as ValidCategory);
+  const isValid = VALID_CATEGORIES.includes(category);
+  console.log(`🔍 validateCategory("${category}") = ${isValid}`);
+  return isValid;
 };
 
-// Function to get all valid categories
-export const getValidCategories = (): readonly ValidCategory[] => {
-  return VALID_CATEGORIES;
+// Function to ensure a category is valid, with auto-correction
+export const ensureValidCategory = (category: string | null | undefined): string => {
+  const mappedCategory = mapCategory(category);
+  const isValid = validateCategory(mappedCategory);
+  
+  if (!isValid) {
+    console.error(`❌ Category "${mappedCategory}" is not valid after mapping. Using safety fallback.`);
+    return 'safety';
+  }
+  
+  return mappedCategory;
 };

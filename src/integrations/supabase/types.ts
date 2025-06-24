@@ -1074,6 +1074,10 @@ export type Database = {
         Args: { data: Json } | { string: string } | { string: string }
         Returns: string
       }
+      validate_and_map_category: {
+        Args: { input_category: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "inspector" | "reviewer"

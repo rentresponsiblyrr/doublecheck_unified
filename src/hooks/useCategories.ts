@@ -1,7 +1,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Category } from "@/types/categories";
+import { updateValidCategories } from "@/utils/categoryMapping";
+import type { Category } from "@/types/categories";
 
 export const useCategories = () => {
   return useQuery({
@@ -21,34 +22,17 @@ export const useCategories = () => {
       }
 
       console.log('✅ Successfully fetched categories:', data?.length || 0);
-      return data as Category[];
+      
+      // Update the valid categories in the mapping utility
+      if (data) {
+        const categoryNames = data.map(cat => cat.name);
+        updateValidCategories(categoryNames);
+        console.log('🔄 Updated valid categories in mapping utility:', categoryNames);
+      }
+      
+      return (data as Category[]) || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
-  });
-};
-
-export const useCategoryByName = (categoryName: string) => {
-  return useQuery({
-    queryKey: ['category', categoryName],
-    queryFn: async () => {
-      console.log('📊 Fetching category by name:', categoryName);
-      
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('name', categoryName)
-        .eq('is_active', true)
-        .single();
-      
-      if (error) {
-        console.error('❌ Error fetching category:', error);
-        throw error;
-      }
-
-      return data as Category;
-    },
-    enabled: !!categoryName,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
