@@ -4,15 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Users, Eye, Wrench } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface InspectorPresence {
-  id: string;
-  inspector_id: string;
-  status: string;
-  last_seen: string;
-  current_item_id: string | null;
+type InspectorPresence = Tables<'inspector_presence'> & {
   metadata: Record<string, any>;
-}
+};
 
 interface InspectorPresenceIndicatorProps {
   inspectionId: string;
@@ -38,7 +34,14 @@ export const InspectorPresenceIndicator = ({
           .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
 
         if (error) throw error;
-        setPresenceData(data || []);
+        
+        // Transform the data to ensure metadata is properly typed
+        const transformedData: InspectorPresence[] = (data || []).map(item => ({
+          ...item,
+          metadata: (item.metadata as Record<string, any>) || {}
+        }));
+        
+        setPresenceData(transformedData);
       } catch (error) {
         console.error('Error fetching presence:', error);
       }

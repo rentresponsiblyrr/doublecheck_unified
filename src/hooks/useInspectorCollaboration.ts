@@ -3,34 +3,16 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface InspectorPresence {
-  id: string;
-  inspection_id: string;
-  inspector_id: string;
-  status: string;
-  last_seen: string;
-  current_item_id: string | null;
+type InspectorPresence = Tables<'inspector_presence'> & {
   metadata: Record<string, any>;
-  created_at: string;
-}
+};
 
-interface CollaborationConflict {
-  id: string;
-  inspection_id: string;
-  checklist_item_id: string | null;
-  conflict_type: string;
-  inspector_1: string;
-  inspector_2: string;
+type CollaborationConflict = Tables<'collaboration_conflicts'> & {
   inspector_1_action: Record<string, any>;
   inspector_2_action: Record<string, any>;
-  resolution_status: 'pending' | 'resolved' | 'escalated';
-  resolved_by: string | null;
-  resolved_at: string | null;
-  resolution_notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
+};
 
 export const useInspectorCollaboration = (inspectionId: string) => {
   const { user } = useAuth();
@@ -100,7 +82,13 @@ export const useInspectorCollaboration = (inspectionId: string) => {
 
       if (error) throw error;
 
-      setActiveInspectors(data || []);
+      // Transform the data to ensure metadata is properly typed
+      const transformedData: InspectorPresence[] = (data || []).map(item => ({
+        ...item,
+        metadata: (item.metadata as Record<string, any>) || {}
+      }));
+
+      setActiveInspectors(transformedData);
     } catch (error) {
       console.error('Error fetching active inspectors:', error);
     }
@@ -119,7 +107,14 @@ export const useInspectorCollaboration = (inspectionId: string) => {
 
       if (error) throw error;
 
-      setConflicts(data || []);
+      // Transform the data to ensure actions are properly typed
+      const transformedData: CollaborationConflict[] = (data || []).map(item => ({
+        ...item,
+        inspector_1_action: (item.inspector_1_action as Record<string, any>) || {},
+        inspector_2_action: (item.inspector_2_action as Record<string, any>) || {}
+      }));
+
+      setConflicts(transformedData);
     } catch (error) {
       console.error('Error fetching conflicts:', error);
     }
