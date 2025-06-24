@@ -2,7 +2,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChecklistItemType } from "@/types/inspection";
+import { ChecklistItemType, NotesHistoryEntry } from "@/types/inspection";
 
 interface MobileInspectionState {
   inspectionId: string;
@@ -41,17 +41,44 @@ export const useMobileOptimizedInspection = (inspectionId: string) => {
       console.log('✅ Mobile inspection loaded:', data?.length || 0, 'items');
       
       // Transform data to match TypeScript interface
-      const transformedData: ChecklistItemType[] = (data || []).map(item => ({
-        id: item.id,
-        inspection_id: item.inspection_id,
-        label: item.label || '',
-        category: item.category || 'safety',
-        evidence_type: item.evidence_type as 'photo' | 'video', // Type assertion for database string
-        status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
-        notes: item.notes,
-        notes_history: item.notes_history,
-        created_at: item.created_at || new Date().toISOString()
-      }));
+      const transformedData: ChecklistItemType[] = (data || []).map(item => {
+        // Safely cast and validate notes_history
+        let notesHistory: NotesHistoryEntry[] = [];
+        if (item.notes_history) {
+          try {
+            // Handle both array and JSON string cases
+            const parsed = Array.isArray(item.notes_history) 
+              ? item.notes_history 
+              : JSON.parse(item.notes_history as string);
+            
+            if (Array.isArray(parsed)) {
+              notesHistory = parsed.filter(entry => 
+                entry && 
+                typeof entry === 'object' && 
+                'text' in entry && 
+                'user_id' in entry && 
+                'user_name' in entry && 
+                'timestamp' in entry
+              ) as NotesHistoryEntry[];
+            }
+          } catch (e) {
+            console.warn('Failed to parse notes_history for item', item.id, e);
+            notesHistory = [];
+          }
+        }
+
+        return {
+          id: item.id,
+          inspection_id: item.inspection_id,
+          label: item.label || '',
+          category: item.category || 'safety',
+          evidence_type: item.evidence_type as 'photo' | 'video', // Type assertion for database string
+          status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
+          notes: item.notes,
+          notes_history: notesHistory,
+          created_at: item.created_at || new Date().toISOString()
+        };
+      });
       
       return transformedData;
     },
