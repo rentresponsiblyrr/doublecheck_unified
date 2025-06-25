@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Users, Eye, Wrench, AlertCircle } from "lucide-react";
@@ -22,6 +22,8 @@ export const InspectorPresenceIndicator = ({
   const [presenceData, setPresenceData] = useState<InspectorPresence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
     if (!inspectionId) {
@@ -30,9 +32,11 @@ export const InspectorPresenceIndicator = ({
     }
 
     let retryTimeout: NodeJS.Timeout;
-    let subscriptionChannel: any;
+    let isMounted = true;
 
     const fetchPresence = async () => {
+      if (!isMounted) return;
+      
       try {
         setError(null);
         
@@ -48,7 +52,11 @@ export const InspectorPresenceIndicator = ({
           setError(error.message);
           
           // Retry after 5 seconds if there's an error
-          retryTimeout = setTimeout(fetchPresence, 5000);
+          if (isMounted) {
+            retryTimeout = setTimeout(() => {
+              if (isMounted) fetchPresence();
+            }, 5000);
+          }
           return;
         }
         
@@ -58,22 +66,40 @@ export const InspectorPresenceIndicator = ({
           metadata: (item.metadata as Record<string, any>) || {}
         }));
         
-        setPresenceData(transformedData);
-        setIsLoading(false);
+        if (isMounted) {
+          setPresenceData(transformedData);
+          setIsLoading(false);
+        }
       } catch (fetchError) {
         console.error('Error fetching presence:', fetchError);
-        setError('Failed to load presence data');
-        setIsLoading(false);
-        
-        // Retry after 5 seconds
-        retryTimeout = setTimeout(fetchPresence, 5000);
+        if (isMounted) {
+          setError('Failed to load presence data');
+          setIsLoading(false);
+          
+          // Retry after 5 seconds
+          retryTimeout = setTimeout(() => {
+            if (isMounted) fetchPresence();
+          }, 5000);
+        }
       }
     };
 
     const setupRealtimeSubscription = () => {
+      // Clean up existing channel first
+      if (channelRef.current) {
+        console.log('Cleaning up existing presence channel');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isSubscribedRef.current = false;
+      }
+
       try {
-        subscriptionChannel = supabase
-          .channel(`presence-indicator-${inspectionId}`)
+        // Create unique channel name to avoid conflicts
+        const channelName = `presence-indicator-${inspectionId}-${Date.now()}`;
+        console.log('Creating new presence channel:', channelName);
+        
+        channelRef.current = supabase
+          .channel(channelName)
           .on(
             'postgres_changes',
             {
@@ -84,20 +110,39 @@ export const InspectorPresenceIndicator = ({
             },
             (payload) => {
               console.log('Presence update received:', payload);
-              fetchPresence();
+              if (isMounted) {
+                fetchPresence();
+              }
             }
-          )
-          .subscribe((status) => {
+          );
+
+        // Subscribe only if not already subscribed
+        if (!isSubscribedRef.current && isMounted) {
+          channelRef.current.subscribe((status: string) => {
             console.log('Presence subscription status:', status);
             if (status === 'SUBSCRIBED') {
-              fetchPresence();
+              isSubscribedRef.current = true;
+              if (isMounted) {
+                fetchPresence();
+              }
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('Channel subscription error');
+              isSubscribedRef.current = false;
             }
           });
+        }
       } catch (subscriptionError) {
         console.error('Error setting up presence subscription:', subscriptionError);
         // Fall back to periodic polling if realtime fails
-        const pollInterval = setInterval(fetchPresence, 30000);
-        return () => clearInterval(pollInterval);
+        if (isMounted) {
+          const pollInterval = setInterval(() => {
+            if (isMounted) fetchPresence();
+          }, 30000);
+          
+          return () => {
+            clearInterval(pollInterval);
+          };
+        }
       }
     };
 
@@ -108,10 +153,18 @@ export const InspectorPresenceIndicator = ({
     const cleanup = setupRealtimeSubscription();
 
     return () => {
+      isMounted = false;
+      
       if (retryTimeout) clearTimeout(retryTimeout);
-      if (subscriptionChannel) {
-        supabase.removeChannel(subscriptionChannel);
+      
+      // Clean up channel
+      if (channelRef.current) {
+        console.log('Cleaning up presence channel on unmount');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isSubscribedRef.current = false;
       }
+      
       if (cleanup) cleanup();
     };
   }, [inspectionId]);

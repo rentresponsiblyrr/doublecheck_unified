@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { MediaUpload } from "@/types/inspection";
 import { MediaLightbox } from "@/components/MediaLightbox";
@@ -19,10 +19,16 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
   const [selectedMedia, setSelectedMedia] = useState<MediaUploadWithAttribution | null>(null);
   const [mediaItems, setMediaItems] = useState<MediaUploadWithAttribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const channelRef = useRef<any>(null);
+  const isSubscribedRef = useRef(false);
 
   // Load media items with user attribution
   useEffect(() => {
+    let isMounted = true;
+
     const loadMediaItems = async () => {
+      if (!isMounted) return;
+      
       try {
         const { data, error } = await supabase
           .from('media')
@@ -43,65 +49,113 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           created_at: item.created_at || new Date().toISOString()
         }));
 
-        setMediaItems(transformedData);
+        if (isMounted) {
+          setMediaItems(transformedData);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Failed to load media items:', error);
-      } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadMediaItems();
+
+    return () => {
+      isMounted = false;
+    };
   }, [checklistItemId]);
 
   // Real-time subscription for media updates
   useEffect(() => {
-    const channel = supabase
-      .channel(`media-${checklistItemId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'media',
-          filter: `checklist_item_id=eq.${checklistItemId}`
-        },
-        (payload) => {
-          console.log('Media update received:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const newItem: MediaUploadWithAttribution = {
-              id: payload.new.id,
-              checklist_item_id: payload.new.checklist_item_id,
-              type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
-              url: payload.new.url || '',
-              user_id: payload.new.user_id || undefined,
-              uploaded_by_name: payload.new.uploaded_by_name || undefined,
-              created_at: payload.new.created_at || new Date().toISOString()
-            };
-            setMediaItems(prev => [newItem, ...prev]);
-          } else if (payload.eventType === 'DELETE') {
-            setMediaItems(prev => prev.filter(item => item.id !== payload.old.id));
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedItem: MediaUploadWithAttribution = {
-              id: payload.new.id,
-              checklist_item_id: payload.new.checklist_item_id,
-              type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
-              url: payload.new.url || '',
-              user_id: payload.new.user_id || undefined,
-              uploaded_by_name: payload.new.uploaded_by_name || undefined,
-              created_at: payload.new.created_at || new Date().toISOString()
-            };
-            setMediaItems(prev => prev.map(item => 
-              item.id === payload.new.id ? updatedItem : item
-            ));
+    let isMounted = true;
+
+    const setupSubscription = () => {
+      // Clean up existing channel first
+      if (channelRef.current) {
+        console.log('Cleaning up existing media channel');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isSubscribedRef.current = false;
+      }
+
+      // Create unique channel name to avoid conflicts
+      const channelName = `media-${checklistItemId}-${Date.now()}`;
+      console.log('Creating new media channel:', channelName);
+
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'media',
+            filter: `checklist_item_id=eq.${checklistItemId}`
+          },
+          (payload) => {
+            console.log('Media update received:', payload);
+            
+            if (!isMounted) return;
+            
+            if (payload.eventType === 'INSERT') {
+              const newItem: MediaUploadWithAttribution = {
+                id: payload.new.id,
+                checklist_item_id: payload.new.checklist_item_id,
+                type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
+                url: payload.new.url || '',
+                user_id: payload.new.user_id || undefined,
+                uploaded_by_name: payload.new.uploaded_by_name || undefined,
+                created_at: payload.new.created_at || new Date().toISOString()
+              };
+              setMediaItems(prev => [newItem, ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setMediaItems(prev => prev.filter(item => item.id !== payload.old.id));
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedItem: MediaUploadWithAttribution = {
+                id: payload.new.id,
+                checklist_item_id: payload.new.checklist_item_id,
+                type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
+                url: payload.new.url || '',
+                user_id: payload.new.user_id || undefined,
+                uploaded_by_name: payload.new.uploaded_by_name || undefined,
+                created_at: payload.new.created_at || new Date().toISOString()
+              };
+              setMediaItems(prev => prev.map(item => 
+                item.id === payload.new.id ? updatedItem : item
+              ));
+            }
           }
-        }
-      )
-      .subscribe();
+        );
+
+      // Subscribe only if not already subscribed
+      if (!isSubscribedRef.current && isMounted) {
+        channelRef.current.subscribe((status: string) => {
+          console.log('Media subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            isSubscribedRef.current = true;
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('Media channel subscription error');
+            isSubscribedRef.current = false;
+          }
+        });
+      }
+    };
+
+    setupSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted = false;
+      
+      // Clean up channel
+      if (channelRef.current) {
+        console.log('Cleaning up media channel on unmount');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isSubscribedRef.current = false;
+      }
     };
   }, [checklistItemId]);
 

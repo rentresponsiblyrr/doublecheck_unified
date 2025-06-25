@@ -1,3 +1,4 @@
+
 import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,13 +9,14 @@ export const useInspectorPresence = (inspectionId: string) => {
   const { toast } = useToast();
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const isUpdatingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const updatePresence = useCallback(async (
     status: 'online' | 'offline' | 'viewing' | 'working',
     currentItemId?: string,
     metadata?: Record<string, any>
   ) => {
-    if (!user || !inspectionId || isUpdatingRef.current) return;
+    if (!user || !inspectionId || isUpdatingRef.current || !isMountedRef.current) return;
 
     isUpdatingRef.current = true;
 
@@ -40,9 +42,13 @@ export const useInspectorPresence = (inspectionId: string) => {
         
         // Retry after a delay for certain types of errors
         if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = setTimeout(() => {
-          updatePresence(status, currentItemId, metadata);
-        }, 3000);
+        if (isMountedRef.current) {
+          retryTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              updatePresence(status, currentItemId, metadata);
+            }
+          }, 3000);
+        }
         
         throw error;
       }
@@ -66,10 +72,12 @@ export const useInspectorPresence = (inspectionId: string) => {
     if (!user || !inspectionId) return;
 
     let heartbeatInterval: NodeJS.Timeout;
-    let isComponentMounted = true;
+    isMountedRef.current = true;
 
     // Set initial presence with error handling
     const setInitialPresence = async () => {
+      if (!isMountedRef.current) return;
+      
       try {
         await updatePresence('online');
       } catch (error) {
@@ -81,7 +89,7 @@ export const useInspectorPresence = (inspectionId: string) => {
 
     // Update presence on visibility change
     const handleVisibilityChange = () => {
-      if (!isComponentMounted) return;
+      if (!isMountedRef.current) return;
       
       try {
         updatePresence(document.hidden ? 'offline' : 'online');
@@ -92,7 +100,7 @@ export const useInspectorPresence = (inspectionId: string) => {
 
     // Update presence on beforeunload
     const handleBeforeUnload = () => {
-      if (!isComponentMounted) return;
+      if (!isMountedRef.current) return;
       
       try {
         // Use sendBeacon for more reliable cleanup on page unload
@@ -117,13 +125,13 @@ export const useInspectorPresence = (inspectionId: string) => {
 
     // Heartbeat to keep presence alive (reduced frequency to avoid excessive calls)
     heartbeatInterval = setInterval(() => {
-      if (!document.hidden && isComponentMounted) {
+      if (!document.hidden && isMountedRef.current) {
         updatePresence('online');
       }
     }, 45000); // Increased to 45 seconds
 
     return () => {
-      isComponentMounted = false;
+      isMountedRef.current = false;
       
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
