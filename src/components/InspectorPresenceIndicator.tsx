@@ -1,9 +1,9 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Users, Eye, Wrench, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useChannelManager } from "@/hooks/useChannelManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type InspectorPresence = Tables<'inspector_presence'> & {
@@ -22,8 +22,9 @@ export const InspectorPresenceIndicator = ({
   const [presenceData, setPresenceData] = useState<InspectorPresence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
+  const { createChannel, subscribeChannel, cleanupChannel } = useChannelManager();
+  const isMountedRef = useRef(true);
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!inspectionId) {
@@ -31,11 +32,10 @@ export const InspectorPresenceIndicator = ({
       return;
     }
 
-    let retryTimeout: NodeJS.Timeout;
-    let isMounted = true;
+    isMountedRef.current = true;
 
     const fetchPresence = async () => {
-      if (!isMounted) return;
+      if (!isMountedRef.current) return;
       
       try {
         setError(null);
@@ -52,9 +52,9 @@ export const InspectorPresenceIndicator = ({
           setError(error.message);
           
           // Retry after 5 seconds if there's an error
-          if (isMounted) {
-            retryTimeout = setTimeout(() => {
-              if (isMounted) fetchPresence();
+          if (isMountedRef.current) {
+            retryTimeoutRef.current = setTimeout(() => {
+              if (isMountedRef.current) fetchPresence();
             }, 5000);
           }
           return;
@@ -66,77 +66,63 @@ export const InspectorPresenceIndicator = ({
           metadata: (item.metadata as Record<string, any>) || {}
         }));
         
-        if (isMounted) {
+        if (isMountedRef.current) {
           setPresenceData(transformedData);
           setIsLoading(false);
         }
       } catch (fetchError) {
         console.error('Error fetching presence:', fetchError);
-        if (isMounted) {
+        if (isMountedRef.current) {
           setError('Failed to load presence data');
           setIsLoading(false);
           
           // Retry after 5 seconds
-          retryTimeout = setTimeout(() => {
-            if (isMounted) fetchPresence();
+          retryTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) fetchPresence();
           }, 5000);
         }
       }
     };
 
     const setupRealtimeSubscription = () => {
-      // Clean up existing channel first
-      if (channelRef.current) {
-        console.log('Cleaning up existing presence channel');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-        isSubscribedRef.current = false;
-      }
-
       try {
-        // Create unique channel name to avoid conflicts
-        const channelName = `presence-indicator-${inspectionId}-${Date.now()}`;
-        console.log('Creating new presence channel:', channelName);
+        // Create unique channel name
+        const channelName = `presence-indicator-${inspectionId}`;
+        console.log('Setting up presence channel:', channelName);
         
-        channelRef.current = supabase
-          .channel(channelName)
-          .on(
-            'postgres_changes',
-            {
+        const channel = createChannel(channelName, {
+          presenceChanges: {
+            filter: {
               event: '*',
               schema: 'public',
               table: 'inspector_presence',
               filter: `inspection_id=eq.${inspectionId}`
             },
-            (payload) => {
+            callback: (payload: any) => {
               console.log('Presence update received:', payload);
-              if (isMounted) {
+              if (isMountedRef.current) {
                 fetchPresence();
               }
             }
-          );
+          }
+        });
 
-        // Subscribe only if not already subscribed
-        if (!isSubscribedRef.current && isMounted) {
-          channelRef.current.subscribe((status: string) => {
-            console.log('Presence subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              isSubscribedRef.current = true;
-              if (isMounted) {
-                fetchPresence();
-              }
-            } else if (status === 'CHANNEL_ERROR') {
-              console.error('Channel subscription error');
-              isSubscribedRef.current = false;
-            }
-          });
-        }
+        // Subscribe to the channel
+        subscribeChannel(channelName, (status: string) => {
+          console.log('Presence subscription status:', status);
+          if (status === 'SUBSCRIBED' && isMountedRef.current) {
+            fetchPresence();
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('Channel subscription error');
+          }
+        });
+
       } catch (subscriptionError) {
         console.error('Error setting up presence subscription:', subscriptionError);
         // Fall back to periodic polling if realtime fails
-        if (isMounted) {
+        if (isMountedRef.current) {
           const pollInterval = setInterval(() => {
-            if (isMounted) fetchPresence();
+            if (isMountedRef.current) fetchPresence();
           }, 30000);
           
           return () => {
@@ -153,21 +139,17 @@ export const InspectorPresenceIndicator = ({
     const cleanup = setupRealtimeSubscription();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       
-      if (retryTimeout) clearTimeout(retryTimeout);
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
       
       // Clean up channel
-      if (channelRef.current) {
-        console.log('Cleaning up presence channel on unmount');
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-        isSubscribedRef.current = false;
-      }
+      const channelName = `presence-indicator-${inspectionId}`;
+      cleanupChannel(channelName);
       
       if (cleanup) cleanup();
     };
-  }, [inspectionId]);
+  }, [inspectionId, createChannel, subscribeChannel, cleanupChannel]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

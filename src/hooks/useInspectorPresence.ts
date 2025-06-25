@@ -3,10 +3,12 @@ import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useChannelManager } from "@/hooks/useChannelManager";
 
 export const useInspectorPresence = (inspectionId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { cleanupChannel } = useChannelManager();
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const isUpdatingRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -139,10 +141,13 @@ export const useInspectorPresence = (inspectionId: string) => {
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
       
+      // Clean up any presence-related channels
+      cleanupChannel(`presence-indicator-${inspectionId}`);
+      
       // Mark as offline on cleanup (but don't block component unmounting)
       updatePresence('offline').catch(console.error);
     };
-  }, [user, inspectionId, updatePresence]);
+  }, [user, inspectionId, updatePresence, cleanupChannel]);
 
   return { updatePresence };
 };
