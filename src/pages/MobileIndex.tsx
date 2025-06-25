@@ -7,12 +7,13 @@ import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobileDataManager } from "@/hooks/useMobileDataManager";
 import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
+import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, CheckCircle2, Zap } from "lucide-react";
 
 const MobileIndex = () => {
-  const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
+  const { user, isAuthenticated, loading: authLoading, userRole } = useMobileAuth();
   const { 
     properties, 
     selectedProperty,
@@ -29,6 +30,18 @@ const MobileIndex = () => {
     isLoading: isCreatingInspection, 
     error: inspectionError 
   } = useMobileInspectionOptimizer();
+
+  const { handleEdit } = useMobilePropertyActions();
+
+  // Debug logging
+  console.log('📱 MobileIndex Debug with Edit:', {
+    userRole,
+    hasUser: !!user,
+    userEmail: user?.email,
+    propertiesCount: properties?.length || 0,
+    hasHandleEdit: !!handleEdit,
+    isAdmin: userRole === 'admin'
+  });
 
   const handlePropertySelect = (propertyId: string) => {
     console.log('📱 Mobile property selected:', propertyId);
@@ -95,6 +108,8 @@ const MobileIndex = () => {
           <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 p-2 rounded">
             <Zap className="w-3 h-3" />
             <span>Optimized • Cache: {cacheStats.size}/{cacheStats.maxSize}</span>
+            {/* Debug role info */}
+            <span>• Role: {userRole || 'Loading...'}</span>
           </div>
         </div>
       )}
@@ -148,6 +163,7 @@ const MobileIndex = () => {
         selectedProperty={selectedProperty}
         onPropertySelect={handlePropertySelect}
         onStartInspection={handleStartInspection}
+        onEdit={handleEdit} // Now passing the edit handler
         getPropertyStatus={(completed, active) => {
           if (active > 0) return { status: 'in-progress', color: 'bg-yellow-500', textLabel: 'In Progress', badgeColor: 'bg-yellow-500' };
           if (completed > 0) return { status: 'completed', color: 'bg-green-500', textLabel: 'Completed', badgeColor: 'bg-green-500' };
