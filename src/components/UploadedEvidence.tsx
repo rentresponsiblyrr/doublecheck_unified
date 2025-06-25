@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { MediaUpload } from "@/types/inspection";
@@ -73,7 +72,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
   useEffect(() => {
     isMountedRef.current = true;
 
-    const setupSubscription = () => {
+    const setupSubscription = async () => {
       try {
         // Create unique channel name
         const channelName = `media-${checklistItemId}`;
@@ -123,8 +122,8 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           }
         });
 
-        // Subscribe to the channel
-        subscribeChannel(channelName, (status: string) => {
+        // Subscribe to the channel with async handling
+        await subscribeChannel(channelName, (status: string) => {
           console.log('Media subscription status:', status);
           if (status === 'CHANNEL_ERROR') {
             console.error('Media channel subscription error');

@@ -84,7 +84,7 @@ export const InspectorPresenceIndicator = ({
       }
     };
 
-    const setupRealtimeSubscription = () => {
+    const setupRealtimeSubscription = async () => {
       try {
         // Create unique channel name
         const channelName = `presence-indicator-${inspectionId}`;
@@ -107,8 +107,8 @@ export const InspectorPresenceIndicator = ({
           }
         });
 
-        // Subscribe to the channel
-        subscribeChannel(channelName, (status: string) => {
+        // Subscribe to the channel with async handling
+        await subscribeChannel(channelName, (status: string) => {
           console.log('Presence subscription status:', status);
           if (status === 'SUBSCRIBED' && isMountedRef.current) {
             fetchPresence();
@@ -136,7 +136,7 @@ export const InspectorPresenceIndicator = ({
     fetchPresence();
     
     // Setup realtime subscription
-    const cleanup = setupRealtimeSubscription();
+    setupRealtimeSubscription();
 
     return () => {
       isMountedRef.current = false;
@@ -146,8 +146,6 @@ export const InspectorPresenceIndicator = ({
       // Clean up channel
       const channelName = `presence-indicator-${inspectionId}`;
       cleanupChannel(channelName);
-      
-      if (cleanup) cleanup();
     };
   }, [inspectionId, createChannel, subscribeChannel, cleanupChannel]);
 
