@@ -1,5 +1,5 @@
 
-import { useAuth } from '@/components/MobileFastAuthProvider';
+import { useAuth } from '@/components/AuthProvider';
 
 export const useMobileAuth = () => {
   const authContext = useAuth();

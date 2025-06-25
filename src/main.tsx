@@ -3,12 +3,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { MobileFastAuthProvider } from "@/components/MobileFastAuthProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MobileFastAuthProvider>
+    <AuthProvider>
       <App />
-    </MobileFastAuthProvider>
+    </AuthProvider>
   </StrictMode>
 );
