@@ -2,36 +2,57 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export class InspectionValidationService {
-  async checkForExistingInspection(propertyId: string): Promise<string | null> {
-    const { data: existingInspections, error: checkError } = await supabase
-      .from('inspections')
-      .select('id, completed')
-      .eq('property_id', propertyId)
-      .eq('completed', false);
+  static async validatePropertyAccess(propertyId: string): Promise<boolean> {
+    try {
+      console.log('🔍 Validating property access:', propertyId);
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('id, added_by')
+        .eq('id', propertyId)
+        .single();
 
-    if (checkError) {
-      console.error('❌ Error checking existing inspections:', checkError);
-      throw checkError;
+      if (error) {
+        console.error('❌ Property validation error:', error);
+        return false;
+      }
+
+      console.log('✅ Property access validated:', data?.id);
+      return !!data;
+    } catch (error) {
+      console.error('❌ Property access validation failed:', error);
+      return false;
     }
-
-    if (existingInspections && existingInspections.length > 0) {
-      console.log('📋 Found existing active inspection:', existingInspections[0].id);
-      return existingInspections[0].id;
-    }
-
-    return null;
   }
 
-  async verifyChecklistItems(inspectionId: string): Promise<void> {
-    const { data: checklistItems, error: checklistError } = await supabase
-      .from('checklist_items')
-      .select('id')
-      .eq('inspection_id', inspectionId);
+  static async verifyChecklistItemsCreated(inspectionId: string): Promise<number> {
+    try {
+      console.log('🔍 Verifying checklist items for inspection:', inspectionId);
+      
+      // Wait a moment for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const { data, error } = await supabase
+        .from('checklist_items')
+        .select('id')
+        .eq('inspection_id', inspectionId);
 
-    if (checklistError) {
-      console.error('❌ Error checking checklist items:', checklistError);
-    } else {
-      console.log(`📋 Verified ${checklistItems?.length || 0} checklist items created`);
+      if (error) {
+        console.error('❌ Error verifying checklist items:', error);
+        return 0;
+      }
+
+      const count = data?.length || 0;
+      console.log(`📋 Verified ${count} checklist items created`);
+      
+      if (count === 0) {
+        console.warn('⚠️ No checklist items found - trigger may have failed');
+      }
+      
+      return count;
+    } catch (error) {
+      console.error('❌ Failed to verify checklist items:', error);
+      return 0;
     }
   }
 }

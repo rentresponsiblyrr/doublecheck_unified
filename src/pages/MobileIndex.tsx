@@ -5,33 +5,41 @@ import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { MobileOptimizedPropertyList } from "@/components/MobileOptimizedPropertyList";
 import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
-import { useMobilePropertyData, useMobilePropertyStatus } from "@/hooks/useMobilePropertyData";
-import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
-import { useRobustMobileInspectionFlow } from "@/hooks/useRobustMobileInspectionFlow";
+import { useMobileDataManager } from "@/hooks/useMobileDataManager";
+import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Zap } from "lucide-react";
 
 const MobileIndex = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
-  const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
-  const { handleEdit, handleDelete } = useMobilePropertyActions();
-  const { startOrJoinInspection, isLoading: isCreatingInspection, error: inspectionError } = useRobustMobileInspectionFlow();
-  const { getPropertyStatus } = useMobilePropertyStatus();
-
-  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
+  const { 
+    properties, 
+    selectedProperty,
+    isLoading, 
+    error, 
+    selectProperty,
+    getPropertyStatus,
+    refreshData,
+    cacheStats
+  } = useMobileDataManager(user?.id);
+  
+  const { 
+    startOrJoinInspection, 
+    isLoading: isCreatingInspection, 
+    error: inspectionError 
+  } = useMobileInspectionOptimizer();
 
   const handlePropertySelect = (propertyId: string) => {
     console.log('📱 Mobile property selected:', propertyId);
-    setSelectedProperty(propertyId === selectedProperty ? null : propertyId);
+    selectProperty(propertyId === selectedProperty ? null : propertyId);
   };
 
   const handleStartInspection = async (propertyId: string) => {
-    console.log('📱 Starting inspection for property:', propertyId);
+    console.log('📱 Starting optimized inspection for property:', propertyId);
     
-    // Select the property first if not already selected
     if (propertyId !== selectedProperty) {
-      setSelectedProperty(propertyId);
+      selectProperty(propertyId);
     }
     
     await startOrJoinInspection(propertyId);
@@ -50,16 +58,19 @@ const MobileIndex = () => {
   }
 
   // Handle critical errors with mobile recovery
-  if (error && !properties) {
+  if (error && !properties.length) {
     return (
       <MobileErrorRecovery
-        error={error}
-        onRetry={refetch}
+        error={new Error(error)}
+        onRetry={refreshData}
         onNavigateHome={() => window.location.reload()}
         context="Property loading"
       />
     );
   }
+
+  const selectedPropertyData = selectedProperty ? properties.find(p => p.property_id === selectedProperty) : null;
+  const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
 
   console.log('📱 MobileIndex optimized rendering:', { 
     isAuthenticated, 
@@ -67,7 +78,8 @@ const MobileIndex = () => {
     isLoading, 
     error: !!error,
     selectedProperty,
-    authLoading
+    authLoading,
+    cacheStats
   });
 
   return (
@@ -76,6 +88,16 @@ const MobileIndex = () => {
         title="DoubleCheck Mobile"
         subtitle="Select a property to begin inspection"
       />
+
+      {/* Performance Indicator */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="px-4 py-2">
+          <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 p-2 rounded">
+            <Zap className="w-3 h-3" />
+            <span>Optimized • Cache: {cacheStats.size}/{cacheStats.maxSize}</span>
+          </div>
+        </div>
+      )}
 
       {/* Inspection Error Alert */}
       {inspectionError && (
@@ -90,21 +112,18 @@ const MobileIndex = () => {
       )}
 
       {/* Property Selection Status */}
-      {selectedProperty && properties && (
+      {selectedPropertyData && selectedPropertyStatus && (
         <div className="px-4 py-2">
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="pt-3 pb-3">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-blue-800">
                   <div className="font-medium">
-                    {properties.find(p => p.property_id === selectedProperty)?.property_name}
+                    {selectedPropertyData.property_name}
                   </div>
                   <div className="text-xs text-blue-600 mt-1 flex items-center">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
-                    {getPropertyStatus(
-                      properties.find(p => p.property_id === selectedProperty)?.completed_inspection_count || 0,
-                      properties.find(p => p.property_id === selectedProperty)?.active_inspection_count || 0
-                    ).textLabel}
+                    {selectedPropertyStatus.textLabel}
                   </div>
                 </div>
                 {isCreatingInspection && (
@@ -123,13 +142,17 @@ const MobileIndex = () => {
       <MobileOptimizedPropertyList
         properties={properties || []}
         isLoading={isLoading}
-        error={error}
-        onRefresh={refetch}
-        isFetching={isFetching}
+        error={error ? new Error(error) : null}
+        onRefresh={refreshData}
+        isFetching={false}
         selectedProperty={selectedProperty}
         onPropertySelect={handlePropertySelect}
         onStartInspection={handleStartInspection}
-        getPropertyStatus={getPropertyStatus}
+        getPropertyStatus={(completed, active) => {
+          if (active > 0) return { status: 'in-progress', color: 'bg-yellow-500', textLabel: 'In Progress', badgeColor: 'bg-yellow-500' };
+          if (completed > 0) return { status: 'completed', color: 'bg-green-500', textLabel: 'Completed', badgeColor: 'bg-green-500' };
+          return { status: 'available', color: 'bg-blue-500', textLabel: 'Available', badgeColor: 'bg-blue-500' };
+        }}
         isCreatingInspection={isCreatingInspection}
       />
 
