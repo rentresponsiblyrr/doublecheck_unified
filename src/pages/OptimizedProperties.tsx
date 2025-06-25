@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { PropertyHeader } from "@/components/PropertyHeader";
-import { MobilePropertyList } from "@/components/MobilePropertyList";
+import { MobileOptimizedPropertyList } from "@/components/MobileOptimizedPropertyList";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobilePropertyData } from "@/hooks/useMobilePropertyData";
@@ -14,6 +14,33 @@ const OptimizedProperties = () => {
   const { user } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
   const { handleEdit, handleDelete, handleStartInspection } = useMobilePropertyActions();
+
+  const getPropertyStatus = (completedCount: number, activeCount: number) => {
+    if (activeCount > 0) {
+      return {
+        status: 'in-progress',
+        color: 'bg-yellow-500',
+        textLabel: 'In Progress',
+        badgeColor: 'bg-yellow-100 text-yellow-800'
+      };
+    }
+    
+    if (completedCount > 0) {
+      return {
+        status: 'completed',
+        color: 'bg-green-500',
+        textLabel: 'Completed',
+        badgeColor: 'bg-green-100 text-green-800'
+      };
+    }
+    
+    return {
+      status: 'pending',
+      color: 'bg-gray-500',
+      textLabel: 'Not Started',
+      badgeColor: 'bg-gray-100 text-gray-800'
+    };
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,15 +89,17 @@ const OptimizedProperties = () => {
         </Card>
       </div>
 
-      <MobilePropertyList
+      <MobileOptimizedPropertyList
         properties={properties || []}
         isLoading={isLoading}
         error={error}
         onRefresh={refetch}
         isFetching={isFetching}
+        selectedProperty={null}
+        onPropertySelect={() => {}} // Not used in this simplified version
         onEdit={handleEdit}
-        onDelete={handleDelete}
         onStartInspection={handleStartInspection}
+        getPropertyStatus={getPropertyStatus}
       />
       
       <AddPropertyButton />

@@ -33,6 +33,7 @@ interface MobileOptimizedPropertyListProps {
   selectedProperty: string | null;
   onPropertySelect: (propertyId: string) => void;
   onStartInspection: (propertyId: string) => void;
+  onEdit?: (propertyId: string) => void;
   getPropertyStatus: (completedCount: number, activeCount: number) => PropertyStatus;
   isCreatingInspection?: boolean;
 }
@@ -46,6 +47,7 @@ export const MobileOptimizedPropertyList: React.FC<MobileOptimizedPropertyListPr
   selectedProperty,
   onPropertySelect,
   onStartInspection,
+  onEdit,
   getPropertyStatus,
   isCreatingInspection = false
 }) => {
@@ -144,6 +146,7 @@ export const MobileOptimizedPropertyList: React.FC<MobileOptimizedPropertyListPr
               isSelected={selectedProperty === property.property_id}
               onSelect={onPropertySelect}
               onStartInspection={onStartInspection}
+              onEdit={onEdit}
               isLoading={isCreatingInspection && selectedProperty === property.property_id}
             />
           );

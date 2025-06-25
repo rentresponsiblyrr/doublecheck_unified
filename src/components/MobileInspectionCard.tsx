@@ -3,7 +3,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, Users, CheckCircle2, Edit } from "lucide-react";
+import { useFastAuth } from "@/hooks/useFastAuth";
 
 interface PropertyStatus {
   status: string;
@@ -27,6 +28,7 @@ interface MobileInspectionCardProps {
   isSelected: boolean;
   onSelect: (propertyId: string) => void;
   onStartInspection: (propertyId: string) => void;
+  onEdit?: (propertyId: string) => void;
   isLoading?: boolean;
 }
 
@@ -36,8 +38,12 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   isSelected,
   onSelect,
   onStartInspection,
+  onEdit,
   isLoading = false
 }) => {
+  const { userRole } = useFastAuth();
+  const isAdmin = userRole === 'admin';
+
   const getButtonText = () => {
     if (propertyStatus.status === 'in-progress') {
       return 'Join Inspection';
@@ -52,6 +58,13 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   const handleInspectionStart = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card selection when clicking button
     onStartInspection(property.property_id);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card selection when clicking edit
+    if (onEdit) {
+      onEdit(property.property_id);
+    }
   };
 
   return (
@@ -74,9 +87,21 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
               <span className="text-sm truncate">{property.property_address}</span>
             </div>
           </div>
-          <Badge className={`ml-2 flex-shrink-0 ${propertyStatus.badgeColor}`}>
-            {propertyStatus.textLabel}
-          </Badge>
+          <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+            <Badge className={`${propertyStatus.badgeColor}`}>
+              {propertyStatus.textLabel}
+            </Badge>
+            {isAdmin && onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEdit}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
