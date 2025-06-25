@@ -41,7 +41,17 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   onEdit,
   isLoading = false
 }) => {
-  const { userRole } = useFastAuth();
+  const { userRole, user } = useFastAuth();
+  
+  // Debug logging to help troubleshoot
+  console.log('🔍 MobileInspectionCard Debug:', {
+    userRole,
+    hasUser: !!user,
+    userEmail: user?.email,
+    hasOnEdit: !!onEdit,
+    isAdmin: userRole === 'admin'
+  });
+  
   const isAdmin = userRole === 'admin';
 
   const getButtonText = () => {
@@ -62,6 +72,7 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card selection when clicking edit
+    console.log('🔧 Edit button clicked for property:', property.property_id);
     if (onEdit) {
       onEdit(property.property_id);
     }
@@ -91,14 +102,16 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
             <Badge className={`${propertyStatus.badgeColor}`}>
               {propertyStatus.textLabel}
             </Badge>
-            {isAdmin && onEdit && (
+            {/* Force show edit button for debugging - remove this condition check temporarily */}
+            {onEdit && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleEdit}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 bg-blue-50 hover:bg-blue-100"
+                title={`Edit ${property.property_name} (Admin: ${isAdmin})`}
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-4 w-4 text-blue-600" />
               </Button>
             )}
           </div>
@@ -106,6 +119,13 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
       </CardHeader>
 
       <CardContent className="pt-0 space-y-3">
+        {/* Debug info for troubleshooting */}
+        {user?.email?.includes('@rentresponsibly.org') && (
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            Debug: Role={userRole}, Admin={isAdmin ? 'Yes' : 'No'}, HasEdit={!!onEdit ? 'Yes' : 'No'}
+          </div>
+        )}
+        
         {/* Inspection Stats */}
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex items-center">

@@ -11,9 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, Database, Zap, Smartphone } from "lucide-react";
 
 const OptimizedProperties = () => {
-  const { user } = useMobileAuth();
+  const { user, userRole } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
   const { handleEdit, handleDelete, handleStartInspection } = useMobilePropertyActions();
+
+  // Debug logging
+  console.log('🏠 OptimizedProperties Debug:', {
+    userRole,
+    hasUser: !!user,
+    userEmail: user?.email,
+    propertiesCount: properties?.length || 0,
+    hasHandleEdit: !!handleEdit
+  });
 
   const getPropertyStatus = (completedCount: number, activeCount: number) => {
     if (activeCount > 0) {
@@ -84,6 +93,10 @@ const OptimizedProperties = () => {
                   Ready
                 </Badge>
               </div>
+              {/* Debug info */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs">Role: {userRole || 'Loading...'}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -97,7 +110,7 @@ const OptimizedProperties = () => {
         isFetching={isFetching}
         selectedProperty={null}
         onPropertySelect={() => {}} // Not used in this simplified version
-        onEdit={handleEdit}
+        onEdit={handleEdit} // Make sure this is always passed
         onStartInspection={handleStartInspection}
         getPropertyStatus={getPropertyStatus}
       />
