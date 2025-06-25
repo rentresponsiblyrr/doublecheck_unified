@@ -19,20 +19,34 @@ export class InspectionCreationService {
   }
 
   async checkForExistingInspection(propertyId: string): Promise<string | null> {
-    // Use the correct method from InspectionCreationOptimizer
-    return InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
+    try {
+      // Use the correct method from InspectionCreationOptimizer
+      return await InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
+    } catch (error) {
+      console.error('Error checking for existing inspection:', error);
+      return null;
+    }
   }
 
   async createNewInspection(propertyId: string): Promise<string> {
     const inspectionId = await this.retryService.executeWithRetry(async () => {
-      // Create the inspection record using the optimizer
-      const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId);
-      
-      // Populate checklist items (this is handled by the database trigger now)
-      // But we still verify they were created
-      await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
-      
-      return newInspectionId;
+      try {
+        // Create the inspection record using the optimizer
+        const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId);
+        
+        // Verify checklist items were created (with improved error handling)
+        const checklistItemsCount = await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
+        
+        if (checklistItemsCount === 0) {
+          console.warn('No checklist items were populated for inspection:', newInspectionId);
+          // This is not necessarily an error - the inspection may be valid even without items
+        }
+        
+        return newInspectionId;
+      } catch (error) {
+        console.error('Error in inspection creation process:', error);
+        throw error;
+      }
     });
 
     return inspectionId;

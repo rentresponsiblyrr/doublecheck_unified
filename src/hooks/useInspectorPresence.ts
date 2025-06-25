@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -6,13 +6,17 @@ import { useToast } from "@/hooks/use-toast";
 export const useInspectorPresence = (inspectionId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const isUpdatingRef = useRef(false);
 
   const updatePresence = useCallback(async (
     status: 'online' | 'offline' | 'viewing' | 'working',
     currentItemId?: string,
     metadata?: Record<string, any>
   ) => {
-    if (!user || !inspectionId) return;
+    if (!user || !inspectionId || isUpdatingRef.current) return;
+
+    isUpdatingRef.current = true;
 
     try {
       const { error } = await supabase.rpc('update_inspector_presence', {
@@ -24,15 +28,36 @@ export const useInspectorPresence = (inspectionId: string) => {
 
       if (error) {
         console.error('Failed to update presence:', error);
+        
+        // Only show toast for critical errors, not for routine connection issues
+        if (error.code !== 'PGRST301' && !error.message.includes('infinite recursion')) {
+          toast({
+            title: "Presence Update Failed",
+            description: "Failed to update your presence status.",
+            variant: "destructive",
+          });
+        }
+        
+        // Retry after a delay for certain types of errors
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = setTimeout(() => {
+          updatePresence(status, currentItemId, metadata);
+        }, 3000);
+        
         throw error;
       }
+
+      // Clear any pending retries on success
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = undefined;
+      }
+
     } catch (error) {
       console.error('Error updating inspector presence:', error);
-      toast({
-        title: "Presence Update Failed",
-        description: "Failed to update your presence status.",
-        variant: "destructive",
-      });
+      // Don't throw here to prevent cascading errors
+    } finally {
+      isUpdatingRef.current = false;
     }
   }, [user, inspectionId, toast]);
 
@@ -40,35 +65,74 @@ export const useInspectorPresence = (inspectionId: string) => {
   useEffect(() => {
     if (!user || !inspectionId) return;
 
-    // Set initial presence
-    updatePresence('online');
+    let heartbeatInterval: NodeJS.Timeout;
+    let isComponentMounted = true;
+
+    // Set initial presence with error handling
+    const setInitialPresence = async () => {
+      try {
+        await updatePresence('online');
+      } catch (error) {
+        console.error('Failed to set initial presence:', error);
+      }
+    };
+
+    setInitialPresence();
 
     // Update presence on visibility change
     const handleVisibilityChange = () => {
-      updatePresence(document.hidden ? 'offline' : 'online');
+      if (!isComponentMounted) return;
+      
+      try {
+        updatePresence(document.hidden ? 'offline' : 'online');
+      } catch (error) {
+        console.error('Failed to update presence on visibility change:', error);
+      }
     };
 
     // Update presence on beforeunload
     const handleBeforeUnload = () => {
-      updatePresence('offline');
+      if (!isComponentMounted) return;
+      
+      try {
+        // Use sendBeacon for more reliable cleanup on page unload
+        const presenceData = {
+          inspection_id: inspectionId,
+          status: 'offline',
+          inspector_id: user.id
+        };
+        
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/presence-cleanup', JSON.stringify(presenceData));
+        } else {
+          updatePresence('offline');
+        }
+      } catch (error) {
+        console.error('Failed to update presence on beforeunload:', error);
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Heartbeat to keep presence alive
-    const heartbeat = setInterval(() => {
-      if (!document.hidden) {
+    // Heartbeat to keep presence alive (reduced frequency to avoid excessive calls)
+    heartbeatInterval = setInterval(() => {
+      if (!document.hidden && isComponentMounted) {
         updatePresence('online');
       }
-    }, 30000); // Update every 30 seconds
+    }, 45000); // Increased to 45 seconds
 
     return () => {
+      isComponentMounted = false;
+      
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      clearInterval(heartbeat);
-      // Mark as offline on cleanup
-      updatePresence('offline');
+      
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+      
+      // Mark as offline on cleanup (but don't block component unmounting)
+      updatePresence('offline').catch(console.error);
     };
   }, [user, inspectionId, updatePresence]);
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Users, Eye, Wrench } from "lucide-react";
+import { Users, Eye, Wrench, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -20,12 +20,22 @@ export const InspectorPresenceIndicator = ({
   currentItemId 
 }: InspectorPresenceIndicatorProps) => {
   const [presenceData, setPresenceData] = useState<InspectorPresence[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!inspectionId) return;
+    if (!inspectionId) {
+      setIsLoading(false);
+      return;
+    }
+
+    let retryTimeout: NodeJS.Timeout;
+    let subscriptionChannel: any;
 
     const fetchPresence = async () => {
       try {
+        setError(null);
+        
         const { data, error } = await supabase
           .from('inspector_presence')
           .select('*')
@@ -33,7 +43,14 @@ export const InspectorPresenceIndicator = ({
           .neq('status', 'offline')
           .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching presence:', error);
+          setError(error.message);
+          
+          // Retry after 5 seconds if there's an error
+          retryTimeout = setTimeout(fetchPresence, 5000);
+          return;
+        }
         
         // Transform the data to ensure metadata is properly typed
         const transformedData: InspectorPresence[] = (data || []).map(item => ({
@@ -42,32 +59,60 @@ export const InspectorPresenceIndicator = ({
         }));
         
         setPresenceData(transformedData);
-      } catch (error) {
-        console.error('Error fetching presence:', error);
+        setIsLoading(false);
+      } catch (fetchError) {
+        console.error('Error fetching presence:', fetchError);
+        setError('Failed to load presence data');
+        setIsLoading(false);
+        
+        // Retry after 5 seconds
+        retryTimeout = setTimeout(fetchPresence, 5000);
       }
     };
 
-    fetchPresence();
+    const setupRealtimeSubscription = () => {
+      try {
+        subscriptionChannel = supabase
+          .channel(`presence-indicator-${inspectionId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'inspector_presence',
+              filter: `inspection_id=eq.${inspectionId}`
+            },
+            (payload) => {
+              console.log('Presence update received:', payload);
+              fetchPresence();
+            }
+          )
+          .subscribe((status) => {
+            console.log('Presence subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              fetchPresence();
+            }
+          });
+      } catch (subscriptionError) {
+        console.error('Error setting up presence subscription:', subscriptionError);
+        // Fall back to periodic polling if realtime fails
+        const pollInterval = setInterval(fetchPresence, 30000);
+        return () => clearInterval(pollInterval);
+      }
+    };
 
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel(`presence-indicator-${inspectionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'inspector_presence',
-          filter: `inspection_id=eq.${inspectionId}`
-        },
-        () => {
-          fetchPresence();
-        }
-      )
-      .subscribe();
+    // Initial fetch
+    fetchPresence();
+    
+    // Setup realtime subscription
+    const cleanup = setupRealtimeSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (retryTimeout) clearTimeout(retryTimeout);
+      if (subscriptionChannel) {
+        supabase.removeChannel(subscriptionChannel);
+      }
+      if (cleanup) cleanup();
     };
   }, [inspectionId]);
 
@@ -94,6 +139,35 @@ export const InspectorPresenceIndicator = ({
         return 'bg-gray-500';
     }
   };
+
+  // Show error state
+  if (error && !isLoading) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-200">
+              <AlertCircle className="w-3 h-3" />
+              Connection issue
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Unable to load presence data: {error}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Badge variant="outline" className="flex items-center gap-1 animate-pulse">
+        <Users className="w-3 h-3" />
+        Loading...
+      </Badge>
+    );
+  }
 
   const activeInspectorsOnItem = presenceData.filter(
     p => p.current_item_id === currentItemId && currentItemId
