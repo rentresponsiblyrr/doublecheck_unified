@@ -1,35 +1,32 @@
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
 
-export const useNetworkStatus = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const { toast } = useToast();
+export const useNetworkStatus = (): boolean => {
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
 
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🌐 Network: Online');
+      console.log('📶 Network connection restored');
       setIsOnline(true);
     };
-    
+
     const handleOffline = () => {
-      console.log('🌐 Network: Offline');
+      console.log('📵 Network connection lost');
       setIsOnline(false);
-      toast({
-        title: "Network Issue",
-        description: "You appear to be offline. Please check your connection.",
-        variant: "destructive",
-      });
     };
 
+    // Listen for network status changes
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Cleanup listeners
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [toast]);
+  }, []);
 
   return isOnline;
 };

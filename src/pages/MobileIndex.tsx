@@ -2,59 +2,32 @@
 import { useState } from "react";
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
-import { MobilePropertyList } from "@/components/MobilePropertyList";
-import { StartInspectionButton } from "@/components/StartInspectionButton";
+import { MobileOptimizedPropertyList } from "@/components/MobileOptimizedPropertyList";
 import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
-import { useMobilePropertyData } from "@/hooks/useMobilePropertyData";
+import { useMobilePropertyData, useMobilePropertyStatus } from "@/hooks/useMobilePropertyData";
 import { useMobilePropertyActions } from "@/hooks/useMobilePropertyActions";
-import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useRobustMobileInspectionFlow } from "@/hooks/useRobustMobileInspectionFlow";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const MobileIndex = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
   const { data: properties, isLoading, error, refetch, isFetching } = useMobilePropertyData(user?.id);
   const { handleEdit, handleDelete } = useMobilePropertyActions();
-  const { startOrJoinInspection, isLoading: isCreatingInspection, error: inspectionError } = useMobileInspectionFlow();
+  const { startOrJoinInspection, isLoading: isCreatingInspection, error: inspectionError } = useRobustMobileInspectionFlow();
+  const { getPropertyStatus } = useMobilePropertyStatus();
 
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
-
-  // Fetch inspections for property selection logic
-  const { data: inspections = [] } = useQuery({
-    queryKey: ['inspections'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('inspections')
-        .select('*');
-      
-      if (error) throw error;
-      return data || [];
-    },
-    retry: 1,
-    staleTime: 30000,
-    enabled: isAuthenticated
-  });
 
   const handlePropertySelect = (propertyId: string) => {
     console.log('📱 Mobile property selected:', propertyId);
     setSelectedProperty(propertyId === selectedProperty ? null : propertyId);
   };
 
-  const handleStartInspection = async () => {
-    if (!selectedProperty) {
-      console.warn('⚠️ No property selected for inspection');
-      return;
-    }
-
-    await startOrJoinInspection(selectedProperty);
-  };
-
-  const handlePropertyCardInspection = async (propertyId: string) => {
-    console.log('📱 Property card inspection start:', propertyId);
+  const handleStartInspection = async (propertyId: string) => {
+    console.log('📱 Starting inspection for property:', propertyId);
     
     // Select the property first if not already selected
     if (propertyId !== selectedProperty) {
@@ -64,50 +37,13 @@ const MobileIndex = () => {
     await startOrJoinInspection(propertyId);
   };
 
-  const getPropertyStatus = (propertyId: string) => {
-    const propertyInspections = inspections.filter(i => i.property_id === propertyId);
-    const completedInspections = propertyInspections.filter(i => i.completed);
-    const activeInspections = propertyInspections.filter(i => !i.completed);
-
-    if (activeInspections.length > 0) {
-      return { 
-        status: 'in-progress', 
-        color: 'bg-yellow-500', 
-        text: 'In Progress',
-        activeInspectionId: activeInspections[0].id
-      };
-    }
-    if (completedInspections.length > 0) {
-      return { 
-        status: 'completed', 
-        color: 'bg-green-500', 
-        text: 'Completed',
-        activeInspectionId: null
-      };
-    }
-    return { 
-      status: 'pending', 
-      color: 'bg-gray-500', 
-      text: 'Not Started',
-      activeInspectionId: null
-    };
-  };
-
-  const getButtonText = (propertyId: string) => {
-    const status = getPropertyStatus(propertyId);
-    if (status.status === 'in-progress') {
-      return 'Join Inspection';
-    }
-    return 'Start Inspection';
-  };
-
   // Show loading while auth is initializing
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Initializing...</p>
         </div>
       </div>
     );
@@ -131,12 +67,11 @@ const MobileIndex = () => {
     isLoading, 
     error: !!error,
     selectedProperty,
-    inspectionsCount: inspections?.length || 0,
     authLoading
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <PropertyHeader 
         title="DoubleCheck Mobile"
         subtitle="Select a property to begin inspection"
@@ -155,48 +90,55 @@ const MobileIndex = () => {
       )}
 
       {/* Property Selection Status */}
-      {selectedProperty && (
+      {selectedProperty && properties && (
         <div className="px-4 py-2">
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="pt-3 pb-3">
-              <div className="text-sm text-blue-800">
-                <strong>Selected Property:</strong> {properties?.find(p => p.property_id === selectedProperty)?.property_name}
-                <div className="text-xs text-blue-600 mt-1">
-                  Status: {getPropertyStatus(selectedProperty).text}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-blue-800">
+                  <div className="font-medium">
+                    {properties.find(p => p.property_id === selectedProperty)?.property_name}
+                  </div>
+                  <div className="text-xs text-blue-600 mt-1 flex items-center">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    {getPropertyStatus(
+                      properties.find(p => p.property_id === selectedProperty)?.completed_inspection_count || 0,
+                      properties.find(p => p.property_id === selectedProperty)?.active_inspection_count || 0
+                    ).textLabel}
+                  </div>
                 </div>
+                {isCreatingInspection && (
+                  <div className="flex items-center text-blue-600">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
+                    <span className="text-xs">Creating...</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      <MobilePropertyList
+      {/* Properties List */}
+      <MobileOptimizedPropertyList
         properties={properties || []}
         isLoading={isLoading}
         error={error}
         onRefresh={refetch}
         isFetching={isFetching}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onStartInspection={handlePropertyCardInspection}
         selectedProperty={selectedProperty}
         onPropertySelect={handlePropertySelect}
+        onStartInspection={handleStartInspection}
         getPropertyStatus={getPropertyStatus}
+        isCreatingInspection={isCreatingInspection}
       />
 
-      <div className="px-4 mt-6 pb-6">
-        <AddPropertyButton />
+      {/* Add Property Button */}
+      <div className="px-4 mt-auto pb-safe">
+        <div className="py-4">
+          <AddPropertyButton />
+        </div>
       </div>
-
-      {/* Start/Join Inspection Button */}
-      {selectedProperty && (
-        <StartInspectionButton 
-          onStartInspection={handleStartInspection}
-          isLoading={isCreatingInspection}
-          buttonText={getButtonText(selectedProperty)}
-          isJoining={getPropertyStatus(selectedProperty).status === 'in-progress'}
-        />
-      )}
     </div>
   );
 };

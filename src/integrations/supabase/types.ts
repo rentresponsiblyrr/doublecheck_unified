@@ -895,6 +895,19 @@ export type Database = {
           version: number | null
         }
       }
+      assign_inspector_to_inspection: {
+        Args: { p_inspection_id: string; p_inspector_id?: string }
+        Returns: {
+          certification_status: string | null
+          completed: boolean | null
+          end_time: string | null
+          id: string
+          inspector_id: string | null
+          property_id: string
+          start_time: string | null
+          status: string | null
+        }
+      }
       assign_user_role: {
         Args: { _user_id: string; _email: string }
         Returns: undefined
@@ -909,6 +922,19 @@ export type Database = {
           inspection_id: string
           items_removed: number
         }[]
+      }
+      complete_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: {
+          certification_status: string | null
+          completed: boolean | null
+          end_time: string | null
+          id: string
+          inspector_id: string | null
+          property_id: string
+          start_time: string | null
+          status: string | null
+        }
       }
       get_properties_with_inspections: {
         Args: { _user_id?: string }

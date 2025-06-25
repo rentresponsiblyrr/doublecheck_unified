@@ -1,0 +1,122 @@
+
+/* Mobile-specific optimizations for DoubleCheck */
+
+/* Ensure proper touch targets */
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Optimize card interactions */
+.mobile-optimized-card {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-optimized-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Safe area handling for devices with notches */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Prevent zoom on input focus (iOS) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* Loading spinners optimized for mobile */
+.mobile-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Better scroll behavior */
+.mobile-scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Optimize button states for mobile */
+.mobile-button {
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-button:active {
+  transform: scale(0.95);
+}
+
+/* Ensure text doesn't get too small on mobile */
+@media (max-width: 768px) {
+  .mobile-readable {
+    font-size: 14px !important;
+    line-height: 1.4;
+  }
+  
+  .mobile-title {
+    font-size: 18px !important;
+    font-weight: 600;
+  }
+}
+
+/* Network status indicators */
+.network-indicator {
+  position: fixed;
+  top: env(safe-area-inset-top, 0);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 4px 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.network-indicator.online {
+  background-color: #10b981;
+  color: white;
+}
+
+.network-indicator.offline {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* Enhanced focus states for accessibility */
+.mobile-focus:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Prevent text selection on interactive elements */
+.mobile-no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
