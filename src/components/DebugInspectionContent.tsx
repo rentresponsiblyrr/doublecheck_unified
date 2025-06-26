@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 import { InspectionProgress } from "@/components/InspectionProgress";
@@ -84,6 +83,13 @@ export const DebugInspectionContent = ({
   const filteredItems = showCompleted 
     ? checklistItems 
     : checklistItems.filter(item => item.status !== 'completed');
+
+  const handleItemComplete = () => {
+    debugLogger.info('DebugInspectionContent', 'Item completed, refetching data', {
+      inspectionId
+    });
+    onRefetch();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -184,14 +190,7 @@ export const DebugInspectionContent = ({
             <ChecklistItem
               key={item.id}
               item={item}
-              onStatusUpdate={(itemId, status) => {
-                debugLogger.info('DebugInspectionContent', 'Status update requested', {
-                  itemId,
-                  status,
-                  inspectionId
-                });
-                // Status update will be handled by the parent component
-              }}
+              onComplete={handleItemComplete}
             />
           ))
         )}
