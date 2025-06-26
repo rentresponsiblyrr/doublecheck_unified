@@ -24,6 +24,7 @@ export const DebugInspectionContent = ({
 }: DebugInspectionContentProps) => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebugPanel, setShowDebugPanel] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(true);
 
   const completedCount = checklistItems.filter(item => item.status === 'completed').length;
   const totalCount = checklistItems.length;
@@ -79,9 +80,21 @@ export const DebugInspectionContent = ({
     }
   };
 
+  // Filter items based on showCompleted state
+  const filteredItems = showCompleted 
+    ? checklistItems 
+    : checklistItems.filter(item => item.status !== 'completed');
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <InspectionHeader inspectionId={inspectionId} />
+      <InspectionHeader 
+        inspectionId={inspectionId}
+        showCompleted={showCompleted}
+        onToggleCompleted={() => setShowCompleted(!showCompleted)}
+        completedCount={completedCount}
+        totalCount={totalCount}
+        checklistItems={checklistItems}
+      />
       
       {/* Debug Panel */}
       {showDebugPanel && (
@@ -144,19 +157,22 @@ export const DebugInspectionContent = ({
         </div>
       )}
 
-      <InspectionProgress 
-        completed={completedCount}
-        total={totalCount}
-        percentage={progressPercentage}
-      />
+      <InspectionProgress items={filteredItems} />
 
       <div className="p-4 space-y-4">
-        {checklistItems.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <div className="text-center py-8">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Checklist Items</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {checklistItems.length === 0 ? 'No Checklist Items' : 'No Items to Show'}
+            </h3>
             <p className="text-gray-500 mb-4">
-              No checklist items found for this inspection.
+              {checklistItems.length === 0 
+                ? 'No checklist items found for this inspection.'
+                : showCompleted 
+                  ? 'All items are completed. Toggle to show completed items.'
+                  : 'No incomplete items found.'
+              }
             </p>
             <Button onClick={onRefetch} disabled={isRefetching}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -164,11 +180,10 @@ export const DebugInspectionContent = ({
             </Button>
           </div>
         ) : (
-          checklistItems.map((item, index) => (
+          filteredItems.map((item) => (
             <ChecklistItem
               key={item.id}
               item={item}
-              index={index}
               onStatusUpdate={(itemId, status) => {
                 debugLogger.info('DebugInspectionContent', 'Status update requested', {
                   itemId,
