@@ -7,14 +7,23 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import Inspection from "./pages/Inspection";
+import { SimplifiedInspectionPage } from "@/components/SimplifiedInspectionPage";
 import { DebugInspectionPage } from "@/components/DebugInspectionPage";
 import AddProperty from "./pages/AddProperty";
 import InspectionComplete from "./pages/InspectionComplete";
 import PropertySelection from "./pages/PropertySelection";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 30000,
+      gcTime: 300000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
@@ -37,7 +46,7 @@ function App() {
               } />
               <Route path="/inspection/:id" element={
                 <ProtectedRoute>
-                  <Inspection />
+                  <SimplifiedInspectionPage />
                 </ProtectedRoute>
               } />
               <Route path="/debug-inspection/:id" element={
