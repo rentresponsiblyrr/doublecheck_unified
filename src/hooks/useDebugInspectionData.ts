@@ -5,36 +5,51 @@ import { ChecklistItemType } from "@/types/inspection";
 import { debugLogger } from "@/utils/debugLogger";
 
 export const useDebugInspectionData = (inspectionId: string) => {
-  debugLogger.info('InspectionData', 'Hook initialized', { inspectionId });
+  debugLogger.info('DebugInspectionData', 'Hook initialized', { inspectionId });
 
   const { data: checklistItems = [], isLoading, refetch, error } = useQuery({
     queryKey: ['debug-checklist-items', inspectionId],
     queryFn: async () => {
-      debugLogger.info('InspectionData', 'Starting query', { inspectionId });
+      debugLogger.info('DebugInspectionData', 'Starting comprehensive debug fetch', { inspectionId });
       
       if (!inspectionId) {
-        debugLogger.error('InspectionData', 'No inspection ID provided');
+        debugLogger.error('DebugInspectionData', 'No inspection ID provided');
         throw new Error('Inspection ID is required');
       }
 
       try {
-        // Step 1: Check if inspection exists
-        debugLogger.debug('InspectionData', 'Checking inspection exists');
-        const { data: inspection, error: inspectionError } = await supabase
+        // Step 1: Test data access with debug function
+        debugLogger.debug('DebugInspectionData', 'Testing data access');
+        const { data: accessTest, error: accessError } = await supabase.rpc('debug_data_access');
+        
+        if (accessError) {
+          debugLogger.error('DebugInspectionData', 'Data access test failed', accessError);
+        } else {
+          debugLogger.info('DebugInspectionData', 'Data access test results', accessTest);
+        }
+
+        // Step 2: Verify inspection exists
+        debugLogger.debug('DebugInspectionData', 'Checking inspection exists');
+        const { data: inspectionCheck, error: inspectionError } = await supabase
           .from('inspections')
-          .select('id, property_id, status')
+          .select('*')
           .eq('id', inspectionId)
           .single();
 
         if (inspectionError) {
-          debugLogger.error('InspectionData', 'Inspection check failed', inspectionError);
+          debugLogger.error('DebugInspectionData', 'Inspection verification failed', {
+            error: inspectionError,
+            code: inspectionError.code,
+            message: inspectionError.message,
+            details: inspectionError.details
+          });
           throw new Error(`Inspection not found: ${inspectionError.message}`);
         }
 
-        debugLogger.info('InspectionData', 'Inspection found', inspection);
+        debugLogger.info('DebugInspectionData', 'Inspection verified', inspectionCheck);
 
-        // Step 2: Fetch checklist items
-        debugLogger.debug('InspectionData', 'Fetching checklist items');
+        // Step 3: Fetch checklist items with comprehensive logging
+        debugLogger.debug('DebugInspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
           .from('checklist_items')
           .select('*')
@@ -42,56 +57,84 @@ export const useDebugInspectionData = (inspectionId: string) => {
           .order('created_at', { ascending: true });
 
         if (itemsError) {
-          debugLogger.error('InspectionData', 'Checklist items fetch failed', itemsError);
-          throw itemsError;
+          debugLogger.error('DebugInspectionData', 'Failed to fetch checklist items', {
+            error: itemsError,
+            code: itemsError.code,
+            message: itemsError.message,
+            details: itemsError.details,
+            hint: itemsError.hint
+          });
+          throw new Error(`Failed to load checklist: ${itemsError.message}`);
         }
 
-        debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
+        debugLogger.info('DebugInspectionData', 'Raw checklist items fetched', { 
           count: items?.length || 0,
-          items: items?.map(i => ({ id: i.id, label: i.label, status: i.status })) || []
+          items: items?.slice(0, 3) || []
         });
 
-        // Step 3: Transform data
-        const transformedData: ChecklistItemType[] = (items || []).map(item => {
-          const transformed = {
-            id: item.id,
-            inspection_id: item.inspection_id,
-            label: item.label || '',
-            category: item.category || 'safety',
-            evidence_type: item.evidence_type as 'photo' | 'video',
-            status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
-            notes: item.notes,
-            created_at: item.created_at || new Date().toISOString()
-          };
+        // Step 4: Transform data with error handling
+        const transformedItems: ChecklistItemType[] = (items || []).map((item, index) => {
+          try {
+            const transformed = {
+              id: item.id,
+              inspection_id: item.inspection_id,
+              label: item.label || `Item ${index + 1}`,
+              category: item.category || 'safety',
+              evidence_type: item.evidence_type as 'photo' | 'video',
+              status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
+              notes: item.notes,
+              created_at: item.created_at || new Date().toISOString()
+            };
 
-          debugLogger.debug('InspectionData', 'Transformed item', {
-            id: transformed.id,
-            label: transformed.label,
-            status: transformed.status
-          });
+            debugLogger.debug('DebugInspectionData', `Transformed item ${index}`, {
+              original: item,
+              transformed
+            });
 
-          return transformed;
+            return transformed;
+          } catch (transformError) {
+            debugLogger.error('DebugInspectionData', `Error transforming item ${index}`, {
+              error: transformError,
+              item
+            });
+            throw transformError;
+          }
         });
 
-        debugLogger.info('InspectionData', 'Data transformation complete', {
+        debugLogger.info('DebugInspectionData', 'Data transformation complete', {
           originalCount: items?.length || 0,
-          transformedCount: transformedData.length
+          transformedCount: transformedItems.length,
+          completedItems: transformedItems.filter(i => i.status === 'completed').length
         });
 
-        return transformedData;
-      } catch (err) {
-        debugLogger.error('InspectionData', 'Query failed', err);
-        throw err;
+        return transformedItems;
+
+      } catch (error) {
+        debugLogger.error('DebugInspectionData', 'Query failed with comprehensive error info', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          inspectionId,
+          timestamp: new Date().toISOString()
+        });
+        throw error;
       }
     },
     enabled: !!inspectionId,
-    staleTime: 0, // Always fetch fresh data for debugging
-    gcTime: 0, // Don't cache for debugging
-    retry: 1,
+    staleTime: 30000,
+    gcTime: 60000,
+    retry: (failureCount, error) => {
+      debugLogger.warn('DebugInspectionData', 'Retry attempt', { 
+        failureCount, 
+        error: error?.message,
+        maxRetries: 3
+      });
+      return failureCount < 3;
+    },
     refetchOnWindowFocus: false
   });
 
-  debugLogger.info('InspectionData', 'Hook state', {
+  debugLogger.info('DebugInspectionData', 'Hook state', {
     inspectionId,
     isLoading,
     itemCount: checklistItems.length,

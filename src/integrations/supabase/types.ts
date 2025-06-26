@@ -936,6 +936,14 @@ export type Database = {
           status: string | null
         }
       }
+      debug_data_access: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          row_count: number
+          can_select: boolean
+        }[]
+      }
       get_properties_with_inspections: {
         Args: { _user_id?: string }
         Returns: {
