@@ -1,9 +1,10 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useCleanAuth } from "@/hooks/useCleanAuth";
-import { useInspectionData } from "@/hooks/useInspectionData";
+import { useSimplifiedInspectionData } from "@/hooks/useSimplifiedInspectionData";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionContent } from "@/components/InspectionContent";
+import { InspectionErrorBoundary } from "@/components/InspectionErrorBoundary";
 import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
@@ -92,12 +93,16 @@ export const InspectionPage = () => {
     );
   }
 
-  return <InspectionDataLoader inspectionId={inspectionId} />;
+  return (
+    <InspectionErrorBoundary inspectionId={inspectionId}>
+      <InspectionDataLoader inspectionId={inspectionId} />
+    </InspectionErrorBoundary>
+  );
 };
 
 const InspectionDataLoader = ({ inspectionId }: { inspectionId: string }) => {
   const navigate = useNavigate();
-  const { checklistItems, isLoading, refetch, isRefetching, error } = useInspectionData(inspectionId);
+  const { checklistItems, isLoading, refetch, error } = useSimplifiedInspectionData(inspectionId);
 
   debugLogger.info('InspectionDataLoader', 'Data loader state', {
     inspectionId,
@@ -133,11 +138,13 @@ const InspectionDataLoader = ({ inspectionId }: { inspectionId: string }) => {
   });
 
   return (
-    <InspectionContent
-      inspectionId={inspectionId}
-      checklistItems={checklistItems}
-      onRefetch={refetch}
-      isRefetching={isRefetching}
-    />
+    <InspectionErrorBoundary inspectionId={inspectionId} onRetry={refetch}>
+      <InspectionContent
+        inspectionId={inspectionId}
+        checklistItems={checklistItems}
+        onRefetch={refetch}
+        isRefetching={false}
+      />
+    </InspectionErrorBoundary>
   );
 };
