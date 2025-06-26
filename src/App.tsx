@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import { SimplifiedInspectionPage } from "@/components/SimplifiedInspectionPage";
+import { InspectionPage } from "./pages/InspectionPage";
 import { DebugInspectionPage } from "@/components/DebugInspectionPage";
 import AddProperty from "./pages/AddProperty";
 import InspectionComplete from "./pages/InspectionComplete";
@@ -46,7 +46,7 @@ function App() {
               } />
               <Route path="/inspection/:id" element={
                 <ProtectedRoute>
-                  <SimplifiedInspectionPage />
+                  <InspectionPage />
                 </ProtectedRoute>
               } />
               <Route path="/debug-inspection/:id" element={

@@ -19,7 +19,7 @@ export const useInspectionData = (inspectionId: string) => {
       }
       
       try {
-        // First, verify the inspection exists
+        // First, verify the inspection exists and user has access
         debugLogger.debug('InspectionData', 'Verifying inspection exists');
         const { data: inspection, error: inspectionError } = await supabase
           .from('inspections')
@@ -28,75 +28,66 @@ export const useInspectionData = (inspectionId: string) => {
           .single();
 
         if (inspectionError) {
-          debugLogger.error('InspectionData', 'Inspection verification failed', inspectionError);
-          throw new Error(`Inspection not found: ${inspectionError.message}`);
+          debugLogger.error('InspectionData', 'Inspection verification failed', {
+            error: inspectionError,
+            code: inspectionError.code,
+            message: inspectionError.message
+          });
+          
+          if (inspectionError.code === 'PGRST116') {
+            throw new Error('Inspection not found or you do not have permission to access it');
+          }
+          
+          throw new Error(`Failed to load inspection: ${inspectionError.message}`);
         }
 
         debugLogger.info('InspectionData', 'Inspection verified', inspection);
 
-        // Check for any audit entries indicating duplicate detection
-        const { data: auditData } = await supabase
-          .from('checklist_operations_audit')
-          .select('*')
-          .eq('inspection_id', inspectionId)
-          .eq('operation_type', 'duplicate_detected')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (auditData && auditData.length > 0) {
-          debugLogger.warn('InspectionData', 'Duplicate checklist items detected', auditData[0]);
-        }
-
-        // Fetch checklist items
+        // Fetch checklist items with error handling
         debugLogger.debug('InspectionData', 'Fetching checklist items');
-        const { data, error } = await supabase
+        const { data: items, error: itemsError } = await supabase
           .from('checklist_items')
-          .select('*')
+          .select('id, inspection_id, label, category, evidence_type, status, notes, created_at')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });
         
-        if (error) {
-          debugLogger.error('InspectionData', 'Database error fetching checklist items', error);
-          throw error;
+        if (itemsError) {
+          debugLogger.error('InspectionData', 'Database error fetching checklist items', {
+            error: itemsError,
+            code: itemsError.code,
+            message: itemsError.message
+          });
+          throw new Error(`Failed to load checklist items: ${itemsError.message}`);
         }
 
         debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
-          count: data?.length || 0,
-          sampleItems: data?.slice(0, 3).map(i => ({ id: i.id, label: i.label })) || []
+          count: items?.length || 0,
+          sampleItems: items?.slice(0, 3).map(i => ({ id: i.id, label: i.label, status: i.status })) || []
         });
         
-        // Client-side duplicate removal as a safety measure
-        const uniqueItems = data ? removeDuplicates(data) : [];
-        
-        if (uniqueItems.length !== (data?.length || 0)) {
-          debugLogger.warn('InspectionData', 'Client-side duplicate removal occurred', {
-            original: data?.length || 0,
-            cleaned: uniqueItems.length
-          });
-        }
-        
         // If no items found, provide helpful information
-        if (!uniqueItems || uniqueItems.length === 0) {
+        if (!items || items.length === 0) {
           debugLogger.warn('InspectionData', 'No checklist items found', {
             inspectionExists: !!inspection,
             inspectionStatus: inspection?.status,
             inspectionCompleted: inspection?.completed
           });
           
+          // This is normal - return empty array and let UI handle it
           return [];
         }
         
         // Transform the data to match our TypeScript interface
-        const transformedData = uniqueItems.map(item => ({
+        const transformedData: ChecklistItemType[] = items.map(item => ({
           id: item.id,
           inspection_id: item.inspection_id,
           label: item.label || '',
-          category: item.category, // Now supports any string value
+          category: item.category || 'safety',
           evidence_type: item.evidence_type as 'photo' | 'video',
           status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
           notes: item.notes,
           created_at: item.created_at || new Date().toISOString()
-        })) as ChecklistItemType[];
+        }));
         
         debugLogger.info('InspectionData', 'Data transformation complete', {
           transformedCount: transformedData.length,
@@ -106,7 +97,11 @@ export const useInspectionData = (inspectionId: string) => {
         
         return transformedData;
       } catch (fetchError) {
-        debugLogger.error('InspectionData', 'Query failed', fetchError);
+        debugLogger.error('InspectionData', 'Query failed', {
+          error: fetchError,
+          message: fetchError instanceof Error ? fetchError.message : 'Unknown error',
+          inspectionId
+        });
         throw fetchError;
       }
     },
@@ -114,8 +109,12 @@ export const useInspectionData = (inspectionId: string) => {
     refetchOnWindowFocus: false,
     staleTime: 30000,
     retry: (failureCount, error) => {
-      debugLogger.info('InspectionData', 'Retry attempt', { failureCount, error: error.message });
-      return failureCount < 2; // Only retry twice
+      debugLogger.info('InspectionData', 'Retry attempt', { 
+        failureCount, 
+        error: error?.message,
+        maxRetries: 2
+      });
+      return failureCount < 2;
     },
   });
 
@@ -139,25 +138,3 @@ export const useInspectionData = (inspectionId: string) => {
     error
   };
 };
-
-// Helper function to remove duplicates based on inspection_id + static_item_id + label
-function removeDuplicates(items: any[]): any[] {
-  const seen = new Set<string>();
-  const uniqueItems: any[] = [];
-  
-  for (const item of items) {
-    const key = `${item.inspection_id}-${item.static_item_id}-${item.label}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      uniqueItems.push(item);
-    } else {
-      debugLogger.warn('InspectionData', 'Removing duplicate item', {
-        id: item.id,
-        label: item.label,
-        static_item_id: item.static_item_id
-      });
-    }
-  }
-  
-  return uniqueItems;
-}

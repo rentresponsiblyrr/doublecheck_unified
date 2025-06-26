@@ -5,13 +5,8 @@ import { InspectionProgressTracker } from "@/components/InspectionProgressTracke
 import { InspectionFilters } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
-import { ChecklistDiagnostics } from "@/components/ChecklistDiagnostics";
-import { LoadingStateManager } from "@/components/LoadingStateManager";
-import { useDataIntegrity } from "@/hooks/useDataIntegrity";
 import { ChecklistItemType } from "@/types/inspection";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, CheckCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface InspectionContentProps {
   inspectionId: string;
@@ -29,7 +24,11 @@ export const InspectionContent = ({
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const { checks, isChecking, runIntegrityChecks, fixIssue, hasIssues, highPriorityIssues } = useDataIntegrity(inspectionId);
+  debugLogger.info('InspectionContent', 'Rendering with data', {
+    inspectionId,
+    itemCount: checklistItems.length,
+    isRefetching
+  });
 
   const filteredItems = checklistItems.filter(item => {
     const matchesCompletedFilter = showCompleted || (!item.status || item.status === null);
@@ -43,117 +42,68 @@ export const InspectionContent = ({
   const totalCount = checklistItems.length;
   const passedCount = checklistItems.filter(item => item.status === 'completed').length;
   const failedCount = checklistItems.filter(item => item.status === 'failed').length;
-  const naCount = checklistItems.filter(item => item.status === 'not_applicable').length;
   const isAllCompleted = completedCount === totalCount && totalCount > 0;
 
-  console.log('📊 Inspection render stats:', {
+  debugLogger.info('InspectionContent', 'Render stats', {
     totalItems: totalCount,
     completedItems: completedCount,
-    passedItems: passedCount,
-    failedItems: failedCount,
-    naItems: naCount,
     filteredItems: filteredItems.length,
-    isAllCompleted,
-    hasDataIssues: hasIssues,
-    highPriorityIssues
+    isAllCompleted
   });
-
-  const headerActions = (
-    <div className="flex items-center gap-2">
-      {hasIssues && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={runIntegrityChecks}
-          className="text-red-600 border-red-200"
-        >
-          <AlertTriangle className="w-4 h-4" />
-          {highPriorityIssues > 0 && (
-            <span className="ml-1">{highPriorityIssues}</span>
-          )}
-        </Button>
-      )}
-    </div>
-  );
 
   return (
     <MobileOptimizedLayout
       title="Inspection Checklist"
-      subtitle={`${completedCount}/${totalCount} items completed`}
+      subtitle={totalCount > 0 ? `${completedCount}/${totalCount} items completed` : "Loading checklist..."}
       showBackButton
       backTo="/properties"
-      actions={headerActions}
     >
       <div className="px-3 sm:px-4 py-4 space-y-4 max-w-4xl mx-auto">
-        {/* Data Integrity Alerts */}
-        {hasIssues && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <div className="space-y-2">
-                <p className="font-medium">Data integrity issues detected:</p>
-                {checks.map(check => (
-                  <div key={check.id} className="flex items-center justify-between">
-                    <span className="text-sm">{check.message}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fixIssue(check.id)}
-                      className="ml-2"
-                    >
-                      Fix
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </AlertDescription>
-          </Alert>
+        {/* Progress Tracker - only show if we have items */}
+        {totalCount > 0 && (
+          <InspectionProgressTracker checklistItems={checklistItems} showDetailed />
         )}
 
-        {/* Progress Tracker */}
-        <InspectionProgressTracker checklistItems={checklistItems} showDetailed />
-
-        {/* Diagnostics (Development only) */}
-        {process.env.NODE_ENV === 'development' && (
-          <ChecklistDiagnostics inspectionId={inspectionId} />
-        )}
-
-        {/* Filters */}
-        <InspectionFilters
-          checklistItems={checklistItems}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          showCompleted={showCompleted}
-          onToggleCompleted={() => setShowCompleted(!showCompleted)}
-          onRefresh={onRefetch}
-          isRefetching={isRefetching}
-        />
-
-        {/* Checklist Items */}
-        <LoadingStateManager
-          isLoading={isRefetching}
-          error={null}
-          isEmpty={filteredItems.length === 0}
-          loadingMessage="Refreshing checklist..."
-          emptyMessage={showCompleted ? "No completed items to show" : "No pending items remaining"}
-        >
-          <InspectionList
-            items={filteredItems}
-            showCompleted={showCompleted}
+        {/* Filters - only show if we have items */}
+        {totalCount > 0 && (
+          <InspectionFilters
+            checklistItems={checklistItems}
             selectedCategory={selectedCategory}
-            onComplete={onRefetch}
             onCategoryChange={setSelectedCategory}
-            inspectionId={inspectionId}
+            showCompleted={showCompleted}
+            onToggleCompleted={() => setShowCompleted(!showCompleted)}
+            onRefresh={onRefetch}
+            isRefetching={isRefetching}
           />
-        </LoadingStateManager>
+        )}
 
-        {/* Complete Button */}
-        <InspectionCompleteButton
+        {/* Loading state during refetch */}
+        {isRefetching && (
+          <div className="text-center py-4">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-sm text-gray-600">Refreshing checklist...</p>
+          </div>
+        )}
+
+        {/* Checklist Items or Empty State */}
+        <InspectionList
+          items={filteredItems}
+          showCompleted={showCompleted}
+          selectedCategory={selectedCategory}
+          onComplete={onRefetch}
+          onCategoryChange={setSelectedCategory}
           inspectionId={inspectionId}
-          isAllCompleted={isAllCompleted}
-          passedCount={passedCount}
-          failedCount={failedCount}
         />
+
+        {/* Complete Button - only show if we have completed items */}
+        {totalCount > 0 && (
+          <InspectionCompleteButton
+            inspectionId={inspectionId}
+            isAllCompleted={isAllCompleted}
+            passedCount={passedCount}
+            failedCount={failedCount}
+          />
+        )}
       </div>
     </MobileOptimizedLayout>
   );
