@@ -3,22 +3,38 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
+import { debugLogger } from "@/utils/debugLogger";
 
 export const useInspectionData = (inspectionId: string) => {
-  console.log('🔍 useInspectionData: Starting with inspectionId:', inspectionId);
+  debugLogger.info('InspectionData', 'Hook initialized', { inspectionId });
 
   const { data: checklistItems = [], isLoading, refetch, isRefetching, error } = useQuery({
     queryKey: ['checklist-items', inspectionId],
     queryFn: async () => {
-      console.log('📊 Fetching checklist items for inspection:', inspectionId);
+      debugLogger.info('InspectionData', 'Query starting', { inspectionId });
       
       if (!inspectionId) {
-        console.error('❌ No inspectionId provided to query');
+        debugLogger.error('InspectionData', 'No inspectionId provided');
         throw new Error('Inspection ID is required');
       }
       
       try {
-        // First, check for any audit entries indicating duplicate detection
+        // First, verify the inspection exists
+        debugLogger.debug('InspectionData', 'Verifying inspection exists');
+        const { data: inspection, error: inspectionError } = await supabase
+          .from('inspections')
+          .select('id, property_id, status, completed')
+          .eq('id', inspectionId)
+          .single();
+
+        if (inspectionError) {
+          debugLogger.error('InspectionData', 'Inspection verification failed', inspectionError);
+          throw new Error(`Inspection not found: ${inspectionError.message}`);
+        }
+
+        debugLogger.info('InspectionData', 'Inspection verified', inspection);
+
+        // Check for any audit entries indicating duplicate detection
         const { data: auditData } = await supabase
           .from('checklist_operations_audit')
           .select('*')
@@ -28,9 +44,11 @@ export const useInspectionData = (inspectionId: string) => {
           .limit(1);
 
         if (auditData && auditData.length > 0) {
-          console.warn('⚠️ Duplicate checklist items detected for inspection:', inspectionId);
+          debugLogger.warn('InspectionData', 'Duplicate checklist items detected', auditData[0]);
         }
 
+        // Fetch checklist items
+        debugLogger.debug('InspectionData', 'Fetching checklist items');
         const { data, error } = await supabase
           .from('checklist_items')
           .select('*')
@@ -38,41 +56,34 @@ export const useInspectionData = (inspectionId: string) => {
           .order('created_at', { ascending: true });
         
         if (error) {
-          console.error('❌ Database error fetching checklist items:', error);
+          debugLogger.error('InspectionData', 'Database error fetching checklist items', error);
           throw error;
         }
 
-        console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
+        debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
+          count: data?.length || 0,
+          sampleItems: data?.slice(0, 3).map(i => ({ id: i.id, label: i.label })) || []
+        });
         
         // Client-side duplicate removal as a safety measure
         const uniqueItems = data ? removeDuplicates(data) : [];
         
         if (uniqueItems.length !== (data?.length || 0)) {
-          console.warn('⚠️ Client-side duplicate removal occurred:', {
+          debugLogger.warn('InspectionData', 'Client-side duplicate removal occurred', {
             original: data?.length || 0,
             cleaned: uniqueItems.length
           });
         }
         
-        // If no items found, try to trigger the population
+        // If no items found, provide helpful information
         if (!uniqueItems || uniqueItems.length === 0) {
-          console.warn('⚠️ No checklist items found, checking if inspection exists...');
+          debugLogger.warn('InspectionData', 'No checklist items found', {
+            inspectionExists: !!inspection,
+            inspectionStatus: inspection?.status,
+            inspectionCompleted: inspection?.completed
+          });
           
-          const { data: inspection, error: inspectionError } = await supabase
-            .from('inspections')
-            .select('id, property_id')
-            .eq('id', inspectionId)
-            .single();
-            
-          if (inspectionError) {
-            console.error('❌ Error checking inspection:', inspectionError);
-            throw new Error('Inspection not found');
-          }
-          
-          if (inspection) {
-            console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
-            return [];
-          }
+          return [];
         }
         
         // Transform the data to match our TypeScript interface
@@ -87,10 +98,15 @@ export const useInspectionData = (inspectionId: string) => {
           created_at: item.created_at || new Date().toISOString()
         })) as ChecklistItemType[];
         
-        console.log('🔄 Transformed checklist items:', transformedData.length);
+        debugLogger.info('InspectionData', 'Data transformation complete', {
+          transformedCount: transformedData.length,
+          completedItems: transformedData.filter(i => i.status === 'completed').length,
+          pendingItems: transformedData.filter(i => !i.status).length
+        });
+        
         return transformedData;
       } catch (fetchError) {
-        console.error('💥 Error in checklist items query:', fetchError);
+        debugLogger.error('InspectionData', 'Query failed', fetchError);
         throw fetchError;
       }
     },
@@ -98,19 +114,20 @@ export const useInspectionData = (inspectionId: string) => {
     refetchOnWindowFocus: false,
     staleTime: 30000,
     retry: (failureCount, error) => {
-      console.log(`🔄 Retry attempt ${failureCount} for checklist items:`, error);
+      debugLogger.info('InspectionData', 'Retry attempt', { failureCount, error: error.message });
       return failureCount < 2; // Only retry twice
     },
   });
 
   // Log state changes
   useEffect(() => {
-    console.log('📊 useInspectionData state changed:', {
+    debugLogger.info('InspectionData', 'State update', {
       inspectionId,
       isLoading,
       isRefetching,
       itemCount: checklistItems.length,
-      hasError: !!error
+      hasError: !!error,
+      errorMessage: error?.message
     });
   }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
 
@@ -134,7 +151,7 @@ function removeDuplicates(items: any[]): any[] {
       seen.add(key);
       uniqueItems.push(item);
     } else {
-      console.warn('🔄 Removing duplicate item:', {
+      debugLogger.warn('InspectionData', 'Removing duplicate item', {
         id: item.id,
         label: item.label,
         static_item_id: item.static_item_id

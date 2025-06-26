@@ -9,18 +9,21 @@ import { InspectionContent } from "@/components/InspectionContent";
 import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useNavigate } from "react-router-dom";
+import { debugLogger } from "@/utils/debugLogger";
+import { Button } from "@/components/ui/button";
+import { Bug } from "lucide-react";
 
 const Inspection = () => {
-  console.log('🏗️ Inspection component mounting');
+  debugLogger.info('Inspection', 'Component mounting');
   
   const params = useParams<{ id?: string }>();
   const { isAuthenticated, loading: authLoading } = useMobileAuth();
   const navigate = useNavigate();
   
-  // Get inspectionId from route parameters (using 'id' to match route)
+  // Get inspectionId from route parameters
   const inspectionId = params.id;
 
-  console.log('🔗 Inspection route params:', { 
+  debugLogger.info('Inspection', 'Route analysis', { 
     params, 
     inspectionId,
     paramKeys: Object.keys(params),
@@ -32,6 +35,7 @@ const Inspection = () => {
 
   // Show loading while auth is initializing
   if (authLoading) {
+    debugLogger.info('Inspection', 'Showing auth loading state');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -44,7 +48,7 @@ const Inspection = () => {
 
   // Early return for missing inspectionId with detailed logging
   if (!inspectionId) {
-    console.error('❌ No inspectionId in route params:', {
+    debugLogger.error('Inspection', 'No inspection ID in route params', {
       params,
       expectedParam: 'id',
       routeDefinition: '/inspection/:id',
@@ -52,14 +56,42 @@ const Inspection = () => {
       search: window.location.search,
       hash: window.location.hash
     });
-    return <InspectionInvalidState />;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <InspectionInvalidState />
+          <Button 
+            onClick={() => navigate('/debug-inspection/550e8400-e29b-41d4-a716-446655440000')}
+            className="mt-4"
+            variant="outline"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug Mode
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(inspectionId)) {
-    console.error('❌ Invalid inspection ID format:', inspectionId);
-    return <InspectionInvalidState />;
+    debugLogger.error('Inspection', 'Invalid inspection ID format', { inspectionId });
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <InspectionInvalidState />
+          <Button 
+            onClick={() => navigate(`/debug-inspection/${inspectionId}`)}
+            className="mt-4"
+            variant="outline"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug This ID
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const { 
@@ -75,7 +107,7 @@ const Inspection = () => {
 
   // Log component state changes
   useEffect(() => {
-    console.log('🔄 Inspection component state:', {
+    debugLogger.info('Inspection', 'State change', {
       inspectionId,
       isLoading,
       isRefetching,
@@ -90,36 +122,83 @@ const Inspection = () => {
   // Update presence when page loads
   useEffect(() => {
     if (inspectionId && isAuthenticated) {
-      console.log('📍 Updating inspector presence for:', inspectionId);
+      debugLogger.info('Inspection', 'Updating inspector presence', { inspectionId });
       updatePresence('online');
     }
   }, [inspectionId, isAuthenticated, updatePresence]);
 
   // Handle errors with mobile-optimized recovery
   if (error) {
-    console.error('💥 Inspection page error:', error);
+    debugLogger.error('Inspection', 'Page error', error);
     return (
-      <MobileErrorRecovery
-        error={error}
-        onRetry={refetch}
-        onNavigateHome={() => navigate('/properties')}
-        context="Inspection loading"
-      />
+      <div className="min-h-screen bg-gray-50 p-4">
+        <MobileErrorRecovery
+          error={error}
+          onRetry={refetch}
+          onNavigateHome={() => navigate('/properties')}
+          context="Inspection loading"
+        />
+        <div className="text-center mt-4">
+          <Button 
+            onClick={() => navigate(`/debug-inspection/${inspectionId}`)}
+            variant="outline"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug Mode
+          </Button>
+        </div>
+      </div>
     );
   }
 
   // Show loading state
   if (isLoading) {
-    return <InspectionLoadingState inspectionId={inspectionId} />;
+    debugLogger.info('Inspection', 'Showing loading state');
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <InspectionLoadingState inspectionId={inspectionId} />
+        <div className="text-center mt-4">
+          <Button 
+            onClick={() => navigate(`/debug-inspection/${inspectionId}`)}
+            variant="outline"
+            size="sm"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug
+          </Button>
+        </div>
+      </div>
+    );
   }
 
+  debugLogger.info('Inspection', 'Rendering content', {
+    inspectionId,
+    itemCount: checklistItems.length
+  });
+
   return (
-    <InspectionContent
-      inspectionId={inspectionId}
-      checklistItems={checklistItems}
-      onRefetch={refetch}
-      isRefetching={isRefetching}
-    />
+    <>
+      <InspectionContent
+        inspectionId={inspectionId}
+        checklistItems={checklistItems}
+        onRefetch={refetch}
+        isRefetching={isRefetching}
+      />
+      
+      {/* Debug button in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4">
+          <Button 
+            onClick={() => navigate(`/debug-inspection/${inspectionId}`)}
+            variant="outline"
+            size="sm"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug
+          </Button>
+        </div>
+      )}
+    </>
   );
 };
 

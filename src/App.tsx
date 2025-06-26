@@ -3,41 +3,62 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import MobileIndex from "./pages/MobileIndex";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
 import Inspection from "./pages/Inspection";
+import { DebugInspectionPage } from "@/components/DebugInspectionPage";
 import AddProperty from "./pages/AddProperty";
+import InspectionComplete from "./pages/InspectionComplete";
 import PropertySelection from "./pages/PropertySelection";
-import "./styles/mobile.css";
+import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen bg-gray-50">
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Navigate to="/properties" replace />} />
-              <Route path="/properties" element={<MobileIndex />} />
-              <Route path="/property-selection" element={<PropertySelection />} />
-              <Route path="/inspection/:id" element={<Inspection />} />
-              <Route path="/add-property" element={<AddProperty />} />
-              <Route path="*" element={<Navigate to="/properties" replace />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/properties" element={
+                <ProtectedRoute>
+                  <PropertySelection />
+                </ProtectedRoute>
+              } />
+              <Route path="/inspection/:id" element={
+                <ProtectedRoute>
+                  <Inspection />
+                </ProtectedRoute>
+              } />
+              <Route path="/debug-inspection/:id" element={
+                <ProtectedRoute>
+                  <DebugInspectionPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/add-property" element={
+                <ProtectedRoute>
+                  <AddProperty />
+                </ProtectedRoute>
+              } />
+              <Route path="/inspection-complete/:id" element={
+                <ProtectedRoute>
+                  <InspectionComplete />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
             </Routes>
-          </div>
-        </BrowserRouter>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -1,6 +1,7 @@
 
 import { useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { debugLogger } from '@/utils/debugLogger';
 
 // Global channel registry to prevent duplicate channels
 const channelRegistry = new Map<string, any>();
@@ -12,10 +13,12 @@ export const useChannelManager = () => {
   const isMountedRef = useRef(true);
 
   const createChannel = useCallback((channelName: string, config: any) => {
+    debugLogger.debug('ChannelManager', 'Creating channel', { channelName });
+
     // Check if channel already exists globally
     if (channelRegistry.has(channelName)) {
       const existingChannel = channelRegistry.get(channelName);
-      console.log('Reusing existing channel:', channelName);
+      debugLogger.info('ChannelManager', 'Reusing existing channel', { channelName });
       
       // Store reference locally too
       if (!channelsRef.current.has(channelName)) {
@@ -30,12 +33,13 @@ export const useChannelManager = () => {
       const existingChannel = channelsRef.current.get(channelName);
       try {
         supabase.removeChannel(existingChannel);
+        debugLogger.debug('ChannelManager', 'Cleaned up existing channel', { channelName });
       } catch (error) {
-        console.warn('Error removing existing channel:', error);
+        debugLogger.warn('ChannelManager', 'Error removing existing channel', { channelName, error });
       }
     }
 
-    console.log('Creating new channel:', channelName);
+    debugLogger.info('ChannelManager', 'Creating new channel', { channelName });
 
     // Create new channel
     const channel = supabase.channel(channelName);
@@ -52,22 +56,28 @@ export const useChannelManager = () => {
     channelRegistry.set(channelName, channel);
     subscriptionRegistry.set(channelName, 'pending');
 
+    debugLogger.debug('ChannelManager', 'Channel created and stored', { channelName });
     return channel;
   }, []);
 
   const subscribeChannel = useCallback(async (channelName: string, onStatusChange?: (status: string) => void) => {
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current) {
+      debugLogger.warn('ChannelManager', 'Attempted to subscribe to unmounted component', { channelName });
+      return;
+    }
+
+    debugLogger.debug('ChannelManager', 'Subscribing to channel', { channelName });
 
     // Check if subscription is already in progress or completed
     const currentStatus = subscriptionRegistry.get(channelName);
     if (currentStatus === 'subscribed') {
-      console.log('Channel already subscribed:', channelName);
+      debugLogger.info('ChannelManager', 'Channel already subscribed', { channelName });
       onStatusChange?.('SUBSCRIBED');
       return;
     }
     
     if (currentStatus === 'pending') {
-      console.log('Subscription already pending for:', channelName);
+      debugLogger.info('ChannelManager', 'Subscription already pending', { channelName });
       // Wait for existing subscription to complete
       const existingPromise = subscriptionPromises.get(channelName);
       if (existingPromise) {
@@ -79,18 +89,18 @@ export const useChannelManager = () => {
 
     const channel = channelsRef.current.get(channelName) || channelRegistry.get(channelName);
     if (!channel) {
-      console.error('Channel not found:', channelName);
+      debugLogger.error('ChannelManager', 'Channel not found for subscription', { channelName });
       return;
     }
 
     // Create subscription promise to prevent race conditions
     const subscriptionPromise = new Promise<void>((resolve, reject) => {
       try {
-        console.log('Starting subscription for:', channelName);
+        debugLogger.info('ChannelManager', 'Starting subscription', { channelName });
         subscriptionRegistry.set(channelName, 'pending');
         
         channel.subscribe((status: string) => {
-          console.log('Channel subscription status:', channelName, status);
+          debugLogger.info('ChannelManager', 'Channel subscription status', { channelName, status });
           
           if (status === 'SUBSCRIBED') {
             subscriptionRegistry.set(channelName, 'subscribed');
@@ -103,7 +113,7 @@ export const useChannelManager = () => {
           onStatusChange?.(status);
         });
       } catch (error) {
-        console.error('Error subscribing to channel:', channelName, error);
+        debugLogger.error('ChannelManager', 'Error subscribing to channel', { channelName, error });
         subscriptionRegistry.set(channelName, 'error');
         reject(error);
       }
@@ -113,22 +123,24 @@ export const useChannelManager = () => {
 
     try {
       await subscriptionPromise;
+      debugLogger.info('ChannelManager', 'Channel subscription successful', { channelName });
     } catch (error) {
-      console.error('Subscription failed for:', channelName, error);
+      debugLogger.error('ChannelManager', 'Subscription failed', { channelName, error });
     } finally {
       subscriptionPromises.delete(channelName);
     }
   }, []);
 
   const cleanupChannel = useCallback((channelName: string) => {
-    console.log('Cleaning up channel:', channelName);
+    debugLogger.info('ChannelManager', 'Cleaning up channel', { channelName });
     
     const channel = channelsRef.current.get(channelName);
     if (channel) {
       try {
         supabase.removeChannel(channel);
+        debugLogger.debug('ChannelManager', 'Channel removed from Supabase', { channelName });
       } catch (error) {
-        console.warn('Error removing channel:', error);
+        debugLogger.warn('ChannelManager', 'Error removing channel', { channelName, error });
       }
     }
     
@@ -137,28 +149,26 @@ export const useChannelManager = () => {
     channelRegistry.delete(channelName);
     subscriptionRegistry.delete(channelName);
     subscriptionPromises.delete(channelName);
+    
+    debugLogger.debug('ChannelManager', 'Channel cleanup complete', { channelName });
   }, []);
 
   const cleanupAllChannels = useCallback(() => {
-    console.log('Cleaning up all channels');
+    debugLogger.info('ChannelManager', 'Cleaning up all channels');
     
-    channelsRef.current.forEach((channel, channelName) => {
-      try {
-        supabase.removeChannel(channel);
-      } catch (error) {
-        console.warn('Error removing channel:', error);
-      }
-      channelRegistry.delete(channelName);
-      subscriptionRegistry.delete(channelName);
-      subscriptionPromises.delete(channelName);
-    });
-    channelsRef.current.clear();
-  }, []);
+    const channelNames = Array.from(channelsRef.current.keys());
+    channelNames.forEach(channelName => cleanupChannel(channelName));
+    
+    debugLogger.info('ChannelManager', 'All channels cleaned up', { count: channelNames.length });
+  }, [cleanupChannel]);
 
   useEffect(() => {
     isMountedRef.current = true;
+    debugLogger.debug('ChannelManager', 'Hook mounted');
+    
     return () => {
       isMountedRef.current = false;
+      debugLogger.debug('ChannelManager', 'Hook unmounting, cleaning up');
       cleanupAllChannels();
     };
   }, [cleanupAllChannels]);
