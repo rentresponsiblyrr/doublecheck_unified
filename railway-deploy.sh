@@ -17,11 +17,13 @@ echo "📦 Setting up Railway environment variables..."
 echo ""
 
 # Core configuration
+railway variables set NODE_ENV="production"
 railway variables set DATABASE_URL="postgresql://postgres:password@hostname:5432/railway"
 railway variables set NEXTAUTH_URL="https://your-app.railway.app"
 railway variables set NEXTAUTH_SECRET="$(openssl rand -base64 32)"
 
-# OpenAI Configuration (using gpt-4o-mini which is available)
+# OpenAI Configuration
+echo "🤖 Setting OpenAI configuration..."
 railway variables set OPENAI_API_KEY="${OPENAI_API_KEY:-your-openai-api-key-here}"
 railway variables set OPENAI_MODEL="gpt-4o-mini"
 railway variables set OPENAI_VISION_MODEL="gpt-4o"
@@ -34,13 +36,13 @@ echo "🔧 Deploying application..."
 railway up
 
 echo ""
-echo "✅ Deployment complete!"
+echo "✅ Deployment initiated!"
 echo ""
 echo "📝 Post-deployment checklist:"
 echo "   1. Update DATABASE_URL with your actual PostgreSQL connection string"
 echo "   2. Update NEXTAUTH_URL with your Railway app URL"
-echo "   3. Run database migrations: railway run npm run db:migrate"
-echo "   4. Seed database (optional): railway run npm run db:seed"
+echo "   3. Set OPENAI_API_KEY if not already set"
+echo "   4. Run database migrations: railway run 'cd apps/web && npm run db:migrate'"
 echo ""
 echo "🔍 View logs: railway logs"
 echo "🌐 Open app: railway open"
