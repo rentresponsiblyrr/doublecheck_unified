@@ -11,21 +11,19 @@ export function OpenAITestButton() {
     model?: string;
   } | null>(null);
 
-  const testConnection = api.ai.testConnection.useQuery(undefined, {
-    enabled: false,
-  });
+  const testConnection = api.ai.testConnection.useMutation();
 
   const handleTest = async () => {
     setIsLoading(true);
     setResult(null);
     
     try {
-      const response = await testConnection.refetch();
-      setResult(response.data || { success: false, message: 'No response' });
+      const response = await testConnection.mutateAsync();
+      setResult(response || { success: false, message: 'No response' });
     } catch (error) {
       setResult({
         success: false,
-        message: error.message || 'Connection failed',
+        message: (error as Error).message || 'Connection failed',
       });
     } finally {
       setIsLoading(false);

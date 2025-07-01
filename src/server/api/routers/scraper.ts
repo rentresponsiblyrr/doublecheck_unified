@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 // import { chromium } from 'playwright'; // Removed for deployment
 import { TRPCError } from '@trpc/server';
-import { Platform } from '~/lib/database';
+import { Platform } from '@/lib/database';
 
 const scrapeInputSchema = z.object({
   propertyId: z.string().optional(),

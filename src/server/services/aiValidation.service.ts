@@ -1,6 +1,6 @@
 import { openAIService } from "./openai.service";
 import { TRPCError } from "@trpc/server";
-import { env } from "~/env";
+import { env } from "@/env";
 
 interface ValidationResult {
   isValid: boolean;

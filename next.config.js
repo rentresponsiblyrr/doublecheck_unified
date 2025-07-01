@@ -21,9 +21,6 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  experimental: {
-    serverActions: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -77,7 +74,7 @@ const nextConfig = {
       }
     ];
   },
-  transpilePackages: ["@str-certified/database", "@str-certified/ui", "@str-certified/utils"],
+  transpilePackages: [],
 };
 
 module.exports = withPWA(nextConfig);

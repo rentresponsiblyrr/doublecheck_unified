@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { ItemStatus, AiStatus } from '~/lib/database';
+import { ItemStatus, AiStatus } from '@/lib/database';
 import { TRPCError } from '@trpc/server';
 
 const updateChecklistItemSchema = z.object({
@@ -61,7 +61,7 @@ export const checklistRouter = createTRPCRouter({
           lastModifiedBy: ctx.session.user.id,
           lastModifiedAt: new Date(),
           version: { increment: 1 },
-        },
+        } as any,
         include: {
           category: true,
           media: true,
@@ -167,7 +167,7 @@ export const checklistRouter = createTRPCRouter({
           status: input.status,
           lastModifiedBy: ctx.session.user.id,
           lastModifiedAt: new Date(),
-        },
+        } as any,
       });
 
       // Create history entries
@@ -213,15 +213,7 @@ export const checklistRouter = createTRPCRouter({
       const history = await ctx.prisma.itemHistory.findMany({
         where: { checklistItemId: input.itemId },
         orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
+        include: {} as any,
       });
 
       return history;

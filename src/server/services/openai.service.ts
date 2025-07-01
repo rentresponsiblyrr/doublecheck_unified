@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { env } from "~/env";
+import { env } from "@/env";
 import { TRPCError } from "@trpc/server";
 import { aiCacheService, cacheKey } from "./aiCache.service";
 import { OptimizedPrompts, DataCompression, TokenEstimator, CostStrategies } from "./openai-optimization";
@@ -145,7 +145,7 @@ class OpenAIService {
     userId?: string
   ): Promise<InspectionValidation> {
     // Compress data for efficiency
-    const compressed = reportData.items ? DataCompression.compressInspectionData(reportData) : reportData;
+    const compressed = reportData.items ? DataCompression.compressInspectionData(reportData as InspectionData) : reportData;
     const cacheKeyStr = CostStrategies.generateCacheKey("validateInspection", compressed);
     
     const validateFn = async () => {
@@ -270,7 +270,7 @@ class OpenAIService {
 
       // Analyze photos if provided (limit to 3 for cost)
       let photoIssues: string[] = [];
-      if (photos && photos.length > 0 && CostStrategies.requiresFullAnalysis(inspectionData)) {
+      if (photos && photos.length > 0 && CostStrategies.requiresFullAnalysis(inspectionData as InspectionData)) {
         for (const photo of photos.slice(0, 3)) {
           const photoPrompt = OptimizedPrompts.photoAnalysis({
             room: 'Unknown',
@@ -318,7 +318,7 @@ class OpenAIService {
     userId?: string
   ): Promise<string> {
     // Compress data for efficient processing
-    const propertyInfo = DataCompression.compressPropertyData(propertyData);
+    const propertyInfo = DataCompression.compressPropertyData(propertyData as PropertyData);
     const checklistSummary = {
       score: checklistData.score || 0,
       passed: checklistData.passedItems || 0,

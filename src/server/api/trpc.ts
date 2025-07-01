@@ -2,12 +2,11 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { type NextRequest } from 'next/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '~/lib/database';
+import { auth } from '@/auth';
+import { prisma } from '@/lib/database';
 
 export const createTRPCContext = async (opts: { req: NextRequest }) => {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   return {
     session,

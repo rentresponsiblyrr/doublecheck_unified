@@ -1,8 +1,8 @@
-import { NextAuthOptions } from "next-auth"
+import type { NextAuthConfig } from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { prisma } from "~/lib/database"
+import { prisma } from "@/lib/database"
 import { compare } from "bcryptjs"
 import { z } from "zod"
 
@@ -11,7 +11,7 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 })
 
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: "jwt",
@@ -27,6 +27,7 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.picture,
           role: "INSPECTOR",
+          organizationId: "", // Will be set in jwt callback
         }
       },
     }),
@@ -34,26 +35,29 @@ export const authOptions: NextAuthOptions = {
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const result = credentialsSchema.safeParse(credentials)
-        if (!result.success) {
-          throw new Error("Invalid credentials")
+        const parsedCredentials = credentialsSchema.safeParse(credentials)
+        
+        if (!parsedCredentials.success) {
+          return null
         }
 
+        const { email, password } = parsedCredentials.data
+
         const user = await prisma.user.findUnique({
-          where: { email: result.data.email },
-          include: { organization: true },
+          where: { email },
         })
 
         if (!user || !user.passwordHash) {
-          throw new Error("Invalid credentials")
+          return null
         }
 
-        const isPasswordValid = await compare(result.data.password, user.passwordHash)
-        if (!isPasswordValid) {
-          throw new Error("Invalid credentials")
+        const passwordMatch = await compare(password, user.passwordHash)
+
+        if (!passwordMatch) {
+          return null
         }
 
         return {
@@ -68,7 +72,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: any) {
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -114,7 +118,7 @@ export const authOptions: NextAuthOptions = {
 
       return token
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
@@ -124,8 +128,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
+    signIn: '/auth/signin',
+    error: '/auth/error',
   },
+  debug: process.env.NODE_ENV === 'development',
 }

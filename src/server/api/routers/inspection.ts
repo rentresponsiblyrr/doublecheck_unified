@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
-import { InspectionStatus, PassStatus } from '~/lib/database';
+import { InspectionStatus, PassStatus } from '@/lib/database';
 
 const createInspectionSchema = z.object({
   propertyId: z.string(),

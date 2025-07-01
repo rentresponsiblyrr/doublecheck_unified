@@ -3,13 +3,14 @@ import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { openAIService } from '@/server/services/openai.service';
 import { aiValidationService } from '@/server/services/aiValidation.service';
 import { generateCostDashboard } from '@/server/services/openai-cost-tracker';
+import { ItemStatus } from '@/lib/database';
 
 export const aiRouter = createTRPCRouter({
   /**
    * Test OpenAI connection
    */
   testConnection: protectedProcedure
-    .query(async ({ ctx }) => {
+    .mutation(async ({ ctx }) => {
       try {
         const result = await openAIService.generateText({
           prompt: 'Test connection. Respond with "Connection successful!"',
@@ -27,7 +28,7 @@ export const aiRouter = createTRPCRouter({
       } catch (error) {
         return {
           success: false,
-          message: error.message || 'Connection failed',
+          message: (error as Error).message || 'Connection failed',
           model: process.env.OPENAI_MODEL || 'gpt-4',
           timestamp: new Date().toISOString()
         };
@@ -65,15 +66,18 @@ export const aiRouter = createTRPCRouter({
         {
           id: inspection.id,
           propertyId: inspection.propertyId,
-          checklistId: inspection.templateId,
+          checklistId: inspection.templateId || '',
+          inspectorId: inspection.inspectorId,
+          status: inspection.status as any,
           items: inspection.checklistItems.map(item => ({
             id: item.id,
             name: item.label,
-            status: item.status || 'PENDING',
-            notes: item.notes,
+            category: item.category?.name || 'General',
+            status: (item.status || 'PENDING') as any,
+            notes: item.notes || undefined,
             photos: item.media.map(m => m.url)
           }))
-        },
+        } as any,
         inspection.property
       );
 
@@ -119,7 +123,7 @@ export const aiRouter = createTRPCRouter({
         address: inspection.property.address,
         city: inspection.property.city,
         state: inspection.property.state,
-        type: inspection.property.type,
+        type: inspection.property.propertyType,
         bedrooms: inspection.property.bedrooms,
         bathrooms: inspection.property.bathrooms
       };
@@ -127,11 +131,11 @@ export const aiRouter = createTRPCRouter({
       const checklistData = {
         score: inspection.score || 0,
         totalItems: inspection.checklistItems.length,
-        passedItems: inspection.checklistItems.filter(i => i.status === 'PASS').length,
-        failedItems: inspection.checklistItems.filter(i => i.status === 'FAIL').length,
+        passedItems: inspection.checklistItems.filter(i => (i.status as string) === 'PASS').length,
+        failedItems: inspection.checklistItems.filter(i => (i.status as string) === 'FAIL').length,
         criticalIssues: inspection.checklistItems
-          .filter(i => i.status === 'FAIL' && i.severity === 'HIGH')
-          .map(i => `${i.category.name}: ${i.label}`)
+          .filter(i => (i.status as string) === 'FAIL')
+          .map(i => `${i.category?.name || 'General'}: ${i.label}`)
       };
 
       const report = await openAIService.generateInspectionReport(
