@@ -3,13 +3,12 @@ nixPkgs = ["nodejs-18_x"]
 
 [variables]
 CYPRESS_INSTALL_BINARY = "0"
-NODE_ENV = "production"
 
 [phases.install]
-cmds = ["npm ci --omit=dev"]
+cmds = ["npm install --legacy-peer-deps"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["npx prisma generate", "npm run build"]
 
 [start]
 cmd = "npm run start"
