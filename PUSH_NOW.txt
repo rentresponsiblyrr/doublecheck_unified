@@ -1,0 +1,22 @@
+To push the code to GitHub, run this command in your terminal:
+
+cd /Users/ryanrabideau/doublecheck-field-view/lovable-extraction/str-certified-migration/str-certified
+
+git push -u origin main
+
+If you get an authentication error, you may need to:
+
+1. Use GitHub personal access token:
+   - Go to GitHub Settings > Developer settings > Personal access tokens
+   - Generate a new token with 'repo' permissions
+   - Use the token as your password when prompted
+
+2. Or use SSH:
+   git remote set-url origin git@github.com:rentresponsiblyrr/doublecheck_unified.git
+   git push -u origin main
+
+3. Or use GitHub CLI:
+   gh auth login
+   git push -u origin main
+
+The repository is ready and committed locally. Just needs your authentication to push!
