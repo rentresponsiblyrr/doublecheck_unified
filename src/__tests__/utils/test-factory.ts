@@ -1,4 +1,4 @@
-import { PrismaClient, User, Organization, Property, Inspection, ChecklistItem } from '@str-certified/database';
+import { PrismaClient, User, Organization, Property, Inspection, ChecklistItem } from '~/lib/database';
 import { faker } from '@faker-js/faker';
 import { hash } from 'bcryptjs';
 

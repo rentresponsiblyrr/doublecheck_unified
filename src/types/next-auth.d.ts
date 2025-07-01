@@ -1,4 +1,4 @@
-import { UserRole } from "@str-certified/database"
+import { UserRole } from "~/lib/database"
 import "next-auth"
 
 declare module "next-auth" {

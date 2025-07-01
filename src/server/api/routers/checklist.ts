@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { ItemStatus, AiStatus } from '@str-certified/database';
+import { ItemStatus, AiStatus } from '~/lib/database';
 import { TRPCError } from '@trpc/server';
 
 const updateChecklistItemSchema = z.object({

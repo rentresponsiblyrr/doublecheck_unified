@@ -4,7 +4,7 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@str-certified/database';
+import { prisma } from '~/lib/database';
 
 export const createTRPCContext = async (opts: { req: NextRequest }) => {
   const session = await getServerSession(authOptions);

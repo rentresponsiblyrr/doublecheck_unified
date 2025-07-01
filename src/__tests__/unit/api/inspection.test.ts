@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { inspectionRouter } from '@/server/api/routers/inspection';
 import { createMockContext } from '../../utils/trpc-test-utils';
 import { TRPCError } from '@trpc/server';
-import { InspectionStatus, PassStatus } from '@str-certified/database';
+import { InspectionStatus, PassStatus } from '~/lib/database';
 
 describe('inspectionRouter', () => {
   const mockPrisma = {

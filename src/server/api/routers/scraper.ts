@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { chromium } from 'playwright';
+// import { chromium } from 'playwright'; // Removed for deployment
 import { TRPCError } from '@trpc/server';
-import { Platform } from '@str-certified/database';
+import { Platform } from '~/lib/database';
 
 const scrapeInputSchema = z.object({
   propertyId: z.string().optional(),
@@ -74,7 +74,13 @@ export const scraperRouter = createTRPCRouter({
       });
 
       try {
-        // Launch browser with stealth settings
+        // Scraping temporarily disabled for deployment
+        throw new TRPCError({
+          code: 'NOT_IMPLEMENTED',
+          message: 'Scraping functionality temporarily disabled - playwright not installed',
+        });
+        
+        /* // Launch browser with stealth settings
         const browser = await chromium.launch({
           headless: true,
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -151,7 +157,7 @@ export const scraperRouter = createTRPCRouter({
           imageUrls: uniqueUrls,
           count: uniqueUrls.length,
           jobId: job.id,
-        };
+        }; */
       } catch (error) {
         // Update job status to failed
         await ctx.prisma.scraperJob.update({

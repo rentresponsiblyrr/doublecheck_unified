@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { UserRole } from '@str-certified/database';
+import { UserRole } from '~/lib/database';
 import { hash } from 'bcryptjs';
 
 export const userRouter = createTRPCRouter({

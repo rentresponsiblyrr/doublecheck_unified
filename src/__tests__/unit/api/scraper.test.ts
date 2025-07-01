@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { scraperRouter } from '@/server/api/routers/scraper';
 import { createMockContext } from '../../utils/trpc-test-utils';
 import { TRPCError } from '@trpc/server';
-import { Platform } from '@str-certified/database';
+import { Platform } from '~/lib/database';
 
 // Mock playwright
 jest.mock('playwright', () => ({
