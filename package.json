@@ -1,28 +1,14 @@
 {
-  "name": "str-certified",
+  "name": "doublecheck-unified",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "start": "turbo run start",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "db:push": "turbo run db:push",
-    "db:migrate": "turbo run db:migrate",
-    "db:seed": "turbo run db:seed",
-    "db:studio": "turbo run db:studio",
-    "type-check": "turbo run type-check"
-  },
-  "devDependencies": {
-    "turbo": "^1.11.3",
-    "@types/node": "^20.11.0",
-    "typescript": "^5.3.3",
-    "prettier": "^3.2.4",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0"
+    "dev": "cd apps/web && npm run dev",
+    "build": "cd apps/web && npm install --legacy-peer-deps && npm run build",
+    "start": "cd apps/web && npm run start",
+    "install": "cd apps/web && npm install --legacy-peer-deps"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   }
 }
