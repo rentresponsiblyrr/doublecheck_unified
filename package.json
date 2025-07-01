@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "cd apps/web && npm run dev",
-    "build": "cd apps/web && npm install --legacy-peer-deps && npm run build",
-    "start": "cd apps/web && npm run start",
-    "install": "cd apps/web && npm install --legacy-peer-deps"
+    "build": "cd apps/web && npm run build",
+    "start": "cd apps/web && npm run start"
   },
+  "dependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }
