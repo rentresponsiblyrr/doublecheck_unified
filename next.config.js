@@ -21,6 +21,16 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  // Support for multiple domains
+  async rewrites() {
+    return [
+      // Admin subdomain rewrites
+      {
+        source: '/admin/:path*',
+        destination: '/dashboard/:path*',
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
