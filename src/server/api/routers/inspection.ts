@@ -135,7 +135,7 @@ export const inspectionRouter = createTRPCRouter({
           aiInsights: input.aiInsights,
           ...(input.status === 'COMPLETED' && { completedAt: new Date() }),
           ...(input.status === 'IN_PROGRESS' && !inspection.startedAt && { startedAt: new Date() }),
-        },
+        } as any,
       });
 
       // Log activity
@@ -185,18 +185,7 @@ export const inspectionRouter = createTRPCRouter({
               { createdAt: 'asc' },
             ],
           },
-          assignments: {
-            include: {
-              inspector: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  image: true,
-                },
-              },
-            },
-          },
+          assignments: true,
         },
       });
 

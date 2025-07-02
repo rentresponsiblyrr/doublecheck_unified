@@ -28,7 +28,7 @@ class AIValidationService {
   private enabled: boolean;
 
   constructor() {
-    this.enabled = env.ENABLE_AI_VALIDATION === "true";
+    this.enabled = env.ENABLE_AI_VALIDATION;
   }
 
   async validateInspection(

@@ -45,7 +45,7 @@ export const propertyRouter = createTRPCRouter({
         data: {
           ...input,
           organizationId: ctx.session.user.organizationId,
-        },
+        } as any,
       });
 
       // Log activity
@@ -81,7 +81,7 @@ export const propertyRouter = createTRPCRouter({
 
       const property = await ctx.prisma.property.update({
         where: { id },
-        data,
+        data: data as any,
       });
 
       // Log activity
@@ -162,7 +162,7 @@ export const propertyRouter = createTRPCRouter({
       };
 
       const properties = await ctx.prisma.property.findMany({
-        where,
+        where: where as any,
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: { createdAt: 'desc' },

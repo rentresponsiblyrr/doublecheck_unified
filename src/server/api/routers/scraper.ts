@@ -68,7 +68,7 @@ export const scraperRouter = createTRPCRouter({
       const job = await ctx.prisma.scraperJob.create({
         data: {
           propertyId: property?.id || propertyId!,
-          platform,
+          platform: platform as any,
           status: 'RUNNING',
         },
       });
@@ -227,7 +227,7 @@ export const scraperRouter = createTRPCRouter({
         where,
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { scheduledFor: 'desc' },
         include: {
           property: {
             select: {

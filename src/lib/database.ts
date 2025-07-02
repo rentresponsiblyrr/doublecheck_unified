@@ -5,57 +5,64 @@ export const prisma = new PrismaClient();
 
 export enum UserRole {
   ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
   INSPECTOR = 'INSPECTOR',
-  VIEWER = 'VIEWER'
+  REVIEWER = 'REVIEWER',
+  API_USER = 'API_USER'
 }
 
 export enum InspectionStatus {
   SCHEDULED = 'SCHEDULED',
   IN_PROGRESS = 'IN_PROGRESS',
+  REVIEW = 'REVIEW',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED'
 }
 
 export enum PassStatus {
-  PASS = 'PASS',
-  FAIL = 'FAIL',
+  PASSED = 'PASSED',
+  FAILED = 'FAILED',
   CONDITIONAL = 'CONDITIONAL'
 }
 
 export enum PropertyType {
-  SINGLE_FAMILY = 'SINGLE_FAMILY',
-  CONDO = 'CONDO',
+  HOUSE = 'HOUSE',
   APARTMENT = 'APARTMENT',
+  CONDO = 'CONDO',
   TOWNHOUSE = 'TOWNHOUSE',
+  CABIN = 'CABIN',
+  VILLA = 'VILLA',
   OTHER = 'OTHER'
 }
 
 export enum PropertyStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  CERTIFIED = 'CERTIFIED',
+  SUSPENDED = 'SUSPENDED',
   ARCHIVED = 'ARCHIVED'
 }
 
 export enum Platform {
-  MANUAL = 'MANUAL',
-  AIRBNB = 'AIRBNB',
   VRBO = 'VRBO',
+  AIRBNB = 'AIRBNB',
   BOOKING = 'BOOKING'
 }
 
 export enum ItemStatus {
-  PASS = 'PASS',
-  FAIL = 'FAIL',
-  NOT_APPLICABLE = 'NOT_APPLICABLE',
-  PENDING = 'PENDING'
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  NA = 'NA'
 }
 
 export enum AiStatus {
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
+  APPROVED = 'APPROVED',
+  FLAGGED = 'FLAGGED',
+  ERROR = 'ERROR'
 }
 
 export { PrismaClient } from '@prisma/client';

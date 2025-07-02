@@ -1,14 +1,21 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x"]
+nixPkgs = ["nodejs-18_x", "openssl"]
 
 [variables]
 CYPRESS_INSTALL_BINARY = "0"
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1"
 
 [phases.install]
-cmds = ["npm install --legacy-peer-deps"]
+cmds = [
+  "npm cache clean --force",
+  "npm install --legacy-peer-deps --production=false"
+]
 
 [phases.build]
-cmds = ["npx prisma generate", "npm run build"]
+cmds = [
+  "npm run build"
+]
 
 [start]
 cmd = "npm run start"

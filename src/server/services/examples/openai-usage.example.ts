@@ -207,7 +207,7 @@ export async function batchProcessInspections(userId: string) {
       );
       results.push({ inspectionId, result });
     } catch (error) {
-      if (error.message.includes('Rate limit exceeded')) {
+      if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
         console.log('Rate limit hit, waiting before retry...');
         // Handle rate limiting gracefully
       }

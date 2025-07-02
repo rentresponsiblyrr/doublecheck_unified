@@ -65,7 +65,7 @@ export const userRouter = createTRPCRouter({
       };
 
       const users = await ctx.prisma.user.findMany({
-        where,
+        where: where as any,
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: { createdAt: 'desc' },
@@ -108,7 +108,7 @@ export const userRouter = createTRPCRouter({
           email: input.email,
           name: input.name,
           passwordHash,
-          role: input.role,
+          role: input.role as any,
           organizationId: ctx.session.user.organizationId,
         },
       });
@@ -130,7 +130,7 @@ export const userRouter = createTRPCRouter({
           organizationId: ctx.session.user.organizationId,
         },
         data: {
-          role: input.role,
+          role: input.role as any,
         },
       });
 

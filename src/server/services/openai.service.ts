@@ -3,6 +3,7 @@ import { env } from "@/env";
 import { TRPCError } from "@trpc/server";
 import { aiCacheService, cacheKey } from "./aiCache.service";
 import { OptimizedPrompts, DataCompression, TokenEstimator, CostStrategies } from "./openai-optimization";
+import type { InspectionData, PropertyData } from "./types/openai.types";
 
 interface TextCompletionOptions {
   prompt: string;
@@ -44,15 +45,10 @@ class OpenAIService {
   constructor() {
     const apiKey = env.OPENAI_API_KEY || "";
     
-    if (!apiKey) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "OpenAI API key is not configured",
-      });
-    }
-
+    // During build time, environment variables might not be available
+    // We'll check for API key when methods are actually called
     this.openai = new OpenAI({
-      apiKey,
+      apiKey: apiKey || "placeholder",
       organization: env.OPENAI_ORG_ID,
     });
 
@@ -60,7 +56,17 @@ class OpenAIService {
     this.visionModel = env.OPENAI_VISION_MODEL || "gpt-4-vision-preview";
   }
 
+  private checkApiKey() {
+    if (!env.OPENAI_API_KEY) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "OpenAI API key is not configured",
+      });
+    }
+  }
+
   async generateText(options: TextCompletionOptions, userId?: string): Promise<string> {
+    this.checkApiKey();
     const cacheKeyStr = cacheKey("generateText", options);
     
     const generateFn = async () => {
@@ -100,6 +106,7 @@ class OpenAIService {
   }
 
   async analyzeImage(options: VisionAnalysisOptions, userId?: string): Promise<string> {
+    this.checkApiKey();
     const cacheKeyStr = cacheKey("analyzeImage", options);
     
     const analyzeFn = async () => {
@@ -144,6 +151,7 @@ class OpenAIService {
     reportData: Record<string, any>,
     userId?: string
   ): Promise<InspectionValidation> {
+    this.checkApiKey();
     // Compress data for efficiency
     const compressed = reportData.items ? DataCompression.compressInspectionData(reportData as InspectionData) : reportData;
     const cacheKeyStr = CostStrategies.generateCacheKey("validateInspection", compressed);
@@ -217,6 +225,7 @@ class OpenAIService {
     photos?: string[],
     userId?: string
   ): Promise<PropertyConditionAssessment> {
+    this.checkApiKey();
     // Use optimized prompt
     const reportedIssues = inspectionData.items
       ?.filter((i: any) => i.status === 'FAIL')
@@ -317,6 +326,7 @@ class OpenAIService {
     checklistData: Record<string, any>,
     userId?: string
   ): Promise<string> {
+    this.checkApiKey();
     // Compress data for efficient processing
     const propertyInfo = DataCompression.compressPropertyData(propertyData as PropertyData);
     const checklistSummary = {
@@ -349,6 +359,7 @@ Generate concise report:
   }
 
   async moderateContent(text: string): Promise<boolean> {
+    this.checkApiKey();
     try {
       const response = await this.openai.moderations.create({
         input: text,
