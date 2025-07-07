@@ -1,0 +1,25 @@
+{
+  "name": "STR Certified - Property Inspection Platform",
+  "short_name": "STR Certified",
+  "description": "Professional short-term rental property inspection and certification platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lovable-uploads/ea9dd662-995b-4cd0-95d4-9f31b2aa8d3b.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/aedadc99-9a03-4fda-b998-98847f0f17c0.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"]
+}

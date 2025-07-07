@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,28 +15,62 @@ export const AuthForm = () => {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
+  // Debug logging for form field changes
+  useEffect(() => {
+    console.log('📱 AuthForm mounted');
+    const emailInput = document.querySelector('input[type="email"]');
+    const passwordInput = document.querySelector('input[type="password"]');
+    console.log('📱 Email input found:', emailInput ? {
+      disabled: (emailInput as HTMLInputElement).disabled,
+      readOnly: (emailInput as HTMLInputElement).readOnly,
+      value: (emailInput as HTMLInputElement).value,
+      style: (emailInput as HTMLInputElement).style
+    } : 'not found');
+    console.log('📱 Password input found:', passwordInput ? {
+      disabled: (passwordInput as HTMLInputElement).disabled,
+      readOnly: (passwordInput as HTMLInputElement).readOnly,
+      value: (passwordInput as HTMLInputElement).value,
+      style: (passwordInput as HTMLInputElement).style
+    } : 'not found');
+  }, []);
+
+  useEffect(() => {
+    console.log('📱 Form state changed:', { email: email.length, password: password.length, loading });
+  }, [email, password, loading]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    // Store current values to prevent form clearing
+    const currentEmail = email;
+    const currentPassword = password;
+
     try {
       const { error } = isSignUp 
-        ? await signUp(email, password)
-        : await signIn(email, password);
+        ? await signUp(currentEmail, currentPassword)
+        : await signIn(currentEmail, currentPassword);
 
       if (error) {
         console.error('Auth error:', error);
+        // Restore form values if there was an error
+        setEmail(currentEmail);
+        setPassword(currentPassword);
         toast({
           title: "Authentication Error",
           description: error.message,
           variant: "destructive",
         });
       } else if (isSignUp) {
+        // Clear form on successful signup
+        setEmail('');
+        setPassword('');
         toast({
           title: "Account Created",
           description: "Please check your email to verify your account.",
         });
       } else {
+        // Keep form values for successful signin (will be cleared by auth redirect)
         toast({
           title: "Welcome back!",
           description: "Successfully signed in.",
@@ -44,6 +78,9 @@ export const AuthForm = () => {
       }
     } catch (error) {
       console.error('Auth error:', error);
+      // Restore form values on error
+      setEmail(currentEmail);
+      setPassword(currentPassword);
       toast({
         title: "Authentication Error",
         description: "An unexpected error occurred.",
@@ -69,7 +106,7 @@ export const AuthForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div>
               <Input
                 type="email"
@@ -78,6 +115,10 @@ export const AuthForm = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                autoComplete="username"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </div>
             <div>
@@ -89,6 +130,10 @@ export const AuthForm = () => {
                 required
                 disabled={loading}
                 minLength={6}
+                autoComplete="current-password"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </div>
             <Button 
