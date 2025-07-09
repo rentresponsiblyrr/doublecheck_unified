@@ -9,6 +9,7 @@ import { SimpleAuthForm } from "@/components/SimpleAuthForm";
 const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 
 function App() {
+  console.log('🚀 STR Certified App - Authentication-First Architecture v2');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
