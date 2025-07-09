@@ -69,16 +69,23 @@ export function ChecklistGenerator({
         setGenerationProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      // Use Enhanced AI service for contextual checklist generation
-      const enhancedAIService = new EnhancedAIService();
+      // AI service disabled for security - use fallback checklist generation
+      console.log('Enhanced AI service disabled for security, using fallback generation');
       
-      // Generate contextual checklist with enhanced AI
-      const result = await enhancedAIService.generateContextualChecklist(property, {
-        includeVideoWalkthrough: true,
-        includeSafetyChecks: true,
-        includeComplianceChecks: true,
-        includeAmenityVerification: true,
-        includeRoomSpecificItems: true
+      // Use fallback dynamic checklist generator instead
+      const result = await dynamicChecklistGenerator.generateDynamicChecklist({
+        vrboId: property.id,
+        propertyType: property.type,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        amenities: property.amenities || [],
+        description: property.description || '',
+        location: { city: '', state: '', country: '' },
+        specifications: { 
+          propertyType: property.type,
+          bedrooms: property.bedrooms,
+          bathrooms: property.bathrooms 
+        }
       });
 
       clearInterval(progressInterval);

@@ -564,10 +564,5 @@ export const createEnhancedAIService = (config: AIServiceConfig): EnhancedAIServ
   return new EnhancedAIService(config);
 };
 
-// Default instance with environment configuration
-export const enhancedAIService = new EnhancedAIService({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-  model: 'gpt-4-vision-preview',
-  maxTokens: 2000,
-  temperature: 0.2
-});
+// Default instance disabled for security - API key should never be in browser
+export const enhancedAIService = null as any;
