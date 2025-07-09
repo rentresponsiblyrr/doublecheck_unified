@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MobileOptimizedLayout } from "@/components/MobileOptimizedLayout";
 import { InspectionProgressTracker } from "@/components/InspectionProgressTracker";
-import { InspectionFilters } from "@/components/InspectionFilters";
+import { InspectionFilters, type SortOption, type SortDirection } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
 import { ChecklistItemType } from "@/types/inspection";
@@ -25,6 +25,9 @@ export const InspectionContent = ({
 }: InspectionContentProps) => {
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("order");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   debugLogger.info('InspectionContent', 'Rendering with data', {
     inspectionId,
@@ -33,15 +36,66 @@ export const InspectionContent = ({
   });
 
   // Defensive programming - handle null/undefined data
-  const safeChecklistItems = Array.isArray(checklistItems) ? checklistItems : [];
+  const safeChecklistItems = useMemo(() => {
+    return Array.isArray(checklistItems) ? checklistItems : [];
+  }, [checklistItems]);
 
-  const filteredItems = safeChecklistItems.filter(item => {
-    if (!item || !item.id) return false; // Safety check
-    
-    const matchesCompletedFilter = showCompleted || (!item.status || item.status === null);
-    const matchesCategoryFilter = !selectedCategory || item.category === selectedCategory;
-    return matchesCompletedFilter && matchesCategoryFilter;
-  });
+  // Sort and filter items
+  const filteredAndSortedItems = useMemo(() => {
+    const items = safeChecklistItems.filter(item => {
+      if (!item || !item.id) return false; // Safety check
+      
+      // Filter by completion status
+      const matchesCompletedFilter = showCompleted || (!item.status || item.status === null);
+      
+      // Filter by category
+      const matchesCategoryFilter = !selectedCategory || item.category === selectedCategory;
+      
+      // Filter by search query
+      const matchesSearch = !searchQuery.trim() || 
+        item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesCompletedFilter && matchesCategoryFilter && matchesSearch;
+    });
+
+    // Sort items
+    items.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'title':
+          comparison = (a.title || '').localeCompare(b.title || '');
+          break;
+        case 'category':
+          comparison = (a.category || '').localeCompare(b.category || '');
+          break;
+        case 'status': {
+          const statusOrder = { 'completed': 3, 'failed': 2, 'not_applicable': 1, null: 0, undefined: 0 };
+          comparison = (statusOrder[a.status as keyof typeof statusOrder] || 0) - 
+                      (statusOrder[b.status as keyof typeof statusOrder] || 0);
+          break;
+        }
+        case 'priority': {
+          const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+          comparison = (priorityOrder[a.priority as keyof typeof priorityOrder] || 0) - 
+                      (priorityOrder[b.priority as keyof typeof priorityOrder] || 0);
+          break;
+        }
+        case 'order':
+        default:
+          comparison = (a.order || 0) - (b.order || 0);
+          break;
+      }
+      
+      return sortDirection === 'desc' ? -comparison : comparison;
+    });
+
+    return items;
+  }, [safeChecklistItems, showCompleted, selectedCategory, searchQuery, sortBy, sortDirection]);
+
+  const filteredItems = filteredAndSortedItems;
 
   const completedCount = safeChecklistItems.filter(item => 
     item && (item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable')
@@ -100,6 +154,14 @@ export const InspectionContent = ({
             onToggleCompleted={() => setShowCompleted(!showCompleted)}
             onRefresh={onRefetch}
             isRefetching={isRefetching}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={(newSortBy: SortOption, newDirection: SortDirection) => {
+              setSortBy(newSortBy);
+              setSortDirection(newDirection);
+            }}
           />
         )}
 

@@ -1,18 +1,21 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+// Debug data type for structured debugging information
+type DebugData = Record<string, unknown> | string | number | boolean | null | undefined;
+
 interface DebugLogEntry {
   timestamp: string;
   level: LogLevel;
   context: string;
   message: string;
-  data?: any;
+  data?: DebugData;
 }
 
 class DebugLogger {
   private logs: DebugLogEntry[] = [];
   private maxLogs = 500;
 
-  log(level: LogLevel, context: string, message: string, data?: any) {
+  log(level: LogLevel, context: string, message: string, data?: DebugData) {
     const entry: DebugLogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -38,19 +41,19 @@ class DebugLogger {
     );
   }
 
-  debug(context: string, message: string, data?: any) {
+  debug(context: string, message: string, data?: DebugData) {
     this.log('debug', context, message, data);
   }
 
-  info(context: string, message: string, data?: any) {
+  info(context: string, message: string, data?: DebugData) {
     this.log('info', context, message, data);
   }
 
-  warn(context: string, message: string, data?: any) {
+  warn(context: string, message: string, data?: DebugData) {
     this.log('warn', context, message, data);
   }
 
-  error(context: string, message: string, data?: any) {
+  error(context: string, message: string, data?: DebugData) {
     this.log('error', context, message, data);
   }
 

@@ -1,0 +1,177 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+.output/
+.nuxt/
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/
+cypress/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation
+docs/
+*.md
+!README.md
+!CONTRIBUTING.md
+!LICENSE.md
+
+# Development tools
+.eslintcache
+.eslintrc*
+.prettierrc*
+.prettierignore
+.stylelintrc*
+.editorconfig
+tsconfig.tsbuildinfo
+*.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+tmp/
+temp/
+
+# Build tools
+.turbo/
+.parcel-cache/
+.rollup.cache/
+.webpack/
+
+# Package manager files
+.yarn/
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Monitoring and logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Railway specific
+railway.json
+.railway/
+
+# Deployment
+.vercel/
+.netlify/
+.aws/
+.firebase/
+.firebaserc
+
+# Secrets and certificates
+*.pem
+*.key
+*.crt
+*.cer
+secrets/
+certificates/
+
+# Backup files
+*.backup
+*.bak
+backup/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+migrations/dev/
+
+# Static analysis
+.scannerwork/
+.sonar/
+
+# Performance profiling
+*.cpuprofile
+*.heapprofile
+*.heapsnapshot
+
+# Misc
+.env.vault
+.history/
+.vscode-test/
+*.pid
+*.seed
+*.pid.lock

@@ -6,6 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import type { PropertyFormData } from "@/types/propertySubmission";
 
+interface ExtendedPropertyFormData extends PropertyFormData {
+  scraped_vrbo_data?: any;
+}
+
 export const useSimplePropertySubmission = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -61,7 +65,7 @@ export const useSimplePropertySubmission = () => {
     return true;
   };
 
-  const submitProperty = async (formData: PropertyFormData) => {
+  const submitProperty = async (formData: ExtendedPropertyFormData) => {
     console.log('🚀 Starting simple property submission...', { isEditing, formData });
     
     if (!validateForm(formData)) {
@@ -76,6 +80,7 @@ export const useSimplePropertySubmission = () => {
         address: formData.address.trim(),
         vrbo_url: formData.vrbo_url.trim() || null,
         airbnb_url: formData.airbnb_url.trim() || null,
+        scraped_data: formData.scraped_vrbo_data || null,
       };
 
       console.log('📝 Submitting data:', submitData);

@@ -1,0 +1,138 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "numReplicas": 1,
+    "region": "us-west1"
+  },
+  "variables": {
+    "NODE_ENV": "production",
+    "PORT": "${PORT}",
+    
+    "VITE_API_URL": "${API_URL}",
+    "VITE_SUPABASE_URL": "${SUPABASE_URL}",
+    "VITE_SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}",
+    "VITE_OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    "VITE_GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}",
+    "VITE_SENTRY_DSN": "${SENTRY_DSN}",
+    "VITE_PUBLIC_URL": "${RAILWAY_PUBLIC_DOMAIN}",
+    "VITE_APP_ENV": "${APP_ENV}",
+    "VITE_LOG_LEVEL": "${LOG_LEVEL}",
+    
+    "VITE_INSPECTOR_DOMAIN": "app.doublecheckverified.com",
+    "VITE_ADMIN_DOMAIN": "admin.doublecheckverified.com",
+    "VITE_ENABLE_DOMAIN_ROUTING": "true",
+    "VITE_ENABLE_ANALYTICS": "true",
+    "VITE_ENABLE_PWA": "true",
+    "VITE_ENABLE_AI_FEATURES": "true",
+    "VITE_ENABLE_VIDEO_RECORDING": "true",
+    "VITE_ENABLE_OFFLINE_MODE": "true"
+  },
+  "healthcheck": {
+    "type": "http",
+    "path": "/health",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3,
+    "startPeriod": 40,
+    "method": "GET",
+    "expectedStatus": 200
+  },
+  "scaling": {
+    "minInstances": 1,
+    "maxInstances": 5,
+    "cpuThreshold": 75,
+    "memoryThreshold": 85,
+    "scaleDownDelay": 300
+  },
+  "resources": {
+    "cpu": "1",
+    "memory": "1Gi"
+  },
+  "networking": {
+    "internal": false,
+    "port": 4173
+  },
+  "cron": {
+    "cleanup": {
+      "schedule": "0 2 * * *",
+      "command": "npm run cleanup:cache"
+    },
+    "healthcheck": {
+      "schedule": "*/5 * * * *",
+      "command": "npm run health:check"
+    }
+  },
+  "logs": {
+    "structured": true,
+    "level": "info",
+    "format": "json"
+  },
+  "services": [
+    {
+      "name": "doublecheck-unified",
+      "icon": "🏠",
+      "description": "Unified STR Certified platform with domain-aware routing",
+      "source": {
+        "type": "github"
+      },
+      "domains": [
+        {
+          "domain": "app.doublecheckverified.com",
+          "path": "/"
+        },
+        {
+          "domain": "admin.doublecheckverified.com",
+          "path": "/"
+        }
+      ]
+    }
+  ],
+  "monitoring": {
+    "metrics": {
+      "enabled": true,
+      "retention": "30d"
+    },
+    "alerts": {
+      "enabled": true,
+      "webhookUrl": "${ALERT_WEBHOOK_URL}",
+      "conditions": [
+        {
+          "metric": "cpu",
+          "operator": ">",
+          "threshold": 80,
+          "duration": "5m"
+        },
+        {
+          "metric": "memory",
+          "operator": ">",
+          "threshold": 85,
+          "duration": "5m"
+        },
+        {
+          "metric": "response_time",
+          "operator": ">",
+          "threshold": 2000,
+          "duration": "2m"
+        }
+      ]
+    }
+  },
+  "security": {
+    "headers": {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "X-XSS-Protection": "1; mode=block",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(self), microphone=(self), geolocation=(self)",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
+    }
+  }
+}

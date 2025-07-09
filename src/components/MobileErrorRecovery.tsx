@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, RefreshCw, Home, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,12 +36,12 @@ export const MobileErrorRecovery: React.FC<MobileErrorRecoveryProps> = ({
         handleRetry();
       }, 1000);
     }
-  }, [isOnline]);
+  }, [isOnline, retryCount, canRetry, handleRetry]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setRetryCount(prev => prev + 1);
     onRetry();
-  };
+  }, [onRetry]);
 
   const isNetworkError = errorMessage.toLowerCase().includes('network') || 
                         errorMessage.toLowerCase().includes('fetch') ||

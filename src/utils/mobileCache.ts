@@ -2,7 +2,7 @@
 // Mobile-optimized cache with performance monitoring
 class MobileCacheManager {
   private cache = new Map<string, {
-    data: any;
+    data: unknown;
     timestamp: number;
     ttl: number;
     accessCount: number;

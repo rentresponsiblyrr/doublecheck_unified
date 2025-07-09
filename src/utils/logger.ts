@@ -1,10 +1,13 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+// Generic log data type for flexibility while maintaining some type safety
+type LogData = Record<string, unknown> | string | number | boolean | null | undefined;
+
 interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  data?: any;
+  data?: LogData;
   context?: string;
   userId?: string;
 }
@@ -17,7 +20,7 @@ class Logger {
   private createLogEntry(
     level: LogLevel,
     message: string,
-    data?: any,
+    data?: LogData,
     context?: string
   ): LogEntry {
     return {
@@ -56,24 +59,24 @@ class Logger {
     }
   }
 
-  debug(message: string, data?: any, context?: string) {
+  debug(message: string, data?: LogData, context?: string) {
     if (this.isDevelopment) {
       const entry = this.createLogEntry('debug', message, data, context);
       this.addLog(entry);
     }
   }
 
-  info(message: string, data?: any, context?: string) {
+  info(message: string, data?: LogData, context?: string) {
     const entry = this.createLogEntry('info', message, data, context);
     this.addLog(entry);
   }
 
-  warn(message: string, data?: any, context?: string) {
+  warn(message: string, data?: LogData, context?: string) {
     const entry = this.createLogEntry('warn', message, data, context);
     this.addLog(entry);
   }
 
-  error(message: string, data?: any, context?: string) {
+  error(message: string, data?: LogData, context?: string) {
     const entry = this.createLogEntry('error', message, data, context);
     this.addLog(entry);
 
@@ -127,12 +130,12 @@ class Logger {
   }
 
   // User action tracking
-  trackUserAction(action: string, data?: any) {
+  trackUserAction(action: string, data?: LogData) {
     this.info(`User action: ${action}`, data, 'USER_ACTION');
   }
 
   // API call tracking
-  trackApiCall(method: string, url: string, duration?: number, error?: any) {
+  trackApiCall(method: string, url: string, duration?: number, error?: Error | string) {
     const message = `API ${method} ${url}${duration ? ` (${duration}ms)` : ''}`;
     
     if (error) {

@@ -54,7 +54,7 @@ STR Certified is an enterprise-grade AI-powered inspection platform that transfo
 - Supabase account for backend services
 - OpenAI API access for AI features
 
-### **Environment Setup**
+### **Quick Start**
 
 1. **Clone and Install**
 ```bash
@@ -89,6 +89,96 @@ npx supabase db reset
 npm run dev
 # Open http://localhost:5173
 ```
+
+### **Development Commands**
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run build           # Build for production
+npm run preview         # Preview production build
+npm run type-check      # Run TypeScript type checking
+npm run lint            # Run ESLint
+npm run test            # Run unit tests
+npm run test:coverage   # Run tests with coverage
+npm run test:e2e        # Run end-to-end tests
+```
+
+## 📁 **Project Structure**
+
+```
+str-certified/
+├── 📁 src/
+│   ├── 📁 components/          # React components
+│   │   ├── 📁 admin/           # Admin dashboard components
+│   │   ├── 📁 ai/              # AI analysis components
+│   │   ├── 📁 audit/           # Audit workflow components
+│   │   ├── 📁 mobile/          # Mobile-optimized components
+│   │   ├── 📁 photo/           # Photo capture/analysis
+│   │   ├── 📁 scrapers/        # Property scraping components
+│   │   ├── 📁 ui/              # Shared UI components
+│   │   └── 📁 video/           # Video recording/review
+│   ├── 📁 hooks/               # Custom React hooks
+│   ├── 📁 lib/                 # Utility libraries
+│   │   ├── 📁 ai/              # AI service integrations
+│   │   ├── 📁 config/          # Configuration utilities
+│   │   ├── 📁 integration/     # External API integrations
+│   │   ├── 📁 monitoring/      # Performance monitoring
+│   │   └── 📁 optimization/    # Performance optimizations
+│   ├── 📁 pages/               # Page components
+│   ├── 📁 services/            # API services
+│   ├── 📁 types/               # TypeScript type definitions
+│   └── 📁 utils/               # Utility functions
+├── 📁 public/                  # Static assets
+├── 📁 docs/                    # Documentation
+├── 📁 tests/                   # Test files
+├── 🔧 vite.config.ts           # Vite configuration
+├── 🔧 tailwind.config.js       # Tailwind CSS configuration
+├── 🔧 tsconfig.json            # TypeScript configuration
+├── 🔧 eslint.config.js         # ESLint configuration
+├── 🔧 vitest.config.ts         # Test configuration
+├── 🔧 railway.json             # Railway deployment config
+├── 🔧 Dockerfile               # Docker configuration
+├── 📋 package.json             # Project dependencies
+├── 📋 CLAUDE.md                # AI coding context and guidelines
+├── 📋 AI_CODING_STANDARDS.md   # AI development standards
+├── 📋 ARCHITECTURE_GUIDE.md    # System architecture documentation
+├── 📋 COMPONENT_PATTERNS.md    # Component patterns and examples
+├── 📋 TESTING_STANDARDS.md     # Testing guidelines
+└── 📋 SECURITY_GUIDELINES.md   # Security best practices
+```
+
+## 🛠️ **Development Guidelines**
+
+### **Code Quality Standards**
+- **TypeScript Strict Mode** - No 'any' types allowed
+- **ESLint + Prettier** - Automated code formatting
+- **Comprehensive Testing** - Unit, integration, and E2E tests
+- **Security First** - Input validation and sanitization
+- **Accessibility** - WCAG 2.1 AA compliance
+- **Performance** - Mobile-first optimization
+
+### **Architecture Principles**
+- **Domain-Driven Design** - Organized by business domains
+- **Component-Based** - Reusable and testable components
+- **Responsive Design** - Mobile-first approach
+- **Offline-First** - Progressive Web App capabilities
+- **Security by Design** - Built-in security controls
+
+### **AI Development Standards**
+- **Production-Ready Code** - Enterprise-grade quality
+- **Comprehensive Documentation** - Self-documenting code
+- **Error Handling** - Graceful failure management
+- **Performance Optimization** - Mobile device optimization
+- **Accessibility Integration** - Built-in accessibility features
+
+### **Documentation Standards**
+The project includes comprehensive documentation for AI-assisted development:
+- `CLAUDE.md` - Primary context and coding guidelines
+- `AI_CODING_STANDARDS.md` - Detailed AI development standards
+- `COMPONENT_PATTERNS.md` - Reusable component patterns
+- `TESTING_STANDARDS.md` - Testing guidelines and examples
+- `SECURITY_GUIDELINES.md` - Security best practices
 
 ## 🚀 **Production Deployment**
 
@@ -235,17 +325,38 @@ npm run test:performance
 ## 🤝 **Contributing**
 
 ### **Development Workflow**
-1. **Fork & Clone** - Create your feature branch
-2. **Local Development** - Follow coding standards and security guidelines
-3. **Testing** - Ensure all tests pass and coverage targets met
-4. **Security Review** - Validate security checklist compliance
-5. **Pull Request** - Submit with comprehensive description and tests
+1. **Fork & Clone** - Create your feature branch from `main`
+2. **Environment Setup** - Follow the Getting Started guide
+3. **Development** - Implement features following our coding standards
+4. **Testing** - Ensure all tests pass and coverage targets met
+5. **Security Review** - Validate security checklist compliance
+6. **Code Review** - Submit PR with comprehensive description and tests
 
 ### **Coding Standards**
 - **TypeScript Strict Mode** - No 'any' types in production code
-- **Security First** - Follow security-prompt.md guidelines
-- **Mobile Optimized** - Test on real devices
+- **Security First** - Follow `SECURITY_GUIDELINES.md` requirements
+- **Mobile Optimized** - Test on real devices, minimum 44px touch targets
 - **Accessible** - WCAG 2.1 AA compliance required
+- **Performance** - Meet Core Web Vitals targets
+- **Documentation** - Update relevant documentation files
+
+### **Pull Request Guidelines**
+- **Clear Title** - Descriptive title summarizing changes
+- **Detailed Description** - Explain what, why, and how
+- **Testing Evidence** - Include test results and manual testing
+- **Security Considerations** - Address any security implications
+- **Performance Impact** - Document performance changes
+- **Breaking Changes** - Highlight any breaking changes
+
+### **Code Review Checklist**
+Before submitting, ensure your code meets these standards:
+- [ ] All tests pass (`npm run test`)
+- [ ] TypeScript compilation succeeds (`npm run type-check`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Security guidelines followed
+- [ ] Accessibility requirements met
+- [ ] Mobile performance optimized
+- [ ] Documentation updated
 
 ## 📈 **Roadmap & Future Features**
 

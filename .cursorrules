@@ -1,0 +1,61 @@
+# Claude Code Rules for STR Certified Project
+
+## Project Overview
+STR Certified is a multi-platform application with:
+- **Frontend**: Web application (technology stack TBD)
+- **Backend**: API server (technology stack TBD)
+- **Mobile**: Mobile application (technology stack TBD)
+- **Documentation**: Project docs and guides
+- **Testing**: Comprehensive test suite
+
+## Project Structure
+```
+str-certified/
+├── frontend/          # Web application
+├── backend/           # API server
+├── mobile/            # Mobile application
+├── docs/              # Documentation
+└── tests/             # Test files
+```
+
+## Development Guidelines
+
+### Code Quality
+- Follow best practices for the chosen technology stack
+- Implement proper error handling
+- Write comprehensive tests
+- Use TypeScript where applicable
+- Follow consistent naming conventions
+
+### Architecture
+- Maintain separation of concerns
+- Use proper design patterns
+- Implement clean architecture principles
+- Ensure scalability and maintainability
+
+### Documentation
+- Keep documentation up to date
+- Use clear and concise comments
+- Document API endpoints
+- Maintain README files
+
+### Testing
+- Write unit tests for all components
+- Implement integration tests
+- Use proper testing frameworks
+- Maintain good test coverage
+
+## Technology Stack (To Be Determined)
+- Frontend: TBD (React, Vue, Angular, etc.)
+- Backend: TBD (Node.js, Python, Go, etc.)
+- Mobile: TBD (React Native, Flutter, etc.)
+- Database: TBD
+- Authentication: TBD
+
+## Next Steps
+1. Choose technology stacks for each platform
+2. Set up development environments
+3. Initialize package.json files
+4. Configure build tools and linters
+5. Set up CI/CD pipelines
+6. Create initial project documentation 

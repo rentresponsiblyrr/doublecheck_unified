@@ -73,7 +73,6 @@ export const useInspectorPresence = (inspectionId: string) => {
   useEffect(() => {
     if (!user || !inspectionId) return;
 
-    let heartbeatInterval: NodeJS.Timeout;
     isMountedRef.current = true;
 
     // Set initial presence with error handling
@@ -126,7 +125,7 @@ export const useInspectorPresence = (inspectionId: string) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     // Heartbeat to keep presence alive (reduced frequency to avoid excessive calls)
-    heartbeatInterval = setInterval(() => {
+    const heartbeatInterval = setInterval(() => {
       if (!document.hidden && isMountedRef.current) {
         updatePresence('online');
       }

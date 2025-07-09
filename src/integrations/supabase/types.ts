@@ -834,6 +834,423 @@ export type Database = {
           },
         ]
       }
+      ai_model_versions: {
+        Row: {
+          accuracy_rate: number | null
+          confidence_calibration: number | null
+          created_at: string
+          deprecated_at: string | null
+          deployment_notes: string | null
+          deployment_trigger: string | null
+          deployed_at: string | null
+          false_negative_rate: number | null
+          false_positive_rate: number | null
+          id: string
+          model_parameters: Json
+          model_type: string
+          parent_version: string | null
+          processing_speed_ms: number | null
+          status: string
+          training_config: Json
+          training_feedback_count: number
+          updated_at: string
+          validation_feedback_count: number
+          validation_results: Json
+          version: string
+        }
+        Insert: {
+          accuracy_rate?: number | null
+          confidence_calibration?: number | null
+          created_at?: string
+          deprecated_at?: string | null
+          deployment_notes?: string | null
+          deployment_trigger?: string | null
+          deployed_at?: string | null
+          false_negative_rate?: number | null
+          false_positive_rate?: number | null
+          id?: string
+          model_parameters?: Json
+          model_type: string
+          parent_version?: string | null
+          processing_speed_ms?: number | null
+          status?: string
+          training_config?: Json
+          training_feedback_count?: number
+          updated_at?: string
+          validation_feedback_count?: number
+          validation_results?: Json
+          version: string
+        }
+        Update: {
+          accuracy_rate?: number | null
+          confidence_calibration?: number | null
+          created_at?: string
+          deprecated_at?: string | null
+          deployment_notes?: string | null
+          deployment_trigger?: string | null
+          deployed_at?: string | null
+          false_negative_rate?: number | null
+          false_positive_rate?: number | null
+          id?: string
+          model_parameters?: Json
+          model_type?: string
+          parent_version?: string | null
+          processing_speed_ms?: number | null
+          status?: string
+          training_config?: Json
+          training_feedback_count?: number
+          updated_at?: string
+          validation_feedback_count?: number
+          validation_results?: Json
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_model_versions_parent_version_fkey"
+            columns: ["parent_version"]
+            isOneToOne: false
+            referencedRelation: "ai_model_versions"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
+      auditor_feedback: {
+        Row: {
+          accuracy_improvement: number | null
+          ai_prediction: Json
+          auditor_correction: Json
+          auditor_id: string | null
+          category: string
+          checklist_item_id: string | null
+          confidence_impact: number | null
+          created_at: string
+          feedback_type: string
+          id: string
+          identified_patterns: string[] | null
+          impact_score: number | null
+          inspection_id: string | null
+          inspector_context: Json
+          processed: boolean
+          processed_at: string | null
+          property_context: Json
+          similar_cases: string[] | null
+          temporal_context: Json
+          updated_at: string
+        }
+        Insert: {
+          accuracy_improvement?: number | null
+          ai_prediction: Json
+          auditor_correction: Json
+          auditor_id?: string | null
+          category: string
+          checklist_item_id?: string | null
+          confidence_impact?: number | null
+          created_at?: string
+          feedback_type: string
+          id?: string
+          identified_patterns?: string[] | null
+          impact_score?: number | null
+          inspection_id?: string | null
+          inspector_context?: Json
+          processed?: boolean
+          processed_at?: string | null
+          property_context?: Json
+          similar_cases?: string[] | null
+          temporal_context?: Json
+          updated_at?: string
+        }
+        Update: {
+          accuracy_improvement?: number | null
+          ai_prediction?: Json
+          auditor_correction?: Json
+          auditor_id?: string | null
+          category?: string
+          checklist_item_id?: string | null
+          confidence_impact?: number | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          identified_patterns?: string[] | null
+          impact_score?: number | null
+          inspection_id?: string | null
+          inspector_context?: Json
+          processed?: boolean
+          processed_at?: string | null
+          property_context?: Json
+          similar_cases?: string[] | null
+          temporal_context?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditor_feedback_auditor_id_fkey"
+            columns: ["auditor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditor_feedback_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cag_context_patterns: {
+        Row: {
+          accuracy_improvement: number | null
+          confidence: number
+          confidence_boost: number | null
+          conditions: Json
+          context_data: Json
+          created_at: string
+          id: string
+          last_validated: string
+          pattern_name: string
+          pattern_type: string
+          status: string
+          updated_at: string
+          usage_count: number
+          validation_score: number | null
+          weight: number
+        }
+        Insert: {
+          accuracy_improvement?: number | null
+          confidence?: number
+          confidence_boost?: number | null
+          conditions: Json
+          context_data: Json
+          created_at?: string
+          id?: string
+          last_validated?: string
+          pattern_name: string
+          pattern_type: string
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          validation_score?: number | null
+          weight?: number
+        }
+        Update: {
+          accuracy_improvement?: number | null
+          confidence?: number
+          confidence_boost?: number | null
+          conditions?: Json
+          context_data?: Json
+          created_at?: string
+          id?: string
+          last_validated?: string
+          pattern_name?: string
+          pattern_type?: string
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          validation_score?: number | null
+          weight?: number
+        }
+        Relationships: []
+      }
+      knowledge_base: {
+        Row: {
+          category: string
+          citation_count: number
+          content: string
+          created_at: string
+          effective_date: string
+          embedding: string
+          expiration_date: string | null
+          id: string
+          metadata: Json
+          query_count: number
+          relevance_score: number
+          source: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          citation_count?: number
+          content: string
+          created_at?: string
+          effective_date?: string
+          embedding: string
+          expiration_date?: string | null
+          id?: string
+          metadata?: Json
+          query_count?: number
+          relevance_score?: number
+          source: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          citation_count?: number
+          content?: string
+          created_at?: string
+          effective_date?: string
+          embedding?: string
+          expiration_date?: string | null
+          id?: string
+          metadata?: Json
+          query_count?: number
+          relevance_score?: number
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_metrics: {
+        Row: {
+          accuracy_rate: number | null
+          category: string | null
+          change_percent: number | null
+          confidence_improvement: number | null
+          corrections_count: number
+          created_at: string
+          id: string
+          inspector_performance: Json
+          metric_type: string
+          model_version: string | null
+          period_end: string
+          period_start: string
+          property_type_performance: Json
+          total_feedback: number
+          trend_direction: string | null
+          updated_at: string
+          validations_count: number
+        }
+        Insert: {
+          accuracy_rate?: number | null
+          category?: string | null
+          change_percent?: number | null
+          confidence_improvement?: number | null
+          corrections_count?: number
+          created_at?: string
+          id?: string
+          inspector_performance?: Json
+          metric_type: string
+          model_version?: string | null
+          period_end: string
+          period_start: string
+          property_type_performance?: Json
+          total_feedback?: number
+          trend_direction?: string | null
+          updated_at?: string
+          validations_count?: number
+        }
+        Update: {
+          accuracy_rate?: number | null
+          category?: string | null
+          change_percent?: number | null
+          confidence_improvement?: number | null
+          corrections_count?: number
+          created_at?: string
+          id?: string
+          inspector_performance?: Json
+          metric_type?: string
+          model_version?: string | null
+          period_end?: string
+          period_start?: string
+          property_type_performance?: Json
+          total_feedback?: number
+          trend_direction?: string | null
+          updated_at?: string
+          validations_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_metrics_model_version_fkey"
+            columns: ["model_version"]
+            isOneToOne: false
+            referencedRelation: "ai_model_versions"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
+      rag_query_log: {
+        Row: {
+          ai_prediction_accuracy: number | null
+          auditor_satisfaction_score: number | null
+          cag_patterns_applied: string[] | null
+          checklist_item_id: string | null
+          context_relevance_score: number | null
+          context_retrieval_time_ms: number | null
+          context_selection_reason: string | null
+          context_weight: number | null
+          created_at: string
+          dynamic_context: Json
+          id: string
+          inspection_id: string | null
+          query_embedding: string | null
+          query_text: string
+          query_time_ms: number | null
+          query_type: string
+          retrieved_knowledge_ids: string[] | null
+          selected_context: Json
+          similarity_scores: number[] | null
+          total_processing_time_ms: number | null
+        }
+        Insert: {
+          ai_prediction_accuracy?: number | null
+          auditor_satisfaction_score?: number | null
+          cag_patterns_applied?: string[] | null
+          checklist_item_id?: string | null
+          context_relevance_score?: number | null
+          context_retrieval_time_ms?: number | null
+          context_selection_reason?: string | null
+          context_weight?: number | null
+          created_at?: string
+          dynamic_context?: Json
+          id?: string
+          inspection_id?: string | null
+          query_embedding?: string | null
+          query_text: string
+          query_time_ms?: number | null
+          query_type: string
+          retrieved_knowledge_ids?: string[] | null
+          selected_context?: Json
+          similarity_scores?: number[] | null
+          total_processing_time_ms?: number | null
+        }
+        Update: {
+          ai_prediction_accuracy?: number | null
+          auditor_satisfaction_score?: number | null
+          cag_patterns_applied?: string[] | null
+          checklist_item_id?: string | null
+          context_relevance_score?: number | null
+          context_retrieval_time_ms?: number | null
+          context_selection_reason?: string | null
+          context_weight?: number | null
+          created_at?: string
+          dynamic_context?: Json
+          id?: string
+          inspection_id?: string | null
+          query_embedding?: string | null
+          query_text?: string
+          query_time_ms?: number | null
+          query_type?: string
+          retrieved_knowledge_ids?: string[] | null
+          selected_context?: Json
+          similarity_scores?: number[] | null
+          total_processing_time_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rag_query_log_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

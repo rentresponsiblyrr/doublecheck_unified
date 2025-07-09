@@ -8,6 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Home, Calendar, Clock, MapPin, FileText } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ReportGenerator } from "@/components/reports/ReportGenerator";
+import { PhotoComparisonReport } from "@/components/reports/PhotoComparisonReport";
+import { AuditTrailReport } from "@/components/reports/AuditTrailReport";
+import { PropertyManagerDelivery } from "@/components/reports/PropertyManagerDelivery";
+import { ListingOptimizationSuggestions } from "@/components/reports/ListingOptimizationSuggestions";
 
 interface InspectionDetails {
   id: string;
@@ -290,6 +295,42 @@ const InspectionComplete = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Report Generation */}
+        <ReportGenerator 
+          inspectionId={inspectionId}
+          propertyName={inspection.properties.name}
+          onReportGenerated={(reportId) => {
+            console.log('Report generated:', reportId);
+          }}
+        />
+
+        {/* Photo Comparison Report */}
+        <PhotoComparisonReport 
+          inspectionId={inspectionId}
+          propertyName={inspection.properties.name}
+          checklistItems={[]} // Would need to be populated from inspection data
+        />
+
+        {/* Audit Trail Report */}
+        <AuditTrailReport 
+          inspectionId={inspectionId}
+          propertyName={inspection.properties.name}
+        />
+
+        {/* Listing Optimization Suggestions */}
+        <ListingOptimizationSuggestions 
+          inspectionId={inspectionId}
+          inspection={inspection}
+          propertyName={inspection.properties.name}
+        />
+
+        {/* Property Manager Delivery */}
+        <PropertyManagerDelivery 
+          inspectionId={inspectionId}
+          propertyId={inspection.property_id}
+          propertyName={inspection.properties.name}
+        />
 
         {/* Action Buttons */}
         <div className="space-y-3">

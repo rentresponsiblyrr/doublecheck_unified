@@ -25,6 +25,7 @@ export const SimplePropertyForm = () => {
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoadingProperty, setIsLoadingProperty] = useState(false);
+  const [scrapedVRBOData, setScrapedVRBOData] = useState<any>(null);
 
   // Load property data for editing
   useEffect(() => {
@@ -78,14 +79,26 @@ export const SimplePropertyForm = () => {
     }
   };
 
+  const handleVRBODataScraped = (data: any) => {
+    console.log('📊 VRBO data scraped:', data);
+    setScrapedVRBOData(data);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('📝 Form submitted with data:', formData);
+    console.log('📊 Scraped VRBO data:', scrapedVRBOData);
     
     // Clear previous errors
     setFormErrors({});
     
-    const success = await submitProperty(formData);
+    // Include scraped VRBO data in submission
+    const submissionData = {
+      ...formData,
+      scraped_vrbo_data: scrapedVRBOData
+    };
+    
+    const success = await submitProperty(submissionData);
     if (!success) {
       console.log('❌ Submission failed');
     }
@@ -125,7 +138,23 @@ export const SimplePropertyForm = () => {
                 formData={formData}
                 formErrors={formErrors}
                 onInputChange={handleInputChange}
+                onVRBODataScraped={handleVRBODataScraped}
               />
+              
+              {/* Show scraped data preview */}
+              {scrapedVRBOData && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="text-sm font-medium text-blue-900 mb-2">
+                    📊 Imported Property Details
+                  </h3>
+                  <div className="text-xs text-blue-800 space-y-1">
+                    <div>• {scrapedVRBOData.specifications?.bedrooms || 0} bedrooms, {scrapedVRBOData.specifications?.bathrooms || 0} bathrooms</div>
+                    <div>• Max guests: {scrapedVRBOData.specifications?.maxGuests || 'N/A'}</div>
+                    <div>• {scrapedVRBOData.amenities?.length || 0} amenities detected</div>
+                    <div>• Ready for AI checklist generation</div>
+                  </div>
+                </div>
+              )}
               
               <div className="flex gap-3 pt-4">
                 <Button

@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 export const usePropertyErrorHandler = () => {
   const { toast } = useToast();
 
-  const handleSubmissionError = (error: any, isEditing: boolean) => {
+  const handleSubmissionError = (error: Error | unknown, isEditing: boolean) => {
     console.log('🔍 Analyzing submission error:', {
       code: error.code,
       message: error.message,

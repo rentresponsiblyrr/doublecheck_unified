@@ -2,15 +2,17 @@
 import React from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { AuthForm } from '@/components/AuthForm';
+import { isRoleAllowed } from '@/lib/config/app-type';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
   const { user, loading, error } = useAuth();
 
-  console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error });
+  console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole });
 
   if (loading) {
     return (
@@ -26,6 +28,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (!user) {
     console.log('📱 No user, showing auth form');
     return <AuthForm />;
+  }
+
+  // Check role-based access
+  if (requiredRole && !isRoleAllowed(requiredRole)) {
+    console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">🚫</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this application.</p>
+          <p className="text-sm text-gray-500 mt-2">Required role: {requiredRole}</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

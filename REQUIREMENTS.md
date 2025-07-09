@@ -23,19 +23,35 @@ Create the industry-leading AI-powered vacation rental inspection platform that 
 1. **Property Selection** (2 minutes)
    - View assigned properties with scraped listing data
    - See property photos, amenities, and special requirements
-   - Start inspection with auto-generated checklist
+   - Start or join in progress inspection with auto-generated checklist
+   - For MVP can view unassigned properties and add new properties from inspector dashboard. Adding properties triggers Vrbo & Airbnb scraper after property added to gather additional property details to verify. 
 
 2. **Inspection Process** (35-40 minutes)
    - Follow dynamic checklist with property-specific items
+   - System + AI generate the dynamic checklist. The check list will apply plus if a four bedroom there are 4 copies of bedroom items (ie bedroom 1, bedroom 2 etc) the inspector can rename bedrooms, and if there isnt a pool then pool items are not pulled in for example 
+   - Can filter, sort, search for different areas of the check list such as bedroom, bathroom etc. 
    - Capture photos with AI guidance and quality feedback
    - Record video walkthrough with scene detection
    - Handle offline scenarios with auto-sync
+   - Auditor gives a pass/fail/non applicable score 
+   - Required items are required for a decision to submit the inspection, recommended items can be skipped. 
 
 3. **Completion & Review** (3-5 minutes)
-   - Review AI analysis and flags
+   - Review AI analysis and flags pass/fail and notes 
    - Add notes and manual overrides
    - Submit for auditor review
-   - Receive confirmation and next assignment
+   - Receive confirmation and next assignment. AI learns from auditor feedback and overrides
+
+4. **Auditor Flow** (3-5 minutes)
+   - Human auditor can select an inspection to review that has had an AI check
+   - Human auditor can see the tour, notes and evidence for each check list item and AI decision
+   - Human auditor can override the grade and provide notes
+  
+5. **Report Generator** (1 minutes)
+   - System can generate a complete report from the human inspection and auditor final decision
+   - Report shows the final grade of the inspection (Pass/Fail/Conditional Pass which requires manager to show proof of fix in 30 days) for failed items the report shows pictures and summarizes notes of what would make this a pass using AI (for example no fire extinquisher by the fire place must be within 10 feet.). Recommended items if not reviewed during the inspection are added to the report in appropriate places so manager knows what additional steps to take. 
+   - Report center where admin can download and send the report 
+    
 
 ### **Secondary User: Auditor (Desktop-Focused)**
 **Profile**: Quality assurance specialist reviewing 20-30 inspections daily

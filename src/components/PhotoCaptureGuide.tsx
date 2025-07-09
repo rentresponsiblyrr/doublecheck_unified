@@ -65,7 +65,7 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
           icon: <CheckCircle className="w-5 h-5 text-green-500" />,
           color: "border-green-200 bg-green-50"
         };
-      default:
+      default: {
         // Generic guidelines for any other category
         const IconComponent = categoryObj ? getCategoryIcon(categoryObj) : Info;
         return {
@@ -83,6 +83,7 @@ export const PhotoCaptureGuide = ({ category, label }: PhotoCaptureGuideProps) =
           icon: <IconComponent className="w-5 h-5 text-gray-500" />,
           color: categoryObj ? getCategoryColor(categoryObj).replace('text-', 'border-').replace('bg-', 'bg-') + " bg-opacity-50" : "border-gray-200 bg-gray-50"
         };
+      }
     }
   };
 
