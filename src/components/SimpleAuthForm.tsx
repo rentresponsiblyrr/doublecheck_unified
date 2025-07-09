@@ -8,19 +8,36 @@ interface SimpleAuthFormProps {
 
 export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, initialError }) => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+      console.log('🔐 Attempting authentication for:', email);
+      
+      if (isResetPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`
+        });
+        
+        if (error) {
+          console.error('❌ Password reset error:', error);
+          throw error;
+        }
+        
+        setSuccessMessage('Password reset email sent! Check your inbox and follow the instructions.');
+        setIsResetPassword(false);
+      } else if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -29,18 +46,49 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             }
           }
         });
-        if (error) throw error;
-        setError('Check your email for verification link');
+        console.log('📝 Sign up result:', { data, error });
+        
+        if (error) {
+          console.error('❌ Sign up error:', error);
+          throw error;
+        }
+        setSuccessMessage('Check your email for verification link');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
-        onAuthSuccess();
+        console.log('🔑 Sign in result:', { data, error });
+        
+        if (error) {
+          console.error('❌ Sign in error:', error);
+          throw error;
+        }
+        
+        if (data.user) {
+          console.log('✅ Authentication successful for user:', data.user.email);
+          onAuthSuccess();
+        } else {
+          throw new Error('Authentication succeeded but no user data received');
+        }
       }
     } catch (error: any) {
-      setError(error.message);
+      console.error('🚨 Authentication error caught:', error);
+      
+      // Handle specific Supabase auth errors with user-friendly messages
+      let errorMessage = error.message;
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
+      } else if (error.message?.includes('User not found')) {
+        errorMessage = 'No account found with this email address. Please sign up or use a different email.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -72,23 +120,31 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                minLength={6}
-              />
-            </div>
+            {!isResetPassword && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required={!isResetPassword}
+                  minLength={6}
+                />
+              </div>
+            )}
 
             {error && (
               <div className="text-red-600 text-sm text-center">
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="text-green-600 text-sm text-center">
+                {successMessage}
               </div>
             )}
 
@@ -97,16 +153,34 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
               disabled={loading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+              {loading ? 'Loading...' : (
+                isResetPassword ? 'Send Reset Email' : 
+                isSignUp ? 'Sign Up' : 'Sign In'
+              )}
             </button>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
+              {!isResetPassword && (
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-blue-600 hover:text-blue-800 text-sm block"
+                >
+                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                </button>
+              )}
+              
               <button
                 type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-blue-600 hover:text-blue-800 text-sm"
+                onClick={() => {
+                  setIsResetPassword(!isResetPassword);
+                  setIsSignUp(false);
+                  setError(null);
+                  setSuccessMessage(null);
+                }}
+                className="text-blue-600 hover:text-blue-800 text-sm block"
               >
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                {isResetPassword ? 'Back to sign in' : 'Forgot your password?'}
               </button>
             </div>
           </form>

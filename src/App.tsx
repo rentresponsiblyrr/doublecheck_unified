@@ -47,23 +47,33 @@ function App() {
     console.log('🔍 Setting up auth listener (login page first)');
     
     // Listen for auth changes but don't check existing session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
       
-      // Only set authenticated on explicit SIGNED_IN event
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('✅ User signed in, loading authenticated app');
-        setUser(session.user);
-        setIsAuthenticated(true);
-        setAuthError(null);
-      } else {
-        // For all other events (SIGNED_OUT, TOKEN_REFRESHED, etc.), stay on login
-        console.log('🔄 Staying on login page for event:', event);
-        setUser(null);
+      try {
+        // Only set authenticated on explicit SIGNED_IN event
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in, loading authenticated app');
+          setUser(session.user);
+          setIsAuthenticated(true);
+          setAuthError(null);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out, returning to login');
+          setUser(null);
+          setIsAuthenticated(false);
+          setAuthError(null);
+        } else {
+          // For other events (TOKEN_REFRESHED, etc.), stay on current state
+          console.log('🔄 Auth event processed:', event);
+        }
+      } catch (error: any) {
+        console.error('🚨 Auth state change error:', error);
+        setAuthError(`Authentication error: ${error.message}`);
         setIsAuthenticated(false);
-        setAuthError(null);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
