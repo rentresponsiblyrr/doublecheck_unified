@@ -84,12 +84,8 @@ export class DynamicChecklistGenerator {
   private baseRequirements: DynamicChecklistItem[] = [];
 
   private constructor() {
-    this.aiService = new STRCertifiedAIService({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-      model: 'gpt-4-turbo-preview',
-      maxTokens: 3000,
-      temperature: 0.2
-    });
+    // AI service disabled for security - API key should never be in browser
+    this.aiService = null as any;
     
     this.initializeBaseRequirements();
   }
@@ -599,7 +595,9 @@ export class DynamicChecklistGenerator {
     propertyData: VRBOPropertyData
   ): Promise<DynamicChecklistItem[]> {
     try {
-      const prompt = this.buildEnhancementPrompt(items, propertyData);
+      // AI enhancement disabled for security - return items without AI enhancement
+      logger.info('AI enhancement disabled for security', { itemCount: items.length }, 'CHECKLIST_GENERATION');
+      return items;
       
       const response = await this.aiService.generateDynamicChecklist({
         property_type: propertyData.specifications.propertyType,

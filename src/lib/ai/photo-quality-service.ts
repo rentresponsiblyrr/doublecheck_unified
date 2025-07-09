@@ -71,13 +71,8 @@ export class PhotoQualityService {
   };
 
   private constructor() {
-    // Initialize AI service with API key from environment
-    this.aiService = new STRCertifiedAIService({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-      model: 'gpt-4-vision-preview',
-      maxTokens: 1000,
-      temperature: 0.1 // Low temperature for consistent quality assessment
-    });
+    // AI service disabled for security - API key should never be in browser
+    this.aiService = null as any;
   }
 
   static getInstance(): PhotoQualityService {
@@ -237,7 +232,14 @@ export class PhotoQualityService {
     issues: PhotoQualityIssue[];
     confidence: number;
   }> {
-    const prompt = this.buildQualityAnalysisPrompt(context);
+    // AI analysis disabled for security - return default quality score
+    logger.info('AI photo analysis disabled for security', { photoName: photo.name }, 'PHOTO_QUALITY_AI');
+    
+    return {
+      qualityScore: 75, // Default acceptable quality score
+      issues: [],
+      confidence: 50 // Low confidence since no AI analysis
+    };
     
     try {
       const analysisResult = await this.aiService.analyzeInspectionPhoto(

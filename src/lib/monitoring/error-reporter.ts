@@ -527,7 +527,12 @@ export class ErrorReporter {
    * Log errors to Supabase
    */
   private async logToSupabase(errors: ErrorReport[]) {
+    // Supabase error logging disabled - error_logs table not created yet
     if (!env.validateSupabaseConfig()) return;
+
+    // Temporarily disabled to avoid 404 errors
+    console.log('[ErrorReporter] Supabase logging disabled, errors logged to console:', errors.length);
+    return;
 
     const { error } = await supabase
       .from('error_logs')
