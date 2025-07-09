@@ -22,3 +22,87 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Staging-specific files
+.env.staging.local
+staging-secrets.json
+test-data-backup/
+staging-logs/
+*.staging.log
+
+# Build and cache directories
+build/
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+.next/cache/
+
+# Test artifacts
+test-results/
+playwright-report/
+coverage/
+.nyc_output/
+
+# Database and media files
+*.sql
+*.dump
+*.backup
+database-backups/
+uploads/
+media/
+temp-media/
+test-media/
+
+# Security files
+*.key
+*.pem
+*.crt
+*.p12
+.secrets/
+secrets.json
+
+# Supabase
+.branches
+.temp
+supabase/.branches
+supabase/.temp
+supabase/functions/.env
+
+# Railway
+.railway/
+
+# AI/ML model files
+*.model
+*.pkl
+*.h5
+*.pb
+models/
+weights/
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Performance monitoring
+performance-logs/
+*.perf
+lighthouse-reports/
