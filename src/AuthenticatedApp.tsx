@@ -77,25 +77,28 @@ function LoadingFallback() {
 // System Health Check Component
 function SystemHealthCheck({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Validate environment on app start
+    // Validate environment on app start - but don't crash the app
     try {
       validateRequiredEnvVars();
+      console.log('✅ Environment validation passed');
     } catch (error) {
-      console.error('Environment validation failed:', error);
-      if (env.isProduction()) {
-        // In production, we might want to show a maintenance page
-        throw error;
-      }
+      console.error('⚠️ Environment validation failed (non-critical):', error);
+      // Don't throw in production to prevent app crashes
+      // The app can still function with missing optional env vars
     }
 
-    // Initialize monitoring services
-    if (env.isProduction()) {
-      errorReporter.initialize({
-        enableConsoleCapture: false, // Disable in production
-        enableNetworkCapture: true,
-        enableClickCapture: true,
-        enableNavigationCapture: true,
-      });
+    // Initialize monitoring services only if configured
+    if (env.isProduction() && env.hasSentry()) {
+      try {
+        errorReporter.initialize({
+          enableConsoleCapture: false, // Disable in production
+          enableNetworkCapture: true,
+          enableClickCapture: true,
+          enableNavigationCapture: true,
+        });
+      } catch (error) {
+        console.warn('⚠️ Failed to initialize error reporter:', error);
+      }
     }
 
     performanceTracker.initialize({

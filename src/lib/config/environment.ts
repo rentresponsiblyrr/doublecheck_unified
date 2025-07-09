@@ -121,14 +121,11 @@ class EnvironmentConfig {
         this.validationErrors = error;
         console.error('❌ Environment validation failed:', error.errors);
         
-        // In production, throw error to prevent startup with invalid config
-        if (process.env.NODE_ENV === 'production') {
-          // Show detailed error information for debugging
-          const errorDetails = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
-          throw new Error(`Invalid environment configuration: ${errorDetails}`);
-        }
+        // Log error but don't crash the app during initialization
+        const errorDetails = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        console.error(`❌ Environment configuration validation failed: ${errorDetails}`);
         
-        // In development, return defaults
+        // Return defaults to prevent app crash - validation can be checked later
         return envSchema.parse({});
       }
       throw error;

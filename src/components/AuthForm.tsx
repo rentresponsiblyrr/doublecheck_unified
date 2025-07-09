@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shield } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -96,14 +97,14 @@ export const AuthForm = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Shield className="w-8 h-8 text-blue-600" />
-            </div>
+            <Logo 
+              size="xl" 
+              showText={true}
+              variant="horizontal-strapline"
+              theme="light"
+              className="flex-col gap-2"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">DoubleCheck</CardTitle>
-          <CardDescription className="text-gray-600">
-            Powered by Rent Responsibly
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">

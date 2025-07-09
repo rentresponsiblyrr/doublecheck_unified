@@ -48,11 +48,13 @@ export const PropertyHeader = ({
           <Logo 
             size="sm" 
             showText={false}
+            variant="default"
+            theme="light"
             className="hidden sm:flex"
           />
           <div className="text-right hidden lg:block">
-            <div className="text-sm font-medium text-blue-600">DoubleCheck</div>
-            <div className="text-xs text-gray-500">Powered by Rent Responsibly</div>
+            <div className="text-sm font-medium text-blue-600">STR Certified</div>
+            <div className="text-xs text-gray-500">DoubleCheck powered by Rent Responsibly</div>
           </div>
           <UserMenu />
         </div>

@@ -79,13 +79,15 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
       let errorMessage = error.message;
       
       if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        errorMessage = 'Invalid email or password. This might be an account from the previous system. Try using "Forgot your password?" to reset your password, or sign up for a new account.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and click the confirmation link before signing in.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many login attempts. Please wait a moment and try again.';
       } else if (error.message?.includes('User not found')) {
-        errorMessage = 'No account found with this email address. Please sign up or use a different email.';
+        errorMessage = 'No account found with this email address. Please sign up for a new account.';
+      } else if (error.message?.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
       }
       
       setError(errorMessage);
