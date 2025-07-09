@@ -24,9 +24,9 @@ const envSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
   VITE_SUPABASE_ANON_KEY: z.string().min(1),
   
-  // OpenAI Configuration
-  VITE_OPENAI_API_KEY: z.string().min(1).optional(),
-  VITE_OPENAI_ORG_ID: z.string().optional(),
+  // OpenAI Configuration (removed for security - API key should never be in browser)
+  // VITE_OPENAI_API_KEY: z.string().min(1).optional(),
+  // VITE_OPENAI_ORG_ID: z.string().optional(),
   
   // Analytics & Monitoring
   VITE_SENTRY_DSN: z.string().url().optional(),
@@ -154,8 +154,9 @@ class EnvironmentConfig {
 
   get openai() {
     return {
-      apiKey: this.env.VITE_OPENAI_API_KEY,
-      orgId: this.env.VITE_OPENAI_ORG_ID,
+      // API key should never be exposed in browser - use server-side proxy
+      apiKey: undefined,
+      orgId: undefined,
       rateLimit: this.env.VITE_AI_RATE_LIMIT
     };
   }

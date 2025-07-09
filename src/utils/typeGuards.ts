@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const envSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
   VITE_SUPABASE_ANON_KEY: z.string().min(1),
-  VITE_OPENAI_API_KEY: z.string().min(1).optional(),
+  // VITE_OPENAI_API_KEY: z.string().min(1).optional(), // Removed for security
   VITE_SENTRY_DSN: z.string().url().optional(),
   VITE_PUBLIC_URL: z.string().url().optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

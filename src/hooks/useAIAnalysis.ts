@@ -67,7 +67,7 @@ interface UseAIAnalysisReturn {
 
 export const useAIAnalysis = (config: UseAIAnalysisConfig = {}): UseAIAnalysisReturn => {
   const {
-    apiKey = process.env.VITE_OPENAI_API_KEY || '',
+    apiKey = '', // Never expose API key in browser
     maxRetries = 3,
     retryDelay = 1000,
     enableAutoRetry = true
@@ -87,7 +87,7 @@ export const useAIAnalysis = (config: UseAIAnalysisConfig = {}): UseAIAnalysisRe
       aiServiceRef.current = createAIService({ apiKey });
     }
     if (!aiServiceRef.current) {
-      throw new Error('OpenAI API key is required for AI analysis');
+      throw new Error('AI features are disabled for security reasons. API key cannot be exposed in browser.');
     }
     return aiServiceRef.current;
   }, [apiKey]);

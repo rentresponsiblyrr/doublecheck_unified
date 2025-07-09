@@ -11,15 +11,14 @@ try {
 } catch (error) {
   console.error('Environment validation failed:', error);
   if (import.meta.env.PROD) {
-    // In production, show detailed error for debugging
+    // In production, show user-friendly error
     document.body.innerHTML = `
-      <div style="padding: 20px; text-align: center; color: #ef4444; font-family: monospace;">
+      <div style="padding: 20px; text-align: center; color: #ef4444;">
         <h1>Configuration Error</h1>
-        <p>The application is not properly configured.</p>
-        <pre style="background: #f5f5f5; padding: 10px; margin: 10px 0; text-align: left; overflow-x: auto;">
-          ${error.message}
-        </pre>
-        <p>Please check the environment variables in Railway dashboard.</p>
+        <p>The application is not properly configured. Please contact support.</p>
+        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+          Error: ${error.message}
+        </p>
       </div>
     `;
     throw error;

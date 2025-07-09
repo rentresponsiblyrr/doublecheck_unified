@@ -13,5 +13,4 @@ cmds = ["npm run build:railway"]
 cmd = "npm run start"
 
 [variables]
-NPM_CONFIG_PRODUCTION = "false"
 NODE_ENV = "production"

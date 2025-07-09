@@ -239,7 +239,7 @@ export class ErrorReporter {
       fingerprint,
       groupingKey,
       environment: env.getEnvironment(),
-      release: env.get('APP_VERSION'),
+      release: import.meta.env.VITE_APP_VERSION || '1.0.0',
       tags: {
         browser: this.getBrowserName(),
         os: this.getOSName(),
