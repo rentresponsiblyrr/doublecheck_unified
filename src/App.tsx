@@ -36,49 +36,29 @@ class SimpleErrorBoundary extends Component<
 const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 
 function App() {
-  console.log('🚀 STR Certified App - Authentication-First Architecture v2');
+  console.log('🚀 STR Certified App - Authentication-First Architecture v3');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start with false - show login immediately
   const [user, setUser] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Minimal authentication check without heavy providers
+  // Only listen for auth changes - never auto-authenticate to ensure clean login UX
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Simple auth check using only Supabase client
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Supabase auth error:', error);
-          setAuthError(error.message);
-          setIsLoading(false);
-          return;
-        }
-        
-        if (session?.user) {
-          console.log('✅ User authenticated:', session.user.email);
-          setUser(session.user);
-          // Don't set authenticated to true yet - wait for explicit user action
-          // setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setAuthError('Authentication system unavailable');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
+    console.log('🔍 Setting up auth listener (login page first)');
+    
+    // Listen for auth changes but don't check existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
+      
+      // Only set authenticated on explicit SIGNED_IN event
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in, loading authenticated app');
         setUser(session.user);
         setIsAuthenticated(true);
         setAuthError(null);
-      } else if (event === 'SIGNED_OUT') {
+      } else {
+        // For all other events (SIGNED_OUT, TOKEN_REFRESHED, etc.), stay on login
+        console.log('🔄 Staying on login page for event:', event);
         setUser(null);
         setIsAuthenticated(false);
         setAuthError(null);
