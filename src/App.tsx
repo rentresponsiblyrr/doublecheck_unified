@@ -124,49 +124,23 @@ function SystemHealthCheck({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const appType = getAppTypeFromDomain();
-  
-  // Log app configuration in development
-  React.useEffect(() => {
-    if (env.isDevelopment()) {
-      logAppConfiguration();
-    }
-  }, []);
+  // Minimal App component for debugging React errors
+  console.log('🔍 App component rendering...');
   
   return (
-    <ErrorBoundary
-      level="page"
-      fallback={({ error, resetError, errorId }) => (
-        <ErrorFallback
-          error={error}
-          resetError={resetError}
-          errorId={errorId}
-          showDetails={env.isDevelopment()}
-        />
-      )}
-      onError={(error, errorInfo) => {
-        console.error('App-level error:', error, errorInfo);
-      }}
-    >
-      <SystemHealthCheck>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <ErrorBoundary level="section" isolate>
-              <AuthProvider>
-                <DomainAwarePWA />
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Suspense fallback={<LoadingFallback />}>
-                    {appType === AppType.INSPECTOR ? <InspectorRoutes /> : <AdminRoutesComponent />}
-                  </Suspense>
-                </BrowserRouter>
-              </AuthProvider>
-            </ErrorBoundary>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </SystemHealthCheck>
-    </ErrorBoundary>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ color: '#2563eb' }}>STR Certified - Debug Mode</h1>
+      <p>✅ React is rendering successfully!</p>
+      <p>🔧 Minimal app component loaded to isolate React errors.</p>
+      <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+        <h3>System Status:</h3>
+        <ul>
+          <li>✅ React: Working</li>
+          <li>✅ Environment: {typeof import.meta.env.PROD !== 'undefined' ? 'Production' : 'Development'}</li>
+          <li>✅ Domain: {typeof window !== 'undefined' ? window.location.hostname : 'Unknown'}</li>
+        </ul>
+      </div>
+    </div>
   );
 }
 
