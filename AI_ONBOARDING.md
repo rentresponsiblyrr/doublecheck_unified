@@ -42,7 +42,7 @@ Welcome to STR Certified! This guide will help you understand our codebase, foll
 ## **🗂️ PROJECT STRUCTURE OVERVIEW**
 
 ```
-doublecheck-field-view/
+doublecheck_unified/
 ├── 📁 src/
 │   ├── 📁 domains/              # Business logic by domain
 │   │   ├── 📁 inspection/       # Inspection-related components

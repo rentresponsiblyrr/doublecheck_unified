@@ -12,14 +12,17 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:staging": "vite --mode staging",
     "build": "tsc && vite build",
     "build:dev": "vite build --mode development",
+    "build:staging": "VITE_APP_ENV=staging tsc && vite build --mode staging",
     "build:check": "npm run typecheck",
     "build:analyze": "vite build --mode analyze",
     "build:unified": "tsc && vite build",
     "build:railway": "npm run build:unified",
     "build:production": "NODE_ENV=production npm run build:unified",
     "preview": "vite preview",
+    "preview:staging": "npm run build:staging && vite preview --mode staging",
     "preview:prod": "npm run build && npm run preview",
     "preview:unified": "npm run build:unified && vite preview",
     "preview:railway": "npm run preview:unified",
@@ -29,16 +32,30 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "test": "vitest",
+    "test:staging": "VITE_APP_ENV=staging vitest --config vitest.staging.config.ts",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:staging": "STAGING=true playwright test --config playwright.staging.config.ts",
     "cleanup:cache": "rm -rf node_modules/.cache dist .turbo",
+    "cleanup:staging": "rm -rf node_modules/.cache dist .turbo && npm run cleanup:test-data",
+    "cleanup:test-data": "node scripts/cleanup-test-data.js",
     "health:check": "node scripts/health-check.js",
     "deploy:railway": "npm run build:railway",
+    "deploy:staging": "npm run build:staging",
     "deploy:check": "npm run build:check",
     "deploy:prod": "npm run deploy:check && npm run build:production",
     "start": "npm run preview",
+    "start:staging": "npm run preview:staging",
     "postinstall": "npm run build:check || true",
-    "prepare": "husky install || true"
+    "prepare": "husky install || true",
+    "db:migrate:staging": "supabase db push --project-ref ${STAGING_PROJECT_REF}",
+    "db:reset:staging": "supabase db reset --project-ref ${STAGING_PROJECT_REF}",
+    "db:seed:staging": "node scripts/seed-staging-data.js",
+    "generate:test-data": "node scripts/generate-test-data.js",
+    "refresh:test-data": "npm run cleanup:test-data && npm run generate:test-data",
+    "staging:setup": "npm run db:migrate:staging && npm run db:seed:staging",
+    "staging:reset": "npm run db:reset:staging && npm run staging:setup"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -160,7 +177,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/str-certified.git"
+    "url": "https://github.com/rentresponsiblyrr/doublecheck_unified.git"
   },
   "keywords": [
     "property-inspection",

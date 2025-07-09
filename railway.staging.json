@@ -1,0 +1,174 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm run start:staging",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "numReplicas": 1,
+    "region": "us-west1"
+  },
+  "variables": {
+    "NODE_ENV": "staging",
+    "VITE_APP_ENV": "staging",
+    "VITE_LOG_LEVEL": "debug",
+    "PORT": "${PORT}",
+    
+    "VITE_SUPABASE_URL": "${STAGING_SUPABASE_URL}",
+    "VITE_SUPABASE_ANON_KEY": "${STAGING_SUPABASE_ANON_KEY}",
+    "VITE_OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    "VITE_GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}",
+    "VITE_SENTRY_DSN": "${STAGING_SENTRY_DSN}",
+    
+    "VITE_PUBLIC_URL": "${RAILWAY_PUBLIC_DOMAIN}",
+    "VITE_API_URL": "https://api-staging.doublecheckverified.com",
+    "VITE_INSPECTOR_DOMAIN": "app-staging.doublecheckverified.com",
+    "VITE_ADMIN_DOMAIN": "admin-staging.doublecheckverified.com",
+    
+    "VITE_ENABLE_DOMAIN_ROUTING": "true",
+    "VITE_ENABLE_ANALYTICS": "true",
+    "VITE_ENABLE_PWA": "true",
+    "VITE_ENABLE_AI_FEATURES": "true",
+    "VITE_ENABLE_VIDEO_RECORDING": "true",
+    "VITE_ENABLE_OFFLINE_MODE": "true",
+    
+    "VITE_ENABLE_DEBUG_PANEL": "true",
+    "VITE_ENABLE_CONSOLE_LOGS": "true",
+    "VITE_ENABLE_SOURCEMAPS": "true",
+    
+    "VITE_STAGING_MODE": "true",
+    "VITE_TEST_DATA_ENABLED": "true",
+    "VITE_AI_RATE_LIMIT_REQUESTS_PER_MINUTE": "30",
+    "VITE_STAGING_DATA_RETENTION_DAYS": "30",
+    
+    "ALERT_WEBHOOK_URL": "${STAGING_ALERT_WEBHOOK_URL}"
+  },
+  "healthcheck": {
+    "type": "http",
+    "path": "/health",
+    "interval": 60,
+    "timeout": 15,
+    "retries": 3,
+    "startPeriod": 60,
+    "method": "GET",
+    "expectedStatus": 200
+  },
+  "scaling": {
+    "minInstances": 1,
+    "maxInstances": 2,
+    "cpuThreshold": 80,
+    "memoryThreshold": 85,
+    "scaleDownDelay": 600
+  },
+  "resources": {
+    "cpu": "0.5",
+    "memory": "512Mi"
+  },
+  "networking": {
+    "internal": false,
+    "port": 4173
+  },
+  "cron": {
+    "cleanup": {
+      "schedule": "0 3 * * *",
+      "command": "npm run cleanup:staging"
+    },
+    "data-refresh": {
+      "schedule": "0 1 * * 1",
+      "command": "npm run refresh:test-data"
+    },
+    "healthcheck": {
+      "schedule": "*/10 * * * *",
+      "command": "npm run health:check"
+    }
+  },
+  "logs": {
+    "structured": true,
+    "level": "debug",
+    "format": "json"
+  },
+  "services": [
+    {
+      "name": "doublecheck-staging",
+      "icon": "🧪",
+      "description": "STR Certified staging environment for testing and QA",
+      "source": {
+        "type": "github",
+        "repo": "your-org/str-certified",
+        "branch": "staging"
+      },
+      "domains": [
+        {
+          "domain": "app-staging.doublecheckverified.com",
+          "path": "/"
+        },
+        {
+          "domain": "admin-staging.doublecheckverified.com",
+          "path": "/"
+        },
+        {
+          "domain": "staging.doublecheckverified.com",
+          "path": "/"
+        }
+      ]
+    }
+  ],
+  "monitoring": {
+    "metrics": {
+      "enabled": true,
+      "retention": "7d"
+    },
+    "alerts": {
+      "enabled": true,
+      "webhookUrl": "${STAGING_ALERT_WEBHOOK_URL}",
+      "conditions": [
+        {
+          "metric": "cpu",
+          "operator": ">",
+          "threshold": 85,
+          "duration": "10m"
+        },
+        {
+          "metric": "memory",
+          "operator": ">",
+          "threshold": 90,
+          "duration": "5m"
+        },
+        {
+          "metric": "response_time",
+          "operator": ">",
+          "threshold": 5000,
+          "duration": "3m"
+        },
+        {
+          "metric": "error_rate",
+          "operator": ">",
+          "threshold": 10,
+          "duration": "2m"
+        }
+      ]
+    }
+  },
+  "security": {
+    "headers": {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-XSS-Protection": "1; mode=block",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(self), microphone=(self), geolocation=(self)",
+      "X-Staging-Environment": "true",
+      "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
+    }
+  },
+  "environment": {
+    "name": "staging",
+    "description": "Staging environment for testing and QA",
+    "protected": false,
+    "autoMerge": true,
+    "autoDeploy": true
+  }
+}
