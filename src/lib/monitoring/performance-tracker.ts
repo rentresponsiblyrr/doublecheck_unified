@@ -474,11 +474,15 @@ export class PerformanceTracker {
    * Calculate total blocking time
    */
   private calculateTotalBlockingTime(): number {
-    const longTasks = window.performance.getEntriesByType('longtask') as any[];
-    return longTasks.reduce((total, task) => {
-      const blockingTime = task.duration - 50; // Tasks over 50ms are considered blocking
-      return total + (blockingTime > 0 ? blockingTime : 0);
-    }, 0);
+    // Temporarily disabled to avoid deprecated API warnings
+    return 0;
+    
+    // TODO: Replace with modern performance API
+    // const longTasks = window.performance.getEntriesByType('longtask') as any[];
+    // return longTasks.reduce((total, task) => {
+    //   const blockingTime = task.duration - 50; // Tasks over 50ms are considered blocking
+    //   return total + (blockingTime > 0 ? blockingTime : 0);
+    // }, 0);
   }
 
   /**
