@@ -3,14 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface SimpleAuthFormProps {
   onAuthSuccess: () => void;
+  initialError?: string | null;
 }
 
-export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess }) => {
+export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, initialError }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError || null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
