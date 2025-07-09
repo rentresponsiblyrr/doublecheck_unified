@@ -123,7 +123,9 @@ class EnvironmentConfig {
         
         // In production, throw error to prevent startup with invalid config
         if (process.env.NODE_ENV === 'production') {
-          throw new Error('Invalid environment configuration');
+          // Show detailed error information for debugging
+          const errorDetails = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+          throw new Error(`Invalid environment configuration: ${errorDetails}`);
         }
         
         // In development, return defaults
