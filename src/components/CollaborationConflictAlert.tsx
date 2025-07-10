@@ -20,9 +20,7 @@ export const CollaborationConflictAlert = ({
 }: CollaborationConflictAlertProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  // const { conflicts, resolveConflict } = useInspectorCollaboration(inspectionId); // DISABLED - missing table
-  const conflicts = []; // Placeholder
-  const resolveConflict = async () => null; // Placeholder
+  const { conflicts, resolveConflict } = useInspectorCollaboration(inspectionId);
 
   const relevantConflicts = conflicts.filter(
     conflict => !checklistItemId || conflict.checklist_item_id === checklistItemId

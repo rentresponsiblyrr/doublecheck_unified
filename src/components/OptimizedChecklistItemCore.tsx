@@ -34,8 +34,7 @@ export const OptimizedChecklistItemCore = ({
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
   const { saveNote } = useNotesHistory(item.id);
-  // const { updatePresence } = useInspectorPresence(item.inspection_id); // DISABLED - missing table
-  const updatePresence = () => {}; // Placeholder
+  const { updatePresence } = useInspectorPresence(item.inspection_id);
 
   const hasUploadedMedia = mediaItems.length > 0;
 

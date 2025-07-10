@@ -102,9 +102,8 @@ const Inspection = () => {
     error
   } = useInspectionData(inspectionId);
 
-  // Initialize inspector presence tracking - DISABLED due to missing inspector_presence table
-  // const { updatePresence } = useInspectorPresence(inspectionId);
-  const updatePresence = () => {}; // Placeholder function
+  // Initialize inspector presence tracking - RE-ENABLED after DB fixes
+  const { updatePresence } = useInspectorPresence(inspectionId);
 
   // Log component state changes
   useEffect(() => {

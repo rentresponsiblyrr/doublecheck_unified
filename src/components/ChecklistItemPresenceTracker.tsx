@@ -17,8 +17,7 @@ export const ChecklistItemPresenceTracker = ({
   isUploading,
   currentNotes
 }: ChecklistItemPresenceTrackerProps) => {
-  // const { updatePresence } = useInspectorPresence(inspectionId); // DISABLED - missing table
-  const updatePresence = () => {}; // Placeholder
+  const { updatePresence } = useInspectorPresence(inspectionId);
 
   // Update presence when user starts working on item
   useEffect(() => {

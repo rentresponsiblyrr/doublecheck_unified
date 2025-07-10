@@ -202,11 +202,11 @@ function InspectorRoutes() {
 
   return (
     <Routes>
-      {/* Dashboard Routes */}
+      {/* Properties List - Now the main dashboard */}
       <Route path="/" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <Index />
+            <PropertySelection />
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -220,11 +220,20 @@ function InspectorRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Property Management */}
+      {/* Property Management - Keep for backwards compatibility */}
       <Route path="/properties" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
             <PropertySelection />
+          </ErrorBoundary>
+        </ProtectedRoute>
+      } />
+
+      {/* Dashboard - Moved to separate route if needed */}
+      <Route path="/dashboard" element={
+        <ProtectedRoute requiredRole="inspector">
+          <ErrorBoundary level="component">
+            <Index />
           </ErrorBoundary>
         </ProtectedRoute>
       } />
