@@ -157,6 +157,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             )}
 
             <button
+              id="auth-submit-button"
               type="submit"
               disabled={loading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -170,6 +171,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             <div className="text-center space-y-2">
               {!isResetPassword && (
                 <button
+                  id="toggle-signup-signin"
                   type="button"
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-blue-600 hover:text-blue-800 text-sm block"
@@ -179,6 +181,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
               )}
               
               <button
+                id="toggle-password-reset"
                 type="button"
                 onClick={() => {
                   setIsResetPassword(!isResetPassword);

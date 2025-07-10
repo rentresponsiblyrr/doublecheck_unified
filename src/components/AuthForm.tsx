@@ -95,15 +95,25 @@ export const AuthForm = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+        <CardHeader className="text-center space-y-6">
+          <div className="flex justify-center">
             <Logo 
               size="xl" 
-              showText={true}
-              variant="horizontal-strapline"
+              showText={false}
+              variant="default"
               theme="light"
-              className="flex-col gap-2"
+              className="mb-2"
+              imageUrl="/lovable-uploads/ea9dd662-995b-4cd0-95d4-9f31b2aa8d3b.png"
             />
+          </div>
+          <div className="space-y-2">
+            <CardTitle className="text-3xl font-bold text-gray-900">DoubleCheck</CardTitle>
+            <CardDescription className="text-lg text-gray-600">
+              STR Certified Platform
+            </CardDescription>
+            <CardDescription className="text-sm text-gray-500">
+              Powered by Rent Responsibly
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
