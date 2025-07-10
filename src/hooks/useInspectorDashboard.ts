@@ -53,6 +53,14 @@ export const useInspectorDashboard = () => {
 
       if (inspectionsError) {
         console.error('❌ Failed to fetch inspections:', inspectionsError);
+        console.error('❌ Error details:', inspectionsError.message, inspectionsError.code);
+        
+        // Handle specific error cases gracefully
+        if (inspectionsError.code === 'PGRST116' || inspectionsError.message?.includes('permission')) {
+          console.warn('⚠️ No permission to access inspections, returning empty array');
+          return [];
+        }
+        
         throw new Error(`Failed to fetch inspections: ${inspectionsError.message}`);
       }
 

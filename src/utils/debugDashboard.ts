@@ -4,15 +4,16 @@ export const debugDashboardData = async (userId?: string) => {
   console.log('🔍 Debug Dashboard Data - Starting analysis...');
   
   try {
-    // Get all inspections
+    // Get inspections with correct schema (no created_at column)
     const { data: allInspections, error: allError } = await supabase
       .from('inspections')
-      .select('id, inspector_id, status, start_time, end_time, completed, created_at')
-      .order('created_at', { ascending: false })
+      .select('id, inspector_id, status, start_time, end_time, completed')
+      .order('start_time', { ascending: false, nullsFirst: false })
       .limit(10);
 
     if (allError) {
       console.error('❌ Error fetching all inspections:', allError);
+      console.error('❌ Error details:', allError.message, allError.code);
       return;
     }
 
@@ -22,12 +23,13 @@ export const debugDashboardData = async (userId?: string) => {
     if (userId) {
       const { data: userInspections, error: userError } = await supabase
         .from('inspections')
-        .select('id, inspector_id, status, start_time, end_time, completed, created_at')
+        .select('id, inspector_id, status, start_time, end_time, completed')
         .eq('inspector_id', userId)
-        .order('created_at', { ascending: false });
+        .order('start_time', { ascending: false, nullsFirst: false });
 
       if (userError) {
         console.error('❌ Error fetching user inspections:', userError);
+        console.error('❌ User error details:', userError.message, userError.code);
       } else {
         console.log(`👤 User ${userId} Inspections:`, userInspections);
       }

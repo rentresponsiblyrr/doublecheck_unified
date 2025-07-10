@@ -72,11 +72,27 @@ const Index = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h1>
-          <p className="text-gray-600 mb-4">Unable to load your inspections. Please try again.</p>
-          <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+        <div className="text-center max-w-md">
+          <div className="text-blue-600 text-6xl mb-4">🏠</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to STR Certified</h1>
+          <p className="text-gray-600 mb-4">
+            You're all set up! Your inspection data will appear here once you start your first inspection.
+          </p>
+          <div className="space-y-2">
+            <Button 
+              onClick={() => navigate('/inspector')} 
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              Start Your First Inspection
+            </Button>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline" 
+              className="w-full"
+            >
+              Refresh Page
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -89,44 +105,24 @@ const Index = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Inspector Dashboard</h1>
           <p className="text-gray-600">Welcome back, {user?.email}</p>
-          {/* Debug buttons - remove in production */}
-          <div className="flex gap-2 mt-2">
-            <Button 
-              onClick={() => debugDashboardData(user?.id)} 
-              variant="outline" 
-              size="sm"
-            >
-              Debug Dashboard
-            </Button>
-            <Button 
-              onClick={async () => {
-                if (user?.id) {
-                  const result = await fixOrphanedInspections(user.id);
-                  console.log('Fix result:', result);
-                  // Refresh data after fix
-                  window.location.reload();
-                }
-              }} 
-              variant="outline" 
-              size="sm"
-            >
-              Fix Orphaned Inspections
-            </Button>
-            <Button 
-              onClick={async () => {
-                if (user?.id) {
-                  const result = await createTestInspection(user.id);
-                  console.log('Test inspection result:', result);
-                  // Refresh data after creation
-                  window.location.reload();
-                }
-              }} 
-              variant="outline" 
-              size="sm"
-            >
-              Create Test Inspection
-            </Button>
-          </div>
+          {/* Development debug buttons */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="flex gap-2 mt-2">
+              <Button 
+                onClick={async () => {
+                  try {
+                    await debugDashboardData(user?.id);
+                  } catch (error) {
+                    console.error('Debug failed:', error);
+                  }
+                }} 
+                variant="outline" 
+                size="sm"
+              >
+                Debug Dashboard (Safe)
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Summary Stats */}
