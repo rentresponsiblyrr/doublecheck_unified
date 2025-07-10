@@ -110,30 +110,36 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="auth-email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
               <input
+                id="auth-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                autoComplete="email"
               />
             </div>
 
             {!isResetPassword && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="auth-password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
                 <input
+                  id="auth-password"
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required={!isResetPassword}
                   minLength={6}
+                  autoComplete={isSignUp ? "new-password" : "current-password"}
                 />
               </div>
             )}

@@ -32,6 +32,7 @@ import { offlineStorageService } from '@/services/offlineStorageService';
 import { syncService } from '@/services/syncService';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadMedia } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 
 // Components
@@ -96,6 +97,23 @@ export function InspectorWorkflow() {
       window.location.href = '/';
     }
   };
+
+  // Handle errors gracefully
+  React.useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('🚨 Unhandled promise rejection in InspectorWorkflow:', event.reason);
+      // Prevent the default handler
+      event.preventDefault();
+      // Show user-friendly error
+      handleError(new Error('Something went wrong. Please try again.'));
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [handleError]);
 
   // State Management
   const [currentStep, setCurrentStep] = useState(0);
@@ -255,7 +273,7 @@ export function InspectorWorkflow() {
         handleError(error as Error);
       }
     });
-  }, [withErrorHandling, trackEvent, handleError]);
+  }, []); // Removed all dependencies to prevent infinite loops - this function is stable
 
   const handleChecklistGenerated = async (checklist: ChecklistData) => {
     await withErrorHandling(async () => {

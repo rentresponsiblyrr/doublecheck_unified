@@ -123,12 +123,14 @@ export function PropertySelector({
     if (!newPropertyUrl.trim()) return;
     
     try {
+      console.log('🏠 Creating property from URL:', newPropertyUrl);
+      
       // This would integrate with property scraping service
       // For now, create a basic property structure
       const newProperty: Property = {
         id: `temp_${Date.now()}`,
         address: newPropertyUrl,
-        type: 'Short-term Rental',
+        type: 'single_family',
         bedrooms: 2,
         bathrooms: 1,
         sqft: 1000,
@@ -136,11 +138,16 @@ export function PropertySelector({
         images: []
       };
       
-      onPropertySelected(newProperty);
+      console.log('✅ Property created, calling onPropertySelected');
+      await Promise.resolve(onPropertySelected(newProperty));
+      
       setShowAddForm(false);
       setNewPropertyUrl('');
+      
+      console.log('✅ Property selection completed');
     } catch (error) {
       console.error('❌ PropertySelector: Error adding property:', error);
+      // Don't throw the error, just log it
     }
   };
 
@@ -180,8 +187,11 @@ export function PropertySelector({
       {/* Search and Add Controls - Mobile Optimized */}
       <div className="space-y-3">
         <div className="relative">
+          <label htmlFor="property-search" className="sr-only">Search properties</label>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
+            id="property-search"
+            name="propertySearch"
             placeholder="Search properties by name, address, or URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -209,7 +219,12 @@ export function PropertySelector({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
+              <label htmlFor="new-property-url" className="block text-sm font-medium text-gray-700">
+                Property Listing URL
+              </label>
               <Input
+                id="new-property-url"
+                name="newPropertyUrl"
                 placeholder="https://www.vrbo.com/... or https://www.airbnb.com/..."
                 value={newPropertyUrl}
                 onChange={(e) => setNewPropertyUrl(e.target.value)}
