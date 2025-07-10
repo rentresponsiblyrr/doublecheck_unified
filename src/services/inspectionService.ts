@@ -85,19 +85,16 @@ export class InspectionService {
         return { success: false, error: inspectionError.message };
       }
 
-      // Create checklist items
+      // Create checklist items - Fixed column mapping
       const checklistItemsData: ChecklistItemInsert[] = data.checklistItems.map(item => ({
         inspection_id: inspection.id,
-        title: item.title,
-        description: item.description,
+        label: item.title,                    // Database uses 'label' not 'title'
+        notes: item.description,              // Database uses 'notes' not 'description'
         category: item.category,
-        required: item.required,
-        room_type: item.room_type,
-        gpt_prompt: item.gpt_prompt,
-        reference_photo: item.reference_photo,
+        evidence_type: 'photo',               // Required field - default to photo
+        source_photo_url: item.reference_photo,
         status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: new Date().toISOString()
       }));
 
       const { data: checklistItems, error: checklistError } = await supabase
@@ -249,9 +246,9 @@ export class InspectionService {
       for (const file of files) {
         const fileName = `${checklistItemId}/${type}s/${Date.now()}-${file.name}`;
         
-        // Upload to Supabase storage
+        // Upload to Supabase storage - Fixed bucket name
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('media')
+          .from('inspection-media')
           .upload(fileName, file, {
             cacheControl: '3600',
             upsert: false
@@ -264,7 +261,7 @@ export class InspectionService {
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('media')
+          .from('inspection-media')
           .getPublicUrl(fileName);
 
         // Save media file record
