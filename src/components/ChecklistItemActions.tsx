@@ -26,7 +26,8 @@ export const ChecklistItemActions = ({
   const [isAssigning, setIsAssigning] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { assignChecklistItem } = useInspectorCollaboration(inspectionId);
+  // const { assignChecklistItem } = useInspectorCollaboration(inspectionId); // DISABLED - missing table
+  const assignChecklistItem = async () => null; // Placeholder
 
   const handleStatusChange = async (newStatus: 'completed' | 'failed' | 'not_applicable') => {
     setIsSaving(true);
