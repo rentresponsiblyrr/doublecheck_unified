@@ -358,10 +358,10 @@ export class AuditorService {
           break;
       }
 
-      // Get inspection counts and metrics
+      // Get inspection counts and metrics - Get ALL inspections to show correct metrics
       const { data: inspectionMetrics, error: metricsError } = await supabase
         .from('inspections')
-        .select('id, status, created_at, end_time')
+        .select('id, status, created_at, end_time, inspector_id')
         .gte('created_at', startDate.toISOString());
 
       if (metricsError) {
@@ -386,6 +386,16 @@ export class AuditorService {
       const pendingReviews = inspectionMetrics?.filter(i => 
         ['completed', 'pending_review', 'in_review'].includes(i.status || '')
       ).length || 0;
+
+      // Debug logging
+      logger.info('Auditor metrics calculation', {
+        totalInspections,
+        completedInspections: completedInspections.length,
+        pendingReviews,
+        statuses: inspectionMetrics?.map(i => i.status) || [],
+        timeRange,
+        startDate: startDate.toISOString()
+      }, 'AUDITOR_SERVICE');
       
       const completedToday = completedInspections.filter(i => {
         const completedDate = new Date(i.end_time || i.created_at);

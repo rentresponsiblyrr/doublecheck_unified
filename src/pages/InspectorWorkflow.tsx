@@ -41,6 +41,8 @@ import { PhotoGuidance } from '@/components/photo/PhotoGuidance';
 import { VideoRecorder } from '@/components/video/VideoRecorder';
 import { OfflineSync } from '@/components/mobile/OfflineSync';
 import { ErrorFallback } from '@/components/error/ErrorFallback';
+import { SafeWorkflowWrapper } from '@/components/SafeWorkflowWrapper';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 
 // Types
 interface InspectionStep {
@@ -84,6 +86,16 @@ export function InspectorWorkflow() {
   const { error, handleError, clearError, withErrorHandling } = useErrorHandling();
   const { startTracking, trackEvent } = usePerformanceMonitoring();
   const { user } = useAuth();
+
+  // Safe navigation back to dashboard
+  const handleSafeReturn = () => {
+    try {
+      navigate('/');
+    } catch (error) {
+      console.error('Navigation failed, reloading page:', error);
+      window.location.href = '/';
+    }
+  };
 
   // State Management
   const [currentStep, setCurrentStep] = useState(0);
@@ -573,23 +585,21 @@ export function InspectorWorkflow() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <SafeWorkflowWrapper>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <Home className="h-5 w-5 mr-2" />
-                Dashboard
-              </Button>
-              <div className="h-6 border-l border-gray-300" />
+            <div className="flex flex-col space-y-2">
+              <Breadcrumbs
+                items={[
+                  { label: 'Dashboard', path: '/' },
+                  { label: 'New Inspection', current: true }
+                ]}
+              />
               <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Property Inspection
+                Property Inspection Workflow
               </h1>
             </div>
             
@@ -621,11 +631,24 @@ export function InspectorWorkflow() {
       {/* Error Display */}
       {error.isError && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <ErrorFallback
-            error={error.error!}
-            resetError={clearError}
-            minimal
-          />
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertTitle className="text-red-800">Inspection Error</AlertTitle>
+            <AlertDescription className="text-red-700 mb-4">
+              {error.error?.message || 'An error occurred during the inspection process.'}
+            </AlertDescription>
+            <div className="flex space-x-2">
+              <Button onClick={clearError} variant="outline" size="sm">
+                Try Again
+              </Button>
+              <Button onClick={handleSafeReturn} variant="outline" size="sm">
+                Return to Dashboard
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                Refresh Page
+              </Button>
+            </div>
+          </Alert>
         </div>
       )}
 
@@ -695,10 +718,44 @@ export function InspectorWorkflow() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <PropertySelector
-                      onPropertySelected={handlePropertySelected}
-                      selectedProperty={selectedProperty}
-                    />
+                    <div className="space-y-4">
+                      {/* Test Property Creation Button */}
+                      <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div>
+                          <h3 className="font-medium text-blue-900">Quick Test</h3>
+                          <p className="text-sm text-blue-700">Skip property selection with a test property</p>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            const testProperty: Property = {
+                              id: `test-${Date.now()}`,
+                              address: '123 Test Street, Sample City, ST 12345',
+                              type: 'single_family',
+                              bedrooms: 3,
+                              bathrooms: 2,
+                              sqft: 1500,
+                            };
+                            handlePropertySelected(testProperty);
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Use Test Property
+                        </Button>
+                      </div>
+
+                      {/* Property Selector with Error Boundary */}
+                      <div>
+                        <h3 className="font-medium mb-4">Or Select Existing Property</h3>
+                        <div className="border rounded-lg p-4">
+                          <PropertySelector
+                            onPropertySelected={handlePropertySelected}
+                            selectedProperty={selectedProperty}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -841,6 +898,7 @@ export function InspectorWorkflow() {
           </Alert>
         </div>
       )}
-    </div>
+      </div>
+    </SafeWorkflowWrapper>
   );
 }

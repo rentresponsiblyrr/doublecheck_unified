@@ -29,7 +29,7 @@ export const useInspectorDashboard = () => {
         throw new Error('User not authenticated');
       }
 
-      console.log('🔍 Fetching inspections for inspector:', user.email);
+      console.log('🔍 Fetching inspections for inspector:', user.email, 'User ID:', user.id);
 
       // Query inspections for the current user
       const { data: inspectionsData, error: inspectionsError } = await supabase
@@ -41,6 +41,7 @@ export const useInspectorDashboard = () => {
           start_time,
           end_time,
           completed,
+          inspector_id,
           properties:property_id (
             id,
             name,
@@ -48,7 +49,7 @@ export const useInspectorDashboard = () => {
           )
         `)
         .eq('inspector_id', user.id)
-        .order('start_time', { ascending: false });
+        .order('start_time', { ascending: false, nullsFirst: false });
 
       if (inspectionsError) {
         console.error('❌ Failed to fetch inspections:', inspectionsError);
@@ -56,6 +57,17 @@ export const useInspectorDashboard = () => {
       }
 
       console.log('✅ Fetched inspections:', inspectionsData?.length || 0);
+      console.log('📊 Inspection data sample:', inspectionsData?.[0]);
+
+      // If no inspections found, let's also try to fetch all inspections to debug
+      if (!inspectionsData || inspectionsData.length === 0) {
+        console.log('🔍 No inspections found for user, checking all inspections...');
+        const { data: allInspections } = await supabase
+          .from('inspections')
+          .select('id, inspector_id, status')
+          .limit(5);
+        console.log('📋 Sample of all inspections:', allInspections);
+      }
 
       // For each inspection, get checklist items count and completed count
       const inspectionsWithProgress = await Promise.all(
@@ -72,6 +84,8 @@ export const useInspectorDashboard = () => {
           const totalItems = checklistItems?.length || 0;
           const completedItems = checklistItems?.filter(item => item.status === 'completed').length || 0;
           const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+          console.log(`📝 Inspection ${inspection.id}: ${completedItems}/${totalItems} items (${progressPercentage}%)`);
 
           return {
             ...inspection,
@@ -98,6 +112,10 @@ export const useInspectorDashboard = () => {
     pending_review: inspections.filter(i => i.status === 'pending_review').length,
     approved: inspections.filter(i => i.status === 'approved').length,
   };
+
+  // Debug logging for summary
+  console.log('📊 Dashboard Summary:', summary);
+  console.log('📋 Inspection statuses:', inspections.map(i => ({ id: i.id, status: i.status })));
 
   // Get recent inspections (last 7 days)
   const recentInspections = inspections.filter(inspection => {

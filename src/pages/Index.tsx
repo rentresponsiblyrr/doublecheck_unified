@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { useInspectorDashboard } from "@/hooks/useInspectorDashboard";
@@ -17,12 +17,20 @@ import {
   Eye,
   BarChart3
 } from "lucide-react";
+import { debugDashboardData } from "@/utils/debugDashboard";
 
 const Index = () => {
   console.log('📱 Inspector Dashboard - STR Certified');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { inspections, recentInspections, summary, isLoading, error } = useInspectorDashboard();
+
+  // Debug dashboard data on mount
+  useEffect(() => {
+    if (user?.id) {
+      debugDashboardData(user.id);
+    }
+  }, [user?.id]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
