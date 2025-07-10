@@ -17,8 +17,7 @@ import {
   Eye,
   BarChart3
 } from "lucide-react";
-import { debugDashboardData } from "@/utils/debugDashboard";
-import { fixOrphanedInspections, createTestInspection } from "@/utils/fixOrphanedInspections";
+// Debug imports removed to prevent auto-execution errors
 
 const Index = () => {
   console.log('📱 Inspector Dashboard - STR Certified');
@@ -26,12 +25,7 @@ const Index = () => {
   const { user } = useAuth();
   const { inspections, recentInspections, summary, isLoading, error } = useInspectorDashboard();
 
-  // Debug dashboard data on mount
-  useEffect(() => {
-    if (user?.id) {
-      debugDashboardData(user.id);
-    }
-  }, [user?.id]);
+  // Remove automatic debug calls to prevent 400 errors
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -105,24 +99,7 @@ const Index = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Inspector Dashboard</h1>
           <p className="text-gray-600">Welcome back, {user?.email}</p>
-          {/* Development debug buttons */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="flex gap-2 mt-2">
-              <Button 
-                onClick={async () => {
-                  try {
-                    await debugDashboardData(user?.id);
-                  } catch (error) {
-                    console.error('Debug failed:', error);
-                  }
-                }} 
-                variant="outline" 
-                size="sm"
-              >
-                Debug Dashboard (Safe)
-              </Button>
-            </div>
-          )}
+          {/* Debug functionality removed to prevent database errors */}
         </div>
 
         {/* Summary Stats */}

@@ -11,7 +11,7 @@ export const fixOrphanedInspections = async (userId: string) => {
     // Get inspections with null inspector_id
     const { data: orphanedInspections, error: fetchError } = await supabase
       .from('inspections')
-      .select('id, inspector_id, status, created_at')
+      .select('id, inspector_id, status, start_time')
       .is('inspector_id', null)
       .limit(10);
 

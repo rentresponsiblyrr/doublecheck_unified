@@ -26,89 +26,102 @@ export const useInspectorDashboard = () => {
     queryKey: ['inspector-inspections', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        throw new Error('User not authenticated');
+        console.log('❌ No user ID available');
+        return [];
       }
 
-      console.log('🔍 Fetching inspections for inspector:', user.email, 'User ID:', user.id);
+      console.log('🔍 Fetching inspections for user:', user.id);
 
-      // Query inspections for the current user
-      const { data: inspectionsData, error: inspectionsError } = await supabase
-        .from('inspections')
-        .select(`
-          id,
-          property_id,
-          status,
-          start_time,
-          end_time,
-          completed,
-          inspector_id,
-          properties:property_id (
+      try {
+        // Use the proven working pattern - minimal query first
+        const { data: inspectionsData, error: inspectionsError } = await supabase
+          .from('inspections')
+          .select(`
             id,
-            name,
-            address
-          )
-        `)
-        .eq('inspector_id', user.id)
-        .order('start_time', { ascending: false, nullsFirst: false });
+            property_id,
+            status,
+            start_time,
+            end_time,
+            completed,
+            inspector_id,
+            properties:property_id (
+              id,
+              name,
+              address
+            )
+          `)
+          .eq('inspector_id', user.id)
+          .order('start_time', { ascending: false, nullsFirst: false });
 
-      if (inspectionsError) {
-        console.error('❌ Failed to fetch inspections:', inspectionsError);
-        console.error('❌ Error details:', inspectionsError.message, inspectionsError.code);
-        
-        // Handle specific error cases gracefully
-        if (inspectionsError.code === 'PGRST116' || inspectionsError.message?.includes('permission')) {
-          console.warn('⚠️ No permission to access inspections, returning empty array');
+        if (inspectionsError) {
+          console.error('❌ Inspections query failed:', inspectionsError);
+          
+          // Handle permission errors gracefully
+          if (inspectionsError.code === 'PGRST116' || 
+              inspectionsError.message?.includes('permission') ||
+              inspectionsError.message?.includes('RLS')) {
+            console.warn('⚠️ No permission to access inspections, returning empty state');
+            return [];
+          }
+          
+          throw new Error(`Database error: ${inspectionsError.message}`);
+        }
+
+        console.log('✅ Successfully fetched', inspectionsData?.length || 0, 'inspections');
+
+        if (!inspectionsData || inspectionsData.length === 0) {
+          console.log('📝 No inspections found for this user');
           return [];
         }
-        
-        throw new Error(`Failed to fetch inspections: ${inspectionsError.message}`);
+
+        // Transform data with progress calculation
+        const inspectionsWithProgress = await Promise.all(
+          inspectionsData.map(async (inspection) => {
+            try {
+              const { data: checklistItems } = await supabase
+                .from('checklist_items')
+                .select('id, status')
+                .eq('inspection_id', inspection.id);
+
+              const totalItems = checklistItems?.length || 0;
+              const completedItems = checklistItems?.filter(item => item.status === 'completed').length || 0;
+              const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+              return {
+                ...inspection,
+                property: inspection.properties,
+                checklist_items_count: totalItems,
+                completed_items_count: completedItems,
+                progress_percentage: progressPercentage,
+              } as InspectorInspection;
+            } catch (error) {
+              console.warn(`Failed to get progress for inspection ${inspection.id}:`, error);
+              return {
+                ...inspection,
+                property: inspection.properties,
+                checklist_items_count: 0,
+                completed_items_count: 0,
+                progress_percentage: 0,
+              } as InspectorInspection;
+            }
+          })
+        );
+
+        return inspectionsWithProgress;
+      } catch (error) {
+        console.error('❌ Query execution failed:', error);
+        throw error;
       }
-
-      console.log('✅ Fetched inspections:', inspectionsData?.length || 0);
-      console.log('📊 Inspection data sample:', inspectionsData?.[0]);
-
-      // If no inspections found, let's also try to fetch all inspections to debug
-      if (!inspectionsData || inspectionsData.length === 0) {
-        console.log('🔍 No inspections found for user, checking all inspections...');
-        const { data: allInspections } = await supabase
-          .from('inspections')
-          .select('id, inspector_id, status')
-          .limit(5);
-        console.log('📋 Sample of all inspections:', allInspections);
-      }
-
-      // For each inspection, get checklist items count and completed count
-      const inspectionsWithProgress = await Promise.all(
-        (inspectionsData || []).map(async (inspection) => {
-          const { data: checklistItems, error: itemsError } = await supabase
-            .from('checklist_items')
-            .select('id, status')
-            .eq('inspection_id', inspection.id);
-
-          if (itemsError) {
-            console.warn(`⚠️ Failed to fetch checklist items for inspection ${inspection.id}:`, itemsError);
-          }
-
-          const totalItems = checklistItems?.length || 0;
-          const completedItems = checklistItems?.filter(item => item.status === 'completed').length || 0;
-          const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-          console.log(`📝 Inspection ${inspection.id}: ${completedItems}/${totalItems} items (${progressPercentage}%)`);
-
-          return {
-            ...inspection,
-            property: inspection.properties,
-            checklist_items_count: totalItems,
-            completed_items_count: completedItems,
-            progress_percentage: progressPercentage,
-          } as InspectorInspection;
-        })
-      );
-
-      return inspectionsWithProgress;
     },
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30 seconds for updates
+    retry: (failureCount, error) => {
+      // Don't retry permission errors
+      if (error?.message?.includes('permission') || error?.message?.includes('RLS')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    refetchInterval: 60000, // Reduced frequency to avoid rate limits
   });
 
   // Get summary statistics with robust status matching
