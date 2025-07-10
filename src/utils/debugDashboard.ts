@@ -68,6 +68,47 @@ export const debugDashboardData = async (userId?: string) => {
       console.log('👤 Current user:', userData.user?.id, userData.user?.email);
     }
 
+    // Check if user exists in users table
+    if (userId) {
+      const { data: userRecord, error: userRecordError } = await supabase
+        .from('users')
+        .select('id, email, name, role')
+        .eq('id', userId)
+        .single();
+
+      if (userRecordError) {
+        console.error('❌ Error fetching user record:', userRecordError);
+      } else {
+        console.log('👤 User record:', userRecord);
+      }
+    }
+
+    // Check for inspections with null inspector_id
+    const { data: nullInspections, error: nullError } = await supabase
+      .from('inspections')
+      .select('id, inspector_id, status, created_at')
+      .is('inspector_id', null)
+      .limit(5);
+
+    if (nullError) {
+      console.error('❌ Error fetching null inspections:', nullError);
+    } else {
+      console.log('🔍 Inspections with null inspector_id:', nullInspections);
+    }
+
+    // Get unique statuses
+    const { data: statusData, error: statusError } = await supabase
+      .from('inspections')
+      .select('status')
+      .limit(50);
+
+    if (statusError) {
+      console.error('❌ Error fetching statuses:', statusError);
+    } else {
+      const uniqueStatuses = [...new Set(statusData?.map(i => i.status))];
+      console.log('📊 Unique inspection statuses in DB:', uniqueStatuses);
+    }
+
   } catch (error) {
     console.error('❌ Debug failed:', error);
   }

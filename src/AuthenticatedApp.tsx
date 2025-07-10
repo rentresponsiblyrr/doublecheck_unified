@@ -29,6 +29,7 @@ import { InspectorWorkflow } from "./pages/InspectorWorkflow";
 // Loading Components
 import { Skeleton } from "@/components/ui/skeleton";
 import { DomainAwarePWA } from "@/components/DomainAwarePWA";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 
 // Enhanced Query Client with error handling
 const queryClient = new QueryClient({
@@ -126,28 +127,36 @@ interface AuthenticatedAppProps {
 export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   const appType = getAppTypeFromDomain();
   
-  // Log app configuration in development
+  // Log app configuration and routing debug info
   React.useEffect(() => {
+    console.log('🔍 AuthenticatedApp Debug Info:');
+    console.log('- Domain:', window.location.hostname);
+    console.log('- App Type:', appType);
+    console.log('- Current Path:', window.location.pathname);
+    console.log('- User:', user?.email);
+    console.log('- Environment:', env.getEnvironment());
+    
     if (env.isDevelopment()) {
       logAppConfiguration();
     }
-  }, []);
+  }, [appType, user]);
   
   return (
-    <ErrorBoundary
-      level="page"
-      fallback={({ error, resetError, errorId }) => (
-        <ErrorFallback
-          error={error}
-          resetError={resetError}
-          errorId={errorId}
-          showDetails={env.isDevelopment()}
-        />
-      )}
-      onError={(error, errorInfo) => {
-        console.error('App-level error:', error, errorInfo);
-      }}
-    >
+    <GlobalErrorBoundary>
+      <ErrorBoundary
+        level="page"
+        fallback={({ error, resetError, errorId }) => (
+          <ErrorFallback
+            error={error}
+            resetError={resetError}
+            errorId={errorId}
+            showDetails={env.isDevelopment()}
+          />
+        )}
+        onError={(error, errorInfo) => {
+          console.error('App-level error:', error, errorInfo);
+        }}
+      >
       <SystemHealthCheck>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
@@ -166,13 +175,17 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
           </TooltipProvider>
         </QueryClientProvider>
       </SystemHealthCheck>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </GlobalErrorBoundary>
   );
 }
 
 // Inspector Routes Component - Mobile-optimized for app.doublecheckverified.com
 function InspectorRoutes() {
   React.useEffect(() => {
+    console.log('🚀 InspectorRoutes component mounted');
+    console.log('📍 Current path:', window.location.pathname);
+    
     // Set mobile-specific viewport and PWA metadata
     const metaViewport = document.querySelector('meta[name="viewport"]');
     if (metaViewport) {

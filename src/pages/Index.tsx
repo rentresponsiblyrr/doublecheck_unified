@@ -18,6 +18,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { debugDashboardData } from "@/utils/debugDashboard";
+import { fixOrphanedInspections, createTestInspection } from "@/utils/fixOrphanedInspections";
 
 const Index = () => {
   console.log('📱 Inspector Dashboard - STR Certified');
@@ -88,6 +89,44 @@ const Index = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Inspector Dashboard</h1>
           <p className="text-gray-600">Welcome back, {user?.email}</p>
+          {/* Debug buttons - remove in production */}
+          <div className="flex gap-2 mt-2">
+            <Button 
+              onClick={() => debugDashboardData(user?.id)} 
+              variant="outline" 
+              size="sm"
+            >
+              Debug Dashboard
+            </Button>
+            <Button 
+              onClick={async () => {
+                if (user?.id) {
+                  const result = await fixOrphanedInspections(user.id);
+                  console.log('Fix result:', result);
+                  // Refresh data after fix
+                  window.location.reload();
+                }
+              }} 
+              variant="outline" 
+              size="sm"
+            >
+              Fix Orphaned Inspections
+            </Button>
+            <Button 
+              onClick={async () => {
+                if (user?.id) {
+                  const result = await createTestInspection(user.id);
+                  console.log('Test inspection result:', result);
+                  // Refresh data after creation
+                  window.location.reload();
+                }
+              }} 
+              variant="outline" 
+              size="sm"
+            >
+              Create Test Inspection
+            </Button>
+          </div>
         </div>
 
         {/* Summary Stats */}

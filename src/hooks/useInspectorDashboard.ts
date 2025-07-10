@@ -103,19 +103,28 @@ export const useInspectorDashboard = () => {
     refetchInterval: 30000, // Refetch every 30 seconds for updates
   });
 
-  // Get summary statistics
+  // Get summary statistics with robust status matching
   const summary = {
     total: inspections.length,
     draft: inspections.filter(i => i.status === 'draft').length,
-    in_progress: inspections.filter(i => i.status === 'in_progress').length,
+    in_progress: inspections.filter(i => i.status === 'in_progress' || i.status === 'in-progress').length,
     completed: inspections.filter(i => i.status === 'completed').length,
-    pending_review: inspections.filter(i => i.status === 'pending_review').length,
+    pending_review: inspections.filter(i => i.status === 'pending_review' || i.status === 'pending-review').length,
     approved: inspections.filter(i => i.status === 'approved').length,
   };
 
   // Debug logging for summary
   console.log('📊 Dashboard Summary:', summary);
   console.log('📋 Inspection statuses:', inspections.map(i => ({ id: i.id, status: i.status })));
+
+  // If no data found, provide helpful debug information
+  if (inspections.length === 0) {
+    console.log('⚠️ No inspections found for this user. This could mean:');
+    console.log('1. User has no inspections yet');
+    console.log('2. User ID mismatch in database');
+    console.log('3. Database connection issue');
+    console.log('4. Incorrect inspector_id relationship');
+  }
 
   // Get recent inspections (last 7 days)
   const recentInspections = inspections.filter(inspection => {
