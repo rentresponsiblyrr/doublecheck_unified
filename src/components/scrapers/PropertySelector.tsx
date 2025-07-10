@@ -19,6 +19,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/AuthProvider';
 
 // Types
 interface Property {
@@ -61,6 +62,7 @@ export function PropertySelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newPropertyUrl, setNewPropertyUrl] = useState('');
+  const { user } = useAuth();
 
   // Fetch properties from database
   const { 
@@ -69,11 +71,18 @@ export function PropertySelector({
     error: propertiesError, 
     refetch 
   } = useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties', user?.id],
     queryFn: async () => {
-      console.log('🏠 PropertySelector: Fetching properties...');
+      if (!user?.id) {
+        console.log('❌ PropertySelector: No user ID available, returning empty properties');
+        return [];
+      }
+
+      console.log('🏠 PropertySelector: Fetching properties for user:', user.id);
       
-      const { data, error } = await supabase.rpc('get_properties_with_inspections');
+      const { data, error } = await supabase.rpc('get_properties_with_inspections', {
+        _user_id: user.id
+      });
       
       if (error) {
         console.error('❌ PropertySelector: Error fetching properties:', error);
@@ -83,6 +92,7 @@ export function PropertySelector({
       console.log('✅ PropertySelector: Successfully fetched properties:', data?.length || 0);
       return data as PropertyData[];
     },
+    enabled: !!user?.id, // Only run query when user is available
     retry: 2,
     staleTime: 30000, // Cache for 30 seconds
   });

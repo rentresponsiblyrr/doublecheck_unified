@@ -7,6 +7,7 @@ import { PropertySelectionError } from "@/components/PropertySelectionError";
 import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 
 interface PropertyData {
   property_id: string;
@@ -33,43 +34,59 @@ interface Inspection {
 const PropertySelection = () => {
   console.log('🏠 PropertySelection component mounting');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: properties = [], isLoading: propertiesLoading, error: propertiesError, refetch: refetchProperties } = useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties', user?.id],
     queryFn: async () => {
-      console.log('📊 Fetching properties with inspections from database...');
+      if (!user?.id) {
+        console.log('❌ No user ID available, returning empty properties');
+        return [];
+      }
+
+      console.log('📊 Fetching properties with inspections for user:', user.id);
       
-      const { data, error } = await supabase.rpc('get_properties_with_inspections');
+      const { data, error } = await supabase.rpc('get_properties_with_inspections', {
+        _user_id: user.id
+      });
       
       if (error) {
         console.error('❌ Error fetching properties:', error);
         throw error;
       }
 
-      console.log('✅ Successfully fetched properties:', data?.length || 0);
+      console.log('✅ Successfully fetched properties for user:', data?.length || 0);
       return data as PropertyData[];
     },
+    enabled: !!user?.id, // Only run query when user is available
     retry: 2,
     staleTime: 0, // Always refetch to ensure fresh data
   });
 
   const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useQuery({
-    queryKey: ['inspections'],
+    queryKey: ['inspections', user?.id],
     queryFn: async () => {
-      console.log('📊 Fetching inspections from database...');
+      if (!user?.id) {
+        console.log('❌ No user ID available, returning empty inspections');
+        return [];
+      }
+
+      console.log('📊 Fetching inspections from database for user:', user.id);
       
       const { data, error } = await supabase
         .from('inspections')
-        .select('*');
+        .select('*')
+        .eq('inspector_id', user.id);
       
       if (error) {
         console.error('❌ Error fetching inspections:', error);
         throw error;
       }
 
-      console.log('✅ Successfully fetched inspections:', data?.length || 0);
+      console.log('✅ Successfully fetched inspections for user:', data?.length || 0);
       return data as Inspection[];
     },
+    enabled: !!user?.id, // Only run query when user is available
     retry: 2,
     staleTime: 0, // Always refetch to ensure fresh data
   });

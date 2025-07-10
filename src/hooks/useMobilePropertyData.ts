@@ -27,7 +27,9 @@ export const useMobilePropertyData = (userId?: string) => {
 
       try {
         // Mobile-optimized query with timeout
-        const queryPromise = supabase.rpc('get_properties_with_inspections');
+        const queryPromise = supabase.rpc('get_properties_with_inspections', {
+          _user_id: userId || null
+        });
 
         // Mobile timeout (5 seconds)
         const timeoutPromise = new Promise((_, reject) => {
