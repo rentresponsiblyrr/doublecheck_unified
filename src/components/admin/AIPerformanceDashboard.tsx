@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import OfflineIndicator from '@/components/ui/OfflineIndicator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -70,14 +71,14 @@ export const AIPerformanceDashboard: React.FC<AIPerformanceDashboardProps> = ({
   // Initialize metrics collector
   const metricsCollector = React.useMemo(() => createAIMetricsCollector(), []);
 
-  // Fetch real-time metrics
+  // Fetch real-time metrics with optimized intervals
   const { data: metrics, isLoading, refetch } = useQuery({
     queryKey: ['ai-performance-metrics', timeRange],
     queryFn: async () => {
       return metricsCollector.getRealTimeMetrics();
     },
-    refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds
-    staleTime: 15000 // Consider stale after 15 seconds
+    refetchInterval: autoRefresh ? 5 * 60 * 1000 : false, // Refresh every 5 minutes
+    staleTime: 2 * 60 * 1000 // Consider stale after 2 minutes
   });
 
   // Fetch performance report
@@ -104,7 +105,8 @@ export const AIPerformanceDashboard: React.FC<AIPerformanceDashboardProps> = ({
 
       return metricsCollector.generatePerformanceReport(start, end);
     },
-    refetchInterval: autoRefresh ? 60000 : false // Refresh every minute
+    refetchInterval: autoRefresh ? 10 * 60 * 1000 : false, // Refresh every 10 minutes
+    staleTime: 5 * 60 * 1000 // Consider stale after 5 minutes
   });
 
   // Mock data for charts (in production, would come from metrics)
@@ -234,6 +236,9 @@ export const AIPerformanceDashboard: React.FC<AIPerformanceDashboardProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Network Status Indicator */}
+      <OfflineIndicator className="mb-6" />
 
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

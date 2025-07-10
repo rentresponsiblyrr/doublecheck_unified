@@ -2,6 +2,8 @@
 // Displays comprehensive AI learning analytics and performance metrics
 
 import React, { useState, useEffect } from 'react';
+import { sanitizeText, sanitizeAIContent, sanitizeSearchQuery } from '@/utils/sanitization';
+import { searchQuerySchema, validateAndSanitize } from '@/utils/validation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,18 +117,26 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
     }
   };
 
-  // Handle knowledge search
+  // Handle knowledge search with validation
   const handleKnowledgeSearch = async () => {
     if (!knowledgeQuery.trim()) return;
     
+    // Validate search query
+    const validationResult = validateAndSanitize(searchQuerySchema, {
+      query: knowledgeQuery,
+      filters: {
+        threshold: 0.7,
+        limit: 10
+      }
+    });
+    
+    if (!validationResult.success) {
+      logger.warn('Invalid search query', { errors: validationResult.errors }, 'AI_LEARNING_DASHBOARD');
+      return;
+    }
+    
     try {
-      await searchKnowledge({
-        query: knowledgeQuery,
-        filters: {
-          threshold: 0.7,
-          limit: 10
-        }
-      });
+      await searchKnowledge(validationResult.data);
     } catch (error) {
       logger.error('Knowledge search failed', error, 'AI_LEARNING_DASHBOARD');
     }
@@ -316,10 +326,10 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {insight.title}
+                          {sanitizeText(insight.title)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {insight.description}
+                          {sanitizeText(insight.description)}
                         </p>
                         <div className="flex items-center mt-2 space-x-2">
                           <Badge variant="outline" className="text-xs">
@@ -503,7 +513,7 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
                   type="text"
                   placeholder="Search knowledge base..."
                   value={knowledgeQuery}
-                  onChange={(e) => setKnowledgeQuery(e.target.value)}
+                  onChange={(e) => setKnowledgeQuery(sanitizeSearchQuery(e.target.value))}
                   className="flex-1 px-3 py-2 border rounded-md"
                   onKeyPress={(e) => e.key === 'Enter' && handleKnowledgeSearch()}
                 />
@@ -521,9 +531,9 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
                     <Card key={result.id} className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium">{result.title}</h4>
+                          <h4 className="font-medium">{sanitizeText(result.title)}</h4>
                           <p className="text-sm text-gray-600 mt-1">
-                            {result.content.substring(0, 200)}...
+                            {sanitizeText(result.content.substring(0, 200))}...
                           </p>
                           <div className="flex items-center mt-2 space-x-4 text-xs text-gray-500">
                             <span>Category: {result.category}</span>

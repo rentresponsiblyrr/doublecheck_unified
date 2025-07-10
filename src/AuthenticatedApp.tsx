@@ -286,8 +286,18 @@ function InspectorRoutes() {
 
 // Admin Routes Component - Desktop-optimized for admin.doublecheckverified.com
 function AdminRoutesComponent() {
-  const LazyAuditorDashboard = React.lazy(() => import("./pages/AuditorDashboard"));
-  const LazyDebugInspectionPage = React.lazy(() => import("./components/DebugInspectionPage"));
+  const LazyAuditorDashboard = React.lazy(() => 
+    import("./pages/SimpleAuditorDashboard").catch(() => 
+      import("./pages/AuditorDashboard").catch(() => ({
+        default: () => <div className="p-6">Auditor Dashboard loading...</div>
+      }))
+    )
+  );
+  const LazyDebugInspectionPage = React.lazy(() => 
+    import("./components/DebugInspectionPage").catch(() => ({
+      default: () => <div className="p-6">Debug tools temporarily unavailable</div>
+    }))
+  );
   
   React.useEffect(() => {
     // Set desktop-specific viewport and metadata

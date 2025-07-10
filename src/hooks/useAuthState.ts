@@ -13,20 +13,36 @@ export const useAuthState = () => {
   const [error, setError] = useState<string | null>(null);
   
   const initializationRef = useRef<Promise<void> | null>(null);
+  const roleLoadingRef = useRef<Promise<void> | null>(null);
   const { toast } = useToast();
   const { fetchUserRole, clearSession, signIn, signUp, signOut } = useMobileAuthHooks();
 
   const loadUserRole = useCallback(async () => {
     if (!user?.id) return;
     
-    console.log('📱 Loading mobile user role...');
-    try {
-      const role = await fetchUserRole(user.id, false);
-      setUserRole(role);
-    } catch (error) {
-      console.error('📱 Failed to load mobile role:', error);
-      setUserRole('inspector');
+    // Prevent concurrent role loading
+    if (roleLoadingRef.current) {
+      console.log('📱 Role loading already in progress, waiting...');
+      await roleLoadingRef.current;
+      return;
     }
+    
+    console.log('📱 Loading mobile user role...');
+    
+    const roleLoadingPromise = (async () => {
+      try {
+        const role = await fetchUserRole(user.id, false);
+        setUserRole(role);
+      } catch (error) {
+        console.error('📱 Failed to load mobile role:', error);
+        setUserRole('inspector');
+      } finally {
+        roleLoadingRef.current = null;
+      }
+    })();
+    
+    roleLoadingRef.current = roleLoadingPromise;
+    await roleLoadingPromise;
   }, [user?.id, fetchUserRole]);
 
   const handleClearSession = useCallback(() => {

@@ -5,6 +5,29 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { enhancedAIService } from '@/lib/ai/enhanced-ai-service';
 import { aiLearningService } from '@/services/aiLearningService';
 import { logger } from '@/utils/logger';
+import { useRequestDeduplication } from '@/utils/requestDeduplication';
+
+// Exponential backoff utility
+const exponentialBackoff = async (
+  fn: () => Promise<any>,
+  retries: number = 3,
+  baseDelay: number = 1000,
+  maxDelay: number = 30000
+): Promise<any> => {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+      
+      const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+      logger.warn(`Attempt ${attempt + 1} failed, retrying in ${delay}ms`, error, 'EXPONENTIAL_BACKOFF');
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+};
 import type {
   DynamicChecklistItem,
   PropertyData,
@@ -174,6 +197,9 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
 
   // Refs for cleanup
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Request deduplication
+  const { deduplicatePhotoAnalysis, cancelRequestsMatching } = useRequestDeduplication();
 
   // ===================================================================
   // PHOTO ANALYSIS
@@ -185,12 +211,6 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
     context: InspectionContext,
     options: AIAnalysisOptions = {}
   ): Promise<EnhancedAnalysisResult> => {
-    // Cancel any ongoing analysis
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-
     setIsAnalyzingPhoto(true);
     setPhotoAnalysisError(null);
 
@@ -201,11 +221,25 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
         propertyType: context.property.type
       }, 'USE_ENHANCED_AI');
 
-      const result = await enhancedAIService.analyzeInspectionPhotoWithContext(
-        file,
+      // Use request deduplication for photo analysis
+      const analysisContext = {
         checklistItem,
         context,
         options
+      };
+
+      const result = await deduplicatePhotoAnalysis(
+        file,
+        analysisContext,
+        async (signal: AbortSignal) => {
+          return enhancedAIService.analyzeInspectionPhotoWithContext(
+            file,
+            checklistItem,
+            context,
+            options
+          );
+        },
+        5 * 60 * 1000 // 5 minute TTL for photo analysis cache
       );
 
       setPhotoAnalysis(result);
@@ -228,9 +262,8 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
 
     } finally {
       setIsAnalyzingPhoto(false);
-      abortControllerRef.current = null;
     }
-  }, []);
+  }, [deduplicatePhotoAnalysis]);
 
   // ===================================================================
   // CHECKLIST GENERATION
@@ -559,15 +592,24 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
   // EFFECTS
   // ===================================================================
 
-  // Load initial insights and performance on mount
+  // Load initial insights and performance on mount with exponential backoff
   useEffect(() => {
-    // Wrap in try-catch to prevent crashes in development
+    let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
     const loadInitialData = async () => {
+      if (!mounted) return;
+      
       try {
-        await refreshInsights();
-        await refreshPerformance();
+        await exponentialBackoff(async () => {
+          if (!mounted) throw new Error('Component unmounted');
+          await Promise.all([refreshInsights(), refreshPerformance()]);
+        }, maxRetries);
       } catch (error) {
-        logger.error('Failed to load initial AI data', error, 'USE_ENHANCED_AI');
+        if (!mounted) return;
+        
+        logger.error('Failed to load initial AI data after retries', error, 'USE_ENHANCED_AI');
         // Set mock data to prevent crashes
         setLearningInsights([]);
         setModelPerformance({
@@ -598,7 +640,11 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
     };
     
     loadInitialData();
-  }, [refreshInsights, refreshPerformance]);
+    
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -7,6 +7,8 @@ export class AIMetricsCollector {
   private performanceMonitor: PerformanceMonitor;
   private accuracyTracker: AccuracyTracker;
   private costCalculator: CostCalculator;
+  private intervalIds: Set<NodeJS.Timeout> = new Set();
+  private isDestroyed: boolean = false;
 
   constructor() {
     this.metrics = new MetricsStore();
@@ -14,6 +16,15 @@ export class AIMetricsCollector {
     this.performanceMonitor = new PerformanceMonitor();
     this.accuracyTracker = new AccuracyTracker();
     this.costCalculator = new CostCalculator();
+  }
+
+  /**
+   * Cleanup method to prevent memory leaks
+   */
+  destroy(): void {
+    this.isDestroyed = true;
+    this.intervalIds.forEach(id => clearInterval(id));
+    this.intervalIds.clear();
   }
 
   /**
@@ -307,32 +318,52 @@ export class AIMetricsCollector {
   }
 
   /**
-   * Sets up automated monitoring
+   * Sets up automated monitoring with proper cleanup
    */
   async setupAutomatedMonitoring(): Promise<void> {
+    if (this.isDestroyed) return;
+
     // Monitor accuracy every 5 minutes
-    setInterval(async () => {
-      const accuracy = await this.accuracyTracker.getRecentAccuracy();
-      if (accuracy < 0.75) {
-        await this.triggerAlert('low_accuracy', { accuracy });
+    const accuracyInterval = setInterval(async () => {
+      if (this.isDestroyed) return;
+      try {
+        const accuracy = await this.accuracyTracker.getRecentAccuracy();
+        if (accuracy < 0.75) {
+          await this.triggerAlert('low_accuracy', { accuracy });
+        }
+      } catch (error) {
+        console.error('Accuracy monitoring error:', error);
       }
     }, 5 * 60 * 1000);
+    this.intervalIds.add(accuracyInterval);
 
     // Monitor costs every hour
-    setInterval(async () => {
-      const hourlyCost = await this.apiUsageTracker.getHourlyCost();
-      if (hourlyCost > 10) { // $10/hour threshold
-        await this.triggerAlert('high_hourly_cost', { cost: hourlyCost });
+    const costInterval = setInterval(async () => {
+      if (this.isDestroyed) return;
+      try {
+        const hourlyCost = await this.apiUsageTracker.getHourlyCost();
+        if (hourlyCost > 10) { // $10/hour threshold
+          await this.triggerAlert('high_hourly_cost', { cost: hourlyCost });
+        }
+      } catch (error) {
+        console.error('Cost monitoring error:', error);
       }
     }, 60 * 60 * 1000);
+    this.intervalIds.add(costInterval);
 
     // Monitor performance every minute
-    setInterval(async () => {
-      const p95 = await this.performanceMonitor.getPercentile(95);
-      if (p95 > 5000) { // 5 second threshold
-        await this.triggerAlert('slow_p95_response', { p95 });
+    const performanceInterval = setInterval(async () => {
+      if (this.isDestroyed) return;
+      try {
+        const p95 = await this.performanceMonitor.getPercentile(95);
+        if (p95 > 5000) { // 5 second threshold
+          await this.triggerAlert('slow_p95_response', { p95 });
+        }
+      } catch (error) {
+        console.error('Performance monitoring error:', error);
       }
     }, 60 * 1000);
+    this.intervalIds.add(performanceInterval);
   }
 
   // Private helper methods

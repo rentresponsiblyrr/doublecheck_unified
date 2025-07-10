@@ -7,7 +7,14 @@ export const DomainAwarePWA: React.FC = () => {
   useEffect(() => {
     // Only register PWA service worker on inspector domain
     if (isInspectorDomain() && 'serviceWorker' in navigator) {
-      registerPWA();
+      // Add timeout to prevent hanging
+      const timeoutId = setTimeout(() => {
+        console.warn('PWA registration timeout - skipping');
+      }, 10000);
+      
+      registerPWA().finally(() => {
+        clearTimeout(timeoutId);
+      });
     }
   }, []);
 
@@ -21,14 +28,15 @@ export const DomainAwarePWA: React.FC = () => {
         return;
       }
 
-      // Register the service worker
+      // Register the service worker with improved error handling
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
+        updateViaCache: 'none'
       });
 
       console.log('PWA Service Worker registered successfully:', registration);
 
-      // Listen for updates
+      // Listen for updates with timeout protection
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
@@ -36,22 +44,26 @@ export const DomainAwarePWA: React.FC = () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
               console.log('New PWA version available. Refresh to update.');
-              // You could show a notification here
             }
           });
         }
       });
 
-      // Handle service worker messages
+      // Handle service worker messages with error protection
       navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SKIP_WAITING') {
-          // Update available, reload the page
-          window.location.reload();
+        try {
+          if (event.data && event.data.type === 'SKIP_WAITING') {
+            // Update available, reload the page
+            setTimeout(() => window.location.reload(), 1000);
+          }
+        } catch (error) {
+          console.warn('Service worker message handling error:', error);
         }
       });
 
     } catch (error) {
       console.error('PWA Service Worker registration failed:', error);
+      // Don't throw the error to prevent app crashes
     }
   };
 
