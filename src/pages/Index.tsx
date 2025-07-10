@@ -70,14 +70,14 @@ const Index = () => {
           <div className="text-blue-600 text-6xl mb-4">🏠</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to STR Certified</h1>
           <p className="text-gray-600 mb-4">
-            You're all set up! Your inspection data will appear here once you start your first inspection.
+            You're all set up! Your inspection data will appear here once you add your first property and start inspecting.
           </p>
           <div className="space-y-2">
             <Button 
-              onClick={() => navigate('/inspector')} 
+              onClick={() => navigate('/properties')} 
               className="w-full bg-green-600 hover:bg-green-700"
             >
-              Start Your First Inspection
+              Add Your First Property
             </Button>
             <Button 
               onClick={() => window.location.reload()} 
@@ -155,17 +155,17 @@ const Index = () => {
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/inspector')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/properties')}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Plus className="h-5 w-5 text-green-600" />
-                <span>Start New Inspection</span>
+                <span>Add New Property</span>
               </CardTitle>
-              <CardDescription>Begin a new property inspection</CardDescription>
+              <CardDescription>Add a new property to your inspection portfolio</CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full bg-green-600 hover:bg-green-700">
-                Start Inspection
+                Add Property
               </Button>
             </CardContent>
           </Card>
@@ -185,7 +185,7 @@ const Index = () => {
             </CardContent>
           </Card>
           
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/reports')}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <BarChart3 className="h-5 w-5 text-purple-600" />
@@ -211,9 +211,9 @@ const Index = () => {
             {recentInspections.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">No recent inspections</p>
-                <Button onClick={() => navigate('/inspector')} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={() => navigate('/properties')} className="bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Start Your First Inspection
+                  Add Your First Property
                 </Button>
               </div>
             ) : (

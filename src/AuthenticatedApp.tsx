@@ -22,6 +22,7 @@ import PropertySelection from "./pages/PropertySelection";
 import NotFound from "./pages/NotFound";
 import { InspectionPage } from "./pages/InspectionPage";
 import { DebugInspectionPage } from "@/components/DebugInspectionPage";
+import { InspectionReports } from "./pages/InspectionReports";
 
 // New Integrated Pages
 import { InspectorWorkflow } from "./pages/InspectorWorkflow";
@@ -242,6 +243,15 @@ function InspectorRoutes() {
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
             <AddProperty />
+          </ErrorBoundary>
+        </ProtectedRoute>
+      } />
+
+      {/* Reports */}
+      <Route path="/reports" element={
+        <ProtectedRoute requiredRole="inspector">
+          <ErrorBoundary level="component">
+            <InspectionReports />
           </ErrorBoundary>
         </ProtectedRoute>
       } />
