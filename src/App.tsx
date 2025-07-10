@@ -42,11 +42,31 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Only listen for auth changes - never auto-authenticate to ensure clean login UX
+  // Authentication setup - always start with login page
   useEffect(() => {
-    console.log('🔍 Setting up auth listener (login page first)');
+    console.log('🔍 Setting up auth listener - forcing login page');
     
-    // Listen for auth changes but don't check existing session
+    // Check if there's an existing session but don't auto-authenticate
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('🔍 Initial session check:', { session: session?.user?.email, error });
+        
+        // Even if there's a session, require explicit login for security
+        if (session?.user) {
+          console.log('⚠️ Found existing session but requiring fresh login for security');
+          await supabase.auth.signOut();
+        }
+      } catch (error) {
+        console.error('🚨 Session check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+    
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state change:', event, session?.user?.email);
       
@@ -63,7 +83,7 @@ function App() {
           setIsAuthenticated(false);
           setAuthError(null);
         } else {
-          // For other events (TOKEN_REFRESHED, etc.), stay on current state
+          // For other events, maintain current state but don't auto-authenticate
           console.log('🔄 Auth event processed:', event);
         }
       } catch (error: any) {
@@ -71,8 +91,6 @@ function App() {
         setAuthError(`Authentication error: ${error.message}`);
         setIsAuthenticated(false);
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
     });
 
