@@ -40,8 +40,29 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       
-      // Health check middleware - temporarily disabled due to environment loading issues
-      // process.env.NODE_ENV !== 'test' && healthCheckMiddleware(),
+      // Simple health check middleware for production deployment
+      {
+        name: 'simple-health-check',
+        configureServer(server: any) {
+          server.middlewares.use((req: any, res: any, next: any) => {
+            if (req.url === '/health') {
+              res.setHeader('Content-Type', 'application/json');
+              res.statusCode = 200;
+              res.end(JSON.stringify({ 
+                status: 'ok', 
+                timestamp: new Date().toISOString(),
+                service: 'str-certified'
+              }));
+            } else if (req.url === '/ready') {
+              res.setHeader('Content-Type', 'application/json');
+              res.statusCode = 200;
+              res.end(JSON.stringify({ ready: true }));
+            } else {
+              next();
+            }
+          });
+        }
+      },
       
       // PWA Support - conditional based on domain detection
       VitePWA({

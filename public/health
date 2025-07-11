@@ -1,7 +1,8 @@
 {
   "status": "healthy",
-  "timestamp": "2025-01-09T00:00:00.000Z",
+  "timestamp": "2025-01-11T00:00:00.000Z",
   "version": "1.0.0",
   "service": "str-certified-frontend",
-  "environment": "production"
+  "environment": "production",
+  "build": "consolidated-hooks"
 }
