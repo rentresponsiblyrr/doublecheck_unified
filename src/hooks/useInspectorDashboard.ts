@@ -21,6 +21,69 @@ export interface InspectorInspection {
   progress_percentage: number;
 }
 
+// Helper function to fetch properties with inspection counts
+async function fetchPropertiesWithInspections(userId: string) {
+  try {
+    // Try RPC function first
+    const result = await supabase.rpc('get_properties_with_inspections', {
+      _user_id: userId
+    });
+    
+    if (!result.error) {
+      return result;
+    }
+    
+    console.warn('⚠️ RPC function failed, falling back to direct query:', result.error);
+    
+    // Fallback to direct query
+    const { data: properties, error } = await supabase
+      .from('properties')
+      .select(`
+        id as property_id,
+        name as property_name,
+        address as property_address,
+        vrbo_url as property_vrbo_url,
+        airbnb_url as property_airbnb_url,
+        status as property_status,
+        created_at as property_created_at
+      `)
+      .eq('added_by', userId)
+      .eq('status', 'active');
+    
+    if (error) throw error;
+    
+    // Add inspection count data manually
+    const enrichedProperties = await Promise.all(
+      (properties || []).map(async (property) => {
+        const { data: inspections } = await supabase
+          .from('inspections')
+          .select('id, status, completed')
+          .eq('property_id', property.property_id);
+        
+        const inspection_count = inspections?.length || 0;
+        const completed_inspection_count = inspections?.filter(i => i.status === 'completed').length || 0;
+        const active_inspection_count = inspections?.filter(i => i.status === 'in_progress').length || 0;
+        const draft_inspection_count = inspections?.filter(i => i.status === 'draft').length || 0;
+        
+        return {
+          ...property,
+          inspection_count,
+          completed_inspection_count,
+          active_inspection_count,
+          draft_inspection_count,
+          latest_inspection_id: inspections?.[0]?.id || null,
+          latest_inspection_completed: inspections?.[0]?.completed || false
+        };
+      })
+    );
+    
+    return { data: enrichedProperties, error: null };
+  } catch (error) {
+    console.error('❌ Both RPC and fallback failed:', error);
+    return { data: [], error };
+  }
+}
+
 export const useInspectorDashboard = () => {
   const { user } = useAuth();
 
@@ -58,9 +121,7 @@ export const useInspectorDashboard = () => {
             .order('start_time', { ascending: false, nullsFirst: false }),
           
           // Fetch properties with inspection counts
-          supabase.rpc('get_properties_with_inspections', {
-            _user_id: user.id
-          })
+          fetchPropertiesWithInspections(user.id)
         ]);
 
         const { data: inspectionsData, error: inspectionsError } = inspectionsResult;
@@ -177,16 +238,29 @@ export const useInspectorDashboard = () => {
     }
   });
 
-  // Calculate property-level aggregations using centralized service
-  const propertyStats = statusCountService.calculatePropertyStats(properties);
+  // Calculate property-level aggregations with fallback handling
+  let propertyStats = { totalInspections: 0, activeInspections: 0, completedInspections: 0 };
+  
+  try {
+    propertyStats = statusCountService.calculatePropertyStats(properties);
+  } catch (error) {
+    console.warn('❌ Property stats calculation failed, using fallback', error);
+    // Fallback calculation
+    propertyStats = properties.reduce((stats, property) => ({
+      totalInspections: stats.totalInspections + (property.inspection_count || 0),
+      activeInspections: stats.activeInspections + (property.active_inspection_count || 0),
+      completedInspections: stats.completedInspections + (property.completed_inspection_count || 0)
+    }), { totalInspections: 0, activeInspections: 0, completedInspections: 0 });
+  }
 
   const summary = {
     ...statusCounts,
     properties: properties.length,
-    // Use calculated property stats
+    // Use calculated property stats with pending_review fallback
     total_property_inspections: propertyStats.totalInspections,
     active_property_inspections: propertyStats.activeInspections,
     completed_property_inspections: propertyStats.completedInspections,
+    pending_review: statusCounts.pending_review || 0,
   };
 
   // Debug logging for summary

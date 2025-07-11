@@ -105,8 +105,9 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       if (checklistItems && checklistItems.length > 0) {
         checklistItemIds = checklistItems.map(item => item.id);
         
-        // Step 3: Delete checklist item change logs (foreign key to checklist_items) - SKIPPED (table removed)
-        console.log('📋 Skipping checklist item change logs (collaboration table removed)...');
+        // Step 3: Delete checklist item change logs (foreign key to checklist_items)
+        console.log('📋 Deleting checklist item change logs...');
+        await safeDelete('checklist_item_change_log', { checklist_item_id: checklistItemIds }, 'checklist item change logs');
 
         // Step 4: Delete checklist audit logs (foreign key to checklist_items)
         console.log('📋 Deleting checklist audit logs...');

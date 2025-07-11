@@ -5,7 +5,6 @@ import { ChecklistItemUploadSection } from "@/components/ChecklistItemUploadSect
 import { ChecklistItemHeader } from "@/components/ChecklistItemHeader";
 import { ChecklistItemNotes } from "@/components/ChecklistItemNotes";
 import { ChecklistItemActions } from "@/components/ChecklistItemActions";
-import { NotesPromptDialog } from "@/components/NotesPromptDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
 import { useNotesHistory } from "@/hooks/useNotesHistory";
@@ -27,7 +26,6 @@ export const ChecklistItemCore = ({
   const [currentNotes, setCurrentNotes] = useState(item.notes || "");
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showNotesPrompt, setShowNotesPrompt] = useState(false);
   
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
@@ -106,8 +104,6 @@ export const ChecklistItemCore = ({
     await refetchMedia();
     
     // DO NOT auto-complete - user must still mark pass/fail/NA
-    // Show notes prompt after successful upload
-    setShowNotesPrompt(true);
   };
 
   const handleNotesChange = (notes: string) => {
@@ -148,13 +144,6 @@ export const ChecklistItemCore = ({
         />
       </div>
 
-      {/* Notes Prompt Dialog */}
-      <NotesPromptDialog
-        isOpen={showNotesPrompt}
-        onClose={() => setShowNotesPrompt(false)}
-        onSaveNote={saveNote}
-        itemLabel={item.label}
-      />
     </>
   );
 };
