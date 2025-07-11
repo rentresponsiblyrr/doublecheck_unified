@@ -495,17 +495,32 @@ export function healthCheckMiddleware() {
   return {
     name: 'health-check',
     configureServer(server: any) {
+      // Only initialize health check during development server, not during build
+      let healthCheckInstance: HealthCheckService | null = null;
+      
+      try {
+        healthCheckInstance = HealthCheckService.getInstance();
+      } catch (error) {
+        console.warn('⚠️ Health check middleware disabled due to configuration error:', error);
+        return;
+      }
+      
       server.middlewares.use(async (req: any, res: any, next: any) => {
+        if (!healthCheckInstance) {
+          next();
+          return;
+        }
+        
         if (req.url === '/health' || req.url.startsWith('/health?')) {
           res.setHeader('Content-Type', 'application/json');
-          await healthCheck.handleHealthRequest(req, res);
+          await healthCheckInstance.handleHealthRequest(req, res);
         } else if (req.url === '/ready') {
-          const readiness = await healthCheck.checkReadiness();
+          const readiness = await healthCheckInstance.checkReadiness();
           res.setHeader('Content-Type', 'application/json');
           res.statusCode = readiness.ready ? 200 : 503;
           res.end(JSON.stringify(readiness));
         } else if (req.url === '/live') {
-          const liveness = await healthCheck.checkLiveness();
+          const liveness = await healthCheckInstance.checkLiveness();
           res.setHeader('Content-Type', 'application/json');
           res.statusCode = 200;
           res.end(JSON.stringify(liveness));

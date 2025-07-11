@@ -94,17 +94,19 @@ class EnvironmentConfig {
     try {
       // Get all environment variables
       const env = {
-        NODE_ENV: process.env.NODE_ENV || import.meta.env.MODE,
+        NODE_ENV: process.env.NODE_ENV || (typeof import.meta !== 'undefined' ? import.meta.env?.MODE : 'development'),
         PORT: process.env.PORT,
         HOST: process.env.HOST,
         
-        // Import all VITE_ prefixed variables
-        ...Object.entries(import.meta.env).reduce((acc, [key, value]) => {
-          if (key.startsWith('VITE_')) {
-            acc[key] = value;
-          }
-          return acc;
-        }, {} as Record<string, any>)
+        // Import all VITE_ prefixed variables safely
+        ...(typeof import.meta !== 'undefined' && import.meta.env 
+          ? Object.entries(import.meta.env).reduce((acc, [key, value]) => {
+              if (key.startsWith('VITE_')) {
+                acc[key] = value;
+              }
+              return acc;
+            }, {} as Record<string, any>)
+          : {})
       };
 
       // Validate against schema
