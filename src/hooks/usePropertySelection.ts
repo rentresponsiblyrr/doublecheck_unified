@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
+import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
 
 interface Inspection {
   id: string;
@@ -10,7 +10,7 @@ interface Inspection {
 }
 
 export const usePropertySelection = (inspections: Inspection[]) => {
-  const { startOrJoinInspection, isLoading: isCreatingInspection } = useMobileInspectionFlow();
+  const { startOrJoinInspection, isLoading: isCreatingInspection } = useMobileInspectionOptimizer();
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
 
   const handleStartInspection = async () => {
