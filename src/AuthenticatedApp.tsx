@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthContext } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
 import { ErrorFallback } from "@/components/error/ErrorFallback";
 import { errorReporter } from "@/lib/monitoring/error-reporter";
@@ -162,7 +163,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <ErrorBoundary level="section" isolate>
-              <AuthProvider>
+              <SimpleAuthProvider user={user}>
                 <DomainAwarePWA />
                 <Toaster />
                 <Sonner />
@@ -171,7 +172,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                     {appType === AppType.INSPECTOR ? <InspectorRoutes /> : <AdminRoutesComponent />}
                   </Suspense>
                 </BrowserRouter>
-              </AuthProvider>
+              </SimpleAuthProvider>
             </ErrorBoundary>
           </TooltipProvider>
         </QueryClientProvider>
@@ -409,6 +410,28 @@ function InspectorRedirect() {
         <p className="text-gray-600">Taking you to app.doublecheckverified.com...</p>
       </div>
     </div>
+  );
+}
+
+// Simple Auth Provider that uses the already-authenticated user
+function SimpleAuthProvider({ user, children }: { user: any, children: React.ReactNode }) {
+  const value = {
+    user,
+    userRole: user?.role || 'inspector',
+    loading: false,
+    error: null,
+    signIn: async () => {},
+    signUp: async () => {},
+    signOut: async () => {},
+    forceRefresh: () => {},
+    clearSession: () => {},
+    loadUserRole: async () => {},
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 

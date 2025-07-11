@@ -68,8 +68,16 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     };
   }, [checklistItemId]);
 
-  // Real-time subscription for media updates (with graceful WebSocket error handling)
+  // Real-time subscription for media updates (temporarily disabled to prevent WebSocket errors)
   useEffect(() => {
+    // Temporarily disable realtime to prevent WebSocket connection failures
+    const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
+    
+    if (!ENABLE_REALTIME) {
+      console.log('📷 Media realtime subscription disabled to prevent WebSocket errors');
+      return;
+    }
+    
     isMountedRef.current = true;
 
     const setupSubscription = async () => {

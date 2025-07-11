@@ -52,8 +52,16 @@ export const useNotesHistory = (itemId: string) => {
     loadNotesHistory();
   }, [itemId]);
 
-  // Real-time subscription for notes updates (with error handling)
+  // Real-time subscription for notes updates (temporarily disabled to prevent WebSocket errors)
   useEffect(() => {
+    // Temporarily disable realtime to prevent WebSocket connection failures
+    const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
+    
+    if (!ENABLE_REALTIME) {
+      console.log('📝 Notes realtime subscription disabled to prevent WebSocket errors');
+      return;
+    }
+    
     let channel: any = null;
     
     const setupRealtimeSubscription = () => {
