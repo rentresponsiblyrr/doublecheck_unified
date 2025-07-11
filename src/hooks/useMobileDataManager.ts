@@ -57,7 +57,11 @@ export const useMobileDataManager = (userId?: string) => {
           address,
           vrbo_url,
           airbnb_url,
-          status
+          status,
+          inspections(
+            id,
+            status
+          )
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -65,13 +69,25 @@ export const useMobileDataManager = (userId?: string) => {
       if (error) throw error;
 
       // Transform and cache the data
-      const transformedData: PropertyData[] = (data || []).map(property => ({
-        property_id: property.id,
-        property_name: property.name || '',
-        property_address: property.address || '',
-        property_vrbo_url: property.vrbo_url,
-        property_airbnb_url: property.airbnb_url,
-      }));
+      const transformedData: PropertyData[] = (data || []).map(property => {
+        const inspections = property.inspections || [];
+        const totalInspections = inspections.length;
+        const completedInspections = inspections.filter(insp => insp.status === 'completed').length;
+        const activeInspections = inspections.filter(insp => 
+          insp.status === 'in_progress' || insp.status === 'draft'
+        ).length;
+
+        return {
+          property_id: property.id,
+          property_name: property.name || '',
+          property_address: property.address || '',
+          property_vrbo_url: property.vrbo_url,
+          property_airbnb_url: property.airbnb_url,
+          inspection_count: totalInspections,
+          completed_inspection_count: completedInspections,
+          active_inspection_count: activeInspections,
+        };
+      });
 
       // Cache for 2 minutes on mobile
       mobileCache.set(MOBILE_CACHE_KEYS.PROPERTIES(userId), transformedData, 2 * 60 * 1000);

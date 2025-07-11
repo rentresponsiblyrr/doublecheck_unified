@@ -41,12 +41,32 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
           console.log(`⚠️ Table ${tableName} doesn't exist - skipping ${description}`);
           return;
         }
+        
+        // If column doesn't exist, that's also okay - different schema version
+        if (error.message.includes('column') && error.message.includes('does not exist')) {
+          console.log(`⚠️ Column referenced in ${description} doesn't exist - skipping`);
+          return;
+        }
+        
+        // Handle the specific audit_feedback.inspection_id error
+        if (error.message.includes('audit_feedback.inspection_id')) {
+          console.log(`⚠️ audit_feedback.inspection_id column doesn't exist - likely uses checklist_item_id instead`);
+          return;
+        }
+        
+        // If invalid filter (like column name mismatch), skip gracefully
+        if (error.message.includes('operator does not exist') || error.message.includes('syntax error')) {
+          console.log(`⚠️ Schema mismatch for ${description} - skipping`);
+          return;
+        }
+        
         throw error;
       }
       
       console.log(`✅ ${description} deleted successfully`);
     } catch (error) {
       console.error(`❌ Error deleting ${description}:`, error);
+      console.error(`📊 Debug info - Table: ${tableName}, Filter:`, filter);
       throw new Error(`Failed to delete ${description}: ${error.message}`);
     }
   };
@@ -81,8 +101,9 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
 
       console.log('📝 Found checklist items to delete:', checklistItems?.length || 0);
 
+      let checklistItemIds: string[] = [];
       if (checklistItems && checklistItems.length > 0) {
-        const checklistItemIds = checklistItems.map(item => item.id);
+        checklistItemIds = checklistItems.map(item => item.id);
         
         // Step 3: Delete checklist item change logs (foreign key to checklist_items) - SKIPPED (table removed)
         console.log('📋 Skipping checklist item change logs (collaboration table removed)...');
@@ -144,9 +165,22 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       console.log('🔍 Deleting RAG query logs...');
       await safeDelete('rag_query_log', { inspection_id: inspectionIds }, 'RAG query logs');
 
-      // Step 9.3: Delete audit feedback (new table) - using safe delete
+      // Step 9.3: Delete audit feedback (new table) - Handle both possible schemas
       console.log('📝 Deleting audit feedback...');
-      await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback');
+      
+      // First try with checklist_item_id (current schema based on comprehensive_sql_prevention.sql)
+      if (checklistItems && checklistItems.length > 0 && checklistItemIds && checklistItemIds.length > 0) {
+        await safeDelete('audit_feedback', { checklist_item_id: checklistItemIds }, 'audit feedback (by checklist_item_id)');
+      } else {
+        console.log('⚠️ No checklist items found for audit_feedback deletion by checklist_item_id');
+      }
+      
+      // Also try with inspection_id for migration compatibility (20250709000000_add_inspection_reports_table.sql)
+      if (inspectionIds && inspectionIds.length > 0) {
+        await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback (by inspection_id)');
+      } else {
+        console.log('⚠️ No inspection IDs found for audit_feedback deletion by inspection_id');
+      }
 
       // Step 9.4: Delete report deliveries - using safe delete
       console.log('📧 Deleting report deliveries...');
