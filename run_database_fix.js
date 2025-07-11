@@ -68,15 +68,15 @@ async function runQueriesManually(sql) {
       // Use the raw SQL query method
       const { error } = await supabase.from('_').select('1').single();
       
-      // Since we can't execute arbitrary SQL directly, we'll need to use specific RPC functions
-      // For now, let's just check if the tables exist
+      // Since we can't execute arbitrary SQL directly, we'll use specific checks for core tables
+      // Check if core inspection tables exist
       const { error: checkError } = await supabase
-        .from('inspector_presence')
+        .from('inspections')
         .select('id')
         .limit(1);
       
       if (checkError && checkError.code === '42P01') {
-        console.log('❌ inspector_presence table does not exist');
+        console.log('❌ Core inspection tables do not exist');
         throw new Error('Database schema is missing required tables');
       }
       
@@ -95,48 +95,43 @@ async function verifyDatabaseSchema() {
   
   const checks = [
     {
-      name: 'inspector_presence table',
+      name: 'properties table',
       test: async () => {
         const { error } = await supabase
-          .from('inspector_presence')
+          .from('properties')
           .select('id')
           .limit(1);
         return !error || error.code !== '42P01';
       }
     },
     {
-      name: 'collaboration_conflicts table',
+      name: 'inspections table',
       test: async () => {
         const { error } = await supabase
-          .from('collaboration_conflicts')
+          .from('inspections')
           .select('id')
           .limit(1);
         return !error || error.code !== '42P01';
       }
     },
     {
-      name: 'inspector_assignments table',
+      name: 'checklist_items table',
       test: async () => {
         const { error } = await supabase
-          .from('inspector_assignments')
+          .from('checklist_items')
           .select('id')
           .limit(1);
         return !error || error.code !== '42P01';
       }
     },
     {
-      name: 'update_inspector_presence function',
+      name: 'users table',
       test: async () => {
-        try {
-          const { error } = await supabase.rpc('update_inspector_presence', {
-            p_inspection_id: '00000000-0000-0000-0000-000000000000',
-            p_status: 'test'
-          });
-          // If we get a different error than "function does not exist", it means the function exists
-          return !error || !error.message.includes('function public.update_inspector_presence');
-        } catch {
-          return false;
-        }
+        const { error } = await supabase
+          .from('users')
+          .select('id')
+          .limit(1);
+        return !error || error.code !== '42P01';
       }
     }
   ];

@@ -52,38 +52,59 @@ export const useNotesHistory = (itemId: string) => {
     loadNotesHistory();
   }, [itemId]);
 
-  // Real-time subscription for notes updates
+  // Real-time subscription for notes updates (with error handling)
   useEffect(() => {
-    const channel = supabase
-      .channel(`checklist-item-${itemId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'checklist_items',
-          filter: `id=eq.${itemId}`
-        },
-        (payload) => {
-          // Properly validate and cast the payload data
-          let newHistory: NotesHistoryEntry[] = [];
-          if (payload.new.notes_history && Array.isArray(payload.new.notes_history)) {
-            newHistory = (payload.new.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
-              entry && 
-              typeof entry === 'object' && 
-              'text' in entry && 
-              'user_id' in entry && 
-              'user_name' in entry && 
-              'timestamp' in entry
-            );
-          }
-          setNotesHistory(newHistory);
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+    
+    const setupRealtimeSubscription = () => {
+      try {
+        channel = supabase
+          .channel(`checklist-item-${itemId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'checklist_items',
+              filter: `id=eq.${itemId}`
+            },
+            (payload) => {
+              // Properly validate and cast the payload data
+              let newHistory: NotesHistoryEntry[] = [];
+              if (payload.new.notes_history && Array.isArray(payload.new.notes_history)) {
+                newHistory = (payload.new.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
+                  entry && 
+                  typeof entry === 'object' && 
+                  'text' in entry && 
+                  'user_id' in entry && 
+                  'user_name' in entry && 
+                  'timestamp' in entry
+                );
+              }
+              setNotesHistory(newHistory);
+            }
+          )
+          .subscribe((status: string) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.warn('⚠️ Notes realtime subscription failed, falling back to manual refresh');
+            }
+          });
+      } catch (error) {
+        console.warn('⚠️ Failed to setup notes realtime subscription:', error);
+        // Continue without realtime - app will still work with manual refreshes
+      }
+    };
+
+    setupRealtimeSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('⚠️ Error removing notes channel:', error);
+        }
+      }
     };
   }, [itemId]);
 

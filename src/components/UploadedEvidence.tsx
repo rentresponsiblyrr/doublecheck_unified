@@ -68,7 +68,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     };
   }, [checklistItemId]);
 
-  // Real-time subscription for media updates
+  // Real-time subscription for media updates (with graceful WebSocket error handling)
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -122,27 +122,38 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           }
         });
 
-        // Subscribe to the channel with async handling
+        // Subscribe to the channel with comprehensive error handling
         await subscribeChannel(channelName, (status: string) => {
           console.log('Media subscription status:', status);
           if (status === 'CHANNEL_ERROR') {
-            console.error('Media channel subscription error');
+            console.warn('⚠️ Media realtime subscription failed, falling back to manual refresh');
+            // App will continue to work with manual refreshes
+          } else if (status === 'CLOSED') {
+            console.warn('⚠️ Media channel closed, realtime updates disabled');
           }
         });
 
       } catch (error) {
-        console.error('Error setting up media subscription:', error);
+        console.warn('⚠️ Failed to setup media realtime subscription:', error);
+        // Continue without realtime - component will still work with initial data load
       }
     };
 
-    setupSubscription();
+    setupSubscription().catch(error => {
+      console.warn('⚠️ Media subscription setup failed completely:', error);
+      // Gracefully continue without realtime capabilities
+    });
 
     return () => {
       isMountedRef.current = false;
       
-      // Clean up channel
-      const channelName = `media-${checklistItemId}`;
-      cleanupChannel(channelName);
+      // Clean up channel with error handling
+      try {
+        const channelName = `media-${checklistItemId}`;
+        cleanupChannel(channelName);
+      } catch (error) {
+        console.warn('⚠️ Error cleaning up media channel:', error);
+      }
     };
   }, [checklistItemId, createChannel, subscribeChannel, cleanupChannel]);
 
