@@ -94,13 +94,14 @@ export function AuditorDashboard() {
   const [activeTab, setActiveTab] = useState('queue');
   const [selectedInspection, setSelectedInspection] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewDecision, setReviewDecision] = useState<'approved' | 'rejected' | 'needs_revision' | null>(null);
   const [feedbackText, setFeedbackText] = useState('');
 
   // Data Queries - Real inspection data
   const { data: inspectionsData, isLoading: isLoadingInspections, error: inspectionsError } = useQuery({
-    queryKey: ['inspections', 'pending_review', filterStatus, searchQuery],
+    queryKey: ['inspections', 'pending_review', filterStatus, filterPriority, searchQuery],
     queryFn: async () => {
       logger.info('Fetching inspections for auditor dashboard', {
         filterStatus,
@@ -349,13 +350,52 @@ export function AuditorDashboard() {
     }
   };
 
+  // Helper functions for status display
+  const getDisplayStatus = (inspection: any) => {
+    // Map database status to display status
+    switch (inspection.status) {
+      case 'draft':
+        return 'Draft';
+      case 'in_progress':
+        return 'In Progress';
+      case 'completed':
+        return 'Pending Review';
+      case 'pending_review':
+        return 'Pending Review';
+      case 'in_review':
+        return 'In Review';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'needs_revision':
+        return 'Needs Revision';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  // Filter inspections based on search query, status filter, and priority filter
+  const filteredInspections = inspections.filter(inspection => {
+    const matchesSearch = searchQuery === '' || 
+      inspection.propertyAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inspection.inspectorName?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || inspection.status === filterStatus;
+    const matchesPriority = filterPriority === 'all' || inspection.priority === filterPriority;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending_review': return 'secondary';
-      case 'in_review': return 'default';
-      case 'approved': return 'outline';
-      case 'rejected': return 'destructive';
-      case 'needs_revision': return 'secondary';
+      case 'Draft': return 'outline';
+      case 'In Progress': return 'default';
+      case 'Pending Review': return 'secondary';
+      case 'In Review': return 'default';
+      case 'Approved': return 'outline';
+      case 'Rejected': return 'destructive';
+      case 'Needs Revision': return 'secondary';
       default: return 'outline';
     }
   };

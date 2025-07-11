@@ -134,7 +134,7 @@ export class AuditorService {
             )
           )
         `)
-        .in('status', ['completed', 'pending_review', 'in_review'])
+        .in('status', ['in_progress', 'completed', 'pending_review', 'in_review'])
         .order('created_at', { ascending: false })
         .limit(limit);
 
