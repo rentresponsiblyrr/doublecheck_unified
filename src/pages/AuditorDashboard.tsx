@@ -38,6 +38,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthProvider';
 import { auditorService, type InspectionForReview, type AuditorMetrics } from '@/services/auditorService';
+import { statusCountService } from '@/services/statusCountService';
 import { logger } from '@/utils/logger';
 
 // Components
@@ -143,18 +144,18 @@ export function AuditorDashboard() {
     ))
   }));
 
-  // Get auditor metrics
+  // Get auditor metrics using centralized service
   const { data: auditorMetrics } = useQuery({
     queryKey: ['auditor_metrics', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const result = await auditorService.getAuditorMetrics(user.id, 'today');
-      if (!result.success) {
-        logger.warn('Failed to fetch auditor metrics', result.error, 'AUDITOR_DASHBOARD');
+      try {
+        return await statusCountService.getAuditorMetrics(user.id, 'today');
+      } catch (error) {
+        logger.warn('Failed to fetch auditor metrics', error, 'AUDITOR_DASHBOARD');
         return null;
       }
-      return result.data;
     },
     enabled: !!user?.id,
     refetchInterval: 60000, // Refetch every minute
@@ -430,7 +431,7 @@ export function AuditorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-                  <p className="text-2xl font-bold">{auditorMetrics?.totalInspections || 0}</p>
+                  <p className="text-2xl font-bold">{auditorMetrics?.totalReviews || 0}</p>
                 </div>
                 <FileText className="h-8 w-8 text-blue-500" />
               </div>

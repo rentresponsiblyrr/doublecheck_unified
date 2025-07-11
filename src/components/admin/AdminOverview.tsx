@@ -21,6 +21,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { statusCountService } from '@/services/statusCountService';
+import { INSPECTION_STATUS, STATUS_GROUPS } from '@/types/inspection-status';
 
 interface AdminStats {
   properties: {
@@ -77,51 +79,27 @@ export default function AdminOverview() {
     try {
       setIsLoading(true);
       
-      // Get properties stats
-      const { data: properties, error: propsError } = await supabase
-        .from('properties')
-        .select('id, status');
-
-      if (propsError) throw propsError;
-
-      // Get inspections stats
-      const { data: inspections, error: inspError } = await supabase
-        .from('inspections')
-        .select('id, status');
-
-      if (inspError) throw inspError;
-
-      // Get users stats
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, role');
-
-      if (usersError) throw usersError;
-
-      // Calculate property stats
+      // Use centralized service for comprehensive stats
+      const adminStats = await statusCountService.getAdminDashboardStats();
+      
+      // Map to local interface format
       const propertyStats = {
-        total: properties?.length || 0,
-        active: properties?.filter(p => p.status === 'active').length || 0,
-        pending: properties?.filter(p => p.status === 'pending').length || 0
+        total: adminStats.properties.total,
+        active: adminStats.properties.active,
+        pending: adminStats.properties.withoutInspections
       };
 
-      // Calculate inspection stats with clear status definitions
       const inspectionStats = {
-        total: inspections?.length || 0,
-        nonStarted: inspections?.filter(i => i.status === 'draft' || !i.status).length || 0,
-        inProgress: inspections?.filter(i => i.status === 'in_progress').length || 0,
-        auditReady: inspections?.filter(i => i.status === 'pending_review' || i.status === 'in_review' || i.status === 'completed').length || 0,
-        approved: inspections?.filter(i => i.status === 'approved').length || 0,
-        rejected: inspections?.filter(i => i.status === 'rejected').length || 0
+        total: adminStats.inspections.total,
+        nonStarted: adminStats.inspections.draft,
+        inProgress: adminStats.inspections.inProgress,
+        auditReady: adminStats.inspections.pendingReview + adminStats.inspections.inReview + adminStats.inspections.completed,
+        approved: adminStats.inspections.approved,
+        rejected: adminStats.inspections.rejected
       };
 
-      // Calculate user stats
-      const userStats = {
-        total: users?.length || 0,
-        inspectors: users?.filter(u => u.role === 'inspector').length || 0,
-        auditors: users?.filter(u => u.role === 'auditor').length || 0,
-        admins: users?.filter(u => u.role === 'admin' || u.role === 'super_admin').length || 0
-      };
+      // Use centralized user stats
+      const userStats = adminStats.users;
 
       setStats({
         properties: propertyStats,

@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
+import { statusCountService } from "@/services/statusCountService";
+import { normalizeStatus } from "@/types/inspection-status";
 
 export interface InspectorInspection {
   id: string;
@@ -143,19 +145,48 @@ export const useInspectorDashboard = () => {
   const inspections = dashboardData.inspections;
   const properties = dashboardData.properties;
 
-  // Get summary statistics with robust status matching
-  const summary = {
+  // Calculate status counts using centralized service
+  const statusCounts = {
     total: inspections.length,
+    draft: 0,
+    in_progress: 0,
+    completed: 0,
+    pending_review: 0,
+    approved: 0
+  };
+
+  // Count inspections with normalized status handling
+  inspections.forEach((inspection: InspectorInspection) => {
+    const normalizedStatus = normalizeStatus(inspection.status);
+    switch (normalizedStatus) {
+      case 'draft':
+        statusCounts.draft++;
+        break;
+      case 'in_progress':
+        statusCounts.in_progress++;
+        break;
+      case 'completed':
+        statusCounts.completed++;
+        break;
+      case 'pending_review':
+        statusCounts.pending_review++;
+        break;
+      case 'approved':
+        statusCounts.approved++;
+        break;
+    }
+  });
+
+  // Calculate property-level aggregations using centralized service
+  const propertyStats = statusCountService.calculatePropertyStats(properties);
+
+  const summary = {
+    ...statusCounts,
     properties: properties.length,
-    draft: inspections.filter((i: InspectorInspection) => i.status === 'draft').length,
-    in_progress: inspections.filter((i: InspectorInspection) => i.status === 'in_progress' || i.status === 'in-progress').length,
-    completed: inspections.filter((i: InspectorInspection) => i.status === 'completed').length,
-    pending_review: inspections.filter((i: InspectorInspection) => i.status === 'pending_review' || i.status === 'pending-review').length,
-    approved: inspections.filter((i: InspectorInspection) => i.status === 'approved').length,
-    // Add aggregated property stats
-    total_property_inspections: properties.reduce((sum: number, p: any) => sum + (p.inspection_count || 0), 0),
-    active_property_inspections: properties.reduce((sum: number, p: any) => sum + (p.active_inspection_count || 0), 0),
-    completed_property_inspections: properties.reduce((sum: number, p: any) => sum + (p.completed_inspection_count || 0), 0),
+    // Use calculated property stats
+    total_property_inspections: propertyStats.totalInspections,
+    active_property_inspections: propertyStats.activeInspections,
+    completed_property_inspections: propertyStats.completedInspections,
   };
 
   // Debug logging for summary
