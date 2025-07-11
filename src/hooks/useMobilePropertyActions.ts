@@ -1,8 +1,8 @@
 
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
+import { deletePropertyData } from "@/utils/propertyDeletion";
 
 export const useMobilePropertyActions = () => {
   const navigate = useNavigate();
@@ -18,41 +18,8 @@ export const useMobilePropertyActions = () => {
     console.log('📱 Mobile delete property:', propertyId);
     
     try {
-      // First delete related inspections and their data
-      const { data: inspections, error: fetchError } = await supabase
-        .from('inspections')
-        .select('id')
-        .eq('property_id', propertyId);
-
-      if (fetchError) throw fetchError;
-
-      if (inspections && inspections.length > 0) {
-        const inspectionIds = inspections.map(i => i.id);
-        
-        // Delete checklist items
-        const { error: checklistError } = await supabase
-          .from('checklist_items')
-          .delete()
-          .in('inspection_id', inspectionIds);
-        
-        if (checklistError) console.warn('⚠️ Checklist deletion warning:', checklistError);
-        
-        // Delete inspections
-        const { error: inspectionError } = await supabase
-          .from('inspections')
-          .delete()
-          .eq('property_id', propertyId);
-        
-        if (inspectionError) throw inspectionError;
-      }
-
-      // Finally delete the property
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', propertyId);
-
-      if (error) throw error;
+      // Use comprehensive deletion utility to handle all cascades properly
+      await deletePropertyData(propertyId);
 
       toast({
         title: "Property Deleted",
@@ -60,9 +27,13 @@ export const useMobilePropertyActions = () => {
       });
     } catch (error) {
       console.error('❌ Mobile delete error:', error);
+      
+      // Handle specific error messages from the deletion utility
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete property. Please try again.';
+      
       toast({
         title: "Delete Failed",
-        description: "Failed to delete property. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
