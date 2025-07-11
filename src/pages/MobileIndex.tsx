@@ -164,9 +164,14 @@ const MobileIndex = () => {
         onPropertySelect={handlePropertySelect}
         onStartInspection={handleStartInspection}
         onEdit={handleEdit} // Now passing the edit handler
-        getPropertyStatus={(completed, active) => {
+        getPropertyStatus={(completed, active, draft) => {
+          // Active inspections (in_progress) = property is currently being worked on
           if (active > 0) return { status: 'in-progress', color: 'bg-yellow-500', textLabel: 'In Progress', badgeColor: 'bg-yellow-500' };
+          // Completed inspections = property work is done
           if (completed > 0) return { status: 'completed', color: 'bg-green-500', textLabel: 'Completed', badgeColor: 'bg-green-500' };
+          // Draft inspections = property has been assigned but not started
+          if (draft > 0) return { status: 'draft', color: 'bg-gray-500', textLabel: 'Not Started', badgeColor: 'bg-gray-500' };
+          // No inspections = property is available for assignment
           return { status: 'available', color: 'bg-blue-500', textLabel: 'Available', badgeColor: 'bg-blue-500' };
         }}
         isCreatingInspection={isCreatingInspection}

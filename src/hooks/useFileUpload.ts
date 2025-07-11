@@ -85,8 +85,8 @@ export const useFileUpload = ({
       // Save media record to database with user attribution and detected type
       await saveMediaRecordWithAttribution(checklistItemId, validation.detectedType, uploadResult.url);
       
-      // Update checklist item status to completed
-      await updateChecklistItemStatus(checklistItemId, 'completed');
+      // Note: Status will be updated when user explicitly marks Pass/Fail/NA
+      // This preserves the evidence-note pairing requirement
       
       setUploadSuccess(true);
       toast({

@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Professional Coming Soon Page Component
+ * Displays feature previews with development roadmap and contact options
+ * 
+ * @author STR Certified Engineering Team
+ * @version 1.0.0
+ * @since 2024-01-01
+ */
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +20,36 @@ import {
   Bell
 } from 'lucide-react';
 
+/**
+ * Props interface for ComingSoonPage component
+ */
 interface ComingSoonPageProps {
+  /** Page title for the upcoming feature */
   title: string;
+  /** Detailed description of the feature */
   description: string;
+  /** List of planned features to be included */
   features: string[];
+  /** Estimated release date (default: "Q2 2024") */
   estimatedDate?: string;
+  /** Optional callback for notify me functionality */
   onNotifyMe?: () => void;
 }
 
+/**
+ * Professional Coming Soon Page Component
+ * 
+ * Displays comprehensive feature preview with:
+ * - Professional branding and visual design
+ * - Planned features list with progress indicators
+ * - Development roadmap with status tracking
+ * - Contact and notification options
+ * - Responsive design for all screen sizes
+ * - Accessibility features for screen readers
+ * 
+ * @param props - Component props
+ * @returns React functional component
+ */
 export const ComingSoonPage: React.FC<ComingSoonPageProps> = ({
   title,
   description,

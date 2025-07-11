@@ -24,7 +24,8 @@ const OptimizedProperties = () => {
     hasHandleEdit: !!handleEdit
   });
 
-  const getPropertyStatus = (completedCount: number, activeCount: number) => {
+  const getPropertyStatus = (completedCount: number, activeCount: number, draftCount?: number) => {
+    // Active inspections (in_progress) = property is currently being worked on
     if (activeCount > 0) {
       return {
         status: 'in-progress',
@@ -34,6 +35,7 @@ const OptimizedProperties = () => {
       };
     }
     
+    // Completed inspections = property work is done
     if (completedCount > 0) {
       return {
         status: 'completed',
@@ -43,11 +45,22 @@ const OptimizedProperties = () => {
       };
     }
     
+    // Draft inspections = property has been assigned but not started
+    if (draftCount && draftCount > 0) {
+      return {
+        status: 'draft',
+        color: 'bg-gray-500',
+        textLabel: 'Not Started',
+        badgeColor: 'bg-gray-100 text-gray-800'
+      };
+    }
+    
+    // No inspections = property is available for assignment
     return {
-      status: 'pending',
-      color: 'bg-gray-500',
-      textLabel: 'Not Started',
-      badgeColor: 'bg-gray-100 text-gray-800'
+      status: 'available',
+      color: 'bg-blue-500',
+      textLabel: 'Available',
+      badgeColor: 'bg-blue-100 text-blue-800'
     };
   };
 

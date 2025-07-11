@@ -14,6 +14,7 @@ interface PropertyData {
   inspection_count?: number;
   completed_inspection_count?: number;
   active_inspection_count?: number;
+  draft_inspection_count?: number;
 }
 
 interface MobileDataState {
@@ -73,8 +74,14 @@ export const useMobileDataManager = (userId?: string) => {
         const inspections = property.inspections || [];
         const totalInspections = inspections.length;
         const completedInspections = inspections.filter(insp => insp.status === 'completed').length;
+        // Only truly in-progress inspections count as "active"
+        // Draft inspections are "not started" at the property level
         const activeInspections = inspections.filter(insp => 
-          insp.status === 'in_progress' || insp.status === 'draft'
+          insp.status === 'in_progress'
+        ).length;
+        
+        const draftInspections = inspections.filter(insp => 
+          insp.status === 'draft'
         ).length;
 
         return {
@@ -86,6 +93,7 @@ export const useMobileDataManager = (userId?: string) => {
           inspection_count: totalInspections,
           completed_inspection_count: completedInspections,
           active_inspection_count: activeInspections,
+          draft_inspection_count: draftInspections,
         };
       });
 

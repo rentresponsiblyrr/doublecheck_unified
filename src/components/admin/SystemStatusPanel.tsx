@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Enterprise System Status Panel Component
+ * Displays real-time system health monitoring with comprehensive error handling
+ * 
+ * @author STR Certified Engineering Team
+ * @version 1.0.0
+ * @since 2024-01-01
+ */
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,23 +22,62 @@ import {
   Database,
   Brain,
   HardDrive,
-  Zap
+  Zap,
+  WifiOff,
+  AlertTriangle
 } from 'lucide-react';
 import { useSystemHealth } from '@/hooks/useSystemHealth';
 import type { HealthCheckResult } from '@/lib/monitoring/health-check';
 
+/**
+ * Props interface for SystemStatusPanel component
+ */
 interface SystemStatusPanelProps {
+  /** Whether the panel is in expanded state */
   isExpanded: boolean;
+  /** Callback function to toggle panel state */
   onToggle: () => void;
+  /** Optional CSS class name for styling */
   className?: string;
+  /** Optional refresh interval override (milliseconds) */
+  refreshInterval?: number;
+  /** Whether to show detailed metrics */
+  showDetailedMetrics?: boolean;
 }
 
+/**
+ * Enterprise System Status Panel Component
+ * 
+ * Displays comprehensive system health monitoring with:
+ * - Real-time service status indicators
+ * - Performance metrics visualization  
+ * - Error handling with retry mechanisms
+ * - Responsive design for mobile and desktop
+ * - Accessibility features for screen readers
+ * 
+ * @param props - Component props
+ * @returns React functional component
+ */
 export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   isExpanded,
   onToggle,
-  className = ''
+  className = '',
+  refreshInterval = 30000,
+  showDetailedMetrics = true
 }) => {
-  const { health, isLoading, error, lastUpdated, refresh } = useSystemHealth(30000);
+  const { 
+    health, 
+    isLoading, 
+    error, 
+    lastUpdated, 
+    refresh, 
+    retryCount, 
+    isConnected 
+  } = useSystemHealth({ 
+    refreshInterval,
+    maxRetries: 3,
+    enableDebugLogging: process.env.NODE_ENV === 'development'
+  });
 
   const getOverallStatus = (health: HealthCheckResult | null) => {
     if (!health) return { status: 'unknown', color: 'text-gray-500', bgColor: 'bg-gray-500' };
@@ -83,23 +131,39 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         variant="outline" 
         size="sm" 
         onClick={onToggle}
-        className={`${className} ${overallStatus.status === 'healthy' ? 'bg-green-50 border-green-200' : 
-                     overallStatus.status === 'degraded' ? 'bg-yellow-50 border-yellow-200' : 
-                     overallStatus.status === 'unhealthy' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}
+        className={`${className} ${
+          !isConnected ? 'bg-red-50 border-red-200' :
+          overallStatus.status === 'healthy' ? 'bg-green-50 border-green-200' : 
+          overallStatus.status === 'degraded' ? 'bg-yellow-50 border-yellow-200' : 
+          overallStatus.status === 'unhealthy' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'
+        }`}
         disabled={isLoading}
+        aria-label={`System Status: ${overallStatus.status}${!isConnected ? ' - Disconnected' : ''}${retryCount > 0 ? ` - Retry ${retryCount}` : ''}`}
       >
         {isLoading ? (
           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+        ) : !isConnected ? (
+          <WifiOff className="h-4 w-4 mr-2 text-red-500" />
         ) : (
           <AlertCircle className={`h-4 w-4 mr-2 ${overallStatus.color}`} />
         )}
         System Status
-        {health && (
+        {!isConnected && (
+          <Badge variant="destructive" className="ml-2 text-xs">
+            Offline
+          </Badge>
+        )}
+        {isConnected && health && (
           <Badge 
             variant="secondary" 
             className={`ml-2 text-xs ${overallStatus.color}`}
           >
             {overallStatus.status}
+          </Badge>
+        )}
+        {retryCount > 0 && (
+          <Badge variant="outline" className="ml-1 text-xs">
+            Retry {retryCount}
           </Badge>
         )}
       </Button>
@@ -151,10 +215,46 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       <CardContent className="space-y-4">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <div>
+                  <span className="text-sm text-red-700 font-medium">
+                    System Health Check Failed
+                  </span>
+                  <p className="text-xs text-red-600 mt-1">
+                    {error.message}
+                  </p>
+                  {retryCount > 0 && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Retry attempt: {retryCount} of 3
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={refresh}
+                disabled={isLoading}
+                className="text-red-600 hover:text-red-700"
+              >
+                {isLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isConnected && !error && (
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
             <div className="flex items-center space-x-2">
-              <XCircle className="h-4 w-4 text-red-500" />
-              <span className="text-sm text-red-700">
-                Failed to fetch system status: {error.message}
+              <WifiOff className="h-4 w-4 text-orange-500" />
+              <span className="text-sm text-orange-700">
+                Connection lost. Attempting to reconnect...
               </span>
             </div>
           </div>

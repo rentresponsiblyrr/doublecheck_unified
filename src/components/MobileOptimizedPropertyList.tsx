@@ -22,6 +22,7 @@ interface Property {
   inspection_count?: number;
   completed_inspection_count?: number;
   active_inspection_count?: number;
+  draft_inspection_count?: number;
 }
 
 interface MobileOptimizedPropertyListProps {
@@ -34,7 +35,7 @@ interface MobileOptimizedPropertyListProps {
   onPropertySelect: (propertyId: string) => void;
   onStartInspection: (propertyId: string) => void;
   onEdit?: (propertyId: string) => void;
-  getPropertyStatus: (completedCount: number, activeCount: number) => PropertyStatus;
+  getPropertyStatus: (completedCount: number, activeCount: number, draftCount?: number) => PropertyStatus;
   isCreatingInspection?: boolean;
 }
 
@@ -135,7 +136,8 @@ export const MobileOptimizedPropertyList: React.FC<MobileOptimizedPropertyListPr
         {properties.map((property) => {
           const propertyStatus = getPropertyStatus(
             property.completed_inspection_count || 0,
-            property.active_inspection_count || 0
+            property.active_inspection_count || 0,
+            property.draft_inspection_count || 0
           );
 
           return (

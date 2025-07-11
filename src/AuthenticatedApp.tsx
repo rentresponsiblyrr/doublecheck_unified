@@ -16,6 +16,7 @@ import { performanceTracker } from "@/lib/monitoring/performance-tracker";
 import { env } from "@/lib/config/environment";
 import { validateRequiredEnvVars } from "@/lib/config/environment";
 import { AppType, getAppTypeFromDomain, isInspectorDomain, isAdminDomain, logAppConfiguration } from "@/lib/config/app-type";
+import { supabase } from "@/integrations/supabase/client";
 
 // Core Pages
 import Index from "./pages/Index.tsx";
@@ -460,7 +461,21 @@ function SimpleAuthProvider({ user, children }: { user: any, children: React.Rea
     error: null,
     signIn: async () => {},
     signUp: async () => {},
-    signOut: async () => {},
+    signOut: async () => {
+      try {
+        console.log('🔐 SimpleAuthProvider: Signing out user');
+        await supabase.auth.signOut();
+        // Clear any cached data
+        localStorage.clear();
+        sessionStorage.clear();
+        // Redirect to login
+        window.location.href = '/';
+      } catch (error) {
+        console.error('❌ Sign out failed:', error);
+        // Force redirect even if sign out fails
+        window.location.href = '/';
+      }
+    },
     forceRefresh: () => {},
     clearSession: () => {},
     loadUserRole: async () => {},
