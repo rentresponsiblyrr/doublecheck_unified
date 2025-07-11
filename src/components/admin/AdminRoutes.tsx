@@ -25,9 +25,9 @@ const AIPerformanceDashboard = React.lazy(() => import('./AIPerformanceDashboard
   default: module.AIPerformanceDashboard
 })).catch(() => ({ default: () => <div>Performance Dashboard temporarily unavailable</div> })));
 
-const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').then(module => ({
-  default: module.AILearningDashboard || module.default
-})).catch(() => ({ default: () => <div>Learning Dashboard temporarily unavailable</div> })));
+const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').catch(() => ({
+  default: () => <div>Learning Dashboard temporarily unavailable</div>
+})));
 
 const ChecklistManagement = React.lazy(() => import('./ChecklistManagement').catch(() => ({
   default: () => <div>Checklist Management temporarily unavailable</div>
@@ -39,6 +39,12 @@ const ReportManagement = React.lazy(() => import('./ReportManagement').catch(() 
 
 const AuditCenter = React.lazy(() => import('./AuditCenter').catch(() => ({
   default: () => <div>Audit Center temporarily unavailable</div>
+})));
+
+const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').then(module => ({
+  default: module.ComingSoonPage
+})).catch(() => ({ 
+  default: () => <div>Coming Soon page temporarily unavailable</div> 
 })));
 
 // Loading fallback
@@ -108,18 +114,32 @@ export default function AdminRoutes() {
           } />
           <Route path="/analytics" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-                <p className="text-gray-600">Advanced analytics and reporting coming soon...</p>
-              </div>
+              <ComingSoonPage 
+                title="Analytics Dashboard" 
+                description="Advanced analytics and data visualization coming soon"
+                features={[
+                  'Real-time inspection metrics',
+                  'Property performance analytics', 
+                  'Inspector productivity insights',
+                  'AI accuracy trends',
+                  'Revenue and cost analysis'
+                ]}
+              />
             </Suspense>
           } />
           <Route path="/settings" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Admin Settings</h2>
-                <p className="text-gray-600">System configuration and settings coming soon...</p>
-              </div>
+              <ComingSoonPage 
+                title="System Settings" 
+                description="Comprehensive system configuration and administration"
+                features={[
+                  'User roles and permissions',
+                  'System-wide configurations',
+                  'API key management',
+                  'Notification settings',
+                  'Backup and security options'
+                ]}
+              />
             </Suspense>
           } />
         </Routes>

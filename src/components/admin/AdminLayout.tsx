@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { supabase } from '@/integrations/supabase/client';
+import { Logo } from '@/components/Logo';
+import { SystemStatusPanel } from './SystemStatusPanel';
 
 const navigation = [
   {
@@ -109,6 +111,27 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userRole } = useAuthState();
+  
+  // Get display name with better fallback logic
+  const getDisplayName = () => {
+    if (!user) return 'Admin User';
+    
+    // Try user metadata name first
+    if (user.user_metadata?.name) return user.user_metadata.name;
+    if (user.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user.user_metadata?.display_name) return user.user_metadata.display_name;
+    
+    // Try email-based name
+    if (user.email) {
+      const emailName = user.email.split('@')[0];
+      // Format email username nicely
+      return emailName.split('.').map(part => 
+        part.charAt(0).toUpperCase() + part.slice(1)
+      ).join(' ');
+    }
+    
+    return 'Admin User';
+  };
   const [showSystemStatus, setShowSystemStatus] = React.useState(false);
 
   // Update current navigation item based on location
@@ -129,8 +152,17 @@ export default function AdminLayout() {
       <div className="flex flex-col w-64 bg-white shadow-lg">
         {/* Logo */}
         <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
-          <h1 className="text-xl font-bold text-white">DoubleCheck</h1>
-          <span className="text-xs text-blue-200 ml-2">Admin</span>
+          <Logo 
+            size="lg" 
+            theme="dark" 
+            variant="horizontal"
+            showText={false}
+            imageUrl="/lovable-uploads/ea9dd662-995b-4cd0-95d4-9f31b2aa8d3b.png"
+          />
+          <div className="ml-3 flex flex-col">
+            <span className="text-lg font-bold text-white">DoubleCheck</span>
+            <span className="text-xs text-blue-200">Admin Portal</span>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -181,7 +213,7 @@ export default function AdminLayout() {
                 </Avatar>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin User'}
+                    {getDisplayName()}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
                     {userRole || 'admin'}
@@ -219,42 +251,21 @@ export default function AdminLayout() {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* System Status Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowSystemStatus(!showSystemStatus)}
-                className={showSystemStatus ? 'bg-blue-50 border-blue-200' : ''}
-              >
-                <AlertCircle className="h-4 w-4 mr-2 text-green-500" />
-                System Status
-              </Button>
+              <SystemStatusPanel 
+                isExpanded={showSystemStatus}
+                onToggle={() => setShowSystemStatus(!showSystemStatus)}
+              />
             </div>
           </div>
         </header>
 
         {/* System Status Panel */}
         {showSystemStatus && (
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Database: Online</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>AI Services: Active</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span>File Storage: Degraded</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>API: Operational</span>
-              </div>
-            </div>
-          </div>
+          <SystemStatusPanel 
+            isExpanded={true}
+            onToggle={() => setShowSystemStatus(false)}
+            className="border-b border-gray-200"
+          />
         )}
 
         {/* Page content */}
