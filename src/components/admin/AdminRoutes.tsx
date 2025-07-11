@@ -37,6 +37,10 @@ const ReportManagement = React.lazy(() => import('./ReportManagement').catch(() 
   default: () => <div>Report Management temporarily unavailable</div>
 })));
 
+const AuditCenter = React.lazy(() => import('./AuditCenter').catch(() => ({
+  default: () => <div>Audit Center temporarily unavailable</div>
+})));
+
 // Loading fallback
 const AdminLoadingFallback = () => (
   <div className="space-y-6">
@@ -75,6 +79,11 @@ export default function AdminRoutes() {
           <Route path="/inspections" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <InspectionManagement />
+            </Suspense>
+          } />
+          <Route path="/audit" element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AuditCenter />
             </Suspense>
           } />
           <Route path="/reports" element={

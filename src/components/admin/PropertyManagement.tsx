@@ -555,9 +555,22 @@ export default function PropertyManagement() {
                     </TableCell>
                     <TableCell>{getStatusBadge(property.status)}</TableCell>
                     <TableCell>
-                      <div className={`flex items-center space-x-2 ${inspectionStatus.color}`}>
-                        {inspectionStatus.icon}
-                        <span className="text-sm">{inspectionStatus.text}</span>
+                      <div className="space-y-1">
+                        <div className={`flex items-center space-x-2 ${inspectionStatus.color}`}>
+                          {inspectionStatus.icon}
+                          <span className="text-sm">{inspectionStatus.text}</span>
+                        </div>
+                        {property.inspections && property.inspections.length > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`https://app.doublecheckverified.com/inspection/${property.inspections[0].id}`, '_blank')}
+                            className="h-6 text-xs"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View in App
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

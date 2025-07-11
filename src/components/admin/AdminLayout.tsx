@@ -42,13 +42,20 @@ const navigation = [
     href: '/properties',
     icon: Building2,
     current: false,
-    badge: 'new'
+    badge: 'enhanced'
   },
   {
     name: 'Inspections',
     href: '/inspections',
     icon: ClipboardList,
     current: false,
+  },
+  {
+    name: 'Audit Center',
+    href: '/audit',
+    icon: UserCheck,
+    current: false,
+    badge: 'new'
   },
   {
     name: 'Users',
@@ -65,7 +72,7 @@ const navigation = [
   {
     name: 'Checklist Management',
     href: '/checklists',
-    icon: UserCheck,
+    icon: Calendar,
     current: false,
   },
   {
@@ -102,6 +109,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userRole } = useAuthState();
+  const [showSystemStatus, setShowSystemStatus] = React.useState(false);
 
   // Update current navigation item based on location
   const updatedNavigation = navigation.map(item => ({
@@ -121,7 +129,8 @@ export default function AdminLayout() {
       <div className="flex flex-col w-64 bg-white shadow-lg">
         {/* Logo */}
         <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
-          <h1 className="text-xl font-bold text-white">STR Admin</h1>
+          <h1 className="text-xl font-bold text-white">DoubleCheck</h1>
+          <span className="text-xs text-blue-200 ml-2">Admin</span>
         </div>
 
         {/* Navigation */}
@@ -172,7 +181,7 @@ export default function AdminLayout() {
                 </Avatar>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {user?.email || 'Admin User'}
+                    {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin User'}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
                     {userRole || 'admin'}
@@ -210,14 +219,43 @@ export default function AdminLayout() {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Notifications, search, etc. could go here */}
-              <Button variant="outline" size="sm">
-                <AlertCircle className="h-4 w-4 mr-2" />
+              {/* System Status Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowSystemStatus(!showSystemStatus)}
+                className={showSystemStatus ? 'bg-blue-50 border-blue-200' : ''}
+              >
+                <AlertCircle className="h-4 w-4 mr-2 text-green-500" />
                 System Status
               </Button>
             </div>
           </div>
         </header>
+
+        {/* System Status Panel */}
+        {showSystemStatus && (
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Database: Online</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>AI Services: Active</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span>File Storage: Degraded</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>API: Operational</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
