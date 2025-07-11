@@ -5,7 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 export interface InspectorInspection {
   id: string;
   property_id: string;
-  status: 'draft' | 'in_progress' | 'completed' | 'pending_review' | 'approved' | 'rejected';
+  status: 'draft' | 'in_progress' | 'in-progress' | 'completed' | 'pending_review' | 'pending-review' | 'approved' | 'rejected';
   start_time: string | null;
   end_time: string | null;
   completed: boolean;

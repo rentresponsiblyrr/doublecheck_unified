@@ -1,449 +1,528 @@
-// Video Recording Hook for STR Certified
+// Enhanced Video Recording Hook with Camera & Audio Permissions
+// Specifically designed for video walkthrough recording
 
-import { useState, useCallback, useRef, useEffect, MutableRefObject } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { createVideoProcessor } from '@/lib/video/video-processor';
-import type {
-  VideoRecording,
-  VideoStatus,
-  VideoRecordingConfig,
-  VideoRecordingStats,
-  VideoTimestamp
-} from '@/types/video';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '@/lib/utils/logger';
 
-export interface UseVideoRecordingOptions {
-  videoRef?: MutableRefObject<HTMLVideoElement | null>;
-  maxDuration?: number;
-  audioEnabled?: boolean;
-  onStats?: (stats: VideoRecordingStats) => void;
-  onStatusChange?: (status: VideoStatus) => void;
-  autoSave?: boolean;
-  compressionEnabled?: boolean;
+export interface VideoRecordingOptions {
+  video?: boolean | MediaTrackConstraints;
+  audio?: boolean | MediaTrackConstraints;
+  autoStart?: boolean;
+  facingMode?: 'user' | 'environment';
+  recordingOptions?: {
+    mimeType?: string;
+    videoBitsPerSecond?: number;
+    audioBitsPerSecond?: number;
+  };
 }
 
-export interface UseVideoRecordingReturn {
-  // State
-  status: VideoStatus;
-  stream: MediaStream | null;
-  recording: VideoRecording | null;
+export interface PermissionStatus {
+  camera: 'unknown' | 'granted' | 'denied' | 'requesting';
+  microphone: 'unknown' | 'granted' | 'denied' | 'requesting';
+}
+
+export interface RecordingState {
   isRecording: boolean;
+  duration: number; // in seconds
+  isAvailable: boolean;
   isPaused: boolean;
-  duration: number;
-  error: Error | null;
+}
+
+export interface VideoRecordingState {
+  stream: MediaStream | null;
+  isReady: boolean;
+  error: string | null;
+  permissions: PermissionStatus;
+  recording: RecordingState;
+  recordedBlob: Blob | null;
+  availableDevices: MediaDeviceInfo[];
+  currentDeviceId: string | null;
+}
+
+export interface UseVideoRecordingReturn extends VideoRecordingState {
+  // Permission methods
+  requestPermissions: () => Promise<void>;
+  checkPermissions: () => Promise<void>;
   
-  // Controls
-  startRecording: (propertyId: string, inspectorId: string) => Promise<void>;
+  // Camera methods
+  startCamera: () => Promise<void>;
+  stopCamera: () => void;
+  switchCamera: () => Promise<void>;
+  
+  // Recording methods
+  startRecording: () => Promise<void>;
+  stopRecording: () => void;
   pauseRecording: () => void;
   resumeRecording: () => void;
-  stopRecording: () => Promise<VideoRecording | null>;
-  cancelRecording: () => void;
   
-  // Permissions
-  hasPermission: boolean;
-  requestPermission: () => Promise<void>;
-  
-  // Processing
-  isProcessing: boolean;
-  processingProgress: number;
-  timestamps: VideoTimestamp[];
+  // Utility methods
+  getAvailableDevices: () => Promise<void>;
+  resetRecording: () => void;
+  downloadRecording: (filename?: string) => void;
 }
 
 export const useVideoRecording = (
-  options: UseVideoRecordingOptions = {}
+  options: VideoRecordingOptions = {}
 ): UseVideoRecordingReturn => {
   const {
-    videoRef,
-    maxDuration = 600, // 10 minutes default
-    audioEnabled = true,
-    onStats,
-    onStatusChange,
-    autoSave = true,
-    compressionEnabled = true
+    video = true,
+    audio = true,
+    autoStart = false,
+    facingMode = 'environment',
+    recordingOptions = {}
   } = options;
 
   // State
-  const [status, setStatus] = useState<VideoStatus>('stopped');
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [recording, setRecording] = useState<VideoRecording | null>(null);
-  const [duration, setDuration] = useState(0);
-  const [hasPermission, setHasPermission] = useState(false);
-  const [processingProgress, setProcessingProgress] = useState(0);
-  const [timestamps, setTimestamps] = useState<VideoTimestamp[]>([]);
-  const [error, setError] = useState<Error | null>(null);
+  const [state, setState] = useState<VideoRecordingState>({
+    stream: null,
+    isReady: false,
+    error: null,
+    permissions: {
+      camera: 'unknown',
+      microphone: 'unknown'
+    },
+    recording: {
+      isRecording: false,
+      duration: 0,
+      isAvailable: false,
+      isPaused: false
+    },
+    recordedBlob: null,
+    availableDevices: [],
+    currentDeviceId: null
+  });
 
   // Refs
-  const videoProcessorRef = useRef(createVideoProcessor());
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const pausedDurationRef = useRef<number>(0);
-  const lastPauseTimeRef = useRef<number>(0);
-  const currentPropertyIdRef = useRef<string>('');
-  const currentInspectorIdRef = useRef<string>('');
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Derived state
-  const isRecording = status === 'recording';
-  const isPaused = status === 'paused';
-  const isProcessing = status === 'processing' || status === 'analyzing';
+  // Default recording options
+  const defaultRecordingOptions = {
+    mimeType: 'video/webm;codecs=vp9,opus',
+    videoBitsPerSecond: 2500000, // 2.5 Mbps for good quality
+    audioBitsPerSecond: 128000,  // 128 kbps for clear audio
+    ...recordingOptions
+  };
 
-  // Update status and notify
-  const updateStatus = useCallback((newStatus: VideoStatus) => {
-    setStatus(newStatus);
-    onStatusChange?.(newStatus);
-  }, [onStatusChange]);
-
-  // Check camera permission
-  const checkPermission = useCallback(async (): Promise<boolean> => {
+  /**
+   * Check current browser permissions
+   */
+  const checkPermissions = useCallback(async () => {
     try {
-      // Check if we already have a stream
-      if (stream) {
-        setHasPermission(true);
-        return true;
-      }
+      const [cameraPermission, microphonePermission] = await Promise.all([
+        navigator.permissions.query({ name: 'camera' as PermissionName }),
+        navigator.permissions.query({ name: 'microphone' as PermissionName })
+      ]);
 
-      // Try to check permission without triggering prompt
-      if (navigator.permissions && navigator.permissions.query) {
-        try {
-          const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-          const granted = result.state === 'granted';
-          setHasPermission(granted);
-          return granted;
-        } catch {
-          // Permissions API not supported
+      setState(prev => ({
+        ...prev,
+        permissions: {
+          camera: cameraPermission.state === 'granted' ? 'granted' : 
+                  cameraPermission.state === 'denied' ? 'denied' : 'unknown',
+          microphone: microphonePermission.state === 'granted' ? 'granted' : 
+                     microphonePermission.state === 'denied' ? 'denied' : 'unknown'
         }
-      }
+      }));
 
-      return false;
-    } catch {
-      return false;
+      logger.info('Permissions checked', {
+        camera: cameraPermission.state,
+        microphone: microphonePermission.state
+      }, 'VIDEO_RECORDING');
+
+    } catch (error) {
+      logger.warn('Permission check not supported', { error }, 'VIDEO_RECORDING');
+      // Permissions API not supported, permissions will be determined when requesting
     }
-  }, [stream]);
+  }, []);
 
-  // Request camera permission
-  const requestPermission = useCallback(async (): Promise<void> => {
+  /**
+   * Request camera and microphone permissions
+   */
+  const requestPermissions = useCallback(async () => {
+    setState(prev => ({
+      ...prev,
+      permissions: {
+        camera: 'requesting',
+        microphone: 'requesting'
+      },
+      error: null
+    }));
+
     try {
       const constraints: MediaStreamConstraints = {
-        video: {
+        video: video ? {
+          facingMode,
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          facingMode: 'environment'
-        },
-        audio: audioEnabled
+          frameRate: { ideal: 30 }
+        } : false,
+        audio: audio ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } : false
       };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
-      setHasPermission(true);
-      setError(null);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      // Attach to video element if provided
-      if (videoRef?.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err) {
-      const error = err as Error;
-      setError(error);
-      setHasPermission(false);
+      setState(prev => ({
+        ...prev,
+        stream,
+        isReady: true,
+        permissions: {
+          camera: stream.getVideoTracks().length > 0 ? 'granted' : 'denied',
+          microphone: stream.getAudioTracks().length > 0 ? 'granted' : 'denied'
+        },
+        currentDeviceId: stream.getVideoTracks()[0]?.getSettings().deviceId || null
+      }));
+
+      logger.info('Permissions granted and stream started', {
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length
+      }, 'VIDEO_RECORDING');
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Permission request failed';
+      
+      setState(prev => ({
+        ...prev,
+        error: errorMessage,
+        permissions: {
+          camera: 'denied',
+          microphone: 'denied'
+        },
+        isReady: false
+      }));
+
+      logger.error('Permission request failed', { error }, 'VIDEO_RECORDING');
       throw error;
     }
-  }, [audioEnabled, videoRef]);
+  }, [video, audio, facingMode]);
 
-  // Start recording
-  const startRecording = useCallback(async (
-    propertyId: string,
-    inspectorId: string
-  ): Promise<void> => {
+  /**
+   * Start camera (alias for requestPermissions for consistency)
+   */
+  const startCamera = useCallback(async () => {
+    await requestPermissions();
+  }, [requestPermissions]);
+
+  /**
+   * Stop camera and clean up stream
+   */
+  const stopCamera = useCallback(() => {
+    if (state.stream) {
+      state.stream.getTracks().forEach(track => {
+        track.stop();
+      });
+
+      setState(prev => ({
+        ...prev,
+        stream: null,
+        isReady: false,
+        currentDeviceId: null
+      }));
+
+      logger.info('Camera stopped', {}, 'VIDEO_RECORDING');
+    }
+  }, [state.stream]);
+
+  /**
+   * Switch between front and back camera
+   */
+  const switchCamera = useCallback(async () => {
+    if (!state.stream) return;
+
+    const currentVideoTrack = state.stream.getVideoTracks()[0];
+    const currentFacingMode = currentVideoTrack?.getSettings().facingMode;
+    const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+
     try {
-      setError(null);
-      
-      // Ensure we have permission
-      if (!hasPermission) {
-        await requestPermission();
-      }
+      // Stop current stream
+      stopCamera();
 
-      if (!stream) {
-        throw new Error('No media stream available');
-      }
+      // Request new stream with different facing mode
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: newFacingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: audio
+      };
 
-      // Store IDs
-      currentPropertyIdRef.current = propertyId;
-      currentInspectorIdRef.current = inspectorId;
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      // Reset timing
-      startTimeRef.current = Date.now();
-      pausedDurationRef.current = 0;
-      setDuration(0);
+      setState(prev => ({
+        ...prev,
+        stream: newStream,
+        isReady: true,
+        currentDeviceId: newStream.getVideoTracks()[0]?.getSettings().deviceId || null
+      }));
 
-      // Start duration tracking
-      durationIntervalRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTimeRef.current - pausedDurationRef.current;
-        const seconds = Math.floor(elapsed / 1000);
-        setDuration(seconds);
+      logger.info('Camera switched', { newFacingMode }, 'VIDEO_RECORDING');
 
-        // Auto-stop at max duration
-        if (seconds >= maxDuration) {
-          stopRecording();
+    } catch (error) {
+      logger.error('Failed to switch camera', { error }, 'VIDEO_RECORDING');
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to switch camera'
+      }));
+    }
+  }, [state.stream, audio, stopCamera]);
+
+  /**
+   * Get available video devices
+   */
+  const getAvailableDevices = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+      setState(prev => ({
+        ...prev,
+        availableDevices: videoDevices
+      }));
+
+      logger.info('Available devices enumerated', { count: videoDevices.length }, 'VIDEO_RECORDING');
+
+    } catch (error) {
+      logger.error('Failed to enumerate devices', { error }, 'VIDEO_RECORDING');
+    }
+  }, []);
+
+  /**
+   * Start video recording
+   */
+  const startRecording = useCallback(async () => {
+    if (!state.stream) {
+      throw new Error('Camera stream not available');
+    }
+
+    try {
+      // Reset recording state
+      recordedChunksRef.current = [];
+
+      // Create MediaRecorder with optimized settings
+      const mediaRecorder = new MediaRecorder(state.stream, defaultRecordingOptions);
+      mediaRecorderRef.current = mediaRecorder;
+
+      // Handle data availability
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
         }
-      }, 100);
+      };
 
-      // Configure recording
-      const recordingConfig: VideoRecordingConfig = {
-        maxDuration,
-        targetResolution: { width: 1920, height: 1080, aspectRatio: '16:9' },
-        targetBitrate: 2500,
-        audioEnabled,
-        stabilizationEnabled: true,
-        autoFocusEnabled: true,
-        lowLightEnhancement: true
+      // Handle recording stop
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, {
+          type: defaultRecordingOptions.mimeType || 'video/webm'
+        });
+
+        setState(prev => ({
+          ...prev,
+          recordedBlob: blob,
+          recording: {
+            ...prev.recording,
+            isRecording: false,
+            isAvailable: true
+          }
+        }));
+
+        logger.info('Recording completed', {
+          duration: state.recording.duration,
+          size: blob.size
+        }, 'VIDEO_RECORDING');
       };
 
       // Start recording
-      updateStatus('recording');
-      
-      const processor = videoProcessorRef.current;
-      const videoRecording = await processor.recordWalkthrough(
-        stream,
-        recordingConfig,
-        onStats
-      );
+      mediaRecorder.start(1000); // Collect data every second
 
-      // Update with property and inspector IDs
-      videoRecording.propertyId = propertyId;
-      videoRecording.inspectorId = inspectorId;
-      
-      setRecording(videoRecording);
-      
-    } catch (err) {
-      const error = err as Error;
-      setError(error);
-      updateStatus('failed');
+      // Start timer
+      timerRef.current = setInterval(() => {
+        setState(prev => ({
+          ...prev,
+          recording: {
+            ...prev.recording,
+            duration: prev.recording.duration + 1
+          }
+        }));
+      }, 1000);
+
+      setState(prev => ({
+        ...prev,
+        recording: {
+          ...prev.recording,
+          isRecording: true,
+          duration: 0,
+          isAvailable: false,
+          isPaused: false
+        },
+        recordedBlob: null,
+        error: null
+      }));
+
+      logger.info('Recording started', {}, 'VIDEO_RECORDING');
+
+    } catch (error) {
+      logger.error('Failed to start recording', { error }, 'VIDEO_RECORDING');
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to start recording'
+      }));
       throw error;
     }
-  }, [hasPermission, stream, maxDuration, audioEnabled, onStats, requestPermission, updateStatus]);
+  }, [state.stream, state.recording.duration, defaultRecordingOptions]);
 
-  // Pause recording
+  /**
+   * Stop video recording
+   */
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && state.recording.isRecording) {
+      mediaRecorderRef.current.stop();
+
+      // Clear timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+
+      logger.info('Recording stopped', {}, 'VIDEO_RECORDING');
+    }
+  }, [state.recording.isRecording]);
+
+  /**
+   * Pause video recording
+   */
   const pauseRecording = useCallback(() => {
-    if (status === 'recording') {
-      lastPauseTimeRef.current = Date.now();
-      videoProcessorRef.current.pauseRecording();
-      updateStatus('paused');
-    }
-  }, [status, updateStatus]);
+    if (mediaRecorderRef.current && state.recording.isRecording && !state.recording.isPaused) {
+      mediaRecorderRef.current.pause();
 
-  // Resume recording
+      // Pause timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+
+      setState(prev => ({
+        ...prev,
+        recording: {
+          ...prev.recording,
+          isPaused: true
+        }
+      }));
+
+      logger.info('Recording paused', {}, 'VIDEO_RECORDING');
+    }
+  }, [state.recording.isRecording, state.recording.isPaused]);
+
+  /**
+   * Resume video recording
+   */
   const resumeRecording = useCallback(() => {
-    if (status === 'paused') {
-      pausedDurationRef.current += Date.now() - lastPauseTimeRef.current;
-      videoProcessorRef.current.resumeRecording();
-      updateStatus('recording');
+    if (mediaRecorderRef.current && state.recording.isRecording && state.recording.isPaused) {
+      mediaRecorderRef.current.resume();
+
+      // Resume timer
+      timerRef.current = setInterval(() => {
+        setState(prev => ({
+          ...prev,
+          recording: {
+            ...prev.recording,
+            duration: prev.recording.duration + 1
+          }
+        }));
+      }, 1000);
+
+      setState(prev => ({
+        ...prev,
+        recording: {
+          ...prev.recording,
+          isPaused: false
+        }
+      }));
+
+      logger.info('Recording resumed', {}, 'VIDEO_RECORDING');
     }
-  }, [status, updateStatus]);
+  }, [state.recording.isRecording, state.recording.isPaused]);
 
-  // Stop recording
-  const stopRecording = useCallback(async (): Promise<VideoRecording | null> => {
-    try {
-      // Clear duration interval
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-        durationIntervalRef.current = null;
-      }
+  /**
+   * Reset recording state
+   */
+  const resetRecording = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      recording: {
+        isRecording: false,
+        duration: 0,
+        isAvailable: false,
+        isPaused: false
+      },
+      recordedBlob: null,
+      error: null
+    }));
 
-      // Stop recording
-      videoProcessorRef.current.stopRecording();
-      updateStatus('processing');
+    recordedChunksRef.current = [];
 
-      if (!recording) {
-        throw new Error('No recording available');
-      }
-
-      // Process video frames
-      setProcessingProgress(20);
-      const extractedTimestamps = await videoProcessorRef.current.processVideoFrames(
-        recording.file
-      );
-      
-      setProcessingProgress(60);
-      
-      // Analyze video content
-      const analysis = await videoProcessorRef.current.analyzeVideoContent(
-        recording.file,
-        extractedTimestamps
-      );
-      
-      setProcessingProgress(80);
-      
-      // Generate navigation timestamps
-      const navigationTimestamps = videoProcessorRef.current.generateTimestamps(analysis);
-      
-      // Update recording with analysis
-      const finalRecording: VideoRecording = {
-        ...recording,
-        timestamps: navigationTimestamps,
-        status: 'completed',
-        processedAt: new Date()
-      };
-      
-      setRecording(finalRecording);
-      setTimestamps(navigationTimestamps);
-      setProcessingProgress(100);
-      
-      // Save if auto-save enabled
-      if (autoSave) {
-        await saveRecording(finalRecording);
-      }
-      
-      updateStatus('completed');
-      return finalRecording;
-      
-    } catch (err) {
-      const error = err as Error;
-      setError(error);
-      updateStatus('failed');
-      return null;
-    } finally {
-      setProcessingProgress(0);
-    }
-  }, [recording, autoSave, updateStatus]);
-
-  // Cancel recording
-  const cancelRecording = useCallback(() => {
-    // Clear duration interval
-    if (durationIntervalRef.current) {
-      clearInterval(durationIntervalRef.current);
-      durationIntervalRef.current = null;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
-    // Stop processor
-    videoProcessorRef.current.stopRecording();
-    
-    // Reset state
-    setRecording(null);
-    setDuration(0);
-    setTimestamps([]);
-    updateStatus('stopped');
-  }, [updateStatus]);
+    logger.info('Recording reset', {}, 'VIDEO_RECORDING');
+  }, []);
 
-  // Save recording to storage
-  const saveRecording = async (recording: VideoRecording): Promise<void> => {
-    try {
-      // In production, this would upload to cloud storage
-      // For now, we'll save to IndexedDB or localStorage
-      const savedRecordings = JSON.parse(
-        localStorage.getItem('video_recordings') || '[]'
-      );
-      
-      // Save metadata only (not the actual file)
-      const metadata = {
-        id: recording.id,
-        propertyId: recording.propertyId,
-        inspectorId: recording.inspectorId,
-        duration: recording.duration,
-        size: recording.size,
-        createdAt: recording.createdAt,
-        timestamps: recording.timestamps.length
-      };
-      
-      savedRecordings.push(metadata);
-      localStorage.setItem('video_recordings', JSON.stringify(savedRecordings));
-      
-    } catch (error) {
-      console.error('Failed to save recording:', error);
+  /**
+   * Download recorded video
+   */
+  const downloadRecording = useCallback((filename: string = 'walkthrough-video.webm') => {
+    if (state.recordedBlob) {
+      const url = URL.createObjectURL(state.recordedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      logger.info('Recording downloaded', { filename }, 'VIDEO_RECORDING');
     }
-  };
+  }, [state.recordedBlob]);
 
-  // Initialize permission check
+  // Auto-start if requested
   useEffect(() => {
-    checkPermission();
-  }, [checkPermission]);
+    if (autoStart) {
+      requestPermissions().catch(error => {
+        logger.warn('Auto-start failed', { error }, 'VIDEO_RECORDING');
+      });
+    }
+  }, [autoStart, requestPermissions]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Clear intervals
-      if (durationIntervalRef.current) {
-        clearInterval(durationIntervalRef.current);
-      }
-      
-      // Stop any active recording
-      if (status === 'recording' || status === 'paused') {
-        videoProcessorRef.current.stopRecording();
-      }
-      
-      // Stop media stream
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      stopCamera();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
-  }, [status, stream]);
+  }, [stopCamera]);
 
   return {
-    // State
-    status,
-    stream,
-    recording,
-    isRecording,
-    isPaused,
-    duration,
-    error,
-    
-    // Controls
+    ...state,
+    requestPermissions,
+    checkPermissions,
+    startCamera,
+    stopCamera,
+    switchCamera,
     startRecording,
+    stopRecording,
     pauseRecording,
     resumeRecording,
-    stopRecording,
-    cancelRecording,
-    
-    // Permissions
-    hasPermission,
-    requestPermission,
-    
-    // Processing
-    isProcessing,
-    processingProgress,
-    timestamps
-  };
-};
-
-// Hook for managing multiple video recordings
-export const useVideoRecordingManager = () => {
-  const [recordings, setRecordings] = useState<VideoRecording[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load saved recordings
-  useEffect(() => {
-    const loadRecordings = async () => {
-      try {
-        const saved = localStorage.getItem('video_recordings');
-        if (saved) {
-          setRecordings(JSON.parse(saved));
-        }
-      } catch (error) {
-        console.error('Failed to load recordings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadRecordings();
-  }, []);
-
-  // Delete recording
-  const deleteRecording = useCallback((id: string) => {
-    setRecordings(prev => {
-      const updated = prev.filter(r => r.id !== id);
-      localStorage.setItem('video_recordings', JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  // Get recordings for property
-  const getPropertyRecordings = useCallback((propertyId: string) => {
-    return recordings.filter(r => r.propertyId === propertyId);
-  }, [recordings]);
-
-  return {
-    recordings,
-    isLoading,
-    deleteRecording,
-    getPropertyRecordings
+    getAvailableDevices,
+    resetRecording,
+    downloadRecording
   };
 };

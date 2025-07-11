@@ -595,8 +595,13 @@ export class ErrorReporter {
       if (current.id) {
         selector += `#${current.id}`;
       } else if (current.className) {
-        const classNames = String(current.className);
-        selector += `.${classNames.split(' ').filter(Boolean).join('.')}`;
+        // Handle both regular elements (string) and SVG elements (SVGAnimatedString)
+        const classNames = typeof current.className === 'string' 
+          ? current.className 
+          : current.className?.baseVal || '';
+        if (classNames) {
+          selector += `.${classNames.split(' ').filter(Boolean).join('.')}`;
+        }
       }
 
       parts.unshift(selector);

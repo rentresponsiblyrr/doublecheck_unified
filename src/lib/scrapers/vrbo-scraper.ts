@@ -642,3 +642,9 @@ export const DEFAULT_SCRAPER_CONFIG: ScraperConfig = {
   rateLimit: 10,
   enableScreenshots: false,
 } as const;
+
+// Export convenience functions
+export const createVRBOScraper = (config?: Partial<ScraperConfig>) => new VRBOScraper(config);
+
+// Export robust scraping service for production use
+export { robustScrapingService, scrapePropertyRobustly } from './robust-scraping-service';

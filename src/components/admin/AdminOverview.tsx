@@ -123,7 +123,11 @@ export default function AdminOverview() {
         properties: propertyStats,
         inspections: inspectionStats,
         users: userStats,
-        reports: { generated: 45, pending: 8, delivered: 37 } // Mock data for now
+        reports: { 
+          generated: inspectionStats.completed, // Use completed inspections as generated reports
+          pending: inspectionStats.pending, // Use pending inspections as pending reports
+          delivered: inspectionStats.approved // Use approved inspections as delivered reports
+        }
       });
 
     } catch (error) {

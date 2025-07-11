@@ -29,6 +29,10 @@ const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').the
   default: module.AILearningDashboard || module.default
 })).catch(() => ({ default: () => <div>Learning Dashboard temporarily unavailable</div> })));
 
+const ChecklistManagement = React.lazy(() => import('./ChecklistManagement').catch(() => ({
+  default: () => <div>Checklist Management temporarily unavailable</div>
+})));
+
 // Loading fallback
 const AdminLoadingFallback = () => (
   <div className="space-y-6">
@@ -79,10 +83,7 @@ export default function AdminRoutes() {
           } />
           <Route path="/checklists" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Checklist Management</h2>
-                <p className="text-gray-600">Checklist management system coming soon...</p>
-              </div>
+              <ChecklistManagement />
             </Suspense>
           } />
           <Route path="/performance" element={

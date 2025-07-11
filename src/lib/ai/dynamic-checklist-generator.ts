@@ -128,10 +128,9 @@ export class DynamicChecklistGenerator {
       const items: DynamicChecklistItem[] = [];
       let currentOrder = 1;
 
-      // 1. Add video walkthrough as first item (mandatory)
-      if (options.includeVideoWalkthrough) {
-        items.push(this.createVideoWalkthroughItem(currentOrder++));
-      }
+      // 1. ALWAYS add video walkthrough as first item (mandatory for all inspections)
+      items.push(this.createVideoWalkthroughItem(1));
+      currentOrder = 2; // Start all other items at order 2
 
       // 2. Generate bedroom-specific items
       if (options.includeRoomSpecificItems) {
@@ -179,11 +178,16 @@ export class DynamicChecklistGenerator {
         currentOrder += complianceItems.length;
       }
 
-      // 7. Add general inspection items
+      // 7. Add listing verification items
+      const verificationItems = this.generateListingVerificationItems(propertyData, currentOrder);
+      items.push(...verificationItems);
+      currentOrder += verificationItems.length;
+
+      // 8. Add general inspection items
       const generalItems = this.generateGeneralItems(propertyData, currentOrder);
       items.push(...generalItems);
 
-      // 8. Use AI to enhance and validate the checklist
+      // 9. Use AI to enhance and validate the checklist
       const enhancedItems = await this.enhanceChecklistWithAI(items, propertyData);
 
       // Calculate metadata
@@ -223,33 +227,38 @@ export class DynamicChecklistGenerator {
   }
 
   /**
-   * Creates the mandatory video walkthrough item
-   * @param order - Order in the checklist
+   * Creates the mandatory video walkthrough item - ALWAYS FIRST
+   * @param order - Order in the checklist (should always be 1)
    * @returns DynamicChecklistItem
    */
   private createVideoWalkthroughItem(order: number): DynamicChecklistItem {
     return {
       id: 'video_walkthrough_001',
-      title: 'Property Video Walkthrough',
-      description: 'Record a comprehensive video walkthrough of the entire property for auditor review and AI analysis',
+      title: '🎥 Property Video Walkthrough',
+      description: 'Great! Before we go through the full checklist, let\'s get our bearings. Give me a video tour of the property to help orient the audit process.',
       category: 'documentation',
       required: true,
       evidenceRequired: true,
       safetyRelated: false,
-      complianceRequired: false,
+      complianceRequired: true,
       priority: 'critical',
       estimatedTimeMinutes: 15,
-      order,
+      order: 1, // Always first, regardless of input order
       passFailOptions: ['pass', 'fail'],
       naRequiresNote: false,
-      expectedSubjects: ['all_rooms', 'exterior', 'amenities', 'safety_equipment'],
+      expectedSubjects: ['all_rooms', 'exterior', 'amenities', 'safety_equipment', 'property_overview'],
       qualityThreshold: 80,
       isVideoWalkthrough: true,
       canRename: false,
-      instructions: 'Walk through each room slowly, narrating key features and amenities. Show all areas guests will access.',
+      instructions: 'Click the record button to start your video walkthrough. Walk through each room slowly, narrating key features, amenities, and the overall condition. Show all areas guests will access including bedrooms, bathrooms, kitchen, living areas, and any outdoor spaces.',
+      referencePhotos: [],
       metadata: {
         generatedFrom: 'safety_requirement',
-        sourceData: { type: 'mandatory_walkthrough' },
+        sourceData: { 
+          type: 'mandatory_walkthrough',
+          isFirstItem: true,
+          requiresPermissions: ['camera', 'microphone']
+        },
         aiGenerated: false
       }
     };
@@ -542,6 +551,131 @@ export class DynamicChecklistGenerator {
     ];
 
     return complianceItems;
+  }
+
+  /**
+   * Generates listing verification checklist items
+   * @param propertyData - VRBO property data
+   * @param startOrder - Starting order number
+   * @returns DynamicChecklistItem[]
+   */
+  private generateListingVerificationItems(
+    propertyData: VRBOPropertyData,
+    startOrder: number
+  ): DynamicChecklistItem[] {
+    const verificationItems: DynamicChecklistItem[] = [
+      {
+        id: 'listing_photos_verification',
+        title: 'Listing Photos Verification',
+        description: 'Compare property condition to listing photos and verify accuracy',
+        category: 'documentation',
+        required: true,
+        evidenceRequired: true,
+        safetyRelated: false,
+        complianceRequired: true,
+        priority: 'critical',
+        estimatedTimeMinutes: 15,
+        order: startOrder,
+        passFailOptions: ['pass', 'fail'],
+        naRequiresNote: false,
+        expectedSubjects: ['listing_comparison', 'photo_accuracy', 'condition_verification'],
+        qualityThreshold: 85,
+        canRename: false,
+        instructions: 'Take photos from same angles as listing photos. Document any discrepancies between actual property and listing images.',
+        metadata: {
+          generatedFrom: 'compliance_rule',
+          sourceData: { verificationType: 'listing_accuracy', vrboUrl: propertyData.vrboUrl },
+          aiGenerated: false
+        }
+      },
+      {
+        id: 'amenities_listing_verification',
+        title: 'Amenities vs Listing Verification',
+        description: 'Verify all advertised amenities are present and functional',
+        category: 'amenities',
+        required: true,
+        evidenceRequired: true,
+        safetyRelated: false,
+        complianceRequired: true,
+        priority: 'high',
+        estimatedTimeMinutes: 12,
+        order: startOrder + 1,
+        passFailOptions: ['pass', 'fail', 'not_applicable'],
+        naRequiresNote: true,
+        expectedSubjects: ['amenity_verification', 'functionality_check', 'listing_accuracy'],
+        qualityThreshold: 80,
+        canRename: false,
+        instructions: `Check each amenity listed in the Vrbo posting: ${propertyData.amenities.map(a => a.name).slice(0, 5).join(', ')}${propertyData.amenities.length > 5 ? '...' : ''}. Document any missing or non-functional items.`,
+        metadata: {
+          generatedFrom: 'vrbo_amenity',
+          sourceData: { 
+            verificationType: 'amenity_accuracy', 
+            listedAmenities: propertyData.amenities.length,
+            vrboUrl: propertyData.vrboUrl 
+          },
+          aiGenerated: false
+        }
+      },
+      {
+        id: 'room_count_verification',
+        title: 'Room Count Verification',
+        description: 'Verify bedroom and bathroom counts match listing description',
+        category: 'compliance',
+        required: true,
+        evidenceRequired: true,
+        safetyRelated: false,
+        complianceRequired: true,
+        priority: 'high',
+        estimatedTimeMinutes: 8,
+        order: startOrder + 2,
+        passFailOptions: ['pass', 'fail'],
+        naRequiresNote: false,
+        expectedSubjects: ['bedroom_count', 'bathroom_count', 'listing_accuracy'],
+        qualityThreshold: 90,
+        canRename: false,
+        instructions: `Verify property has ${propertyData.specifications.bedrooms} bedrooms and ${propertyData.specifications.bathrooms} bathrooms as advertised. Document any discrepancies.`,
+        metadata: {
+          generatedFrom: 'compliance_rule',
+          sourceData: { 
+            verificationType: 'room_count_accuracy',
+            listedBedrooms: propertyData.specifications.bedrooms,
+            listedBathrooms: propertyData.specifications.bathrooms,
+            vrboUrl: propertyData.vrboUrl 
+          },
+          aiGenerated: false
+        }
+      },
+      {
+        id: 'capacity_verification',
+        title: 'Guest Capacity Verification',
+        description: 'Verify actual sleeping capacity matches advertised guest limit',
+        category: 'compliance',
+        required: true,
+        evidenceRequired: true,
+        safetyRelated: false,
+        complianceRequired: true,
+        priority: 'high',
+        estimatedTimeMinutes: 10,
+        order: startOrder + 3,
+        passFailOptions: ['pass', 'fail'],
+        naRequiresNote: false,
+        expectedSubjects: ['sleeping_arrangements', 'guest_capacity', 'listing_accuracy'],
+        qualityThreshold: 85,
+        canRename: false,
+        instructions: `Count actual sleeping spaces and verify they accommodate ${propertyData.specifications.maxGuests} guests as advertised. Include beds, sofa beds, air mattresses, etc.`,
+        metadata: {
+          generatedFrom: 'compliance_rule',
+          sourceData: { 
+            verificationType: 'capacity_accuracy',
+            listedCapacity: propertyData.specifications.maxGuests,
+            vrboUrl: propertyData.vrboUrl 
+          },
+          aiGenerated: false
+        }
+      }
+    ];
+
+    return verificationItems;
   }
 
   /**

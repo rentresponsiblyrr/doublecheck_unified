@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Plus,
   Eye,
-  BarChart3
+  BarChart3,
+  Home
 } from "lucide-react";
 // Debug imports removed to prevent auto-execution errors
 
@@ -23,7 +24,7 @@ const Index = () => {
   console.log('📱 Inspector Dashboard - STR Certified');
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { inspections, recentInspections, summary, isLoading, error } = useInspectorDashboard();
+  const { inspections, properties, recentInspections, summary, isLoading, error } = useInspectorDashboard();
 
   // Remove automatic debug calls to prevent 400 errors
 
@@ -103,14 +104,26 @@ const Index = () => {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Home className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Properties</p>
+                  <p className="text-2xl font-bold">{summary.properties}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total</p>
-                  <p className="text-2xl font-bold">{summary.total}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Inspections</p>
+                  <p className="text-2xl font-bold">{summary.total_property_inspections}</p>
                 </div>
               </div>
             </CardContent>
@@ -121,8 +134,20 @@ const Index = () => {
               <div className="flex items-center space-x-2">
                 <Play className="h-5 w-5 text-orange-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">In Progress</p>
-                  <p className="text-2xl font-bold">{summary.in_progress}</p>
+                  <p className="text-sm font-medium text-gray-600">Active</p>
+                  <p className="text-2xl font-bold">{summary.active_property_inspections}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-2xl font-bold">{summary.completed_property_inspections}</p>
                 </div>
               </div>
             </CardContent>
@@ -135,18 +160,6 @@ const Index = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending Review</p>
                   <p className="text-2xl font-bold">{summary.pending_review}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Approved</p>
-                  <p className="text-2xl font-bold">{summary.approved}</p>
                 </div>
               </div>
             </CardContent>

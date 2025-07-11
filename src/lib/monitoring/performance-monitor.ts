@@ -441,7 +441,15 @@ class PerformanceMonitor {
 
   private getElementSelector(element: HTMLElement): string {
     if (element.id) return `#${element.id}`;
-    if (element.className) return `.${element.className.split(' ')[0]}`;
+    if (element.className) {
+      // Handle both regular elements (string) and SVG elements (SVGAnimatedString)
+      const classNameString = typeof element.className === 'string' 
+        ? element.className 
+        : element.className?.baseVal || '';
+      if (classNameString) {
+        return `.${classNameString.split(' ')[0]}`;
+      }
+    }
     return element.tagName.toLowerCase();
   }
 
