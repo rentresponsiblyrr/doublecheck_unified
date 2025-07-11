@@ -9,6 +9,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthContext } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
 import { ErrorFallback } from "@/components/error/ErrorFallback";
+import { useSessionManager } from "@/hooks/useSessionManager";
+import { SessionWarning } from "@/components/SessionWarning";
 import { errorReporter } from "@/lib/monitoring/error-reporter";
 import { performanceTracker } from "@/lib/monitoring/performance-tracker";
 import { env } from "@/lib/config/environment";
@@ -129,6 +131,29 @@ interface AuthenticatedAppProps {
 export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   const appType = getAppTypeFromDomain();
   
+  // Session management configuration based on app type and environment
+  const sessionConfig = React.useMemo(() => {
+    const isDev = env.isDevelopment();
+    
+    if (appType === AppType.INSPECTOR) {
+      return {
+        inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 110 * 60 * 1000, // 2min dev, 110min prod
+        warningDurationMs: isDev ? 30 * 1000 : 10 * 60 * 1000,        // 30sec dev, 10min prod
+        maxSessionDurationMs: isDev ? 10 * 60 * 1000 : 12 * 60 * 60 * 1000, // 10min dev, 12h prod
+        enableRememberMe: true
+      };
+    } else {
+      return {
+        inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 50 * 60 * 1000,  // 2min dev, 50min prod
+        warningDurationMs: isDev ? 30 * 1000 : 10 * 60 * 1000,        // 30sec dev, 10min prod
+        maxSessionDurationMs: isDev ? 8 * 60 * 1000 : 8 * 60 * 60 * 1000, // 8min dev, 8h prod
+        enableRememberMe: true
+      };
+    }
+  }, [appType]);
+
+  const { sessionState, extendSession, logout } = useSessionManager(sessionConfig);
+  
   // Log app configuration and routing debug info
   React.useEffect(() => {
     console.log('🔍 AuthenticatedApp Debug Info:');
@@ -137,11 +162,15 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
     console.log('- Current Path:', window.location.pathname);
     console.log('- User:', user?.email);
     console.log('- Environment:', env.getEnvironment());
+    console.log('- Session Config:', {
+      inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
+      maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
+    });
     
     if (env.isDevelopment()) {
       logAppConfiguration();
     }
-  }, [appType, user]);
+  }, [appType, user, sessionConfig]);
   
   return (
     <GlobalErrorBoundary>
@@ -167,6 +196,15 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                 <DomainAwarePWA />
                 <Toaster />
                 <Sonner />
+                
+                {/* Session Warning Modal */}
+                <SessionWarning
+                  isVisible={sessionState.showWarning}
+                  timeUntilLogout={sessionState.timeUntilLogout}
+                  onExtendSession={extendSession}
+                  onLogoutNow={logout}
+                />
+                
                 <BrowserRouter>
                   <Suspense fallback={<LoadingFallback />}>
                     {appType === AppType.INSPECTOR ? <InspectorRoutes /> : <AdminRoutesComponent />}
