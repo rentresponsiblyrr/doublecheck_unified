@@ -57,6 +57,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { sanitizeFormInput, validateURL } from '@/utils/validation';
+import { deletePropertyData } from '@/utils/propertyDeletion';
 
 interface Property {
   id: string;
@@ -264,23 +265,28 @@ export default function PropertyManagement() {
   };
 
   const handleDeleteProperty = async (property: Property) => {
-    if (!confirm(`Are you sure you want to delete "${property.name}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete "${property.name}"? This action cannot be undone and will permanently remove ALL associated data including inspections, checklist items, media files, and notifications.`)) {
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', property.id);
+      logger.info('Starting comprehensive property deletion', { propertyId: property.id, propertyName: property.name }, 'PROPERTY_MANAGEMENT');
+      
+      // Use the comprehensive deletion utility that handles all cascade conflicts
+      await deletePropertyData(property.id);
 
-      if (error) throw error;
-
-      logger.info('Property deleted successfully', { propertyId: property.id }, 'PROPERTY_MANAGEMENT');
+      logger.info('Property deleted successfully via comprehensive deletion', { propertyId: property.id }, 'PROPERTY_MANAGEMENT');
       await loadProperties();
     } catch (error) {
-      logger.error('Failed to delete property', error, 'PROPERTY_MANAGEMENT');
-      alert('Failed to delete property. It may have associated inspections.');
+      logger.error('Failed to delete property via comprehensive deletion', error, 'PROPERTY_MANAGEMENT');
+      
+      // Provide more specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('already in progress')) {
+        alert('Property deletion is already in progress. Please wait for the current operation to complete.');
+      } else {
+        alert(`Failed to delete property: ${errorMessage}`);
+      }
     }
   };
 

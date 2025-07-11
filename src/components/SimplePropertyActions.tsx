@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { deletePropertyData } from "@/utils/propertyDeletion";
 
 interface SimplePropertyActionsProps {
   propertyId: string;
@@ -44,63 +45,38 @@ export const SimplePropertyActions = ({
   };
 
   const handleDelete = async () => {
-    console.log('🗑️ Deleting property:', propertyId);
+    console.log('🗑️ Starting comprehensive property deletion:', propertyId);
     setIsDeleting(true);
 
     try {
-      // First, delete any related inspections and their checklist items
-      const { data: inspections } = await supabase
-        .from('inspections')
-        .select('id')
-        .eq('property_id', propertyId);
+      // Use the comprehensive deletion utility that handles all cascade conflicts
+      await deletePropertyData(propertyId);
 
-      if (inspections && inspections.length > 0) {
-        const inspectionIds = inspections.map(i => i.id);
-        
-        // Delete checklist items for these inspections
-        await supabase
-          .from('checklist_items')
-          .delete()
-          .in('inspection_id', inspectionIds);
-        
-        // Delete inspections
-        await supabase
-          .from('inspections')
-          .delete()
-          .eq('property_id', propertyId);
-      }
-
-      // Delete the property
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', propertyId);
-
-      if (error) {
-        console.error('❌ Error deleting property:', error);
-        toast({
-          title: "Error Deleting Property",
-          description: "Failed to delete the property. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('✅ Property deleted successfully');
+      console.log('✅ Property deleted successfully via comprehensive deletion');
       toast({
         title: "Property Deleted",
-        description: `"${propertyName}" has been deleted successfully.`,
+        description: `"${propertyName}" and all associated data have been permanently removed.`,
       });
 
       setShowDeleteDialog(false);
       onPropertyDeleted();
     } catch (error) {
-      console.error('💥 Unexpected error deleting property:', error);
-      toast({
-        title: "Unexpected Error",
-        description: "An unexpected error occurred while deleting the property.",
-        variant: "destructive",
-      });
+      console.error('💥 Comprehensive property deletion failed:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('already in progress')) {
+        toast({
+          title: "Deletion In Progress",
+          description: "Property deletion is already in progress. Please wait for completion.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error Deleting Property",
+          description: `Failed to delete property: ${errorMessage}`,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsDeleting(false);
     }
