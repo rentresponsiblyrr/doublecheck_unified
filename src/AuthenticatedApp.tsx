@@ -355,14 +355,12 @@ function AdminRoutesComponent() {
   
   return (
     <Routes>
-      {/* Dashboard Routes */}
+      {/* Admin Dashboard - Default route for admin.doublecheckverified.com */}
       <Route path="/" element={
-        <ProtectedRoute requiredRole="auditor">
-          <ErrorBoundary level="component">
-            <Suspense fallback={<LoadingFallback />}>
-              <LazyAuditorDashboard />
-            </Suspense>
-          </ErrorBoundary>
+        <ProtectedRoute requiredRole="admin">
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminRoutes />
+          </Suspense>
         </ProtectedRoute>
       } />
 

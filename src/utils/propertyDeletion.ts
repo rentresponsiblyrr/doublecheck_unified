@@ -1,8 +1,55 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Track properties currently being deleted to prevent race conditions
+const deletionInProgress = new Set<string>();
+
 export const deletePropertyData = async (propertyId: string): Promise<void> => {
   console.log('🗑️ Starting comprehensive property deletion for:', propertyId);
+
+  // Prevent concurrent deletions of the same property
+  if (deletionInProgress.has(propertyId)) {
+    console.log('⚠️ Property deletion already in progress, skipping...');
+    throw new Error('Property deletion is already in progress. Please wait for the current operation to complete.');
+  }
+
+  deletionInProgress.add(propertyId);
+
+  // Helper function to safely delete from a table (handles table not existing)
+  const safeDelete = async (
+    tableName: string, 
+    filter: { [key: string]: any }, 
+    description: string
+  ): Promise<void> => {
+    try {
+      let query = supabase.from(tableName).delete();
+      
+      // Apply filters
+      Object.entries(filter).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          query = query.in(key, value);
+        } else {
+          query = query.eq(key, value);
+        }
+      });
+
+      const { error } = await query;
+      
+      if (error) {
+        // If table doesn't exist, that's okay - it means it's not in this environment
+        if (error.message.includes('relation') && error.message.includes('does not exist')) {
+          console.log(`⚠️ Table ${tableName} doesn't exist - skipping ${description}`);
+          return;
+        }
+        throw error;
+      }
+      
+      console.log(`✅ ${description} deleted successfully`);
+    } catch (error) {
+      console.error(`❌ Error deleting ${description}:`, error);
+      throw new Error(`Failed to delete ${description}: ${error.message}`);
+    }
+  };
 
   try {
     // Step 1: Get all inspections for this property
@@ -89,6 +136,26 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       }
       console.log('✅ Checklist operations audit deleted successfully');
 
+      // Step 9.1: Delete auditor feedback (AI learning data) - using safe delete
+      console.log('🧠 Deleting auditor feedback...');
+      await safeDelete('auditor_feedback', { inspection_id: inspectionIds }, 'auditor feedback');
+
+      // Step 9.2: Delete RAG query logs (AI learning data) - using safe delete
+      console.log('🔍 Deleting RAG query logs...');
+      await safeDelete('rag_query_log', { inspection_id: inspectionIds }, 'RAG query logs');
+
+      // Step 9.3: Delete audit feedback (new table) - using safe delete
+      console.log('📝 Deleting audit feedback...');
+      await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback');
+
+      // Step 9.4: Delete report deliveries - using safe delete
+      console.log('📧 Deleting report deliveries...');
+      await safeDelete('report_deliveries', { inspection_id: inspectionIds }, 'report deliveries');
+
+      // Step 9.5: Delete inspection reports - using safe delete
+      console.log('📄 Deleting inspection reports...');
+      await safeDelete('inspection_reports', { inspection_id: inspectionIds }, 'inspection reports');
+
       // Step 10: Delete checklist items
       console.log('🗂️ Deleting checklist items...');
       const { error: checklistItemsError } = await supabase
@@ -161,8 +228,15 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
     }
 
     console.log('✅ Property deleted successfully!');
+    
+    // Mark deletion as complete
+    deletionInProgress.delete(propertyId);
   } catch (error) {
     console.error('💥 Comprehensive deletion failed:', error);
+    
+    // Always remove from tracking set on error
+    deletionInProgress.delete(propertyId);
+    
     throw error;
   }
 };

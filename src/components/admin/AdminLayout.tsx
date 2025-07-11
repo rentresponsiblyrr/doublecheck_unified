@@ -33,62 +33,62 @@ import { supabase } from '@/integrations/supabase/client';
 const navigation = [
   {
     name: 'Overview',
-    href: '/admin',
+    href: '/',
     icon: Home,
     current: false,
   },
   {
     name: 'Properties',
-    href: '/admin/properties',
+    href: '/properties',
     icon: Building2,
     current: false,
     badge: 'new'
   },
   {
     name: 'Inspections',
-    href: '/admin/inspections',
+    href: '/inspections',
     icon: ClipboardList,
     current: false,
   },
   {
     name: 'Users',
-    href: '/admin/users',
+    href: '/users',
     icon: Users,
     current: false,
   },
   {
     name: 'Reports',
-    href: '/admin/reports',
+    href: '/reports',
     icon: FileText,
     current: false,
   },
   {
     name: 'Checklist Management',
-    href: '/admin/checklists',
+    href: '/checklists',
     icon: UserCheck,
     current: false,
   },
   {
     name: 'AI Performance',
-    href: '/admin/performance',
+    href: '/performance',
     icon: Brain,
     current: false,
   },
   {
     name: 'AI Learning',
-    href: '/admin/ai-learning',
+    href: '/ai-learning',
     icon: TrendingUp,
     current: false,
   },
   {
     name: 'Analytics',
-    href: '/admin/analytics',
+    href: '/analytics',
     icon: BarChart3,
     current: false,
   },
   {
     name: 'Settings',
-    href: '/admin/settings',
+    href: '/settings',
     icon: Settings,
     current: false,
   },
@@ -107,7 +107,7 @@ export default function AdminLayout() {
   const updatedNavigation = navigation.map(item => ({
     ...item,
     current: location.pathname === item.href || 
-             (location.pathname.startsWith(item.href + '/') && item.href !== '/admin')
+             (location.pathname.startsWith(item.href + '/') && item.href !== '/')
   }));
 
   const handleSignOut = async () => {
@@ -183,7 +183,7 @@ export default function AdminLayout() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Profile Settings</span>
               </DropdownMenuItem>
