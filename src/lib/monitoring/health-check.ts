@@ -160,7 +160,7 @@ export class HealthCheckService {
     if (this.supabase) {
       try {
         const { error } = await this.supabase
-          .from('system_health')
+          .from('properties')
           .select('id')
           .limit(1);
         checks.database = !error;
@@ -207,9 +207,9 @@ export class HealthCheckService {
     }
 
     try {
-      // Perform a simple query
+      // Perform a simple query to test database connectivity
       const { data, error } = await this.supabase
-        .from('system_health')
+        .from('properties')
         .select('id')
         .limit(1);
 

@@ -5,14 +5,15 @@ export { usePropertyActions } from './usePropertyActions';
 export { useNetworkStatus } from './useNetworkStatus';
 export { useOfflineStorage } from './useOfflineStorage';
 
-// AI Analysis hooks
+// Enhanced AI hooks (consolidated)
+export { useEnhancedAI } from './useEnhancedAI';
+
+// Specialized photo analysis hooks (most comprehensive versions)
 export { 
-  useAIAnalysis, 
-  usePhotoAnalysis, 
   usePhotoComparison, 
-  useChecklistGeneration,
-  useInspectionValidation 
-} from './useAIAnalysis';
+  usePhotoQualityChecker, 
+  useComparisonHistory 
+} from './usePhotoComparison';
 
 // Property Scraper hooks
 export { 
@@ -21,11 +22,14 @@ export {
   usePhotoScraper 
 } from './usePropertyScraper';
 
-// Mobile-specific hooks
+// Consolidated Mobile Hooks
 export { useMobileAuth } from './useMobileAuth';
 export { useMobileDataManager } from './useMobileDataManager';
-export { useMobileOptimizedInspection } from './useMobileOptimizedInspection';
+export { useMobileErrorRecovery } from './useMobileErrorRecovery';
+export { useMobileInspectionOptimizer } from './useMobileInspectionOptimizer';
 
-// Form hooks
-export { usePropertyForm } from './usePropertyForm';
-export { usePropertyFormValidation } from './usePropertyFormValidation';
+// Consolidated Property Management Hooks
+export { useStreamlinedPropertyForm } from './useStreamlinedPropertyForm';
+export { useOptimizedPropertySelection } from './useOptimizedPropertySelection';
+export { useMobilePropertyData } from './useMobilePropertyData';
+export { useMobilePropertyActions } from './useMobilePropertyActions';

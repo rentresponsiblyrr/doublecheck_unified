@@ -38,31 +38,32 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
                       (navigator as any).webkitConnection;
 
     const isOnline = navigator.onLine;
-    const wasOffline = !networkStatus.isOnline && isOnline;
 
-    const newStatus: NetworkStatus = {
-      isOnline,
-      isSlowConnection: connection ? connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g' : false,
-      connectionType: connection ? connection.type || 'unknown' : 'unknown',
-      effectiveType: connection ? connection.effectiveType || 'unknown' : 'unknown',
-      wasOffline,
-      reconnectedAt: wasOffline ? new Date() : networkStatus.reconnectedAt,
-    };
+    setNetworkStatus(prevStatus => {
+      const wasOffline = !prevStatus.isOnline && isOnline;
 
-    setNetworkStatus(newStatus);
+      const newStatus: NetworkStatus = {
+        isOnline,
+        isSlowConnection: connection ? connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g' : false,
+        connectionType: connection ? connection.type || 'unknown' : 'unknown',
+        effectiveType: connection ? connection.effectiveType || 'unknown' : 'unknown',
+        wasOffline,
+        reconnectedAt: wasOffline ? new Date() : prevStatus.reconnectedAt,
+      };
 
-    // Log connection changes
-    if (wasOffline) {
-      logger.info('📶 Network connection restored', {
-        connectionType: newStatus.connectionType,
-        effectiveType: newStatus.effectiveType
-      }, 'NETWORK_STATUS');
-    } else if (!isOnline && networkStatus.isOnline) {
-      logger.warn('📵 Network connection lost', {}, 'NETWORK_STATUS');
-    }
+      // Log connection changes
+      if (wasOffline) {
+        logger.info('📶 Network connection restored', {
+          connectionType: newStatus.connectionType,
+          effectiveType: newStatus.effectiveType
+        }, 'NETWORK_STATUS');
+      } else if (!isOnline && prevStatus.isOnline) {
+        logger.warn('📵 Network connection lost', {}, 'NETWORK_STATUS');
+      }
 
-    return newStatus;
-  }, [networkStatus.isOnline, networkStatus.reconnectedAt]);
+      return newStatus;
+    });
+  }, []); // Remove dependencies to prevent infinite loops
 
   /**
    * Tests connection by attempting to fetch a small resource

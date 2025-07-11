@@ -7,7 +7,7 @@ import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { QuickActions } from "@/components/QuickActions";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 import { PropertyErrorBoundary } from "@/components/PropertyErrorBoundary";
-import { useRobustPropertyActions } from "@/hooks/useRobustPropertyActions";
+import { usePropertyActions } from "@/hooks/usePropertyActions";
 import { useInspectorDashboard } from "@/hooks/useInspectorDashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -73,7 +73,7 @@ export const PropertySelectionContent = ({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [activeSortId, setActiveSortId] = useState('name-asc');
 
-  const { actionState, clearError } = useRobustPropertyActions();
+  const { actionState, clearError } = usePropertyActions();
   const { summary } = useInspectorDashboard();
 
   console.log('🎯 PropertySelectionContent rendering with consolidated auth:', {

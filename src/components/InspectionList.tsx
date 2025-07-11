@@ -1,5 +1,5 @@
 
-import { ChecklistItem } from "@/components/ChecklistItem";
+import { ChecklistItemContainer } from "@/components/ChecklistItemContainer";
 import { AddItem } from "@/components/AddItem";
 import { Button } from "@/components/ui/button";
 import { ChecklistItemType } from "@/types/inspection";
@@ -71,7 +71,7 @@ export const InspectionList = ({
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <ChecklistItem
+        <ChecklistItemContainer
           key={item.id}
           item={item}
           onComplete={onComplete}

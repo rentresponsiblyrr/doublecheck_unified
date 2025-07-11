@@ -433,7 +433,7 @@ export const usePerformanceMonitoring = (
     return report.suggestions;
   }, [getReport]);
 
-  // Check if performance is acceptable
+  // Check if performance is acceptable - stabilize by using individual metrics
   const isPerformant = useMemo(() => {
     return (
       metrics.renderTime < thresholds.renderTime &&
@@ -442,12 +442,23 @@ export const usePerformanceMonitoring = (
       metrics.memoryUsage < thresholds.memoryUsage &&
       metrics.fps >= thresholds.fps
     );
-  }, [metrics, thresholds]);
+  }, [
+    metrics.renderTime,
+    metrics.aiProcessingTime, 
+    metrics.interactionTime,
+    metrics.memoryUsage,
+    metrics.fps,
+    thresholds.renderTime,
+    thresholds.aiProcessingTime,
+    thresholds.interactionTime, 
+    thresholds.memoryUsage,
+    thresholds.fps
+  ]); // Individual dependencies instead of object references
 
   // Track initial render
   useEffect(() => {
     trackRender();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [trackRender]); // Include trackRender dependency
 
   return {
     metrics,

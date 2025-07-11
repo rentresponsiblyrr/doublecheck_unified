@@ -3,6 +3,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { offlineStorageService } from './offlineStorageService';
 import { inspectionService } from './inspectionService';
+import { QueueProcessor } from '@/lib/sync/queue-processor';
+
+// Sync queue lock to prevent race conditions
+class SyncQueueLock {
+  private locks = new Map<string, Promise<void>>();
+
+  async acquireLock(key: string): Promise<() => void> {
+    // Wait for existing lock to release
+    while (this.locks.has(key)) {
+      await this.locks.get(key);
+    }
+
+    // Create new lock
+    let releaseLock: () => void;
+    const lockPromise = new Promise<void>((resolve) => {
+      releaseLock = resolve;
+    });
+
+    this.locks.set(key, lockPromise);
+
+    return () => {
+      this.locks.delete(key);
+      releaseLock!();
+    };
+  }
+}
+
+const syncQueueLock = new SyncQueueLock();
 
 // Sync item type definitions
 interface BaseSyncItem {
@@ -117,6 +145,7 @@ export class SyncService {
   private syncListeners: ((progress: SyncProgress) => void)[] = [];
   private statusListeners: ((status: SyncStatus) => void)[] = [];
   private conflictResolver: Map<string, SyncConflict<SyncItemData>> = new Map();
+  private queueProcessor = new QueueProcessor<void>();
 
   constructor() {
     this.setupNetworkListeners();
@@ -250,17 +279,21 @@ export class SyncService {
       return false;
     }
 
-    logger.info('Starting sync operation', {}, 'SYNC_SERVICE');
-    this.isSyncing = true;
-    this.syncProgress = {
-      current: 0,
-      total: 0,
-      status: 'syncing',
-      currentOperation: 'Preparing sync...',
-      errors: []
-    };
+    // Acquire lock to prevent concurrent sync operations
+    const releaseLock = await syncQueueLock.acquireLock('sync-operation');
 
     try {
+      logger.info('Starting sync operation', {}, 'SYNC_SERVICE');
+      this.isSyncing = true;
+      this.syncProgress = {
+        current: 0,
+        total: 0,
+        status: 'syncing',
+        currentOperation: 'Preparing sync...',
+        errors: []
+      };
+
+      // Get a snapshot of the sync queue at this moment
       const syncQueue = await offlineStorageService.getSyncQueue();
       this.syncProgress.total = syncQueue.length;
 
@@ -272,8 +305,10 @@ export class SyncService {
         return true;
       }
 
-      // Process sync queue in batches to avoid overwhelming the server
-      const batches = this.createBatches(syncQueue, this.BATCH_SIZE);
+      // Create atomic snapshot of sync queue for processing
+      // This prevents race conditions where items are added/removed during sync
+      const queueSnapshot = [...syncQueue]; // Create immutable copy
+      const batches = this.createBatches(queueSnapshot, this.BATCH_SIZE);
       this.syncProgress.batchProgress = {
         currentBatch: 0,
         totalBatches: batches.length,
@@ -289,26 +324,35 @@ export class SyncService {
         this.syncProgress.currentOperation = `Processing batch ${batchIndex + 1} of ${batches.length} (${batch.length} items)...`;
         this.notifySyncListeners();
 
-        // Process batch items in parallel for better performance
-        const batchPromises = batch.map(async (item) => {
-          try {
+        // Process batch items using queue processor to prevent race conditions
+        const batchItems = batch.map(item => ({
+          id: item.id,
+          processor: async () => {
             await this.processSyncItemWithRetry(item);
             this.syncProgress.current++;
             this.notifySyncListeners();
-          } catch (error) {
-            logger.error('Failed to process sync item after retries', error, 'SYNC_SERVICE');
-            this.syncProgress.errors.push(`Failed to sync ${item.type}: ${error.message}`);
-            
-            // Update sync queue item with error
-            await offlineStorageService.updateSyncQueueItem(item.id, {
-              error: error.message,
-              retries: item.retries + 1,
-              lastAttempt: new Date().toISOString()
-            });
           }
-        });
+        }));
 
-        await Promise.allSettled(batchPromises);
+        const results = await this.queueProcessor.processBatch(batchItems, 3);
+
+        // Handle failed items
+        for (const result of results) {
+          if (!result.success && result.error) {
+            const item = batch.find(b => b.id === result.id);
+            if (item) {
+              logger.error('Failed to process sync item after retries', result.error, 'SYNC_SERVICE');
+              this.syncProgress.errors.push(`Failed to sync ${item.type}: ${result.error}`);
+              
+              // Update sync queue item with error
+              await offlineStorageService.updateSyncQueueItem(item.id, {
+                error: result.error,
+                retries: item.retries + 1,
+                lastAttempt: new Date().toISOString()
+              });
+            }
+          }
+        }
 
         // Add delay between batches to prevent rate limiting
         if (batchIndex < batches.length - 1) {
@@ -338,6 +382,7 @@ export class SyncService {
       this.isSyncing = false;
       this.notifySyncListeners();
       this.notifyStatusListeners();
+      releaseLock();
     }
   }
 

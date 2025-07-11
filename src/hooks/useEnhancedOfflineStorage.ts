@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
@@ -77,15 +77,24 @@ export const useEnhancedOfflineStorage = () => {
     loadOfflinePhotos();
   }, [calculateStorageMetrics, toast]);
 
-  // Auto-sync when coming back online
+  // Auto-sync when coming back online - simplified to avoid dependency loops
+  const prevOnlineRef = useRef(isOnline);
   useEffect(() => {
-    if (isOnline && storageState.photos.some(p => !p.uploaded)) {
-      console.log('📱 Network restored, starting auto-sync...');
-      setTimeout(() => {
-        syncOfflinePhotos();
+    const wasOffline = !prevOnlineRef.current && isOnline;
+    prevOnlineRef.current = isOnline;
+    
+    if (wasOffline) {
+      console.log('📱 Network restored, checking for pending photos...');
+      const timeoutId = setTimeout(() => {
+        // Check if there are pending photos and sync
+        if (storageState.photos.some(p => !p.uploaded)) {
+          syncOfflinePhotos();
+        }
       }, 2000); // Wait 2 seconds for network to stabilize
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [isOnline]);
+  }, [isOnline]); // Only depend on isOnline to prevent loops
 
   const savePhotoOffline = useCallback(async (
     file: File,

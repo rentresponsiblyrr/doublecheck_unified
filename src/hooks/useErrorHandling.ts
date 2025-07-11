@@ -163,14 +163,17 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
 
     setError(errorObj);
 
-    // Auto-retry logic
-    if (config.autoRetry && errorState.retryCount < (config.maxRetries || 3)) {
-      const delay = config.retryDelay || 1000;
-      retryTimeoutRef.current = setTimeout(() => {
-        retry();
-      }, delay * Math.pow(2, errorState.retryCount)); // Exponential backoff
-    }
-  }, [config, errorState.retryCount, setError]);
+    // Auto-retry logic using current state values
+    setErrorState(prev => {
+      if (config.autoRetry && prev.retryCount < (config.maxRetries || 3)) {
+        const delay = config.retryDelay || 1000;
+        retryTimeoutRef.current = setTimeout(() => {
+          retry();
+        }, delay * Math.pow(2, prev.retryCount)); // Exponential backoff
+      }
+      return prev;
+    });
+  }, [config, setError, retry]); // Remove errorState.retryCount dependency
 
   /**
    * Handle API errors specifically
@@ -183,35 +186,50 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
       const apiError = await apiErrorHandler.handleError(error, apiContext);
       setError(apiError);
 
-      // Auto-retry for retryable API errors
-      if (config.autoRetry && apiError.retry && errorState.retryCount < (config.maxRetries || 3)) {
-        const delay = config.retryDelay || 1000;
-        retryTimeoutRef.current = setTimeout(() => {
-          retry();
-        }, delay * Math.pow(2, errorState.retryCount));
+      // Auto-retry for retryable API errors using state callback
+      if (config.autoRetry && apiError.retry) {
+        setErrorState(prev => {
+          if (prev.retryCount < (config.maxRetries || 3)) {
+            const delay = config.retryDelay || 1000;
+            retryTimeoutRef.current = setTimeout(() => {
+              retry();
+            }, delay * Math.pow(2, prev.retryCount));
+          }
+          return prev;
+        });
       }
     } catch (err) {
       // Fallback if error handler fails
       handleError(err, apiContext);
     }
-  }, [config, errorState.retryCount, handleError, setError]);
+  }, [config, handleError, setError, retry]); // Remove errorState.retryCount dependency
 
   /**
    * Retry the last failed operation
    */
   const retry = useCallback(async () => {
-    if (!retryFnRef.current || errorState.isRetrying) return;
+    // Use functional state update to avoid dependency on current state
+    const shouldRetry = await new Promise<boolean>(resolve => {
+      setErrorState(prev => {
+        if (!retryFnRef.current || prev.isRetrying) {
+          resolve(false);
+          return prev;
+        }
+        resolve(true);
+        return {
+          ...prev,
+          isRetrying: true,
+          retryCount: prev.retryCount + 1,
+        };
+      });
+    });
 
-    setErrorState(prev => ({
-      ...prev,
-      isRetrying: true,
-      retryCount: prev.retryCount + 1,
-    }));
+    if (!shouldRetry) return;
 
     config.onRetry?.();
 
     try {
-      await retryFnRef.current();
+      await retryFnRef.current!();
       
       // Success - clear error
       clearError();
@@ -228,12 +246,15 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
         isRetrying: false,
       }));
 
-      // Update error with new retry count
+      // Update error with new retry count using current state
       if (error instanceof Error || (error && typeof error === 'object' && 'message' in error)) {
-        handleError(error, { retry: true, attempt: errorState.retryCount + 1 });
+        setErrorState(prev => {
+          handleError(error, { retry: true, attempt: prev.retryCount });
+          return prev;
+        });
       }
     }
-  }, [errorState.isRetrying, errorState.retryCount, config, clearError, handleError, toast]);
+  }, [config, clearError, handleError, toast]); // Remove errorState dependencies
 
   /**
    * Wrapper function for async operations with error handling

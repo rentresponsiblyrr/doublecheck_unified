@@ -153,10 +153,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         isLoading: false
       }));
 
-      // Auto-start camera if enabled
-      if (autoStart) {
-        await startCamera();
-      }
+      // Note: Auto-start is handled in separate useEffect to avoid circular dependency
     } catch (error: any) {
       let errorMessage = 'Failed to access camera';
       
@@ -177,12 +174,12 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         isLoading: false
       }));
     }
-  }, [isSupported, getAvailableDevices, autoStart, startCamera]);
+  }, [isSupported, getAvailableDevices, autoStart]);
 
   // Start camera with specified constraints
   const startCamera = useCallback(async (): Promise<void> => {
     if (!state.hasPermission) {
-      await requestPermission();
+      console.warn('Cannot start camera without permission');
       return;
     }
 
@@ -245,7 +242,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         isLoading: false
       }));
     }
-  }, [state.hasPermission, state.currentDeviceId, facingMode, resolution, videoRef, requestPermission]);
+  }, [state.hasPermission, state.currentDeviceId, facingMode, resolution, videoRef]);
 
   // Stop camera
   const stopCamera = useCallback((): void => {
@@ -314,7 +311,11 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       // Convert to blob
       return new Promise<Blob | null>((resolve) => {
         canvas.toBlob(
-          (blob) => resolve(blob),
+          (blob) => {
+            // Clean up canvas context
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            resolve(blob);
+          },
           'image/jpeg',
           0.95
         );
@@ -358,7 +359,14 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         }
       });
     }
-  }, [checkPermission, autoStart, startCamera]);
+  }, [checkPermission]);
+
+  // Handle auto-start when permission is granted
+  useEffect(() => {
+    if (autoStart && state.hasPermission && !state.isReady && !state.isLoading) {
+      startCamera();
+    }
+  }, [autoStart, state.hasPermission, state.isReady, state.isLoading, startCamera]);
 
   // Cleanup on unmount
   useEffect(() => {

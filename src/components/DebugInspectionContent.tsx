@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 import { InspectionProgress } from "@/components/InspectionProgress";
 import { InspectionHeader } from "@/components/InspectionHeader";
-import { ChecklistItem } from "@/components/ChecklistItem";
+import { ChecklistItemContainer } from "@/components/ChecklistItemContainer";
 import { DebugPanel } from "@/components/DebugPanel";
 import { DebugEmptyState } from "@/components/DebugEmptyState";
 import { useDebugDatabaseTester } from "@/components/DebugDatabaseTester";
@@ -91,7 +91,7 @@ export const DebugInspectionContent = ({
           />
         ) : (
           filteredItems.map((item) => (
-            <ChecklistItem
+            <ChecklistItemContainer
               key={item.id}
               item={item}
               onComplete={handleItemComplete}

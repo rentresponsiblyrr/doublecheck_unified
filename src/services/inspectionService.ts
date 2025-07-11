@@ -1,6 +1,11 @@
 // Inspection Service - Real database operations for inspections
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { 
+  createInspectionAtomic,
+  updateChecklistItemWithMediaAtomic,
+  deleteInspectionAtomic
+} from '@/lib/database/atomic-operations';
 import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
@@ -65,49 +70,31 @@ export class InspectionService {
     try {
       logger.info('Creating new inspection', { propertyId: data.propertyId, itemCount: data.checklistItems.length }, 'INSPECTION_SERVICE');
 
-      // Start a transaction to create inspection and checklist items
-      const { data: inspection, error: inspectionError } = await supabase
-        .from('inspections')
-        .insert({
-          property_id: data.propertyId,
-          inspector_id: data.inspectorId,
-          status: 'draft',
-          completed: false,
-          start_time: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } as InspectionInsert)
-        .select()
-        .single();
-
-      if (inspectionError) {
-        logger.error('Failed to create inspection', inspectionError, 'INSPECTION_SERVICE');
-        return { success: false, error: inspectionError.message };
-      }
-
-      // Create checklist items - Fixed column mapping
-      const checklistItemsData: ChecklistItemInsert[] = data.checklistItems.map(item => ({
-        inspection_id: inspection.id,
-        label: item.title,                    // Database uses 'label' not 'title'
-        notes: item.description,              // Database uses 'notes' not 'description'
+      // Prepare checklist items data for atomic creation
+      const checklistItemsData = data.checklistItems.map(item => ({
+        title: item.title,
         category: item.category,
-        evidence_type: 'photo',               // Required field - default to photo
-        source_photo_url: item.reference_photo,
-        status: 'pending',
-        created_at: new Date().toISOString()
+        evidence_type: 'photo',
+        gpt_prompt: item.description || `Inspect ${item.title}`
       }));
 
-      const { data: checklistItems, error: checklistError } = await supabase
-        .from('checklist_items')
-        .insert(checklistItemsData)
-        .select();
+      // Create inspection and checklist items atomically
+      const result = await createInspectionAtomic({
+        inspection: {
+          property_id: data.propertyId,
+          inspector_id: data.inspectorId,
+          status: 'draft'
+        },
+        checklist_items: checklistItemsData
+      });
 
-      if (checklistError) {
-        logger.error('Failed to create checklist items', checklistError, 'INSPECTION_SERVICE');
-        // Clean up the inspection if checklist creation fails
-        await supabase.from('inspections').delete().eq('id', inspection.id);
-        return { success: false, error: checklistError.message };
+      if (!result.success) {
+        logger.error('Failed to create inspection atomically', result.error, 'INSPECTION_SERVICE');
+        return { success: false, error: result.error };
       }
+
+      const inspection = { id: result.data!.inspection_id };
+      const checklistItems = result.data!.checklist_item_ids.map(id => ({ id }));
 
       // Fetch the complete inspection with relations
       const fullInspection = await this.getInspectionById(inspection.id);

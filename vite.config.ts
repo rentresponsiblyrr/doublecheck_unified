@@ -4,6 +4,7 @@ import path from "path";
 import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from "vite-plugin-pwa";
 import viteCompression from "vite-plugin-compression";
+import { healthCheckMiddleware } from "./src/lib/monitoring/health-check";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -38,6 +39,9 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      
+      // Health check middleware
+      healthCheckMiddleware(),
       
       // PWA Support - conditional based on domain detection
       VitePWA({
