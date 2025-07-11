@@ -104,8 +104,8 @@ export const ChecklistItemCore = ({
     setIsUploading(false);
     onUploadingChange(false);
     await refetchMedia();
-    onComplete();
     
+    // DO NOT auto-complete - user must still mark pass/fail/NA
     // Show notes prompt after successful upload
     setShowNotesPrompt(true);
   };

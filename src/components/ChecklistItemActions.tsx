@@ -141,7 +141,13 @@ export const ChecklistItemActions = ({
         </div>
         
         <p className="text-xs text-gray-500 text-center mt-2">
-          {currentNotes ? 'Your notes will be saved with the status.' : 'Add notes above to include them with your status.'}
+          {currentNotes 
+            ? 'Your notes will be saved with the status.' 
+            : 'Add notes above to include them with your status.'
+          }
+        </p>
+        <p className="text-xs text-amber-600 text-center mt-1 font-medium">
+          ⚠️ You must mark Pass, Fail, or N/A to complete this item
         </p>
     </div>
   );

@@ -33,6 +33,10 @@ const ChecklistManagement = React.lazy(() => import('./ChecklistManagement').cat
   default: () => <div>Checklist Management temporarily unavailable</div>
 })));
 
+const ReportManagement = React.lazy(() => import('./ReportManagement').catch(() => ({
+  default: () => <div>Report Management temporarily unavailable</div>
+})));
+
 // Loading fallback
 const AdminLoadingFallback = () => (
   <div className="space-y-6">
@@ -75,10 +79,7 @@ export default function AdminRoutes() {
           } />
           <Route path="/reports" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Report Management</h2>
-                <p className="text-gray-600">Report management dashboard coming soon...</p>
-              </div>
+              <ReportManagement />
             </Suspense>
           } />
           <Route path="/checklists" element={

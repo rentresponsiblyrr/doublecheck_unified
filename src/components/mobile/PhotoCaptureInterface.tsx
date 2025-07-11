@@ -132,9 +132,21 @@ export const PhotoCaptureInterface: React.FC<PhotoCaptureInterfaceProps> = ({
     }
   }, [realTimeGuidance]);
 
-  // Handle photo capture
+  // Handle photo capture with quality validation
   const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current || !currentQuality) return;
+
+    // Enforce quality standards - reject if not acceptable
+    if (!currentQuality.isAcceptable || currentQuality.qualityScore < 70) {
+      // Get specific quality issues to show to user
+      const qualityIssues = currentQuality.messages
+        ?.filter(m => m.type === 'error' || m.type === 'warning')
+        .map(m => m.message)
+        .join('\n') || 'Photo quality is too low';
+        
+      alert(`Cannot capture photo:\n\n${qualityIssues}\n\nPlease improve the photo quality before capturing.`);
+      return;
+    }
 
     setIsProcessing(true);
 
@@ -163,6 +175,24 @@ export const PhotoCaptureInterface: React.FC<PhotoCaptureInterfaceProps> = ({
         );
       });
 
+      // Perform final quality check on captured image
+      const finalQualityCheck = await checkPhotoQuality(
+        new File([blob], 'temp.jpg', { type: 'image/jpeg' }),
+        referencePhotoUrl
+      );
+
+      // Reject if final quality check fails
+      if (!finalQualityCheck.isAcceptable || finalQualityCheck.qualityScore < 70) {
+        const qualityIssues = finalQualityCheck.messages
+          ?.filter(m => m.type === 'error' || m.type === 'warning')
+          .map(m => m.message)
+          .join('\n') || 'Photo quality is insufficient';
+          
+        alert(`Photo rejected:\n\n${qualityIssues}\n\nPlease retake with better conditions.`);
+        setIsProcessing(false);
+        return;
+      }
+
       // Create File object
       const file = new File([blob], `inspection_${Date.now()}.jpg`, {
         type: 'image/jpeg'
@@ -181,7 +211,7 @@ export const PhotoCaptureInterface: React.FC<PhotoCaptureInterfaceProps> = ({
           screenResolution: `${window.screen.width}x${window.screen.height}`,
           cameraCapabilities: capabilities
         },
-        qualityScore: currentQuality.qualityScore,
+        qualityScore: finalQualityCheck.qualityScore,
         guidanceFollowed: guidance.stepsCompleted >= guidance.totalSteps * 0.8
       };
 
@@ -453,12 +483,12 @@ export const PhotoCaptureInterface: React.FC<PhotoCaptureInterfaceProps> = ({
           <Button
             size="lg"
             onClick={handleCapture}
-            disabled={isProcessing || !currentQuality?.isAcceptable}
+            disabled={isProcessing || !currentQuality?.isAcceptable || (currentQuality?.qualityScore < 70)}
             className={cn(
               'h-16 w-16 rounded-full shadow-xl transition-all',
-              currentQuality?.isAcceptable
+              (currentQuality?.isAcceptable && currentQuality?.qualityScore >= 70)
                 ? 'bg-white hover:bg-gray-100'
-                : 'bg-red-500 hover:bg-red-600'
+                : 'bg-red-500 hover:bg-red-600 cursor-not-allowed'
             )}
           >
             {isProcessing ? (

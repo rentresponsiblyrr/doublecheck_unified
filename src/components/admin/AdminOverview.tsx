@@ -30,9 +30,11 @@ interface AdminStats {
   };
   inspections: {
     total: number;
-    pending: number;
-    completed: number;
+    nonStarted: number;
     inProgress: number;
+    auditReady: number;
+    approved: number;
+    rejected: number;
   };
   users: {
     total: number;
@@ -59,7 +61,7 @@ export default function AdminOverview() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats>({
     properties: { total: 0, active: 0, pending: 0 },
-    inspections: { total: 0, pending: 0, completed: 0, inProgress: 0 },
+    inspections: { total: 0, nonStarted: 0, inProgress: 0, auditReady: 0, approved: 0, rejected: 0 },
     users: { total: 0, inspectors: 0, auditors: 0, admins: 0 },
     reports: { generated: 0, pending: 0, delivered: 0 }
   });
@@ -103,12 +105,14 @@ export default function AdminOverview() {
         pending: properties?.filter(p => p.status === 'pending').length || 0
       };
 
-      // Calculate inspection stats
+      // Calculate inspection stats with clear status definitions
       const inspectionStats = {
         total: inspections?.length || 0,
-        pending: inspections?.filter(i => i.status === 'pending_review' || i.status === 'in_review').length || 0,
-        completed: inspections?.filter(i => i.status === 'approved' || i.status === 'completed').length || 0,
-        inProgress: inspections?.filter(i => i.status === 'in_progress').length || 0
+        nonStarted: inspections?.filter(i => i.status === 'draft' || !i.status).length || 0,
+        inProgress: inspections?.filter(i => i.status === 'in_progress').length || 0,
+        auditReady: inspections?.filter(i => i.status === 'pending_review' || i.status === 'in_review' || i.status === 'completed').length || 0,
+        approved: inspections?.filter(i => i.status === 'approved').length || 0,
+        rejected: inspections?.filter(i => i.status === 'rejected').length || 0
       };
 
       // Calculate user stats
@@ -124,8 +128,8 @@ export default function AdminOverview() {
         inspections: inspectionStats,
         users: userStats,
         reports: { 
-          generated: inspectionStats.completed, // Use completed inspections as generated reports
-          pending: inspectionStats.pending, // Use pending inspections as pending reports
+          generated: inspectionStats.approved, // Use approved inspections as generated reports
+          pending: inspectionStats.auditReady, // Use audit-ready inspections as pending reports
           delivered: inspectionStats.approved // Use approved inspections as delivered reports
         }
       });
@@ -227,7 +231,67 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Primary Inspection Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Non-Started Inspections */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-gray-400" onClick={() => navigate('/inspections')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Non-Started Inspections</p>
+                <p className="text-3xl font-bold text-gray-600">{stats.inspections.nonStarted}</p>
+                <div className="flex items-center mt-2 text-xs text-gray-500">
+                  <FileText className="h-3 w-3 mr-1" />
+                  Draft & Unassigned
+                </div>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-full">
+                <FileText className="h-8 w-8 text-gray-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* In-Progress Inspections */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-blue-500" onClick={() => navigate('/inspections')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">In-Progress Inspections</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.inspections.inProgress}</p>
+                <div className="flex items-center mt-2 text-xs text-gray-500">
+                  <Clock className="h-3 w-3 mr-1 text-blue-500" />
+                  Currently Being Inspected
+                </div>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-full">
+                <Clock className="h-8 w-8 text-blue-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit-Ready Inspections */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-yellow-500" onClick={() => navigate('/inspections')}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Audit-Ready Inspections</p>
+                <p className="text-3xl font-bold text-yellow-600">{stats.inspections.auditReady}</p>
+                <div className="flex items-center mt-2 text-xs text-gray-500">
+                  <AlertCircle className="h-3 w-3 mr-1 text-yellow-500" />
+                  Awaiting Quality Review
+                </div>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <AlertCircle className="h-8 w-8 text-yellow-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Secondary Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Properties Card */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/properties')}>
@@ -246,16 +310,16 @@ export default function AdminOverview() {
           </CardContent>
         </Card>
 
-        {/* Inspections Card */}
+        {/* Total Inspections Card */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/inspections')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Inspections</p>
+                <p className="text-sm font-medium text-gray-600">Total Inspections</p>
                 <p className="text-2xl font-bold text-green-600">{stats.inspections.total}</p>
                 <div className="flex items-center mt-2 text-xs text-gray-500">
-                  <Clock className="h-3 w-3 mr-1 text-yellow-500" />
-                  {stats.inspections.pending} pending
+                  <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                  {stats.inspections.approved} approved
                 </div>
               </div>
               <ClipboardList className="h-8 w-8 text-green-500" />

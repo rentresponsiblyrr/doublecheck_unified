@@ -18,8 +18,8 @@ export class PhotoQualityChecker {
 
   constructor(config: Partial<QualityCheckConfig> = {}) {
     this.config = {
-      minSharpness: 70,
-      minLighting: 60,
+      minSharpness: 75, // Increased from 70 for better quality
+      minLighting: 65,  // Increased from 60 for better quality
       minResolution: { width: 1920, height: 1080 },
       maxFileSize: 10 * 1024 * 1024, // 10MB
       acceptableFormats: ['image/jpeg', 'image/png', 'image/webp'],
