@@ -220,7 +220,7 @@ export default function AdminOverview() {
             <Activity className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={() => navigate('/admin/settings')}>
+          <Button onClick={() => navigate('/settings')}>
             <Target className="h-4 w-4 mr-2" />
             System Settings
           </Button>
@@ -230,7 +230,7 @@ export default function AdminOverview() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Properties Card */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/properties')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/properties')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -247,7 +247,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Inspections Card */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/inspections')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/inspections')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -264,7 +264,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Users Card */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/users')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/users')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -281,7 +281,7 @@ export default function AdminOverview() {
         </Card>
 
         {/* Reports Card */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/reports')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/reports')}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -382,7 +382,7 @@ export default function AdminOverview() {
             <Button 
               variant="outline" 
               className="h-20 flex-col space-y-2"
-              onClick={() => navigate('/admin/properties')}
+              onClick={() => navigate('/properties')}
             >
               <Building2 className="h-6 w-6" />
               <span>Manage Properties</span>
@@ -390,7 +390,7 @@ export default function AdminOverview() {
             <Button 
               variant="outline" 
               className="h-20 flex-col space-y-2"
-              onClick={() => navigate('/admin/users')}
+              onClick={() => navigate('/users')}
             >
               <Users className="h-6 w-6" />
               <span>User Management</span>
@@ -398,7 +398,7 @@ export default function AdminOverview() {
             <Button 
               variant="outline" 
               className="h-20 flex-col space-y-2"
-              onClick={() => navigate('/admin/inspections')}
+              onClick={() => navigate('/inspections')}
             >
               <ClipboardList className="h-6 w-6" />
               <span>View Inspections</span>
@@ -406,7 +406,7 @@ export default function AdminOverview() {
             <Button 
               variant="outline" 
               className="h-20 flex-col space-y-2"
-              onClick={() => navigate('/admin/reports')}
+              onClick={() => navigate('/reports')}
             >
               <FileText className="h-6 w-6" />
               <span>Generate Reports</span>
