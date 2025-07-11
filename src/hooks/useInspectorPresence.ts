@@ -33,6 +33,15 @@ export const useInspectorPresence = (inspectionId: string) => {
       if (error) {
         console.error('Failed to update presence:', error);
         
+        // If the function or table doesn't exist, don't retry and disable presence
+        if (error.code === '42883' || error.code === '42P01' || 
+            error.message.includes('function') || 
+            error.message.includes('does not exist') ||
+            error.message.includes('relation')) {
+          console.warn('Inspector presence features not available, disabling presence updates');
+          return; // Don't retry, just silently fail
+        }
+        
         // Only show toast for critical errors, not for routine connection issues
         if (error.code !== 'PGRST301' && !error.message.includes('infinite recursion')) {
           toast({
@@ -42,9 +51,11 @@ export const useInspectorPresence = (inspectionId: string) => {
           });
         }
         
-        // Retry after a delay for certain types of errors
+        // Only retry for certain types of errors (not schema/missing function errors)
         if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-        if (isMountedRef.current) {
+        if (isMountedRef.current && 
+            !error.message.includes('function') && 
+            !error.message.includes('does not exist')) {
           retryTimeoutRef.current = setTimeout(() => {
             if (isMountedRef.current) {
               updatePresence(status, currentItemId, metadata);

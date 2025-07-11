@@ -80,7 +80,15 @@ export const useInspectorCollaboration = (inspectionId: string) => {
         .neq('status', 'offline')
         .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, just set empty array and don't retry
+        if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          console.warn('Inspector presence table not available, collaboration features disabled');
+          setActiveInspectors([]);
+          return;
+        }
+        throw error;
+      }
 
       // Transform the data to ensure metadata is properly typed
       const transformedData: InspectorPresence[] = (data || []).map(item => ({
@@ -91,6 +99,7 @@ export const useInspectorCollaboration = (inspectionId: string) => {
       setActiveInspectors(transformedData);
     } catch (error) {
       console.error('Error fetching active inspectors:', error);
+      // Don't set empty array here to avoid clearing valid data on temporary errors
     }
   }, [inspectionId]);
 
@@ -105,7 +114,15 @@ export const useInspectorCollaboration = (inspectionId: string) => {
         .eq('resolution_status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If table doesn't exist, just set empty array and don't retry
+        if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          console.warn('Collaboration conflicts table not available, conflict features disabled');
+          setConflicts([]);
+          return;
+        }
+        throw error;
+      }
 
       // Transform the data to ensure actions are properly typed
       const transformedData: CollaborationConflict[] = (data || []).map(item => ({
@@ -117,6 +134,7 @@ export const useInspectorCollaboration = (inspectionId: string) => {
       setConflicts(transformedData);
     } catch (error) {
       console.error('Error fetching conflicts:', error);
+      // Don't set empty array here to avoid clearing valid data on temporary errors
     }
   }, [inspectionId]);
 
