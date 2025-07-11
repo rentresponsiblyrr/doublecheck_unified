@@ -595,7 +595,8 @@ export class ErrorReporter {
       if (current.id) {
         selector += `#${current.id}`;
       } else if (current.className) {
-        selector += `.${current.className.split(' ').join('.')}`;
+        const classNames = String(current.className);
+        selector += `.${classNames.split(' ').filter(Boolean).join('.')}`;
       }
 
       parts.unshift(selector);
