@@ -15,11 +15,25 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      allowedHosts: [
+        'localhost',
+        '127.0.0.1',
+        'healthcheck.railway.app',
+        'app.doublecheckverified.com',
+        'admin.doublecheckverified.com'
+      ]
     },
     preview: {
       host: "::",
       port: parseInt(process.env.PORT || '4173'),
       strictPort: true,
+      allowedHosts: [
+        'localhost',
+        '127.0.0.1',
+        'healthcheck.railway.app',
+        'app.doublecheckverified.com',
+        'admin.doublecheckverified.com'
+      ],
       cors: {
         origin: env.VITE_PUBLIC_URL || '*',
         credentials: true
