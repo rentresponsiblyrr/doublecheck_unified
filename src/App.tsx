@@ -36,11 +36,13 @@ class SimpleErrorBoundary extends Component<
 const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 
 function App() {
-  console.log('🚀 STR Certified App - Authentication-First Architecture v3');
+  console.log('🚀 STR Certified App - Authentication-First Architecture v4 - DEBUG MODE');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Start with true - check session first
   const [user, setUser] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  console.log('🔍 App State:', { isAuthenticated, isLoading, hasUser: !!user, userEmail: user?.email });
 
   // Authentication setup - always start with login page
   useEffect(() => {
@@ -132,9 +134,20 @@ function App() {
   // Show auth form if not authenticated or if there are auth errors (no heavy components loaded)
   if (!isAuthenticated || authError) {
     return <SimpleAuthForm 
-      onAuthSuccess={() => {
-        setIsAuthenticated(true);
-        setAuthError(null);
+      onAuthSuccess={async () => {
+        console.log('🔄 Auth success callback triggered, getting current user...');
+        try {
+          const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+          if (error) throw error;
+          
+          console.log('✅ Got current user:', currentUser?.email);
+          setUser(currentUser);
+          setIsAuthenticated(true);
+          setAuthError(null);
+        } catch (error) {
+          console.error('❌ Failed to get user after auth success:', error);
+          setAuthError('Failed to complete authentication');
+        }
       }} 
       initialError={authError}
     />;

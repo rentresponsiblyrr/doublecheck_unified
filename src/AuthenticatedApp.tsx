@@ -415,6 +415,8 @@ function InspectorRedirect() {
 
 // Simple Auth Provider that uses the already-authenticated user
 function SimpleAuthProvider({ user, children }: { user: any, children: React.ReactNode }) {
+  console.log('🔐 SimpleAuthProvider initialized with user:', user?.email, user?.id);
+  
   const value = {
     user,
     userRole: user?.role || 'inspector',
@@ -427,6 +429,12 @@ function SimpleAuthProvider({ user, children }: { user: any, children: React.Rea
     clearSession: () => {},
     loadUserRole: async () => {},
   };
+
+  console.log('🔐 SimpleAuthProvider value:', { 
+    hasUser: !!value.user, 
+    userRole: value.userRole, 
+    loading: value.loading 
+  });
 
   return (
     <AuthContext.Provider value={value}>
