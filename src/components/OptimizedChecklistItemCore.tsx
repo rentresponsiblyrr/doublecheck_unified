@@ -10,7 +10,6 @@ import { MediaUploader } from "@/components/MediaUploader";
 import { useToast } from "@/hooks/use-toast";
 import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
 import { useNotesHistory } from "@/hooks/useNotesHistory";
-import { useInspectorPresence } from "@/hooks/useInspectorPresence";
 import { supabase } from "@/integrations/supabase/client";
 
 interface OptimizedChecklistItemCoreProps {
@@ -34,26 +33,9 @@ export const OptimizedChecklistItemCore = ({
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
   const { saveNote } = useNotesHistory(item.id);
-  const { updatePresence } = useInspectorPresence(item.inspection_id);
 
   const hasUploadedMedia = mediaItems.length > 0;
 
-  // Optimized presence updates
-  useEffect(() => {
-    if (isInView && networkStatus && (isUploading || currentNotes.length > 0)) {
-      updatePresence('working', item.id, { 
-        hasNotes: currentNotes.length > 0,
-        isUploading 
-      });
-    }
-  }, [isInView, isUploading, currentNotes, item.id, updatePresence, networkStatus]);
-
-  // Update presence when item comes into view
-  useEffect(() => {
-    if (isInView && networkStatus) {
-      updatePresence('viewing', item.id);
-    }
-  }, [isInView, item.id, updatePresence, networkStatus]);
 
   const handleMediaUpload = async (file: File) => {
     if (!networkStatus) {
@@ -66,7 +48,6 @@ export const OptimizedChecklistItemCore = ({
     }
 
     setIsUploading(true);
-    updatePresence('working', item.id, { isUploading: true });
     
     try {
       console.log('Uploading media for item:', item.id);
@@ -145,9 +126,6 @@ export const OptimizedChecklistItemCore = ({
 
   const handleNotesChange = (notes: string) => {
     setCurrentNotes(notes);
-    if (notes.length > 0 && networkStatus) {
-      updatePresence('working', item.id, { hasNotes: true });
-    }
   };
 
   return (

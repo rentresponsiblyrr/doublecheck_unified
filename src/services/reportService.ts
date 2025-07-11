@@ -399,11 +399,11 @@ export class ReportService {
       }
 
       // Photo count
-      if (item.media_files && item.media_files.length > 0) {
+      if (item.media && item.media.length > 0) {
         pdf.setFontSize(9);
         pdf.setTextColor(107, 114, 128);
-        const photoCount = item.media_files.filter(m => m.type === 'photo').length;
-        const videoCount = item.media_files.filter(m => m.type === 'video').length;
+        const photoCount = item.media.filter(m => m.type === 'photo').length;
+        const videoCount = item.media.filter(m => m.type === 'video').length;
         pdf.text(`Media: ${photoCount} photos, ${videoCount} videos`, margin, yPosition);
         yPosition += 8;
       }

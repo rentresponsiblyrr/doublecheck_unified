@@ -9,10 +9,10 @@ type Tables = Database['public']['Tables'];
 type ChecklistItemRecord = Tables['checklist_items']['Row'];
 type ChecklistItemInsert = Tables['checklist_items']['Insert'];
 type ChecklistItemUpdate = Tables['checklist_items']['Update'];
-type MediaFileRecord = Tables['media_files']['Row'];
+type MediaFileRecord = Tables['media']['Row'];
 
 export interface ChecklistItemWithMedia extends ChecklistItemRecord {
-  media_files: MediaFileRecord[];
+  media: MediaFileRecord[];
 }
 
 export interface ChecklistItemProgress {
@@ -51,7 +51,7 @@ export class ChecklistService {
         .from('checklist_items')
         .select(`
           *,
-          media_files (*)
+          media (*)
         `)
         .eq('inspection_id', inspectionId)
         .order('created_at', { ascending: true });
@@ -342,7 +342,7 @@ export class ChecklistService {
         
         // Upload to Supabase storage
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('media')
+          .from('inspection-media')
           .upload(fileName, file, {
             cacheControl: '3600',
             upsert: false
@@ -355,19 +355,16 @@ export class ChecklistService {
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('media')
+          .from('inspection-media')
           .getPublicUrl(fileName);
 
         // Save media file record
         const { error: mediaError } = await supabase
-          .from('media_files')
+          .from('media')
           .insert({
             checklist_item_id: checklistItemId,
             type,
             url: publicUrl,
-            file_name: file.name,
-            file_size: file.size,
-            mime_type: file.type,
             created_at: new Date().toISOString()
           });
 

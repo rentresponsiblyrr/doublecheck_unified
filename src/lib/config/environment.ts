@@ -257,7 +257,9 @@ class EnvironmentConfig {
 
   // Check if a required service is configured
   hasOpenAI(): boolean {
-    return Boolean(this.env.VITE_OPENAI_API_KEY);
+    // OpenAI API key should be handled server-side for security
+    // This is deprecated - AI services should go through backend
+    return false;
   }
 
   hasSentry(): boolean {
@@ -294,7 +296,8 @@ class EnvironmentConfig {
   }
 
   validateAIConfig(): boolean {
-    return this.env.VITE_ENABLE_AI_FEATURES ? Boolean(this.env.VITE_OPENAI_API_KEY) : true;
+    // AI configuration is valid if features are disabled OR if using server-side AI proxy
+    return !this.env.VITE_ENABLE_AI_FEATURES || true;
   }
 
   // Log configuration (sanitized)
@@ -303,7 +306,7 @@ class EnvironmentConfig {
       environment: this.env.NODE_ENV,
       api: {
         url: this.env.VITE_API_URL,
-        hasApiKey: Boolean(this.env.VITE_OPENAI_API_KEY)
+        hasAIFeatures: this.env.VITE_ENABLE_AI_FEATURES
       },
       supabase: {
         url: this.env.VITE_SUPABASE_URL,

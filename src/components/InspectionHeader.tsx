@@ -1,10 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, RefreshCw, Users, Eye } from "lucide-react";
+import { ArrowLeft, RefreshCw, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ChecklistItemType } from "@/types/inspection";
-import { InspectorPresenceIndicator } from "@/components/InspectorPresenceIndicator";
 
 interface InspectionHeaderProps {
   inspectionId: string;
@@ -46,7 +45,6 @@ export const InspectionHeader = ({
             </h1>
             
             {/* Multi-inspector indicator */}
-            <InspectorPresenceIndicator inspectionId={inspectionId} />
           </div>
         </div>
 

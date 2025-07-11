@@ -222,7 +222,7 @@ export class AmenityDiscoveryService {
       evidence.checklistItems.push(item.title);
       
       // Collect photos from relevant checklist items
-      item.media_files.forEach(media => {
+      item.media.forEach(media => {
         if (media.type === 'photo') {
           evidence.photos.push(media.url);
         }

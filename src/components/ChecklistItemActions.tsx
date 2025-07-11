@@ -1,13 +1,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, X, MinusCircle, UserCheck } from "lucide-react";
+import { CheckCircle, X, MinusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useInspectorCollaboration } from "@/hooks/useInspectorCollaboration";
-import { InspectorPresenceIndicator } from "@/components/InspectorPresenceIndicator";
-import { CollaborationConflictAlert } from "@/components/CollaborationConflictAlert";
 
 interface ChecklistItemActionsProps {
   itemId: string;
@@ -23,10 +20,8 @@ export const ChecklistItemActions = ({
   inspectionId 
 }: ChecklistItemActionsProps) => {
   const [isSaving, setIsSaving] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { assignChecklistItem } = useInspectorCollaboration(inspectionId);
 
   const handleStatusChange = async (newStatus: 'completed' | 'failed' | 'not_applicable') => {
     setIsSaving(true);
@@ -95,44 +90,9 @@ export const ChecklistItemActions = ({
     }
   };
 
-  const handleAssignToMe = async () => {
-    setIsAssigning(true);
-    try {
-      await assignChecklistItem(itemId);
-    } catch (error) {
-      console.error('Assignment error:', error);
-    } finally {
-      setIsAssigning(false);
-    }
-  };
 
   return (
     <div className="space-y-4">
-      {/* Collaboration Features */}
-      <div className="space-y-3">
-        <InspectorPresenceIndicator inspectionId={inspectionId} currentItemId={itemId} />
-        <CollaborationConflictAlert inspectionId={inspectionId} checklistItemId={itemId} />
-      </div>
-
-      <div className="pt-4 border-t border-gray-200">
-        {/* Assignment Button */}
-        <div className="mb-4">
-          <Button
-            onClick={handleAssignToMe}
-            disabled={isAssigning || isSaving}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            {isAssigning ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-            ) : (
-              <UserCheck className="w-4 h-4 mr-2" />
-            )}
-            Assign to Me
-          </Button>
-        </div>
-
         <div className="flex flex-col gap-3">
           {/* Pass button */}
           <Button
@@ -183,7 +143,6 @@ export const ChecklistItemActions = ({
         <p className="text-xs text-gray-500 text-center mt-2">
           {currentNotes ? 'Your notes will be saved with the status.' : 'Add notes above to include them with your status.'}
         </p>
-      </div>
     </div>
   );
 };

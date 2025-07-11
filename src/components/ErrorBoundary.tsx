@@ -1,132 +1,328 @@
+/**
+ * Enterprise Error Boundary System
+ * Comprehensive error handling with monitoring and recovery
+ */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  level?: 'page' | 'component' | 'critical';
+  componentName?: string;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorId: string | null;
+  retryCount: number;
+  isRecovering: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private retryTimeout: NodeJS.Timeout | null = null;
+  private readonly maxRetries = 3;
+  private readonly retryDelay = 2000;
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: null,
+      retryCount: 0,
+      isRecovering: false,
+    };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🚨 Error caught by boundary:', error, errorInfo);
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    return {
+      hasError: true,
+      error,
+      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // Log error to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Integrate with error monitoring service like Sentry
-      console.error('Production error:', error, errorInfo);
+    this.setState({ errorInfo });
+    
+    // Log error to monitoring service
+    this.logError(error, errorInfo);
+    
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+  }
+
+  private async logError(error: Error, errorInfo: ErrorInfo) {
+    try {
+      const errorReport = {
+        error_id: this.state.errorId,
+        error_message: error.message,
+        error_stack: error.stack,
+        component_stack: errorInfo.componentStack,
+        component_name: this.props.componentName || 'Unknown',
+        error_level: this.props.level || 'component',
+        user_agent: navigator.userAgent,
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        retry_count: this.state.retryCount,
+        additional_info: {
+          props: this.sanitizeProps(this.props),
+          state: this.sanitizeState(),
+        },
+      };
+
+      // Log to Supabase
+      await supabase.from('error_reports').insert(errorReport);
+
+      // In production, also send to external monitoring service
+      if (process.env.NODE_ENV === 'production') {
+        await this.sendToMonitoringService(errorReport);
+      }
+
+    } catch (loggingError) {
+      console.error('Failed to log error:', loggingError);
+    }
+  }
+
+  private async sendToMonitoringService(errorReport: any) {
+    try {
+      // Send to Sentry, LogRocket, or similar service
+      // This would be configured with actual monitoring service
+      await fetch('/api/errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(errorReport),
+      });
+    } catch (error) {
+      console.error('Failed to send error to monitoring service:', error);
+    }
+  }
+
+  private sanitizeProps(props: any): any {
+    // Remove sensitive data and functions from props for logging
+    const sanitized: any = {};
+    
+    Object.keys(props).forEach(key => {
+      const value = props[key];
+      
+      if (typeof value === 'function') {
+        sanitized[key] = '[Function]';
+      } else if (key.toLowerCase().includes('password') || key.toLowerCase().includes('token')) {
+        sanitized[key] = '[REDACTED]';
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = '[Object]';
+      } else {
+        sanitized[key] = value;
+      }
+    });
+    
+    return sanitized;
+  }
+
+  private sanitizeState(): any {
+    // Remove sensitive data from state for logging
+    const { error, errorInfo, ...safeState } = this.state;
+    return safeState;
+  }
+
+  private handleRetry = async () => {
+    if (this.state.retryCount >= this.maxRetries) {
+      return;
     }
 
-    this.setState({
-      error,
-      errorInfo
+    this.setState({ 
+      isRecovering: true,
+      retryCount: this.state.retryCount + 1,
     });
-  }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    // Log retry attempt
+    try {
+      await supabase.from('error_recovery_attempts').insert({
+        error_id: this.state.errorId,
+        attempt_number: this.state.retryCount + 1,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to log retry attempt:', error);
+    }
+
+    // Wait before retry
+    this.retryTimeout = setTimeout(() => {
+      this.setState({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        isRecovering: false,
+      });
+    }, this.retryDelay);
   };
 
   private handleReload = () => {
     window.location.reload();
   };
 
-  private goHome = () => {
-    window.location.href = '/properties';
+  private handleGoHome = () => {
+    window.location.href = '/';
   };
 
-  public render() {
+  private handleReportBug = () => {
+    const errorDetails = {
+      errorId: this.state.errorId,
+      message: this.state.error?.message,
+      stack: this.state.error?.stack,
+      component: this.props.componentName,
+    };
+
+    const mailtoLink = `mailto:support@doublecheckverified.com?subject=Error Report - ${this.state.errorId}&body=${encodeURIComponent(
+      `Error Details:\n${JSON.stringify(errorDetails, null, 2)}\n\nPlease describe what you were doing when this error occurred:`
+    )}`;
+
+    window.open(mailtoLink);
+  };
+
+  componentWillUnmount() {
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+    }
+  }
+
+  render() {
     if (this.state.hasError) {
+      // Custom fallback provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      // Recovery mode
+      if (this.state.isRecovering) {
+        return (
+          <div className="flex items-center justify-center min-h-[200px] p-8">
+            <div className="text-center">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
+              <p className="text-gray-600">Attempting to recover...</p>
+            </div>
+          </div>
+        );
+      }
+
+      // Error level determines UI complexity
+      const isCritical = this.props.level === 'critical';
+      const isPageLevel = this.props.level === 'page';
+
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="max-w-lg w-full">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-              <CardTitle className="text-xl text-gray-900">
-                Something went wrong
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <p className="text-gray-600 text-center">
-                We encountered an unexpected error. This has been logged and our team will investigate.
+        <div className={`flex items-center justify-center p-8 ${isPageLevel ? 'min-h-screen' : 'min-h-[400px]'}`}>
+          <div className="max-w-lg w-full text-center">
+            <div className={`mb-6 ${isCritical ? 'text-red-500' : 'text-orange-500'}`}>
+              <AlertTriangle className="h-16 w-16 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold mb-2">
+                {isCritical ? 'Critical Error' : 'Something went wrong'}
+              </h1>
+              <p className="text-gray-600 mb-4">
+                {isCritical 
+                  ? 'A critical error has occurred that requires immediate attention.'
+                  : 'We encountered an unexpected error. This has been reported to our team.'
+                }
               </p>
-              
-              {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="bg-gray-100 p-3 rounded-md text-sm">
-                  <summary className="cursor-pointer font-medium text-gray-700 mb-2">
-                    Error Details (Development)
-                  </summary>
-                  <div className="space-y-2">
-                    <div>
-                      <strong>Error:</strong>
-                      <pre className="whitespace-pre-wrap text-red-600 mt-1">
-                        {this.state.error.toString()}
-                      </pre>
-                    </div>
-                    {this.state.errorInfo && (
-                      <div>
-                        <strong>Component Stack:</strong>
-                        <pre className="whitespace-pre-wrap text-gray-600 mt-1 text-xs">
-                          {this.state.errorInfo.componentStack}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              )}
-              
-              <div className="flex flex-col sm:flex-row gap-3">
+            </div>
+
+            {/* Error details for development */}
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <div className="mb-6 p-4 bg-gray-100 rounded-lg text-left">
+                <h3 className="font-semibold mb-2">Error Details:</h3>
+                <p className="text-sm text-red-600 mb-2">{this.state.error.message}</p>
+                {this.state.error.stack && (
+                  <pre className="text-xs text-gray-600 overflow-auto max-h-32">
+                    {this.state.error.stack}
+                  </pre>
+                )}
+              </div>
+            )}
+
+            {/* Error ID for support */}
+            {this.state.errorId && (
+              <div className="mb-6 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Error ID:</strong> {this.state.errorId}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Please include this ID when reporting the issue.
+                </p>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="space-y-3">
+              {/* Retry button (if not max retries) */}
+              {this.state.retryCount < this.maxRetries && !isCritical && (
                 <Button
-                  onClick={this.handleReset}
-                  className="flex-1"
-                  variant="outline"
+                  onClick={this.handleRetry}
+                  variant="default"
+                  className="w-full"
+                  disabled={this.state.isRecovering}
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Try Again ({this.maxRetries - this.state.retryCount} attempts left)
                 </Button>
-                
+              )}
+
+              {/* Reload page */}
+              {isPageLevel && (
                 <Button
                   onClick={this.handleReload}
-                  className="flex-1"
                   variant="outline"
+                  className="w-full"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Reload Page
                 </Button>
-                
-                <Button
-                  onClick={this.goHome}
-                  className="flex-1"
+              )}
+
+              {/* Go home */}
+              <Button
+                onClick={this.handleGoHome}
+                variant="outline"
+                className="w-full"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Go to Home
+              </Button>
+
+              {/* Report bug */}
+              <Button
+                onClick={this.handleReportBug}
+                variant="ghost"
+                className="w-full"
+              >
+                <Bug className="h-4 w-4 mr-2" />
+                Report This Issue
+              </Button>
+            </div>
+
+            {/* Additional help text */}
+            <div className="mt-6 text-xs text-gray-500">
+              <p>
+                If this problem persists, please contact support at{' '}
+                <a 
+                  href="mailto:support@doublecheckverified.com"
+                  className="text-blue-500 hover:underline"
                 >
-                  <Home className="w-4 h-4 mr-2" />
-                  Go Home
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  support@doublecheckverified.com
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
       );
     }
@@ -135,18 +331,51 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// HOC for easier usage
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode
-) => {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary fallback={fallback}>
-      <Component {...props} />
+// Higher-order component for easy wrapping
+export function withErrorBoundary<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>
+) {
+  const ComponentWithErrorBoundary = (props: P) => (
+    <ErrorBoundary {...errorBoundaryProps}>
+      <WrappedComponent {...props} />
     </ErrorBoundary>
   );
+
+  ComponentWithErrorBoundary.displayName = `withErrorBoundary(${WrappedComponent.displayName || WrappedComponent.name})`;
+
+  return ComponentWithErrorBoundary;
+}
+
+// Async error handler for promises
+export function handleAsyncError(error: Error, context?: string) {
+  console.error('Async error occurred:', error, context);
   
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+  // Create a synthetic error boundary event
+  const errorEvent = new CustomEvent('asyncError', {
+    detail: { error, context }
+  });
   
-  return WrappedComponent;
-};
+  window.dispatchEvent(errorEvent);
+}
+
+// Global error handlers
+if (typeof window !== 'undefined') {
+  // Handle unhandled promise rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    handleAsyncError(
+      event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
+      'unhandledrejection'
+    );
+  });
+
+  // Handle global JavaScript errors
+  window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    handleAsyncError(
+      event.error || new Error(event.message),
+      'global'
+    );
+  });
+}

@@ -6,7 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
 type ChecklistItemRecord = Tables['checklist_items']['Row'];
-type MediaFileRecord = Tables['media_files']['Row'];
+type MediaFileRecord = Tables['media']['Row'];
 type PropertyRecord = Tables['properties']['Row'];
 type UserRecord = Tables['users']['Row'];
 
@@ -39,11 +39,10 @@ export interface InspectionForReview {
     ai_confidence: number;
     ai_reasoning: string;
     notes: string;
-    media_files: Array<{
+    media: Array<{
       id: string;
       type: 'photo' | 'video';
       url: string;
-      file_name: string;
       created_at: string;
     }>;
   }>;
@@ -127,11 +126,10 @@ export class AuditorService {
             ai_confidence,
             ai_reasoning,
             notes,
-            media_files (
+            media (
               id,
               type,
               url,
-              file_name,
               created_at
             )
           )
@@ -220,13 +218,10 @@ export class AuditorService {
             notes,
             user_override,
             completed_at,
-            media_files (
+            media (
               id,
               type,
               url,
-              file_name,
-              file_size,
-              mime_type,
               created_at
             )
           )
@@ -437,7 +432,7 @@ export class AuditorService {
   /**
    * Calculate AI analysis summary for an inspection
    */
-  private calculateAIAnalysisSummary(checklistItems: Array<{ai_status: string; ai_confidence: number; media_files: Array<{type: string}>}>): {
+  private calculateAIAnalysisSummary(checklistItems: Array<{ai_status: string; ai_confidence: number; media: Array<{type: string}>}>): {
     overall_score: number;
     total_items: number;
     completed_items: number;
@@ -469,9 +464,9 @@ export class AuditorService {
     let videoCount = 0;
     
     checklistItems.forEach(item => {
-      if (item.media_files) {
-        photoCount += item.media_files.filter((media) => media.type === 'photo').length;
-        videoCount += item.media_files.filter((media) => media.type === 'video').length;
+      if (item.media) {
+        photoCount += item.media.filter((media) => media.type === 'photo').length;
+        videoCount += item.media.filter((media) => media.type === 'video').length;
       }
     });
 

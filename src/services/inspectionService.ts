@@ -391,16 +391,29 @@ export class InspectionService {
         auditorId 
       }, 'INSPECTION_SERVICE');
 
+      // Prepare update object with only existing fields
+      const updateData: Partial<InspectionUpdate> = {
+        certification_status: status
+      };
+
       const { error } = await supabase
         .from('inspections')
-        .update({
-          certification_status: status,
-          auditor_id: auditorId,
-          auditor_feedback: feedback,
-          reviewed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } as InspectionUpdate)
+        .update(updateData)
         .eq('id', inspectionId);
+
+      // Store auditor feedback in audit log if provided
+      if (feedback && auditorId) {
+        await supabase.from('security_audit_log').insert({
+          event_type: 'inspection_certification_updated',
+          user_id: auditorId,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            inspection_id: inspectionId,
+            certification_status: status,
+            auditor_feedback: feedback
+          }
+        });
+      }
 
       if (error) {
         logger.error('Failed to update certification status', error, 'INSPECTION_SERVICE');

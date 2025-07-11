@@ -38,7 +38,7 @@ const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 function App() {
   console.log('🚀 STR Certified App - Authentication-First Architecture v3');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Start with false - show login immediately
+  const [isLoading, setIsLoading] = useState(true); // Start with true - check session first
   const [user, setUser] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -46,19 +46,38 @@ function App() {
   useEffect(() => {
     console.log('🔍 Setting up auth listener - forcing login page');
     
-    // Check if there's an existing session but don't auto-authenticate
+    // Check if there's an existing valid session
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         console.log('🔍 Initial session check:', { session: session?.user?.email, error });
         
-        // Even if there's a session, require explicit login for security
-        if (session?.user) {
-          console.log('⚠️ Found existing session but requiring fresh login for security');
+        if (error) {
+          console.error('Session check error:', error);
           await supabase.auth.signOut();
+          return;
+        }
+        
+        // If we have a valid session, verify user still exists and has access
+        if (session?.user) {
+          const { data: userProfile, error: userError } = await supabase
+            .from('users')
+            .select('id, email, name, status')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (userError || !userProfile || userProfile.status === 'disabled') {
+            console.log('⚠️ User profile invalid, requiring fresh login');
+            await supabase.auth.signOut();
+          } else {
+            console.log('✅ Valid session found, authenticating user');
+            setUser(session.user);
+            setIsAuthenticated(true);
+          }
         }
       } catch (error) {
         console.error('🚨 Session check error:', error);
+        await supabase.auth.signOut();
       } finally {
         setIsLoading(false);
       }

@@ -1251,6 +1251,150 @@ export type Database = {
           },
         ]
       }
+      inspection_reports: {
+        Row: {
+          id: string
+          inspection_id: string
+          generated_at: string | null
+          version: string
+          options: Json | null
+          file_size: number | null
+          file_path: string | null
+          download_count: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          inspection_id: string
+          generated_at?: string | null
+          version?: string
+          options?: Json | null
+          file_size?: number | null
+          file_path?: string | null
+          download_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          inspection_id?: string
+          generated_at?: string | null
+          version?: string
+          options?: Json | null
+          file_size?: number | null
+          file_path?: string | null
+          download_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_inspection_reports_inspection_id"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      audit_feedback: {
+        Row: {
+          id: string
+          inspection_id: string
+          auditor_decision: string
+          feedback_text: string | null
+          review_time_minutes: number | null
+          overrides_count: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          inspection_id: string
+          auditor_decision: string
+          feedback_text?: string | null
+          review_time_minutes?: number | null
+          overrides_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          inspection_id?: string
+          auditor_decision?: string
+          feedback_text?: string | null
+          review_time_minutes?: number | null
+          overrides_count?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_audit_feedback_inspection_id"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      report_deliveries: {
+        Row: {
+          id: string
+          inspection_id: string
+          report_id: string
+          recipient_email: string
+          recipient_name: string
+          delivery_method: string
+          status: string
+          sent_at: string | null
+          delivered_at: string | null
+          error_message: string | null
+          metadata: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          inspection_id: string
+          report_id: string
+          recipient_email: string
+          recipient_name: string
+          delivery_method: string
+          status: string
+          sent_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          inspection_id?: string
+          report_id?: string
+          recipient_email?: string
+          recipient_name?: string
+          delivery_method?: string
+          status?: string
+          sent_at?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_report_deliveries_inspection_id"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1360,6 +1504,18 @@ export type Database = {
           row_count: number
           can_select: boolean
         }[]
+      }
+      get_database_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          database_size: number
+          table_count: number
+          connections: number
+          active_connections: number
+          database_name: string
+          version: string
+          timestamp: string
+        }
       }
       get_properties_with_inspections: {
         Args: { _user_id?: string }

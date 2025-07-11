@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 import { ChecklistItemCore } from "@/components/ChecklistItemCore";
-import { ChecklistItemPresenceTracker } from "@/components/ChecklistItemPresenceTracker";
 import { CompletedChecklistItem } from "@/components/CompletedChecklistItem";
 
 interface ChecklistItemContainerProps {
@@ -57,14 +56,6 @@ export const ChecklistItemContainer = ({ item, onComplete }: ChecklistItemContai
         />
       </div>
 
-      {/* Presence Tracking */}
-      <ChecklistItemPresenceTracker
-        itemId={item.id}
-        inspectionId={item.inspection_id}
-        isInView={isInView}
-        isUploading={isUploading}
-        currentNotes={currentNotes}
-      />
     </>
   );
 };

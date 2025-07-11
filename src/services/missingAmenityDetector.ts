@@ -280,7 +280,7 @@ export class MissingAmenityDetector {
       evidence.checklistItems.push(item.title);
       
       // Collect photos
-      item.media_files.forEach(media => {
+      item.media.forEach(media => {
         if (media.type === 'photo') {
           evidence.photoUrls.push(media.url);
         }

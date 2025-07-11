@@ -38,7 +38,7 @@ export class MediaService {
 
       // Get media file record
       const { data: mediaRecord, error: fetchError } = await supabase
-        .from('media_files')
+        .from('media')
         .select('*')
         .eq('id', mediaId)
         .single();
@@ -54,7 +54,7 @@ export class MediaService {
 
       // Get public URL from Supabase storage
       const { data: { publicUrl } } = supabase.storage
-        .from('media')
+        .from('inspection-media')
         .getPublicUrl(mediaRecord.file_path || '');
 
       // Check if file is accessible
@@ -107,7 +107,7 @@ export class MediaService {
       logger.info('Fetching media files for checklist item', { checklistItemId }, 'MEDIA_SERVICE');
 
       const { data: mediaRecords, error: fetchError } = await supabase
-        .from('media_files')
+        .from('media')
         .select('*')
         .eq('checklist_item_id', checklistItemId)
         .order('created_at', { ascending: true });
@@ -123,7 +123,7 @@ export class MediaService {
       // Process each media record
       for (const record of mediaRecords || []) {
         const { data: { publicUrl } } = supabase.storage
-          .from('media')
+          .from('inspection-media')
           .getPublicUrl(record.file_path || '');
 
         const isAccessible = await this.checkFileAccessibility(publicUrl);
@@ -178,7 +178,7 @@ export class MediaService {
   ): Promise<{ success: boolean; data?: string; error?: string }> {
     try {
       const { data, error } = await supabase.storage
-        .from('media')
+        .from('inspection-media')
         .createSignedUrl(filePath, expiresIn);
 
       if (error) {
