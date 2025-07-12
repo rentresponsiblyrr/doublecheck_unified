@@ -388,7 +388,7 @@ function AdminRoutesComponent() {
       } />
 
       {/* Admin Routes - All admin functionality */}
-      <Route path="/*" element={
+      <Route path="/admin/*" element={
         <ProtectedRoute requiredRole="admin">
           <Suspense fallback={<LoadingFallback />}>
             <AdminRoutes />
