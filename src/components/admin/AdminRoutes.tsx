@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from './AdminLayout';
@@ -67,52 +67,55 @@ export default function AdminRoutes() {
     <ErrorBoundary fallback={<div className="p-6">Admin dashboard temporarily unavailable. Please refresh the page.</div>}>
       <AdminLayout>
         <Routes>
+          {/* Default/Index route */}
           <Route index element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <AdminOverview />
             </Suspense>
           } />
-          <Route path="/properties" element={
+          
+          {/* All routes use relative paths - works for both /admin/* and direct routes */}
+          <Route path="properties" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <PropertyManagement />
             </Suspense>
           } />
-          <Route path="/users" element={
+          <Route path="users" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <UserManagement />
             </Suspense>
           } />
-          <Route path="/inspections" element={
+          <Route path="inspections" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <InspectionManagement />
             </Suspense>
           } />
-          <Route path="/audit" element={
+          <Route path="audit" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <AuditCenter />
             </Suspense>
           } />
-          <Route path="/reports" element={
+          <Route path="reports" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <ReportManagement />
             </Suspense>
           } />
-          <Route path="/checklists" element={
+          <Route path="checklists" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <ChecklistManagement />
             </Suspense>
           } />
-          <Route path="/performance" element={
+          <Route path="performance" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <AIPerformanceDashboard />
             </Suspense>
           } />
-          <Route path="/ai-learning" element={
+          <Route path="ai-learning" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <AILearningDashboard />
             </Suspense>
           } />
-          <Route path="/analytics" element={
+          <Route path="analytics" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <ComingSoonPage 
                 title="Analytics Dashboard" 
@@ -127,7 +130,7 @@ export default function AdminRoutes() {
               />
             </Suspense>
           } />
-          <Route path="/settings" element={
+          <Route path="settings" element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <ComingSoonPage 
                 title="System Settings" 

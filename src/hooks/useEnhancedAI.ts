@@ -595,7 +595,7 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
   // Load initial insights and performance on mount with exponential backoff
   useEffect(() => {
     let mounted = true;
-    let retryCount = 0;
+    const retryCount = 0;
     const maxRetries = 3;
     
     const loadInitialData = async () => {

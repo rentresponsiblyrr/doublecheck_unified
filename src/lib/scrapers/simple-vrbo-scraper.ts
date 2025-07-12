@@ -275,7 +275,7 @@ export class SimpleVRBOScraper {
     let bedrooms = 0;
     let bathrooms = 0;
     let maxGuests = 1;
-    let propertyType = 'Vacation Rental';
+    const propertyType = 'Vacation Rental';
 
     // Try JSON-LD first
     if (jsonLd) {

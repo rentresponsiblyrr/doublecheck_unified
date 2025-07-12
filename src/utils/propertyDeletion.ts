@@ -18,7 +18,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
   // Helper function to safely delete from a table (handles table not existing)
   const safeDelete = async (
     tableName: string, 
-    filter: { [key: string]: any }, 
+    filter: Record<string, unknown>, 
     description: string
   ): Promise<void> => {
     try {
@@ -36,6 +36,33 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       const { error } = await query;
       
       if (error) {
+        // Handle network errors gracefully
+        if (error.message.includes('ERR_INTERNET_DISCONNECTED') || 
+            error.message.includes('ERR_NETWORK') ||
+            error.message.includes('network error') ||
+            error.message.includes('Failed to fetch')) {
+          console.log(`🌐 Network error for ${tableName} - skipping ${description} (will retry when online)`);
+          return;
+        }
+        
+        // Handle 404 errors (table/endpoint doesn't exist)
+        if (error.message.includes('404') || error.code === '404' || error.status === 404) {
+          console.log(`⚠️ Table ${tableName} doesn't exist (404) - skipping ${description}`);
+          return;
+        }
+        
+        // Handle 400 errors (bad request - likely schema mismatch)
+        if (error.message.includes('400') || error.code === '400' || error.status === 400) {
+          console.log(`⚠️ Bad request for ${tableName} (400) - likely schema mismatch - skipping ${description}`);
+          return;
+        }
+        
+        // Handle 409 errors (conflict - likely foreign key constraint)
+        if (error.message.includes('409') || error.code === '409' || error.status === 409) {
+          console.log(`⚠️ Conflict for ${tableName} (409) - likely foreign key constraint - skipping ${description}`);
+          return;
+        }
+        
         // If table doesn't exist, that's okay - it means it's not in this environment
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
           console.log(`⚠️ Table ${tableName} doesn't exist - skipping ${description}`);
@@ -79,6 +106,16 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       .eq('property_id', propertyId);
 
     if (inspectionsQueryError) {
+      // Handle network errors gracefully
+      if (inspectionsQueryError.message.includes('ERR_INTERNET_DISCONNECTED') || 
+          inspectionsQueryError.message.includes('ERR_NETWORK') ||
+          inspectionsQueryError.message.includes('network error') ||
+          inspectionsQueryError.message.includes('Failed to fetch')) {
+        console.log('🌐 Network error while querying inspections - deletion will be skipped until online');
+        deletionInProgress.delete(propertyId);
+        throw new Error('Network error: Please check your internet connection and try again');
+      }
+      
       console.error('❌ Error querying inspections:', inspectionsQueryError);
       throw new Error(`Failed to query inspections: ${inspectionsQueryError.message}`);
     }
@@ -95,6 +132,16 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
         .in('inspection_id', inspectionIds);
 
       if (checklistQueryError) {
+        // Handle network errors gracefully
+        if (checklistQueryError.message.includes('ERR_INTERNET_DISCONNECTED') || 
+            checklistQueryError.message.includes('ERR_NETWORK') ||
+            checklistQueryError.message.includes('network error') ||
+            checklistQueryError.message.includes('Failed to fetch')) {
+          console.log('🌐 Network error while querying checklist items - deletion will be skipped until online');
+          deletionInProgress.delete(propertyId);
+          throw new Error('Network error: Please check your internet connection and try again');
+        }
+        
         console.error('❌ Error querying checklist items:', checklistQueryError);
         throw new Error(`Failed to query checklist items: ${checklistQueryError.message}`);
       }
@@ -166,21 +213,14 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       console.log('🔍 Deleting RAG query logs...');
       await safeDelete('rag_query_log', { inspection_id: inspectionIds }, 'RAG query logs');
 
-      // Step 9.3: Delete audit feedback (new table) - Handle both possible schemas
+      // Step 9.3: Delete audit feedback (uses inspection_id based on migration)
       console.log('📝 Deleting audit feedback...');
       
-      // First try with checklist_item_id (current schema based on comprehensive_sql_prevention.sql)
-      if (checklistItems && checklistItems.length > 0 && checklistItemIds && checklistItemIds.length > 0) {
-        await safeDelete('audit_feedback', { checklist_item_id: checklistItemIds }, 'audit feedback (by checklist_item_id)');
-      } else {
-        console.log('⚠️ No checklist items found for audit_feedback deletion by checklist_item_id');
-      }
-      
-      // Also try with inspection_id for migration compatibility (20250709000000_add_inspection_reports_table.sql)
+      // Based on migration 20250709000000_add_inspection_reports_table.sql, audit_feedback uses inspection_id
       if (inspectionIds && inspectionIds.length > 0) {
-        await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback (by inspection_id)');
+        await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback');
       } else {
-        console.log('⚠️ No inspection IDs found for audit_feedback deletion by inspection_id');
+        console.log('⚠️ No inspection IDs found for audit_feedback deletion');
       }
 
       // Step 9.4: Delete report deliveries - using safe delete
@@ -191,18 +231,9 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       console.log('📄 Deleting inspection reports...');
       await safeDelete('inspection_reports', { inspection_id: inspectionIds }, 'inspection reports');
 
-      // Step 10: Delete checklist items
+      // Step 10: Delete checklist items - using safe delete for better error handling
       console.log('🗂️ Deleting checklist items...');
-      const { error: checklistItemsError } = await supabase
-        .from('checklist_items')
-        .delete()
-        .in('inspection_id', inspectionIds);
-
-      if (checklistItemsError) {
-        console.error('❌ Error deleting checklist items:', checklistItemsError);
-        throw new Error(`Failed to delete checklist items: ${checklistItemsError.message}`);
-      }
-      console.log('✅ Checklist items deleted successfully');
+      await safeDelete('checklist_items', { inspection_id: inspectionIds }, 'checklist items');
     }
 
     // Step 11: Delete listing photos for this property

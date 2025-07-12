@@ -122,7 +122,7 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
         {/* Debug info for troubleshooting */}
         {user?.email?.includes('@rentresponsibly.org') && (
           <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-            Debug: Role={userRole}, Admin={isAdmin ? 'Yes' : 'No'}, HasEdit={!!onEdit ? 'Yes' : 'No'}
+            Debug: Role={userRole}, Admin={isAdmin ? 'Yes' : 'No'}, HasEdit={onEdit ? 'Yes' : 'No'}
           </div>
         )}
         

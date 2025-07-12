@@ -95,7 +95,7 @@ export class InputValidator {
     }
 
     // Remove null bytes and control characters
-    let sanitized = input
+    const sanitized = input
       .replace(/\0/g, '')
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
       .trim();

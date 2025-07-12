@@ -57,16 +57,17 @@ export const MobileFastAuthProvider: React.FC<{ children: React.ReactNode }> = (
     console.log('📱 Mobile auth initialization...');
     setError(null);
 
-    const initPromise = new Promise<void>(async (resolve) => {
-      try {
-        // Mobile-friendly timeout (2 seconds)
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Mobile auth timeout')), 2000);
-        });
+    const initPromise = new Promise<void>((resolve) => {
+      const initAsync = async () => {
+        try {
+          // Mobile-friendly timeout (2 seconds)
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Mobile auth timeout')), 2000);
+          });
 
-        const sessionPromise = supabase.auth.getSession();
-        
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+          const sessionPromise = supabase.auth.getSession();
+          
+          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -104,6 +105,9 @@ export const MobileFastAuthProvider: React.FC<{ children: React.ReactNode }> = (
         setLoading(false);
         resolve();
       }
+      };
+      
+      initAsync();
     });
 
     initializationRef.current = initPromise;
