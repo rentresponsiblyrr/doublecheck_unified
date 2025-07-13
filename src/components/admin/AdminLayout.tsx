@@ -25,7 +25,8 @@ import {
   Calendar,
   UserCheck,
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  Bug
 } from 'lucide-react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,6 +98,12 @@ const navigation = [
     icon: BarChart3,
     current: false,
     badge: 'soon'
+  },
+  {
+    name: 'Bug Reports',
+    href: '/admin/bug-reports',
+    icon: Bug,
+    current: false,
   },
   {
     name: 'Settings',

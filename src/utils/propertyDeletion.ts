@@ -173,8 +173,8 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
         // Step 4: Delete checklist audit logs (foreign key to checklist_items)
         console.log('📋 Deleting checklist audit logs...');
         if (checklistItemIds.length > 0) {
-          // Batch delete in chunks of 3 to avoid URL length limits (UUIDs are ~36 chars each)
-          const BATCH_SIZE = 3;
+          // Delete one by one to avoid URL length limits completely
+          const BATCH_SIZE = 1;
           for (let i = 0; i < checklistItemIds.length; i += BATCH_SIZE) {
             const batch = checklistItemIds.slice(i, i + BATCH_SIZE);
             await safeDelete('checklist_audit_log', { checklist_item_id: batch }, `checklist audit logs batch ${Math.floor(i/BATCH_SIZE) + 1}`);
@@ -184,8 +184,8 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
         // Step 5: Delete media files for checklist items
         console.log('🎬 Deleting media for checklist items...');
         if (checklistItemIds.length > 0) {
-          // Batch delete in chunks of 3 to avoid URL length limits (UUIDs are ~36 chars each)
-          const BATCH_SIZE = 3;
+          // Delete one by one to avoid URL length limits completely
+          const BATCH_SIZE = 1;
           for (let i = 0; i < checklistItemIds.length; i += BATCH_SIZE) {
             const batch = checklistItemIds.slice(i, i + BATCH_SIZE);
             await safeDelete('media', { checklist_item_id: batch }, `media batch ${Math.floor(i/BATCH_SIZE) + 1}`);

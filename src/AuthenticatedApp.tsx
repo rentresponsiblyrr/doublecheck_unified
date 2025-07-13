@@ -35,6 +35,7 @@ import { InspectorWorkflow } from "./pages/InspectorWorkflow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DomainAwarePWA } from "@/components/DomainAwarePWA";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { BugReportButton } from "@/components/BugReportButton";
 
 // Enhanced Query Client with error handling
 const queryClient = new QueryClient({
@@ -211,6 +212,13 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                     {appType === AppType.INSPECTOR ? <InspectorRoutes /> : <AdminRoutesComponent />}
                   </Suspense>
                 </BrowserRouter>
+                
+                {/* Bug Report Button - Available throughout the app */}
+                <BugReportButton 
+                  position="bottom-right"
+                  size="md"
+                  showInProduction={true}
+                />
               </SimpleAuthProvider>
             </ErrorBoundary>
           </TooltipProvider>

@@ -48,6 +48,10 @@ const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').catch(() => (
   default: () => <div>Coming Soon page temporarily unavailable</div> 
 })));
 
+const BugReportManagement = React.lazy(() => import('./BugReportManagement').catch(() => ({
+  default: () => <div>Bug Report Management temporarily unavailable</div>
+})));
+
 const SimpleAdminTest = React.lazy(() => import('./SimpleAdminTest').catch(() => ({ 
   default: () => <div>Test component failed to load</div> 
 })));
@@ -183,6 +187,11 @@ export default function AdminRoutes() {
                   'Backup and security options'
                 ]}
               />
+            </Suspense>
+          } />
+          <Route path="bug-reports" element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <BugReportManagement />
             </Suspense>
           } />
         </Route>
