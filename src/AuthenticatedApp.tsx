@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DomainAwarePWA } from "@/components/DomainAwarePWA";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { BugReportButton } from "@/components/BugReportButton";
+import SimpleBugReportTest from "@/components/SimpleBugReportTest";
 
 // Enhanced Query Client with error handling
 const queryClient = new QueryClient({
@@ -219,6 +220,9 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                   size="md"
                   showInProduction={true}
                 />
+                
+                {/* Debug: Test bug report system */}
+                {process.env.NODE_ENV === 'development' && <SimpleBugReportTest />}
                 
                 {/* Debug: Ensure bug report is visible */}
                 <div 

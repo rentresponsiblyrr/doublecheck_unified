@@ -115,10 +115,11 @@ export const BugReportButton: React.FC<BugReportButtonProps> = ({
       <TooltipProvider>
         <div
           className={cn(
-            'fixed z-50 transition-all duration-300',
+            'fixed transition-all duration-300',
             getPositionClasses(),
             className
           )}
+          style={{ zIndex: 10000 }}
         >
           {/* Expanded state */}
           {!isCollapsed && (
