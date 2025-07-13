@@ -219,6 +219,23 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                   size="md"
                   showInProduction={true}
                 />
+                
+                {/* Debug: Ensure bug report is visible */}
+                <div 
+                  style={{
+                    position: 'fixed',
+                    top: '10px',
+                    right: '10px',
+                    background: 'rgba(255,0,0,0.8)',
+                    color: 'white',
+                    padding: '4px 8px',
+                    fontSize: '12px',
+                    zIndex: 9999,
+                    borderRadius: '4px'
+                  }}
+                >
+                  Bug Report System Active
+                </div>
               </SimpleAuthProvider>
             </ErrorBoundary>
           </TooltipProvider>

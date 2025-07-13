@@ -89,7 +89,6 @@ class UserActivityService {
     if (!this.isTracking) return;
 
     const target = event.target as HTMLElement;
-    const rect = target.getBoundingClientRect();
     
     this.addAction({
       type: 'click',

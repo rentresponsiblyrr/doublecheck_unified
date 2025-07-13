@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,10 +10,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/components/AuthProvider';
-import { LogOut, User, Shield, CheckCircle, RefreshCw } from 'lucide-react';
+import { LogOut, User, Shield, CheckCircle, RefreshCw, Bug } from 'lucide-react';
+import BugReportDialog from '@/components/BugReportDialog';
 
 export const UserMenu = () => {
   const { user, userRole, signOut, loadUserRole } = useAuth();
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false);
 
   if (!user) return null;
 
@@ -64,11 +66,22 @@ export const UserMenu = () => {
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh Role
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setIsBugReportOpen(true)} className="text-orange-600">
+          <Bug className="w-4 h-4 mr-2" />
+          Report Issue
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut} className="text-red-600">
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
+      
+      {/* Bug Report Dialog */}
+      <BugReportDialog
+        isOpen={isBugReportOpen}
+        onClose={() => setIsBugReportOpen(false)}
+      />
     </DropdownMenu>
   );
 };
