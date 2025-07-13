@@ -67,41 +67,23 @@ function App() {
           let userValid = false;
           
           try {
-            // Try users table first
-            const { data: userProfile, error: userError } = await supabase
-              .from('users')
-              .select('id, email, name, status')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (!userError && userProfile && userProfile.status !== 'disabled') {
-              console.log('✅ User found in users table');
+            // Use the RPC function instead of direct table queries
+            const { data: userRole, error: roleError } = await supabase.rpc('get_user_role_simple', { 
+              _user_id: session.user.id 
+            });
+            
+            if (!roleError && userRole) {
+              console.log('✅ User validated via RPC function with role:', userRole);
               userValid = true;
             } else {
-              console.log('⚠️ Users table query failed, trying fallback...', userError?.message);
+              console.log('⚠️ User role validation failed, allowing auth session...', roleError?.message);
+              // Still allow login if they have a valid auth session
+              userValid = true;
             }
-          } catch (usersError) {
-            console.log('⚠️ Users table not accessible, trying fallback...', usersError);
-          }
-          
-          // Fallback: try profiles table
-          if (!userValid) {
-            try {
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('id, email, role')
-                .eq('id', session.user.id)
-                .single();
-                
-              if (!profileError && profileData) {
-                console.log('✅ User found in profiles table');
-                userValid = true;
-              } else {
-                console.log('⚠️ Profiles table query failed...', profileError?.message);
-              }
-            } catch (profileError) {
-              console.log('⚠️ Profiles table not accessible...', profileError);
-            }
+          } catch (rpcError) {
+            console.log('⚠️ RPC validation failed, allowing auth session...', rpcError);
+            // Still allow login if they have a valid auth session
+            userValid = true;
           }
           
           // Final fallback: allow login if user has valid auth session

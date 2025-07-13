@@ -268,37 +268,37 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
   };
 
   const renderFormStep = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 w-full">
       {/* Basic Information */}
       <div className="space-y-4">
-        <div>
-          <Label htmlFor="bug-title">Issue Title *</Label>
+        <div className="w-full">
+          <Label htmlFor="bug-title" className="text-sm font-medium">Issue Title *</Label>
           <Input
             id="bug-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Brief description of the issue"
-            className="mt-1"
+            className="mt-1 w-full"
           />
         </div>
 
-        <div>
-          <Label htmlFor="bug-description">Description *</Label>
+        <div className="w-full">
+          <Label htmlFor="bug-description" className="text-sm font-medium">Description *</Label>
           <Textarea
             id="bug-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Detailed description of what happened, what you expected, and any error messages..."
-            rows={4}
-            className="mt-1"
+            rows={3}
+            className="mt-1 w-full resize-none"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="bug-severity">Severity</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+          <div className="w-full">
+            <Label htmlFor="bug-severity" className="text-sm font-medium">Severity</Label>
             <Select value={severity} onValueChange={(value: any) => setSeverity(value)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -310,10 +310,10 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="bug-category">Category</Label>
+          <div className="w-full">
+            <Label htmlFor="bug-category" className="text-sm font-medium">Category</Label>
             <Select value={category} onValueChange={(value: any) => setCategory(value)}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -329,25 +329,25 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       </div>
 
       {/* Steps to Reproduce */}
-      <div>
-        <Label>Steps to Reproduce *</Label>
+      <div className="w-full">
+        <Label className="text-sm font-medium">Steps to Reproduce *</Label>
         <p className="text-xs text-gray-500 mt-1 mb-3">
           Tell us exactly how to reproduce this issue step by step
         </p>
-        <div className="space-y-3">
+        <div className="space-y-2 w-full">
           {steps.map((step, index) => (
-            <div key={index} className="flex items-start space-x-3">
+            <div key={index} className="flex items-start gap-2 w-full">
               <div className="flex-shrink-0 w-6 h-9 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-500 bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center">
                   {index + 1}
                 </span>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <Input
                   value={step}
                   onChange={(e) => handleStepChange(index, e.target.value)}
                   placeholder={index === 0 ? "First, I clicked on..." : `Then I...`}
-                  className="w-full"
+                  className="w-full text-sm"
                 />
               </div>
               {steps.length > 1 && (
@@ -356,57 +356,59 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => removeStep(index)}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 h-9 w-9 p-0"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               )}
             </div>
           ))}
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-1">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={addStep}
-              className="px-6"
+              className="px-4 text-xs"
             >
-              + Add Another Step
+              + Add Step
             </Button>
           </div>
         </div>
       </div>
 
       {/* Screenshot Section */}
-      <div>
-        <Label>Screenshot (Optional)</Label>
-        <div className="mt-2">
+      <div className="w-full">
+        <Label className="text-sm font-medium">Screenshot (Optional)</Label>
+        <div className="mt-2 w-full">
           {screenshot ? (
-            <div className="space-y-2">
+            <div className="w-full">
               <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-green-800">Screenshot captured</span>
-                  <Badge variant="outline" className="text-xs">
-                    {screenshot.dimensions.width}x{screenshot.dimensions.height}
+                <div className="flex items-center space-x-2 min-w-0">
+                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <span className="text-sm text-green-800 truncate">Screenshot captured</span>
+                  <Badge variant="outline" className="text-xs flex-shrink-0">
+                    {screenshot.dimensions.width}×{screenshot.dimensions.height}
                   </Badge>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 flex-shrink-0">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => window.open(screenshot.dataUrl, '_blank')}
+                    className="h-8 w-8 p-0"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3 w-3" />
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => setScreenshot(null)}
+                    className="h-8 w-8 p-0"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -417,7 +419,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
               variant="outline"
               onClick={captureScreenshot}
               disabled={isCapturingScreenshot}
-              className="w-full"
+              className="w-full text-sm"
             >
               {isCapturingScreenshot ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -432,22 +434,24 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
 
       {/* User Actions Preview */}
       {userActions.length > 0 && (
-        <div>
-          <Label>Recent Actions (Auto-captured)</Label>
-          <div className="mt-2 max-h-32 overflow-y-auto bg-gray-50 rounded-md p-3">
+        <div className="w-full">
+          <Label className="text-sm font-medium">Recent Actions (Auto-captured)</Label>
+          <div className="mt-2 max-h-24 overflow-y-auto bg-gray-50 rounded-md p-3 w-full">
             <div className="space-y-1">
               {userActions.slice(-5).map((action, index) => (
-                <div key={action.id} className="text-xs text-gray-600 flex items-center space-x-2">
-                  <Clock className="h-3 w-3" />
-                  <span>{new Date(action.timestamp).toLocaleTimeString()}</span>
-                  <span className="capitalize">{action.type}</span>
-                  <span className="truncate">{action.element}</span>
+                <div key={action.id} className="text-xs text-gray-600 flex items-center gap-2 w-full">
+                  <Clock className="h-3 w-3 flex-shrink-0" />
+                  <span className="flex-shrink-0">{new Date(action.timestamp).toLocaleTimeString()}</span>
+                  <span className="capitalize flex-shrink-0">{action.type}</span>
+                  <span className="truncate min-w-0">{action.element}</span>
                 </div>
               ))}
             </div>
-            <div className="text-xs text-gray-500 mt-2">
-              + {Math.max(0, userActions.length - 5)} more actions will be included
-            </div>
+            {userActions.length > 5 && (
+              <div className="text-xs text-gray-500 mt-2">
+                + {userActions.length - 5} more actions will be included
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -540,30 +544,30 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Bug className="h-5 w-5" />
-            <span>Report a Bug</span>
+      <DialogContent className="w-full max-w-4xl h-[90vh] max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
+          <DialogTitle className="flex items-center space-x-2 flex-wrap">
+            <Bug className="h-5 w-5 flex-shrink-0" />
+            <span className="min-w-0">Report a Bug</span>
             {severity && (
               <Badge className={getSeverityColor(severity)}>
                 {severity.toUpperCase()}
               </Badge>
             )}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Help us improve the app by reporting issues. Your feedback is valuable!
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 overflow-y-auto px-6 min-h-0">
           {currentStep === 'form' && renderFormStep()}
           {currentStep === 'uploading' && renderUploadingStep()}
           {currentStep === 'success' && renderSuccessStep()}
           {currentStep === 'error' && renderErrorStep()}
         </div>
 
-        <DialogFooter className="flex-shrink-0 pt-4 border-t">
+        <DialogFooter className="flex-shrink-0 px-6 py-4 border-t bg-gray-50">
           {currentStep === 'form' && (
             <div className="flex gap-3 w-full">
               <Button variant="outline" onClick={onClose} className="flex-1">

@@ -6,15 +6,17 @@ import AdminLayout from './AdminLayout';
 // Import admin components directly to avoid lazy loading issues
 import AdminOverview from './AdminOverview';
 import PropertyManagement from './PropertyManagement';
-import UserManagementRobust from './UserManagementRobust';
 import InspectionManagement from './InspectionManagement';
-import ChecklistManagementUltimate from './ChecklistManagementUltimate';
+
+// Import simple, working components
+import SimpleUserManagement from './SimpleUserManagement';
+import SimpleChecklistManagement from './SimpleChecklistManagement';
+import SimpleBugReportManagement from './SimpleBugReportManagement';
 
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
 import AuditCenter from './AuditCenter';
 import ComingSoonPage from './ComingSoonPage';
-import BugReportManagement from './BugReportManagement';
 import SimpleAdminTest from './SimpleAdminTest';
 
 // Loading fallback
@@ -67,11 +69,11 @@ export default function AdminRoutes() {
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
         <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={<UserManagementRobust />} />
+        <Route path="users" element={<SimpleUserManagement />} />
         <Route path="inspections" element={<InspectionManagement />} />
         <Route path="audit" element={<AuditCenter />} />
         <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={<ChecklistManagementUltimate />} />
+        <Route path="checklists" element={<SimpleChecklistManagement />} />
         <Route path="performance" element={
           <ComingSoonPage 
             title="AI Performance Dashboard" 
@@ -126,7 +128,7 @@ export default function AdminRoutes() {
             ]}
           />
         } />
-        <Route path="bug-reports" element={<BugReportManagement />} />
+        <Route path="bug-reports" element={<SimpleBugReportManagement />} />
       </Routes>
     </AdminLayout>
   );
