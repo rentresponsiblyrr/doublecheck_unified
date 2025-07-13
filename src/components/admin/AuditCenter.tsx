@@ -54,250 +54,685 @@ import {
   Zap,
   Brain,
   Target,
-  TrendingUp
+  TrendingUp,
+  MapPin,
+  User,
+  Calendar,
+  Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
-interface AuditItem {
+interface CompletedInspection {
   id: string;
-  inspection_id: string;
-  checklist_item_id: string;
-  property_name: string;
-  inspector_name: string;
-  ai_prediction: 'pass' | 'fail' | 'needs_review';
-  ai_confidence: number;
-  ai_reasoning: string;
-  inspector_status: 'completed' | 'failed' | 'not_applicable';
-  inspector_notes: string;
-  photos: string[];
-  reference_photos: string[];
-  created_at: string;
-  status: 'pending' | 'approved' | 'rejected' | 'needs_revision';
-  auditor_feedback?: string;
-  priority: 'high' | 'medium' | 'low';
+  property_id: string;
+  inspector_id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  property: {
+    id: string;
+    name: string;
+    address: string;
+  };
+  inspector: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  total_items: number;
+  completed_items: number;
+  ai_evaluated_items: number;
+}
+
+interface ChecklistItemForAudit {
+  id: string;
+  title: string;
+  category: string;
+  ai_status: 'pass' | 'fail' | 'needs_review' | null;
+  ai_confidence: number | null;
+  ai_reasoning: string | null;
+  status: 'completed' | 'failed' | 'not_applicable' | 'pending';
+  notes: string | null;
+  auditor_override: boolean;
+  auditor_notes: string | null;
+  photos: any[];
+  reference_photos: any[];
 }
 
 interface AuditStats {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  accuracy: number;
-  avgConfidence: number;
+  total_inspections: number;
+  pending_audit: number;
+  audited: number;
+  ai_accuracy: number;
+  avg_confidence: number;
 }
 
 export default function AuditCenter() {
   const navigate = useNavigate();
-  const [auditItems, setAuditItems] = useState<AuditItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<AuditItem | null>(null);
+  const [completedInspections, setCompletedInspections] = useState<CompletedInspection[]>([]);
+  const [selectedInspection, setSelectedInspection] = useState<CompletedInspection | null>(null);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItemForAudit[]>([]);
   const [stats, setStats] = useState<AuditStats>({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    accuracy: 0,
-    avgConfidence: 0
+    total_inspections: 0,
+    pending_audit: 0,
+    audited: 0,
+    ai_accuracy: 0,
+    avg_confidence: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [criticalError, setCriticalError] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentAuditIndex, setCurrentAuditIndex] = useState(0);
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
-    loadAuditItems();
-    loadAuditStats();
-  }, [filterStatus, filterPriority, searchTerm]);
+    initializeAuditCenter();
+  }, [searchTerm]);
 
-  const loadAuditItems = async () => {
+  const initializeAuditCenter = async () => {
+    try {
+      // First, run a schema diagnostic
+      await runSchemaDiagnostic();
+      
+      // Then load data
+      await Promise.all([
+        loadCompletedInspections(),
+        loadAuditStats()
+      ]);
+    } catch (error) {
+      console.error('❌ Failed to initialize audit center:', error);
+      setCriticalError(error);
+    }
+  };
+
+  const runSchemaDiagnostic = async () => {
+    console.log('🔍 Running schema diagnostic...');
+    
+    try {
+      // Test basic table access
+      const tables = ['inspections', 'properties', 'checklist_items'];
+      const diagnostics: any = {};
+
+      for (const table of tables) {
+        try {
+          const { data, error } = await supabase
+            .from(table)
+            .select('*')
+            .limit(1);
+          
+          diagnostics[table] = {
+            accessible: !error,
+            error: error?.message,
+            hasData: (data?.length || 0) > 0
+          };
+        } catch (err) {
+          diagnostics[table] = {
+            accessible: false,
+            error: err.message,
+            hasData: false
+          };
+        }
+      }
+
+      // Test profiles/users tables
+      try {
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .limit(1);
+        
+        diagnostics.profiles = {
+          accessible: !profilesError,
+          error: profilesError?.message
+        };
+      } catch (err) {
+        diagnostics.profiles = {
+          accessible: false,
+          error: err.message
+        };
+      }
+
+      // Test users table as fallback
+      try {
+        const { error: usersError } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .limit(1);
+        
+        diagnostics.users = {
+          accessible: !usersError,
+          error: usersError?.message
+        };
+      } catch (err) {
+        diagnostics.users = {
+          accessible: false,
+          error: err.message
+        };
+      }
+
+      console.log('📊 Schema diagnostic results:', diagnostics);
+      
+      // Check for critical issues
+      if (!diagnostics.inspections?.accessible) {
+        throw new Error(`Cannot access inspections table: ${diagnostics.inspections?.error}`);
+      }
+      
+      if (!diagnostics.properties?.accessible) {
+        throw new Error(`Cannot access properties table: ${diagnostics.properties?.error}`);
+      }
+
+      console.log('✅ Schema diagnostic passed');
+      
+    } catch (error) {
+      console.error('❌ Schema diagnostic failed:', error);
+      throw new Error(`Database schema issue: ${error.message}`);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedInspection) {
+      loadChecklistItems(selectedInspection.id);
+    }
+  }, [selectedInspection]);
+
+  const loadCompletedInspections = async () => {
     try {
       setIsLoading(true);
+      console.log('🔍 Loading completed inspections...');
       
-      // Build query
-      let query = supabase
-        .from('checklist_items')
-        .select(`
-          id,
-          inspection_id,
-          title,
-          ai_status,
-          ai_confidence,
-          ai_reasoning,
-          status,
-          notes,
-          inspections (
+      // First, try the optimized query with profiles
+      let inspections: any[] = [];
+      let inspectionsError: any = null;
+
+      try {
+        const result = await supabase
+          .from('inspections')
+          .select(`
             id,
-            properties (name),
-            users (name, email)
-          )
-        `)
-        .not('ai_status', 'is', null);
+            property_id,
+            inspector_id,
+            start_time,
+            end_time,
+            status,
+            properties!inner (
+              id,
+              name,
+              address
+            ),
+            profiles!inspector_id (
+              id,
+              full_name,
+              email
+            )
+          `)
+          .eq('status', 'completed')
+          .order('end_time', { ascending: false });
 
-      if (filterStatus !== 'all') {
-        query = query.eq('status', filterStatus);
-      }
-
-      // For now, we'll use mock data since the audit_feedback table might not exist yet
-      const mockAuditItems: AuditItem[] = [
-        {
-          id: '1',
-          inspection_id: 'insp-1',
-          checklist_item_id: 'item-1',
-          property_name: 'Ocean View Villa',
-          inspector_name: 'John Smith',
-          ai_prediction: 'pass',
-          ai_confidence: 85,
-          ai_reasoning: 'Kitchen appears clean and well-maintained based on visual analysis.',
-          inspector_status: 'completed',
-          inspector_notes: 'Kitchen is spotless, appliances working properly.',
-          photos: ['/api/placeholder/400/300'],
-          reference_photos: ['/api/placeholder/400/300'],
-          created_at: new Date().toISOString(),
-          status: 'pending',
-          priority: 'medium'
-        },
-        {
-          id: '2',
-          inspection_id: 'insp-2',
-          checklist_item_id: 'item-2',
-          property_name: 'Mountain Cabin',
-          inspector_name: 'Sarah Johnson',
-          ai_prediction: 'fail',
-          ai_confidence: 92,
-          ai_reasoning: 'Detected water damage on ceiling, requires attention.',
-          inspector_status: 'failed',
-          inspector_notes: 'Confirmed water damage from recent leak.',
-          photos: ['/api/placeholder/400/300'],
-          reference_photos: ['/api/placeholder/400/300'],
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          status: 'pending',
-          priority: 'high'
-        },
-        {
-          id: '3',
-          inspection_id: 'insp-3',
-          checklist_item_id: 'item-3',
-          property_name: 'City Apartment',
-          inspector_name: 'Mike Wilson',
-          ai_prediction: 'needs_review',
-          ai_confidence: 65,
-          ai_reasoning: 'Unclear image quality, manual review recommended.',
-          inspector_status: 'completed',
-          inspector_notes: 'Bathroom fixtures are in good condition.',
-          photos: ['/api/placeholder/400/300'],
-          reference_photos: ['/api/placeholder/400/300'],
-          created_at: new Date(Date.now() - 172800000).toISOString(),
-          status: 'pending',
-          priority: 'low'
+        inspections = result.data || [];
+        inspectionsError = result.error;
+        
+        if (inspectionsError) {
+          console.warn('📊 Profiles join failed, trying fallback approach:', inspectionsError);
+          throw inspectionsError;
         }
-      ];
+        
+        console.log('✅ Successfully loaded inspections with profiles:', inspections.length);
+        
+      } catch (profilesError) {
+        console.log('🔄 Falling back to basic inspection query...');
+        
+        // Fallback: Get inspections without profiles join
+        const basicResult = await supabase
+          .from('inspections')
+          .select(`
+            id,
+            property_id,
+            inspector_id,
+            start_time,
+            end_time,
+            status,
+            properties!inner (
+              id,
+              name,
+              address
+            )
+          `)
+          .eq('status', 'completed')
+          .order('end_time', { ascending: false });
 
-      // Filter items based on current filters
-      let filteredItems = mockAuditItems;
-      
-      if (filterStatus !== 'all') {
-        filteredItems = filteredItems.filter(item => item.status === filterStatus);
+        if (basicResult.error) {
+          console.error('❌ Even basic query failed:', basicResult.error);
+          throw basicResult.error;
+        }
+
+        inspections = basicResult.data || [];
+        console.log('✅ Fallback query successful:', inspections.length);
+
+        // Manually fetch profile data for each inspection
+        if (inspections.length > 0) {
+          console.log('🔄 Manually fetching profile data...');
+          const inspectorIds = [...new Set(inspections.map(i => i.inspector_id))];
+          
+          // Try profiles table first
+          let profilesData: any[] = [];
+          try {
+            const profilesResult = await supabase
+              .from('profiles')
+              .select('id, full_name, email')
+              .in('id', inspectorIds);
+            
+            if (!profilesResult.error) {
+              profilesData = profilesResult.data || [];
+            } else {
+              console.warn('📋 Profiles table query failed:', profilesResult.error);
+            }
+          } catch (profilesErr) {
+            console.warn('📋 Profiles table not available');
+          }
+
+          // If profiles failed, try users table
+          if (profilesData.length === 0) {
+            try {
+              const usersResult = await supabase
+                .from('users')
+                .select('id, name, email')
+                .in('id', inspectorIds);
+              
+              if (!usersResult.error && usersResult.data) {
+                profilesData = usersResult.data.map(user => ({
+                  id: user.id,
+                  full_name: user.name,
+                  email: user.email
+                }));
+                console.log('✅ Fetched from users table:', profilesData.length);
+              }
+            } catch (usersErr) {
+              console.warn('👥 Users table also failed');
+            }
+          }
+
+          // Attach profile data to inspections
+          inspections = inspections.map(inspection => ({
+            ...inspection,
+            profiles: profilesData.find(p => p.id === inspection.inspector_id) || {
+              id: inspection.inspector_id,
+              full_name: `Inspector ${inspection.inspector_id.slice(0, 8)}`,
+              email: 'unknown@example.com'
+            }
+          }));
+        }
       }
-      
-      if (filterPriority !== 'all') {
-        filteredItems = filteredItems.filter(item => item.priority === filterPriority);
+
+      if (inspections.length === 0) {
+        console.log('⚠️ No completed inspections found');
+        setCompletedInspections([]);
+        return;
       }
-      
+
+      // Transform and enrich the data with robust error handling
+      const enrichedInspections = await Promise.all(
+        (inspections || []).map(async (inspection) => {
+          let totalItems = 0;
+          let completedItems = 0;
+          let aiEvaluatedItems = 0;
+
+          try {
+            // Get checklist items count with retries
+            const { data: checklistData, error: checklistError } = await supabase
+              .from('checklist_items')
+              .select('id, status, ai_status')
+              .eq('inspection_id', inspection.id);
+
+            if (checklistError) {
+              console.warn(`⚠️ Failed to load checklist for inspection ${inspection.id}:`, checklistError);
+            } else if (checklistData) {
+              totalItems = checklistData.length;
+              completedItems = checklistData.filter(item => 
+                item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
+              ).length;
+              aiEvaluatedItems = checklistData.filter(item => item.ai_status !== null).length;
+            }
+          } catch (checklistErr) {
+            console.warn(`⚠️ Exception loading checklist for inspection ${inspection.id}:`, checklistErr);
+          }
+
+          // Safe property access with fallbacks
+          const property = inspection.properties || {};
+          const profile = inspection.profiles || {};
+
+          return {
+            id: inspection.id,
+            property_id: inspection.property_id,
+            inspector_id: inspection.inspector_id,
+            start_time: inspection.start_time,
+            end_time: inspection.end_time || inspection.start_time, // Fallback if end_time is null
+            status: inspection.status,
+            property: {
+              id: property.id || inspection.property_id,
+              name: property.name || `Property ${inspection.property_id?.slice(0, 8) || 'Unknown'}`,
+              address: property.address || 'Address not available'
+            },
+            inspector: {
+              id: profile.id || inspection.inspector_id,
+              name: profile.full_name || profile.name || `Inspector ${inspection.inspector_id?.slice(0, 8) || 'Unknown'}`,
+              email: profile.email || 'email@unknown.com'
+            },
+            total_items: totalItems,
+            completed_items: completedItems,
+            ai_evaluated_items: aiEvaluatedItems
+          } as CompletedInspection;
+        })
+      );
+
+      // Filter by search term
+      let filteredInspections = enrichedInspections;
       if (searchTerm) {
-        filteredItems = filteredItems.filter(item => 
-          item.property_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.inspector_name.toLowerCase().includes(searchTerm.toLowerCase())
+        filteredInspections = enrichedInspections.filter(inspection =>
+          inspection.property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          inspection.property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          inspection.inspector.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
       }
 
-      setAuditItems(filteredItems);
+      setCompletedInspections(filteredInspections);
 
     } catch (error) {
-      logger.error('Failed to load audit items', error, 'AUDIT_CENTER');
+      console.error('❌ Critical failure loading completed inspections:', error);
+      logger.error('Failed to load completed inspections', error, 'AUDIT_CENTER');
+      setCriticalError(error);
+      setCompletedInspections([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loadChecklistItems = async (inspectionId: string) => {
+    try {
+      console.log(`🔍 Loading checklist items for inspection: ${inspectionId}`);
+      
+      // First, check if the required columns exist by trying a simple query
+      let items: any[] = [];
+      let error: any = null;
+
+      try {
+        // Try full query with all columns including auditor fields
+        const fullResult = await supabase
+          .from('checklist_items')
+          .select(`
+            id,
+            title,
+            category,
+            ai_status,
+            ai_confidence,
+            ai_reasoning,
+            status,
+            notes,
+            auditor_override,
+            auditor_notes,
+            media!checklist_item_id (
+              id,
+              file_path,
+              file_type
+            )
+          `)
+          .eq('inspection_id', inspectionId)
+          .order('category', { ascending: true })
+          .order('title', { ascending: true });
+
+        items = fullResult.data || [];
+        error = fullResult.error;
+
+        if (error && (error.message?.includes('auditor_override') || error.message?.includes('auditor_notes'))) {
+          console.warn('🔄 Auditor columns missing, falling back to basic query...');
+          throw new Error('Auditor columns missing');
+        }
+
+        console.log('✅ Full query successful:', items.length, 'items');
+
+      } catch (fullQueryError) {
+        console.log('🔄 Falling back to basic checklist query without auditor fields...');
+        
+        // Fallback: Query without auditor fields
+        const basicResult = await supabase
+          .from('checklist_items')
+          .select(`
+            id,
+            title,
+            category,
+            ai_status,
+            ai_confidence,
+            ai_reasoning,
+            status,
+            notes
+          `)
+          .eq('inspection_id', inspectionId)
+          .order('category', { ascending: true })
+          .order('title', { ascending: true });
+
+        if (basicResult.error) {
+          console.error('❌ Even basic checklist query failed:', basicResult.error);
+          throw basicResult.error;
+        }
+
+        items = basicResult.data || [];
+        console.log('✅ Basic query successful:', items.length, 'items');
+
+        // Try to fetch media separately if possible
+        if (items.length > 0) {
+          try {
+            const itemIds = items.map(item => item.id);
+            const mediaResult = await supabase
+              .from('media')
+              .select('id, file_path, file_type, checklist_item_id')
+              .in('checklist_item_id', itemIds);
+
+            if (!mediaResult.error && mediaResult.data) {
+              // Attach media to items
+              items = items.map(item => ({
+                ...item,
+                media: mediaResult.data.filter(m => m.checklist_item_id === item.id)
+              }));
+              console.log('✅ Media data attached successfully');
+            }
+          } catch (mediaError) {
+            console.warn('⚠️ Could not load media data:', mediaError);
+          }
+        }
+      }
+
+      if (!items || items.length === 0) {
+        console.log('⚠️ No checklist items found for this inspection');
+        setChecklistItems([]);
+        return;
+      }
+
+      // Transform with robust error handling and fallbacks
+      const transformedItems: ChecklistItemForAudit[] = items.map(item => {
+        try {
+          return {
+            id: item.id || 'unknown',
+            title: item.title || 'Untitled Item',
+            category: item.category || 'General',
+            ai_status: item.ai_status || null,
+            ai_confidence: item.ai_confidence || null,
+            ai_reasoning: item.ai_reasoning || null,
+            status: item.status || 'pending',
+            notes: item.notes || null,
+            auditor_override: item.auditor_override || false,
+            auditor_notes: item.auditor_notes || null,
+            photos: item.media?.filter((m: any) => m.file_type?.startsWith('image/')) || [],
+            reference_photos: [] // TODO: Add reference photos if available
+          };
+        } catch (transformError) {
+          console.warn('⚠️ Error transforming checklist item:', item.id, transformError);
+          return {
+            id: item.id || 'unknown',
+            title: 'Error loading item',
+            category: 'General',
+            ai_status: null,
+            ai_confidence: null,
+            ai_reasoning: null,
+            status: 'pending',
+            notes: null,
+            auditor_override: false,
+            auditor_notes: null,
+            photos: [],
+            reference_photos: []
+          };
+        }
+      });
+
+      console.log('✅ Transformed checklist items:', transformedItems.length);
+      setChecklistItems(transformedItems);
+
+    } catch (error) {
+      console.error('❌ Critical error loading checklist items:', error);
+      logger.error('Failed to load checklist items', error, 'AUDIT_CENTER');
+      
+      // Set empty state with proper structure for UI
+      setChecklistItems([]);
+    }
+  };
+
   const loadAuditStats = async () => {
     try {
-      // Mock stats for now
+      // Get overall stats
+      const { data: inspections } = await supabase
+        .from('inspections')
+        .select('status');
+
+      const totalInspections = inspections?.length || 0;
+      const completedInspections = inspections?.filter(i => i.status === 'completed').length || 0;
+
+      // Get AI accuracy stats from real audit feedback data
+      // These will populate as auditors provide feedback on AI evaluations
+      const { data: auditFeedback } = await supabase
+        .from('checklist_items')
+        .select('ai_status, auditor_override')
+        .not('ai_status', 'is', null);
+
+      const totalAIEvaluations = auditFeedback?.length || 0;
+      const correctAIEvaluations = auditFeedback?.filter(item => !item.auditor_override).length || 0;
+      const aiAccuracy = totalAIEvaluations > 0 ? (correctAIEvaluations / totalAIEvaluations) * 100 : 0;
+
       setStats({
-        total: 156,
-        pending: 23,
-        approved: 98,
-        rejected: 35,
-        accuracy: 89.5,
-        avgConfidence: 82.3
+        total_inspections: totalInspections,
+        pending_audit: completedInspections,
+        audited: totalAIEvaluations,
+        ai_accuracy: aiAccuracy,
+        avg_confidence: 0 // Will be calculated when confidence data is available
       });
+
     } catch (error) {
       logger.error('Failed to load audit stats', error, 'AUDIT_CENTER');
     }
   };
 
-  const handleAuditDecision = async (decision: 'approve' | 'reject', feedback?: string) => {
-    if (!selectedItem) return;
-
+  const handleAuditorOverride = async (itemId: string, override: boolean, notes: string) => {
     try {
-      // Update the audit item with decision
-      const updatedItem = {
-        ...selectedItem,
-        status: decision === 'approve' ? 'approved' : 'rejected' as const,
-        auditor_feedback: feedback
-      };
+      console.log(`🔧 Updating auditor override for item ${itemId}: override=${override}`);
+      
+      // First try with auditor columns
+      let updateResult = await supabase
+        .from('checklist_items')
+        .update({
+          auditor_override: override,
+          auditor_notes: notes
+        })
+        .eq('id', itemId);
 
-      // Update local state
-      setAuditItems(items => 
-        items.map(item => 
-          item.id === selectedItem.id ? updatedItem : item
+      if (updateResult.error) {
+        // If auditor columns don't exist, try updating just notes
+        if (updateResult.error.message?.includes('auditor_override') || 
+            updateResult.error.message?.includes('auditor_notes')) {
+          console.warn('⚠️ Auditor columns not available, trying to update notes field only...');
+          
+          const notesUpdate = await supabase
+            .from('checklist_items')
+            .update({
+              notes: notes ? `[AUDITOR OVERRIDE: ${override}] ${notes}` : null
+            })
+            .eq('id', itemId);
+
+          if (notesUpdate.error) {
+            console.error('❌ Failed to update notes field:', notesUpdate.error);
+            throw notesUpdate.error;
+          } else {
+            console.log('✅ Updated notes field with auditor override');
+          }
+        } else {
+          console.error('❌ Failed to update auditor override:', updateResult.error);
+          throw updateResult.error;
+        }
+      } else {
+        console.log('✅ Successfully updated auditor override');
+      }
+
+      // Update local state regardless of which update method worked
+      setChecklistItems(items =>
+        items.map(item =>
+          item.id === itemId
+            ? { ...item, auditor_override: override, auditor_notes: notes }
+            : item
         )
       );
 
-      // Move to next item or close
-      const nextIndex = currentAuditIndex + 1;
-      if (nextIndex < auditItems.length) {
-        setCurrentAuditIndex(nextIndex);
-        setSelectedItem(auditItems[nextIndex]);
-      } else {
-        setSelectedItem(null);
-        setCurrentAuditIndex(0);
-      }
-
-      // Reload stats
-      await loadAuditStats();
-
     } catch (error) {
-      logger.error('Failed to save audit decision', error, 'AUDIT_CENTER');
+      console.error('❌ Critical error saving auditor override:', error);
+      logger.error('Failed to save auditor override', error, 'AUDIT_CENTER');
+      
+      // Show user-friendly error message
+      alert('Failed to save auditor override. Please check your permissions and try again.');
     }
   };
+
+  // Get unique categories for filtering
+  const categories = Array.from(new Set(checklistItems.map(item => item.category))).sort();
+
+  // Filter checklist items by category
+  const filteredChecklistItems = selectedCategory === 'all'
+    ? checklistItems
+    : checklistItems.filter(item => item.category === selectedCategory);
+
+  // Group items by category for display
+  const groupedItems = filteredChecklistItems.reduce((groups, item) => {
+    const category = item.category;
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(item);
+    return groups;
+  }, {} as Record<string, ChecklistItemForAudit[]>);
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      case 'not_applicable': return 'bg-gray-100 text-gray-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getAIPredictionColor = (prediction: string) => {
-    switch (prediction) {
+  const getAIStatusColor = (status: string | null) => {
+    switch (status) {
       case 'pass': return 'text-green-600';
       case 'fail': return 'text-red-600';
       case 'needs_review': return 'text-yellow-600';
-      default: return 'text-gray-600';
+      default: return 'text-gray-400';
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (isLoading) {
@@ -305,13 +740,74 @@ export default function AuditCenter() {
       <div className="space-y-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="h-32 bg-gray-200 rounded"></div>
             ))}
           </div>
           <div className="h-96 bg-gray-200 rounded"></div>
         </div>
+        <div className="text-center text-gray-500 text-sm">
+          Loading completed inspections and audit data...
+        </div>
+      </div>
+    );
+  }
+
+  // Error boundary fallback for critical failures
+  const ErrorFallback = ({ error, onRetry }: { error?: any, onRetry: () => void }) => (
+    <Card>
+      <CardContent className="p-8 text-center">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Audit Center</h3>
+        <p className="text-gray-600 mb-4">
+          There was an issue loading the audit data. This could be due to:
+        </p>
+        <ul className="text-sm text-gray-500 mb-6 space-y-1">
+          <li>• Database permissions or RLS policies</li>
+          <li>• Missing database tables or columns</li>
+          <li>• Network connectivity issues</li>
+          <li>• Authentication problems</li>
+        </ul>
+        <div className="space-x-2">
+          <Button onClick={onRetry}>
+            Try Again
+          </Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
+        </div>
+        {error && (
+          <details className="mt-4 text-xs text-left">
+            <summary className="cursor-pointer text-gray-500">Technical Details</summary>
+            <pre className="mt-2 p-2 bg-gray-100 rounded text-red-600 overflow-auto">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </details>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // Handle critical errors with fallback UI
+  if (criticalError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Audit Center</h1>
+            <p className="text-red-600">System Error - Unable to Load Data</p>
+          </div>
+        </div>
+        <ErrorFallback 
+          error={criticalError} 
+          onRetry={() => {
+            setCriticalError(null);
+            setIsLoading(true);
+            loadCompletedInspections();
+            loadAuditStats();
+          }} 
+        />
       </div>
     );
   }
@@ -323,65 +819,30 @@ export default function AuditCenter() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Audit Center</h1>
           <p className="text-gray-600">
-            Review AI predictions and inspector assessments for quality assurance
+            Review completed inspections and AI evaluations for quality assurance
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={() => {
+            setIsLoading(true);
+            setCriticalError(null);
+            loadCompletedInspections();
+            loadAuditStats();
+          }}>
             <Brain className="h-4 w-4 mr-2" />
-            Refresh Queue
-          </Button>
-          <Button onClick={() => navigate('/performance')}>
-            <TrendingUp className="h-4 w-4 mr-2" />
-            View Performance
+            Refresh Data
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Approved</p>
-                <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Rejected</p>
-                <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                <p className="text-sm font-medium text-gray-600">Total Inspections</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.total_inspections}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
             </div>
@@ -392,10 +853,10 @@ export default function AuditCenter() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">AI Accuracy</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.accuracy}%</p>
+                <p className="text-sm font-medium text-gray-600">Pending Audit</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.pending_audit}</p>
               </div>
-              <Target className="h-8 w-8 text-purple-500" />
+              <Clock className="h-8 w-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
@@ -404,328 +865,340 @@ export default function AuditCenter() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Confidence</p>
-                <p className="text-2xl font-bold text-indigo-600">{stats.avgConfidence}%</p>
+                <p className="text-sm font-medium text-gray-600">Audited</p>
+                <p className="text-2xl font-bold text-green-600">{stats.audited}</p>
               </div>
-              <Zap className="h-8 w-8 text-indigo-500" />
+              <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <div className="flex-1">
+      {!selectedInspection ? (
+        <>
+          {/* Search */}
+          <Card>
+            <CardContent className="p-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by property or inspector..."
+                  placeholder="Search by property name, address, or inspector..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Audit Items Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Items Awaiting Review</CardTitle>
-          <CardDescription>
-            Click on any item to start the detailed audit process
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Inspector</TableHead>
-                <TableHead>AI Prediction</TableHead>
-                <TableHead>Confidence</TableHead>
-                <TableHead>Inspector Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditItems.map((item, index) => (
-                <TableRow key={item.id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium">{item.property_name}</TableCell>
-                  <TableCell>{item.inspector_name}</TableCell>
-                  <TableCell>
-                    <span className={`font-medium ${getAIPredictionColor(item.ai_prediction)}`}>
-                      {item.ai_prediction.replace('_', ' ')}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm">{item.ai_confidence}%</span>
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${item.ai_confidence}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {item.inspector_status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getPriorityColor(item.priority)}>
-                      {item.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(item.status)}>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setCurrentAuditIndex(index);
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Review
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          
-          {auditItems.length === 0 && (
-            <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <p className="text-gray-500">No items match your current filters</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Detailed Audit Dialog */}
-      {selectedItem && (
-        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-          <DialogContent className="max-w-6xl h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>Audit Review: {selectedItem.property_name}</span>
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <span>Item {currentAuditIndex + 1} of {auditItems.length}</span>
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentAuditIndex === 0}
-                      onClick={() => {
-                        const prevIndex = currentAuditIndex - 1;
-                        setCurrentAuditIndex(prevIndex);
-                        setSelectedItem(auditItems[prevIndex]);
-                      }}
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentAuditIndex === auditItems.length - 1}
-                      onClick={() => {
-                        const nextIndex = currentAuditIndex + 1;
-                        setCurrentAuditIndex(nextIndex);
-                        setSelectedItem(auditItems[nextIndex]);
-                      }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </DialogTitle>
-              <DialogDescription>
-                Review the AI analysis and inspector assessment to make your final decision
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto">
-              <Tabs defaultValue="comparison" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="comparison">Photo Comparison</TabsTrigger>
-                  <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
-                  <TabsTrigger value="inspector">Inspector Notes</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="comparison" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Inspector Photo</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <img 
-                          src={selectedItem.photos[0]} 
-                          alt="Inspector photo"
-                          className="w-full h-64 object-cover rounded-lg"
-                        />
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Reference Photo</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <img 
-                          src={selectedItem.reference_photos[0]} 
-                          alt="Reference photo"
-                          className="w-full h-64 object-cover rounded-lg"
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="analysis" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm flex items-center">
-                          <Brain className="h-4 w-4 mr-2" />
-                          AI Prediction
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Result:</span>
-                          <Badge className={getAIPredictionColor(selectedItem.ai_prediction)}>
-                            {selectedItem.ai_prediction.replace('_', ' ')}
-                          </Badge>
+          {/* Completed Inspections Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Completed Inspections</CardTitle>
+              <CardDescription>
+                Click on any inspection to review AI evaluations and inspector assessments
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Inspector</TableHead>
+                    <TableHead>Completed</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>AI Evaluated</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {completedInspections.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        <div className="flex flex-col items-center">
+                          <CheckCircle className="h-12 w-12 text-gray-400 mb-4" />
+                          <p className="text-gray-500 mb-2">No completed inspections found</p>
+                          <p className="text-sm text-gray-400">Completed inspections will appear here for audit review</p>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Confidence:</span>
-                          <span className="font-bold">{selectedItem.ai_confidence}%</span>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">Reasoning:</span>
-                          <p className="text-sm text-gray-600 mt-1">{selectedItem.ai_reasoning}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Confidence Breakdown</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    completedInspections.map((inspection) => (
+                      <TableRow key={inspection.id} className="hover:bg-gray-50">
+                        <TableCell>
                           <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Overall Confidence</span>
-                              <span>{selectedItem.ai_confidence}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <p className="font-medium">{inspection.property.name}</p>
+                            <p className="text-sm text-gray-500 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {inspection.property.address}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2 text-gray-400" />
+                            <span>{inspection.inspector.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {formatDate(inspection.end_time)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm">{inspection.completed_items}/{inspection.total_items}</span>
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
                               <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${selectedItem.ai_confidence}%` }}
+                                className="bg-green-600 h-2 rounded-full" 
+                                style={{ 
+                                  width: `${inspection.total_items > 0 ? (inspection.completed_items / inspection.total_items) * 100 : 0}%` 
+                                }}
                               ></div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="inspector" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Inspector Assessment</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm font-medium">Inspector:</Label>
-                          <p className="text-sm text-gray-600">{selectedItem.inspector_name}</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Status:</Label>
-                          <Badge variant="outline" className="ml-2">
-                            {selectedItem.inspector_status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Notes:</Label>
-                        <p className="text-sm text-gray-600 mt-1 p-3 bg-gray-50 rounded">
-                          {selectedItem.inspector_notes || 'No notes provided'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <DialogFooter className="flex justify-between">
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleAuditDecision('approve')}
-                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                >
-                  <ThumbsUp className="h-4 w-4 mr-2" />
-                  Approve
-                </Button>
-                <Button 
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Brain className="h-4 w-4 text-purple-500" />
+                            <span className="text-sm">{inspection.ai_evaluated_items} items</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedInspection(inspection)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Audit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        /* Inspection Audit View */
+        <div className="space-y-6">
+          {/* Inspection Header */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Button
                   variant="outline"
-                  onClick={() => handleAuditDecision('reject')}
-                  className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                  onClick={() => setSelectedInspection(null)}
+                  className="flex items-center"
                 >
-                  <ThumbsDown className="h-4 w-4 mr-2" />
-                  Reject
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Inspections
                 </Button>
+                <Badge className="bg-green-100 text-green-800">
+                  Completed
+                </Badge>
               </div>
-              <Button variant="outline" onClick={() => setSelectedItem(null)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">{selectedInspection.property.name}</h2>
+                  <p className="text-gray-600 flex items-center mb-2">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {selectedInspection.property.address}
+                  </p>
+                  <p className="text-gray-600 flex items-center">
+                    <Home className="h-4 w-4 mr-1" />
+                    Property ID: {selectedInspection.property_id.slice(0, 8)}...
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-gray-600 flex items-center mb-2">
+                    <User className="h-4 w-4 mr-1" />
+                    {selectedInspection.inspector.name}
+                  </p>
+                  <p className="text-gray-600 flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDate(selectedInspection.end_time)}
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600">Progress</p>
+                  <p className="text-lg font-semibold">
+                    {selectedInspection.completed_items}/{selectedInspection.total_items} items
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    <Brain className="h-4 w-4 inline mr-1" />
+                    {selectedInspection.ai_evaluated_items} AI evaluated
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Filter */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4">
+                <Label>Filter by Category:</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map(category => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Checklist Items by Category */}
+          {Object.keys(groupedItems).length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No checklist items found for this inspection</p>
+              </CardContent>
+            </Card>
+          ) : (
+            Object.entries(groupedItems).map(([category, items]) => (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Target className="h-5 w-5 mr-2" />
+                    {category}
+                    <Badge variant="outline" className="ml-2">{items.length} items</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead>AI Evaluation</TableHead>
+                        <TableHead>Inspector Status</TableHead>
+                        <TableHead>Inspector Notes</TableHead>
+                        <TableHead>Auditor Override</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{item.title}</p>
+                              {item.photos.length > 0 && (
+                                <p className="text-xs text-gray-500 flex items-center mt-1">
+                                  <Camera className="h-3 w-3 mr-1" />
+                                  {item.photos.length} photo(s)
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {item.ai_status ? (
+                                <>
+                                  <Badge className={`${getAIStatusColor(item.ai_status)} text-xs`}>
+                                    {item.ai_status.replace('_', ' ')}
+                                  </Badge>
+                                  {item.ai_confidence && (
+                                    <p className="text-xs text-gray-500">
+                                      {item.ai_confidence}% confidence
+                                    </p>
+                                  )}
+                                  {item.ai_reasoning && (
+                                    <p className="text-xs text-gray-600 mt-1">
+                                      {item.ai_reasoning}
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-xs text-gray-400">No AI evaluation</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(item.status)}>
+                              {item.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm text-gray-600 max-w-xs truncate">
+                              {item.notes || 'No notes'}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={item.auditor_override}
+                                  onChange={(e) => {
+                                    const newOverride = e.target.checked;
+                                    handleAuditorOverride(item.id, newOverride, item.auditor_notes || '');
+                                  }}
+                                  className="w-4 h-4"
+                                />
+                                <Label className="text-sm">Override AI</Label>
+                              </div>
+                              {item.auditor_override && (
+                                <Textarea
+                                  placeholder="Auditor notes..."
+                                  value={item.auditor_notes || ''}
+                                  onChange={(e) => {
+                                    // Update local state immediately for UI responsiveness
+                                    setChecklistItems(items =>
+                                      items.map(i =>
+                                        i.id === item.id
+                                          ? { ...i, auditor_notes: e.target.value }
+                                          : i
+                                      )
+                                    );
+                                  }}
+                                  onBlur={(e) => {
+                                    // Save to database on blur
+                                    handleAuditorOverride(item.id, item.auditor_override, e.target.value);
+                                  }}
+                                  className="text-xs"
+                                  rows={2}
+                                />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              {item.photos.length > 0 && (
+                                <Button variant="outline" size="sm">
+                                  <Camera className="h-3 w-3" />
+                                </Button>
+                              )}
+                              <Button variant="outline" size="sm">
+                                <MessageSquare className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -52,7 +53,12 @@ import {
   Activity,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Database,
+  AlertCircle,
+  CheckCircle,
+  Info
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
@@ -82,6 +88,13 @@ interface ChecklistFormData {
   gpt_prompt: string;
 }
 
+interface SystemHealth {
+  tableExists: boolean;
+  hasData: boolean;
+  hasPermissions: boolean;
+  errorDetails?: string;
+}
+
 const defaultFormData: ChecklistFormData = {
   label: '',
   category: 'safety',
@@ -107,7 +120,7 @@ const evidenceTypes = [
   { value: 'photo_video', label: 'Photo or Video', icon: Camera }
 ];
 
-export default function ChecklistManagement() {
+export default function ChecklistManagementRobust() {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<ChecklistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,68 +132,185 @@ export default function ChecklistManagement() {
   const [formData, setFormData] = useState<ChecklistFormData>(defaultFormData);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth>({
+    tableExists: false,
+    hasData: false,
+    hasPermissions: false
+  });
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    loadItems();
-  }, []);
+    performSystemHealthCheck();
+  }, [retryCount]);
+
+  useEffect(() => {
+    if (systemHealth.tableExists && systemHealth.hasPermissions) {
+      loadItems();
+    }
+  }, [systemHealth]);
 
   useEffect(() => {
     filterItems();
   }, [items, searchQuery, categoryFilter, statusFilter]);
 
-  const loadItems = async () => {
+  const performSystemHealthCheck = async () => {
+    console.log('🏥 Performing system health check...');
+    
     try {
-      setIsLoading(true);
-      console.log('🔍 ChecklistManagement: Starting to load items...');
-      
-      // First try to get debug info
-      try {
-        const { data: debugData, error: debugError } = await supabase.rpc('debug_static_safety_items');
-        if (!debugError && debugData) {
-          console.log('📊 Debug info:', debugData);
-        }
-      } catch (debugErr) {
-        console.warn('⚠️ Debug function not available:', debugErr);
-      }
-
-      const { data: itemsData, error } = await supabase
+      // Test 1: Check if table exists by attempting a simple count query
+      const { data: countData, error: countError } = await supabase
         .from('static_safety_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('id', { count: 'exact', head: true });
 
-      console.log('📡 Supabase query result:', { data: itemsData, error });
-
-      if (error) {
-        console.error('❌ Supabase query error:', error);
-        throw error;
-      }
-
-      if (!itemsData) {
-        console.warn('⚠️ No data returned from query');
-        setItems([]);
+      if (countError) {
+        console.error('❌ Table access failed:', countError);
+        setSystemHealth({
+          tableExists: false,
+          hasData: false,
+          hasPermissions: false,
+          errorDetails: `Table Access Error: ${countError.message}`
+        });
         return;
       }
 
+      // Test 2: Check if we can read data
+      const { data: sampleData, error: readError } = await supabase
+        .from('static_safety_items')
+        .select('id')
+        .limit(1);
+
+      if (readError) {
+        console.error('❌ Read permission failed:', readError);
+        setSystemHealth({
+          tableExists: true,
+          hasData: false,
+          hasPermissions: false,
+          errorDetails: `Read Permission Error: ${readError.message}`
+        });
+        return;
+      }
+
+      // Test 3: Check if we can write (insert test)
+      let hasWritePermission = false;
+      try {
+        const testItem = {
+          label: `test-item-${Date.now()}`,
+          category: 'safety',
+          evidence_type: 'photo',
+          required: false,
+          deleted: true, // Mark as deleted so it doesn't interfere
+          checklist_id: 1,
+          created_at: new Date().toISOString()
+        };
+
+        const { error: insertError } = await supabase
+          .from('static_safety_items')
+          .insert(testItem);
+
+        if (!insertError) {
+          hasWritePermission = true;
+          // Clean up test item immediately
+          await supabase
+            .from('static_safety_items')
+            .delete()
+            .eq('label', testItem.label);
+        }
+      } catch (writeError) {
+        console.warn('⚠️ Write permission test failed:', writeError);
+      }
+
+      setSystemHealth({
+        tableExists: true,
+        hasData: sampleData && sampleData.length > 0,
+        hasPermissions: hasWritePermission,
+        errorDetails: undefined
+      });
+
+      console.log('✅ System health check complete:', {
+        tableExists: true,
+        hasData: sampleData && sampleData.length > 0,
+        hasPermissions: hasWritePermission
+      });
+
+    } catch (error) {
+      console.error('❌ System health check failed:', error);
+      setSystemHealth({
+        tableExists: false,
+        hasData: false,
+        hasPermissions: false,
+        errorDetails: `System Check Failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    }
+  };
+
+  const loadItems = async () => {
+    try {
+      setIsLoading(true);
+      console.log('🔍 Loading checklist items...');
+      
+      // Use multiple strategies to load data
+      let itemsData: any[] = [];
+      let loadError: any = null;
+
+      // Strategy 1: Try full query
+      try {
+        const { data, error } = await supabase
+          .from('static_safety_items')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        itemsData = data || [];
+        console.log('✅ Full query successful:', itemsData.length, 'items');
+      } catch (fullError) {
+        console.warn('⚠️ Full query failed, trying basic query:', fullError);
+        loadError = fullError;
+
+        // Strategy 2: Try basic query
+        try {
+          const { data, error } = await supabase
+            .from('static_safety_items')
+            .select('id, label, category, evidence_type, required, deleted, created_at')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          itemsData = data || [];
+          console.log('✅ Basic query successful:', itemsData.length, 'items');
+        } catch (basicError) {
+          console.error('❌ Both queries failed:', basicError);
+          throw basicError;
+        }
+      }
+
+      // Transform data with fallbacks
       const enrichedItems: ChecklistItem[] = itemsData.map(item => ({
-        ...item,
+        id: item.id || 'unknown',
+        label: item.label || 'Untitled Item',
+        category: item.category || 'safety',
+        evidence_type: item.evidence_type || 'photo',
+        required: item.required || false,
         deleted: item.deleted || false,
-        required: item.required || false
+        notes: item.notes || '',
+        gpt_prompt: item.gpt_prompt || '',
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at,
+        active_date: item.active_date,
+        deleted_date: item.deleted_date
       }));
 
-      console.log('✅ Enriched items:', enrichedItems.length, enrichedItems);
       setItems(enrichedItems);
-      logger.info('Loaded checklist items', { count: enrichedItems.length }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Loaded checklist items', { count: enrichedItems.length }, 'CHECKLIST_MANAGEMENT_ROBUST');
+
     } catch (error) {
-      console.error('❌ Critical error loading checklist items:', error);
-      logger.error('Failed to load checklist items', error, 'CHECKLIST_MANAGEMENT');
-      
-      // Set empty array with error state
+      console.error('❌ Failed to load checklist items:', error);
+      logger.error('Failed to load checklist items', error, 'CHECKLIST_MANAGEMENT_ROBUST');
       setItems([]);
       
-      // Show user-friendly error
-      if (error instanceof Error) {
-        alert(`Failed to load checklist items: ${error.message}. Please check your connection and permissions.`);
-      }
+      // Update system health to reflect the error
+      setSystemHealth(prev => ({
+        ...prev,
+        errorDetails: `Load Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +319,6 @@ export default function ChecklistManagement() {
   const filterItems = () => {
     let filtered = items;
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
@@ -200,12 +329,10 @@ export default function ChecklistManagement() {
       );
     }
 
-    // Apply category filter
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(item => item.category === categoryFilter);
     }
 
-    // Apply status filter
     if (statusFilter === 'active') {
       filtered = filtered.filter(item => !item.deleted);
     } else if (statusFilter === 'deleted') {
@@ -219,7 +346,6 @@ export default function ChecklistManagement() {
     try {
       setIsSubmitting(true);
 
-      // Validate form data
       const sanitizedData = {
         label: sanitizeFormInput(formData.label),
         category: formData.category,
@@ -233,7 +359,6 @@ export default function ChecklistManagement() {
         throw new Error('Label is required');
       }
 
-      // Check if item already exists
       const { data: existingItem } = await supabase
         .from('static_safety_items')
         .select('id')
@@ -245,13 +370,12 @@ export default function ChecklistManagement() {
         throw new Error('A checklist item with this label already exists');
       }
 
-      // Create item
       const { data, error } = await supabase
         .from('static_safety_items')
         .insert({
           ...sanitizedData,
           deleted: false,
-          checklist_id: 1, // Default checklist
+          checklist_id: 1,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           active_date: new Date().toISOString()
@@ -261,12 +385,12 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item created successfully', { itemId: data.id, label: data.label }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item created successfully', { itemId: data.id, label: data.label }, 'CHECKLIST_MANAGEMENT_ROBUST');
       await loadItems();
       setIsCreateDialogOpen(false);
       setFormData(defaultFormData);
     } catch (error) {
-      logger.error('Failed to create checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to create checklist item', error, 'CHECKLIST_MANAGEMENT_ROBUST');
       alert(error instanceof Error ? error.message : 'Failed to create checklist item');
     } finally {
       setIsSubmitting(false);
@@ -300,13 +424,13 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item updated successfully', { itemId: editingItem.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item updated successfully', { itemId: editingItem.id }, 'CHECKLIST_MANAGEMENT_ROBUST');
       await loadItems();
       setIsEditDialogOpen(false);
       setEditingItem(null);
       setFormData(defaultFormData);
     } catch (error) {
-      logger.error('Failed to update checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to update checklist item', error, 'CHECKLIST_MANAGEMENT_ROBUST');
       alert(error instanceof Error ? error.message : 'Failed to update checklist item');
     } finally {
       setIsSubmitting(false);
@@ -330,10 +454,10 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item deleted successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item deleted successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT_ROBUST');
       await loadItems();
     } catch (error) {
-      logger.error('Failed to delete checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to delete checklist item', error, 'CHECKLIST_MANAGEMENT_ROBUST');
       alert('Failed to delete checklist item. It may be in use by active inspections.');
     }
   };
@@ -351,10 +475,10 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item restored successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item restored successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT_ROBUST');
       await loadItems();
     } catch (error) {
-      logger.error('Failed to restore checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to restore checklist item', error, 'CHECKLIST_MANAGEMENT_ROBUST');
       alert('Failed to restore checklist item.');
     }
   };
@@ -412,6 +536,50 @@ export default function ChecklistManagement() {
     return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
   };
 
+  // System Health Alert Component
+  const SystemHealthAlert = () => {
+    if (systemHealth.tableExists && systemHealth.hasPermissions) {
+      return (
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800">System Operational</AlertTitle>
+          <AlertDescription className="text-green-700">
+            Checklist management system is fully functional.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        <AlertTitle className="text-red-800">System Issue Detected</AlertTitle>
+        <AlertDescription className="text-red-700">
+          {systemHealth.errorDetails || 'Unable to access checklist management functionality.'}
+          <div className="mt-2 space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setRetryCount(prev => prev + 1)}
+              className="text-red-600 border-red-300"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="text-red-600 border-red-300"
+            >
+              Refresh Page
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -425,6 +593,9 @@ export default function ChecklistManagement() {
 
   return (
     <div className="space-y-6">
+      {/* System Health Alert */}
+      <SystemHealthAlert />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -433,103 +604,109 @@ export default function ChecklistManagement() {
             Manage inspection checklist templates and requirements
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Checklist Item
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Checklist Item</DialogTitle>
-              <DialogDescription>
-                Create a new checklist item template for inspections.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="label">Item Label</Label>
-                <Input
-                  id="label"
-                  placeholder="e.g., Check smoke detector functionality"
-                  value={formData.label}
-                  onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={() => setRetryCount(prev => prev + 1)}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={!systemHealth.hasPermissions}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Checklist Item
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Checklist Item</DialogTitle>
+                <DialogDescription>
+                  Create a new checklist item template for inspections.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="label">Item Label</Label>
+                  <Input
+                    id="label"
+                    placeholder="e.g., Check smoke detector functionality"
+                    value={formData.label}
+                    onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Select 
+                      value={formData.category} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="evidence_type">Evidence Type</Label>
+                    <Select 
+                      value={formData.evidence_type} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, evidence_type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {evidenceTypes.map(type => (
+                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="required"
+                    checked={formData.required}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, required: checked }))}
+                  />
+                  <Label htmlFor="required">Required for inspection completion</Label>
                 </div>
                 <div>
-                  <Label htmlFor="evidence_type">Evidence Type</Label>
-                  <Select 
-                    value={formData.evidence_type} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, evidence_type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {evidenceTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Additional instructions or context for inspectors"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gpt_prompt">AI Prompt (Optional)</Label>
+                  <Textarea
+                    id="gpt_prompt"
+                    placeholder="Custom AI analysis prompt for this checklist item"
+                    value={formData.gpt_prompt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gpt_prompt: e.target.value }))}
+                    rows={3}
+                  />
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="required"
-                  checked={formData.required}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, required: checked }))}
-                />
-                <Label htmlFor="required">Required for inspection completion</Label>
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Additional instructions or context for inspectors"
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="gpt_prompt">AI Prompt (Optional)</Label>
-                <Textarea
-                  id="gpt_prompt"
-                  placeholder="Custom AI analysis prompt for this checklist item"
-                  value={formData.gpt_prompt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gpt_prompt: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateItem} disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Item'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateItem} disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating...' : 'Create Item'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -718,6 +895,7 @@ export default function ChecklistManagement() {
                   variant="outline"
                   className="mt-4"
                   onClick={() => setIsCreateDialogOpen(true)}
+                  disabled={!systemHealth.hasPermissions}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add your first checklist item

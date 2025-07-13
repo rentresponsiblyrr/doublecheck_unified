@@ -82,24 +82,28 @@ const navigation = [
     href: '/admin/performance',
     icon: Brain,
     current: false,
+    badge: 'soon'
   },
   {
     name: 'AI Learning',
     href: '/admin/ai-learning',
     icon: TrendingUp,
     current: false,
+    badge: 'soon'
   },
   {
     name: 'Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
     current: false,
+    badge: 'soon'
   },
   {
     name: 'Settings',
     href: '/admin/settings',
     icon: Settings,
     current: false,
+    badge: 'soon'
   },
 ];
 
@@ -191,7 +195,15 @@ export default function AdminLayout() {
                 />
                 <span className="flex-1">{item.name}</span>
                 {item.badge && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge 
+                    variant={item.badge === 'soon' ? 'outline' : 'secondary'} 
+                    className={classNames(
+                      'ml-2 text-xs',
+                      item.badge === 'soon' ? 'text-gray-500 border-gray-300' : '',
+                      item.badge === 'new' ? 'bg-green-100 text-green-700' : '',
+                      item.badge === 'enhanced' ? 'bg-blue-100 text-blue-700' : ''
+                    )}
+                  >
                     {item.badge}
                   </Badge>
                 )}

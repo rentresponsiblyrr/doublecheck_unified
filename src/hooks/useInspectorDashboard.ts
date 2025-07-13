@@ -206,7 +206,7 @@ export const useInspectorDashboard = () => {
   const inspections = dashboardData.inspections;
   const properties = dashboardData.properties;
 
-  // Calculate status counts using centralized service
+  // Calculate status counts from actual inspection data
   const statusCounts = {
     total: inspections.length,
     draft: 0,
@@ -238,6 +238,8 @@ export const useInspectorDashboard = () => {
     }
   });
 
+  console.log('🔢 Status counts calculated:', statusCounts);
+
   // Calculate property-level aggregations with fallback handling
   let propertyStats = { totalInspections: 0, activeInspections: 0, completedInspections: 0 };
   
@@ -254,13 +256,11 @@ export const useInspectorDashboard = () => {
   }
 
   const summary = {
-    ...statusCounts,
     properties: properties.length,
-    // Use calculated property stats with pending_review fallback
-    total_property_inspections: propertyStats.totalInspections,
-    active_property_inspections: propertyStats.activeInspections,
-    completed_property_inspections: propertyStats.completedInspections,
-    pending_review: statusCounts.pending_review || 0,
+    total_property_inspections: inspections.length,
+    active_property_inspections: statusCounts.in_progress + statusCounts.draft,
+    completed_property_inspections: statusCounts.completed,
+    pending_review: statusCounts.pending_review + statusCounts.approved,
   };
 
   // Debug logging for summary

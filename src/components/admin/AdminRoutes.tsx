@@ -13,7 +13,7 @@ const PropertyManagement = React.lazy(() => import('./PropertyManagement').catch
   default: () => <div>Property Management temporarily unavailable</div>
 })));
 
-const UserManagement = React.lazy(() => import('./UserManagement').catch(() => ({
+const UserManagement = React.lazy(() => import('./UserManagementRobust').catch(() => ({
   default: () => <div>User Management temporarily unavailable</div>
 })));
 
@@ -29,9 +29,13 @@ const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').cat
   default: () => <div>Learning Dashboard temporarily unavailable</div>
 })));
 
-const ChecklistManagement = React.lazy(() => import('./ChecklistManagement').catch(() => ({
-  default: () => <div>Checklist Management temporarily unavailable</div>
-})));
+const ChecklistManagement = React.lazy(() => import('./ChecklistManagementUltimate').catch(() => 
+  import('./ChecklistManagementRobust').catch(() => 
+    import('./ChecklistManagement').catch(() => ({
+      default: () => <div>Checklist Management temporarily unavailable</div>
+    }))
+  )
+));
 
 const ReportManagement = React.lazy(() => import('./ReportManagement').catch(() => ({
   default: () => <div>Report Management temporarily unavailable</div>
@@ -105,12 +109,34 @@ export default function AdminRoutes() {
           } />
           <Route path="performance" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <AIPerformanceDashboard />
+              <ComingSoonPage 
+                title="AI Performance Dashboard" 
+                description="Real-time AI monitoring and performance analytics"
+                features={[
+                  'Real-time accuracy metrics',
+                  'Response time monitoring', 
+                  'Cost optimization insights',
+                  'Model performance comparison',
+                  'Automated alerting system'
+                ]}
+                estimatedDate="Q2 2024"
+              />
             </Suspense>
           } />
           <Route path="ai-learning" element={
             <Suspense fallback={<AdminLoadingFallback />}>
-              <AILearningDashboard />
+              <ComingSoonPage 
+                title="AI Learning Dashboard" 
+                description="Advanced AI learning analytics and model improvement tracking"
+                features={[
+                  'Learning progress visualization',
+                  'Model version comparison',
+                  'Knowledge base insights',
+                  'Automated model tuning',
+                  'Feedback loop optimization'
+                ]}
+                estimatedDate="Q2 2024"
+              />
             </Suspense>
           } />
           <Route path="analytics" element={

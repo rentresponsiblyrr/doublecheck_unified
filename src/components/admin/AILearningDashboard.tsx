@@ -70,30 +70,14 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
   const [knowledgeQuery, setKnowledgeQuery] = useState('');
   const [modelComparison, setModelComparison] = useState<ModelComparisonData[]>([]);
 
-  // Load model comparison data
+  // Load model comparison data from database
   useEffect(() => {
     const loadModelComparison = async () => {
       try {
-        // This would fetch actual model comparison data in production
-        const mockComparison: ModelComparisonData[] = [
-          {
-            version: 'v1.1.0-cag',
-            accuracy: 87.5,
-            confidence: 0.91,
-            processingSpeed: 1850,
-            deployedAt: '2024-07-01',
-            feedbackCount: 1247
-          },
-          {
-            version: 'v1.0.0',
-            accuracy: 82.3,
-            confidence: 0.85,
-            processingSpeed: 2100,
-            deployedAt: '2024-06-15',
-            feedbackCount: 2156
-          }
-        ];
-        setModelComparison(mockComparison);
+        // In production, this would query a model_versions table
+        // For now, showing empty state until model versioning is implemented
+        setModelComparison([]);
+        logger.info('Model comparison data will populate when model versioning is implemented', {}, 'AI_LEARNING_DASHBOARD');
       } catch (error) {
         logger.error('Failed to load model comparison', error, 'AI_LEARNING_DASHBOARD');
       }
@@ -483,12 +467,21 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
             
             {learningInsights.length === 0 && (
               <Card>
-                <CardContent className="text-center py-8">
-                  <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500">No learning insights available</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Insights will appear as the AI processes more feedback
+                <CardContent className="text-center py-12">
+                  <Brain className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Learning Insights Yet</h3>
+                  <p className="text-gray-500 mb-4">
+                    AI learning insights will appear here as the system processes auditor feedback and identifies patterns
                   </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">How Insights Work</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p>• AI analyzes auditor corrections</p>
+                      <p>• Identifies improvement patterns</p>
+                      <p>• Suggests optimization actions</p>
+                      <p>• Tracks learning progress</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -567,37 +560,54 @@ export function AILearningDashboard({ className }: AILearningDashboardProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {modelComparison.map((model) => (
-                  <Card key={model.version} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <h4 className="font-medium">{model.version}</h4>
-                          <p className="text-sm text-gray-600">
-                            Deployed: {new Date(model.deployedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        {model.version === 'v1.1.0-cag' && (
+                {modelComparison.length > 0 ? (
+                  modelComparison.map((model) => (
+                    <Card key={model.version} className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <h4 className="font-medium">{model.version}</h4>
+                            <p className="text-sm text-gray-600">
+                              Deployed: {new Date(model.deployedAt).toLocaleDateString()}
+                            </p>
+                          </div>
                           <Badge variant="default">Current</Badge>
-                        )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div className="text-center">
+                            <p className="font-medium">{model.accuracy}%</p>
+                            <p className="text-gray-600">Accuracy</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium">{model.processingSpeed}ms</p>
+                            <p className="text-gray-600">Speed</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium">{model.feedbackCount}</p>
+                            <p className="text-gray-600">Feedback</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="text-center">
-                          <p className="font-medium">{model.accuracy}%</p>
-                          <p className="text-gray-600">Accuracy</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-medium">{model.processingSpeed}ms</p>
-                          <p className="text-gray-600">Speed</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-medium">{model.feedbackCount}</p>
-                          <p className="text-gray-600">Feedback</p>
-                        </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Database className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Model Versions Available</h3>
+                    <p className="text-gray-500 mb-4">
+                      Model versions and comparison data will appear here as AI models are deployed and tracked
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                      <h4 className="text-sm font-medium text-blue-900 mb-2">Model Versioning Features</h4>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p>• Performance comparison across versions</p>
+                        <p>• Accuracy and confidence tracking</p>
+                        <p>• Processing speed optimization</p>
+                        <p>• Feedback volume analysis</p>
                       </div>
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

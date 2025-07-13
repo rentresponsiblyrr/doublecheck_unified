@@ -48,65 +48,111 @@ import {
   Eye,
   MapPin,
   ExternalLink,
-  Calendar,
+  ClipboardList,
+  FileText,
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  User,
+  Link as LinkIcon,
+  Download,
+  RotateCcw
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
-import { sanitizeFormInput, validateURL } from '@/utils/validation';
 import { deletePropertyData } from '@/utils/propertyDeletion';
+import { toast } from 'sonner';
 
-interface Property {
+// Enhanced interface for comprehensive property data
+interface PropertyWithStatus {
   id: string;
   name: string;
   address: string;
+  city: string;
+  state: string;
+  zip_code: string;
   vrbo_url?: string;
   airbnb_url?: string;
-  status: string;
   created_at: string;
   updated_at: string;
-  added_by: string;
-  inspections?: Array<{
+  // Inspection data
+  inspection?: {
     id: string;
-    status: string;
+    status: 'draft' | 'in_progress' | 'completed' | 'pending_review' | 'in_review' | 'approved' | 'rejected';
     created_at: string;
-  }>;
-  users?: {
-    name: string;
-    email: string;
+    updated_at: string;
+    inspector_id?: string;
+    inspector_name?: string;
+  };
+  // Audit data
+  audit?: {
+    id: string;
+    status: 'pending' | 'in_review' | 'completed';
+    auditor_id?: string;
+    auditor_name?: string;
+    decision?: 'approved' | 'rejected' | 'needs_revision';
+    completed_at?: string;
+  };
+  // Report data
+  report?: {
+    id: string;
+    generated_at: string;
+    status: 'generated' | 'delivered' | 'failed';
+    file_path?: string;
+    download_count: number;
+  };
+  // Certification status
+  certification: {
+    status: 'pass' | 'fail' | 'na';
+    date?: string;
+    expires_at?: string;
   };
 }
 
 interface PropertyFormData {
   name: string;
   address: string;
+  city: string;
+  state: string;
+  zip_code: string;
   vrbo_url: string;
   airbnb_url: string;
-  status: 'active' | 'inactive' | 'pending';
+  description: string;
 }
 
-const defaultFormData: PropertyFormData = {
-  name: '',
-  address: '',
-  vrbo_url: '',
-  airbnb_url: '',
-  status: 'active'
-};
+const STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+];
 
 export default function PropertyManagement() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+  const navigate = useNavigate();
+  const [properties, setProperties] = useState<PropertyWithStatus[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<PropertyWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [certificationFilter, setCertificationFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<PropertyFormData>(defaultFormData);
-  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<PropertyWithStatus | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<PropertyFormData>({
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    vrbo_url: '',
+    airbnb_url: '',
+    description: ''
+  });
 
   useEffect(() => {
     loadProperties();
@@ -114,59 +160,174 @@ export default function PropertyManagement() {
 
   useEffect(() => {
     filterProperties();
-  }, [properties, searchQuery, statusFilter]);
+  }, [properties, searchTerm, statusFilter, certificationFilter]);
 
   const loadProperties = async () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
+      // Load properties with all related data
+      const { data: propertiesData, error: propertiesError } = await supabase
         .from('properties')
         .select(`
-          id,
-          name,
-          address,
-          vrbo_url,
-          airbnb_url,
-          status,
-          created_at,
-          updated_at,
-          added_by,
-          users!properties_added_by_fkey(name, email),
-          inspections(id, status, created_at)
+          *,
+          inspections (
+            id,
+            status,
+            created_at,
+            updated_at,
+            inspector_id,
+            profiles!inspections_inspector_id_fkey (
+              email,
+              name:user_metadata->name
+            )
+          )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+      if (propertiesError) {
+        throw propertiesError;
       }
 
-      setProperties(data || []);
-      logger.info('Loaded properties', { count: data?.length }, 'PROPERTY_MANAGEMENT');
+      // Transform data to include comprehensive status information
+      const enrichedProperties: PropertyWithStatus[] = await Promise.all(
+        (propertiesData || []).map(async (property) => {
+          const latestInspection = property.inspections?.[0];
+          
+          // Get audit information if inspection exists
+          let auditData = null;
+          if (latestInspection) {
+            const { data: auditInfo } = await supabase
+              .from('audit_feedback')
+              .select(`
+                *,
+                profiles!audit_feedback_auditor_id_fkey (
+                  email,
+                  name:user_metadata->name
+                )
+              `)
+              .eq('inspection_id', latestInspection.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (auditInfo) {
+              auditData = {
+                id: auditInfo.id,
+                status: auditInfo.auditor_decision ? 'completed' : 'pending',
+                auditor_id: auditInfo.auditor_id,
+                auditor_name: auditInfo.profiles?.name || auditInfo.profiles?.email,
+                decision: auditInfo.auditor_decision,
+                completed_at: auditInfo.created_at
+              };
+            }
+          }
+
+          // Get report information
+          let reportData = null;
+          if (latestInspection) {
+            const { data: reportInfo } = await supabase
+              .from('inspection_reports')
+              .select('*')
+              .eq('inspection_id', latestInspection.id)
+              .order('generated_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (reportInfo) {
+              reportData = {
+                id: reportInfo.id,
+                generated_at: reportInfo.generated_at,
+                status: reportInfo.file_path ? 'generated' : 'failed',
+                file_path: reportInfo.file_path,
+                download_count: reportInfo.download_count || 0
+              };
+            }
+          }
+
+          // Determine certification status
+          const certificationStatus = determineCertificationStatus(
+            latestInspection?.status,
+            auditData?.decision
+          );
+
+          return {
+            id: property.id,
+            name: property.name,
+            address: property.address,
+            city: property.city,
+            state: property.state,
+            zip_code: property.zip_code,
+            vrbo_url: property.vrbo_url,
+            airbnb_url: property.airbnb_url,
+            created_at: property.created_at,
+            updated_at: property.updated_at,
+            inspection: latestInspection ? {
+              id: latestInspection.id,
+              status: latestInspection.status,
+              created_at: latestInspection.created_at,
+              updated_at: latestInspection.updated_at,
+              inspector_id: latestInspection.inspector_id,
+              inspector_name: latestInspection.profiles?.name || latestInspection.profiles?.email
+            } : undefined,
+            audit: auditData,
+            report: reportData,
+            certification: certificationStatus
+          };
+        })
+      );
+
+      setProperties(enrichedProperties);
     } catch (error) {
-      logger.error('Failed to load properties', error, 'PROPERTY_MANAGEMENT');
+      logger.error('Failed to load properties:', error);
+      toast.error('Failed to load properties');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const determineCertificationStatus = (
+    inspectionStatus?: string,
+    auditDecision?: string
+  ): { status: 'pass' | 'fail' | 'na'; date?: string; expires_at?: string } => {
+    if (auditDecision === 'approved') {
+      const passDate = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // 1 year
+      return { status: 'pass', date: passDate, expires_at: expiresAt };
+    } else if (auditDecision === 'rejected') {
+      return { status: 'fail', date: new Date().toISOString() };
+    } else {
+      return { status: 'na' };
     }
   };
 
   const filterProperties = () => {
     let filtered = properties;
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(property => 
-        property.name.toLowerCase().includes(query) ||
-        property.address.toLowerCase().includes(query) ||
-        property.vrbo_url?.toLowerCase().includes(query) ||
-        property.airbnb_url?.toLowerCase().includes(query)
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(property =>
+        property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.city.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Apply status filter
+    // Status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(property => property.status === statusFilter);
+      filtered = filtered.filter(property => {
+        if (statusFilter === 'no_inspection') return !property.inspection;
+        if (statusFilter === 'in_progress') return property.inspection?.status === 'in_progress';
+        if (statusFilter === 'completed') return property.inspection?.status === 'completed';
+        if (statusFilter === 'approved') return property.inspection?.status === 'approved';
+        if (statusFilter === 'rejected') return property.inspection?.status === 'rejected';
+        return true;
+      });
+    }
+
+    // Certification filter
+    if (certificationFilter !== 'all') {
+      filtered = filtered.filter(property => property.certification.status === certificationFilter);
     }
 
     setFilteredProperties(filtered);
@@ -174,172 +335,142 @@ export default function PropertyManagement() {
 
   const handleCreateProperty = async () => {
     try {
-      setIsSubmitting(true);
-
-      // Validate form data
-      const sanitizedData = {
-        name: sanitizeFormInput(formData.name),
-        address: sanitizeFormInput(formData.address),
-        vrbo_url: formData.vrbo_url.trim() || null,
-        airbnb_url: formData.airbnb_url.trim() || null,
-        status: formData.status
-      };
-
-      if (!sanitizedData.name || !sanitizedData.address) {
-        throw new Error('Name and address are required');
-      }
-
-      if (sanitizedData.vrbo_url && !validateURL(sanitizedData.vrbo_url)) {
-        throw new Error('Please enter a valid VRBO URL');
-      }
-
-      if (sanitizedData.airbnb_url && !validateURL(sanitizedData.airbnb_url)) {
-        throw new Error('Please enter a valid Airbnb URL');
-      }
-
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
       const { data, error } = await supabase
         .from('properties')
-        .insert({
-          ...sanitizedData,
-          added_by: user.user.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert([formData])
         .select()
         .single();
 
       if (error) throw error;
 
-      logger.info('Property created successfully', { propertyId: data.id }, 'PROPERTY_MANAGEMENT');
-      await loadProperties();
+      toast.success('Property created successfully');
       setIsCreateDialogOpen(false);
-      setFormData(defaultFormData);
+      resetForm();
+      loadProperties();
     } catch (error) {
-      logger.error('Failed to create property', error, 'PROPERTY_MANAGEMENT');
-      alert(error instanceof Error ? error.message : 'Failed to create property');
-    } finally {
-      setIsSubmitting(false);
+      logger.error('Failed to create property:', error);
+      toast.error('Failed to create property');
     }
   };
 
-  const handleEditProperty = async () => {
+  const handleUpdateProperty = async () => {
+    if (!editingProperty) return;
+
     try {
-      if (!editingProperty) return;
-      
-      setIsSubmitting(true);
-
-      const sanitizedData = {
-        name: sanitizeFormInput(formData.name),
-        address: sanitizeFormInput(formData.address),
-        vrbo_url: formData.vrbo_url.trim() || null,
-        airbnb_url: formData.airbnb_url.trim() || null,
-        status: formData.status,
-        updated_at: new Date().toISOString()
-      };
-
-      if (!sanitizedData.name || !sanitizedData.address) {
-        throw new Error('Name and address are required');
-      }
-
       const { error } = await supabase
         .from('properties')
-        .update(sanitizedData)
+        .update(formData)
         .eq('id', editingProperty.id);
 
       if (error) throw error;
 
-      logger.info('Property updated successfully', { propertyId: editingProperty.id }, 'PROPERTY_MANAGEMENT');
-      await loadProperties();
-      setIsEditDialogOpen(false);
+      toast.success('Property updated successfully');
       setEditingProperty(null);
-      setFormData(defaultFormData);
+      resetForm();
+      loadProperties();
     } catch (error) {
-      logger.error('Failed to update property', error, 'PROPERTY_MANAGEMENT');
-      alert(error instanceof Error ? error.message : 'Failed to update property');
-    } finally {
-      setIsSubmitting(false);
+      logger.error('Failed to update property:', error);
+      toast.error('Failed to update property');
     }
   };
 
-  const handleDeleteProperty = async (property: Property) => {
-    if (!confirm(`Are you sure you want to delete "${property.name}"? This action cannot be undone and will permanently remove ALL associated data including inspections, checklist items, media files, and notifications.`)) {
-      return;
-    }
-
+  const handleDeleteProperty = async (propertyId: string) => {
     try {
-      logger.info('Starting comprehensive property deletion', { propertyId: property.id, propertyName: property.name }, 'PROPERTY_MANAGEMENT');
-      
-      // Use the comprehensive deletion utility that handles all cascade conflicts
-      await deletePropertyData(property.id);
-
-      logger.info('Property deleted successfully via comprehensive deletion', { propertyId: property.id }, 'PROPERTY_MANAGEMENT');
-      await loadProperties();
+      setIsDeleting(propertyId);
+      await deletePropertyData(propertyId);
+      toast.success('Property deleted successfully');
+      loadProperties();
     } catch (error) {
-      logger.error('Failed to delete property via comprehensive deletion', error, 'PROPERTY_MANAGEMENT');
-      
-      // Provide more specific error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      if (errorMessage.includes('already in progress')) {
-        alert('Property deletion is already in progress. Please wait for the current operation to complete.');
-      } else {
-        alert(`Failed to delete property: ${errorMessage}`);
-      }
+      logger.error('Failed to delete property:', error);
+      toast.error('Failed to delete property');
+    } finally {
+      setIsDeleting(null);
     }
   };
 
-  const openEditDialog = (property: Property) => {
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      vrbo_url: '',
+      airbnb_url: '',
+      description: ''
+    });
+  };
+
+  const openEditDialog = (property: PropertyWithStatus) => {
     setEditingProperty(property);
     setFormData({
       name: property.name,
       address: property.address,
+      city: property.city,
+      state: property.state,
+      zip_code: property.zip_code,
       vrbo_url: property.vrbo_url || '',
       airbnb_url: property.airbnb_url || '',
-      status: property.status as any
+      description: ''
     });
-    setIsEditDialogOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
-      case 'inactive':
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">Inactive</Badge>;
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+    const statusConfig = {
+      'draft': { color: 'bg-gray-100 text-gray-800', label: 'Draft' },
+      'in_progress': { color: 'bg-blue-100 text-blue-800', label: 'In Progress' },
+      'completed': { color: 'bg-green-100 text-green-800', label: 'Completed' },
+      'pending_review': { color: 'bg-yellow-100 text-yellow-800', label: 'Pending Review' },
+      'in_review': { color: 'bg-orange-100 text-orange-800', label: 'In Review' },
+      'approved': { color: 'bg-green-100 text-green-800', label: 'Approved' },
+      'rejected': { color: 'bg-red-100 text-red-800', label: 'Rejected' }
+    };
+
+    const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', label: status };
+    return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const getInspectionStatus = (inspections?: Array<{status: string}>) => {
-    if (!inspections || inspections.length === 0) {
-      return { icon: <XCircle className="h-4 w-4 text-gray-400" />, text: 'No inspections', color: 'text-gray-500' };
-    }
+  const getCertificationBadge = (certification: { status: 'pass' | 'fail' | 'na'; date?: string }) => {
+    const statusConfig = {
+      'pass': { color: 'bg-green-100 text-green-800', label: 'Certified', icon: CheckCircle },
+      'fail': { color: 'bg-red-100 text-red-800', label: 'Failed', icon: XCircle },
+      'na': { color: 'bg-gray-100 text-gray-800', label: 'N/A', icon: AlertCircle }
+    };
 
-    const latest = inspections[0];
-    switch (latest.status) {
-      case 'completed':
-      case 'approved':
-        return { icon: <CheckCircle className="h-4 w-4 text-green-500" />, text: 'Completed', color: 'text-green-600' };
-      case 'in_progress':
-        return { icon: <Clock className="h-4 w-4 text-blue-500" />, text: 'In Progress', color: 'text-blue-600' };
-      case 'pending_review':
-        return { icon: <AlertCircle className="h-4 w-4 text-yellow-500" />, text: 'Pending Review', color: 'text-yellow-600' };
-      default:
-        return { icon: <Clock className="h-4 w-4 text-gray-400" />, text: latest.status, color: 'text-gray-600' };
-    }
+    const config = statusConfig[certification.status];
+    const Icon = config.icon;
+
+    return (
+      <div className="flex items-center space-x-1">
+        <Badge className={config.color}>
+          <Icon className="w-3 h-3 mr-1" />
+          {config.label}
+        </Badge>
+        {certification.date && (
+          <span className="text-xs text-gray-500 ml-2">
+            {new Date(certification.date).toLocaleDateString()}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+          ))}
         </div>
       </div>
     );
@@ -348,144 +479,79 @@ export default function PropertyManagement() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Property Management</h1>
-          <p className="text-gray-600">
-            Manage vacation rental properties and track their inspection status
+          <h1 className="text-3xl font-bold text-gray-900">Property Management</h1>
+          <p className="text-gray-600 mt-1">
+            Comprehensive property lifecycle management with inspection, audit, and certification tracking
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Property
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Property</DialogTitle>
-              <DialogDescription>
-                Create a new property listing for inspection management.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Property Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Beautiful Mountain Cabin"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  placeholder="123 Mountain View Drive, Aspen, CO 81611"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="vrbo_url">VRBO URL (Optional)</Label>
-                <Input
-                  id="vrbo_url"
-                  placeholder="https://www.vrbo.com/123456"
-                  value={formData.vrbo_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, vrbo_url: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="airbnb_url">Airbnb URL (Optional)</Label>
-                <Input
-                  id="airbnb_url"
-                  placeholder="https://www.airbnb.com/rooms/123456"
-                  value={formData.airbnb_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, airbnb_url: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
+        <div className="flex space-x-4">
+          <Button onClick={loadProperties} variant="outline" size="sm">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Property
               </Button>
-              <Button onClick={handleCreateProperty} disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Property'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Add New Property</DialogTitle>
+                <DialogDescription>Create a new property for inspection management</DialogDescription>
+              </DialogHeader>
+              <PropertyForm
+                formData={formData}
+                setFormData={setFormData}
+                onSubmit={handleCreateProperty}
+                onCancel={() => setIsCreateDialogOpen(false)}
+                isEdit={false}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Properties</p>
-                <p className="text-2xl font-bold">{properties.length}</p>
-              </div>
-              <Building2 className="h-8 w-8 text-blue-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{properties.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Certified Properties</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {properties.filter(p => p.certification.status === 'pass').length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {properties.filter(p => p.status === 'active').length}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Pending Inspections</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {properties.filter(p => p.inspection?.status === 'in_progress').length}
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">With Inspections</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {properties.filter(p => p.inspections && p.inspections.length > 0).length}
-                </p>
-              </div>
-              <Calendar className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {properties.filter(p => 
-                    p.inspections?.some(i => i.status === 'pending_review')
-                  ).length}
-                </p>
-              </div>
-              <AlertCircle className="h-8 w-8 text-yellow-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Pending Audits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {properties.filter(p => p.inspection?.status === 'completed' && !p.audit).length}
             </div>
           </CardContent>
         </Card>
@@ -493,30 +559,54 @@ export default function PropertyManagement() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+        <CardHeader>
+          <CardTitle className="text-lg">Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">Search Properties</Label>
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search properties by name, address, or URL..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
+                  id="search"
+                  placeholder="Search by name, address, or city..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label>Inspection Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="no_inspection">No Inspection</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Certification Status</Label>
+              <Select value={certificationFilter} onValueChange={setCertificationFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Certifications</SelectItem>
+                  <SelectItem value="pass">Certified</SelectItem>
+                  <SelectItem value="fail">Failed</SelectItem>
+                  <SelectItem value="na">Not Applicable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -525,87 +615,181 @@ export default function PropertyManagement() {
       <Card>
         <CardHeader>
           <CardTitle>Properties ({filteredProperties.length})</CardTitle>
+          <CardDescription>
+            Complete property lifecycle with inspection, audit, and certification tracking
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Property</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Inspection Status</TableHead>
-                <TableHead>Listings</TableHead>
-                <TableHead>Added By</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProperties.map((property) => {
-                const inspectionStatus = getInspectionStatus(property.inspections);
-                return (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Property</TableHead>
+                  <TableHead>Inspection Status</TableHead>
+                  <TableHead>Audit Status</TableHead>
+                  <TableHead>Report Status</TableHead>
+                  <TableHead>Certification</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProperties.map((property) => (
                   <TableRow key={property.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{property.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {property.address}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(property.status)}</TableCell>
+                    {/* Property Info */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className={`flex items-center space-x-2 ${inspectionStatus.color}`}>
-                          {inspectionStatus.icon}
-                          <span className="text-sm">{inspectionStatus.text}</span>
+                        <div className="font-medium">{property.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {property.address}, {property.city}, {property.state} {property.zip_code}
                         </div>
-                        {property.inspections && property.inspections.length > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`https://app.doublecheckverified.com/inspection/${property.inspections[0].id}`, '_blank')}
-                            className="h-6 text-xs"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View in App
-                          </Button>
-                        )}
+                        <div className="flex space-x-2">
+                          {property.vrbo_url && (
+                            <a
+                              href={property.vrbo_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              VRBO
+                            </a>
+                          )}
+                          {property.airbnb_url && (
+                            <a
+                              href={property.airbnb_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              Airbnb
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
+
+                    {/* Inspection Status */}
                     <TableCell>
-                      <div className="flex space-x-2">
-                        {property.vrbo_url && (
+                      {property.inspection ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {getStatusBadge(property.inspection.status)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/admin/inspections?id=${property.inspection?.id}`)}
+                            >
+                              <ClipboardList className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {property.inspection.inspector_name && (
+                              <div>Inspector: {property.inspection.inspector_name}</div>
+                            )}
+                            <div>Updated: {formatDate(property.inspection.updated_at)}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-gray-100 text-gray-800">No Inspection</Badge>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => window.open(property.vrbo_url, '_blank')}
+                            onClick={() => navigate(`/admin/inspections/create?property=${property.id}`)}
                           >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            VRBO
+                            <Plus className="w-4 h-4 mr-1" />
+                            Create
                           </Button>
-                        )}
-                        {property.airbnb_url && (
+                        </div>
+                      )}
+                    </TableCell>
+
+                    {/* Audit Status */}
+                    <TableCell>
+                      {property.audit ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {getStatusBadge(property.audit.status)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/admin/audit?inspection=${property.inspection?.id}`)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {property.audit.auditor_name && (
+                              <div>Auditor: {property.audit.auditor_name}</div>
+                            )}
+                            {property.audit.completed_at && (
+                              <div>Completed: {formatDate(property.audit.completed_at)}</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : property.inspection?.status === 'completed' ? (
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-yellow-100 text-yellow-800">Pending Audit</Badge>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => window.open(property.airbnb_url, '_blank')}
+                            onClick={() => navigate(`/admin/audit?inspection=${property.inspection?.id}`)}
                           >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Airbnb
+                            <Plus className="w-4 h-4 mr-1" />
+                            Start
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800">N/A</Badge>
+                      )}
                     </TableCell>
+
+                    {/* Report Status */}
                     <TableCell>
-                      <div className="text-sm">
-                        <div>{property.users?.name || 'Unknown'}</div>
-                        <div className="text-gray-500">{property.users?.email}</div>
-                      </div>
+                      {property.report ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {getStatusBadge(property.report.status)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/admin/reports?inspection=${property.inspection?.id}`)}
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            <div>Generated: {formatDate(property.report.generated_at)}</div>
+                            <div>Downloads: {property.report.download_count}</div>
+                          </div>
+                        </div>
+                      ) : property.audit?.status === 'completed' ? (
+                        <div className="flex items-center space-x-2">
+                          <Badge className="bg-blue-100 text-blue-800">Ready to Generate</Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/admin/reports/generate?inspection=${property.inspection?.id}`)}
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Generate
+                          </Button>
+                        </div>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800">N/A</Badge>
+                      )}
                     </TableCell>
+
+                    {/* Certification Status */}
                     <TableCell>
-                      {new Date(property.created_at).toLocaleDateString()}
+                      {getCertificationBadge(property.certification)}
                     </TableCell>
+
+                    {/* Actions */}
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -617,115 +801,173 @@ export default function PropertyManagement() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => openEditDialog(property)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit
+                            Edit Property
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteProperty(property)}
+                          <DropdownMenuItem
                             className="text-red-600"
+                            onClick={() => handleDeleteProperty(property.id)}
+                            disabled={isDeleting === property.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {isDeleting === property.id ? 'Deleting...' : 'Delete Property'}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-
-          {filteredProperties.length === 0 && (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No properties found</p>
-              {searchQuery || statusFilter !== 'all' ? (
-                <p className="text-sm text-gray-400">Try adjusting your filters</p>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setIsCreateDialogOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add your first property
-                </Button>
-              )}
-            </div>
-          )}
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Property</DialogTitle>
-            <DialogDescription>
-              Update property information and settings.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit_name">Property Name</Label>
-              <Input
-                id="edit_name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_address">Address</Label>
-              <Textarea
-                id="edit_address"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_vrbo_url">VRBO URL</Label>
-              <Input
-                id="edit_vrbo_url"
-                value={formData.vrbo_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, vrbo_url: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_airbnb_url">Airbnb URL</Label>
-              <Input
-                id="edit_airbnb_url"
-                value={formData.airbnb_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, airbnb_url: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditProperty} disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update Property'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Edit Property Dialog */}
+      {editingProperty && (
+        <Dialog open={!!editingProperty} onOpenChange={() => setEditingProperty(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Edit Property</DialogTitle>
+              <DialogDescription>Update property information</DialogDescription>
+            </DialogHeader>
+            <PropertyForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleUpdateProperty}
+              onCancel={() => setEditingProperty(null)}
+              isEdit={true}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
+  );
+}
+
+// Property Form Component
+interface PropertyFormProps {
+  formData: PropertyFormData;
+  setFormData: React.Dispatch<React.SetStateAction<PropertyFormData>>;
+  onSubmit: () => void;
+  onCancel: () => void;
+  isEdit: boolean;
+}
+
+function PropertyForm({ formData, setFormData, onSubmit, onCancel, isEdit }: PropertyFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Property Name *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="address">Address *</Label>
+          <Input
+            id="address"
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city">City *</Label>
+          <Input
+            id="city"
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="state">State *</Label>
+          <Select value={formData.state} onValueChange={(value) => setFormData({ ...formData, state: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATES.map((state) => (
+                <SelectItem key={state} value={state}>
+                  {state}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="zip_code">ZIP Code *</Label>
+          <Input
+            id="zip_code"
+            value={formData.zip_code}
+            onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="vrbo_url">VRBO URL</Label>
+          <Input
+            id="vrbo_url"
+            type="url"
+            value={formData.vrbo_url}
+            onChange={(e) => setFormData({ ...formData, vrbo_url: e.target.value })}
+            placeholder="https://www.vrbo.com/..."
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="airbnb_url">Airbnb URL</Label>
+          <Input
+            id="airbnb_url"
+            type="url"
+            value={formData.airbnb_url}
+            onChange={(e) => setFormData({ ...formData, airbnb_url: e.target.value })}
+            placeholder="https://www.airbnb.com/..."
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Additional property information..."
+          rows={3}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Saving...' : isEdit ? 'Update Property' : 'Create Property'}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }

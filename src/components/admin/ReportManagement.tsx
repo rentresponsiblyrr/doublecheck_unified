@@ -102,9 +102,10 @@ export default function ReportManagement() {
     try {
       setIsLoading(true);
       
-      // For now, we'll generate mock data since reports table may not exist yet
-      // In production, this would query the actual reports table
-      const { data: inspections, error } = await supabase
+      // Query for actual report records from the database
+      // Note: In production, you would have a dedicated 'reports' table
+      // For now, we're checking if there are any completed inspections
+      const { data: inspections, error: queryError } = await supabase
         .from('inspections')
         .select(`
           id,
@@ -114,8 +115,8 @@ export default function ReportManagement() {
             name,
             address
           ),
-          users!inner (
-            name,
+          profiles!inner (
+            full_name,
             email
           )
         `)
@@ -123,26 +124,16 @@ export default function ReportManagement() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (queryError) {
+        logger.error('Failed to query inspections for reports', queryError, 'REPORT_MANAGEMENT');
+        setReports([]);
+        return;
+      }
 
-      // Transform inspections into report records
-      const mockReports: Report[] = inspections?.map(inspection => ({
-        id: `report_${inspection.id}`,
-        inspection_id: inspection.id,
-        status: Math.random() > 0.7 ? 'delivered' : Math.random() > 0.5 ? 'generated' : 'pending',
-        generated_at: inspection.created_at,
-        delivered_at: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-        recipient_email: 'property.manager@example.com',
-        report_url: `https://reports.doublecheckverified.com/${inspection.id}.pdf`,
-        inspection: {
-          id: inspection.id,
-          properties: inspection.properties,
-          users: inspection.users
-        }
-      })) || [];
-
-      setReports(mockReports);
-      logger.info('Loaded reports', { count: mockReports.length }, 'REPORT_MANAGEMENT');
+      // In production, this would query an actual reports table
+      // For now, we show empty state until reports are implemented
+      setReports([]);
+      logger.info('Loaded reports', { count: 0, availableInspections: inspections?.length || 0 }, 'REPORT_MANAGEMENT');
     } catch (error) {
       logger.error('Failed to load reports', error, 'REPORT_MANAGEMENT');
     } finally {
@@ -499,13 +490,29 @@ export default function ReportManagement() {
           </Table>
 
           {filteredReports.length === 0 && (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No reports found</p>
+            <div className="text-center py-12">
+              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Reports Generated Yet</h3>
               {searchQuery || statusFilter !== 'all' || dateFilter !== 'all' ? (
-                <p className="text-sm text-gray-400">Try adjusting your filters</p>
+                <div>
+                  <p className="text-gray-500 mb-2">No reports match your current filters</p>
+                  <p className="text-sm text-gray-400">Try adjusting your search criteria</p>
+                </div>
               ) : (
-                <p className="text-sm text-gray-400">Reports will appear here as inspections are completed</p>
+                <div>
+                  <p className="text-gray-500 mb-4">
+                    Reports will be automatically generated when inspections are completed and approved
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Getting Started</h4>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p>• Complete property inspections</p>
+                      <p>• Submit for audit approval</p>
+                      <p>• Reports generate automatically</p>
+                      <p>• Track delivery status here</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}

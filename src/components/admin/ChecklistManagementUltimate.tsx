@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -52,7 +53,15 @@ import {
   Activity,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Database,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  HardDrive,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
@@ -82,6 +91,15 @@ interface ChecklistFormData {
   gpt_prompt: string;
 }
 
+interface SystemHealth {
+  tableExists: boolean;
+  hasData: boolean;
+  hasPermissions: boolean;
+  canConnect: boolean;
+  errorDetails?: string;
+  lastChecked: Date;
+}
+
 const defaultFormData: ChecklistFormData = {
   label: '',
   category: 'safety',
@@ -107,7 +125,39 @@ const evidenceTypes = [
   { value: 'photo_video', label: 'Photo or Video', icon: Camera }
 ];
 
-export default function ChecklistManagement() {
+// Mock data for offline mode
+const mockData: ChecklistItem[] = [
+  {
+    id: 'mock-1',
+    label: 'Fire extinguisher present and accessible',
+    category: 'safety',
+    evidence_type: 'photo',
+    required: true,
+    deleted: false,
+    notes: 'Check that fire extinguisher is visible and accessible',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-2',
+    label: 'Kitchen amenities match listing',
+    category: 'amenities',
+    evidence_type: 'photo',
+    required: true,
+    deleted: false,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'mock-3',
+    label: 'Wi-Fi credentials provided',
+    category: 'amenities',
+    evidence_type: 'text',
+    required: false,
+    deleted: false,
+    created_at: new Date().toISOString()
+  }
+];
+
+export default function ChecklistManagementUltimate() {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<ChecklistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -119,68 +169,214 @@ export default function ChecklistManagement() {
   const [formData, setFormData] = useState<ChecklistFormData>(defaultFormData);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth>({
+    tableExists: false,
+    hasData: false,
+    hasPermissions: false,
+    canConnect: false,
+    lastChecked: new Date()
+  });
+  const [retryCount, setRetryCount] = useState(0);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   useEffect(() => {
-    loadItems();
-  }, []);
+    performComprehensiveHealthCheck();
+  }, [retryCount]);
+
+  useEffect(() => {
+    if (systemHealth.canConnect) {
+      loadItems();
+    } else if (isOfflineMode) {
+      setItems(mockData);
+      setIsLoading(false);
+    }
+  }, [systemHealth, isOfflineMode]);
 
   useEffect(() => {
     filterItems();
   }, [items, searchQuery, categoryFilter, statusFilter]);
 
-  const loadItems = async () => {
+  const performComprehensiveHealthCheck = async () => {
+    console.log('🏥 Performing comprehensive system health check...');
+    setIsLoading(true);
+    
+    const healthResult: SystemHealth = {
+      tableExists: false,
+      hasData: false,
+      hasPermissions: false,
+      canConnect: false,
+      lastChecked: new Date()
+    };
+
     try {
-      setIsLoading(true);
-      console.log('🔍 ChecklistManagement: Starting to load items...');
-      
-      // First try to get debug info
-      try {
-        const { data: debugData, error: debugError } = await supabase.rpc('debug_static_safety_items');
-        if (!debugError && debugData) {
-          console.log('📊 Debug info:', debugData);
-        }
-      } catch (debugErr) {
-        console.warn('⚠️ Debug function not available:', debugErr);
-      }
-
-      const { data: itemsData, error } = await supabase
+      // Test 1: Basic connectivity
+      console.log('🔌 Testing Supabase connectivity...');
+      const { data: connectionTest, error: connectionError } = await supabase
         .from('static_safety_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('count', { count: 'exact', head: true });
 
-      console.log('📡 Supabase query result:', { data: itemsData, error });
-
-      if (error) {
-        console.error('❌ Supabase query error:', error);
-        throw error;
-      }
-
-      if (!itemsData) {
-        console.warn('⚠️ No data returned from query');
-        setItems([]);
+      if (connectionError) {
+        console.error('❌ Connection failed:', connectionError);
+        if (connectionError.message.includes('relation') || connectionError.message.includes('does not exist')) {
+          healthResult.errorDetails = 'Database table does not exist';
+        } else if (connectionError.message.includes('permission') || connectionError.message.includes('policy')) {
+          healthResult.errorDetails = 'Insufficient permissions to access data';
+        } else {
+          healthResult.errorDetails = `Connection error: ${connectionError.message}`;
+        }
+        setSystemHealth(healthResult);
+        setIsOfflineMode(true);
         return;
       }
 
-      const enrichedItems: ChecklistItem[] = itemsData.map(item => ({
-        ...item,
-        deleted: item.deleted || false,
-        required: item.required || false
+      healthResult.canConnect = true;
+      healthResult.tableExists = true;
+      console.log('✅ Connection successful');
+
+      // Test 2: Data read test
+      console.log('📖 Testing data read capabilities...');
+      const { data: readTest, error: readError } = await supabase
+        .from('static_safety_items')
+        .select('id, label, category')
+        .limit(1);
+
+      if (readError) {
+        console.error('❌ Read test failed:', readError);
+        healthResult.errorDetails = `Read permission error: ${readError.message}`;
+        setSystemHealth(healthResult);
+        return;
+      }
+
+      healthResult.hasData = readTest && readTest.length > 0;
+      console.log(`✅ Read test successful, found ${readTest?.length || 0} items`);
+
+      // Test 3: Write permission test
+      console.log('✏️ Testing write capabilities...');
+      const testItem = {
+        label: `health-check-${Date.now()}`,
+        category: 'safety',
+        evidence_type: 'photo',
+        required: false,
+        deleted: true, // Mark as deleted so it doesn't interfere
+        checklist_id: 1,
+        created_at: new Date().toISOString()
+      };
+
+      const { data: insertTest, error: insertError } = await supabase
+        .from('static_safety_items')
+        .insert(testItem)
+        .select('id')
+        .single();
+
+      if (insertError) {
+        console.warn('⚠️ Write test failed:', insertError);
+        healthResult.errorDetails = `Write permission limited: ${insertError.message}`;
+      } else {
+        healthResult.hasPermissions = true;
+        console.log('✅ Write test successful');
+        
+        // Clean up test item
+        if (insertTest?.id) {
+          await supabase
+            .from('static_safety_items')
+            .delete()
+            .eq('id', insertTest.id);
+        }
+      }
+
+      console.log('🎯 Health check complete:', healthResult);
+      setSystemHealth(healthResult);
+      setIsOfflineMode(false);
+
+    } catch (error) {
+      console.error('❌ Comprehensive health check failed:', error);
+      healthResult.errorDetails = `System check failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      setSystemHealth(healthResult);
+      setIsOfflineMode(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadItems = async () => {
+    if (!systemHealth.canConnect) {
+      console.log('⚡ Loading from mock data (offline mode)');
+      setItems(mockData);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log('🔍 Loading checklist items from database...');
+      
+      // Try multiple query strategies
+      let itemsData: any[] = [];
+      let loadError: any = null;
+
+      // Strategy 1: Full query with all columns
+      try {
+        console.log('📡 Attempting full query...');
+        const { data, error } = await supabase
+          .from('static_safety_items')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        itemsData = data || [];
+        console.log('✅ Full query successful:', itemsData.length, 'items');
+      } catch (fullError) {
+        console.warn('⚠️ Full query failed:', fullError);
+        loadError = fullError;
+
+        // Strategy 2: Essential columns only
+        try {
+          console.log('📡 Attempting essential columns query...');
+          const { data, error } = await supabase
+            .from('static_safety_items')
+            .select('id, label, category, evidence_type, required, deleted, created_at')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          itemsData = data || [];
+          console.log('✅ Essential query successful:', itemsData.length, 'items');
+        } catch (essentialError) {
+          console.error('❌ Essential query failed:', essentialError);
+          throw essentialError;
+        }
+      }
+
+      // Transform data with comprehensive fallbacks
+      const enrichedItems: ChecklistItem[] = itemsData.map((item, index) => ({
+        id: item.id || `fallback-${index}`,
+        label: item.label || `Checklist Item ${index + 1}`,
+        category: item.category || 'safety',
+        evidence_type: item.evidence_type || 'photo',
+        required: Boolean(item.required),
+        deleted: Boolean(item.deleted),
+        notes: item.notes || '',
+        gpt_prompt: item.gpt_prompt || '',
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at,
+        active_date: item.active_date,
+        deleted_date: item.deleted_date
       }));
 
-      console.log('✅ Enriched items:', enrichedItems.length, enrichedItems);
       setItems(enrichedItems);
-      logger.info('Loaded checklist items', { count: enrichedItems.length }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Loaded checklist items', { count: enrichedItems.length }, 'CHECKLIST_ULTIMATE');
+
     } catch (error) {
-      console.error('❌ Critical error loading checklist items:', error);
-      logger.error('Failed to load checklist items', error, 'CHECKLIST_MANAGEMENT');
+      console.error('❌ Failed to load checklist items:', error);
+      logger.error('Failed to load checklist items', error, 'CHECKLIST_ULTIMATE');
       
-      // Set empty array with error state
-      setItems([]);
+      // Fallback to mock data
+      console.log('🔄 Falling back to mock data...');
+      setItems(mockData);
+      setIsOfflineMode(true);
       
-      // Show user-friendly error
-      if (error instanceof Error) {
-        alert(`Failed to load checklist items: ${error.message}. Please check your connection and permissions.`);
-      }
+      setSystemHealth(prev => ({
+        ...prev,
+        errorDetails: `Load error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -189,23 +385,20 @@ export default function ChecklistManagement() {
   const filterItems = () => {
     let filtered = items;
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.label.toLowerCase().includes(query) ||
         item.category.toLowerCase().includes(query) ||
-        item.notes?.toLowerCase().includes(query) ||
-        item.gpt_prompt?.toLowerCase().includes(query)
+        (item.notes && item.notes.toLowerCase().includes(query)) ||
+        (item.gpt_prompt && item.gpt_prompt.toLowerCase().includes(query))
       );
     }
 
-    // Apply category filter
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(item => item.category === categoryFilter);
     }
 
-    // Apply status filter
     if (statusFilter === 'active') {
       filtered = filtered.filter(item => !item.deleted);
     } else if (statusFilter === 'deleted') {
@@ -216,10 +409,14 @@ export default function ChecklistManagement() {
   };
 
   const handleCreateItem = async () => {
+    if (isOfflineMode) {
+      alert('Cannot create items in offline mode. Please check your connection.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
-      // Validate form data
       const sanitizedData = {
         label: sanitizeFormInput(formData.label),
         category: formData.category,
@@ -233,7 +430,7 @@ export default function ChecklistManagement() {
         throw new Error('Label is required');
       }
 
-      // Check if item already exists
+      // Check for duplicates
       const { data: existingItem } = await supabase
         .from('static_safety_items')
         .select('id')
@@ -245,13 +442,12 @@ export default function ChecklistManagement() {
         throw new Error('A checklist item with this label already exists');
       }
 
-      // Create item
       const { data, error } = await supabase
         .from('static_safety_items')
         .insert({
           ...sanitizedData,
           deleted: false,
-          checklist_id: 1, // Default checklist
+          checklist_id: 1,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           active_date: new Date().toISOString()
@@ -261,12 +457,12 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item created successfully', { itemId: data.id, label: data.label }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item created successfully', { itemId: data.id, label: data.label }, 'CHECKLIST_ULTIMATE');
       await loadItems();
       setIsCreateDialogOpen(false);
       setFormData(defaultFormData);
     } catch (error) {
-      logger.error('Failed to create checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to create checklist item', error, 'CHECKLIST_ULTIMATE');
       alert(error instanceof Error ? error.message : 'Failed to create checklist item');
     } finally {
       setIsSubmitting(false);
@@ -274,6 +470,11 @@ export default function ChecklistManagement() {
   };
 
   const handleEditItem = async () => {
+    if (isOfflineMode) {
+      alert('Cannot edit items in offline mode. Please check your connection.');
+      return;
+    }
+
     try {
       if (!editingItem) return;
       
@@ -300,13 +501,13 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item updated successfully', { itemId: editingItem.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item updated successfully', { itemId: editingItem.id }, 'CHECKLIST_ULTIMATE');
       await loadItems();
       setIsEditDialogOpen(false);
       setEditingItem(null);
       setFormData(defaultFormData);
     } catch (error) {
-      logger.error('Failed to update checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to update checklist item', error, 'CHECKLIST_ULTIMATE');
       alert(error instanceof Error ? error.message : 'Failed to update checklist item');
     } finally {
       setIsSubmitting(false);
@@ -314,6 +515,11 @@ export default function ChecklistManagement() {
   };
 
   const handleDeleteItem = async (item: ChecklistItem) => {
+    if (isOfflineMode) {
+      alert('Cannot delete items in offline mode. Please check your connection.');
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete "${item.label}"? This action cannot be undone.`)) {
       return;
     }
@@ -330,15 +536,20 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item deleted successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item deleted successfully', { itemId: item.id }, 'CHECKLIST_ULTIMATE');
       await loadItems();
     } catch (error) {
-      logger.error('Failed to delete checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to delete checklist item', error, 'CHECKLIST_ULTIMATE');
       alert('Failed to delete checklist item. It may be in use by active inspections.');
     }
   };
 
   const handleRestoreItem = async (item: ChecklistItem) => {
+    if (isOfflineMode) {
+      alert('Cannot restore items in offline mode. Please check your connection.');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('static_safety_items')
@@ -351,10 +562,10 @@ export default function ChecklistManagement() {
 
       if (error) throw error;
 
-      logger.info('Checklist item restored successfully', { itemId: item.id }, 'CHECKLIST_MANAGEMENT');
+      logger.info('Checklist item restored successfully', { itemId: item.id }, 'CHECKLIST_ULTIMATE');
       await loadItems();
     } catch (error) {
-      logger.error('Failed to restore checklist item', error, 'CHECKLIST_MANAGEMENT');
+      logger.error('Failed to restore checklist item', error, 'CHECKLIST_ULTIMATE');
       alert('Failed to restore checklist item.');
     }
   };
@@ -412,6 +623,82 @@ export default function ChecklistManagement() {
     return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
   };
 
+  // System Health Alert Component
+  const SystemHealthAlert = () => {
+    if (isOfflineMode) {
+      return (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <WifiOff className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-800">Offline Mode</AlertTitle>
+          <AlertDescription className="text-yellow-700">
+            You're viewing mock data. Database connection issues detected. 
+            {systemHealth.errorDetails && (
+              <details className="mt-2">
+                <summary className="cursor-pointer">Error Details</summary>
+                <p className="text-xs mt-1">{systemHealth.errorDetails}</p>
+              </details>
+            )}
+            <div className="mt-2 space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setRetryCount(prev => prev + 1)}
+                className="text-yellow-600 border-yellow-300"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Retry Connection
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (systemHealth.canConnect && systemHealth.tableExists) {
+      return (
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800">System Operational</AlertTitle>
+          <AlertDescription className="text-green-700">
+            Checklist management system is fully functional. 
+            {!systemHealth.hasPermissions && (
+              <span className="text-orange-600"> (Read-only mode - limited write permissions)</span>
+            )}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        <AlertTitle className="text-red-800">System Issue Detected</AlertTitle>
+        <AlertDescription className="text-red-700">
+          {systemHealth.errorDetails || 'Unable to access checklist management functionality.'}
+          <div className="mt-2 space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setRetryCount(prev => prev + 1)}
+              className="text-red-600 border-red-300"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Retry
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="text-red-600 border-red-300"
+            >
+              Refresh Page
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -419,117 +706,134 @@ export default function ChecklistManagement() {
           <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
+        <div className="text-center text-gray-500 text-sm">
+          Performing system health check and loading data...
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* System Health Alert */}
+      <SystemHealthAlert />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Checklist Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            Checklist Management
+            {isOfflineMode && <WifiOff className="h-5 w-5 ml-2 text-yellow-600" />}
+            {!isOfflineMode && systemHealth.canConnect && <Wifi className="h-5 w-5 ml-2 text-green-600" />}
+          </h1>
           <p className="text-gray-600">
             Manage inspection checklist templates and requirements
+            {isOfflineMode && ' (Offline Mode - Mock Data)'}
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Checklist Item
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Checklist Item</DialogTitle>
-              <DialogDescription>
-                Create a new checklist item template for inspections.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="label">Item Label</Label>
-                <Input
-                  id="label"
-                  placeholder="e.g., Check smoke detector functionality"
-                  value={formData.label}
-                  onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={() => setRetryCount(prev => prev + 1)}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={isOfflineMode || !systemHealth.hasPermissions}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Checklist Item
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Checklist Item</DialogTitle>
+                <DialogDescription>
+                  Create a new checklist item template for inspections.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="label">Item Label</Label>
+                  <Input
+                    id="label"
+                    placeholder="e.g., Check smoke detector functionality"
+                    value={formData.label}
+                    onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Select 
+                      value={formData.category} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="evidence_type">Evidence Type</Label>
+                    <Select 
+                      value={formData.evidence_type} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, evidence_type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {evidenceTypes.map(type => (
+                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="required"
+                    checked={formData.required}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, required: checked }))}
+                  />
+                  <Label htmlFor="required">Required for inspection completion</Label>
                 </div>
                 <div>
-                  <Label htmlFor="evidence_type">Evidence Type</Label>
-                  <Select 
-                    value={formData.evidence_type} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, evidence_type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {evidenceTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Additional instructions or context for inspectors"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gpt_prompt">AI Prompt (Optional)</Label>
+                  <Textarea
+                    id="gpt_prompt"
+                    placeholder="Custom AI analysis prompt for this checklist item"
+                    value={formData.gpt_prompt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, gpt_prompt: e.target.value }))}
+                    rows={3}
+                  />
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="required"
-                  checked={formData.required}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, required: checked }))}
-                />
-                <Label htmlFor="required">Required for inspection completion</Label>
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Additional instructions or context for inspectors"
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="gpt_prompt">AI Prompt (Optional)</Label>
-                <Textarea
-                  id="gpt_prompt"
-                  placeholder="Custom AI analysis prompt for this checklist item"
-                  value={formData.gpt_prompt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, gpt_prompt: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateItem} disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Item'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateItem} disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating...' : 'Create Item'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -629,7 +933,10 @@ export default function ChecklistManagement() {
       {/* Items Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Checklist Items ({filteredItems.length})</CardTitle>
+          <CardTitle>
+            Checklist Items ({filteredItems.length})
+            {isOfflineMode && <Badge variant="secondary" className="ml-2">Offline Data</Badge>}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -671,7 +978,7 @@ export default function ChecklistManagement() {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={isOfflineMode}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -718,6 +1025,7 @@ export default function ChecklistManagement() {
                   variant="outline"
                   className="mt-4"
                   onClick={() => setIsCreateDialogOpen(true)}
+                  disabled={isOfflineMode || !systemHealth.hasPermissions}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add your first checklist item
