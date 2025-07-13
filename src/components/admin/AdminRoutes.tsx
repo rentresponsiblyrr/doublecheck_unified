@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from './AdminLayout';
 
@@ -49,26 +48,43 @@ const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').catch(() => (
   default: () => <div>Coming Soon page temporarily unavailable</div> 
 })));
 
+const SimpleAdminTest = React.lazy(() => import('./SimpleAdminTest').catch(() => ({ 
+  default: () => <div>Test component failed to load</div> 
+})));
+
 // Loading fallback
-const AdminLoadingFallback = () => (
-  <div className="space-y-6">
-    <Skeleton className="h-8 w-64" />
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
+const AdminLoadingFallback = () => {
+  console.log('⏳ AdminLoadingFallback rendering...');
+  return (
+    <div className="p-8 bg-blue-50 border-2 border-blue-300 rounded-lg">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <h2 className="text-xl font-semibold text-blue-800 mb-2">Loading Admin Component...</h2>
+        <p className="text-blue-600">If you see this, the routing is working but the component is still loading.</p>
+      </div>
+      <div className="mt-6 space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </div>
     </div>
-    <Skeleton className="h-96 w-full" />
-  </div>
-);
+  );
+};
 
 // Admin Routes Component
 export default function AdminRoutes() {
+  console.log('🔍 AdminRoutes component rendering...');
+  console.log('📍 Current location:', window.location.pathname);
+  
   return (
-    <ErrorBoundary fallback={<div className="p-6">Admin dashboard temporarily unavailable. Please refresh the page.</div>}>
-      <AdminLayout>
-        <Routes>
+    <div className="admin-routes-wrapper">
+      <Routes>
+        <Route path="/" element={<AdminLayout />}>
           {/* Default/Index route */}
           <Route index element={
             <Suspense fallback={<AdminLoadingFallback />}>
@@ -169,8 +185,8 @@ export default function AdminRoutes() {
               />
             </Suspense>
           } />
-        </Routes>
-      </AdminLayout>
-    </ErrorBoundary>
+        </Route>
+      </Routes>
+    </div>
   );
 }

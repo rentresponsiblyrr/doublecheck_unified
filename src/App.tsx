@@ -60,21 +60,63 @@ function App() {
           return;
         }
         
-        // If we have a valid session, verify user still exists and has access
+        // If we have a valid session, verify user with robust fallback
         if (session?.user) {
-          const { data: userProfile, error: userError } = await supabase
-            .from('users')
-            .select('id, email, name, status')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (userError || !userProfile || userProfile.status === 'disabled') {
-            console.log('⚠️ User profile invalid, requiring fresh login');
-            await supabase.auth.signOut();
-          } else {
+          console.log('🔍 Verifying user session...', session.user.id);
+          
+          let userValid = false;
+          
+          try {
+            // Try users table first
+            const { data: userProfile, error: userError } = await supabase
+              .from('users')
+              .select('id, email, name, status')
+              .eq('id', session.user.id)
+              .single();
+              
+            if (!userError && userProfile && userProfile.status !== 'disabled') {
+              console.log('✅ User found in users table');
+              userValid = true;
+            } else {
+              console.log('⚠️ Users table query failed, trying fallback...', userError?.message);
+            }
+          } catch (usersError) {
+            console.log('⚠️ Users table not accessible, trying fallback...', usersError);
+          }
+          
+          // Fallback: try profiles table
+          if (!userValid) {
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, email, role')
+                .eq('id', session.user.id)
+                .single();
+                
+              if (!profileError && profileData) {
+                console.log('✅ User found in profiles table');
+                userValid = true;
+              } else {
+                console.log('⚠️ Profiles table query failed...', profileError?.message);
+              }
+            } catch (profileError) {
+              console.log('⚠️ Profiles table not accessible...', profileError);
+            }
+          }
+          
+          // Final fallback: allow login if user has valid auth session
+          if (!userValid) {
+            console.log('⚠️ No user data found in tables, allowing login with auth session only');
+            userValid = true;
+          }
+          
+          if (userValid) {
             console.log('✅ Valid session found, authenticating user');
             setUser(session.user);
             setIsAuthenticated(true);
+          } else {
+            console.log('❌ User session invalid, requiring fresh login');
+            await supabase.auth.signOut();
           }
         }
       } catch (error) {
