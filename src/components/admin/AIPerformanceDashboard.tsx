@@ -842,3 +842,6 @@ const ChevronRight: React.FC<{ className?: string }> = ({ className }) => (
     <polyline points="9 18 15 12 9 6" />
   </svg>
 );
+
+// Default export for admin routing
+export default AIPerformanceDashboard;

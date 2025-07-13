@@ -21,9 +21,9 @@ const InspectionManagement = React.lazy(() => import('./InspectionManagement').c
   default: () => <div>Inspection Management temporarily unavailable</div>
 })));
 
-const AIPerformanceDashboard = React.lazy(() => import('./AIPerformanceDashboard').then(module => ({
-  default: module.AIPerformanceDashboard
-})).catch(() => ({ default: () => <div>Performance Dashboard temporarily unavailable</div> })));
+const AIPerformanceDashboard = React.lazy(() => import('./AIPerformanceDashboard').catch(() => ({
+  default: () => <div>Performance Dashboard temporarily unavailable</div>
+})));
 
 const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').catch(() => ({
   default: () => <div>Learning Dashboard temporarily unavailable</div>
@@ -41,9 +41,7 @@ const AuditCenter = React.lazy(() => import('./AuditCenter').catch(() => ({
   default: () => <div>Audit Center temporarily unavailable</div>
 })));
 
-const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').then(module => ({
-  default: module.ComingSoonPage
-})).catch(() => ({ 
+const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').catch(() => ({ 
   default: () => <div>Coming Soon page temporarily unavailable</div> 
 })));
 

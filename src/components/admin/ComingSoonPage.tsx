@@ -180,3 +180,6 @@ export const ComingSoonPage: React.FC<ComingSoonPageProps> = ({
     </div>
   );
 };
+
+// Default export for admin routing
+export default ComingSoonPage;
