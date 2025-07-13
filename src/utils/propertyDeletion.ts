@@ -25,13 +25,28 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       let query = supabase.from(tableName).delete();
       
       // Apply filters
+      let shouldSkip = false;
       Object.entries(filter).forEach(([key, value]) => {
         if (Array.isArray(value)) {
+          // For arrays, use the proper PostgreSQL IN syntax
+          if (value.length === 0) {
+            // Skip deletion if no values to delete
+            console.log(`⚠️ No values for ${description} - skipping`);
+            shouldSkip = true;
+            return;
+          }
+          // Use the correct Supabase syntax for IN queries
           query = query.in(key, value);
         } else {
           query = query.eq(key, value);
         }
       });
+
+      // If we should skip, return early
+      if (shouldSkip) {
+        console.log(`✅ ${description} skipped (no data to delete)`);
+        return;
+      }
 
       const { error } = await query;
       
@@ -154,33 +169,36 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
         
         // Step 3: Delete checklist item change logs (foreign key to checklist_items)
         console.log('📋 Deleting checklist item change logs...');
-        await safeDelete('checklist_item_change_log', { checklist_item_id: checklistItemIds }, 'checklist item change logs');
+        if (checklistItemIds.length > 0) {
+          // Batch delete in chunks of 10 to avoid URL length limits (UUIDs are ~36 chars each)
+          const BATCH_SIZE = 10;
+          for (let i = 0; i < checklistItemIds.length; i += BATCH_SIZE) {
+            const batch = checklistItemIds.slice(i, i + BATCH_SIZE);
+            await safeDelete('checklist_item_change_log', { checklist_item_id: batch }, `checklist item change logs batch ${Math.floor(i/BATCH_SIZE) + 1}`);
+          }
+        }
 
         // Step 4: Delete checklist audit logs (foreign key to checklist_items)
         console.log('📋 Deleting checklist audit logs...');
-        const { error: auditLogError } = await supabase
-          .from('checklist_audit_log')
-          .delete()
-          .in('checklist_item_id', checklistItemIds);
-
-        if (auditLogError) {
-          console.error('❌ Error deleting checklist audit logs:', auditLogError);
-          throw new Error(`Failed to delete checklist audit logs: ${auditLogError.message}`);
+        if (checklistItemIds.length > 0) {
+          // Batch delete in chunks of 10 to avoid URL length limits (UUIDs are ~36 chars each)
+          const BATCH_SIZE = 10;
+          for (let i = 0; i < checklistItemIds.length; i += BATCH_SIZE) {
+            const batch = checklistItemIds.slice(i, i + BATCH_SIZE);
+            await safeDelete('checklist_audit_log', { checklist_item_id: batch }, `checklist audit logs batch ${Math.floor(i/BATCH_SIZE) + 1}`);
+          }
         }
-        console.log('✅ Checklist audit logs deleted successfully');
         
         // Step 5: Delete media files for checklist items
         console.log('🎬 Deleting media for checklist items...');
-        const { error: mediaError } = await supabase
-          .from('media')
-          .delete()
-          .in('checklist_item_id', checklistItemIds);
-
-        if (mediaError) {
-          console.error('❌ Error deleting media:', mediaError);
-          throw new Error(`Failed to delete media: ${mediaError.message}`);
+        if (checklistItemIds.length > 0) {
+          // Batch delete in chunks of 10 to avoid URL length limits (UUIDs are ~36 chars each)
+          const BATCH_SIZE = 10;
+          for (let i = 0; i < checklistItemIds.length; i += BATCH_SIZE) {
+            const batch = checklistItemIds.slice(i, i + BATCH_SIZE);
+            await safeDelete('media', { checklist_item_id: batch }, `media batch ${Math.floor(i/BATCH_SIZE) + 1}`);
+          }
         }
-        console.log('✅ Media deleted successfully');
       }
 
       // Step 6: Delete collaboration conflicts for these inspections - SKIPPED (table removed)
@@ -194,46 +212,64 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
 
       // Step 9: Delete checklist operations audit for these inspections
       console.log('📊 Deleting checklist operations audit...');
-      const { error: operationsAuditError } = await supabase
-        .from('checklist_operations_audit')
-        .delete()
-        .in('inspection_id', inspectionIds);
-
-      if (operationsAuditError) {
-        console.error('❌ Error deleting checklist operations audit:', operationsAuditError);
-        throw new Error(`Failed to delete checklist operations audit: ${operationsAuditError.message}`);
+      if (inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('checklist_operations_audit', { inspection_id: inspectionId }, `checklist operations audit for inspection ${inspectionId}`);
+        }
       }
-      console.log('✅ Checklist operations audit deleted successfully');
 
       // Step 9.1: Delete auditor feedback (AI learning data) - using safe delete
       console.log('🧠 Deleting auditor feedback...');
-      await safeDelete('auditor_feedback', { inspection_id: inspectionIds }, 'auditor feedback');
+      if (inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('auditor_feedback', { inspection_id: inspectionId }, `auditor feedback for inspection ${inspectionId}`);
+        }
+      }
 
       // Step 9.2: Delete RAG query logs (AI learning data) - using safe delete
       console.log('🔍 Deleting RAG query logs...');
-      await safeDelete('rag_query_log', { inspection_id: inspectionIds }, 'RAG query logs');
+      if (inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('rag_query_log', { inspection_id: inspectionId }, `RAG query logs for inspection ${inspectionId}`);
+        }
+      }
 
       // Step 9.3: Delete audit feedback (uses inspection_id based on migration)
       console.log('📝 Deleting audit feedback...');
       
       // Based on migration 20250709000000_add_inspection_reports_table.sql, audit_feedback uses inspection_id
       if (inspectionIds && inspectionIds.length > 0) {
-        await safeDelete('audit_feedback', { inspection_id: inspectionIds }, 'audit feedback');
+        // Delete each inspection individually to avoid the IN query issue
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('audit_feedback', { inspection_id: inspectionId }, `audit feedback for inspection ${inspectionId}`);
+        }
       } else {
         console.log('⚠️ No inspection IDs found for audit_feedback deletion');
       }
 
       // Step 9.4: Delete report deliveries - using safe delete
       console.log('📧 Deleting report deliveries...');
-      await safeDelete('report_deliveries', { inspection_id: inspectionIds }, 'report deliveries');
+      if (inspectionIds && inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('report_deliveries', { inspection_id: inspectionId }, `report deliveries for inspection ${inspectionId}`);
+        }
+      }
 
       // Step 9.5: Delete inspection reports - using safe delete
       console.log('📄 Deleting inspection reports...');
-      await safeDelete('inspection_reports', { inspection_id: inspectionIds }, 'inspection reports');
+      if (inspectionIds && inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('inspection_reports', { inspection_id: inspectionId }, `inspection reports for inspection ${inspectionId}`);
+        }
+      }
 
       // Step 10: Delete checklist items - using safe delete for better error handling
       console.log('🗂️ Deleting checklist items...');
-      await safeDelete('checklist_items', { inspection_id: inspectionIds }, 'checklist items');
+      if (inspectionIds && inspectionIds.length > 0) {
+        for (const inspectionId of inspectionIds) {
+          await safeDelete('checklist_items', { inspection_id: inspectionId }, `checklist items for inspection ${inspectionId}`);
+        }
+      }
     }
 
     // Step 11: Delete listing photos for this property
