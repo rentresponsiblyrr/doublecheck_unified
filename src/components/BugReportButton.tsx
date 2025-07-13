@@ -35,12 +35,6 @@ export const BugReportButton: React.FC<BugReportButtonProps> = ({
   useEffect(() => {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const shouldShow = isDevelopment || showInProduction;
-    console.log('🐛 BugReportButton visibility check:', { 
-      isDevelopment, 
-      showInProduction, 
-      shouldShow,
-      NODE_ENV: process.env.NODE_ENV
-    });
     setIsVisible(shouldShow);
   }, [showInProduction]);
 
@@ -103,10 +97,7 @@ export const BugReportButton: React.FC<BugReportButtonProps> = ({
     }
   };
 
-  console.log('🐛 BugReportButton render state:', { isVisible, isCollapsed, isDialogOpen });
-
   if (!isVisible) {
-    console.log('🐛 BugReportButton hidden due to visibility check');
     return null;
   }
 
@@ -149,9 +140,7 @@ export const BugReportButton: React.FC<BugReportButtonProps> = ({
                 className={cn(
                   'rounded-full shadow-lg bg-red-500 hover:bg-red-600 text-white border-2 border-red-600 transition-all duration-200 hover:scale-105',
                   getSizeClasses(),
-                  isCollapsed ? 'mt-0' : 'mt-2',
-                  // Debug: add a visible outline
-                  'ring-4 ring-yellow-300'
+                  isCollapsed ? 'mt-0' : 'mt-2'
                 )}
               >
                 <Bug className={getIconSize()} />

@@ -221,25 +221,24 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                   showInProduction={true}
                 />
                 
-                {/* Debug: Test bug report system */}
-                {process.env.NODE_ENV === 'development' && <SimpleBugReportTest />}
-                
-                {/* Debug: Ensure bug report is visible */}
-                <div 
-                  style={{
-                    position: 'fixed',
-                    top: '10px',
-                    right: '10px',
-                    background: 'rgba(255,0,0,0.8)',
-                    color: 'white',
-                    padding: '4px 8px',
-                    fontSize: '12px',
-                    zIndex: 9999,
-                    borderRadius: '4px'
-                  }}
-                >
-                  Bug Report System Active
-                </div>
+                {/* Debug: Test bug report system in development only */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div 
+                    style={{
+                      position: 'fixed',
+                      top: '10px',
+                      left: '10px',
+                      background: 'rgba(0,100,0,0.8)',
+                      color: 'white',
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      zIndex: 9999,
+                      borderRadius: '4px'
+                    }}
+                  >
+                    🐛 Bug Report: User Menu → Report Issue
+                  </div>
+                )}
               </SimpleAuthProvider>
             </ErrorBoundary>
           </TooltipProvider>

@@ -3,58 +3,19 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from './AdminLayout';
 
-// Lazy load admin components to prevent blocking issues
-const AdminOverview = React.lazy(() => import('./AdminOverview').catch(() => ({
-  default: () => <div>Overview temporarily unavailable</div>
-})));
+// Import admin components directly to avoid lazy loading issues
+import AdminOverview from './AdminOverview';
+import PropertyManagement from './PropertyManagement';
+import UserManagementRobust from './UserManagementRobust';
+import InspectionManagement from './InspectionManagement';
+import ChecklistManagementUltimate from './ChecklistManagementUltimate';
 
-const PropertyManagement = React.lazy(() => import('./PropertyManagement').catch(() => ({
-  default: () => <div>Property Management temporarily unavailable</div>
-})));
-
-const UserManagement = React.lazy(() => import('./UserManagementRobust').catch(() => ({
-  default: () => <div>User Management temporarily unavailable</div>
-})));
-
-const InspectionManagement = React.lazy(() => import('./InspectionManagement').catch(() => ({
-  default: () => <div>Inspection Management temporarily unavailable</div>
-})));
-
-const AIPerformanceDashboard = React.lazy(() => import('./AIPerformanceDashboard').catch(() => ({
-  default: () => <div>Performance Dashboard temporarily unavailable</div>
-})));
-
-const AILearningDashboard = React.lazy(() => import('./AILearningDashboard').catch(() => ({
-  default: () => <div>Learning Dashboard temporarily unavailable</div>
-})));
-
-const ChecklistManagement = React.lazy(() => import('./ChecklistManagementUltimate').catch(() => 
-  import('./ChecklistManagementRobust').catch(() => 
-    import('./ChecklistManagement').catch(() => ({
-      default: () => <div>Checklist Management temporarily unavailable</div>
-    }))
-  )
-));
-
-const ReportManagement = React.lazy(() => import('./ReportManagement').catch(() => ({
-  default: () => <div>Report Management temporarily unavailable</div>
-})));
-
-const AuditCenter = React.lazy(() => import('./AuditCenter').catch(() => ({
-  default: () => <div>Audit Center temporarily unavailable</div>
-})));
-
-const ComingSoonPage = React.lazy(() => import('./ComingSoonPage').catch(() => ({ 
-  default: () => <div>Coming Soon page temporarily unavailable</div> 
-})));
-
-const BugReportManagement = React.lazy(() => import('./BugReportManagement').catch(() => ({
-  default: () => <div>Bug Report Management temporarily unavailable</div>
-})));
-
-const SimpleAdminTest = React.lazy(() => import('./SimpleAdminTest').catch(() => ({ 
-  default: () => <div>Test component failed to load</div> 
-})));
+// Import remaining components directly
+import ReportManagement from './ReportManagement';
+import AuditCenter from './AuditCenter';
+import ComingSoonPage from './ComingSoonPage';
+import BugReportManagement from './BugReportManagement';
+import SimpleAdminTest from './SimpleAdminTest';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -102,110 +63,70 @@ export default function AdminRoutes() {
     <AdminLayout>
       <Routes>
         {/* Use relative paths since we're already nested under /admin */}
-        <Route path="/" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <AdminOverview />
-          </Suspense>
-        } />
+        <Route path="/" element={<AdminOverview />} />
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
-        <Route path="properties" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <PropertyManagement />
-          </Suspense>
-        } />
-        <Route path="users" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <UserManagement />
-          </Suspense>
-        } />
-        <Route path="inspections" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <InspectionManagement />
-          </Suspense>
-        } />
-        <Route path="audit" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <AuditCenter />
-          </Suspense>
-        } />
-        <Route path="reports" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ReportManagement />
-          </Suspense>
-        } />
-        <Route path="checklists" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ChecklistManagement />
-          </Suspense>
-        } />
+        <Route path="properties" element={<PropertyManagement />} />
+        <Route path="users" element={<UserManagementRobust />} />
+        <Route path="inspections" element={<InspectionManagement />} />
+        <Route path="audit" element={<AuditCenter />} />
+        <Route path="reports" element={<ReportManagement />} />
+        <Route path="checklists" element={<ChecklistManagementUltimate />} />
         <Route path="performance" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ComingSoonPage 
-              title="AI Performance Dashboard" 
-              description="Real-time AI monitoring and performance analytics"
-              features={[
-                'Real-time accuracy metrics',
-                'Response time monitoring', 
-                'Cost optimization insights',
-                'Model performance comparison',
-                'Automated alerting system'
-              ]}
-              estimatedDate="Q2 2024"
-            />
-          </Suspense>
+          <ComingSoonPage 
+            title="AI Performance Dashboard" 
+            description="Real-time AI monitoring and performance analytics"
+            features={[
+              'Real-time accuracy metrics',
+              'Response time monitoring', 
+              'Cost optimization insights',
+              'Model performance comparison',
+              'Automated alerting system'
+            ]}
+            estimatedDate="Q2 2024"
+          />
         } />
         <Route path="ai-learning" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ComingSoonPage 
-              title="AI Learning Dashboard" 
-              description="Advanced AI learning analytics and model improvement tracking"
-              features={[
-                'Learning progress visualization',
-                'Model version comparison',
-                'Knowledge base insights',
-                'Automated model tuning',
-                'Feedback loop optimization'
-              ]}
-              estimatedDate="Q2 2024"
-            />
-          </Suspense>
+          <ComingSoonPage 
+            title="AI Learning Dashboard" 
+            description="Advanced AI learning analytics and model improvement tracking"
+            features={[
+              'Learning progress visualization',
+              'Model version comparison',
+              'Knowledge base insights',
+              'Automated model tuning',
+              'Feedback loop optimization'
+            ]}
+            estimatedDate="Q2 2024"
+          />
         } />
         <Route path="analytics" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ComingSoonPage 
-              title="Analytics Dashboard" 
-              description="Advanced analytics and data visualization coming soon"
-              features={[
-                'Real-time inspection metrics',
-                'Property performance analytics', 
-                'Inspector productivity insights',
-                'AI accuracy trends',
-                'Revenue and cost analysis'
-              ]}
-            />
-          </Suspense>
+          <ComingSoonPage 
+            title="Analytics Dashboard" 
+            description="Advanced analytics and data visualization coming soon"
+            features={[
+              'Real-time inspection metrics',
+              'Property performance analytics', 
+              'Inspector productivity insights',
+              'AI accuracy trends',
+              'Revenue and cost analysis'
+            ]}
+          />
         } />
         <Route path="settings" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <ComingSoonPage 
-              title="System Settings" 
-              description="Comprehensive system configuration and administration"
-              features={[
-                'User roles and permissions',
-                'System-wide configurations',
-                'API key management',
-                'Notification settings',
-                'Backup and security options'
-              ]}
-            />
-          </Suspense>
+          <ComingSoonPage 
+            title="System Settings" 
+            description="Comprehensive system configuration and administration"
+            features={[
+              'User roles and permissions',
+              'System-wide configurations',
+              'API key management',
+              'Notification settings',
+              'Backup and security options'
+            ]}
+          />
         } />
-        <Route path="bug-reports" element={
-          <Suspense fallback={<AdminLoadingFallback />}>
-            <BugReportManagement />
-          </Suspense>
-        } />
+        <Route path="bug-reports" element={<BugReportManagement />} />
       </Routes>
     </AdminLayout>
   );

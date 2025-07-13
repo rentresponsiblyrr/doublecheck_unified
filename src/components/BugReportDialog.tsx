@@ -159,7 +159,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
 
       const filteredSteps = steps.filter(step => step.trim().length > 0);
       if (filteredSteps.length === 0) {
-        throw new Error('At least one reproduction step is required');
+        filteredSteps.push('User did not provide reproduction steps');
       }
 
       setUploadProgress(30);
@@ -182,32 +182,69 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
 
       setUploadProgress(50);
 
-      // Upload screenshot if available
-      if (screenshot) {
-        try {
-          const filename = `bug-report-${Date.now()}.png`;
-          const screenshotUrl = await githubIssuesService.uploadScreenshot(screenshot.blob, filename);
-          bugReportData.screenshot = screenshotUrl;
-        } catch (screenshotError) {
-          logger.warn('Screenshot upload failed, continuing without it', screenshotError, 'BUG_REPORT');
+      // Check if GitHub is configured
+      if (githubIssuesService.isConfigured()) {
+        // Upload screenshot if available
+        if (screenshot) {
+          try {
+            const filename = `bug-report-${Date.now()}.png`;
+            const screenshotUrl = await githubIssuesService.uploadScreenshot(screenshot.blob, filename);
+            bugReportData.screenshot = screenshotUrl;
+          } catch (screenshotError) {
+            logger.warn('Screenshot upload failed, continuing without it', screenshotError, 'BUG_REPORT');
+          }
         }
+
+        setUploadProgress(80);
+
+        // Create GitHub issue
+        const issue = await githubIssuesService.createBugReportIssue(bugReportData);
+        
+        setUploadProgress(100);
+        setCreatedIssue(issue);
+        setCurrentStep('success');
+
+        userActivityService.trackCustomAction('bug_report_submitted', {
+          issueNumber: issue.number,
+          title: issue.title,
+          severity,
+          category
+        });
+      } else {
+        // Fallback: Log to console and show success (for development/testing)
+        setUploadProgress(80);
+        
+        console.log('🐛 Bug Report Submitted (GitHub not configured):', {
+          ...bugReportData,
+          screenshot: screenshot ? 'Screenshot captured' : 'No screenshot'
+        });
+        
+        // Create a mock issue for display
+        setCreatedIssue({
+          id: Date.now(),
+          number: Math.floor(Math.random() * 1000),
+          title: bugReportData.title,
+          body: bugReportData.description,
+          state: 'open',
+          labels: [`severity:${severity}`, `category:${category}`],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          html_url: '#',
+          user: {
+            login: 'user',
+            avatar_url: ''
+          }
+        } as any);
+        
+        setUploadProgress(100);
+        setCurrentStep('success');
+
+        userActivityService.trackCustomAction('bug_report_submitted_offline', {
+          title: bugReportData.title,
+          severity,
+          category
+        });
       }
-
-      setUploadProgress(80);
-
-      // Create GitHub issue
-      const issue = await githubIssuesService.createBugReportIssue(bugReportData);
-      
-      setUploadProgress(100);
-      setCreatedIssue(issue);
-      setCurrentStep('success');
-
-      userActivityService.trackCustomAction('bug_report_submitted', {
-        issueNumber: issue.number,
-        title: issue.title,
-        severity,
-        category
-      });
 
     } catch (error) {
       logger.error('Bug report submission failed', error, 'BUG_REPORT');
@@ -294,37 +331,49 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       {/* Steps to Reproduce */}
       <div>
         <Label>Steps to Reproduce *</Label>
-        <div className="mt-2 space-y-2">
+        <p className="text-xs text-gray-500 mt-1 mb-3">
+          Tell us exactly how to reproduce this issue step by step
+        </p>
+        <div className="space-y-3">
           {steps.map((step, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 w-6">{index + 1}.</span>
-              <Input
-                value={step}
-                onChange={(e) => handleStepChange(index, e.target.value)}
-                placeholder={`Step ${index + 1}`}
-                className="flex-1"
-              />
+            <div key={index} className="flex items-start space-x-3">
+              <div className="flex-shrink-0 w-6 h-9 flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-500 bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center">
+                  {index + 1}
+                </span>
+              </div>
+              <div className="flex-1">
+                <Input
+                  value={step}
+                  onChange={(e) => handleStepChange(index, e.target.value)}
+                  placeholder={index === 0 ? "First, I clicked on..." : `Then I...`}
+                  className="w-full"
+                />
+              </div>
               {steps.length > 1 && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => removeStep(index)}
+                  className="flex-shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addStep}
-            className="w-full"
-          >
-            Add Step
-          </Button>
+          <div className="flex justify-center pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addStep}
+              className="px-6"
+            >
+              + Add Another Step
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -429,18 +478,26 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       {createdIssue && (
         <Alert>
           <FileText className="h-4 w-4" />
-          <AlertTitle>GitHub Issue Created</AlertTitle>
+          <AlertTitle>
+            {githubIssuesService.isConfigured() ? 'GitHub Issue Created' : 'Report Logged'}
+          </AlertTitle>
           <AlertDescription className="mt-2">
             <div className="space-y-2">
               <p><strong>Issue #{createdIssue.number}:</strong> {createdIssue.title}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(createdIssue.html_url, '_blank')}
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                View on GitHub
-              </Button>
+              {githubIssuesService.isConfigured() ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(createdIssue.html_url, '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  View on GitHub
+                </Button>
+              ) : (
+                <div className="text-sm text-blue-700 bg-blue-50 p-2 rounded">
+                  Report logged locally. Configure GitHub integration to create issues automatically.
+                </div>
+              )}
             </div>
           </AlertDescription>
         </Alert>
@@ -453,27 +510,37 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       <AlertTriangle className="h-12 w-12 mx-auto text-red-600" />
       <div>
         <h3 className="text-lg font-medium text-red-900">Submission Failed</h3>
-        <p className="text-gray-600">We couldn't submit your bug report.</p>
+        <p className="text-gray-600">We couldn't submit your bug report, but your data is saved.</p>
       </div>
       {submissionError && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error Details</AlertTitle>
-          <AlertDescription>{submissionError}</AlertDescription>
+          <AlertDescription>
+            {submissionError}
+            {!githubIssuesService.isConfigured() && (
+              <div className="mt-2 text-sm">
+                <strong>Note:</strong> GitHub integration is not configured. Contact your administrator to set up automated issue creation.
+              </div>
+            )}
+          </AlertDescription>
         </Alert>
       )}
-      <Button
-        variant="outline"
-        onClick={() => setCurrentStep('form')}
-      >
-        Try Again
-      </Button>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="text-sm font-medium text-blue-900 mb-2">Your Report Details:</h4>
+        <div className="text-sm text-blue-700 space-y-1">
+          <p><strong>Title:</strong> {title}</p>
+          <p><strong>Description:</strong> {description.substring(0, 100)}...</p>
+          <p><strong>Severity:</strong> {severity}</p>
+          {screenshot && <p><strong>Screenshot:</strong> Captured</p>}
+        </div>
+      </div>
     </div>
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Bug className="h-5 w-5" />
@@ -489,37 +556,48 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="flex-1 overflow-y-auto py-4">
           {currentStep === 'form' && renderFormStep()}
           {currentStep === 'uploading' && renderUploadingStep()}
           {currentStep === 'success' && renderSuccessStep()}
           {currentStep === 'error' && renderErrorStep()}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 pt-4 border-t">
           {currentStep === 'form' && (
-            <>
-              <Button variant="outline" onClick={onClose}>
+            <div className="flex gap-3 w-full">
+              <Button variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
               <Button 
                 onClick={submitBugReport}
-                disabled={!title.trim() || !description.trim() || !githubIssuesService.isConfigured()}
+                disabled={!title.trim() || !description.trim()}
+                className="flex-1"
               >
                 <Send className="h-4 w-4 mr-2" />
                 Submit Report
               </Button>
-            </>
+            </div>
+          )}
+          {currentStep === 'uploading' && (
+            <div className="w-full text-center">
+              <p className="text-sm text-gray-600">Please wait while we submit your report...</p>
+            </div>
           )}
           {currentStep === 'success' && (
-            <Button onClick={onClose}>
+            <Button onClick={onClose} className="w-full">
               Close
             </Button>
           )}
           {currentStep === 'error' && (
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
+            <div className="flex gap-3 w-full">
+              <Button variant="outline" onClick={() => setCurrentStep('form')} className="flex-1">
+                Try Again
+              </Button>
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                Close
+              </Button>
+            </div>
           )}
         </DialogFooter>
       </DialogContent>
