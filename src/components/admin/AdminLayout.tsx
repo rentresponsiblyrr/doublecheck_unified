@@ -113,6 +113,13 @@ const navigation = [
     current: false,
   },
   {
+    name: 'GitHub Integration Test',
+    href: '/admin/github-test',
+    icon: Bug,
+    current: false,
+    badge: 'debug'
+  },
+  {
     name: 'Settings',
     href: '/admin/settings',
     icon: Settings,

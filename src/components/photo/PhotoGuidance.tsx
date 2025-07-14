@@ -15,7 +15,10 @@ import {
   Target,
   Lightbulb,
   RefreshCw,
-  Video
+  Video,
+  ChevronDown,
+  ChevronUp,
+  Info
 } from 'lucide-react';
 import { useCamera } from '@/hooks/useCamera';
 import type { DynamicChecklistItem } from '@/lib/ai/dynamic-checklist-generator';
@@ -65,6 +68,7 @@ export function PhotoGuidance({
   const [capturedPhotos, setCapturedPhotos] = useState<Record<string, PhotoResult>>({});
   const [isCapturing, setIsCapturing] = useState(false);
   const [captureProgress, setCaptureProgress] = useState(0);
+  const [isGuidanceExpanded, setIsGuidanceExpanded] = useState(false);
   
   const {
     isReady,
@@ -753,9 +757,57 @@ export function PhotoGuidance({
               </div>
             </div>
           </CardTitle>
-          <CardDescription className="text-base mt-2">
-            {currentItem.description}
-          </CardDescription>
+          {/* Collapsible guidance */}
+          <div className="mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsGuidanceExpanded(!isGuidanceExpanded)}
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 p-0 h-auto font-normal -ml-1"
+            >
+              <Info className="h-4 w-4" />
+              <span>{isGuidanceExpanded ? 'Hide guidance' : 'Show guidance & tips'}</span>
+              {isGuidanceExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+            
+            {!isGuidanceExpanded && (
+              <div className="text-xs text-gray-500 mt-1 ml-5">
+                Tap to view detailed instructions and photo tips
+              </div>
+            )}
+            
+            {isGuidanceExpanded && (
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-4">
+                {/* Item Description */}
+                <div>
+                  <h5 className="font-medium text-sm mb-2">Description</h5>
+                  <p className="text-base text-gray-700 dark:text-gray-300">
+                    {currentItem.description}
+                  </p>
+                </div>
+                
+                {/* Photo Guidelines */}
+                <div>
+                  <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4" />
+                    Photo Guidelines
+                  </h5>
+                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    {getPhotoGuidelines(currentItem).map((guideline, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1 text-sm">•</span>
+                        <span className="flex-1">{guideline}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -772,21 +824,6 @@ export function PhotoGuidance({
             )}
           </div>
 
-          {/* Photo Guidelines - Mobile Optimized */}
-          <div className="space-y-3">
-            <h4 className="font-medium flex items-center gap-2 text-base">
-              <Lightbulb className="h-5 w-5" />
-              Photo Guidelines
-            </h4>
-            <ul className="text-base text-gray-600 dark:text-gray-400 space-y-2">
-              {getPhotoGuidelines(currentItem).map((guideline, index) => (
-                <li key={index} className="flex items-start gap-3 leading-relaxed">
-                  <span className="text-blue-500 mt-1 text-lg">•</span>
-                  <span className="flex-1">{guideline}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
           {/* Current Photo Result */}
           {currentPhotoResult && (
