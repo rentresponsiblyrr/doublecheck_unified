@@ -24,37 +24,71 @@ export default function GitHubIntegrationTest() {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [recentIssues, setRecentIssues] = useState<any[]>([]);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [componentError, setComponentError] = useState<string | null>(null);
 
   const checkGitHubStatus = async () => {
     setIsTesting(true);
+    const debug: string[] = [];
+    
     try {
+      debug.push('🔍 Starting GitHub integration check...');
+      
+      // Check environment variables
+      const envVars = {
+        owner: import.meta.env.VITE_GITHUB_OWNER,
+        repo: import.meta.env.VITE_GITHUB_REPO,
+        token: import.meta.env.VITE_GITHUB_TOKEN
+      };
+      
+      debug.push(`📋 Environment variables: owner=${envVars.owner}, repo=${envVars.repo}, token=${envVars.token ? 'SET' : 'NOT SET'}`);
+      
       // Check if service is configured
       const configured = githubIssuesService.isConfigured();
+      debug.push(`⚙️ Service configured: ${configured}`);
+      
       let tokenValid = false;
       let repoAccess = false;
       let error = undefined;
 
       if (configured) {
         try {
+          debug.push('🔐 Testing GitHub API access...');
+          
           // Try to fetch issues to test token and repo access
           const issues = await githubIssuesService.getIssuesByLabels(['bug'], 'open');
           tokenValid = true;
           repoAccess = true;
           setRecentIssues(issues.slice(0, 5));
+          debug.push(`✅ Successfully fetched ${issues.length} issues`);
         } catch (err) {
           error = err instanceof Error ? err.message : 'Unknown error';
+          debug.push(`❌ GitHub API error: ${error}`);
+          
           if (error.includes('401')) {
             tokenValid = false;
-            error = 'Invalid GitHub token';
+            error = 'Invalid GitHub token (401 Unauthorized)';
           } else if (error.includes('404')) {
             tokenValid = true;
             repoAccess = false;
-            error = 'Repository not found or no access';
+            error = 'Repository not found or no access (404 Not Found)';
+          } else if (error.includes('403')) {
+            tokenValid = true;
+            repoAccess = false;
+            error = 'Access forbidden - token may not have required permissions (403 Forbidden)';
           }
         }
+      } else {
+        debug.push('❌ Service not configured - missing environment variables');
+        error = 'GitHub service not configured - check environment variables';
       }
 
       setStatus({ configured, tokenValid, repoAccess, error });
+      setDebugInfo(debug);
+    } catch (err) {
+      const error = err instanceof Error ? err.message : 'Unknown error';
+      debug.push(`💥 Unexpected error: ${error}`);
+      setDebugInfo(debug);
+      setStatus({ configured: false, tokenValid: false, repoAccess: false, error });
     } finally {
       setIsTesting(false);
     }
@@ -97,7 +131,12 @@ export default function GitHubIntegrationTest() {
   };
 
   useEffect(() => {
-    checkGitHubStatus();
+    try {
+      checkGitHubStatus();
+    } catch (error) {
+      setComponentError(error instanceof Error ? error.message : 'Failed to initialize component');
+      console.error('GitHubIntegrationTest initialization error:', error);
+    }
   }, []);
 
   const getStatusIcon = (isGood: boolean) => {
@@ -107,6 +146,37 @@ export default function GitHubIntegrationTest() {
       <XCircle className="h-4 w-4 text-red-600" />
     );
   };
+
+  // Component error handling
+  if (componentError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">GitHub Integration Test</h1>
+          <p className="text-gray-600">Debug and test GitHub bug report integration</p>
+        </div>
+        
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Component Error:</strong> {componentError}
+            <br />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => {
+                setComponentError(null);
+                window.location.reload();
+              }}
+            >
+              Reload Page
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -251,6 +321,27 @@ export default function GitHubIntegrationTest() {
         </Card>
       )}
 
+      {/* Debug Information */}
+      {debugInfo.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Debug Information</CardTitle>
+            <CardDescription>
+              Step-by-step debugging of GitHub integration
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1 font-mono text-sm bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
+              {debugInfo.map((info, index) => (
+                <div key={index} className="text-gray-700">
+                  {info}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Environment Variables */}
       <Card>
         <CardHeader>
@@ -275,6 +366,48 @@ export default function GitHubIntegrationTest() {
               <strong>NODE_ENV:</strong> {import.meta.env.MODE}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick GitHub API Test */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick GitHub API Test</CardTitle>
+          <CardDescription>
+            Test GitHub API directly to identify issues
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={async () => {
+              setIsTesting(true);
+              try {
+                const response = await fetch('https://api.github.com/repos/rentresponsiblyrr/doublecheck_unified/issues?state=open&labels=bug&per_page=1', {
+                  headers: {
+                    'Authorization': `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                  }
+                });
+                
+                const result = await response.json();
+                setTestResult(`API Response: ${response.status} ${response.statusText}\n${JSON.stringify(result, null, 2)}`);
+              } catch (error) {
+                setTestResult(`API Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              } finally {
+                setIsTesting(false);
+              }
+            }}
+            disabled={isTesting}
+            variant="outline"
+          >
+            Test GitHub API Directly
+          </Button>
+          
+          {testResult && (
+            <div className="mt-3 p-3 bg-gray-100 rounded text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+              {testResult}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
