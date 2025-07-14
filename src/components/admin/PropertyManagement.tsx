@@ -30,6 +30,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -142,6 +152,9 @@ export default function PropertyManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<PropertyWithStatus | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<PropertyWithStatus | null>(null);
+  const [deletionProgress, setDeletionProgress] = useState<string>('');
 
   const [formData, setFormData] = useState<PropertyFormData>({
     name: '',
@@ -375,17 +388,52 @@ export default function PropertyManagement() {
   };
 
   const handleDeleteProperty = async (propertyId: string) => {
+    let originalConsoleLog = console.log;
+    
     try {
       setIsDeleting(propertyId);
+      setDeletionProgress('Starting deletion process...');
+      
+      // Monitor console logs for progress updates
+      originalConsoleLog = console.log;
+      console.log = (...args) => {
+        const message = args.join(' ');
+        if (message.includes('🗑️') || message.includes('📋') || message.includes('🎬') || message.includes('✅')) {
+          setDeletionProgress(message);
+        }
+        originalConsoleLog(...args);
+      };
+      
       await deletePropertyData(propertyId);
+      
+      setDeletionProgress('Deletion completed successfully');
       toast.success('Property deleted successfully');
       loadProperties();
+      setDeleteDialogOpen(false);
+      setPropertyToDelete(null);
     } catch (error) {
       logger.error('Failed to delete property:', error);
-      toast.error('Failed to delete property');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('already in progress')) {
+        toast.error('Property deletion is already in progress. Please wait for completion.');
+      } else {
+        toast.error(`Failed to delete property: ${errorMessage}`);
+      }
+      setDeletionProgress('');
+      setDeleteDialogOpen(false);
+      setPropertyToDelete(null);
     } finally {
+      // Always restore console.log
+      console.log = originalConsoleLog;
       setIsDeleting(null);
+      setDeletionProgress('');
     }
+  };
+
+  const confirmDelete = (property: PropertyWithStatus) => {
+    setPropertyToDelete(property);
+    setDeleteDialogOpen(true);
   };
 
   const resetForm = () => {
@@ -806,7 +854,7 @@ export default function PropertyManagement() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteProperty(property.id)}
+                            onClick={() => confirmDelete(property)}
                             disabled={isDeleting === property.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
@@ -841,6 +889,51 @@ export default function PropertyManagement() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Property</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete "{propertyToDelete?.name}"? 
+              This action cannot be undone and will remove:
+              <ul className="mt-2 ml-4 list-disc text-sm text-gray-600">
+                <li>All associated inspections</li>
+                <li>All checklist items and progress</li>
+                <li>All audit feedback and reports</li>
+                <li>All media files and photos</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          {/* Progress Display */}
+          {isDeleting && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span className="text-sm font-medium">Deleting property...</span>
+              </div>
+              {deletionProgress && (
+                <div className="mt-2 text-xs text-gray-600">
+                  {deletionProgress}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => propertyToDelete && handleDeleteProperty(propertyToDelete.id)}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Property'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
