@@ -6,7 +6,7 @@ import AdminLayout from './AdminLayout';
 // Import admin components directly to avoid lazy loading issues
 import AdminOverview from './AdminOverview';
 import PropertyManagement from './PropertyManagement';
-import InspectionManagement from './InspectionManagement';
+import SimpleInspectionManagement from './SimpleInspectionManagement';
 
 // Import simple, working components
 import SimpleUserManagement from './SimpleUserManagement';
@@ -70,7 +70,7 @@ export default function AdminRoutes() {
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
         <Route path="properties" element={<PropertyManagement />} />
         <Route path="users" element={<SimpleUserManagement />} />
-        <Route path="inspections" element={<InspectionManagement />} />
+        <Route path="inspections" element={<SimpleInspectionManagement />} />
         <Route path="audit" element={<AuditCenter />} />
         <Route path="reports" element={<ReportManagement />} />
         <Route path="checklists" element={<SimpleChecklistManagement />} />
