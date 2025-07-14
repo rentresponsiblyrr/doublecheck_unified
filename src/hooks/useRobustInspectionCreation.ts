@@ -23,8 +23,8 @@ export const useRobustInspectionCreation = () => {
       
       if (existingInspectionId) {
         toast({
-          title: "Active inspection found",
-          description: "Redirecting to existing inspection...",
+          title: "Resuming existing inspection",
+          description: "Only one inspection per property is allowed. Continuing your existing inspection...",
         });
         return existingInspectionId;
       }

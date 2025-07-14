@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { InspectionValidationService } from "./inspectionValidationService";
+import { STATUS_GROUPS, INSPECTION_STATUS } from "@/types/inspection-status";
 
 export class InspectionCreationOptimizer {
   private static readonly MAX_RETRIES = 3;
@@ -9,11 +10,23 @@ export class InspectionCreationOptimizer {
     try {
       console.log('🔍 Finding active inspection for property:', propertyId);
 
+      // Define which statuses should prevent creating a new inspection
+      // ACTIVE: draft, in_progress  
+      // REVIEW_PIPELINE: completed, pending_review, in_review
+      // NEEDS_REVISION: needs_revision (inspector must continue this one)
+      const activeStatuses = [
+        ...STATUS_GROUPS.ACTIVE,
+        ...STATUS_GROUPS.REVIEW_PIPELINE, 
+        INSPECTION_STATUS.NEEDS_REVISION
+      ];
+
+      console.log('🔍 Looking for inspections with active statuses:', activeStatuses);
+
       const { data, error } = await supabase
         .from('inspections')
-        .select('id, inspector_id, status')
+        .select('id, inspector_id, status, start_time')
         .eq('property_id', propertyId)
-        .eq('completed', false)
+        .in('status', activeStatuses)
         .order('start_time', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -24,10 +37,15 @@ export class InspectionCreationOptimizer {
       }
 
       if (data) {
-        console.log('📋 Found active inspection:', data.id, 'Status:', data.status);
+        console.log('📋 Found active inspection that should be resumed:', {
+          id: data.id,
+          status: data.status,
+          start_time: data.start_time
+        });
         return data.id;
       }
 
+      console.log('✅ No active inspection found - safe to create new one');
       return null;
     } catch (error) {
       console.error('❌ Failed to find active inspection:', error);
