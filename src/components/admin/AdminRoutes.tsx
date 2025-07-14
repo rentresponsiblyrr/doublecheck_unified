@@ -18,6 +18,7 @@ import ReportManagement from './ReportManagement';
 import AuditCenter from './AuditCenter';
 import ComingSoonPage from './ComingSoonPage';
 import SimpleAdminTest from './SimpleAdminTest';
+import InspectionCleanupUtility from './InspectionCleanupUtility';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -71,6 +72,7 @@ export default function AdminRoutes() {
         <Route path="properties" element={<PropertyManagement />} />
         <Route path="users" element={<SimpleUserManagement />} />
         <Route path="inspections" element={<SimpleInspectionManagement />} />
+        <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
         <Route path="audit" element={<AuditCenter />} />
         <Route path="reports" element={<ReportManagement />} />
         <Route path="checklists" element={<SimpleChecklistManagement />} />

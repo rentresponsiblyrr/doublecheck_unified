@@ -54,6 +54,13 @@ const navigation = [
     current: false,
   },
   {
+    name: 'Inspection Cleanup',
+    href: '/admin/inspection-cleanup',
+    icon: AlertCircle,
+    current: false,
+    badge: 'fix'
+  },
+  {
     name: 'Audit Center',
     href: '/admin/audit',
     icon: UserCheck,
