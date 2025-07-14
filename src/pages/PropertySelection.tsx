@@ -29,6 +29,7 @@ interface Inspection {
   property_id: string;
   completed: boolean;
   start_time: string | null;
+  status: string;
 }
 
 const PropertySelection = () => {
@@ -73,10 +74,22 @@ const PropertySelection = () => {
 
       console.log('📊 Fetching inspections from database for user:', user.id);
       
+      // Get all inspections for this user's properties to check status
+      const { data: userProperties } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('created_by', user.id);
+      
+      if (!userProperties || userProperties.length === 0) {
+        return [];
+      }
+      
+      const propertyIds = userProperties.map(p => p.id);
+      
       const { data, error } = await supabase
         .from('inspections')
-        .select('*')
-        .eq('inspector_id', user.id);
+        .select('id, property_id, completed, start_time, status, inspector_id')
+        .in('property_id', propertyIds);
       
       if (error) {
         console.error('❌ Error fetching inspections:', error);
@@ -103,6 +116,18 @@ const PropertySelection = () => {
   const handleStartInspection = async () => {
     if (!selectedProperty) {
       console.error('❌ No property selected for inspection');
+      return;
+    }
+
+    // Check if property is available for inspection
+    const propertyStatus = getPropertyStatus(selectedProperty);
+    if (propertyStatus.shouldHide) {
+      console.error('❌ Property is approved and should not be available for inspection');
+      return;
+    }
+    
+    if (propertyStatus.status === 'completed') {
+      console.error('❌ Property is completed and under review - cannot start new inspection');
       return;
     }
 

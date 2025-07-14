@@ -7,19 +7,21 @@ interface StartInspectionButtonProps {
   isLoading: boolean;
   buttonText?: string;
   isJoining?: boolean;
+  disabled?: boolean;
 }
 
 export const StartInspectionButton = ({ 
   onStartInspection, 
   isLoading,
   buttonText = "Start Inspection",
-  isJoining = false
+  isJoining = false,
+  disabled = false
 }: StartInspectionButtonProps) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
       <Button
         onClick={onStartInspection}
-        disabled={isLoading}
+        disabled={isLoading || disabled}
         className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
         size="lg"
       >

@@ -64,7 +64,7 @@ export class InspectionCreationOptimizer {
             property_id: propertyId,
             start_time: new Date().toISOString(),
             completed: false,
-            status: 'available',
+            status: 'draft',
             inspector_id: null
           })
           .select('id')

@@ -50,6 +50,7 @@ interface PropertySelectionContentProps {
     color: string;
     text: string;
     activeInspectionId?: string | null;
+    shouldHide?: boolean;
   };
   getButtonText: (propertyId: string) => string;
   isCreatingInspection: boolean;
@@ -92,8 +93,15 @@ export const PropertySelectionContent = ({
   const isJoining = selectedPropertyStatus?.status === 'in-progress';
   const pendingInspections = inspections.filter(i => !i.completed).length;
 
-  // Filter and sort properties
+  // Filter and sort properties - hide approved properties from inspector view
   const filteredProperties = properties.filter(property => {
+    const propertyStatus = getPropertyStatus(property.property_id);
+    
+    // Hide approved properties from inspector list
+    if (propertyStatus.shouldHide) {
+      return false;
+    }
+    
     const matchesSearch = !searchValue || 
       property.property_name?.toLowerCase().includes(searchValue.toLowerCase()) ||
       property.property_address?.toLowerCase().includes(searchValue.toLowerCase());
@@ -121,9 +129,18 @@ export const PropertySelectionContent = ({
   });
 
   const filterOptions = [
-    { id: 'available', label: 'Available', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'available').length },
-    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'in-progress').length },
-    { id: 'completed', label: 'Completed', count: properties.filter(p => getPropertyStatus(p.property_id).status === 'completed').length }
+    { id: 'pending', label: 'Available', count: properties.filter(p => {
+      const status = getPropertyStatus(p.property_id);
+      return status.status === 'pending' && !status.shouldHide;
+    }).length },
+    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => {
+      const status = getPropertyStatus(p.property_id);
+      return status.status === 'in-progress' && !status.shouldHide;
+    }).length },
+    { id: 'completed', label: 'Under Review', count: properties.filter(p => {
+      const status = getPropertyStatus(p.property_id);
+      return status.status === 'completed' && !status.shouldHide;
+    }).length }
   ];
 
   const sortOptions = [
@@ -240,6 +257,7 @@ export const PropertySelectionContent = ({
             isLoading={isCreatingInspection || actionState.isLoading}
             buttonText={buttonText}
             isJoining={isJoining}
+            disabled={selectedPropertyStatus?.status === 'completed' || selectedPropertyStatus?.shouldHide}
           />
         )}
       </div>
