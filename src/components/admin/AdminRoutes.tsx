@@ -20,7 +20,6 @@ import SimpleUserManagementFixed from './SimpleUserManagementFixed';
 import SimpleChecklistManagementFixed from './SimpleChecklistManagementFixed';
 import AuditCenterFixed from './AuditCenterFixed';
 import GitHubIntegrationTest from './GitHubIntegrationTest';
-import SimpleGitHubTest from './SimpleGitHubTest';
 
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
@@ -158,7 +157,6 @@ export default function AdminRoutes() {
         <Route path="diagnostics" element={<AdminDiagnostics />} />
         <Route path="component-test" element={<ComponentTest />} />
         <Route path="github-test" element={<GitHubIntegrationTest />} />
-        <Route path="simple-github-test" element={<SimpleGitHubTest />} />
       </Routes>
     </AdminLayout>
   );
