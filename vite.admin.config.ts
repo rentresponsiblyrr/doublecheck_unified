@@ -201,7 +201,7 @@ export default defineConfig(({ mode }) => {
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Permissions-Policy': 'camera=(none), microphone=(none), geolocation=(none)',
         'Content-Security-Policy': mode === 'production' 
-          ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com https://sentry.io wss://*.supabase.co; frame-src 'none'"
+          ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://js.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com https://api.github.com https://sentry.io wss://*.supabase.co; frame-src 'none'"
           : '',
         'Cache-Control': 'public, max-age=31536000, immutable'
       }

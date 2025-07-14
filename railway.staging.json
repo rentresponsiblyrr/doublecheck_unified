@@ -161,7 +161,7 @@
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(self), microphone=(self), geolocation=(self)",
       "X-Staging-Environment": "true",
-      "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
+      "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com https://api.github.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
     }
   },
   "environment": {

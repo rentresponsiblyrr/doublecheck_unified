@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
         'Content-Security-Policy': mode === 'production' 
-          ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
+          ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.openai.com https://api.github.com wss://*.supabase.co; media-src 'self' blob:; worker-src 'self' blob:"
           : '',
         'Cache-Control': 'public, max-age=31536000, immutable',
         'Service-Worker-Allowed': '/'
