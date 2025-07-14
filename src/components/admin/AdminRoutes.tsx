@@ -30,6 +30,8 @@ import SimpleAdminTest from './SimpleAdminTest';
 import InspectionCleanupUtility from './InspectionCleanupUtility';
 import InspectionDataDiagnostic from './InspectionDataDiagnostic';
 import DatabaseConnectivityTest from './DatabaseConnectivityTest';
+import SimpleTestPage from './SimpleTestPage';
+import AdminErrorBoundary from './AdminErrorBoundary';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -162,7 +164,12 @@ export default function AdminRoutes() {
         <Route path="component-test" element={<ComponentTest />} />
         <Route path="github-test" element={<GitHubIntegrationTest />} />
         <Route path="github-comprehensive" element={<ComprehensiveGitHubTest />} />
-        <Route path="db-test" element={<DatabaseConnectivityTest />} />
+        <Route path="db-test" element={
+          <AdminErrorBoundary>
+            <DatabaseConnectivityTest />
+          </AdminErrorBoundary>
+        } />
+        <Route path="simple-test" element={<SimpleTestPage />} />
       </Routes>
     </AdminLayout>
   );
