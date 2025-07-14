@@ -32,6 +32,7 @@ import InspectionDataDiagnostic from './InspectionDataDiagnostic';
 import DatabaseConnectivityTest from './DatabaseConnectivityTest';
 import SimpleTestPage from './SimpleTestPage';
 import AdminErrorBoundary from './AdminErrorBoundary';
+import InspectionCreationDiagnostic from './InspectionCreationDiagnostic';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -170,6 +171,7 @@ export default function AdminRoutes() {
           </AdminErrorBoundary>
         } />
         <Route path="simple-test" element={<SimpleTestPage />} />
+        <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
       </Routes>
     </AdminLayout>
   );

@@ -71,6 +71,12 @@ export class InspectionCreationOptimizer {
           .single();
 
         if (error) {
+          console.error('❌ Database error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
           throw error;
         }
 

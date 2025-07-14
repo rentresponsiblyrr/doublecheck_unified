@@ -68,6 +68,13 @@ const navigation = [
     badge: 'debug'
   },
   {
+    name: 'Inspection Creation Fix',
+    href: '/admin/inspection-creation-diagnostic',
+    icon: AlertCircle,
+    current: false,
+    badge: 'fix'
+  },
+  {
     name: 'Audit Center',
     href: '/admin/audit',
     icon: UserCheck,
