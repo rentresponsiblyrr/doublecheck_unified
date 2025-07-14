@@ -12,6 +12,9 @@ import SimpleInspectionManagement from './SimpleInspectionManagement';
 import SimpleUserManagement from './SimpleUserManagement';
 import SimpleChecklistManagement from './SimpleChecklistManagement';
 import SimpleBugReportManagement from './SimpleBugReportManagement';
+import AdminDiagnostics from './AdminDiagnostics';
+import ComponentTest from './ComponentTest';
+import RobustAdminWrapper from './RobustAdminWrapper';
 
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
@@ -70,12 +73,24 @@ export default function AdminRoutes() {
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
         <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={<SimpleUserManagement />} />
+        <Route path="users" element={
+          <RobustAdminWrapper componentName="SimpleUserManagement" fallbackComponent={<div>User management temporarily unavailable</div>}>
+            <SimpleUserManagement />
+          </RobustAdminWrapper>
+        } />
         <Route path="inspections" element={<SimpleInspectionManagement />} />
         <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
-        <Route path="audit" element={<AuditCenter />} />
+        <Route path="audit" element={
+          <RobustAdminWrapper componentName="AuditCenter" fallbackComponent={<div>Audit center temporarily unavailable</div>}>
+            <AuditCenter />
+          </RobustAdminWrapper>
+        } />
         <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={<SimpleChecklistManagement />} />
+        <Route path="checklists" element={
+          <RobustAdminWrapper componentName="SimpleChecklistManagement" fallbackComponent={<div>Checklist management temporarily unavailable</div>}>
+            <SimpleChecklistManagement />
+          </RobustAdminWrapper>
+        } />
         <Route path="performance" element={
           <ComingSoonPage 
             title="AI Performance Dashboard" 
@@ -131,6 +146,8 @@ export default function AdminRoutes() {
           />
         } />
         <Route path="bug-reports" element={<SimpleBugReportManagement />} />
+        <Route path="diagnostics" element={<AdminDiagnostics />} />
+        <Route path="component-test" element={<ComponentTest />} />
       </Routes>
     </AdminLayout>
   );

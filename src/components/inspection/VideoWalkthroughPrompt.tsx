@@ -19,7 +19,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { useVideoRecording } from '@/hooks/useVideoRecording';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/utils/logger';
 
 interface VideoWalkthroughPromptProps {
   propertyName: string;
@@ -101,7 +101,7 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
   /**
    * Get permission status color
    */
-  const getPermissionColor = (status: PermissionState['camera']): string => {
+  const getPermissionColor = (status: 'unknown' | 'granted' | 'denied' | 'requesting'): string => {
     switch (status) {
       case 'granted': return 'text-green-600';
       case 'denied': return 'text-red-600';

@@ -2,7 +2,7 @@
 // Specifically designed for video walkthrough recording
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/utils/logger';
 
 export interface VideoRecordingOptions {
   video?: boolean | MediaTrackConstraints;
