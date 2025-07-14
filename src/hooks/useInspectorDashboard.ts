@@ -30,7 +30,25 @@ async function fetchPropertiesWithInspections(userId: string) {
     });
     
     if (!result.error) {
-      return result;
+      // CRITICAL FIX: Filter out properties with completed inspections
+      const filteredData = (result.data || []).filter(property => {
+        // Hide properties with completed inspections
+        return !property.latest_inspection_completed;
+      }).map(property => {
+        // CRITICAL FIX: Show only 1 inspection per property for inspector view
+        return {
+          ...property,
+          inspection_count: property.inspection_count > 0 ? 1 : 0
+        };
+      });
+      
+      console.log('🔧 Filtered properties:', {
+        original: result.data?.length || 0,
+        filtered: filteredData.length,
+        removed: (result.data?.length || 0) - filteredData.length
+      });
+      
+      return { ...result, data: filteredData };
     }
     
     console.warn('⚠️ RPC function failed, falling back to direct query:', result.error);

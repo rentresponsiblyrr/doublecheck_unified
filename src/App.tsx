@@ -109,7 +109,10 @@ function App() {
       }
     };
 
-    checkSession();
+    checkSession().catch(error => {
+      console.error('🚨 Failed to check session:', error);
+      setIsLoading(false);
+    });
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {

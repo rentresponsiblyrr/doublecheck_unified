@@ -264,9 +264,9 @@ export default function AuditCenter() {
               name,
               address
             ),
-            profiles!inspector_id (
+            users!inspector_id (
               id,
-              full_name,
+              name,
               email
             )
           `)
@@ -277,16 +277,16 @@ export default function AuditCenter() {
         inspectionsError = result.error;
         
         if (inspectionsError) {
-          console.warn('📊 Profiles join failed, trying fallback approach:', inspectionsError);
+          console.warn('📊 Users join failed, trying fallback approach:', inspectionsError);
           throw inspectionsError;
         }
         
-        console.log('✅ Successfully loaded inspections with profiles:', inspections.length);
+        console.log('✅ Successfully loaded inspections with users:', inspections.length);
         
-      } catch (profilesError) {
+      } catch (usersError) {
         console.log('🔄 Falling back to basic inspection query...');
         
-        // Fallback: Get inspections without profiles join
+        // Fallback: Get inspections without users join
         const basicResult = await supabase
           .from('inspections')
           .select(`
@@ -313,55 +313,39 @@ export default function AuditCenter() {
         inspections = basicResult.data || [];
         console.log('✅ Fallback query successful:', inspections.length);
 
-        // Manually fetch profile data for each inspection
+        // Manually fetch user data for each inspection
         if (inspections.length > 0) {
-          console.log('🔄 Manually fetching profile data...');
+          console.log('🔄 Manually fetching user data...');
           const inspectorIds = [...new Set(inspections.map(i => i.inspector_id))];
           
-          // Try profiles table first
-          let profilesData: any[] = [];
+          // Try users table
+          let usersData: any[] = [];
           try {
-            const profilesResult = await supabase
-              .from('profiles')
-              .select('id, full_name, email')
+            const usersResult = await supabase
+              .from('users')
+              .select('id, name, email')
               .in('id', inspectorIds);
             
-            if (!profilesResult.error) {
-              profilesData = profilesResult.data || [];
+            if (!usersResult.error && usersResult.data) {
+              usersData = usersResult.data.map(user => ({
+                id: user.id,
+                name: user.name,
+                email: user.email
+              }));
+              console.log('✅ Fetched from users table:', usersData.length);
             } else {
-              console.warn('📋 Profiles table query failed:', profilesResult.error);
+              console.warn('👥 Users table query failed:', usersResult.error);
             }
-          } catch (profilesErr) {
-            console.warn('📋 Profiles table not available');
+          } catch (usersErr) {
+            console.warn('👥 Users table not available');
           }
 
-          // If profiles failed, try users table
-          if (profilesData.length === 0) {
-            try {
-              const usersResult = await supabase
-                .from('users')
-                .select('id, name, email')
-                .in('id', inspectorIds);
-              
-              if (!usersResult.error && usersResult.data) {
-                profilesData = usersResult.data.map(user => ({
-                  id: user.id,
-                  full_name: user.name,
-                  email: user.email
-                }));
-                console.log('✅ Fetched from users table:', profilesData.length);
-              }
-            } catch (usersErr) {
-              console.warn('👥 Users table also failed');
-            }
-          }
-
-          // Attach profile data to inspections
+          // Attach user data to inspections
           inspections = inspections.map(inspection => ({
             ...inspection,
-            profiles: profilesData.find(p => p.id === inspection.inspector_id) || {
+            users: usersData.find(u => u.id === inspection.inspector_id) || {
               id: inspection.inspector_id,
-              full_name: `Inspector ${inspection.inspector_id.slice(0, 8)}`,
+              name: `Inspector ${inspection.inspector_id.slice(0, 8)}`,
               email: 'unknown@example.com'
             }
           }));
@@ -403,7 +387,7 @@ export default function AuditCenter() {
 
           // Safe property access with fallbacks
           const property = inspection.properties || {};
-          const profile = inspection.profiles || {};
+          const user = inspection.users || {};
 
           return {
             id: inspection.id,
@@ -418,9 +402,9 @@ export default function AuditCenter() {
               address: property.address || 'Address not available'
             },
             inspector: {
-              id: profile.id || inspection.inspector_id,
-              name: profile.full_name || profile.name || `Inspector ${inspection.inspector_id?.slice(0, 8) || 'Unknown'}`,
-              email: profile.email || 'email@unknown.com'
+              id: user.id || inspection.inspector_id,
+              name: user.name || `Inspector ${inspection.inspector_id?.slice(0, 8) || 'Unknown'}`,
+              email: user.email || 'email@unknown.com'
             },
             total_items: totalItems,
             completed_items: completedItems,

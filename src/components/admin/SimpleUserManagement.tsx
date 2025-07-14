@@ -42,73 +42,55 @@ export default function SimpleUserManagement() {
       setIsLoading(true);
       setError(null);
 
-      // Set a timeout to prevent infinite loading
-      setTimeout(() => {
-        console.log('🔍 SimpleUserManagement timeout triggered, forcing fallback...');
-        if (isLoading) {
-          setUsers([
-            {
-              id: '1',
-              email: 'admin@doublecheckverified.com',
-              created_at: new Date().toISOString(),
-              user_metadata: { name: 'System Admin', role: 'admin' }
-            },
-            {
-              id: '2', 
-              email: 'inspector@doublecheckverified.com',
-              created_at: new Date(Date.now() - 86400000).toISOString(),
-              user_metadata: { name: 'Inspector User', role: 'inspector' }
-            }
-          ]);
-          setIsLoading(false);
-        }
-      }, 3000);
+      // Query users table directly with role information
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          id,
+          email,
+          name,
+          phone,
+          role,
+          status,
+          last_login_at,
+          created_at,
+          updated_at,
+          user_roles (
+            app_role
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-      // Try to get users from auth.users (admin access required)
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.warn('Auth admin access not available, trying profiles table:', authError);
-        
-        // Fallback to profiles table
-        const { data: profileUsers, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (profileError) {
-          console.warn('Profiles table not available, showing mock data:', profileError);
-          
-          // Show mock data for demo purposes
-          setUsers([
-            {
-              id: '1',
-              email: 'admin@doublecheckverified.com',
-              created_at: new Date().toISOString(),
-              user_metadata: { name: 'System Admin', role: 'admin' }
-            },
-            {
-              id: '2', 
-              email: 'inspector@doublecheckverified.com',
-              created_at: new Date(Date.now() - 86400000).toISOString(),
-              user_metadata: { name: 'Inspector User', role: 'inspector' }
-            },
-            {
-              id: '3',
-              email: 'auditor@doublecheckverified.com', 
-              created_at: new Date(Date.now() - 172800000).toISOString(),
-              user_metadata: { name: 'Auditor User', role: 'auditor' }
-            }
-          ]);
-        } else {
-          setUsers(profileUsers || []);
-        }
-      } else {
-        setUsers(authUsers.users || []);
+      if (usersError) {
+        console.error('Failed to load users from users table:', usersError);
+        throw new Error(`Database error: ${usersError.message}`);
       }
+
+      if (!usersData || usersData.length === 0) {
+        console.warn('No users found in database');
+        setUsers([]);
+        return;
+      }
+
+      // Transform database users to component format
+      const transformedUsers = usersData.map(user => ({
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        last_sign_in_at: user.last_login_at,
+        user_metadata: {
+          name: user.name || user.email.split('@')[0],
+          role: user.role || user.user_roles?.[0]?.app_role || 'inspector'
+        }
+      }));
+
+      console.log('✅ Successfully loaded users:', transformedUsers.length);
+      setUsers(transformedUsers);
+
     } catch (err) {
       console.error('Failed to load users:', err);
-      setError('Failed to load users. This may be due to insufficient permissions.');
+      setError(`Failed to load users: ${err.message}`);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
