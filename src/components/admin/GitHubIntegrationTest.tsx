@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, ExternalLink, Bug } from 'lucide-react';
 import { githubIssuesService } from '@/services/githubIssuesService';
 import { userActivityService } from '@/services/userActivityService';
 
@@ -23,6 +23,7 @@ export default function GitHubIntegrationTest() {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [recentIssues, setRecentIssues] = useState<any[]>([]);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   const checkGitHubStatus = async () => {
     setIsTesting(true);
