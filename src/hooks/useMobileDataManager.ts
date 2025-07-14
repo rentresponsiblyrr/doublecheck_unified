@@ -224,7 +224,8 @@ export const useMobileDataManager = (userId?: string) => {
       logger.warn('RPC function failed, falling back to direct query', error, 'MOBILE_DATA_MANAGER');
       
       // Fallback to direct property query with manual inspection counting
-      const { data: properties, error: propertiesError } = await supabase
+      // Apply same filtering logic as database function - exclude completed inspections
+      const { data: allProperties, error: propertiesError } = await supabase
         .from('properties')
         .select(`
           id,
@@ -233,7 +234,8 @@ export const useMobileDataManager = (userId?: string) => {
           vrbo_url,
           airbnb_url,
           status,
-          created_at
+          created_at,
+          inspections!inner(status)
         `)
         .eq('added_by', userId || '')
         .eq('status', 'active');
@@ -241,6 +243,18 @@ export const useMobileDataManager = (userId?: string) => {
       if (propertiesError) {
         throw propertiesError;
       }
+      
+      // Filter out properties with completed inspections (unless they have failed inspections)
+      const properties = allProperties?.filter(property => {
+        const inspections = property.inspections || [];
+        const hasCompleted = inspections.some(i => i.status === 'completed');
+        const hasRejected = inspections.some(i => i.status === 'rejected');
+        
+        // Show property if:
+        // 1. No completed inspections, OR
+        // 2. Has rejected inspections (allowing re-inspection)
+        return !hasCompleted || hasRejected;
+      }) || [];
       
       // Enrich with inspection counts using efficient batch query
       const propertyIds = properties?.map(p => p.id) || [];

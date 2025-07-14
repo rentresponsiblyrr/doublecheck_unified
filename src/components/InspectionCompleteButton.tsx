@@ -33,6 +33,7 @@ export const InspectionCompleteButton = ({
       const { error } = await supabase
         .from('inspections')
         .update({ 
+          status: 'completed',
           completed: true,
           end_time: new Date().toISOString()
         })
@@ -54,7 +55,7 @@ export const InspectionCompleteButton = ({
         description: `Inspection submitted with ${passedCount} passed and ${failedCount} failed items.`,
       });
       
-      navigate(`/inspection/${inspectionId}/complete`);
+      navigate(`/inspection-complete/${inspectionId}`);
     } catch (error) {
       console.error('💥 Failed to complete inspection:', error);
       toast({
