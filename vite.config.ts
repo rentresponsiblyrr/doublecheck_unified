@@ -321,6 +321,9 @@ export default defineConfig(({ mode }) => {
       '__ENABLE_DOMAIN_ROUTING__': env.VITE_ENABLE_DOMAIN_ROUTING === 'true'
     },
     
+    // Explicitly expose environment variables to the client
+    envPrefix: ['VITE_', 'REACT_APP_'],
+    
     // Performance hints
     esbuild: {
       legalComments: 'none',

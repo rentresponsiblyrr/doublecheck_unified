@@ -333,48 +333,80 @@ export class ChecklistService {
   }
 
   /**
-   * Upload media files for checklist item
+   * Upload media files for checklist item - OPTIMIZED FOR PERFORMANCE
    */
   private async uploadMediaFiles(checklistItemId: string, files: File[], type: 'photo' | 'video'): Promise<boolean> {
     try {
-      for (const file of files) {
-        const fileName = `${checklistItemId}/${type}s/${Date.now()}-${file.name}`;
+      // PERFORMANCE FIX: Upload files in parallel instead of sequentially
+      const uploadPromises = files.map(async (file, index) => {
+        const fileName = `${checklistItemId}/${type}s/${Date.now()}-${index}-${file.name}`;
         
-        // Upload to Supabase storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('inspection-media')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+        try {
+          // Upload to Supabase storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('inspection-media')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-        if (uploadError) {
-          logger.error('Failed to upload media file', uploadError, 'CHECKLIST_SERVICE');
-          continue;
+          if (uploadError) {
+            logger.error('Failed to upload media file', { fileName, error: uploadError }, 'CHECKLIST_SERVICE');
+            throw uploadError;
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('inspection-media')
+            .getPublicUrl(fileName);
+
+          // Save media file record
+          const { error: mediaError } = await supabase
+            .from('media')
+            .insert({
+              checklist_item_id: checklistItemId,
+              type,
+              url: publicUrl,
+              created_at: new Date().toISOString()
+            });
+
+          if (mediaError) {
+            logger.error('Failed to save media file record', { fileName, error: mediaError }, 'CHECKLIST_SERVICE');
+            throw mediaError;
+          }
+
+          logger.info('Media file uploaded successfully', { 
+            fileName, 
+            fileSize: file.size,
+            type 
+          }, 'CHECKLIST_SERVICE');
+
+          return { success: true, fileName, publicUrl };
+        } catch (error) {
+          logger.error('Individual file upload failed', { fileName, error }, 'CHECKLIST_SERVICE');
+          return { success: false, fileName, error };
         }
+      });
 
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('inspection-media')
-          .getPublicUrl(fileName);
+      // Wait for all uploads to complete in parallel
+      const results = await Promise.allSettled(uploadPromises);
+      
+      // Count successful uploads
+      const successful = results.filter(result => 
+        result.status === 'fulfilled' && result.value.success
+      ).length;
+      
+      const failed = results.length - successful;
+      
+      logger.info('Media upload batch completed', {
+        total: files.length,
+        successful,
+        failed,
+        type
+      }, 'CHECKLIST_SERVICE');
 
-        // Save media file record
-        const { error: mediaError } = await supabase
-          .from('media')
-          .insert({
-            checklist_item_id: checklistItemId,
-            type,
-            url: publicUrl,
-            created_at: new Date().toISOString()
-          });
-
-        if (mediaError) {
-          logger.error('Failed to save media file record', mediaError, 'CHECKLIST_SERVICE');
-          continue;
-        }
-      }
-
-      return true;
+      // Return true if at least 50% of uploads succeeded
+      return successful > 0 && (successful / files.length) >= 0.5;
     } catch (error) {
       logger.error('Unexpected error uploading media files', error, 'CHECKLIST_SERVICE');
       return false;

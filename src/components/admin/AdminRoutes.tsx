@@ -15,6 +15,10 @@ import SimpleBugReportManagement from './SimpleBugReportManagement';
 import AdminDiagnostics from './AdminDiagnostics';
 import ComponentTest from './ComponentTest';
 import RobustAdminWrapper from './RobustAdminWrapper';
+import SimpleTestComponent from './SimpleTestComponent';
+import SimpleUserManagementFixed from './SimpleUserManagementFixed';
+import SimpleChecklistManagementFixed from './SimpleChecklistManagementFixed';
+import AuditCenterFixed from './AuditCenterFixed';
 
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
@@ -73,20 +77,23 @@ export default function AdminRoutes() {
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
         <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={
+        <Route path="users" element={<SimpleUserManagement />} />
+        <Route path="inspections" element={<SimpleInspectionManagement />} />
+        <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
+        <Route path="audit" element={<AuditCenter />} />
+        <Route path="reports" element={<ReportManagement />} />
+        <Route path="checklists" element={<SimpleChecklistManagement />} />
+        <Route path="users-real" element={
           <RobustAdminWrapper componentName="SimpleUserManagement" fallbackComponent={<div>User management temporarily unavailable</div>}>
             <SimpleUserManagement />
           </RobustAdminWrapper>
         } />
-        <Route path="inspections" element={<SimpleInspectionManagement />} />
-        <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
-        <Route path="audit" element={
+        <Route path="audit-real" element={
           <RobustAdminWrapper componentName="AuditCenter" fallbackComponent={<div>Audit center temporarily unavailable</div>}>
             <AuditCenter />
           </RobustAdminWrapper>
         } />
-        <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={
+        <Route path="checklists-real" element={
           <RobustAdminWrapper componentName="SimpleChecklistManagement" fallbackComponent={<div>Checklist management temporarily unavailable</div>}>
             <SimpleChecklistManagement />
           </RobustAdminWrapper>

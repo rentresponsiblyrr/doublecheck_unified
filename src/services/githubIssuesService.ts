@@ -340,12 +340,28 @@ export const githubIssuesService = new GitHubIssuesService();
 
 // Initialize with environment variables if available
 if (typeof window !== 'undefined') {
-  // These would typically be set via environment variables or admin configuration
-  const owner = process.env.REACT_APP_GITHUB_OWNER || 'your-org';
-  const repo = process.env.REACT_APP_GITHUB_REPO || 'doublecheck-field-view';
-  const token = process.env.REACT_APP_GITHUB_TOKEN || '';
+  // Get environment variables using the correct method for Vite
+  const owner = import.meta.env.VITE_GITHUB_OWNER || 
+                import.meta.env.REACT_APP_GITHUB_OWNER || 
+                'rentresponsiblyrr';
+  const repo = import.meta.env.VITE_GITHUB_REPO || 
+               import.meta.env.REACT_APP_GITHUB_REPO || 
+               'doublecheck_unified';
+  const token = import.meta.env.VITE_GITHUB_TOKEN || 
+                import.meta.env.REACT_APP_GITHUB_TOKEN || 
+                '';
 
-  if (owner && repo && token) {
+  console.log('🐛 GitHub Service Configuration:', {
+    owner,
+    repo,
+    token: token ? `${token.substring(0, 10)}...` : 'NOT SET',
+    environment: import.meta.env.MODE
+  });
+
+  if (owner && repo && token && token !== 'your-github-token-here') {
     githubIssuesService.configure({ owner, repo, token });
+    console.log('✅ GitHub service configured successfully');
+  } else {
+    console.warn('⚠️ GitHub service not configured - missing credentials');
   }
 }

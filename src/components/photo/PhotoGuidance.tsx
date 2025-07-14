@@ -91,16 +91,44 @@ export function PhotoGuidance({
   // Check if current item is a video walkthrough
   const isVideoWalkthrough = currentItem?.isVideoWalkthrough === true;
 
-  // Video completion handler
+  // Video completion handler - OPTIMIZED FOR PERFORMANCE
   const handleVideoComplete = useCallback(async (videoBlob: Blob, duration: number) => {
     if (!currentItem) return;
 
     try {
       // Convert blob to file
-      const videoFile = new File([videoBlob], `${currentItem.id}_walkthrough_${Date.now()}.webm`, {
+      let videoFile = new File([videoBlob], `${currentItem.id}_walkthrough_${Date.now()}.webm`, {
         type: 'video/webm',
         lastModified: Date.now(),
       });
+
+      // PERFORMANCE OPTIMIZATION: Check if video needs compression
+      const maxVideoSize = 10 * 1024 * 1024; // 10MB limit
+      if (videoFile.size > maxVideoSize) {
+        logger.info('Video file is large, attempting compression', {
+          originalSize: videoFile.size,
+          maxSize: maxVideoSize
+        }, 'PHOTO_GUIDANCE');
+
+        try {
+          const compressionResult = await mediaCompressionService.compressVideo(videoFile, {
+            maxSize: maxVideoSize,
+            quality: 'medium',
+            resolution: '720p'
+          });
+          
+          videoFile = compressionResult.compressedFile;
+          
+          logger.info('Video compression completed', {
+            originalSize: compressionResult.originalSize,
+            compressedSize: compressionResult.compressedSize,
+            compressionRatio: compressionResult.compressionRatio,
+            timeTaken: compressionResult.timeTaken
+          }, 'PHOTO_GUIDANCE');
+        } catch (compressionError) {
+          logger.warn('Video compression failed, using original file', compressionError, 'PHOTO_GUIDANCE');
+        }
+      }
 
       // Create video result similar to photo result
       const videoResult = {
@@ -113,44 +141,7 @@ export function PhotoGuidance({
         }
       };
 
-      // Store video data in parent component for database sync
-      if (onPhotoStored) {
-        onPhotoStored(currentItem.id, videoFile, videoResult.analysis);
-      }
-
-      // Update checklist item status with video completion
-      if (inspectionId) {
-        try {
-          await checklistService.completeChecklistItem(
-            currentItem.id,
-            {
-              id: currentItem.id,
-              aiScore: videoResult.analysis.score,
-              aiConfidence: 0.9, // High confidence for completed video
-              aiReasoning: `Video walkthrough completed - Duration: ${Math.round(duration)}s`,
-              suggestions: videoResult.analysis.suggestions,
-              issues: [],
-              passed: true, // Video walkthrough always passes when completed
-              requiresReview: false // No review needed for video walkthrough
-            },
-            [], // no photos
-            [videoFile], // videos array
-            `Video walkthrough completed - ${Math.round(duration)} seconds`, // notes
-            false // no user override
-          );
-          
-          logger.info('Video walkthrough completed successfully', {
-            itemId: currentItem.id,
-            duration: duration,
-            fileSize: videoFile.size
-          }, 'PHOTO_GUIDANCE');
-        } catch (error) {
-          logger.error('Failed to complete video walkthrough item', error, 'PHOTO_GUIDANCE');
-          // Don't block the workflow - continue with video capture
-        }
-      }
-
-      // Mark as completed in our local state
+      // Mark as completed in our local state IMMEDIATELY for better UX
       setCapturedPhotos(prev => ({
         ...prev,
         [currentItem.id]: {
@@ -159,18 +150,66 @@ export function PhotoGuidance({
         }
       }));
 
-      // Also call the parent handler for workflow integration
-      if (onPhotoCapture) {
-        await onPhotoCapture(currentItem.roomType || currentItem.category);
-      }
-
-      // Move to next item or complete
+      // Move to next item or complete IMMEDIATELY - don't wait for upload
       if (currentItemIndex < totalItems - 1) {
         setCurrentItemIndex(prev => prev + 1);
       } else {
         // All items captured
         onAllPhotosComplete();
       }
+
+      // PERFORMANCE OPTIMIZATION: Upload video in background (non-blocking)
+      // This prevents the UI from freezing during upload
+      const uploadPromise = (async () => {
+        try {
+          // Store video data in parent component for database sync
+          if (onPhotoStored) {
+            onPhotoStored(currentItem.id, videoFile, videoResult.analysis);
+          }
+
+          // Update checklist item status with video completion
+          if (inspectionId) {
+            await checklistService.completeChecklistItem(
+              currentItem.id,
+              {
+                id: currentItem.id,
+                aiScore: videoResult.analysis.score,
+                aiConfidence: 0.9, // High confidence for completed video
+                aiReasoning: `Video walkthrough completed - Duration: ${Math.round(duration)}s`,
+                suggestions: videoResult.analysis.suggestions,
+                issues: [],
+                passed: true, // Video walkthrough always passes when completed
+                requiresReview: false // No review needed for video walkthrough
+              },
+              [], // no photos
+              [videoFile], // videos array
+              `Video walkthrough completed - ${Math.round(duration)} seconds`, // notes
+              false // no user override
+            );
+            
+            logger.info('Video walkthrough uploaded successfully', {
+              itemId: currentItem.id,
+              duration: duration,
+              fileSize: videoFile.size
+            }, 'PHOTO_GUIDANCE');
+          }
+
+          // Call parent handler for workflow integration
+          if (onPhotoCapture) {
+            await onPhotoCapture(currentItem.roomType || currentItem.category);
+          }
+
+        } catch (error) {
+          logger.error('Background video upload failed', error, 'PHOTO_GUIDANCE');
+          // TODO: Show user notification about upload failure
+          // For now, the workflow continues even if upload fails
+        }
+      })();
+
+      // Don't await the upload - let it happen in background
+      // Store promise for potential cleanup later
+      (window as any).backgroundUploads = (window as any).backgroundUploads || [];
+      (window as any).backgroundUploads.push(uploadPromise);
 
     } catch (error) {
       console.error('Video completion failed:', error);

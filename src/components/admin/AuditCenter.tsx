@@ -110,6 +110,8 @@ interface AuditStats {
 }
 
 export default function AuditCenter() {
+  console.log('🔍 AuditCenter component rendering...');
+  
   const navigate = useNavigate();
   const [completedInspections, setCompletedInspections] = useState<CompletedInspection[]>([]);
   const [selectedInspection, setSelectedInspection] = useState<CompletedInspection | null>(null);
@@ -128,6 +130,7 @@ export default function AuditCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
+    console.log('🔍 AuditCenter useEffect triggered...');
     initializeAuditCenter();
   }, [searchTerm]);
 

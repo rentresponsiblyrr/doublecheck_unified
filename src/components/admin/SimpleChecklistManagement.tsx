@@ -90,6 +90,8 @@ const mockChecklistItems: SimpleChecklistItem[] = [
 ];
 
 export default function SimpleChecklistManagement() {
+  console.log('🔍 SimpleChecklistManagement component rendering...');
+  
   const [items, setItems] = useState<SimpleChecklistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +106,7 @@ export default function SimpleChecklistManagement() {
   });
 
   useEffect(() => {
+    console.log('🔍 SimpleChecklistManagement useEffect triggered...');
     loadChecklistItems();
   }, []);
 
