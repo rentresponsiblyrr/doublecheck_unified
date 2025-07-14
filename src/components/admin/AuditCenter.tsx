@@ -245,7 +245,21 @@ export default function AuditCenter() {
       setIsLoading(true);
       console.log('🔍 Loading completed inspections...');
       
-      // First, try the optimized query with profiles
+      // Check authentication status first
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      console.log('🔐 Auth session:', session ? 'Authenticated' : 'Not authenticated');
+      
+      if (authError) {
+        console.error('Authentication error:', authError);
+        throw new Error(`Authentication error: ${authError.message}`);
+      }
+
+      if (!session) {
+        console.warn('No active session found');
+        throw new Error('Please log in to access audit features');
+      }
+      
+      // First, try the optimized query with users
       let inspections: any[] = [];
       let inspectionsError: any = null;
 

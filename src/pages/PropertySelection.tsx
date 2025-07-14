@@ -78,7 +78,7 @@ const PropertySelection = () => {
       const { data: userProperties } = await supabase
         .from('properties')
         .select('id')
-        .eq('created_by', user.id);
+        .eq('added_by', user.id);
       
       if (!userProperties || userProperties.length === 0) {
         return [];

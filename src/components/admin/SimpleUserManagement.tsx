@@ -42,24 +42,30 @@ export default function SimpleUserManagement() {
       setIsLoading(true);
       setError(null);
 
-      // Query users table directly with role information
+      // Check authentication status first
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      console.log('🔐 Auth session:', session ? 'Authenticated' : 'Not authenticated');
+      console.log('🔐 Auth error:', authError);
+
+      if (authError) {
+        console.error('Authentication error:', authError);
+        throw new Error(`Authentication error: ${authError.message}`);
+      }
+
+      if (!session) {
+        console.warn('No active session found');
+        throw new Error('Please log in to access admin features');
+      }
+
+      console.log('🔍 Querying users table...');
+      
+      // First try a simple query without joins
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select(`
-          id,
-          email,
-          name,
-          phone,
-          role,
-          status,
-          last_login_at,
-          created_at,
-          updated_at,
-          user_roles (
-            app_role
-          )
-        `)
+        .select('id, email, name, phone, role, status, last_login_at, created_at, updated_at')
         .order('created_at', { ascending: false });
+
+      console.log('📊 Users query result:', { data: usersData, error: usersError });
 
       if (usersError) {
         console.error('Failed to load users from users table:', usersError);
@@ -80,7 +86,7 @@ export default function SimpleUserManagement() {
         last_sign_in_at: user.last_login_at,
         user_metadata: {
           name: user.name || user.email.split('@')[0],
-          role: user.role || user.user_roles?.[0]?.app_role || 'inspector'
+          role: user.role || 'inspector'
         }
       }));
 
