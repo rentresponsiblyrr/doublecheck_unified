@@ -182,8 +182,8 @@ export default function AuditCenter() {
       // Test profiles/users tables
       try {
         const { error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
+          .from('users')
+          .select('id, name, email')
           .limit(1);
         
         diagnostics.profiles = {

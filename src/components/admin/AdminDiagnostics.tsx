@@ -43,7 +43,7 @@ export default function AdminDiagnostics() {
 
     // Test 2: Supabase Connection
     try {
-      const { data, error } = await supabase.from('profiles').select('count').limit(1);
+      const { data, error } = await supabase.from('users').select('count').limit(1);
       if (error) {
         results.push({
           name: 'Supabase Connection',

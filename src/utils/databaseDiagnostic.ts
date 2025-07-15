@@ -109,10 +109,10 @@ export class DatabaseDiagnosticService {
         
         role = userData?.role || null;
       } catch {
-        // If users table doesn't exist or user not found, try profiles
+        // If users table doesn't exist or user not found, fallback to default
         try {
           const { data: profileData } = await supabase
-            .from('profiles')
+            .from('users')
             .select('role')
             .eq('id', authUser.user.id)
             .single();
