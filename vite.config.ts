@@ -21,7 +21,9 @@ export default defineConfig(({ mode }) => {
         'healthcheck.railway.app',
         'app.doublecheckverified.com',
         'admin.doublecheckverified.com'
-      ]
+      ],
+      // Enable SPA fallback for client-side routing
+      historyApiFallback: true
     },
     preview: {
       host: "::",
