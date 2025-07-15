@@ -29,6 +29,11 @@ export const useRobustInspectionCreation = () => {
     setIsCreating(true);
     console.log('🚀 Starting robust inspection creation for property:', propertyId);
     console.log('🔧 User context:', { userId: user.id, userEmail: user.email });
+    console.log('🔧 Property ID validation:', { 
+      propertyId, 
+      type: typeof propertyId, 
+      isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(propertyId) 
+    });
 
     try {
       // Check for existing active inspections first

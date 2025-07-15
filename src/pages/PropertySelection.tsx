@@ -132,6 +132,12 @@ const PropertySelection = () => {
     }
 
     console.log('🚀 Starting inspection for property:', selectedProperty);
+    console.log('🔧 PropertySelection Debug:', { 
+      selectedProperty, 
+      type: typeof selectedProperty,
+      isString: typeof selectedProperty === 'string',
+      isUUID: typeof selectedProperty === 'string' ? /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedProperty) : false
+    });
     
     const inspectionId = await createInspection(selectedProperty);
     
