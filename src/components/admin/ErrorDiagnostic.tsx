@@ -28,6 +28,7 @@ export default function ErrorDiagnostic() {
       
       const errorMessage = args.join(' ');
       if (errorMessage.includes('Error caught by ErrorBoundary:') || 
+          errorMessage.includes('🚨 VERBOSE ERROR BOUNDARY') ||
           errorMessage.includes('React') || 
           errorMessage.includes('Component')) {
         capturedErrors.push({
@@ -38,6 +39,19 @@ export default function ErrorDiagnostic() {
         setErrors([...capturedErrors]);
       }
     };
+    
+    // Listen for custom admin component error events
+    const handleAdminError = (event: CustomEvent) => {
+      capturedErrors.push({
+        timestamp: event.detail.timestamp,
+        error: `Component ${event.detail.component}: ${event.detail.error}`,
+        stack: event.detail.stack,
+        component: event.detail.component
+      });
+      setErrors([...capturedErrors]);
+    };
+    
+    window.addEventListener('adminComponentError', handleAdminError as EventListener);
     
     // Capture unhandled promise rejections
     const handleRejection = (event: PromiseRejectionEvent) => {
@@ -65,6 +79,7 @@ export default function ErrorDiagnostic() {
       console.error = originalConsoleError;
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleRejection);
+      window.removeEventListener('adminComponentError', handleAdminError as EventListener);
       setIsCapturing(false);
     };
   }, []);

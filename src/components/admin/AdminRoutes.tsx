@@ -35,6 +35,7 @@ import AdminErrorBoundary from './AdminErrorBoundary';
 import InspectionCreationDiagnostic from './InspectionCreationDiagnostic';
 import ChecklistDiagnostic from './ChecklistDiagnostic';
 import ErrorDiagnostic from './ErrorDiagnostic';
+import { VerboseErrorBoundary } from './VerboseErrorBoundary';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -85,14 +86,30 @@ export default function AdminRoutes() {
         <Route path="/" element={<AdminOverview />} />
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
-        <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={<SimpleUserManagement />} />
-        <Route path="inspections" element={<SimpleInspectionManagement />} />
+        <Route path="properties" element={
+          <VerboseErrorBoundary componentName="PropertyManagement">
+            <PropertyManagement />
+          </VerboseErrorBoundary>
+        } />
+        <Route path="users" element={
+          <VerboseErrorBoundary componentName="SimpleUserManagement">
+            <SimpleUserManagement />
+          </VerboseErrorBoundary>
+        } />
+        <Route path="inspections" element={
+          <VerboseErrorBoundary componentName="SimpleInspectionManagement">
+            <SimpleInspectionManagement />
+          </VerboseErrorBoundary>
+        } />
         <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
         <Route path="inspection-diagnostic" element={<InspectionDataDiagnostic />} />
         <Route path="audit" element={<AuditCenter />} />
         <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={<SimpleChecklistManagement />} />
+        <Route path="checklists" element={
+          <VerboseErrorBoundary componentName="SimpleChecklistManagement">
+            <SimpleChecklistManagement />
+          </VerboseErrorBoundary>
+        } />
         <Route path="users-real" element={
           <RobustAdminWrapper componentName="SimpleUserManagement" fallbackComponent={<div>User management temporarily unavailable</div>}>
             <SimpleUserManagement />
