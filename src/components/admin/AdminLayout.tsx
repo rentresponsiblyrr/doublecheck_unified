@@ -28,7 +28,7 @@ import {
   TrendingUp,
   Bug
 } from 'lucide-react';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Logo } from '@/components/Logo';
 import { SystemStatusPanel } from './SystemStatusPanel';
@@ -75,6 +75,13 @@ const navigation = [
     badge: 'fix'
   },
   {
+    name: 'Checklist Diagnostic',
+    href: '/admin/checklist-diagnostic',
+    icon: AlertCircle,
+    current: false,
+    badge: 'debug'
+  },
+  {
     name: 'Audit Center',
     href: '/admin/audit',
     icon: UserCheck,
@@ -98,6 +105,13 @@ const navigation = [
     href: '/admin/checklists',
     icon: Calendar,
     current: false,
+  },
+  {
+    name: 'Checklist Diagnostic',
+    href: '/admin/checklist-diagnostic',
+    icon: AlertCircle,
+    current: false,
+    badge: 'debug'
   },
   {
     name: 'AI Performance',
@@ -149,7 +163,7 @@ function classNames(...classes: string[]) {
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, userRole } = useAuthState();
+  const { user, userRole, loading, error, isAuthenticated, signOut: adminSignOut } = useAdminAuth();
   
   // Get display name with better fallback logic
   const getDisplayName = () => {
@@ -181,9 +195,55 @@ export default function AdminLayout() {
   }));
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      await adminSignOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      // Force navigation even if sign out fails
+      navigate('/');
+    }
   };
+
+  // Show loading state while authenticating
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Admin Portal...</h2>
+          <p className="text-gray-600">Authenticating and initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if authentication failed
+  if (error) {
+    return (
+      <div className="flex h-screen bg-red-50 items-center justify-center">
+        <div className="text-center p-8">
+          <div className="text-red-600 mb-4">
+            <AlertCircle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-red-900 mb-2">Authentication Error</h2>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button 
+            onClick={() => navigate('/')} 
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    navigate('/');
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
