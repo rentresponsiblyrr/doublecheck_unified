@@ -1,16 +1,27 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/AuthProvider";
 import { InspectionCreationService } from "@/services/inspectionCreationService";
 
 export const useRobustInspectionCreation = () => {
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const inspectionService = new InspectionCreationService();
 
   const createInspection = async (propertyId: string) => {
     if (isCreating) {
       console.warn('⚠️ Inspection creation already in progress, ignoring duplicate request');
+      return null;
+    }
+
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to create an inspection.",
+        variant: "destructive",
+      });
       return null;
     }
 
@@ -29,8 +40,8 @@ export const useRobustInspectionCreation = () => {
         return existingInspectionId;
       }
 
-      // Create new inspection
-      const inspectionId = await inspectionService.createNewInspection(propertyId);
+      // Create new inspection with current user as inspector
+      const inspectionId = await inspectionService.createNewInspection(propertyId, user.id);
 
       toast({
         title: "Inspection created",

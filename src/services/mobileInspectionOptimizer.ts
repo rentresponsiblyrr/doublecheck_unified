@@ -112,27 +112,48 @@ class MobileInspectionOptimizer {
       try {
         console.log(`🔄 Creating optimized inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
-        const { data, error } = await supabase
-          .from('inspections')
-          .insert({
-            property_id: propertyId,
-            start_time: new Date().toISOString(),
-            completed: false,
-            status: 'available'
-          })
-          .select('id')
-          .single();
+        // Try RPC function first, fallback to direct insert
+        let data, error;
+        
+        try {
+          const rpcResult = await supabase.rpc('create_inspection_for_current_user', {
+            p_property_id: propertyId
+          });
+          data = rpcResult.data;
+          error = rpcResult.error;
+        } catch (rpcError) {
+          console.log('RPC function not available, using direct insert with auth.uid()');
+          // Get current user from Supabase auth
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            throw new Error('User not authenticated');
+          }
+          
+          const insertResult = await supabase
+            .from('inspections')
+            .insert({
+              property_id: propertyId,
+              start_time: new Date().toISOString(),
+              completed: false,
+              status: 'available',
+              inspector_id: user.id
+            })
+            .select('id')
+            .single();
+          data = insertResult.data?.id;
+          error = insertResult.error;
+        }
 
-        if (error || !data?.id) {
+        if (error || !data) {
           throw error || new Error('No inspection ID returned');
         }
 
-        console.log('✅ Optimized inspection created:', data.id);
+        console.log('✅ Optimized inspection created:', data);
         
         // Brief wait for trigger to populate checklist items
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        return data.id;
+        return data;
 
       } catch (error) {
         console.error(`❌ Optimized inspection creation attempt ${attempt} failed:`, error);

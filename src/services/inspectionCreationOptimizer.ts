@@ -53,22 +53,37 @@ export class InspectionCreationOptimizer {
     }
   }
 
-  static async createInspectionWithRetry(propertyId: string): Promise<string> {
+  static async createInspectionWithRetry(propertyId: string, inspectorId: string): Promise<string> {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         console.log(`🔄 Creating inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
-        const { data, error } = await supabase
-          .from('inspections')
-          .insert({
-            property_id: propertyId,
-            start_time: new Date().toISOString(),
-            completed: false,
-            status: 'draft',
-            inspector_id: null
-          })
-          .select('id')
-          .single();
+        // Try RPC function first, fallback to direct insert
+        let data, error;
+        
+        try {
+          const rpcResult = await supabase.rpc('create_inspection_secure', {
+            p_property_id: propertyId,
+            p_inspector_id: inspectorId
+          });
+          data = rpcResult.data;
+          error = rpcResult.error;
+        } catch (rpcError) {
+          console.log('RPC function not available, using direct insert');
+          const insertResult = await supabase
+            .from('inspections')
+            .insert({
+              property_id: propertyId,
+              start_time: new Date().toISOString(),
+              completed: false,
+              status: 'draft',
+              inspector_id: inspectorId
+            })
+            .select('id')
+            .single();
+          data = insertResult.data?.id;
+          error = insertResult.error;
+        }
 
         if (error) {
           console.error('❌ Database error details:', {
@@ -80,16 +95,16 @@ export class InspectionCreationOptimizer {
           throw error;
         }
 
-        if (!data?.id) {
+        if (!data) {
           throw new Error('No inspection ID returned from database');
         }
 
-        console.log('✅ Inspection created successfully:', data.id);
+        console.log('✅ Inspection created successfully:', data);
         
         // Verify checklist items were created by trigger
-        await InspectionValidationService.verifyChecklistItemsCreated(data.id);
+        await InspectionValidationService.verifyChecklistItemsCreated(data);
         
-        return data.id;
+        return data;
 
       } catch (error) {
         console.error(`❌ Inspection creation attempt ${attempt} failed:`, error);

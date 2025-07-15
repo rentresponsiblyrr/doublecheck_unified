@@ -24,10 +24,8 @@ export const useMobileInspectionOptimizer = () => {
       
       const result = await MobileInspectionOptimizer.getOrCreateInspectionOptimized(propertyId);
       
-      // Assign inspector for new inspections
-      if (result.isNew) {
-        MobileInspectionOptimizer.assignInspectorOptimized(result.inspectionId);
-      }
+      // Inspector is now assigned during creation via secure function
+      // No separate assignment needed
       
       const actionText = result.isNew ? 'created' : 'joined';
       const toastTitle = result.isNew ? 'Inspection Created' : 'Joining Inspection';
