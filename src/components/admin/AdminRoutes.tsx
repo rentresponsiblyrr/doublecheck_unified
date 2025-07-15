@@ -34,6 +34,7 @@ import SimpleTestPage from './SimpleTestPage';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import InspectionCreationDiagnostic from './InspectionCreationDiagnostic';
 import ChecklistDiagnostic from './ChecklistDiagnostic';
+import ErrorDiagnostic from './ErrorDiagnostic';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -174,6 +175,7 @@ export default function AdminRoutes() {
         <Route path="simple-test" element={<SimpleTestPage />} />
         <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
         <Route path="checklist-diagnostic" element={<ChecklistDiagnostic />} />
+        <Route path="error-diagnostic" element={<ErrorDiagnostic />} />
       </Routes>
     </AdminLayout>
   );

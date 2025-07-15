@@ -114,6 +114,13 @@ const navigation = [
     badge: 'debug'
   },
   {
+    name: 'Error Diagnostic',
+    href: '/admin/error-diagnostic',
+    icon: AlertCircle,
+    current: false,
+    badge: 'debug'
+  },
+  {
     name: 'AI Performance',
     href: '/admin/performance',
     icon: Brain,
