@@ -80,84 +80,9 @@ export default defineConfig(({ mode }) => {
         }
       },
       
-      // PWA Support - conditional based on domain detection
-      VitePWA({
-        registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
-        manifest: {
-          name: 'STR Certified',
-          short_name: 'STR Certified',
-          description: 'AI-powered property inspection platform',
-          theme_color: '#8b5cf6',
-          background_color: '#ffffff',
-          display: 'standalone',
-          orientation: 'portrait-primary',
-          scope: '/',
-          start_url: '/',
-          icons: [
-            {
-              src: '/pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'any maskable'
-            },
-            {
-              src: '/pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
-        },
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/api\.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'api-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                }
-              }
-            },
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'image-cache',
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-                }
-              }
-            }
-          ]
-        }
-      }),
+      // PWA disabled for faster builds
       
-      // Compression for better performance
-      viteCompression({
-        algorithm: 'gzip',
-        ext: '.gz',
-        threshold: 10240, // 10KB
-        deleteOriginFile: false
-      }),
-      
-      viteCompression({
-        algorithm: 'brotliCompress',
-        ext: '.br',
-        threshold: 10240,
-        deleteOriginFile: false
-      }),
+      // Compression disabled for faster builds - enable only in production if needed
       
       // Bundle analyzer (only in analyze mode)
       mode === 'analyze' && visualizer({
@@ -178,18 +103,8 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: mode === 'production' ? 'hidden' : true,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: mode === 'production',
-          drop_debugger: mode === 'production',
-          pure_funcs: mode === 'production' ? ['console.log', 'console.info'] : []
-        },
-        format: {
-          comments: false
-        }
-      },
+      sourcemap: mode === 'production' ? false : true,
+      minify: mode === 'production' ? 'esbuild' : false,
       
       // Rollup options for code splitting
       rollupOptions: {
@@ -209,48 +124,11 @@ export default defineConfig(({ mode }) => {
           'node:util'
         ],
         output: {
-          // Manual chunks for better caching and smaller initial bundle
+          // Simplified chunks for faster builds
           manualChunks: {
-            // React and related libraries
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            
-            // UI libraries (split into smaller chunks)
-            'ui-vendor': [
-              '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', 
-              '@radix-ui/react-select', '@radix-ui/react-tabs',
-              '@radix-ui/react-alert-dialog', '@radix-ui/react-checkbox',
-              '@radix-ui/react-popover', '@radix-ui/react-tooltip'
-            ],
-            
-            // Form and input libraries
-            'form-vendor': [
-              'react-hook-form', '@hookform/resolvers', 'zod',
-              'input-otp', 'cmdk'
-            ],
-            
-            // Data fetching and state
-            'data-vendor': ['@tanstack/react-query', '@supabase/supabase-js'],
-            
-            // Utility libraries
-            'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge', 'class-variance-authority'],
-            
-            // Chart libraries (loaded on demand)
-            'charts': ['recharts'],
-            
-            // AI/ML related (loaded on demand)
-            'ai-vendor': ['openai'],
-            
-            // PDF generation (loaded on demand)
-            'pdf-vendor': ['@react-pdf/renderer', 'jspdf'],
-            
-            // Image processing (loaded on demand)
-            'image-vendor': ['html2canvas'],
-            
-            // Icon libraries
-            'icon-vendor': ['lucide-react'],
-            
-            // Large third-party libraries
-            'heavy-vendor': ['axios']
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+            data: ['@tanstack/react-query', '@supabase/supabase-js']
           },
           
           // Asset file naming
@@ -270,22 +148,10 @@ export default defineConfig(({ mode }) => {
         }
       },
       
-      // Chunk size warnings
-      chunkSizeWarningLimit: 1000, // 1MB
-      
-      // CSS code splitting
-      cssCodeSplit: true,
-      
-      // Preload directives
-      modulePreload: {
-        polyfill: true
-      },
-      
-      // Asset inlining threshold
-      assetsInlineLimit: 4096, // 4KB
-      
-      // Report compressed size
-      reportCompressedSize: true
+      // Optimizations disabled for faster builds
+      chunkSizeWarningLimit: 2000,
+      cssCodeSplit: false,
+      reportCompressedSize: false
     },
     
     // Optimizations

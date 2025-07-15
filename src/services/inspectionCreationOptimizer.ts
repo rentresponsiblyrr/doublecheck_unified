@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InspectionValidationService } from "./inspectionValidationService";
 import { STATUS_GROUPS, INSPECTION_STATUS } from "@/types/inspection-status";
+import { IdConverter } from "@/utils/idConverter";
 
 export class InspectionCreationOptimizer {
   private static readonly MAX_RETRIES = 3;
@@ -22,10 +23,13 @@ export class InspectionCreationOptimizer {
 
       console.log('🔍 Looking for inspections with active statuses:', activeStatuses);
 
+      // Convert propertyId to integer for database query
+      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+
       const { data, error } = await supabase
         .from('inspections')
         .select('id, inspector_id, status, start_time')
-        .eq('property_id', propertyId)
+        .eq('property_id', propertyIdInt)
         .in('status', activeStatuses)
         .order('start_time', { ascending: false })
         .limit(1)
@@ -61,50 +65,64 @@ export class InspectionCreationOptimizer {
         // Try RPC function first, fallback to direct insert
         let data, error;
         
+        // Convert propertyId string to integer for database operations
+        const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+
         try {
-          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId, inspectorId });
+          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId: propertyIdInt, inspectorId });
+          
+          // Try the secure RPC function first
           const rpcResult = await supabase.rpc('create_inspection_secure', {
-            p_property_id: propertyId,
+            p_property_id: propertyIdInt,
             p_inspector_id: inspectorId
           });
-          console.log('🔧 RPC result:', rpcResult);
-          data = rpcResult.data;
-          error = rpcResult.error;
           
-          if (error) {
-            console.log('🔧 RPC function failed, trying direct insert fallback');
-            throw new Error(`RPC failed: ${error.message}`);
+          console.log('🔧 RPC result:', rpcResult);
+          
+          if (rpcResult.error) {
+            console.log('🔧 RPC function failed:', rpcResult.error.message);
+            throw new Error(`RPC failed: ${rpcResult.error.message}`);
           }
+          
+          if (!rpcResult.data) {
+            throw new Error('RPC function returned no data');
+          }
+          
+          data = rpcResult.data;
+          error = null;
+          
         } catch (rpcError) {
-          console.log('🔧 RPC function not available or failed, using direct insert:', rpcError);
+          console.log('🔧 RPC function not available or failed, using direct insert fallback:', rpcError);
+          
+          // Fallback to direct insert with proper RLS context
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyId,
+              property_id: propertyIdInt,
+              inspector_id: inspectorId, // Always include inspector_id for RLS
               start_time: new Date().toISOString(),
               completed: false,
-              status: 'draft',
-              inspector_id: inspectorId
+              status: 'draft'
             })
             .select('id')
             .single();
+            
           console.log('🔧 Direct insert result:', insertResult);
-          data = insertResult.data?.id;
-          error = insertResult.error;
-        }
-
-        if (error) {
-          console.error('❌ Database error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          throw error;
+          
+          if (insertResult.error) {
+            throw new Error(`Direct insert failed: ${insertResult.error.message}`);
+          }
+          
+          if (!insertResult.data?.id) {
+            throw new Error('Direct insert returned no inspection ID');
+          }
+          
+          data = insertResult.data.id;
+          error = null;
         }
 
         if (!data) {
-          throw new Error('No inspection ID returned from database');
+          throw new Error('No inspection ID returned from database operation');
         }
 
         console.log('✅ Inspection created successfully:', data);
@@ -133,15 +151,38 @@ export class InspectionCreationOptimizer {
     try {
       console.log('👤 Assigning current user to inspection:', inspectionId);
       
-      const { data, error } = await supabase.rpc('assign_inspector_to_inspection', {
-        p_inspection_id: inspectionId
-      });
+      // Try RPC function first, fallback to direct update
+      try {
+        const { data, error } = await supabase.rpc('assign_inspector_to_inspection', {
+          p_inspection_id: inspectionId
+        });
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw new Error(`RPC assign failed: ${error.message}`);
+        }
+
+        console.log('✅ Inspector assigned successfully via RPC');
+        return;
+      } catch (rpcError) {
+        console.log('🔧 RPC assign function not available, using direct update:', rpcError);
+        
+        // Fallback to direct update
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated for inspector assignment');
+        }
+
+        const { error: updateError } = await supabase
+          .from('inspections')
+          .update({ inspector_id: user.id })
+          .eq('id', inspectionId);
+
+        if (updateError) {
+          throw new Error(`Direct update failed: ${updateError.message}`);
+        }
+
+        console.log('✅ Inspector assigned successfully via direct update');
       }
-
-      console.log('✅ Inspector assigned successfully');
     } catch (error) {
       console.error('❌ Failed to assign inspector:', error);
       // Don't throw - this is not critical for mobile flow

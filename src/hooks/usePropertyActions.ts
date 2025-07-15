@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
+import { IdConverter } from "@/utils/idConverter";
 
 interface PropertyActionError {
   type: 'network' | 'validation' | 'auth' | 'system';
@@ -154,11 +155,14 @@ export const usePropertyActions = () => {
     console.log('🚀 Starting inspection for property:', propertyId);
     
     return executeWithRetry(async () => {
+      // Convert propertyId to integer for database query
+      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+
       // Check if there's already an active inspection
       const { data: existingInspection, error: checkError } = await supabase
         .from('inspections')
         .select('id')
-        .eq('property_id', propertyId)
+        .eq('property_id', propertyIdInt)
         .eq('completed', false)
         .single();
       
@@ -172,28 +176,67 @@ export const usePropertyActions = () => {
         return existingInspection.id;
       }
       
-      // Create new inspection
-      const { data: newInspection, error: createError } = await supabase
-        .from('inspections')
-        .insert({
-          property_id: propertyId,
-          start_time: new Date().toISOString(),
-          completed: false
-        })
-        .select()
-        .single();
+      // Create new inspection using the secure creation service
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to create inspections');
+      }
+
+      let inspectionId: string;
       
-      if (createError) throw createError;
+      try {
+        // Try secure RPC function first
+        const { data: rpcData, error: rpcError } = await supabase.rpc('create_inspection_secure', {
+          p_property_id: propertyIdInt,
+          p_inspector_id: user.id
+        });
+        
+        if (rpcError) {
+          throw new Error(`RPC failed: ${rpcError.message}`);
+        }
+        
+        if (!rpcData) {
+          throw new Error('RPC function returned no data');
+        }
+        
+        inspectionId = rpcData;
+        
+      } catch (rpcError) {
+        console.log('🔧 RPC function not available, using direct insert:', rpcError);
+        
+        // Fallback to direct insert with proper RLS context
+        const { data: newInspection, error: createError } = await supabase
+          .from('inspections')
+          .insert({
+            property_id: propertyIdInt,
+            inspector_id: user.id, // Always include inspector_id for RLS
+            start_time: new Date().toISOString(),
+            completed: false,
+            status: 'draft'
+          })
+          .select('id')
+          .single();
+        
+        if (createError) {
+          throw new Error(`Direct insert failed: ${createError.message}`);
+        }
+        
+        if (!newInspection?.id) {
+          throw new Error('Direct insert returned no inspection ID');
+        }
+        
+        inspectionId = newInspection.id;
+      }
       
-      console.log('✅ Created new inspection:', newInspection.id);
-      navigate(`/inspection/${newInspection.id}`);
+      console.log('✅ Created new inspection:', inspectionId);
+      navigate(`/inspection/${inspectionId}`);
       
       toast({
         title: "Inspection Started",
         description: "A new inspection has been created successfully.",
       });
       
-      return newInspection.id;
+      return inspectionId;
     }, 'Start Inspection');
   }, [executeWithRetry, navigate, toast]);
 

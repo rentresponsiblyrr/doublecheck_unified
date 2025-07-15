@@ -299,21 +299,28 @@ export class AuditorService {
         }
       }
 
-      // Store auditor feedback for AI learning
-      const { error: feedbackError } = await supabase
-        .from('audit_feedback')
-        .insert({
-          inspection_id: reviewDecision.inspectionId,
-          auditor_decision: reviewDecision.decision,
-          feedback_text: reviewDecision.feedback,
-          review_time_minutes: reviewDecision.reviewTime,
-          overrides_count: reviewDecision.overrides.length,
-          created_at: new Date().toISOString()
-        });
+      // Store auditor feedback for AI learning with error handling
+      try {
+        const { error: feedbackError } = await supabase
+          .from('audit_feedback')
+          .insert({
+            inspection_id: reviewDecision.inspectionId,
+            auditor_decision: reviewDecision.decision,
+            feedback_text: reviewDecision.feedback,
+            review_time_minutes: reviewDecision.reviewTime,
+            overrides_count: reviewDecision.overrides.length,
+            created_at: new Date().toISOString()
+          });
 
-      if (feedbackError) {
-        logger.warn('Failed to store audit feedback for learning', feedbackError, 'AUDITOR_SERVICE');
-        // Don't fail the whole operation for this
+        if (feedbackError) {
+          logger.warn('Failed to store audit feedback for learning', feedbackError, 'AUDITOR_SERVICE');
+          // Don't fail the whole operation for this
+        } else {
+          logger.info('Successfully stored audit feedback for AI learning', 'AUDITOR_SERVICE');
+        }
+      } catch (auditError) {
+        logger.warn('Audit feedback table may not exist, skipping AI learning storage', auditError, 'AUDITOR_SERVICE');
+        // Continue without failing - this is not critical functionality
       }
 
       logger.info('Successfully submitted review decision', {

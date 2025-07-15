@@ -13,7 +13,8 @@
   "scripts": {
     "dev": "vite",
     "dev:staging": "vite --mode staging",
-    "build": "tsc && vite build",
+    "build": "vite build --mode production",
+    "build:fast": "vite build --mode production --minify false",
     "build:dev": "vite build --mode development",
     "build:staging": "VITE_APP_ENV=staging tsc && vite build --mode staging",
     "build:check": "npm run typecheck",

@@ -53,9 +53,17 @@ export class MediaService {
       }
 
       // Get public URL from Supabase storage
+      // Handle different possible field names for file path
+      const filePath = mediaRecord.file_path || mediaRecord.path || mediaRecord.url || '';
+      
+      if (!filePath) {
+        console.error('❌ No file path found in media record:', mediaRecord);
+        return { success: false, error: 'No file path found in media record' };
+      }
+      
       const { data: { publicUrl } } = supabase.storage
         .from('inspection-media')
-        .getPublicUrl(mediaRecord.file_path || '');
+        .getPublicUrl(filePath);
 
       // Check if file is accessible
       const isAccessible = await this.checkFileAccessibility(publicUrl);
