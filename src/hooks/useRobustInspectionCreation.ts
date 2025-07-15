@@ -17,6 +17,7 @@ export const useRobustInspectionCreation = () => {
     }
 
     if (!user?.id) {
+      console.error('❌ No user ID available for inspection creation');
       toast({
         title: "Authentication required",
         description: "You must be logged in to create an inspection.",
@@ -27,6 +28,7 @@ export const useRobustInspectionCreation = () => {
 
     setIsCreating(true);
     console.log('🚀 Starting robust inspection creation for property:', propertyId);
+    console.log('🔧 User context:', { userId: user.id, userEmail: user.email });
 
     try {
       // Check for existing active inspections first

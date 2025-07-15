@@ -62,14 +62,21 @@ export class InspectionCreationOptimizer {
         let data, error;
         
         try {
+          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId, inspectorId });
           const rpcResult = await supabase.rpc('create_inspection_secure', {
             p_property_id: propertyId,
             p_inspector_id: inspectorId
           });
+          console.log('🔧 RPC result:', rpcResult);
           data = rpcResult.data;
           error = rpcResult.error;
+          
+          if (error) {
+            console.log('🔧 RPC function failed, trying direct insert fallback');
+            throw new Error(`RPC failed: ${error.message}`);
+          }
         } catch (rpcError) {
-          console.log('RPC function not available, using direct insert');
+          console.log('🔧 RPC function not available or failed, using direct insert:', rpcError);
           const insertResult = await supabase
             .from('inspections')
             .insert({
@@ -81,6 +88,7 @@ export class InspectionCreationOptimizer {
             })
             .select('id')
             .single();
+          console.log('🔧 Direct insert result:', insertResult);
           data = insertResult.data?.id;
           error = insertResult.error;
         }
