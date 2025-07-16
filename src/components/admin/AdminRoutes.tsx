@@ -99,8 +99,17 @@ export default function AdminRoutes() {
     );
   }
   
-  // EMERGENCY: If health route, show direct component
-  if (window.location.pathname === '/admin/health') {
+  // EMERGENCY: If health route, show direct component with robust path checking
+  const currentPath = window.location.pathname;
+  const routerPath = useLocation().pathname;
+  
+  console.log('🚨 EMERGENCY PATH CHECK:');
+  console.log('- window.location.pathname:', JSON.stringify(currentPath));
+  console.log('- useLocation().pathname:', JSON.stringify(routerPath));
+  console.log('- currentPath includes health:', currentPath.includes('health'));
+  console.log('- routerPath includes health:', routerPath.includes('health'));
+  
+  if (currentPath.includes('health') || routerPath.includes('health') || currentPath === '/admin/health') {
     return (
       <AdminLayout>
         <div className="p-6">
@@ -108,8 +117,8 @@ export default function AdminRoutes() {
             <h1 className="text-2xl font-bold text-blue-800 mb-2">🚨 EMERGENCY HEALTH MONITOR</h1>
             <p className="text-blue-700">Direct route match detected. AdminRoutes is working but nested routing failed.</p>
             <div className="mt-4 text-sm text-blue-600">
-              <div>Current Path: {window.location.pathname}</div>
-              <div>Router Path: {useLocation().pathname}</div>
+              <div>Window Path: {JSON.stringify(currentPath)}</div>
+              <div>Router Path: {JSON.stringify(routerPath)}</div>
               <div>Time: {new Date().toLocaleString()}</div>
             </div>
           </div>
@@ -119,109 +128,160 @@ export default function AdminRoutes() {
     );
   }
   
-  return (
+  // EMERGENCY: Always show a working component in main content area
+  // This ensures we never get blank content
+  const emergencyFallback = (
     <AdminLayout>
-      <Routes>
-        {/* Use relative paths since we're already nested under /admin */}
-        <Route path="/" element={<AdminOverview />} />
-          
-        {/* All routes use relative paths - works for both /admin/* and direct routes */}
-        <Route path="deployment-test" element={<AdminDeploymentTest />} />
-        <Route path="routes-test" element={<AdminRoutesTest />} />
-        <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={
-          <AdminErrorBoundary componentName="User Management" fallback={<UserManagementFallback />}>
-            <SimpleUserManagement />
-          </AdminErrorBoundary>
-        } />
-        <Route path="inspections" element={<SimpleInspectionManagement />} />
-        <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
-        <Route path="inspection-diagnostic" element={<InspectionDataDiagnostic />} />
-        <Route path="audit" element={
-          <AdminErrorBoundary componentName="Audit Center" fallback={<AuditCenterFallback />}>
-            <AuditCenter />
-          </AdminErrorBoundary>
-        } />
-        <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={
-          <AdminErrorBoundary componentName="Checklist Management" fallback={<ChecklistManagementFallback />}>
-            <SimpleChecklistManagement />
-          </AdminErrorBoundary>
-        } />
-        <Route path="performance" element={
-          <ComingSoonPage 
-            title="AI Performance Dashboard" 
-            description="Real-time AI monitoring and performance analytics"
-            features={[
-              'Real-time accuracy metrics',
-              'Response time monitoring', 
-              'Cost optimization insights',
-              'Model performance comparison',
-              'Automated alerting system'
-            ]}
-            estimatedDate="Q2 2024"
-          />
-        } />
-        <Route path="ai-learning" element={
-          <ComingSoonPage 
-            title="AI Learning Dashboard" 
-            description="Advanced AI learning analytics and model improvement tracking"
-            features={[
-              'Learning progress visualization',
-              'Model version comparison',
-              'Knowledge base insights',
-              'Automated model tuning',
-              'Feedback loop optimization'
-            ]}
-            estimatedDate="Q2 2024"
-          />
-        } />
-        <Route path="analytics" element={
-          <ComingSoonPage 
-            title="Analytics Dashboard" 
-            description="Advanced analytics and data visualization coming soon"
-            features={[
-              'Real-time inspection metrics',
-              'Property performance analytics', 
-              'Inspector productivity insights',
-              'AI accuracy trends',
-              'Revenue and cost analysis'
-            ]}
-          />
-        } />
-        <Route path="settings" element={
-          <ComingSoonPage 
-            title="System Settings" 
-            description="Comprehensive system configuration and administration"
-            features={[
-              'User roles and permissions',
-              'System-wide configurations',
-              'API key management',
-              'Notification settings',
-              'Backup and security options'
-            ]}
-          />
-        } />
-        <Route path="bug-reports" element={<SimpleBugReportManagement />} />
-        <Route path="diagnostics" element={<AdminDiagnostics />} />
-        <Route path="health" element={<ComponentHealthMonitor />} />
-        <Route path="component-test" element={<ComponentTest />} />
-        <Route path="github-test" element={<GitHubIntegrationTest />} />
-        <Route path="github-comprehensive" element={<ComprehensiveGitHubTest />} />
-        <Route path="db-test" element={
-          <AdminErrorBoundary>
-            <DatabaseConnectivityTest />
-          </AdminErrorBoundary>
-        } />
-        <Route path="simple-test" element={<SimpleTestPage />} />
-        <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
-        <Route path="checklist-diagnostic" element={<ChecklistDiagnostic />} />
-        <Route path="error-diagnostic" element={<ErrorDiagnostic />} />
-        <Route path="direct-error-logger" element={<DirectErrorLogger />} />
-        <Route path="component-import-test" element={<ComponentImportTest />} />
-        <Route path="emergency-bypass" element={<EmergencyBypass />} />
-        <Route path="comprehensive-diagnostic" element={<ComprehensiveDiagnostic />} />
-      </Routes>
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <h1 className="text-2xl font-bold text-red-800 mb-2">⚠️ ROUTING FAILURE DETECTED</h1>
+          <p className="text-red-700">AdminRoutes component loaded but no routes matched.</p>
+          <div className="mt-4 text-sm text-red-600">
+            <div>Window Path: {JSON.stringify(currentPath)}</div>
+            <div>Router Path: {JSON.stringify(routerPath)}</div>
+            <div>Expected: /admin/health or /admin/users or /admin/audit</div>
+            <div>Time: {new Date().toLocaleString()}</div>
+          </div>
+          <div className="mt-4">
+            <h3 className="font-semibold text-red-800 mb-2">Available Actions:</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => window.location.href = '/admin/health'}
+                className="block w-full text-left px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Go to Health Monitor
+              </button>
+              <button 
+                onClick={() => window.location.href = '/admin/users'}
+                className="block w-full text-left px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Go to User Management
+              </button>
+              <button 
+                onClick={() => window.location.reload()}
+                className="block w-full text-left px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </AdminLayout>
   );
+  
+  // Try normal routing first, but fall back to emergency if no routes work
+  try {
+    return (
+      <AdminLayout>
+        <Routes>
+          {/* Use relative paths since we're already nested under /admin */}
+          <Route path="/" element={<AdminOverview />} />
+            
+          {/* All routes use relative paths - works for both /admin/* and direct routes */}
+          <Route path="deployment-test" element={<AdminDeploymentTest />} />
+          <Route path="routes-test" element={<AdminRoutesTest />} />
+          <Route path="properties" element={<PropertyManagement />} />
+          <Route path="users" element={
+            <AdminErrorBoundary componentName="User Management" fallback={<UserManagementFallback />}>
+              <SimpleUserManagement />
+            </AdminErrorBoundary>
+          } />
+          <Route path="inspections" element={<SimpleInspectionManagement />} />
+          <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
+          <Route path="inspection-diagnostic" element={<InspectionDataDiagnostic />} />
+          <Route path="audit" element={
+            <AdminErrorBoundary componentName="Audit Center" fallback={<AuditCenterFallback />}>
+              <AuditCenter />
+            </AdminErrorBoundary>
+          } />
+          <Route path="reports" element={<ReportManagement />} />
+          <Route path="checklists" element={
+            <AdminErrorBoundary componentName="Checklist Management" fallback={<ChecklistManagementFallback />}>
+              <SimpleChecklistManagement />
+            </AdminErrorBoundary>
+          } />
+          <Route path="performance" element={
+            <ComingSoonPage 
+              title="AI Performance Dashboard" 
+              description="Real-time AI monitoring and performance analytics"
+              features={[
+                'Real-time accuracy metrics',
+                'Response time monitoring', 
+                'Cost optimization insights',
+                'Model performance comparison',
+                'Automated alerting system'
+              ]}
+              estimatedDate="Q2 2024"
+            />
+          } />
+          <Route path="ai-learning" element={
+            <ComingSoonPage 
+              title="AI Learning Dashboard" 
+              description="Advanced AI learning analytics and model improvement tracking"
+              features={[
+                'Learning progress visualization',
+                'Model version comparison',
+                'Knowledge base insights',
+                'Automated model tuning',
+                'Feedback loop optimization'
+              ]}
+              estimatedDate="Q2 2024"
+            />
+          } />
+          <Route path="analytics" element={
+            <ComingSoonPage 
+              title="Analytics Dashboard" 
+              description="Advanced analytics and data visualization coming soon"
+              features={[
+                'Real-time inspection metrics',
+                'Property performance analytics', 
+                'Inspector productivity insights',
+                'AI accuracy trends',
+                'Revenue and cost analysis'
+              ]}
+            />
+          } />
+          <Route path="settings" element={
+            <ComingSoonPage 
+              title="System Settings" 
+              description="Comprehensive system configuration and administration"
+              features={[
+                'User roles and permissions',
+                'System-wide configurations',
+                'API key management',
+                'Notification settings',
+                'Backup and security options'
+              ]}
+            />
+          } />
+          <Route path="bug-reports" element={<SimpleBugReportManagement />} />
+          <Route path="diagnostics" element={<AdminDiagnostics />} />
+          <Route path="health" element={<ComponentHealthMonitor />} />
+          <Route path="component-test" element={<ComponentTest />} />
+          <Route path="github-test" element={<GitHubIntegrationTest />} />
+          <Route path="github-comprehensive" element={<ComprehensiveGitHubTest />} />
+          <Route path="db-test" element={
+            <AdminErrorBoundary>
+              <DatabaseConnectivityTest />
+            </AdminErrorBoundary>
+          } />
+          <Route path="simple-test" element={<SimpleTestPage />} />
+          <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
+          <Route path="checklist-diagnostic" element={<ChecklistDiagnostic />} />
+          <Route path="error-diagnostic" element={<ErrorDiagnostic />} />
+          <Route path="direct-error-logger" element={<DirectErrorLogger />} />
+          <Route path="component-import-test" element={<ComponentImportTest />} />
+          <Route path="emergency-bypass" element={<EmergencyBypass />} />
+          <Route path="comprehensive-diagnostic" element={<ComprehensiveDiagnostic />} />
+          
+          {/* Catch-all route - show emergency fallback for unmatched paths */}
+          <Route path="*" element={emergencyFallback} />
+        </Routes>
+      </AdminLayout>
+    );
+  } catch (error) {
+    console.error('AdminRoutes routing failed:', error);
+    return emergencyFallback;
+  }
 }
