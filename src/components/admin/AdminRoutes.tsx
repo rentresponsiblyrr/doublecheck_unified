@@ -14,7 +14,7 @@ import SimpleChecklistManagement from './SimpleChecklistManagement';
 import SimpleBugReportManagement from './SimpleBugReportManagement';
 import AdminDiagnostics from './AdminDiagnostics';
 import ComponentTest from './ComponentTest';
-import RobustAdminWrapper from './RobustAdminWrapper';
+// import RobustAdminWrapper from './RobustAdminWrapper'; // Removed to expose real errors
 import SimpleTestComponent from './SimpleTestComponent';
 import SimpleUserManagementFixed from './SimpleUserManagementFixed';
 import SimpleChecklistManagementFixed from './SimpleChecklistManagementFixed';
@@ -38,7 +38,7 @@ import ErrorDiagnostic from './ErrorDiagnostic';
 import DirectErrorLogger from './DirectErrorLogger';
 import ComponentImportTest from './ComponentImportTest';
 import EmergencyBypass from './EmergencyBypass';
-import { VerboseErrorBoundary } from './VerboseErrorBoundary';
+// import { VerboseErrorBoundary } from './VerboseErrorBoundary'; // Removed to expose real errors
 
 // Loading fallback
 const AdminLoadingFallback = () => {
@@ -89,45 +89,14 @@ export default function AdminRoutes() {
         <Route path="/" element={<AdminOverview />} />
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
-        <Route path="properties" element={
-          <VerboseErrorBoundary componentName="PropertyManagement">
-            <PropertyManagement />
-          </VerboseErrorBoundary>
-        } />
-        <Route path="users" element={
-          <VerboseErrorBoundary componentName="SimpleUserManagement">
-            <SimpleUserManagement />
-          </VerboseErrorBoundary>
-        } />
-        <Route path="inspections" element={
-          <VerboseErrorBoundary componentName="SimpleInspectionManagement">
-            <SimpleInspectionManagement />
-          </VerboseErrorBoundary>
-        } />
+        <Route path="properties" element={<PropertyManagement />} />
+        <Route path="users" element={<SimpleUserManagement />} />
+        <Route path="inspections" element={<SimpleInspectionManagement />} />
         <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
         <Route path="inspection-diagnostic" element={<InspectionDataDiagnostic />} />
         <Route path="audit" element={<AuditCenter />} />
         <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={
-          <VerboseErrorBoundary componentName="SimpleChecklistManagement">
-            <SimpleChecklistManagement />
-          </VerboseErrorBoundary>
-        } />
-        <Route path="users-real" element={
-          <RobustAdminWrapper componentName="SimpleUserManagement" fallbackComponent={<div>User management temporarily unavailable</div>}>
-            <SimpleUserManagement />
-          </RobustAdminWrapper>
-        } />
-        <Route path="audit-real" element={
-          <RobustAdminWrapper componentName="AuditCenter" fallbackComponent={<div>Audit center temporarily unavailable</div>}>
-            <AuditCenter />
-          </RobustAdminWrapper>
-        } />
-        <Route path="checklists-real" element={
-          <RobustAdminWrapper componentName="SimpleChecklistManagement" fallbackComponent={<div>Checklist management temporarily unavailable</div>}>
-            <SimpleChecklistManagement />
-          </RobustAdminWrapper>
-        } />
+        <Route path="checklists" element={<SimpleChecklistManagement />} />
         <Route path="performance" element={
           <ComingSoonPage 
             title="AI Performance Dashboard" 
