@@ -195,7 +195,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <ErrorBoundary level="section" isolate>
-              <SimpleAuthProvider user={user}>
+              <AuthProvider>
                 <DomainAwarePWA />
                 <Toaster />
                 <Sonner />
@@ -239,7 +239,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                     🐛 Bug Report: User Menu → Report Issue
                   </div>
                 )}
-              </SimpleAuthProvider>
+              </AuthProvider>
             </ErrorBoundary>
           </TooltipProvider>
         </QueryClientProvider>
@@ -470,49 +470,7 @@ function InspectorRedirect() {
   );
 }
 
-// Simple Auth Provider that uses the already-authenticated user
-function SimpleAuthProvider({ user, children }: { user: any, children: React.ReactNode }) {
-  console.log('🔐 SimpleAuthProvider initialized with user:', user?.email, user?.id);
-  
-  const value = {
-    user,
-    userRole: user?.role || 'inspector',
-    loading: false,
-    error: null,
-    signIn: async () => {},
-    signUp: async () => {},
-    signOut: async () => {
-      try {
-        console.log('🔐 SimpleAuthProvider: Signing out user');
-        await supabase.auth.signOut();
-        // Clear any cached data
-        localStorage.clear();
-        sessionStorage.clear();
-        // Redirect to login
-        window.location.href = '/';
-      } catch (error) {
-        console.error('❌ Sign out failed:', error);
-        // Force redirect even if sign out fails
-        window.location.href = '/';
-      }
-    },
-    forceRefresh: () => {},
-    clearSession: () => {},
-    loadUserRole: async () => {},
-  };
-
-  console.log('🔐 SimpleAuthProvider value:', { 
-    hasUser: !!value.user, 
-    userRole: value.userRole, 
-    loading: value.loading 
-  });
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+// SimpleAuthProvider removed - using proper AuthProvider instead
 
 // Health check page for monitoring
 function HealthCheckPage() {

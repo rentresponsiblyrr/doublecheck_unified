@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/components/AuthProvider";
 
 export const useMediaRecordService = () => {
   const { user } = useAuth();

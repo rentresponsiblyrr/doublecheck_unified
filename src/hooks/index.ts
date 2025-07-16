@@ -1,5 +1,5 @@
 // Hook exports for better organization
-export { useAuth } from './useAuth';
+// export { useAuth } from './useAuth'; // Removed - use AuthProvider's useAuth instead
 export { useInspectionData } from './useInspectionData';
 export { usePropertyActions } from './usePropertyActions';
 export { useNetworkStatus } from './useNetworkStatus';

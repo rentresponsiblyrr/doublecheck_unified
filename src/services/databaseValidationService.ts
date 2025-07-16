@@ -67,7 +67,7 @@ export class DatabaseValidationService {
 
     // Test RPC function
     const rpcTest = await this.testRpcFunction('create_inspection_secure', {
-      p_property_id: 1,
+      p_property_id: '00000000-0000-4000-8000-000000000000', // Use UUID for property ID
       p_inspector_id: '00000000-0000-4000-8000-000000000000'
     });
 
@@ -113,13 +113,13 @@ export class DatabaseValidationService {
     error?: string;
   }> {
     try {
-      // Convert property ID to correct type
-      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+      // Use property ID as UUID string
+      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       // Try RPC function first
       try {
         const { data, error } = await supabase.rpc('create_inspection_secure', {
-          p_property_id: propertyIdInt,
+          p_property_id: propertyIdUuid,
           p_inspector_id: inspectorId
         });
 
@@ -144,7 +144,7 @@ export class DatabaseValidationService {
         const { data, error } = await supabase
           .from('inspections')
           .insert({
-            property_id: propertyIdInt,
+            property_id: propertyIdUuid,
             inspector_id: inspectorId,
             start_time: new Date().toISOString(),
             completed: false,
@@ -196,14 +196,39 @@ export class DatabaseValidationService {
       actual: string;
     }> = [];
 
-    // This would require more sophisticated introspection
-    // For now, we'll just document known issues
-    mismatches.push({
-      table: 'inspections',
-      field: 'property_id',
-      expected: 'string (UUID)',
-      actual: 'integer'
-    });
+    // This was a previous assumption - database actually uses UUIDs correctly
+    // mismatches.push({
+    //   table: 'inspections',
+    //   field: 'property_id',
+    //   expected: 'string (UUID)',
+    //   actual: 'integer'
+    // });
+
+    // Test for the status constraint issue we just found
+    try {
+      const { error } = await supabase
+        .from('inspections')
+        .insert({
+          property_id: '00000000-0000-4000-8000-999999999999', // Use a non-existent property UUID
+          inspector_id: '00000000-0000-4000-8000-000000000000',
+          start_time: new Date().toISOString(),
+          completed: false,
+          status: 'rejected' // Test the status that was causing issues
+        })
+        .select('id');
+
+      // We expect this to fail due to property_id, but not due to status constraint
+      if (error && error.code === '23514') {
+        mismatches.push({
+          table: 'inspections',
+          field: 'status',
+          expected: 'includes rejected status',
+          actual: 'constraint missing rejected status'
+        });
+      }
+    } catch (error) {
+      // Ignore test errors - we're just checking constraints
+    }
 
     return {
       valid: mismatches.length === 0,

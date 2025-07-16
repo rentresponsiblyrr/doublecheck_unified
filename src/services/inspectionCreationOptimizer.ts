@@ -23,13 +23,13 @@ export class InspectionCreationOptimizer {
 
       console.log('🔍 Looking for inspections with active statuses:', activeStatuses);
 
-      // Convert propertyId to integer for database query
-      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+      // Use propertyId as UUID string (no conversion needed)
+      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
         .from('inspections')
         .select('id, inspector_id, status, start_time')
-        .eq('property_id', propertyIdInt)
+        .eq('property_id', propertyIdUuid)
         .in('status', activeStatuses)
         .order('start_time', { ascending: false })
         .limit(1)
@@ -65,15 +65,15 @@ export class InspectionCreationOptimizer {
         // Try RPC function first, fallback to direct insert
         let data, error;
         
-        // Convert propertyId string to integer for database operations
-        const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+        // Use propertyId as UUID string for database operations
+        const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
         try {
-          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId: propertyIdInt, inspectorId });
+          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId: propertyIdUuid, inspectorId });
           
           // Try the secure RPC function first
           const rpcResult = await supabase.rpc('create_inspection_secure', {
-            p_property_id: propertyIdInt,
+            p_property_id: propertyIdUuid,
             p_inspector_id: inspectorId
           });
           
@@ -81,7 +81,16 @@ export class InspectionCreationOptimizer {
           
           if (rpcResult.error) {
             console.log('🔧 RPC function failed:', rpcResult.error.message);
-            throw new Error(`RPC failed: ${rpcResult.error.message}`);
+            // Provide specific error messages for common constraint violations  
+            if (rpcResult.error.code === '23514') {
+              throw new Error('Database constraint violation: The inspection status value is not allowed. Please contact support.');
+            } else if (rpcResult.error.code === '23503') {
+              throw new Error('Invalid property or inspector ID. Please refresh the page and try again.');
+            } else if (rpcResult.error.code === '23505') {
+              throw new Error('An inspection already exists for this property. Please check existing inspections.');
+            } else {
+              throw new Error(`RPC function failed (${rpcResult.error.code}): ${rpcResult.error.message}`);
+            }
           }
           
           if (!rpcResult.data) {
@@ -98,7 +107,7 @@ export class InspectionCreationOptimizer {
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyIdInt,
+              property_id: propertyIdUuid,
               inspector_id: inspectorId, // Always include inspector_id for RLS
               start_time: new Date().toISOString(),
               completed: false,
@@ -110,11 +119,20 @@ export class InspectionCreationOptimizer {
           console.log('🔧 Direct insert result:', insertResult);
           
           if (insertResult.error) {
-            throw new Error(`Direct insert failed: ${insertResult.error.message}`);
+            // Provide specific error messages for common constraint violations
+            if (insertResult.error.code === '23514') {
+              throw new Error('Database constraint violation: The inspection status value is not allowed. Please contact support.');
+            } else if (insertResult.error.code === '23503') {
+              throw new Error('Invalid property or inspector ID. Please refresh the page and try again.');
+            } else if (insertResult.error.code === '23505') {
+              throw new Error('An inspection already exists for this property. Please check existing inspections.');
+            } else {
+              throw new Error(`Database error (${insertResult.error.code}): ${insertResult.error.message}`);
+            }
           }
           
           if (!insertResult.data?.id) {
-            throw new Error('Direct insert returned no inspection ID');
+            throw new Error('Database returned no inspection ID - please try again');
           }
           
           data = insertResult.data.id;

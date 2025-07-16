@@ -1,6 +1,6 @@
 
 import { useParams, useNavigate } from "react-router-dom";
-import { useCleanAuth } from "@/hooks/useCleanAuth";
+import { useAuth } from "@/components/AuthProvider";
 import { useSimplifiedInspectionData } from "@/hooks/useSimplifiedInspectionData";
 import { debugLogger } from "@/utils/debugLogger";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
@@ -16,7 +16,8 @@ export const SimplifiedInspectionPage = () => {
   const navigate = useNavigate();
   const inspectionId = params.id;
 
-  const { user, loading: authLoading, error: authError, isAuthenticated } = useCleanAuth();
+  const { user, loading: authLoading, error: authError } = useAuth();
+  const isAuthenticated = !!user;
   
   debugLogger.info('SimplifiedInspectionPage', 'Route and auth analysis', { 
     params, 

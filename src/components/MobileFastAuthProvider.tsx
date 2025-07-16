@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContext, AuthContextType } from '@/contexts/MobileAuthContext';
+import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
 import { MobileAuthLoading } from '@/components/MobileAuthLoading';
 import { useMobileAuthHooks } from '@/hooks/useMobileAuthHooks';
 import { getCachedRole } from '@/utils/mobileCacheUtils';

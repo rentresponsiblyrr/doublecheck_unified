@@ -41,11 +41,11 @@ export function isValidIntegerString(id: string): boolean {
  */
 export const IdConverter = {
   /**
-   * Properties use integer IDs in the database
+   * Properties use UUID strings in the database (corrected from previous assumption of integers)
    */
   property: {
-    toDatabase: convertPropertyIdToInt,
-    validate: isValidIntegerString
+    toDatabase: (id: string) => id, // Properties are UUIDs, not integers
+    validate: isValidUUID
   },
   
   /**
