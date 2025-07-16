@@ -81,6 +81,12 @@ export default function AdminRoutes() {
   console.log('📍 Current location:', window.location.pathname);
   console.log('📍 Current search params:', window.location.search);
   
+  // EMERGENCY DEBUG: Show what AdminRoutes is receiving
+  console.log('🔍 AdminRoutes Debug:');
+  console.log('- Full pathname:', window.location.pathname);
+  console.log('- useLocation pathname:', useLocation().pathname);
+  console.log('- React Router state:', useLocation().state);
+  
   // For debugging - show a simple test first
   if (window.location.pathname === '/admin/test' || window.location.search.includes('debug=true')) {
     return (
@@ -90,6 +96,26 @@ export default function AdminRoutes() {
         <p className="text-green-700 mb-2">Search: {window.location.search}</p>
         <p className="text-green-700">AdminRoutes component successfully rendered</p>
       </div>
+    );
+  }
+  
+  // EMERGENCY: If health route, show direct component
+  if (window.location.pathname === '/admin/health') {
+    return (
+      <AdminLayout>
+        <div className="p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h1 className="text-2xl font-bold text-blue-800 mb-2">🚨 EMERGENCY HEALTH MONITOR</h1>
+            <p className="text-blue-700">Direct route match detected. AdminRoutes is working but nested routing failed.</p>
+            <div className="mt-4 text-sm text-blue-600">
+              <div>Current Path: {window.location.pathname}</div>
+              <div>Router Path: {useLocation().pathname}</div>
+              <div>Time: {new Date().toLocaleString()}</div>
+            </div>
+          </div>
+          <ComponentHealthMonitor />
+        </div>
+      </AdminLayout>
     );
   }
   
