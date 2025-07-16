@@ -386,42 +386,34 @@ function AdminRoutesComponent() {
     <Routes>
       {/* Admin Dashboard - Default route for admin.doublecheckverified.com */}
       <Route path="/" element={
-        <ProtectedRoute requiredRole="admin">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminRoutes />
-          </Suspense>
-        </ProtectedRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AdminRoutes />
+        </Suspense>
       } />
 
       {/* Auditor Dashboard */}
       <Route path="/auditor" element={
-        <ProtectedRoute requiredRole="auditor">
-          <ErrorBoundary level="component">
-            <Suspense fallback={<LoadingFallback />}>
-              <LazyAuditorDashboard />
-            </Suspense>
-          </ErrorBoundary>
-        </ProtectedRoute>
+        <ErrorBoundary level="component">
+          <Suspense fallback={<LoadingFallback />}>
+            <LazyAuditorDashboard />
+          </Suspense>
+        </ErrorBoundary>
       } />
 
       {/* Debug Tools */}
       <Route path="/debug-inspection/:id" element={
-        <ProtectedRoute requiredRole="admin">
-          <ErrorBoundary level="component" showErrorDetails>
-            <Suspense fallback={<LoadingFallback />}>
-              <LazyDebugInspectionPage />
-            </Suspense>
-          </ErrorBoundary>
-        </ProtectedRoute>
+        <ErrorBoundary level="component" showErrorDetails>
+          <Suspense fallback={<LoadingFallback />}>
+            <LazyDebugInspectionPage />
+          </Suspense>
+        </ErrorBoundary>
       } />
 
       {/* Admin Routes - All admin functionality */}
       <Route path="/admin/*" element={
-        <ProtectedRoute requiredRole="admin">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminRoutes />
-          </Suspense>
-        </ProtectedRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AdminRoutes />
+        </Suspense>
       } />
 
       {/* Health Check Route */}
