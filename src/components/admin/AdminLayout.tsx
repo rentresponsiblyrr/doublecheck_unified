@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,7 +28,7 @@ import {
   TrendingUp,
   Bug
 } from 'lucide-react';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+// import { useAdminAuth } from '@/hooks/useAdminAuth'; // Removed - auth handled in App.tsx
 import { supabase } from '@/integrations/supabase/client';
 import { Logo } from '@/components/Logo';
 import { SystemStatusPanel } from './SystemStatusPanel';
@@ -167,10 +167,26 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function AdminLayout() {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, userRole, loading, error, isAuthenticated, signOut: adminSignOut } = useAdminAuth();
+  // Remove redundant auth check - authentication already validated in App.tsx
+  // const { user, userRole, loading, error, isAuthenticated, signOut: adminSignOut } = useAdminAuth();
+  
+  // Simplified auth for admin layout since authentication is already validated
+  const user = null; // Will be replaced with context if needed
+  const userRole = 'admin'; // Default admin role
+  const loading = false; // No loading since auth already complete
+  const error = null; // No error since auth already successful
+  const isAuthenticated = true; // Always true since App.tsx already validated
+  
+  const adminSignOut = async () => {
+    await supabase.auth.signOut();
+  };
   
   // Get display name with better fallback logic
   const getDisplayName = () => {
@@ -385,7 +401,7 @@ export default function AdminLayout() {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>
