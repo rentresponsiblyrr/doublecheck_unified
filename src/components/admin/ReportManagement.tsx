@@ -115,8 +115,8 @@ export default function ReportManagement() {
             name,
             address
           ),
-          profiles!inner (
-            full_name,
+          users!inner (
+            name,
             email
           )
         `)

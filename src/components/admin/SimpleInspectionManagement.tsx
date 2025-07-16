@@ -93,7 +93,7 @@ export default function SimpleInspectionManagement() {
           created_at,
           updated_at,
           properties(name),
-          profiles(name)
+          users(name)
         `)
         .order('created_at', { ascending: false });
 
@@ -105,7 +105,7 @@ export default function SimpleInspectionManagement() {
         const transformedData = (dbInspections || []).map(inspection => ({
           id: inspection.id,
           property_name: inspection.properties?.name || 'Unknown Property',
-          inspector_name: inspection.profiles?.name || 'Unknown Inspector',
+          inspector_name: inspection.users?.name || 'Unknown Inspector',
           status: inspection.status,
           created_at: inspection.created_at,
           updated_at: inspection.updated_at

@@ -190,9 +190,9 @@ export default function PropertyManagement() {
             created_at,
             updated_at,
             inspector_id,
-            profiles!inspections_inspector_id_fkey (
+            users!inspections_inspector_id_fkey (
               email,
-              name:user_metadata->name
+              name
             )
           )
         `)
@@ -214,9 +214,9 @@ export default function PropertyManagement() {
               .from('audit_feedback')
               .select(`
                 *,
-                profiles!audit_feedback_auditor_id_fkey (
+                users!audit_feedback_auditor_id_fkey (
                   email,
-                  name:user_metadata->name
+                  name
                 )
               `)
               .eq('inspection_id', latestInspection.id)
@@ -229,7 +229,7 @@ export default function PropertyManagement() {
                 id: auditInfo.id,
                 status: auditInfo.auditor_decision ? 'completed' : 'pending',
                 auditor_id: auditInfo.auditor_id,
-                auditor_name: auditInfo.profiles?.name || auditInfo.profiles?.email,
+                auditor_name: auditInfo.users?.name || auditInfo.users?.email,
                 decision: auditInfo.auditor_decision,
                 completed_at: auditInfo.created_at
               };
@@ -281,7 +281,7 @@ export default function PropertyManagement() {
               created_at: latestInspection.created_at,
               updated_at: latestInspection.updated_at,
               inspector_id: latestInspection.inspector_id,
-              inspector_name: latestInspection.profiles?.name || latestInspection.profiles?.email
+              inspector_name: latestInspection.users?.name || latestInspection.users?.email
             } : undefined,
             audit: auditData,
             report: reportData,
