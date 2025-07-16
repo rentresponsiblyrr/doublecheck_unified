@@ -304,6 +304,128 @@ export class OpenAIService {
 - Privacy protection - Minimize data sent to external services
 - Rate limiting - Respect API limits, implement backoff strategies
 
+## **🏗️ DATABASE COMPATIBILITY ARCHITECTURE**
+
+### **⚠️ CRITICAL SCHEMA ISSUE RESOLUTION**
+**IMPORTANT:** This application uses a compatibility layer to bridge between expected schema and production database reality.
+
+#### **Production Database Schema (Reality):**
+- **Properties:** `properties` table with integer `property_id`
+- **Checklist Items:** `logs` table (not `inspection_checklist_items`)
+- **Users:** `profiles` table (not `users`)
+- **Inspections:** `inspection_sessions` table (not `inspections`)
+- **Safety Items:** `checklist` table (not `static_safety_items`)
+
+#### **Application Expectations (Code Assumptions):**
+- **Properties:** UUID-based `id` field
+- **Checklist Items:** `inspection_checklist_items` table
+- **Users:** `users` table
+- **Inspections:** `inspections` table
+- **Safety Items:** `static_safety_items` table
+
+#### **Compatibility Layer Solution:**
+```sql
+-- Key Views Created (NEVER modify these without updating docs):
+users → profiles
+properties_fixed → properties (with UUID conversion)
+inspection_checklist_items → logs
+inspections_fixed → inspection_sessions
+checklist_items_compat → checklist
+
+-- Key Functions (Production-Critical):
+int_to_uuid() - Convert property_id to UUID
+uuid_to_int() - Convert UUID back to property_id
+create_inspection_compatibility() - Create inspections properly
+```
+
+### **🔧 Database Development Rules:**
+
+#### **ALWAYS Use Compatibility Views:**
+```typescript
+// ✅ CORRECT: Using compatibility views
+const { data } = await supabase
+  .from('inspections_fixed')           // Use compatibility view
+  .select(`
+    *,
+    properties_fixed!inner (id, name, address),
+    inspection_checklist_items!inner (
+      *,
+      checklist_items_compat!inner (title, category),
+      media (*)
+    )
+  `);
+
+// ❌ WRONG: Using expected table names directly
+const { data } = await supabase
+  .from('inspections')                 // This table doesn't exist!
+  .select('*, properties(*), users(*)');
+```
+
+#### **Required View Mappings:**
+- **Properties:** Use `properties_fixed` (provides UUID conversion)
+- **Users:** Use `users` (maps to `profiles`)
+- **Checklist Items:** Use `inspection_checklist_items` (maps to `logs`)
+- **Inspections:** Use `inspections_fixed` (maps to `inspection_sessions`)
+- **Safety Items:** Use `checklist_items_compat` (maps to `checklist`)
+
+#### **Field Mapping Reference:**
+```typescript
+// Production logs table → inspection_checklist_items view
+{
+  log_id → id
+  audit_status → status (with CASE conversion)
+  audit_notes/inspector_remarks → inspector_notes
+  ai_confidence → score
+  checklist_id → static_safety_item_id
+}
+
+// Production properties table → properties_fixed view  
+{
+  property_id (integer) → id (UUID via int_to_uuid())
+  property_name → name
+  street_address + city + state + zipcode → address
+}
+
+// Production profiles table → users view
+{
+  id → id
+  full_name/email → name
+  email → email
+}
+```
+
+### **🚨 Development Warnings:**
+
+#### **NEVER Do These Things:**
+- Query `inspections`, `users`, `static_safety_items` tables directly
+- Assume property IDs are UUIDs without conversion
+- Create new migrations without considering compatibility layer
+- Modify base tables without updating compatibility views
+
+#### **ALWAYS Do These Things:**
+- Use compatibility views in all service layer queries
+- Handle UUID/integer conversion with provided functions
+- Test queries against actual production schema
+- Document any new schema assumptions in this file
+
+### **🧪 Schema Validation:**
+```sql
+-- Run these tests before any database changes:
+SELECT int_to_uuid(1), uuid_to_int(int_to_uuid(1));
+SELECT COUNT(*) FROM users, properties_fixed, inspection_checklist_items;
+SELECT i.id, p.name FROM inspections_fixed i 
+  JOIN properties_fixed p ON p.id = i.property_id LIMIT 1;
+```
+
+### **📋 New Feature Checklist:**
+- [ ] Check if new tables/fields exist in production
+- [ ] Update compatibility views if needed
+- [ ] Test queries with actual production data
+- [ ] Update this documentation with any new mappings
+- [ ] Verify all relationships work through compatibility layer
+
+**See:** `/docs/DATABASE_COMPATIBILITY_ARCHITECTURE.md` for complete technical details.
+
 ## **📚 TEACHING MOMENTS**
 
 After implementing each feature, explain:

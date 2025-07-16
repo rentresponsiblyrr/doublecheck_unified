@@ -112,11 +112,11 @@ export default function ReportManagement() {
           status,
           created_at,
           properties!inner (
-            name,
-            address
+            property_name,
+            street_address
           ),
-          users!inner (
-            name,
+          profiles!inner (
+            full_name,
             email
           )
         `)

@@ -39,6 +39,8 @@ import DirectErrorLogger from './DirectErrorLogger';
 import ComponentImportTest from './ComponentImportTest';
 import EmergencyBypass from './EmergencyBypass';
 import ComprehensiveDiagnostic from './ComprehensiveDiagnostic';
+import { AdminDeploymentTest } from './AdminDeploymentTest';
+import { AdminRoutesTest } from './AdminRoutesTest';
 // import { VerboseErrorBoundary } from './VerboseErrorBoundary'; // Removed to expose real errors
 
 // Loading fallback
@@ -90,6 +92,8 @@ export default function AdminRoutes() {
         <Route path="/" element={<AdminOverview />} />
           
         {/* All routes use relative paths - works for both /admin/* and direct routes */}
+        <Route path="deployment-test" element={<AdminDeploymentTest />} />
+        <Route path="routes-test" element={<AdminRoutesTest />} />
         <Route path="properties" element={<PropertyManagement />} />
         <Route path="users" element={<SimpleUserManagement />} />
         <Route path="inspections" element={<SimpleInspectionManagement />} />

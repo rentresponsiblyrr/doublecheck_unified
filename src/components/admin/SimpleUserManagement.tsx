@@ -18,9 +18,13 @@ import { supabase } from '@/integrations/supabase/client';
 interface SimpleUser {
   id: string;
   email: string;
+  full_name?: string;
+  phone?: string;
+  role?: string;
+  status?: string;
   created_at: string;
-  last_sign_in_at?: string;
-  user_metadata?: any;
+  updated_at?: string;
+  last_login_at?: string;
 }
 
 export default function SimpleUserManagement() {
@@ -59,10 +63,10 @@ export default function SimpleUserManagement() {
 
       console.log('🔍 Querying users table...');
       
-      // First try a simple query without joins
+      // Query profiles table (actual production table name)
       const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, email, name, phone, role, status, last_login_at, created_at, updated_at')
+        .from('profiles')
+        .select('id, email, full_name, phone, role, status, last_login_at, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       console.log('📊 Users query result:', { data: usersData, error: usersError });
@@ -85,7 +89,7 @@ export default function SimpleUserManagement() {
         created_at: user.created_at,
         last_sign_in_at: user.last_login_at,
         user_metadata: {
-          name: user.name || user.email.split('@')[0],
+          name: user.full_name || user.email.split('@')[0],
           role: user.role || 'inspector'
         }
       }));

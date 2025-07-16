@@ -182,8 +182,8 @@ export default function AuditCenter() {
       // Test profiles/users tables
       try {
         const { error: profilesError } = await supabase
-          .from('users')
-          .select('id, name, email')
+          .from('profiles')
+          .select('id, full_name, email')
           .limit(1);
         
         diagnostics.users = {
@@ -201,7 +201,7 @@ export default function AuditCenter() {
       try {
         const { error: profilesError } = await supabase
           .from('profiles')
-          .select('id, name, email')
+          .select('id, full_name, email')
           .limit(1);
         
         diagnostics.profiles = {
@@ -274,9 +274,9 @@ export default function AuditCenter() {
             end_time,
             status,
             properties!inner (
-              id,
-              name,
-              address
+              property_id,
+              property_name,
+              street_address
             ),
             users!inspector_id (
               id,
@@ -311,9 +311,9 @@ export default function AuditCenter() {
             end_time,
             status,
             properties!inner (
-              id,
-              name,
-              address
+              property_id,
+              property_name,
+              street_address
             )
           `)
           .eq('status', 'completed')

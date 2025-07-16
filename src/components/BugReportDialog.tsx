@@ -34,6 +34,7 @@ import {
 import { userActivityService, type BugReportData, type UserAction } from '@/services/userActivityService';
 import { screenshotCaptureService, type ScreenshotResult } from '@/utils/screenshotCapture';
 import { githubIssuesService, type GitHubIssue } from '@/services/githubIssuesService';
+import { intelligentBugReportService, type IntelligentBugReport, type BugReportAnalytics } from '@/services/intelligentBugReportService';
 import { useAuthState } from '@/hooks/useAuthState';
 import { logger } from '@/utils/logger';
 
@@ -73,6 +74,12 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
   
   // User actions state
   const [userActions, setUserActions] = useState<UserAction[]>([]);
+  
+  // Enhanced bug reporting state
+  const [intelligentReport, setIntelligentReport] = useState<IntelligentBugReport | null>(null);
+  const [reportAnalytics, setReportAnalytics] = useState<BugReportAnalytics | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState<string>('');
 
   // Load user actions when dialog opens
   useEffect(() => {
@@ -98,6 +105,10 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       setUploadProgress(0);
       setSubmissionError(null);
       setCreatedIssue(null);
+      setIntelligentReport(null);
+      setReportAnalytics(null);
+      setIsAnalyzing(false);
+      setAnalysisStep('');
     }
   }, [isOpen, initialTitle, initialDescription]);
 
@@ -150,6 +161,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
   const submitBugReport = useCallback(async () => {
     try {
       setCurrentStep('uploading');
+      setIsAnalyzing(true);
       setUploadProgress(10);
 
       // Validate form
@@ -162,7 +174,8 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         filteredSteps.push('User did not provide reproduction steps');
       }
 
-      setUploadProgress(30);
+      setAnalysisStep('Preparing bug report data...');
+      setUploadProgress(20);
 
       // Prepare bug report data
       const bugReportData: BugReportData = {
@@ -180,80 +193,84 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         }
       };
 
-      setUploadProgress(50);
-
-      // Check if GitHub is configured
-      if (githubIssuesService.isConfigured()) {
-        // Upload screenshot if available
-        if (screenshot) {
-          try {
-            const filename = `bug-report-${Date.now()}.png`;
-            const screenshotUrl = await githubIssuesService.uploadScreenshot(screenshot.blob, filename);
-            bugReportData.screenshot = screenshotUrl;
-          } catch (screenshotError) {
-            logger.warn('Screenshot upload failed, continuing without it', screenshotError, 'BUG_REPORT');
-          }
+      // Upload screenshot if available
+      if (screenshot) {
+        try {
+          setAnalysisStep('Uploading screenshot...');
+          const filename = `bug-report-${Date.now()}.png`;
+          const screenshotUrl = await githubIssuesService.uploadScreenshot(screenshot.blob, filename);
+          bugReportData.screenshot = screenshotUrl;
+        } catch (screenshotError) {
+          logger.warn('Screenshot upload failed, continuing without it', screenshotError, 'BUG_REPORT');
         }
+      }
 
+      setAnalysisStep('Analyzing errors and context...');
+      setUploadProgress(40);
+
+      // Use intelligent bug reporting service
+      const result = await intelligentBugReportService.createIntelligentBugReport(bugReportData, {
+        autoSubmitToGitHub: true,
+        skipAIAnalysis: false,
+        includeScreenshot: !!screenshot
+      });
+
+      setIntelligentReport(result.report);
+      setReportAnalytics(result.analytics);
+
+      if (result.success) {
+        setAnalysisStep('Creating enhanced GitHub issue...');
         setUploadProgress(80);
-
-        // Create GitHub issue
-        const issue = await githubIssuesService.createBugReportIssue(bugReportData);
         
+        if (result.githubIssue) {
+          setCreatedIssue(result.githubIssue);
+        } else {
+          // Fallback: Create a mock issue for display when GitHub is not configured
+          setCreatedIssue({
+            id: Date.now(),
+            number: Math.floor(Math.random() * 1000),
+            title: result.report.title,
+            body: result.report.description,
+            state: 'open',
+            labels: [`severity:${severity}`, `category:${category}`, 'ai-enhanced'],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            html_url: '#',
+            user: {
+              login: 'ai-assistant',
+              avatar_url: ''
+            }
+          } as any);
+        }
+        
+        setAnalysisStep('Complete!');
         setUploadProgress(100);
-        setCreatedIssue(issue);
         setCurrentStep('success');
 
-        userActivityService.trackCustomAction('bug_report_submitted', {
-          issueNumber: issue.number,
-          title: issue.title,
+        userActivityService.trackCustomAction('intelligent_bug_report_submitted', {
+          reportId: result.analytics.reportId,
+          aiAnalysisSuccess: result.analytics.aiAnalysisSuccess,
+          githubIssueCreated: result.analytics.githubIssueCreated,
+          userSatisfactionPrediction: result.analytics.userSatisfactionPrediction,
+          resolutionTimeEstimate: result.analytics.resolutionTimeEstimate,
           severity,
           category
         });
       } else {
-        // Fallback: Log to console and show success (for development/testing)
-        setUploadProgress(80);
-        
-        console.log('🐛 Bug Report Submitted (GitHub not configured):', {
-          ...bugReportData,
-          screenshot: screenshot ? 'Screenshot captured' : 'No screenshot'
-        });
-        
-        // Create a mock issue for display
-        setCreatedIssue({
-          id: Date.now(),
-          number: Math.floor(Math.random() * 1000),
-          title: bugReportData.title,
-          body: bugReportData.description,
-          state: 'open',
-          labels: [`severity:${severity}`, `category:${category}`],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          html_url: '#',
-          user: {
-            login: 'user',
-            avatar_url: ''
-          }
-        } as any);
-        
-        setUploadProgress(100);
-        setCurrentStep('success');
-
-        userActivityService.trackCustomAction('bug_report_submitted_offline', {
-          title: bugReportData.title,
-          severity,
-          category
-        });
+        throw new Error(result.error || 'Intelligent bug report creation failed');
       }
 
     } catch (error) {
-      logger.error('Bug report submission failed', error, 'BUG_REPORT');
+      logger.error('Intelligent bug report submission failed', error, 'BUG_REPORT');
       setSubmissionError(error.message);
       setCurrentStep('error');
+      setIsAnalyzing(false);
       
-      userActivityService.trackCustomAction('bug_report_submission_failed', {
+      userActivityService.trackCustomAction('intelligent_bug_report_submission_failed', {
         error: error.message
       });
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [title, description, severity, category, steps, screenshot, userActions, user]);
 
@@ -460,15 +477,46 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
 
   const renderUploadingStep = () => (
     <div className="text-center space-y-4">
-      <Upload className="h-12 w-12 mx-auto text-blue-600" />
+      {isAnalyzing ? (
+        <div className="relative">
+          <Upload className="h-12 w-12 mx-auto text-blue-600" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+            <Loader2 className="h-2 w-2 text-white animate-spin" />
+          </div>
+        </div>
+      ) : (
+        <Upload className="h-12 w-12 mx-auto text-blue-600" />
+      )}
       <div>
-        <h3 className="text-lg font-medium">Submitting Bug Report</h3>
-        <p className="text-gray-600">Creating GitHub issue with your feedback...</p>
+        <h3 className="text-lg font-medium">
+          {isAnalyzing ? 'AI-Enhanced Bug Analysis' : 'Submitting Bug Report'}
+        </h3>
+        <p className="text-gray-600">
+          {isAnalyzing 
+            ? 'AI is analyzing errors and creating enhanced context...' 
+            : 'Creating GitHub issue with your feedback...'
+          }
+        </p>
+        {analysisStep && (
+          <p className="text-sm text-blue-600 mt-1">{analysisStep}</p>
+        )}
       </div>
       <div className="space-y-2">
         <Progress value={uploadProgress} className="w-full" />
         <p className="text-sm text-gray-500">{uploadProgress}% complete</p>
       </div>
+      {isAnalyzing && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+          <h4 className="text-sm font-medium text-blue-900 mb-2">🤖 AI Analysis Features:</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Automatically capturing console and network errors</li>
+            <li>• Analyzing user frustration patterns</li>
+            <li>• Generating root cause analysis</li>
+            <li>• Creating debugging instructions</li>
+            <li>• Suggesting immediate workarounds</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 
@@ -476,30 +524,112 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
     <div className="text-center space-y-4">
       <CheckCircle className="h-12 w-12 mx-auto text-green-600" />
       <div>
-        <h3 className="text-lg font-medium text-green-900">Bug Report Submitted!</h3>
+        <h3 className="text-lg font-medium text-green-900">AI-Enhanced Bug Report Submitted!</h3>
         <p className="text-gray-600">Thank you for helping us improve the app.</p>
       </div>
+      
+      {/* AI Analysis Results */}
+      {reportAnalytics && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 text-left">
+          <h4 className="text-sm font-medium text-blue-900 mb-3 flex items-center">
+            🤖 AI Analysis Summary
+            {reportAnalytics.aiAnalysisSuccess && (
+              <Badge className="ml-2 bg-green-100 text-green-800">Success</Badge>
+            )}
+          </h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-600">Processing Time:</p>
+              <p className="font-medium">{reportAnalytics.processingTime}ms</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Business Impact:</p>
+              <p className="font-medium">{reportAnalytics.businessImpactScore}/10</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Resolution Estimate:</p>
+              <p className="font-medium">{reportAnalytics.resolutionTimeEstimate}h</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Satisfaction Score:</p>
+              <p className="font-medium">{reportAnalytics.userSatisfactionPrediction}/10</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Context Preview */}
+      {intelligentReport?.enhancedContext && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-left">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">Enhanced Analysis Included:</h4>
+          <div className="space-y-2 text-sm text-gray-700">
+            <div className="flex justify-between">
+              <span>User Frustration Level:</span>
+              <Badge className={
+                intelligentReport.enhancedContext.userFrustrationMetrics.level >= 8 ? 'bg-red-100 text-red-800' :
+                intelligentReport.enhancedContext.userFrustrationMetrics.level >= 6 ? 'bg-orange-100 text-orange-800' :
+                intelligentReport.enhancedContext.userFrustrationMetrics.level >= 4 ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+              }>
+                {intelligentReport.enhancedContext.userFrustrationMetrics.level}/10
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Technical Priority:</span>
+              <Badge className={
+                intelligentReport.enhancedContext.technicalComplexity.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                intelligentReport.enhancedContext.technicalComplexity.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                intelligentReport.enhancedContext.technicalComplexity.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+              }>
+                {intelligentReport.enhancedContext.technicalComplexity.priority.toUpperCase()}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>AI Confidence:</span>
+              <Badge className="bg-blue-100 text-blue-800">
+                {Math.round(intelligentReport.enhancedContext.aiInsights.confidence * 100)}%
+              </Badge>
+            </div>
+            {intelligentReport.enhancedContext.aiInsights.suggestedWorkarounds.length > 0 && (
+              <div>
+                <span className="font-medium">Immediate Workaround Available:</span>
+                <p className="text-xs text-blue-600 mt-1">
+                  {intelligentReport.enhancedContext.aiInsights.suggestedWorkarounds[0]}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* GitHub Issue Information */}
       {createdIssue && (
         <Alert>
           <FileText className="h-4 w-4" />
           <AlertTitle>
-            {githubIssuesService.isConfigured() ? 'GitHub Issue Created' : 'Report Logged'}
+            {githubIssuesService.isConfigured() ? '🚀 Enhanced GitHub Issue Created' : 'Report Logged with AI Analysis'}
           </AlertTitle>
           <AlertDescription className="mt-2">
             <div className="space-y-2">
               <p><strong>Issue #{createdIssue.number}:</strong> {createdIssue.title}</p>
               {githubIssuesService.isConfigured() ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(createdIssue.html_url, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  View on GitHub
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(createdIssue.html_url, '_blank')}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    View Enhanced Issue on GitHub
+                  </Button>
+                  <p className="text-xs text-gray-600">
+                    This issue includes AI-generated debugging instructions, root cause analysis, and suggested workarounds.
+                  </p>
+                </div>
               ) : (
                 <div className="text-sm text-blue-700 bg-blue-50 p-2 rounded">
-                  Report logged locally. Configure GitHub integration to create issues automatically.
+                  Enhanced report logged locally with AI analysis. Configure GitHub integration to create issues automatically.
                 </div>
               )}
             </div>
@@ -548,7 +678,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center space-x-2 flex-wrap">
             <Bug className="h-5 w-5 flex-shrink-0" />
-            <span className="min-w-0">Report a Bug</span>
+            <span className="min-w-0">🤖 AI-Enhanced Bug Report</span>
             {severity && (
               <Badge className={getSeverityColor(severity)}>
                 {severity.toUpperCase()}
@@ -556,7 +686,8 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
             )}
           </DialogTitle>
           <DialogDescription className="text-sm">
-            Help us improve the app by reporting issues. Your feedback is valuable!
+            Help us improve the app with AI-powered issue analysis. Your feedback triggers automatic error collection, 
+            intelligent classification, and enhanced debugging insights.
           </DialogDescription>
         </DialogHeader>
 
@@ -579,7 +710,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
                 className="flex-1"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Submit Report
+                Submit with AI Analysis
               </Button>
             </div>
           )}

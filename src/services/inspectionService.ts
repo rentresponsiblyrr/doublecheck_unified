@@ -18,7 +18,7 @@ type ChecklistItemUpdate = Tables['inspection_checklist_items']['Update'];
 type MediaRecord = Tables['media']['Row'];
 
 export interface InspectionWithDetails extends InspectionRecord {
-  properties: {
+  properties_fixed: {
     id: string;
     name: string | null;
     address: string | null;
@@ -26,13 +26,12 @@ export interface InspectionWithDetails extends InspectionRecord {
     airbnb_url: string | null;
   } | null;
   inspection_checklist_items: Array<ChecklistItemRecord & {
+    checklist_items_compat: {
+      title: string;
+      category: string;
+    } | null;
     media: MediaRecord[];
   }>;
-  users: {
-    id: string;
-    name: string | null;
-    email: string | null;
-  } | null;
 }
 
 export interface CreateInspectionData {
@@ -70,41 +69,79 @@ export class InspectionService {
     try {
       logger.info('Creating new inspection', { propertyId: data.propertyId, itemCount: data.checklistItems.length }, 'INSPECTION_SERVICE');
 
-      // Prepare checklist items data for atomic creation
-      const checklistItemsData = data.checklistItems.map(item => ({
-        title: item.title,
-        category: item.category,
-        evidence_type: 'photo',
-        gpt_prompt: item.description || `Inspect ${item.title}`
-      }));
+      // Use compatibility function to create inspection session
+      const { data: inspectionResult, error: inspectionError } = await supabase
+        .rpc('create_inspection_compatibility', {
+          p_property_uuid: data.propertyId,
+          p_inspector_id: data.inspectorId,
+          p_status: 'draft'
+        });
 
-      // Create inspection and checklist items atomically
-      const result = await createInspectionAtomic({
-        inspection: {
-          property_id: data.propertyId,
-          inspector_id: data.inspectorId,
-          status: 'draft'
-        },
-        inspection_checklist_items: checklistItemsData
-      });
-
-      if (!result.success) {
-        logger.error('Failed to create inspection atomically', result.error, 'INSPECTION_SERVICE');
-        return { success: false, error: result.error };
+      if (inspectionError) {
+        logger.error('Failed to create inspection session', inspectionError, 'INSPECTION_SERVICE');
+        return { success: false, error: inspectionError.message };
       }
 
-      const inspection = { id: result.data!.inspection_id };
-      const checklistItems = result.data!.checklist_item_ids.map(id => ({ id }));
+      const inspectionId = inspectionResult[0]?.inspection_id;
+      if (!inspectionId) {
+        return { success: false, error: 'Failed to get inspection ID from creation' };
+      }
+
+      // Create log entries (checklist items) for each safety item
+      for (const item of data.checklistItems) {
+        // First, ensure the checklist item exists
+        const { data: checklistItem, error: checklistError } = await supabase
+          .from('checklist')
+          .select('checklist_id')
+          .eq('label', item.title)
+          .eq('category', item.category)
+          .single();
+
+        let checklistId = checklistItem?.checklist_id;
+
+        // If checklist item doesn't exist, create it
+        if (!checklistId) {
+          const { data: newChecklistItem, error: createChecklistError } = await supabase
+            .from('checklist')
+            .insert({
+              label: item.title,
+              category: item.category,
+              evidence_type: 'photo',
+              required: item.required || false
+            })
+            .select('checklist_id')
+            .single();
+
+          if (createChecklistError) {
+            logger.error('Failed to create checklist item', createChecklistError, 'INSPECTION_SERVICE');
+            continue;
+          }
+          checklistId = newChecklistItem?.checklist_id;
+        }
+
+        // Create log entry
+        if (checklistId) {
+          await supabase
+            .from('logs')
+            .insert({
+              property_id: inspectionResult[0]?.property_id,
+              checklist_id: checklistId,
+              inspection_session_id: inspectionId,
+              audit_status: 'pending',
+              photo_evidence_required: true
+            });
+        }
+      }
 
       // Fetch the complete inspection with relations
-      const fullInspection = await this.getInspectionById(inspection.id);
+      const fullInspection = await this.getInspectionById(inspectionId);
       if (!fullInspection.success) {
         return { success: false, error: 'Failed to fetch created inspection' };
       }
 
       logger.info('Successfully created inspection', { 
-        inspectionId: inspection.id, 
-        checklistItemCount: checklistItems?.length || 0 
+        inspectionId, 
+        checklistItemCount: data.checklistItems.length 
       }, 'INSPECTION_SERVICE');
 
       return { success: true, data: fullInspection.data };
@@ -122,24 +159,23 @@ export class InspectionService {
       logger.info('Fetching inspection by ID', { inspectionId }, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           *,
-          properties (
+          properties_fixed!inner (
             id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items (
+          inspection_checklist_items!inner (
             *,
+            checklist_items_compat!inner (
+              title,
+              category
+            ),
             media (*)
-          ),
-          users (
-            id,
-            name,
-            email
           )
         `)
         .eq('id', inspectionId)
@@ -174,7 +210,7 @@ export class InspectionService {
 
       // Update inspection status
       const { error: inspectionError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .update({
           status: update.status,
           completed: update.status === 'completed',
@@ -283,24 +319,23 @@ export class InspectionService {
       logger.info('Fetching inspections for property', { propertyId }, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           *,
-          properties (
+          properties_fixed!inner (
             id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items (
+          inspection_checklist_items!inner (
             *,
+            checklist_items_compat!inner (
+              title,
+              category
+            ),
             media (*)
-          ),
-          users (
-            id,
-            name,
-            email
           )
         `)
         .eq('property_id', propertyId)
@@ -326,24 +361,23 @@ export class InspectionService {
       logger.info('Fetching inspections for review', {}, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           *,
-          properties (
+          properties_fixed!inner (
             id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items (
+          inspection_checklist_items!inner (
             *,
+            checklist_items_compat!inner (
+              title,
+              category
+            ),
             media (*)
-          ),
-          users (
-            id,
-            name,
-            email
           )
         `)
         .eq('completed', true)
@@ -384,7 +418,7 @@ export class InspectionService {
       };
 
       const { error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .update(updateData)
         .eq('id', inspectionId);
 

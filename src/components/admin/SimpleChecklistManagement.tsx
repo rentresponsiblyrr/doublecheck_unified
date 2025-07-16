@@ -115,9 +115,9 @@ export default function SimpleChecklistManagement() {
       setIsLoading(true);
       setError(null);
 
-      // Try to load from database
+      // Query checklist table (actual production table name)
       const { data: dbItems, error: dbError } = await supabase
-        .from('static_safety_items')
+        .from('checklist')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -157,7 +157,7 @@ export default function SimpleChecklistManagement() {
       // Try to save to database
       try {
         const { error: insertError } = await supabase
-          .from('static_safety_items')
+          .from('checklist')
           .insert([newItem]);
 
         if (insertError) {
@@ -193,7 +193,7 @@ export default function SimpleChecklistManagement() {
       // Try to delete from database
       try {
         const { error: deleteError } = await supabase
-          .from('static_safety_items')
+          .from('checklist')
           .delete()
           .eq('id', itemId);
 
