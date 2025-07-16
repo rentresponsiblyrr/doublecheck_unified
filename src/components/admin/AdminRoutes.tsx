@@ -35,6 +35,9 @@ import AdminErrorBoundary from './AdminErrorBoundary';
 import InspectionCreationDiagnostic from './InspectionCreationDiagnostic';
 import ChecklistDiagnostic from './ChecklistDiagnostic';
 import ErrorDiagnostic from './ErrorDiagnostic';
+import DirectErrorLogger from './DirectErrorLogger';
+import ComponentImportTest from './ComponentImportTest';
+import EmergencyBypass from './EmergencyBypass';
 import { VerboseErrorBoundary } from './VerboseErrorBoundary';
 
 // Loading fallback
@@ -193,6 +196,9 @@ export default function AdminRoutes() {
         <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
         <Route path="checklist-diagnostic" element={<ChecklistDiagnostic />} />
         <Route path="error-diagnostic" element={<ErrorDiagnostic />} />
+        <Route path="direct-error-logger" element={<DirectErrorLogger />} />
+        <Route path="component-import-test" element={<ComponentImportTest />} />
+        <Route path="emergency-bypass" element={<EmergencyBypass />} />
       </Routes>
     </AdminLayout>
   );

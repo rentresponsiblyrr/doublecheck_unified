@@ -48,11 +48,20 @@ function App() {
   useEffect(() => {
     console.log('🔍 Setting up auth listener - forcing login page');
     
-    // Check if there's an existing valid session
+    // Check if there's an existing valid session with timeout protection
     const checkSession = async () => {
+      console.log('🚀 Starting session check...');
+      
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('🔍 Initial session check:', { session: session?.user?.email, error });
+        // Add timeout protection to prevent hanging
+        const sessionCheckPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout after 5 seconds')), 5000)
+        );
+        
+        console.log('🔍 Calling supabase.auth.getSession() with 5s timeout...');
+        const { data: { session }, error } = await Promise.race([sessionCheckPromise, timeoutPromise]) as any;
+        console.log('✅ Session check completed:', { session: session?.user?.email, error });
         
         if (error) {
           console.error('Session check error:', error);
@@ -67,10 +76,17 @@ function App() {
           let userValid = false;
           
           try {
-            // Use the RPC function instead of direct table queries
-            const { data: userRole, error: roleError } = await supabase.rpc('get_user_role_simple', { 
+            console.log('🔍 Calling RPC get_user_role_simple with 3s timeout...');
+            // Use the RPC function with timeout protection
+            const rpcPromise = supabase.rpc('get_user_role_simple', { 
               _user_id: session.user.id 
             });
+            const rpcTimeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('RPC timeout after 3 seconds')), 3000)
+            );
+            
+            const { data: userRole, error: roleError } = await Promise.race([rpcPromise, rpcTimeoutPromise]) as any;
+            console.log('✅ RPC call completed:', { userRole, roleError });
             
             if (!roleError && userRole) {
               console.log('✅ User validated via RPC function with role:', userRole);
@@ -81,7 +97,7 @@ function App() {
               userValid = true;
             }
           } catch (rpcError) {
-            console.log('⚠️ RPC validation failed, allowing auth session...', rpcError);
+            console.log('⚠️ RPC validation failed (possibly timeout), allowing auth session...', rpcError);
             // Still allow login if they have a valid auth session
             userValid = true;
           }
@@ -100,11 +116,17 @@ function App() {
             console.log('❌ User session invalid, requiring fresh login');
             await supabase.auth.signOut();
           }
+        } else {
+          console.log('ℹ️ No existing session found');
         }
       } catch (error) {
-        console.error('🚨 Session check error:', error);
-        await supabase.auth.signOut();
+        console.error('🚨 Session check error (possibly timeout):', error);
+        if (error.message?.includes('timeout')) {
+          console.error('🕐 TIMEOUT DETECTED - Auth service may be hanging');
+        }
+        // Don't sign out on timeout - just continue without auth
       } finally {
+        console.log('🏁 Session check completed, setting loading to false');
         setIsLoading(false);
       }
     };

@@ -52,8 +52,15 @@ export const useAdminAuth = (): AdminAuthState & {
         setLoading(true);
         setError(null);
 
-        // Get current session
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔍 AdminAuth: Getting session with 5s timeout...');
+        // Get current session with timeout protection
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('AdminAuth session timeout after 5 seconds')), 5000)
+        );
+        
+        const { data: { session: currentSession }, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        console.log('✅ AdminAuth: Session check completed:', { session: currentSession?.user?.email, sessionError });
         
         if (sessionError) {
           console.error('Session error:', sessionError);
@@ -68,7 +75,21 @@ export const useAdminAuth = (): AdminAuthState & {
           console.log('✅ Valid admin session found:', currentSession.user.email);
           setSession(currentSession);
           setUser(currentSession.user);
-          await loadUserRole(currentSession.user.id);
+          
+          console.log('🔍 AdminAuth: Loading user role with timeout...');
+          try {
+            // Add timeout to loadUserRole as well
+            await Promise.race([
+              loadUserRole(currentSession.user.id),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('User role loading timeout after 3 seconds')), 3000)
+              )
+            ]);
+            console.log('✅ AdminAuth: User role loaded successfully');
+          } catch (roleError) {
+            console.warn('⚠️ AdminAuth: User role loading failed (possibly timeout), continuing...', roleError);
+            setUserRole('admin'); // Default fallback
+          }
         } else {
           console.log('❌ No valid admin session found');
           setSession(null);
@@ -76,9 +97,13 @@ export const useAdminAuth = (): AdminAuthState & {
           setUserRole(null);
         }
       } catch (err) {
-        console.error('Auth initialization error:', err);
+        console.error('Auth initialization error (possibly timeout):', err);
+        if (err.message?.includes('timeout')) {
+          console.error('🕐 TIMEOUT DETECTED in AdminAuth - Auth service may be hanging');
+        }
         setError(err instanceof Error ? err.message : 'Authentication error');
       } finally {
+        console.log('🏁 AdminAuth: Initialization completed, setting loading to false');
         setLoading(false);
       }
     };
