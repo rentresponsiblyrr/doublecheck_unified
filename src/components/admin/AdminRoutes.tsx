@@ -27,6 +27,9 @@ import { UserManagementFallback } from './fallbacks/UserManagementFallback';
 import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
 import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
 
+// Import health monitoring
+import { ComponentHealthMonitor } from './ComponentHealthMonitor';
+
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
 import AuditCenter from './AuditCenter';
@@ -175,6 +178,7 @@ export default function AdminRoutes() {
         } />
         <Route path="bug-reports" element={<SimpleBugReportManagement />} />
         <Route path="diagnostics" element={<AdminDiagnostics />} />
+        <Route path="health" element={<ComponentHealthMonitor />} />
         <Route path="component-test" element={<ComponentTest />} />
         <Route path="github-test" element={<GitHubIntegrationTest />} />
         <Route path="github-comprehensive" element={<ComprehensiveGitHubTest />} />

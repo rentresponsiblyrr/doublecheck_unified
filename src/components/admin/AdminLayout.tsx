@@ -155,6 +155,13 @@ const navigation = [
     current: false,
   },
   {
+    name: 'Component Health',
+    href: '/admin/health',
+    icon: Activity,
+    current: false,
+    badge: 'monitor'
+  },
+  {
     name: 'GitHub Integration Test',
     href: '/admin/github-test',
     icon: Bug,
