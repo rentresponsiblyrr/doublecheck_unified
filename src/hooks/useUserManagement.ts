@@ -99,10 +99,10 @@ export const useUserManagement = () => {
         }
       }
 
-      // Step 4: Fallback to users table if needed
+      // Step 4: Fallback to profiles table if needed (but profiles table should not exist in this schema)
       if (!result.usersTableExists || !result.currentUserHasAccess) {
         const { data: profilesTest, error: profilesError } = await supabase
-          .from('users')
+          .from('profiles')
           .select('id, email, role')
           .limit(1);
 

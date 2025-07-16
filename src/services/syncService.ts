@@ -521,7 +521,7 @@ export class SyncService {
     
     // Check for server-side changes first
     const { data: serverData, error: fetchError } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .select('*')
       .eq('id', checklistData.id)
       .single();
@@ -595,7 +595,7 @@ export class SyncService {
     
     // Update checklist item in database
     const { error } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .update({
         status: checklistData.status,
         notes: checklistData.notes,

@@ -18,7 +18,7 @@ interface PhotoComparisonReportProps {
     ai_status: string;
     ai_confidence: number;
     ai_reasoning: string;
-    media_files: Array<{
+    media: Array<{
       id: string;
       type: 'photo' | 'video';
       url: string;
@@ -41,7 +41,7 @@ export const PhotoComparisonReport: React.FC<PhotoComparisonReportProps> = ({
     const photoComparisons: PhotoComparisonData[] = [];
     
     checklistItems.forEach(item => {
-      const photos = item.media_files.filter(m => m.type === 'photo');
+      const photos = item.media.filter(m => m.type === 'photo');
       
       if (photos.length > 0) {
         photos.forEach(photo => {
@@ -133,7 +133,7 @@ export const PhotoComparisonReport: React.FC<PhotoComparisonReportProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">
-              {checklistItems.reduce((sum, item) => sum + item.media_files.filter(m => m.type === 'photo').length, 0)}
+              {checklistItems.reduce((sum, item) => sum + item.media.filter(m => m.type === 'photo').length, 0)}
             </div>
             <div className="text-sm text-blue-700">Total Photos</div>
           </div>
@@ -158,7 +158,7 @@ export const PhotoComparisonReport: React.FC<PhotoComparisonReportProps> = ({
           <h4 className="font-medium">Photo Analysis Results</h4>
           
           {checklistItems.slice(0, 5).map(item => {
-            const photos = item.media_files.filter(m => m.type === 'photo');
+            const photos = item.media.filter(m => m.type === 'photo');
             
             if (photos.length === 0) return null;
             

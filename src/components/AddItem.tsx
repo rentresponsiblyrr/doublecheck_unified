@@ -35,14 +35,39 @@ export const AddItem = ({ inspectionId, onItemAdded }: AddItemProps) => {
     setIsSubmitting(true);
     
     try {
+      // First create a static safety item for the custom item
+      const { data: staticItem, error: staticError } = await supabase
+        .from('static_safety_items')
+        .insert({
+          label: label.trim(),
+          notes: `Custom item added during inspection`,
+          category,
+          required: false,
+          evidence_type: evidenceType,
+          checklist_id: 0 // Use 0 for custom items
+        })
+        .select('id')
+        .single();
+
+      if (staticError) {
+        console.error('Error creating static safety item:', staticError);
+        toast({
+          title: "Error",
+          description: "Failed to create checklist item template",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Then create the inspection checklist item
       const { error } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .insert({
           inspection_id: inspectionId,
-          label: label.trim(),
-          category,
-          evidence_type: evidenceType,
-          created_at: new Date().toISOString()
+          static_safety_item_id: staticItem.id,
+          status: 'pending',
+          photo_evidence_required: evidenceType === 'photo',
+          is_critical: false
         });
 
       if (error) {

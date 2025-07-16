@@ -12,7 +12,13 @@ interface Inspection {
 }
 
 export const usePropertySelection = (inspections: Inspection[]) => {
-  const { startOrJoinInspection, isLoading: isCreatingInspection } = useMobileInspectionOptimizer();
+  const { 
+    startOrJoinInspection, 
+    retryInspection, 
+    isLoading: isCreatingInspection,
+    error: inspectionError,
+    clearError
+  } = useMobileInspectionOptimizer();
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
 
   const handleStartInspection = async () => {
@@ -23,6 +29,16 @@ export const usePropertySelection = (inspections: Inspection[]) => {
 
     console.log('🚀 Starting inspection for property:', selectedProperty);
     await startOrJoinInspection(selectedProperty);
+  };
+
+  const handleRetryInspection = async () => {
+    if (!selectedProperty) {
+      console.warn('⚠️ No property selected for retry');
+      return;
+    }
+
+    console.log('🔄 Retrying inspection for property:', selectedProperty);
+    await retryInspection(selectedProperty);
   };
 
   const getPropertyStatus = (propertyId: string) => {
@@ -114,8 +130,11 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     selectedProperty,
     setSelectedProperty,
     handleStartInspection,
+    handleRetryInspection,
     getPropertyStatus,
     getButtonText,
-    isCreatingInspection
+    isCreatingInspection,
+    inspectionError,
+    clearError
   };
 };

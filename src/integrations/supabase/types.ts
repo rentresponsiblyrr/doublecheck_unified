@@ -144,82 +144,54 @@ export type Database = {
           },
         ]
       }
-      checklist_items: {
+      inspection_checklist_items: {
         Row: {
-          ai_status: string | null
-          assigned_inspector_id: string | null
-          category: string | null
-          created_at: string | null
-          evidence_type: string
           id: string
           inspection_id: string
-          label: string
-          last_modified_at: string | null
-          last_modified_by: string | null
-          notes: string | null
-          notes_history: Json | null
-          source_photo_url: string | null
-          static_item_id: string | null
-          status: string | null
-          version: number | null
+          static_safety_item_id: string
+          status: string
+          inspector_notes: string | null
+          is_critical: boolean
+          score: number | null
+          photo_evidence_required: boolean
+          created_at: string
         }
         Insert: {
-          ai_status?: string | null
-          assigned_inspector_id?: string | null
-          category?: string | null
-          created_at?: string | null
-          evidence_type: string
           id?: string
           inspection_id: string
-          label: string
-          last_modified_at?: string | null
-          last_modified_by?: string | null
-          notes?: string | null
-          notes_history?: Json | null
-          source_photo_url?: string | null
-          static_item_id?: string | null
-          status?: string | null
-          version?: number | null
+          static_safety_item_id: string
+          status: string
+          inspector_notes?: string | null
+          is_critical?: boolean
+          score?: number | null
+          photo_evidence_required?: boolean
+          created_at?: string
         }
         Update: {
-          ai_status?: string | null
-          assigned_inspector_id?: string | null
-          category?: string | null
-          created_at?: string | null
-          evidence_type?: string
           id?: string
           inspection_id?: string
-          label?: string
-          last_modified_at?: string | null
-          last_modified_by?: string | null
-          notes?: string | null
-          notes_history?: Json | null
-          source_photo_url?: string | null
-          static_item_id?: string | null
-          status?: string | null
-          version?: number | null
+          static_safety_item_id?: string
+          status?: string
+          inspector_notes?: string | null
+          is_critical?: boolean
+          score?: number | null
+          photo_evidence_required?: boolean
+          created_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "checklist_items_inspection_id_fkey"
+            foreignKeyName: "inspection_checklist_items_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
             referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "checklist_items_static_item_id_fkey"
-            columns: ["static_item_id"]
+            foreignKeyName: "inspection_checklist_items_static_safety_item_id_fkey"
+            columns: ["static_safety_item_id"]
             isOneToOne: false
             referencedRelation: "static_safety_items"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_checklist_items_category"
-            columns: ["category"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["name"]
           },
         ]
       }

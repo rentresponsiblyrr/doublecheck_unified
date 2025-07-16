@@ -107,51 +107,24 @@ const PropertySelection = () => {
   const {
     selectedProperty,
     setSelectedProperty,
+    handleStartInspection,
+    handleRetryInspection,
     getPropertyStatus,
-    getButtonText
+    getButtonText,
+    isCreatingInspection,
+    inspectionError,
+    clearError
   } = usePropertySelection(inspections);
 
+  // Use the robust creation hook as a fallback for custom inspection creation
   const { createInspection, isCreating } = useRobustInspectionCreation();
 
-  const handleStartInspection = async () => {
-    if (!selectedProperty) {
-      console.error('❌ No property selected for inspection');
-      return;
-    }
-
-    // Check if property is available for inspection
-    const propertyStatus = getPropertyStatus(selectedProperty);
-    if (propertyStatus.shouldHide) {
-      console.error('❌ Property is approved and should not be available for inspection');
-      return;
-    }
-    
-    if (propertyStatus.status === 'completed') {
-      console.error('❌ Property is completed and under review - cannot start new inspection');
-      return;
-    }
-
-    console.log('🚀 Starting inspection for property:', selectedProperty);
-    console.log('🔧 PropertySelection Debug:', { 
-      selectedProperty, 
-      type: typeof selectedProperty,
-      isString: typeof selectedProperty === 'string',
-      isUUID: typeof selectedProperty === 'string' ? /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(selectedProperty) : false
-    });
-    
-    const inspectionId = await createInspection(selectedProperty);
-    
-    if (inspectionId) {
-      // Refresh data after successful creation
-      await Promise.all([
-        refetchProperties(),
-        refetchInspections()
-      ]);
-      
-      // Navigate to the inspection using correct route parameter
-      console.log('🧭 PropertySelection navigating to:', `/inspection/${inspectionId}`);
-      navigate(`/inspection/${inspectionId}`, { replace: true });
-    }
+  const handleInspectionCreated = async () => {
+    // Refresh data after successful creation
+    await Promise.all([
+      refetchProperties(),
+      refetchInspections()
+    ]);
   };
 
   const handlePropertyDeleted = async () => {
@@ -209,9 +182,11 @@ const PropertySelection = () => {
       selectedProperty={selectedProperty}
       setSelectedProperty={setSelectedProperty}
       handleStartInspection={handleStartInspection}
+      handleRetryInspection={handleRetryInspection}
       getPropertyStatus={getPropertyStatus}
       getButtonText={getButtonText}
-      isCreatingInspection={isCreating}
+      isCreatingInspection={isCreatingInspection}
+      inspectionError={inspectionError}
       onPropertyDeleted={handlePropertyDeleted}
     />
   );

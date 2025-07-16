@@ -82,8 +82,8 @@ const InspectionComplete = () => {
         console.log('Fetching checklist summary for inspection:', inspectionId);
         
         const { data, error } = await supabase
-          .from('checklist_items')
-          .select('category, status')
+          .from('inspection_checklist_items')
+          .select('status, static_safety_items(category)')
           .eq('inspection_id', inspectionId);
 
         if (error) {
@@ -95,7 +95,7 @@ const InspectionComplete = () => {
         const completed = data.filter(item => item.status === 'completed').length;
         
         const categories = data.reduce((acc, item) => {
-          const category = item.category as keyof typeof acc;
+          const category = item.static_safety_items?.category as keyof typeof acc;
           if (category && acc[category] !== undefined) {
             acc[category]++;
           }

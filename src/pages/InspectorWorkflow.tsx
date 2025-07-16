@@ -473,14 +473,14 @@ export function InspectorWorkflow() {
         const totalItems = photoKeys.length;
         let processedItems = 0;
         
-        // First, get all checklist items for this inspection to get their database IDs
-        const { data: checklistItems, error: fetchError } = await supabase
-          .from('checklist_items')
+        // First, get all inspection checklist items for this inspection to get their database IDs
+        const { data: inspectionChecklistItems, error: fetchError } = await supabase
+          .from('inspection_checklist_items')
           .select('id, label')
           .eq('inspection_id', currentInspectionId);
         
         if (fetchError) {
-          console.error('Error fetching checklist items:', fetchError);
+          console.error('Error fetching inspection checklist items:', fetchError);
           throw fetchError;
         }
         
@@ -488,16 +488,16 @@ export function InspectorWorkflow() {
         for (const dynamicItemId of photoKeys) {
           const photoData = capturedPhotos[dynamicItemId];
           
-          // Find the corresponding database checklist item
+          // Find the corresponding database inspection checklist item
           // For now, we'll match by label since we may not have exact ID mapping
-          const checklistItem = checklistItems?.find(item => 
+          const inspectionChecklistItem = inspectionChecklistItems?.find(item => 
             generatedChecklist?.items.find(genItem => 
               genItem.id === dynamicItemId && genItem.title === item.label
             )
           );
           
-          if (!checklistItem) {
-            console.warn(`Could not find checklist item for ${dynamicItemId}`);
+          if (!inspectionChecklistItem) {
+            console.warn(`Could not find inspection checklist item for ${dynamicItemId}`);
             processedItems++;
             continue;
           }
@@ -506,7 +506,7 @@ export function InspectorWorkflow() {
           const uploadResult = await uploadMedia(
             photoData.file,
             currentInspectionId,
-            checklistItem.id
+            inspectionChecklistItem.id
           );
           
           if (uploadResult.url) {
@@ -514,7 +514,7 @@ export function InspectorWorkflow() {
             const { error: mediaError } = await supabase
               .from('media')
               .insert({
-                checklist_item_id: checklistItem.id,
+                inspection_checklist_item_id: inspectionChecklistItem.id,
                 type: 'photo',
                 url: uploadResult.url,
                 file_path: uploadResult.url
@@ -524,17 +524,17 @@ export function InspectorWorkflow() {
               console.error('Error creating media record:', mediaError);
             }
             
-            // Update checklist item with AI analysis
+            // Update inspection checklist item with AI analysis
             const { error: updateError } = await supabase
-              .from('checklist_items')
+              .from('inspection_checklist_items')
               .update({
                 ai_status: photoData.analysis.score > 80 ? 'pass' : 'needs_review',
                 status: 'completed'
               })
-              .eq('id', checklistItem.id);
+              .eq('id', inspectionChecklistItem.id);
             
             if (updateError) {
-              console.error('Error updating checklist item:', updateError);
+              console.error('Error updating inspection checklist item:', updateError);
             }
           }
           

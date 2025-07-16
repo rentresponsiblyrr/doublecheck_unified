@@ -38,6 +38,7 @@ import ErrorDiagnostic from './ErrorDiagnostic';
 import DirectErrorLogger from './DirectErrorLogger';
 import ComponentImportTest from './ComponentImportTest';
 import EmergencyBypass from './EmergencyBypass';
+import ComprehensiveDiagnostic from './ComprehensiveDiagnostic';
 // import { VerboseErrorBoundary } from './VerboseErrorBoundary'; // Removed to expose real errors
 
 // Loading fallback
@@ -168,6 +169,7 @@ export default function AdminRoutes() {
         <Route path="direct-error-logger" element={<DirectErrorLogger />} />
         <Route path="component-import-test" element={<ComponentImportTest />} />
         <Route path="emergency-bypass" element={<EmergencyBypass />} />
+        <Route path="comprehensive-diagnostic" element={<ComprehensiveDiagnostic />} />
       </Routes>
     </AdminLayout>
   );

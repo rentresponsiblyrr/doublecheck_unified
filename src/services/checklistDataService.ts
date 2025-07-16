@@ -14,7 +14,7 @@ export interface ChecklistItem {
   label: string;
   category: string;
   evidence_type: string;
-  static_item_id: string;
+  static_safety_item_id: string;
   created_at: string;
 }
 

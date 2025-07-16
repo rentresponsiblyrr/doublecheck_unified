@@ -22,7 +22,7 @@ export const useNotesHistory = (itemId: string) => {
     const loadNotesHistory = async () => {
       try {
         const { data, error } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select('notes_history')
           .eq('id', itemId)
           .single();
@@ -67,13 +67,13 @@ export const useNotesHistory = (itemId: string) => {
     const setupRealtimeSubscription = () => {
       try {
         channel = supabase
-          .channel(`checklist-item-${itemId}`)
+          .channel(`inspection-checklist-item-${itemId}`)
           .on(
             'postgres_changes',
             {
               event: 'UPDATE',
               schema: 'public',
-              table: 'checklist_items',
+              table: 'inspection_checklist_items',
               filter: `id=eq.${itemId}`
             },
             (payload) => {

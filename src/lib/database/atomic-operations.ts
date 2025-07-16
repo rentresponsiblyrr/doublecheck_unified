@@ -36,7 +36,7 @@ export interface UpdateChecklistItemWithMediaData {
     notes?: string;
     user_override?: boolean;
   };
-  media_files?: Array<{
+  media?: Array<{
     type: 'photo' | 'video';
     url: string;
     file_path?: string;
@@ -122,7 +122,7 @@ export async function updateChecklistItemWithMediaAtomic(
   try {
     logger.info('Updating checklist item with media atomically', { 
       checklistItemId: data.checklist_item_id,
-      mediaCount: data.media_files?.length || 0
+      mediaCount: data.media?.length || 0
     }, 'ATOMIC_OPERATIONS');
 
     // Update checklist item first
@@ -141,8 +141,8 @@ export async function updateChecklistItemWithMediaAtomic(
 
     // Insert media files if provided
     let mediaIds: string[] = [];
-    if (data.media_files && data.media_files.length > 0) {
-      const mediaInserts: MediaInsert[] = data.media_files.map(media => ({
+    if (data.media && data.media.length > 0) {
+      const mediaInserts: MediaInsert[] = data.media.map(media => ({
         checklist_item_id: data.checklist_item_id,
         type: media.type,
         url: media.url,

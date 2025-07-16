@@ -44,10 +44,10 @@ export default function SimpleAuditorDashboard() {
             name,
             address
           ),
-          profiles:inspector_id (
+          users:inspector_id (
             id,
             email,
-            user_metadata
+            name
           )
         `)
         .order('created_at', { ascending: false })
@@ -95,7 +95,7 @@ export default function SimpleAuditorDashboard() {
     return inspections.slice(0, 10).map(inspection => ({
       id: inspection.id,
       property: inspection.properties?.name || 'Unknown Property',
-      inspector: inspection.profiles?.email || 'Unknown Inspector',
+      inspector: inspection.users?.name || inspection.users?.email || 'Unknown Inspector',
       status: inspection.status,
       createdAt: inspection.created_at
     }));

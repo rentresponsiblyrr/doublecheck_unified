@@ -121,6 +121,13 @@ const navigation = [
     badge: 'debug'
   },
   {
+    name: 'Comprehensive Diagnostic',
+    href: '/admin/comprehensive-diagnostic',
+    icon: Activity,
+    current: false,
+    badge: 'new'
+  },
+  {
     name: 'AI Performance',
     href: '/admin/performance',
     icon: Brain,

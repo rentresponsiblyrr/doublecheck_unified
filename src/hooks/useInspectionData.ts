@@ -46,8 +46,8 @@ export const useInspectionData = (inspectionId: string) => {
         // Fetch checklist items with error handling
         debugLogger.debug('InspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
-          .from('checklist_items')
-          .select('id, inspection_id, label, category, evidence_type, status, notes, created_at')
+          .from('inspection_checklist_items')
+          .select('id, inspection_id, static_safety_item_id, status, inspector_notes, is_critical, score, photo_evidence_required, created_at, static_safety_items(title, description, category)')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });
         
@@ -81,11 +81,11 @@ export const useInspectionData = (inspectionId: string) => {
         const transformedData: ChecklistItemType[] = items.map(item => ({
           id: item.id,
           inspection_id: item.inspection_id,
-          label: item.label || '',
-          category: item.category || 'safety',
-          evidence_type: item.evidence_type as 'photo' | 'video',
+          label: item.static_safety_items?.title || '',
+          category: item.static_safety_items?.category || 'safety',
+          evidence_type: item.photo_evidence_required ? 'photo' : 'video',
           status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
-          notes: item.notes,
+          notes: item.inspector_notes,
           created_at: item.created_at || new Date().toISOString()
         }));
         

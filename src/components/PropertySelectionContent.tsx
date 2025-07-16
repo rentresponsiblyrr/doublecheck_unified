@@ -45,6 +45,7 @@ interface PropertySelectionContentProps {
   selectedProperty: string | null;
   setSelectedProperty: (propertyId: string | null) => void;
   handleStartInspection: () => void;
+  handleRetryInspection?: () => void;
   getPropertyStatus: (propertyId: string) => {
     status: string;
     color: string;
@@ -54,6 +55,7 @@ interface PropertySelectionContentProps {
   };
   getButtonText: (propertyId: string) => string;
   isCreatingInspection: boolean;
+  inspectionError?: string | null;
   onPropertyDeleted: () => void;
   isLoading?: boolean;
 }
@@ -64,9 +66,11 @@ export const PropertySelectionContent = ({
   selectedProperty,
   setSelectedProperty,
   handleStartInspection,
+  handleRetryInspection,
   getPropertyStatus,
   getButtonText,
   isCreatingInspection,
+  inspectionError,
   onPropertyDeleted,
   isLoading = false
 }: PropertySelectionContentProps) => {
@@ -258,6 +262,8 @@ export const PropertySelectionContent = ({
             buttonText={buttonText}
             isJoining={isJoining}
             disabled={selectedPropertyStatus?.status === 'completed' || selectedPropertyStatus?.shouldHide}
+            error={inspectionError}
+            onRetry={handleRetryInspection}
           />
         )}
       </div>

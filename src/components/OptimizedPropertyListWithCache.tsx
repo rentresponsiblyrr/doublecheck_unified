@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/components/MobileFastAuthProvider";
+import { useAuth } from "@/components/AuthProvider";
 import { useOptimizedPropertyData } from "@/hooks/useOptimizedPropertyData";
 import { OptimizedPropertyCard } from "./OptimizedPropertyCard";
 import { LoadingSpinner } from "./LoadingSpinner";

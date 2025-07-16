@@ -186,30 +186,30 @@ export default function AuditCenter() {
           .select('id, name, email')
           .limit(1);
         
+        diagnostics.users = {
+          accessible: !profilesError,
+          error: profilesError?.message
+        };
+      } catch (err) {
+        diagnostics.users = {
+          accessible: false,
+          error: err.message
+        };
+      }
+
+      // Test profiles table as fallback
+      try {
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .limit(1);
+        
         diagnostics.profiles = {
           accessible: !profilesError,
           error: profilesError?.message
         };
       } catch (err) {
         diagnostics.profiles = {
-          accessible: false,
-          error: err.message
-        };
-      }
-
-      // Test users table as fallback
-      try {
-        const { error: usersError } = await supabase
-          .from('users')
-          .select('id, name, email')
-          .limit(1);
-        
-        diagnostics.users = {
-          accessible: !usersError,
-          error: usersError?.message
-        };
-      } catch (err) {
-        diagnostics.users = {
           accessible: false,
           error: err.message
         };
@@ -382,7 +382,7 @@ export default function AuditCenter() {
           try {
             // Get checklist items count with retries
             const { data: checklistData, error: checklistError } = await supabase
-              .from('checklist_items')
+              .from('inspection_checklist_items')
               .select('id, status, ai_status')
               .eq('inspection_id', inspection.id);
 
@@ -460,7 +460,7 @@ export default function AuditCenter() {
       try {
         // Try full query with all columns including auditor fields
         const fullResult = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select(`
             id,
             title,
@@ -497,7 +497,7 @@ export default function AuditCenter() {
         
         // Fallback: Query without auditor fields
         const basicResult = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select(`
             id,
             title,
@@ -610,7 +610,7 @@ export default function AuditCenter() {
       // Get AI accuracy stats from real audit feedback data
       // These will populate as auditors provide feedback on AI evaluations
       const { data: auditFeedback } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .select('ai_status, auditor_override')
         .not('ai_status', 'is', null);
 
@@ -637,7 +637,7 @@ export default function AuditCenter() {
       
       // First try with auditor columns
       let updateResult = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .update({
           auditor_override: override,
           auditor_notes: notes
@@ -651,7 +651,7 @@ export default function AuditCenter() {
           console.warn('⚠️ Auditor columns not available, trying to update notes field only...');
           
           const notesUpdate = await supabase
-            .from('checklist_items')
+            .from('inspection_checklist_items')
             .update({
               notes: notes ? `[AUDITOR OVERRIDE: ${override}] ${notes}` : null
             })

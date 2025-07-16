@@ -5,7 +5,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
-type ChecklistItemRecord = Tables['checklist_items']['Row'];
+type ChecklistItemRecord = Tables['inspection_checklist_items']['Row'];
 type MediaFileRecord = Tables['media']['Row'];
 type PropertyRecord = Tables['properties']['Row'];
 type UserRecord = Tables['users']['Row'];
@@ -31,7 +31,7 @@ export interface InspectionForReview {
     name: string;
     email: string;
   };
-  checklist_items: Array<{
+  inspection_checklist_items: Array<{
     id: string;
     title: string;
     status: string;
@@ -118,7 +118,7 @@ export class AuditorService {
             name,
             email
           ),
-          checklist_items (
+          inspection_checklist_items (
             id,
             title,
             status,
@@ -160,7 +160,7 @@ export class AuditorService {
       // Process and enhance the data
       const enhancedInspections: InspectionForReview[] = (data || []).map(inspection => ({
         ...inspection,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.checklist_items || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.inspection_checklist_items || [])
       }));
 
       logger.info('Successfully fetched inspections for review', {
@@ -206,7 +206,7 @@ export class AuditorService {
             name,
             email
           ),
-          checklist_items (
+          inspection_checklist_items (
             id,
             title,
             description,
@@ -241,7 +241,7 @@ export class AuditorService {
       // Enhance with AI analysis summary
       const enhancedInspection: InspectionForReview = {
         ...data,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(data.checklist_items || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(data.inspection_checklist_items || [])
       };
 
       return { success: true, data: enhancedInspection };
@@ -282,7 +282,7 @@ export class AuditorService {
       // Apply auditor overrides to checklist items
       for (const override of reviewDecision.overrides) {
         const { error: itemError } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .update({
             ai_status: override.auditorStatus,
             user_override: true,
@@ -439,7 +439,7 @@ export class AuditorService {
   /**
    * Calculate AI analysis summary for an inspection
    */
-  private calculateAIAnalysisSummary(checklistItems: Array<{ai_status: string; ai_confidence: number; media: Array<{type: string}>}>): {
+  private calculateAIAnalysisSummary(inspectionChecklistItems: Array<{ai_status: string; ai_confidence: number; media: Array<{type: string}>}>): {
     overall_score: number;
     total_items: number;
     completed_items: number;
@@ -448,7 +448,7 @@ export class AuditorService {
     issues_count: number;
     confidence_average: number;
   } {
-    if (!checklistItems.length) {
+    if (!inspectionChecklistItems.length) {
       return {
         overall_score: 0,
         total_items: 0,
@@ -460,17 +460,17 @@ export class AuditorService {
       };
     }
 
-    const totalItems = checklistItems.length;
-    const completedItems = checklistItems.filter(item => item.status === 'completed').length;
-    const passedItems = checklistItems.filter(item => item.ai_status === 'pass').length;
-    const failedItems = checklistItems.filter(item => item.ai_status === 'fail').length;
-    const needsReviewItems = checklistItems.filter(item => item.ai_status === 'needs_review').length;
+    const totalItems = inspectionChecklistItems.length;
+    const completedItems = inspectionChecklistItems.filter(item => item.status === 'completed').length;
+    const passedItems = inspectionChecklistItems.filter(item => item.ai_status === 'pass').length;
+    const failedItems = inspectionChecklistItems.filter(item => item.ai_status === 'fail').length;
+    const needsReviewItems = inspectionChecklistItems.filter(item => item.ai_status === 'needs_review').length;
 
     // Count media files
     let photoCount = 0;
     let videoCount = 0;
     
-    checklistItems.forEach(item => {
+    inspectionChecklistItems.forEach(item => {
       if (item.media) {
         photoCount += item.media.filter((media) => media.type === 'photo').length;
         videoCount += item.media.filter((media) => media.type === 'video').length;
@@ -478,7 +478,7 @@ export class AuditorService {
     });
 
     // Calculate average confidence
-    const confidenceScores = checklistItems
+    const confidenceScores = inspectionChecklistItems
       .filter(item => item.ai_confidence != null)
       .map(item => item.ai_confidence);
     const confidenceAverage = confidenceScores.length > 0 ?

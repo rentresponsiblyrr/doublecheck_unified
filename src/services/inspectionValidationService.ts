@@ -33,7 +33,7 @@ export class InspectionValidationService {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data, error } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .select('id')
         .eq('inspection_id', inspectionId);
 

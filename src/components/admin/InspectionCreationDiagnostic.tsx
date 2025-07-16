@@ -173,8 +173,8 @@ export default function InspectionCreationDiagnostic() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const { data: checklistItems, error: checklistError } = await supabase
-        .from('checklist_items')
-        .select('id, label, category')
+        .from('inspection_checklist_items')
+        .select('id, static_safety_item_id, status')
         .eq('inspection_id', newInspection.id);
 
       if (checklistError) {

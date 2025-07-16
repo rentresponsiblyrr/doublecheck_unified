@@ -12,9 +12,9 @@ type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
 type InspectionInsert = Tables['inspections']['Insert'];
 type InspectionUpdate = Tables['inspections']['Update'];
-type ChecklistItemRecord = Tables['checklist_items']['Row'];
-type ChecklistItemInsert = Tables['checklist_items']['Insert'];
-type ChecklistItemUpdate = Tables['checklist_items']['Update'];
+type ChecklistItemRecord = Tables['inspection_checklist_items']['Row'];
+type ChecklistItemInsert = Tables['inspection_checklist_items']['Insert'];
+type ChecklistItemUpdate = Tables['inspection_checklist_items']['Update'];
 type MediaRecord = Tables['media']['Row'];
 
 export interface InspectionWithDetails extends InspectionRecord {
@@ -25,7 +25,7 @@ export interface InspectionWithDetails extends InspectionRecord {
     vrbo_url: string | null;
     airbnb_url: string | null;
   } | null;
-  checklist_items: Array<ChecklistItemRecord & {
+  inspection_checklist_items: Array<ChecklistItemRecord & {
     media: MediaRecord[];
   }>;
   users: {
@@ -85,7 +85,7 @@ export class InspectionService {
           inspector_id: data.inspectorId,
           status: 'draft'
         },
-        checklist_items: checklistItemsData
+        inspection_checklist_items: checklistItemsData
       });
 
       if (!result.success) {
@@ -132,7 +132,7 @@ export class InspectionService {
             vrbo_url,
             airbnb_url
           ),
-          checklist_items (
+          inspection_checklist_items (
             *,
             media (*)
           ),
@@ -192,7 +192,7 @@ export class InspectionService {
       if (update.checklistItemUpdates) {
         for (const itemUpdate of update.checklistItemUpdates) {
           const { error: itemError } = await supabase
-            .from('checklist_items')
+            .from('inspection_checklist_items')
             .update({
               status: itemUpdate.status,
               notes: itemUpdate.notes,
@@ -293,7 +293,7 @@ export class InspectionService {
             vrbo_url,
             airbnb_url
           ),
-          checklist_items (
+          inspection_checklist_items (
             *,
             media (*)
           ),
@@ -336,7 +336,7 @@ export class InspectionService {
             vrbo_url,
             airbnb_url
           ),
-          checklist_items (
+          inspection_checklist_items (
             *,
             media (*)
           ),

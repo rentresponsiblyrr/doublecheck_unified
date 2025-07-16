@@ -66,13 +66,13 @@ class MobileInspectionOptimizer {
 
   private static async getPropertyInfo(propertyId: string): Promise<{ name: string } | null> {
     try {
-      // Convert propertyId to integer for database query
-      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+      // Use propertyId as UUID string (no conversion needed)
+      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
         .from('properties')
         .select('name')
-        .eq('id', propertyIdInt)
+        .eq('id', propertyIdUuid)
         .eq('status', 'active')
         .single();
 
@@ -90,13 +90,13 @@ class MobileInspectionOptimizer {
 
   private static async findActiveInspectionOptimized(propertyId: string): Promise<{ id: string } | null> {
     try {
-      // Convert propertyId to integer for database query
-      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+      // Use propertyId as UUID string (no conversion needed)
+      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
         .from('inspections')
         .select('id')
-        .eq('property_id', propertyIdInt)
+        .eq('property_id', propertyIdUuid)
         .eq('completed', false)
         .order('start_time', { ascending: false })
         .limit(1)
@@ -123,8 +123,8 @@ class MobileInspectionOptimizer {
         let data, error;
         
         try {
-          // Convert propertyId to integer for the database function
-          const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+          // Use propertyId as UUID string for the database function
+          const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
           // Get current user for the secure function
           const { data: { user } } = await supabase.auth.getUser();
@@ -133,7 +133,7 @@ class MobileInspectionOptimizer {
           }
 
           const rpcResult = await supabase.rpc('create_inspection_secure', {
-            p_property_id: propertyIdInt,
+            p_property_id: propertyIdUuid,
             p_inspector_id: user.id
           });
           data = rpcResult.data;
@@ -146,13 +146,13 @@ class MobileInspectionOptimizer {
             throw new Error('User not authenticated');
           }
           
-          // Convert propertyId to integer for direct insert
-          const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+          // Use propertyId as UUID string for direct insert
+          const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
           
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyIdInt,
+              property_id: propertyIdUuid,
               start_time: new Date().toISOString(),
               completed: false,
               status: 'draft',
@@ -192,13 +192,37 @@ class MobileInspectionOptimizer {
 
   private static async getChecklistItemCount(inspectionId: string): Promise<number> {
     try {
-      // For now, return a default count since checklist system needs to be redesigned
-      // The current 'checklist' table is for templates, not inspection-specific items
-      console.log(`📋 Checklist system needs redesign - returning default count for inspection:`, inspectionId);
-      return 8; // Default number of safety items
+      console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
+      
+      // Query actual inspection_checklist_items table for this inspection
+      const { count, error } = await supabase
+        .from('inspection_checklist_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('inspection_id', inspectionId);
+
+      if (error) {
+        console.error('❌ Error counting inspection checklist items:', error);
+        // Fall back to static_safety_items count if inspection_checklist_items query fails
+        const { count: staticCount, error: staticError } = await supabase
+          .from('static_safety_items')
+          .select('*', { count: 'exact', head: true });
+        
+        if (staticError) {
+          console.error('❌ Error counting static safety items:', staticError);
+          return 8; // Final fallback
+        }
+        
+        const fallbackCount = staticCount || 8;
+        console.log(`📋 Using static safety items count as fallback: ${fallbackCount}`);
+        return fallbackCount;
+      }
+
+      const actualCount = count || 0;
+      console.log(`📋 Found ${actualCount} inspection checklist items for inspection ${inspectionId}`);
+      return actualCount;
     } catch (error) {
-      console.error('❌ Failed to count checklist items:', error);
-      return 0;
+      console.error('❌ Failed to count inspection checklist items:', error);
+      return 8; // Fallback to default
     }
   }
 

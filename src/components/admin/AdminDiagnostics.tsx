@@ -102,7 +102,7 @@ export default function AdminDiagnostics() {
     }
 
     // Test 4: Database Tables
-    const tables = ['profiles', 'inspections', 'properties', 'checklist_items'];
+    const tables = ['users', 'inspections', 'properties', 'checklist_items'];
     for (const table of tables) {
       try {
         const { error } = await supabase.from(table).select('*').limit(1);

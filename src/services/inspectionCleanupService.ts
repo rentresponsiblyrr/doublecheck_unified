@@ -41,7 +41,7 @@ export class InspectionCleanupService {
           start_time,
           inspector_id,
           properties!inner(name),
-          checklist_items(id, status)
+          inspection_checklist_items(id, status)
         `)
         .order('property_id')
         .order('start_time', { ascending: false });
@@ -57,8 +57,8 @@ export class InspectionCleanupService {
         const propertyId = inspection.property_id;
         const propertyName = inspection.properties?.name || 'Unknown Property';
         
-        const totalItems = inspection.checklist_items?.length || 0;
-        const completedItems = inspection.checklist_items?.filter(item => item.status === 'completed').length || 0;
+        const totalItems = inspection.inspection_checklist_items?.length || 0;
+        const completedItems = inspection.inspection_checklist_items?.filter(item => item.status === 'completed').length || 0;
         
         const duplicate: DuplicateInspection = {
           id: inspection.id,
@@ -218,23 +218,23 @@ export class InspectionCleanupService {
     console.log(`🧹 Starting cleanup of ${inspectionsToDelete.length} duplicate inspections...`);
 
     try {
-      // Delete checklist items first (foreign key constraint)
+      // Delete inspection checklist items first (foreign key constraint)
       const { error: checklistError } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .delete()
         .in('inspection_id', inspectionsToDelete);
 
       if (checklistError) {
-        throw new Error(`Failed to delete checklist items: ${checklistError.message}`);
+        throw new Error(`Failed to delete inspection checklist items: ${checklistError.message}`);
       }
 
-      console.log('✅ Deleted associated checklist items');
+      console.log('✅ Deleted associated inspection checklist items');
 
       // Delete media files associated with checklist items
       const { error: mediaError } = await supabase
-        .from('media_files')
+        .from('media')
         .delete()
-        .in('checklist_item_id', inspectionsToDelete); // This may not work if we already deleted checklist items
+        .in('checklist_item_id', inspectionsToDelete); // This may not work if we already deleted inspection checklist items
 
       if (mediaError) {
         console.warn('⚠️ Could not delete some media files:', mediaError.message);
