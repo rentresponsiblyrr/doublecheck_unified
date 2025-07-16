@@ -5,6 +5,8 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: React.ReactNode;
+  componentName?: string;
+  fallback?: React.ReactNode;
 }
 
 interface State {
@@ -30,13 +32,18 @@ export default class AdminErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Use custom fallback if provided
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <div className="p-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center text-red-600">
                 <AlertTriangle className="h-5 w-5 mr-2" />
-                Admin Component Error
+{this.props.componentName || 'Admin Component'} Error
               </CardTitle>
             </CardHeader>
             <CardContent>

@@ -1,41 +1,61 @@
+/**
+ * @fileoverview Inspection Creation Diagnostic Component
+ * Comprehensive diagnostic tool for debugging inspection creation failures
+ * 
+ * @author STR Certified Engineering Team
+ * @version 1.0.0
+ */
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, XCircle, AlertTriangle, Play } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Bug, 
+  Search, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle, 
+  Database,
+  User,
+  Settings,
+  Play
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface DiagnosticResult {
-  step: string;
-  status: 'success' | 'error' | 'warning';
+  category: string;
+  status: 'success' | 'warning' | 'error';
   message: string;
   details?: any;
 }
 
-export default function InspectionCreationDiagnostic() {
+export const InspectionCreationDiagnostic: React.FC = () => {
+  const [propertyName, setPropertyName] = useState('Rhododendron Mountain Retreat');
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<DiagnosticResult[]>([]);
+  const { toast } = useToast();
 
   const addResult = (result: DiagnosticResult) => {
     setResults(prev => [...prev, result]);
   };
 
-  const runDiagnostic = async () => {
+  const runComprehensiveDiagnostic = async () => {
     setIsRunning(true);
     setResults([]);
 
     try {
-      // 1. Check if user is authenticated
-      addResult({
-        step: 'Authentication Check',
-        status: 'success',
-        message: 'Checking user authentication...'
-      });
-
+      // 1. Check current user authentication
+      addResult({ category: 'Authentication', status: 'success', message: 'Starting diagnostic...' });
+      
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         addResult({
-          step: 'Authentication Check',
+          category: 'Authentication',
           status: 'error',
           message: 'User not authenticated',
           details: authError
@@ -44,187 +64,257 @@ export default function InspectionCreationDiagnostic() {
       }
 
       addResult({
-        step: 'Authentication Check',
+        category: 'Authentication',
         status: 'success',
         message: `User authenticated: ${user.email}`,
-        details: { userId: user.id }
+        details: { userId: user.id, email: user.email }
       });
 
-      // 2. Check static_safety_items table
-      addResult({
-        step: 'Static Safety Items Check',
-        status: 'success',
-        message: 'Checking static safety items...'
-      });
-
-      const { data: staticItems, error: staticError } = await supabase
-        .from('static_safety_items')
-        .select('id, label, category, required, deleted')
-        .eq('deleted', false)
-        .eq('required', true);
-
-      if (staticError) {
-        addResult({
-          step: 'Static Safety Items Check',
-          status: 'error',
-          message: 'Failed to fetch static safety items',
-          details: staticError
-        });
-        return;
-      }
-
-      addResult({
-        step: 'Static Safety Items Check',
-        status: staticItems && staticItems.length > 0 ? 'success' : 'warning',
-        message: `Found ${staticItems?.length || 0} required static safety items`,
-        details: staticItems
-      });
-
-      // 3. Check properties table access
-      addResult({
-        step: 'Properties Access Check',
-        status: 'success',
-        message: 'Checking properties table access...'
-      });
-
+      // 2. Find the specified property
       const { data: properties, error: propError } = await supabase
         .from('properties')
-        .select('id, name')
-        .limit(1);
+        .select('id, name, status, added_by, created_at')
+        .ilike('name', `%${propertyName.replace(' ', '%')}%`);
 
       if (propError) {
         addResult({
-          step: 'Properties Access Check',
+          category: 'Property Lookup',
           status: 'error',
-          message: 'Failed to access properties table',
+          message: 'Failed to query properties',
           details: propError
         });
         return;
       }
 
-      addResult({
-        step: 'Properties Access Check',
-        status: 'success',
-        message: `Properties table accessible, found ${properties?.length || 0} properties`
-      });
-
-      // 4. Test inspection creation permissions
-      addResult({
-        step: 'Inspection Creation Test',
-        status: 'success',
-        message: 'Testing inspection creation permissions...'
-      });
-
-      // Get a real property ID for testing
-      const { data: testProperty } = await supabase
-        .from('properties')
-        .select('id')
-        .limit(1)
-        .single();
-
-      if (!testProperty) {
+      if (!properties || properties.length === 0) {
         addResult({
-          step: 'Inspection Creation Test',
-          status: 'warning',
-          message: 'No properties found to test with'
+          category: 'Property Lookup',
+          status: 'error',
+          message: `Property "${propertyName}" not found`,
+          details: { searchTerm: propertyName }
         });
         return;
       }
 
-      // Test inspection insertion
-      const testInspection = {
-        property_id: testProperty.id,
-        start_time: new Date().toISOString(),
-        completed: false,
-        status: 'draft',
-        inspector_id: null
-      };
+      const property = properties[0];
+      addResult({
+        category: 'Property Lookup',
+        status: 'success',
+        message: `Found property: ${property.name}`,
+        details: property
+      });
 
-      const { data: newInspection, error: insertError } = await supabase
+      // 3. Check existing inspections for this property
+      const { data: existingInspections, error: inspError } = await supabase
         .from('inspections')
-        .insert(testInspection)
-        .select('id')
-        .single();
+        .select('id, status, completed, start_time, inspector_id, end_time')
+        .eq('property_id', property.id)
+        .order('start_time', { ascending: false });
 
-      if (insertError) {
+      if (inspError) {
         addResult({
-          step: 'Inspection Creation Test',
-          status: 'error',
-          message: 'Failed to create test inspection',
-          details: insertError
-        });
-        return;
-      }
-
-      addResult({
-        step: 'Inspection Creation Test',
-        status: 'success',
-        message: `Test inspection created successfully: ${newInspection.id}`
-      });
-
-      // 5. Check if checklist items were created by trigger
-      addResult({
-        step: 'Checklist Items Trigger Check',
-        status: 'success',
-        message: 'Checking if checklist items were created by trigger...'
-      });
-
-      // Wait for trigger to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const { data: checklistItems, error: checklistError } = await supabase
-        .from('inspection_checklist_items')
-        .select('id, static_safety_item_id, status')
-        .eq('inspection_id', newInspection.id);
-
-      if (checklistError) {
-        addResult({
-          step: 'Checklist Items Trigger Check',
-          status: 'error',
-          message: 'Failed to check checklist items',
-          details: checklistError
+          category: 'Inspection History',
+          status: 'warning',
+          message: 'Failed to query existing inspections',
+          details: inspError
         });
       } else {
         addResult({
-          step: 'Checklist Items Trigger Check',
-          status: checklistItems && checklistItems.length > 0 ? 'success' : 'error',
-          message: `Found ${checklistItems?.length || 0} checklist items created by trigger`,
-          details: checklistItems
+          category: 'Inspection History',
+          status: 'success',
+          message: `Found ${existingInspections.length} existing inspections`,
+          details: existingInspections
         });
       }
 
-      // 6. Check audit log
-      const { data: auditLog } = await supabase
-        .from('checklist_operations_audit')
-        .select('*')
-        .eq('inspection_id', newInspection.id)
-        .order('created_at', { ascending: false });
+      // 4. Check static safety items
+      const { count: safetyItemsCount, error: safetyError } = await supabase
+        .from('static_safety_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('deleted', false)
+        .eq('required', true);
 
+      if (safetyError) {
+        addResult({
+          category: 'Static Safety Items',
+          status: 'error',
+          message: 'Failed to query static safety items',
+          details: safetyError
+        });
+      } else if (safetyItemsCount === 0) {
+        addResult({
+          category: 'Static Safety Items',
+          status: 'error',
+          message: 'No static safety items found - this will prevent checklist creation',
+          details: { count: safetyItemsCount }
+        });
+      } else {
+        addResult({
+          category: 'Static Safety Items',
+          status: 'success',
+          message: `Found ${safetyItemsCount} static safety items`,
+          details: { count: safetyItemsCount }
+        });
+      }
+
+      // 5. Test RPC function
       addResult({
-        step: 'Trigger Audit Log',
+        category: 'RPC Function Test',
         status: 'success',
-        message: `Found ${auditLog?.length || 0} audit log entries`,
-        details: auditLog
+        message: 'Testing create_inspection_secure function...'
       });
 
-      // 7. Clean up test inspection
-      await supabase
-        .from('inspections')
-        .delete()
-        .eq('id', newInspection.id);
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_secure', {
+        p_property_id: property.id,
+        p_inspector_id: user.id
+      });
 
-      addResult({
-        step: 'Cleanup',
-        status: 'success',
-        message: 'Test inspection cleaned up successfully'
+      if (rpcError) {
+        addResult({
+          category: 'RPC Function Test',
+          status: 'error',
+          message: 'RPC function failed',
+          details: {
+            code: rpcError.code,
+            message: rpcError.message,
+            details: rpcError.details,
+            hint: rpcError.hint
+          }
+        });
+      } else {
+        addResult({
+          category: 'RPC Function Test',
+          status: 'success',
+          message: 'RPC function succeeded',
+          details: rpcResult
+        });
+
+        // Clean up test inspection if created
+        if (rpcResult) {
+          try {
+            await supabase
+              .from('inspections')
+              .delete()
+              .eq('id', rpcResult);
+            
+            addResult({
+              category: 'Cleanup',
+              status: 'success',
+              message: 'Test inspection cleaned up'
+            });
+          } catch (cleanupError) {
+            addResult({
+              category: 'Cleanup',
+              status: 'warning',
+              message: 'Failed to clean up test inspection',
+              details: cleanupError
+            });
+          }
+        }
+      }
+
+      // 6. Test direct insert fallback
+      if (rpcError) {
+        addResult({
+          category: 'Direct Insert Test',
+          status: 'success',
+          message: 'Testing direct insert fallback...'
+        });
+
+        const { data: insertResult, error: insertError } = await supabase
+          .from('inspections')
+          .insert({
+            property_id: property.id,
+            inspector_id: user.id,
+            start_time: new Date().toISOString(),
+            completed: false,
+            status: 'draft'
+          })
+          .select('id')
+          .single();
+
+        if (insertError) {
+          addResult({
+            category: 'Direct Insert Test',
+            status: 'error',
+            message: 'Direct insert failed',
+            details: {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint
+            }
+          });
+        } else {
+          addResult({
+            category: 'Direct Insert Test',
+            status: 'success',
+            message: 'Direct insert succeeded',
+            details: insertResult
+          });
+
+          // Clean up test insertion
+          try {
+            await supabase
+              .from('inspections')
+              .delete()
+              .eq('id', insertResult.id);
+            
+            addResult({
+              category: 'Cleanup',
+              status: 'success',
+              message: 'Test direct insert cleaned up'
+            });
+          } catch (cleanupError) {
+            addResult({
+              category: 'Cleanup',
+              status: 'warning',
+              message: 'Failed to clean up test direct insert',
+              details: cleanupError
+            });
+          }
+        }
+      }
+
+      // 7. Check trigger function dependencies
+      const { data: auditTableExists } = await supabase
+        .from('information_schema.tables')
+        .select('table_name')
+        .eq('table_schema', 'public')
+        .eq('table_name', 'checklist_operations_audit')
+        .maybeSingle();
+
+      if (!auditTableExists) {
+        addResult({
+          category: 'Database Dependencies',
+          status: 'warning',
+          message: 'checklist_operations_audit table not found - may cause trigger failures'
+        });
+      } else {
+        addResult({
+          category: 'Database Dependencies',
+          status: 'success',
+          message: 'Required audit table exists'
+        });
+      }
+
+      toast({
+        title: "Diagnostic Complete",
+        description: "Check results for detailed analysis"
       });
 
     } catch (error) {
       addResult({
-        step: 'Diagnostic Error',
+        category: 'System Error',
         status: 'error',
-        message: 'Diagnostic failed with exception',
+        message: 'Diagnostic failed with system error',
         details: error
+      });
+      
+      toast({
+        title: "Diagnostic Failed",
+        description: "An unexpected error occurred",
+        variant: "destructive"
       });
     } finally {
       setIsRunning(false);
@@ -235,90 +325,111 @@ export default function InspectionCreationDiagnostic() {
     switch (status) {
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'error':
-        return <XCircle className="h-4 w-4 text-red-600" />;
       case 'warning':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+    }
+  };
+
+  const getStatusColor = (status: DiagnosticResult['status']) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'error':
+        return 'bg-red-100 text-red-800 border-red-200';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Inspection Creation Diagnostic</h1>
-        <p className="text-gray-600">
-          Diagnose why inspection creation is failing with "Unknown error" after 3 attempts
-        </p>
-      </div>
-
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Issue:</strong> Inspection creation consistently fails with "Failed to create inspection after 3 attempts: Unknown error"
-          <br />
-          <strong>Goal:</strong> Identify the root cause and fix the blocking issue
-        </AlertDescription>
-      </Alert>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Diagnostic Test</CardTitle>
-          <CardDescription>
-            Test each component of the inspection creation workflow
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Button 
-              onClick={runDiagnostic} 
-              disabled={isRunning}
-              className="w-full"
-            >
-              <Play className="mr-2 h-4 w-4" />
-              {isRunning ? 'Running Diagnostic...' : 'Run Inspection Creation Diagnostic'}
-            </Button>
-            
-            {results.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">Diagnostic Results:</h3>
-                {results.map((result, index) => (
-                  <div key={index} className="flex items-start space-x-2 p-3 border rounded-lg">
-                    {getStatusIcon(result.status)}
-                    <div className="flex-1">
-                      <div className="font-medium">{result.step}</div>
-                      <div className="text-sm text-gray-600">{result.message}</div>
-                      {result.details && (
-                        <details className="mt-2">
-                          <summary className="text-xs cursor-pointer text-blue-600">View Details</summary>
-                          <pre className="text-xs bg-gray-50 p-2 mt-1 rounded overflow-auto">
-                            {JSON.stringify(result.details, null, 2)}
-                          </pre>
-                        </details>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bug className="h-5 w-5" />
+          Inspection Creation Diagnostic
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            value={propertyName}
+            onChange={(e) => setPropertyName(e.target.value)}
+            placeholder="Property name to test..."
+            className="flex-1"
+          />
+          <Button 
+            onClick={runComprehensiveDiagnostic}
+            disabled={isRunning || !propertyName.trim()}
+          >
+            {isRunning ? (
+              <>
+                <Settings className="h-4 w-4 mr-2 animate-spin" />
+                Running...
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4 mr-2" />
+                Run Diagnostic
+              </>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </Button>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Expected Workflow</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm space-y-2">
-            <div><strong>1.</strong> User clicks "Start Inspection" button</div>
-            <div><strong>2.</strong> System validates property access and user permissions</div>
-            <div><strong>3.</strong> System inserts new inspection record in database</div>
-            <div><strong>4.</strong> Database trigger automatically creates checklist items from static_safety_items</div>
-            <div><strong>5.</strong> System verifies checklist items were created</div>
-            <div><strong>6.</strong> User is redirected to inspection interface</div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        {results.length > 0 && (
+          <ScrollArea className="h-96 w-full border rounded-md p-4">
+            <div className="space-y-3">
+              {results.map((result, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg border-l-4"
+                  style={{
+                    borderLeftColor: result.status === 'success' ? '#16a34a' :
+                                   result.status === 'warning' ? '#d97706' : '#dc2626'
+                  }}
+                >
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getStatusIcon(result.status)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge className={getStatusColor(result.status)}>
+                        {result.category}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-900 mb-1">{result.message}</p>
+                    {result.details && (
+                      <details className="text-xs text-gray-600">
+                        <summary className="cursor-pointer hover:text-gray-800">
+                          Show Details
+                        </summary>
+                        <pre className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
+                          {JSON.stringify(result.details, null, 2)}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+
+        {results.length > 0 && (
+          <Alert>
+            <Database className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Diagnostic Summary:</strong> {results.filter(r => r.status === 'success').length} passed, {' '}
+              {results.filter(r => r.status === 'warning').length} warnings, {' '}
+              {results.filter(r => r.status === 'error').length} errors. 
+              {results.some(r => r.status === 'error') && ' Check error details above for specific issues.'}
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default InspectionCreationDiagnostic;

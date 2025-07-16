@@ -69,21 +69,22 @@ Deployment: Railway with Docker containerization
 
 ### **Data Architecture**
 
-#### **Core Entities**
+#### **Core Entities (Production Schema)**
 ```typescript
 Property {
-  id: string
-  name: string
+  property_id: number        // Integer primary key in DB
+  property_name: string      // NOT "name"
+  street_address: string     // NOT "address"
   vrbo_url?: string
   airbnb_url?: string
-  scraped_data: ScrapedPropertyData
-  amenities: PropertyAmenity[]
+  scraped_data?: ScrapedPropertyData
+  amenities?: PropertyAmenity[]
 }
 
 Inspection {
   id: string
-  property_id: string
-  inspector_id: string
+  property_id: string        // Converted from integer to string for frontend
+  inspector_id: string       // References profiles.id
   status: 'draft' | 'in_progress' | 'completed' | 'auditing'
   checklist_items: ChecklistItem[]
   video_walkthrough?: VideoFile
@@ -92,12 +93,20 @@ Inspection {
 ChecklistItem {
   id: string
   inspection_id: string
-  title: string
+  checklist_id: string       // NOT "static_safety_item_id"
+  title: string              // From checklist table
   ai_status: 'pending' | 'pass' | 'fail' | 'needs_review'
   ai_confidence: number
   ai_reasoning: string
   auditor_override?: boolean
   photos: MediaFile[]
+}
+
+Profile {
+  id: string                 // UUID from auth.users
+  full_name: string          // NOT "name"
+  email: string
+  role?: string
 }
 ```
 
@@ -306,125 +315,147 @@ export class OpenAIService {
 
 ## **🏗️ DATABASE COMPATIBILITY ARCHITECTURE**
 
-### **⚠️ CRITICAL SCHEMA ISSUE RESOLUTION**
-**IMPORTANT:** This application uses a compatibility layer to bridge between expected schema and production database reality.
+### **✅ PRODUCTION SCHEMA CONFIRMED**
+**IMPORTANT:** All code and documentation now use the actual production database schema. No compatibility layer needed.
 
-#### **Production Database Schema (Reality):**
-- **Properties:** `properties` table with integer `property_id`
-- **Checklist Items:** `logs` table (not `inspection_checklist_items`)
-- **Users:** `profiles` table (not `users`)
-- **Inspections:** `inspection_sessions` table (not `inspections`)
-- **Safety Items:** `checklist` table (not `static_safety_items`)
+#### **Production Database Schema (Verified):**
+- **Properties:** `properties` table with integer `property_id`, `property_name`, `street_address`
+- **Checklist Items:** `inspection_checklist_items` table with `checklist_id` references
+- **Users:** `profiles` table with `full_name`, `email` fields
+- **Inspections:** `inspections` table (standard implementation)
+- **Safety Items:** `checklist` table with `checklist_id` as primary key
 
-#### **Application Expectations (Code Assumptions):**
-- **Properties:** UUID-based `id` field
-- **Checklist Items:** `inspection_checklist_items` table
-- **Users:** `users` table
-- **Inspections:** `inspections` table
-- **Safety Items:** `static_safety_items` table
+#### **Key Production Schema Details:**
+- **Property IDs:** Integer primary keys (`property_id`) - converted to strings for frontend
+- **User Data:** Stored in `profiles` table, not `users`
+- **Checklist References:** `checklist_id` links `inspection_checklist_items` to `checklist`
+- **Available RPC Functions:** `create_inspection_compatibility`, `get_user_role`, `int_to_uuid`, `uuid_to_int`
 
-#### **Compatibility Layer Solution:**
+#### **Direct Schema Usage (No Views Needed):**
 ```sql
--- Key Views Created (NEVER modify these without updating docs):
-users → profiles
-properties_fixed → properties (with UUID conversion)
-inspection_checklist_items → logs
-inspections_fixed → inspection_sessions
-checklist_items_compat → checklist
+-- Production Tables (Direct Access):
+profiles - User data with full_name, email
+properties - Property data with property_id (integer), property_name, street_address  
+inspections - Standard inspection records
+inspection_checklist_items - Checklist items linked via checklist_id
+checklist - Template checklist items with checklist_id
+media - Media files linked to inspection_checklist_items
+logs - General application logging
 
--- Key Functions (Production-Critical):
-int_to_uuid() - Convert property_id to UUID
-uuid_to_int() - Convert UUID back to property_id
-create_inspection_compatibility() - Create inspections properly
+-- Utility Functions (Available):
+int_to_uuid() - Convert property_id to UUID string
+uuid_to_int() - Convert UUID string back to property_id
+create_inspection_compatibility() - Create inspections with proper RLS
+get_user_role() - Get user role from profiles
+populate_inspection_checklist_safe() - Populate checklist items safely
 ```
 
 ### **🔧 Database Development Rules:**
 
-#### **ALWAYS Use Compatibility Views:**
+#### **ALWAYS Use Production Schema:**
 ```typescript
-// ✅ CORRECT: Using compatibility views
+// ✅ CORRECT: Using actual production tables
 const { data } = await supabase
-  .from('inspections_fixed')           // Use compatibility view
+  .from('inspections')                 // Real production table
   .select(`
     *,
-    properties_fixed!inner (id, name, address),
+    properties!inner (property_id, property_name, street_address),
     inspection_checklist_items!inner (
       *,
-      checklist_items_compat!inner (title, category),
+      checklist!inner (checklist_id, title, category),
       media (*)
     )
   `);
 
-// ❌ WRONG: Using expected table names directly
+// ❌ WRONG: Using old/incorrect table references
 const { data } = await supabase
-  .from('inspections')                 // This table doesn't exist!
-  .select('*, properties(*), users(*)');
+  .from('inspections')
+  .select('*, properties(id, name, address), users(*)');  // Wrong column names
 ```
 
-#### **Required View Mappings:**
-- **Properties:** Use `properties_fixed` (provides UUID conversion)
-- **Users:** Use `users` (maps to `profiles`)
-- **Checklist Items:** Use `inspection_checklist_items` (maps to `logs`)
-- **Inspections:** Use `inspections_fixed` (maps to `inspection_sessions`)
-- **Safety Items:** Use `checklist_items_compat` (maps to `checklist`)
+#### **Production Column Mappings:**
+- **Properties:** Direct access to `properties` table
+- **Users:** Use `profiles` table (NOT `users`)
+- **Checklist Items:** Direct access to `inspection_checklist_items`
+- **Inspections:** Direct access to `inspections` table
+- **Safety Items:** Use `checklist` table (NOT `static_safety_items`)
 
-#### **Field Mapping Reference:**
+#### **Critical Column Name Reference:**
 ```typescript
-// Production logs table → inspection_checklist_items view
+// Properties table (actual production columns)
 {
-  log_id → id
-  audit_status → status (with CASE conversion)
-  audit_notes/inspector_remarks → inspector_notes
-  ai_confidence → score
-  checklist_id → static_safety_item_id
+  property_id: number     // Primary key (integer)
+  property_name: string   // NOT "name"
+  street_address: string  // NOT "address"
+  vrbo_url?: string
+  airbnb_url?: string
 }
 
-// Production properties table → properties_fixed view  
+// Profiles table (actual production columns)
 {
-  property_id (integer) → id (UUID via int_to_uuid())
-  property_name → name
-  street_address + city + state + zipcode → address
+  id: string             // UUID from auth.users
+  full_name: string      // NOT "name"
+  email: string
+  role?: string
 }
 
-// Production profiles table → users view
+// Inspection_checklist_items table (actual production columns)
 {
-  id → id
-  full_name/email → name
-  email → email
+  id: string
+  inspection_id: string
+  checklist_id: string   // NOT "static_safety_item_id"
+  status: string
+  inspector_notes: string
+}
+
+// Checklist table (actual production columns)
+{
+  checklist_id: string   // Primary key
+  title: string
+  category: string
+  description?: string
 }
 ```
 
 ### **🚨 Development Warnings:**
 
 #### **NEVER Do These Things:**
-- Query `inspections`, `users`, `static_safety_items` tables directly
-- Assume property IDs are UUIDs without conversion
-- Create new migrations without considering compatibility layer
-- Modify base tables without updating compatibility views
+- Reference `users` table (use `profiles` instead)
+- Reference `static_safety_items` table (use `checklist` instead)
+- Use `properties.id` or `properties.name` (use `property_id`, `property_name`)
+- Use `profiles.name` (use `full_name` instead)
+- Assume property IDs are UUIDs (they are integers, converted to strings in frontend)
 
 #### **ALWAYS Do These Things:**
-- Use compatibility views in all service layer queries
-- Handle UUID/integer conversion with provided functions
+- Use correct production table names (`profiles`, `checklist`, etc.)
+- Use correct column names (`property_name`, `street_address`, `full_name`)
+- Convert property IDs properly between integer (DB) and string (frontend)
 - Test queries against actual production schema
 - Document any new schema assumptions in this file
 
 ### **🧪 Schema Validation:**
 ```sql
 -- Run these tests before any database changes:
+SELECT COUNT(*) FROM profiles, properties, inspection_checklist_items, checklist;
+SELECT property_id, property_name, street_address FROM properties LIMIT 1;
+SELECT full_name, email FROM profiles LIMIT 1;
+SELECT checklist_id, title FROM checklist LIMIT 1;
+SELECT i.id, p.property_name FROM inspections i 
+  JOIN properties p ON p.property_id::text = i.property_id LIMIT 1;
+
+-- Test ID conversion functions:
 SELECT int_to_uuid(1), uuid_to_int(int_to_uuid(1));
-SELECT COUNT(*) FROM users, properties_fixed, inspection_checklist_items;
-SELECT i.id, p.name FROM inspections_fixed i 
-  JOIN properties_fixed p ON p.id = i.property_id LIMIT 1;
 ```
 
 ### **📋 New Feature Checklist:**
-- [ ] Check if new tables/fields exist in production
-- [ ] Update compatibility views if needed
+- [ ] Verify table names match production schema (`profiles`, `checklist`, etc.)
+- [ ] Verify column names match production (`property_name`, `full_name`, etc.)
+- [ ] Test property ID conversion (integer to string) works correctly
 - [ ] Test queries with actual production data
-- [ ] Update this documentation with any new mappings
-- [ ] Verify all relationships work through compatibility layer
+- [ ] Update this documentation with any new schema discoveries
+- [ ] Verify all relationships use correct foreign keys
 
-**See:** `/docs/DATABASE_COMPATIBILITY_ARCHITECTURE.md` for complete technical details.
+**Critical:** Always validate against actual production schema, not assumptions.
 
 ## **📚 TEACHING MOMENTS**
 

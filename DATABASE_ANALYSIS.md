@@ -50,7 +50,7 @@ The STR Certified database demonstrates a sophisticated AI-powered inspection pl
 └─────────────────────────────────────────────────────────────────┘
 
                     ┌─────────────┐
-                    │    Users    │────────────────────────────────┐
+                    │  Profiles   │────────────────────────────────┐
                     │  (Root)     │                                │
                     └─────────────┘                                │
                            │                                       │
@@ -128,12 +128,12 @@ The STR Certified database demonstrates a sophisticated AI-powered inspection pl
 
 ## **📋 CORE TABLES ANALYSIS**
 
-### **1. USERS TABLE**
+### **1. PROFILES TABLE**
 ```sql
-users {
+profiles {
   id: UUID PRIMARY KEY (auth.users.id)
   email: TEXT
-  name: TEXT
+  full_name: TEXT
   role: TEXT                    -- ⚠️ Should use user_roles table
   status: TEXT                  -- ⚠️ Needs CHECK constraint
   created_at: TIMESTAMPTZ
@@ -155,13 +155,13 @@ users {
 ### **2. PROPERTIES TABLE**
 ```sql
 properties {
-  id: UUID PRIMARY KEY
-  name: TEXT                    -- ⚠️ Should be NOT NULL
-  address: TEXT
+  property_id: INTEGER PRIMARY KEY
+  property_name: TEXT           -- ⚠️ Should be NOT NULL
+  street_address: TEXT
   vrbo_url: TEXT
   airbnb_url: TEXT
   status: TEXT                  -- ⚠️ Needs CHECK constraint
-  added_by: TEXT                -- ❌ MISSING FK to users.id
+  added_by: TEXT                -- ❌ MISSING FK to profiles.id
   created_at: TIMESTAMPTZ
   updated_at: TIMESTAMPTZ
 }
@@ -170,16 +170,16 @@ properties {
 **Critical Issues:**
 - `added_by` lacks foreign key constraint → **ORPHANED RECORDS RISK**
 - No validation for URLs
-- Missing NOT NULL constraint on name
+- Missing NOT NULL constraint on property_name
 
 **Recommendations:**
 ```sql
 ALTER TABLE properties 
 ADD CONSTRAINT fk_properties_added_by 
-FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE CASCADE;
+FOREIGN KEY (added_by) REFERENCES profiles(id) ON DELETE CASCADE;
 
 ALTER TABLE properties 
-ALTER COLUMN name SET NOT NULL;
+ALTER COLUMN property_name SET NOT NULL;
 
 ALTER TABLE properties 
 ADD CONSTRAINT chk_properties_status 
@@ -190,8 +190,8 @@ CHECK (status IN ('active', 'inactive', 'pending'));
 ```sql
 inspections {
   id: UUID PRIMARY KEY
-  property_id: UUID             -- ✅ HAS FK to properties.id
-  inspector_id: UUID            -- ❌ MISSING FK to users.id
+  property_id: INTEGER          -- ✅ HAS FK to properties.property_id
+  inspector_id: UUID            -- ❌ MISSING FK to profiles.id
   status: TEXT                  -- ⚠️ Needs CHECK constraint
   certification_status: TEXT    -- ⚠️ Needs CHECK constraint
   completed: BOOLEAN
@@ -209,7 +209,7 @@ inspections {
 ```sql
 ALTER TABLE inspections 
 ADD CONSTRAINT fk_inspections_inspector_id 
-FOREIGN KEY (inspector_id) REFERENCES users(id) ON DELETE SET NULL;
+FOREIGN KEY (inspector_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
 ALTER TABLE inspections 
 ADD CONSTRAINT chk_inspections_status 
@@ -221,14 +221,14 @@ CHECK (status IN ('draft', 'in_progress', 'completed', 'cancelled'));
 inspection_checklist_items {
   id: UUID PRIMARY KEY
   inspection_id: UUID          -- ✅ HAS FK to inspections.id
-  static_safety_item_id: UUID  -- ✅ HAS FK to static_safety_items.id
+  checklist_id: UUID           -- ✅ HAS FK to checklist.id
   status: TEXT                 -- ⚠️ Needs CHECK constraint
   inspector_notes: TEXT
   is_critical: BOOLEAN DEFAULT FALSE
   score: NUMERIC(5,2)
   photo_evidence_required: BOOLEAN DEFAULT FALSE
-  assigned_inspector_id: UUID  -- ❌ MISSING FK to users.id
-  last_modified_by: UUID       -- ❌ MISSING FK to users.id
+  assigned_inspector_id: UUID  -- ❌ MISSING FK to profiles.id
+  last_modified_by: UUID       -- ❌ MISSING FK to profiles.id
   notes_history: JSONB
   version: INTEGER
   created_at: TIMESTAMPTZ
@@ -250,9 +250,9 @@ media {
   url: TEXT
   file_path: TEXT
   notes: TEXT
-  uploaded_by: UUID            -- ❌ MISSING FK to users.id
+  uploaded_by: UUID            -- ❌ MISSING FK to profiles.id
   uploaded_by_name: TEXT       -- ⚠️ Denormalized data
-  user_id: UUID                -- ❌ MISSING FK to users.id
+  user_id: UUID                -- ❌ MISSING FK to profiles.id
   created_at: TIMESTAMPTZ
 }
 ```
@@ -321,7 +321,7 @@ auditor_feedback {
   id: UUID PRIMARY KEY
   inspection_id: UUID          -- ✅ HAS FK to inspections.id
   inspection_checklist_item_id: UUID  -- ❌ MISSING FK to inspection_checklist_items.id
-  auditor_id: UUID             -- ✅ HAS FK to users.id
+  auditor_id: UUID             -- ✅ HAS FK to profiles.id
   feedback_type: TEXT NOT NULL
   category: TEXT NOT NULL
   ai_prediction: JSONB
@@ -397,19 +397,19 @@ SECURITY DEFINER
 ```sql
 -- User relationships
 ALTER TABLE properties ADD CONSTRAINT fk_properties_added_by 
-FOREIGN KEY (added_by) REFERENCES users(id) ON DELETE CASCADE;
+FOREIGN KEY (added_by) REFERENCES profiles(id) ON DELETE CASCADE;
 
 ALTER TABLE inspections ADD CONSTRAINT fk_inspections_inspector_id 
-FOREIGN KEY (inspector_id) REFERENCES users(id) ON DELETE SET NULL;
+FOREIGN KEY (inspector_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
 ALTER TABLE inspection_checklist_items ADD CONSTRAINT fk_inspection_checklist_items_assigned_inspector 
-FOREIGN KEY (assigned_inspector_id) REFERENCES users(id) ON DELETE SET NULL;
+FOREIGN KEY (assigned_inspector_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
 ALTER TABLE inspection_checklist_items ADD CONSTRAINT fk_inspection_checklist_items_modified_by 
-FOREIGN KEY (last_modified_by) REFERENCES users(id) ON DELETE SET NULL;
+FOREIGN KEY (last_modified_by) REFERENCES profiles(id) ON DELETE SET NULL;
 
 ALTER TABLE media ADD CONSTRAINT fk_media_uploaded_by 
-FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL;
+FOREIGN KEY (uploaded_by) REFERENCES profiles(id) ON DELETE SET NULL;
 
 -- AI system relationships
 ALTER TABLE auditor_feedback ADD CONSTRAINT fk_auditor_feedback_inspection_checklist_item 
@@ -505,7 +505,7 @@ FOR ALL USING (tenant_id = auth.jwt() ->> 'tenant_id');
 -- Enhanced audit logging
 CREATE TABLE security_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id),
+  user_id UUID REFERENCES profiles(id),
   action_type TEXT NOT NULL,
   table_name TEXT NOT NULL,
   record_id UUID,
@@ -567,7 +567,7 @@ FOR SELECT USING (auth.uid() IS NOT NULL);
 
 -- 2. Add missing foreign keys
 ALTER TABLE properties ADD CONSTRAINT fk_properties_added_by 
-FOREIGN KEY (added_by) REFERENCES users(id);
+FOREIGN KEY (added_by) REFERENCES profiles(id);
 
 -- 3. Fix RLS policies
 DROP POLICY "Users can create inspections" ON inspections;

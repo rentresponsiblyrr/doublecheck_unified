@@ -178,8 +178,24 @@ class MobileInspectionOptimizer {
       } catch (error) {
         console.error(`❌ Optimized inspection creation attempt ${attempt} failed:`, error);
         
+        // Log detailed error information for debugging
+        const errorDetails = {
+          attempt,
+          propertyId,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorCode: (error as any)?.code,
+          errorDetails: (error as any)?.details,
+          errorHint: (error as any)?.hint,
+          timestamp: new Date().toISOString()
+        };
+        console.error('🔍 Detailed mobile error information:', errorDetails);
+        
         if (attempt === this.MAX_RETRIES) {
-          throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts`);
+          // Provide more detailed error message with context
+          const detailedMessage = error instanceof Error 
+            ? `${error.message}${(error as any)?.code ? ` (Code: ${(error as any).code})` : ''}`
+            : 'Unknown error';
+          throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts: ${detailedMessage}`);
         }
         
         // Shorter wait for mobile

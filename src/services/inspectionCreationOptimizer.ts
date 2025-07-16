@@ -146,15 +146,45 @@ export class InspectionCreationOptimizer {
         console.log('✅ Inspection created successfully:', data);
         
         // Verify checklist items were created by trigger
-        await InspectionValidationService.verifyChecklistItemsCreated(data);
+        try {
+          await InspectionValidationService.verifyChecklistItemsCreated(data);
+        } catch (verificationError) {
+          // If checklist verification fails, check if static_safety_items is empty
+          const { count } = await supabase
+            .from('static_safety_items')
+            .select('*', { count: 'exact', head: true })
+            .eq('deleted', false)
+            .eq('required', true);
+            
+          if (count === 0) {
+            throw new Error('No static safety items found in database. Contact admin to populate static_safety_items table.');
+          }
+          throw verificationError;
+        }
         
         return data;
 
       } catch (error) {
         console.error(`❌ Inspection creation attempt ${attempt} failed:`, error);
         
+        // Log detailed error information for debugging
+        const errorDetails = {
+          attempt,
+          propertyId,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorCode: (error as any)?.code,
+          errorDetails: (error as any)?.details,
+          errorHint: (error as any)?.hint,
+          timestamp: new Date().toISOString()
+        };
+        console.error('🔍 Detailed error information:', errorDetails);
+        
         if (attempt === this.MAX_RETRIES) {
-          throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          // Provide more detailed error message
+          const detailedMessage = error instanceof Error 
+            ? `${error.message}${(error as any)?.code ? ` (Code: ${(error as any).code})` : ''}`
+            : 'Unknown error';
+          throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts: ${detailedMessage}`);
         }
         
         // Exponential backoff

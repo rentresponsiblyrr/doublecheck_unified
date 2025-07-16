@@ -22,6 +22,11 @@ import AuditCenterFixed from './AuditCenterFixed';
 import GitHubIntegrationTest from './GitHubIntegrationTest';
 import ComprehensiveGitHubTest from './ComprehensiveGitHubTest';
 
+// Import fallback components
+import { UserManagementFallback } from './fallbacks/UserManagementFallback';
+import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
+import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
+
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
 import AuditCenter from './AuditCenter';
@@ -95,13 +100,25 @@ export default function AdminRoutes() {
         <Route path="deployment-test" element={<AdminDeploymentTest />} />
         <Route path="routes-test" element={<AdminRoutesTest />} />
         <Route path="properties" element={<PropertyManagement />} />
-        <Route path="users" element={<SimpleUserManagement />} />
+        <Route path="users" element={
+          <AdminErrorBoundary componentName="User Management" fallback={<UserManagementFallback />}>
+            <SimpleUserManagement />
+          </AdminErrorBoundary>
+        } />
         <Route path="inspections" element={<SimpleInspectionManagement />} />
         <Route path="inspection-cleanup" element={<InspectionCleanupUtility />} />
         <Route path="inspection-diagnostic" element={<InspectionDataDiagnostic />} />
-        <Route path="audit" element={<AuditCenter />} />
+        <Route path="audit" element={
+          <AdminErrorBoundary componentName="Audit Center" fallback={<AuditCenterFallback />}>
+            <AuditCenter />
+          </AdminErrorBoundary>
+        } />
         <Route path="reports" element={<ReportManagement />} />
-        <Route path="checklists" element={<SimpleChecklistManagement />} />
+        <Route path="checklists" element={
+          <AdminErrorBoundary componentName="Checklist Management" fallback={<ChecklistManagementFallback />}>
+            <SimpleChecklistManagement />
+          </AdminErrorBoundary>
+        } />
         <Route path="performance" element={
           <ComingSoonPage 
             title="AI Performance Dashboard" 

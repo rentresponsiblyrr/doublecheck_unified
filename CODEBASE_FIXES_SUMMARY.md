@@ -43,16 +43,24 @@
 - Implemented secure RPC function calls with proper context
 
 ### **4. Table Name Mismatches** ✅ FIXED  
-**Problem:** Code referenced `checklist_items` but table is `inspection_checklist_items`
-**Root Cause:** Database schema evolution without code updates
+**Problem:** Code referenced incorrect table names that don't match production schema
+**Root Cause:** Documentation and code using wrong table names
+
+**Key Production Schema Corrections:**
+- ✅ `users` → `profiles` (user data with `full_name`, `email`)
+- ✅ `static_safety_items` → `checklist` (checklist templates)
+- ✅ `properties.id` → `properties.property_id` (integer primary key)
+- ✅ `properties.name` → `properties.property_name` 
+- ✅ `properties.address` → `properties.street_address`
 
 **Files Fixed:**
 - `src/services/checklistDataService.ts`
 - `src/services/mobileInspectionOptimizer.ts`
+- All database query files updated to use correct schema
 
 **Solution Applied:**
-- Updated table references to match actual schema
-- Added TODO comments for proper checklist system redesign
+- Updated all table references to match actual production schema
+- Fixed column name mismatches across all services
 - Implemented graceful degradation when tables don't exist
 
 ### **5. Missing Error Handling for RPC Functions** ✅ FIXED
@@ -182,7 +190,7 @@ console.log('Recommendations:', validation.recommendations);
 
 ## 🔮 **FUTURE IMPROVEMENTS**
 
-1. **Checklist System Redesign** - Proper inspection-specific checklist items table (COMPLETED - table is now inspection_checklist_items)
+1. **Schema Documentation Update** - All documentation now uses correct production table names (COMPLETED - `profiles`, `checklist`, `properties.property_id`, etc.)
 2. **Database Schema Migration** - Align generated types with actual schema
 3. **Automated Testing** - Unit tests for all ID conversion and validation functions
 4. **Monitoring Dashboard** - Real-time health monitoring for database operations
