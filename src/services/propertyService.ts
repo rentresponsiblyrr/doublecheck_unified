@@ -68,9 +68,9 @@ export class PropertyService {
 
       console.log('📝 Inserting property with data:', propertyToInsert);
 
-      // Insert property into database
+      // Insert property into database using compatibility layer
       const { data: insertedProperty, error: insertError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .insert(propertyToInsert)
         .select()
         .single();
@@ -196,7 +196,7 @@ export class PropertyService {
   async updateProperty(id: string, propertyData: Partial<PropertyData>): Promise<PropertyServiceResult<any>> {
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .update(propertyData)
         .eq('id', id)
         .select()
@@ -221,7 +221,7 @@ export class PropertyService {
   async getProperty(id: string): Promise<PropertyServiceResult<any>> {
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('*')
         .eq('id', id)
         .single();

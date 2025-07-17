@@ -644,7 +644,7 @@ export class ProactiveMonitoring {
     try {
       const startTime = Date.now();
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('id')
         .limit(1);
       
@@ -667,7 +667,7 @@ export class ProactiveMonitoring {
   private async checkAPIResponseTime(): Promise<number> {
     const startTime = Date.now();
     try {
-      await supabase.from('properties').select('count').limit(1);
+      await supabase.from('properties_fixed').select('count').limit(1);
       return Date.now() - startTime;
     } catch (error) {
       return 10000; // High value to indicate failure
