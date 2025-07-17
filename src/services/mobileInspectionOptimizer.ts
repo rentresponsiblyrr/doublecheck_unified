@@ -70,7 +70,7 @@ class MobileInspectionOptimizer {
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('name')
         .eq('id', propertyIdUuid)
         .eq('status', 'active')
@@ -94,7 +94,7 @@ class MobileInspectionOptimizer {
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('id')
         .eq('property_id', propertyIdUuid)
         .eq('completed', false)
@@ -150,7 +150,7 @@ class MobileInspectionOptimizer {
           const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
           
           const insertResult = await supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .insert({
               property_id: propertyIdUuid,
               start_time: new Date().toISOString(),
@@ -210,15 +210,15 @@ class MobileInspectionOptimizer {
     try {
       console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
       
-      // Query actual inspection_checklist_items table for this inspection
+      // Query actual logs table for this inspection
       const { count, error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('*', { count: 'exact', head: true })
         .eq('inspection_id', inspectionId);
 
       if (error) {
         console.error('❌ Error counting inspection checklist items:', error);
-        // Fall back to static_safety_items count if inspection_checklist_items query fails
+        // Fall back to static_safety_items count if logs query fails
         const { count: staticCount, error: staticError } = await supabase
           .from('static_safety_items')
           .select('*', { count: 'exact', head: true });
@@ -245,7 +245,7 @@ class MobileInspectionOptimizer {
   static async assignInspectorOptimized(inspectionId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .update({ 
           inspector_id: (await supabase.auth.getUser()).data.user?.id,
           status: 'in_progress'

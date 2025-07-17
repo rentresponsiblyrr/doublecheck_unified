@@ -37,7 +37,7 @@ export const AuditCenterFallback: React.FC = () => {
           
           <div className="p-3 bg-gray-50 rounded border">
             <strong>Checklist Items:</strong>
-            <p className="text-sm mt-1">Individual inspection items in 'inspection_checklist_items' table</p>
+            <p className="text-sm mt-1">Individual inspection items in 'logs' table</p>
           </div>
           
           <div className="p-3 bg-gray-50 rounded border">
@@ -54,7 +54,7 @@ export const AuditCenterFallback: React.FC = () => {
             <div className="mt-2">-- Get inspection with checklist items</div>
             <div>SELECT i.*, ici.status, ici.inspector_notes</div>
             <div>FROM inspections i</div>
-            <div>LEFT JOIN inspection_checklist_items ici ON i.id = ici.inspection_id;</div>
+            <div>LEFT JOIN logs ici ON i.id = ici.inspection_id;</div>
           </div>
         </div>
 

@@ -54,8 +54,8 @@ export interface EnhancedDatabase {
 export type InspectionInsert = Database['public']['Tables']['inspections']['Insert'];
 export type InspectionRow = Database['public']['Tables']['inspections']['Row'];
 export type PropertyRow = Database['public']['Tables']['properties']['Row'];
-export type InspectionChecklistItemRow = Database['public']['Tables']['inspection_checklist_items']['Row'];
-export type InspectionChecklistItemInsert = Database['public']['Tables']['inspection_checklist_items']['Insert'];
+export type InspectionChecklistItemRow = Database['public']['Tables']['logs']['Row'];
+export type InspectionChecklistItemInsert = Database['public']['Tables']['logs']['Insert'];
 export type StaticSafetyItemRow = Database['public']['Tables']['static_safety_items']['Row'];
 
 // Type guards for ID validation (corrected to match actual database schema)

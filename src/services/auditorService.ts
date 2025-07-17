@@ -5,10 +5,10 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
-type ChecklistItemRecord = Tables['inspection_checklist_items']['Row'];
+type ChecklistItemRecord = Tables['logs']['Row'];
 type MediaFileRecord = Tables['media']['Row'];
 type PropertyRecord = Tables['properties']['Row'];
-type UserRecord = Tables['users']['Row'];
+type UserRecord = Tables['profiles']['Row'];
 
 export interface InspectionForReview {
   id: string;
@@ -19,19 +19,18 @@ export interface InspectionForReview {
   end_time: string | null;
   created_at: string;
   properties: {
-    id: string;
-    name: string;
-    address: string;
+    property_id: number;
+    property_name: string;
+    street_address: string;
     vrbo_url?: string;
     airbnb_url?: string;
-    scraped_data?: Record<string, unknown>;
   };
-  users: {
+  profiles: {
     id: string;
-    name: string;
+    full_name: string;
     email: string;
   };
-  inspection_checklist_items: Array<{
+  logs: Array<{
     id: string;
     title: string;
     status: string;
@@ -96,7 +95,7 @@ export class AuditorService {
       logger.info('Fetching inspections pending review', { filters, limit }, 'AUDITOR_SERVICE');
 
       let query = supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           id,
           property_id,
@@ -106,19 +105,18 @@ export class AuditorService {
           end_time,
           created_at,
           properties!inner (
-            id,
-            name,
-            address,
+            property_id,
+            property_name,
+            street_address,
             vrbo_url,
-            airbnb_url,
-            scraped_data
+            airbnb_url
           ),
-          users!inner (
+          profiles!inner (
             id,
-            name,
+            full_name,
             email
           ),
-          inspection_checklist_items (
+          logs (
             id,
             title,
             status,
@@ -146,7 +144,7 @@ export class AuditorService {
       if (filters.searchQuery) {
         // Search in property address or name
         query = query.or(
-          `properties.address.ilike.%${filters.searchQuery}%,properties.name.ilike.%${filters.searchQuery}%`
+          `properties.street_address.ilike.%${filters.searchQuery}%,properties.property_name.ilike.%${filters.searchQuery}%`
         );
       }
 
@@ -160,7 +158,7 @@ export class AuditorService {
       // Process and enhance the data
       const enhancedInspections: InspectionForReview[] = (data || []).map(inspection => ({
         ...inspection,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.inspection_checklist_items || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.logs || [])
       }));
 
       logger.info('Successfully fetched inspections for review', {
@@ -184,7 +182,7 @@ export class AuditorService {
       logger.info('Fetching detailed inspection for review', { inspectionId }, 'AUDITOR_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           id,
           property_id,
@@ -194,19 +192,18 @@ export class AuditorService {
           end_time,
           created_at,
           properties!inner (
-            id,
-            name,
-            address,
+            property_id,
+            property_name,
+            street_address,
             vrbo_url,
-            airbnb_url,
-            scraped_data
+            airbnb_url
           ),
-          users!inner (
+          profiles!inner (
             id,
-            name,
+            full_name,
             email
           ),
-          inspection_checklist_items (
+          logs (
             id,
             title,
             description,
@@ -241,7 +238,7 @@ export class AuditorService {
       // Enhance with AI analysis summary
       const enhancedInspection: InspectionForReview = {
         ...data,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(data.inspection_checklist_items || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(data.logs || [])
       };
 
       return { success: true, data: enhancedInspection };
@@ -266,7 +263,7 @@ export class AuditorService {
 
       // Start transaction by updating inspection status
       const { error: inspectionError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .update({
           status: reviewDecision.decision === 'approved' ? 'approved' : 
                   reviewDecision.decision === 'rejected' ? 'rejected' : 'needs_revision',
@@ -282,7 +279,7 @@ export class AuditorService {
       // Apply auditor overrides to checklist items
       for (const override of reviewDecision.overrides) {
         const { error: itemError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .update({
             ai_status: override.auditorStatus,
             user_override: true,
@@ -362,7 +359,7 @@ export class AuditorService {
 
       // Get inspection counts and metrics - Get ALL inspections to show correct metrics
       const { data: inspectionMetrics, error: metricsError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('id, status, created_at, end_time, inspector_id')
         .gte('created_at', startDate.toISOString());
 

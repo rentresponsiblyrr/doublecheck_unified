@@ -42,7 +42,7 @@ export const SimplePropertyForm = () => {
 
       try {
         const { data, error } = await supabase
-          .from('properties_fixed')
+          .from('properties')
           .select('*')
           .eq('id', editId)
           .single();

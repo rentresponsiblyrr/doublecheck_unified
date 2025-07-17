@@ -64,7 +64,7 @@ class StatusCountService {
       logger.info('Fetching inspection counts', { userId }, 'STATUS_COUNT_SERVICE');
 
       let query = supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('status');
 
       // Filter by user if provided (for inspector dashboard)
@@ -214,7 +214,7 @@ class StatusCountService {
 
       // Get all inspections that need or have had auditor attention
       const { data: inspections, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('status, created_at, end_time')
         .in('status', STATUS_GROUPS.REVIEW_PIPELINE.concat(STATUS_GROUPS.FINAL))
         .gte('created_at', startDate.toISOString());

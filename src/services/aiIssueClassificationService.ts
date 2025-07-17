@@ -81,7 +81,7 @@ class AIIssueClassificationService {
       'users view',
       'static_safety_items',
       'uuid_to_int',
-      'properties_fixed'
+      'properties'
     ],
     authenticationIssues: [
       'auth.uid()',
@@ -269,7 +269,7 @@ class AIIssueClassificationService {
 - Supabase PostgreSQL database with custom compatibility layer
 - Mobile PWA with offline capabilities
 - AI-powered inspection workflow
-- Database compatibility views: users → profiles, properties_fixed → properties, inspection_checklist_items → logs
+- Database compatibility views: users → profiles, properties → properties, logs → logs
 
 ## Rule-Based Analysis (as reference)
 - Issue Type: ${ruleBasedAnalysis.issueType}

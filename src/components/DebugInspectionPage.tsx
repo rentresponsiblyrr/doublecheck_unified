@@ -88,7 +88,7 @@ export const DebugInspectionPage = () => {
       try {
         // Load inspection with property details
         const { data: inspection, error: inspectionError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select(`
             *,
             properties (
@@ -102,7 +102,7 @@ export const DebugInspectionPage = () => {
 
         // Load checklist items with media count
         const { data: checklistItems, error: itemsError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select(`
             id, label, category, evidence_type, status, ai_status, notes,
             media!media_checklist_item_id_fkey(count)

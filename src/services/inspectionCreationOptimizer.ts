@@ -27,7 +27,7 @@ export class InspectionCreationOptimizer {
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('id, inspector_id, status, start_time')
         .eq('property_id', propertyIdUuid)
         .in('status', activeStatuses)
@@ -105,7 +105,7 @@ export class InspectionCreationOptimizer {
           
           // Fallback to direct insert with proper RLS context
           const insertResult = await supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .insert({
               property_id: propertyIdUuid,
               inspector_id: inspectorId, // Always include inspector_id for RLS
@@ -221,7 +221,7 @@ export class InspectionCreationOptimizer {
         }
 
         const { error: updateError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .update({ inspector_id: user.id })
           .eq('id', inspectionId);
 

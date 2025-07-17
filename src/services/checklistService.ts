@@ -6,9 +6,9 @@ import { syncService } from './syncService';
 import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
-type ChecklistItemRecord = Tables['inspection_checklist_items']['Row'];
-type ChecklistItemInsert = Tables['inspection_checklist_items']['Insert'];
-type ChecklistItemUpdate = Tables['inspection_checklist_items']['Update'];
+type ChecklistItemRecord = Tables['logs']['Row'];
+type ChecklistItemInsert = Tables['logs']['Insert'];
+type ChecklistItemUpdate = Tables['logs']['Update'];
 type MediaFileRecord = Tables['media']['Row'];
 
 export interface ChecklistItemWithMedia extends ChecklistItemRecord {
@@ -48,7 +48,7 @@ export class ChecklistService {
       logger.info('Fetching checklist items', { inspectionId }, 'CHECKLIST_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select(`
           *,
           media (*)
@@ -87,7 +87,7 @@ export class ChecklistService {
       };
 
       const { error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .update(updateData)
         .eq('id', update.id);
 
@@ -421,7 +421,7 @@ export class ChecklistService {
       logger.info('Deleting checklist item', { itemId }, 'CHECKLIST_SERVICE');
 
       const { error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .update({
           status: 'deleted',
           updated_at: new Date().toISOString()
@@ -449,7 +449,7 @@ export class ChecklistService {
       logger.info('Restoring checklist item', { itemId }, 'CHECKLIST_SERVICE');
 
       const { error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .update({
           status: 'pending',
           updated_at: new Date().toISOString()

@@ -31,7 +31,7 @@ export const InspectionCompleteButton = ({
       console.log('✅ Starting inspection completion:', inspectionId);
       
       const { error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .update({ 
           status: 'completed',
           completed: true,

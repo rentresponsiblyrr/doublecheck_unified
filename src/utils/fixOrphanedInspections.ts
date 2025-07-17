@@ -10,7 +10,7 @@ export const fixOrphanedInspections = async (userId: string) => {
 
     // Get inspections with null inspector_id
     const { data: orphanedInspections, error: fetchError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .select('id, inspector_id, status, start_time')
       .is('inspector_id', null)
       .limit(10);
@@ -29,7 +29,7 @@ export const fixOrphanedInspections = async (userId: string) => {
 
     // Update orphaned inspections to assign them to current user
     const { error: updateError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .update({ inspector_id: userId })
       .is('inspector_id', null);
 
@@ -56,7 +56,7 @@ export const createTestInspection = async (userId: string) => {
 
     // Get a property to use
     const { data: properties, error: propError } = await supabase
-      .from('properties_fixed')
+      .from('properties')
       .select('id')
       .limit(1);
 
@@ -69,7 +69,7 @@ export const createTestInspection = async (userId: string) => {
 
     // Create test inspection
     const { data: inspection, error: inspectionError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .insert({
         property_id: propertyId,
         inspector_id: userId,

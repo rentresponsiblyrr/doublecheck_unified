@@ -629,8 +629,8 @@ class EnhancedErrorCollectionService {
     const compatibilityKeywords = [
       'users',
       'static_safety_items',
-      'inspection_checklist_items',
-      'properties_fixed',
+      'logs',
+      'properties',
       'uuid_to_int',
       'int_to_uuid'
     ];

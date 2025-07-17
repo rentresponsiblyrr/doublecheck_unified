@@ -226,7 +226,7 @@ export const useMobileDataManager = (userId?: string) => {
       // Fallback to direct property query with manual inspection counting
       // Apply same filtering logic as database function - exclude completed inspections
       const { data: allProperties, error: propertiesError } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select(`
           id,
           name,
@@ -259,7 +259,7 @@ export const useMobileDataManager = (userId?: string) => {
       // Enrich with inspection counts using efficient batch query
       const propertyIds = properties?.map(p => p.id) || [];
       const { data: inspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('property_id, status')
         .in('property_id', propertyIds);
       
@@ -610,7 +610,7 @@ export const useMobileDataManager = (userId?: string) => {
       }
 
       const { data, error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('id, inspection_id, label, category, evidence_type, status, created_at')
         .eq('inspection_id', inspectionId)
         .order('created_at', { ascending: true });

@@ -12,8 +12,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { Tables } from "@/integrations/supabase/types";
 
 // Use proper TypeScript types from Supabase
-type PropertyFixed = Tables<'properties_fixed'>;
-type InspectionFixed = Tables<'inspections_fixed'>;
+type Property = Tables<'properties'>;
+type Inspection = Tables<'inspections'>;
 
 interface PropertyData {
   property_id: string;

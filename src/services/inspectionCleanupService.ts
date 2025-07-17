@@ -33,7 +33,7 @@ export class InspectionCleanupService {
 
       // Get all inspections with property and progress information
       const { data: inspections, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           id,
           property_id,
@@ -41,7 +41,7 @@ export class InspectionCleanupService {
           start_time,
           inspector_id,
           properties!inner(name),
-          inspection_checklist_items(id, status)
+          logs(id, status)
         `)
         .order('property_id')
         .order('start_time', { ascending: false });
@@ -57,8 +57,8 @@ export class InspectionCleanupService {
         const propertyId = inspection.property_id;
         const propertyName = inspection.properties?.name || 'Unknown Property';
         
-        const totalItems = inspection.inspection_checklist_items?.length || 0;
-        const completedItems = inspection.inspection_checklist_items?.filter(item => item.status === 'completed').length || 0;
+        const totalItems = inspection.logs?.length || 0;
+        const completedItems = inspection.logs?.filter(item => item.status === 'completed').length || 0;
         
         const duplicate: DuplicateInspection = {
           id: inspection.id,
@@ -220,7 +220,7 @@ export class InspectionCleanupService {
     try {
       // Delete inspection checklist items first (foreign key constraint)
       const { error: checklistError } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .delete()
         .in('inspection_id', inspectionsToDelete);
 
@@ -243,7 +243,7 @@ export class InspectionCleanupService {
 
       // Delete the inspections
       const { error: inspectionError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .delete()
         .in('id', inspectionsToDelete);
 

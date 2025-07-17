@@ -72,10 +72,10 @@ export function convertUUIDLikePropertyIdToInt(propertyId: string): number {
  */
 export const IdConverter = {
   /**
-   * Properties use UUIDs in properties_fixed table (compatibility layer)
+   * Properties use UUIDs in properties table (compatibility layer)
    */
   property: {
-    toDatabase: (id: string) => id, // Keep as UUID for properties_fixed table
+    toDatabase: (id: string) => id, // Keep as UUID for properties table
     validate: isValidUUID
   },
   

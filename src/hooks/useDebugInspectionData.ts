@@ -31,7 +31,7 @@ export const useDebugInspectionData = (inspectionId: string) => {
         // Step 2: Verify inspection exists
         debugLogger.debug('DebugInspectionData', 'Checking inspection exists');
         const { data: inspectionCheck, error: inspectionError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select('*')
           .eq('id', inspectionId)
           .single();
@@ -51,7 +51,7 @@ export const useDebugInspectionData = (inspectionId: string) => {
         // Step 3: Fetch checklist items with comprehensive logging
         debugLogger.debug('DebugInspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('*')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });

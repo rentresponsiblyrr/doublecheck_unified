@@ -36,9 +36,9 @@ export interface DatabaseDiagnostic {
  */
 const CRITICAL_TABLES = [
   'users',                      // Compatibility view for auth.users
-  'properties_fixed',           // Compatibility view for properties table with UUID conversion
-  'inspections_fixed',          // Compatibility view for inspections table with UUID conversion
-  'inspection_checklist_items'  // Compatibility view for logs table with field mapping
+  'properties',           // Compatibility view for properties table with UUID conversion
+  'inspections',          // Compatibility view for inspections table with UUID conversion
+  'logs'  // Compatibility view for logs table with field mapping
 ];
 
 /**

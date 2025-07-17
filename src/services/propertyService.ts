@@ -68,11 +68,18 @@ export class PropertyService {
 
       console.log('📝 Inserting property with data:', propertyToInsert);
 
-      // Insert property into database using compatibility layer
+      // Insert property into database (direct table access)
+      // TODO: Create proper RPC function for property creation once RLS is configured
       const { data: insertedProperty, error: insertError } = await supabase
-        .from('properties_fixed')
-        .insert(propertyToInsert)
-        .select()
+        .from('properties')
+        .insert({
+          property_name: propertyToInsert.name,
+          street_address: propertyToInsert.address,
+          vrbo_url: propertyToInsert.vrbo_url,
+          airbnb_url: propertyToInsert.airbnb_url,
+          added_by: propertyToInsert.added_by
+        })
+        .select('property_id, property_name, street_address, vrbo_url, airbnb_url, created_at')
         .single();
 
       if (insertError) {
@@ -195,11 +202,18 @@ export class PropertyService {
    */
   async updateProperty(id: string, propertyData: Partial<PropertyData>): Promise<PropertyServiceResult<any>> {
     try {
+      // Map app fields to database fields
+      const updateData: any = {};
+      if (propertyData.name) updateData.property_name = propertyData.name;
+      if (propertyData.address) updateData.street_address = propertyData.address;
+      if (propertyData.vrbo_url) updateData.vrbo_url = propertyData.vrbo_url;
+      if (propertyData.airbnb_url) updateData.airbnb_url = propertyData.airbnb_url;
+
       const { data, error } = await supabase
-        .from('properties_fixed')
-        .update(propertyData)
-        .eq('id', id)
-        .select()
+        .from('properties')
+        .update(updateData)
+        .eq('property_id', id)
+        .select('property_id, property_name, street_address, vrbo_url, airbnb_url, created_at')
         .single();
 
       if (error) {
@@ -220,11 +234,18 @@ export class PropertyService {
    */
   async getProperty(id: string): Promise<PropertyServiceResult<any>> {
     try {
-      const { data, error } = await supabase
-        .from('properties_fixed')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Use RPC function to get property data since direct access is restricted by RLS
+      const { data: allProperties, error } = await supabase
+        .rpc('get_properties_with_inspections');
+      
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      
+      const data = allProperties?.find((prop: any) => prop.property_id === id);
+      if (!data) {
+        return { success: false, error: 'Property not found' };
+      }
 
       if (error) {
         return { success: false, error: error.message };

@@ -61,7 +61,7 @@ export const AddItem = ({ inspectionId, onItemAdded }: AddItemProps) => {
 
       // Then create the inspection checklist item
       const { error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .insert({
           inspection_id: inspectionId,
           static_safety_item_id: staticItem.id,

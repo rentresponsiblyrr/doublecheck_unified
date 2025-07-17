@@ -122,7 +122,7 @@ export default function InspectionManagement() {
       setIsLoading(true);
       
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           id,
           property_id,
@@ -136,7 +136,7 @@ export default function InspectionManagement() {
             name,
             address
           ),
-          users!inner (
+          profiles!inner (
             id,
             name,
             email
@@ -308,7 +308,7 @@ export default function InspectionManagement() {
 
     try {
       const { error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .delete()
         .eq('id', inspection.id);
 

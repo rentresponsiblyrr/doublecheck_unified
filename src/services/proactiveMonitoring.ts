@@ -644,7 +644,7 @@ export class ProactiveMonitoring {
     try {
       const startTime = Date.now();
       const { data, error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('id')
         .limit(1);
       
@@ -667,7 +667,7 @@ export class ProactiveMonitoring {
   private async checkAPIResponseTime(): Promise<number> {
     const startTime = Date.now();
     try {
-      await supabase.from('properties_fixed').select('count').limit(1);
+      await supabase.from('properties').select('count').limit(1);
       return Date.now() - startTime;
     } catch (error) {
       return 10000; // High value to indicate failure
@@ -680,11 +680,11 @@ export class ProactiveMonitoring {
   private async getInspectionCompletionRate(): Promise<number> {
     try {
       const { count: totalInspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('*', { count: 'exact', head: true });
 
       const { count: completedInspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('*', { count: 'exact', head: true })
         .eq('completed', true);
 

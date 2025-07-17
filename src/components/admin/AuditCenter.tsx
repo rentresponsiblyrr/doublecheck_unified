@@ -265,7 +265,7 @@ export default function AuditCenter() {
 
       try {
         const result = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select(`
             id,
             property_id,
@@ -278,7 +278,7 @@ export default function AuditCenter() {
               property_name,
               street_address
             ),
-            users!inspector_id (
+            profiles!inspector_id (
               id,
               name,
               email
@@ -302,7 +302,7 @@ export default function AuditCenter() {
         
         // Fallback: Get inspections without users join
         const basicResult = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select(`
             id,
             property_id,
@@ -382,7 +382,7 @@ export default function AuditCenter() {
           try {
             // Get checklist items count with retries
             const { data: checklistData, error: checklistError } = await supabase
-              .from('inspection_checklist_items')
+              .from('logs')
               .select('id, status, ai_status')
               .eq('inspection_id', inspection.id);
 
@@ -460,7 +460,7 @@ export default function AuditCenter() {
       try {
         // Try full query with all columns including auditor fields
         const fullResult = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select(`
             id,
             title,
@@ -497,7 +497,7 @@ export default function AuditCenter() {
         
         // Fallback: Query without auditor fields
         const basicResult = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select(`
             id,
             title,
@@ -601,7 +601,7 @@ export default function AuditCenter() {
     try {
       // Get overall stats
       const { data: inspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('status');
 
       const totalInspections = inspections?.length || 0;
@@ -610,7 +610,7 @@ export default function AuditCenter() {
       // Get AI accuracy stats from real audit feedback data
       // These will populate as auditors provide feedback on AI evaluations
       const { data: auditFeedback } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('ai_status, auditor_override')
         .not('ai_status', 'is', null);
 
@@ -637,7 +637,7 @@ export default function AuditCenter() {
       
       // First try with auditor columns
       let updateResult = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .update({
           auditor_override: override,
           auditor_notes: notes
@@ -651,7 +651,7 @@ export default function AuditCenter() {
           console.warn('⚠️ Auditor columns not available, trying to update notes field only...');
           
           const notesUpdate = await supabase
-            .from('inspection_checklist_items')
+            .from('logs')
             .update({
               notes: notes ? `[AUDITOR OVERRIDE: ${override}] ${notes}` : null
             })

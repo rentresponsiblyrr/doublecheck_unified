@@ -88,7 +88,7 @@ export const useSimplePropertySubmission = () => {
       let result;
       if (isEditing) {
         result = await supabase
-          .from('properties_fixed')
+          .from('properties')
           .update({
             ...submitData,
             updated_at: new Date().toISOString()
@@ -98,7 +98,7 @@ export const useSimplePropertySubmission = () => {
           .single();
       } else {
         result = await supabase
-          .from('properties_fixed')
+          .from('properties')
           .insert({
             ...submitData,
             added_by: user.id,

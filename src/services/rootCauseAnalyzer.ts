@@ -353,11 +353,11 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
 
     try {
       const { count: totalInspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('*', { count: 'exact', head: true });
 
       const { count: failedInspections } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'draft')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
@@ -382,7 +382,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
 
     try {
       const { count: totalProperties } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('*', { count: 'exact', head: true });
 
       return {

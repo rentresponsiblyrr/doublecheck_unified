@@ -116,7 +116,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
   try {
     // Step 1: Get all inspections for this property
     const { data: inspections, error: inspectionsQueryError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .select('id')
       .eq('property_id', propertyId);
 
@@ -142,7 +142,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       
       // Step 2: Get all checklist items for these inspections
       const { data: checklistItems, error: checklistQueryError } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('id')
         .in('inspection_id', inspectionIds);
 
@@ -293,7 +293,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
     // Step 13: Delete all inspections for this property
     console.log('🔍 Deleting inspections...');
     const { error: inspectionsError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .delete()
       .eq('property_id', propertyId);
 
@@ -306,7 +306,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
     // Step 14: Finally, delete the property itself
     console.log('🏠 Deleting property...');
     const { error: propertyError } = await supabase
-      .from('properties_fixed')
+      .from('properties')
       .delete()
       .eq('id', propertyId);
 

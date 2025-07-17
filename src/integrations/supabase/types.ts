@@ -144,7 +144,7 @@ export type Database = {
           },
         ]
       }
-      inspection_checklist_items: {
+      logs: {
         Row: {
           id: string
           inspection_id: string
@@ -180,14 +180,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inspection_checklist_items_inspection_id_fkey"
+            foreignKeyName: "logs_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
             referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inspection_checklist_items_static_safety_item_id_fkey"
+            foreignKeyName: "logs_static_safety_item_id_fkey"
             columns: ["static_safety_item_id"]
             isOneToOne: false
             referencedRelation: "static_safety_items"
@@ -1368,101 +1368,7 @@ export type Database = {
         ]
       }
     }
-    Views: {
-      properties_fixed: {
-        Row: {
-          id: string
-          name: string
-          url: string
-          address: string
-          airbnb_url: string
-          vrbo_url: string
-          scraped_data: Json
-          added_by: string
-          created_at: string
-          updated_at: string
-          original_id: number
-          city: string
-          state: string
-          zip_code: string
-          description: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          url?: string
-          address?: string
-          airbnb_url?: string
-          vrbo_url?: string
-          scraped_data?: Json
-          added_by: string
-          created_at?: string
-          updated_at?: string
-          original_id?: number
-          city?: string
-          state?: string
-          zip_code?: string
-          description?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          url?: string
-          address?: string
-          airbnb_url?: string
-          vrbo_url?: string
-          scraped_data?: Json
-          added_by?: string
-          created_at?: string
-          updated_at?: string
-          original_id?: number
-          city?: string
-          state?: string
-          zip_code?: string
-          description?: string
-        }
-        Relationships: []
-      }
-      inspections_fixed: {
-        Row: {
-          id: string
-          property_id: string
-          inspector_id: string | null
-          status: string | null
-          start_time: string | null
-          end_time: string | null
-          completed: boolean
-          created_at: string
-          updated_at: string
-          original_property_id: number
-        }
-        Insert: {
-          id?: string
-          property_id: string
-          inspector_id?: string | null
-          status?: string | null
-          start_time?: string | null
-          end_time?: string | null
-          completed?: boolean
-          created_at?: string
-          updated_at?: string
-          original_property_id?: number
-        }
-        Update: {
-          id?: string
-          property_id?: string
-          inspector_id?: string | null
-          status?: string | null
-          start_time?: string | null
-          end_time?: string | null
-          completed?: boolean
-          created_at?: string
-          updated_at?: string
-          original_property_id?: number
-        }
-        Relationships: []
-      }
-    }
+    Views: Record<string, never>
     Functions: {
       analyze_checklist_duplicates: {
         Args: Record<PropertyKey, never>

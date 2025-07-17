@@ -133,12 +133,12 @@ export default function AdminOverview() {
   const loadBusinessMetrics = async () => {
     // Simulate real business metrics calculation
     const { data: inspections } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .select('*')
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
     
     const { data: properties } = await supabase
-      .from('properties_fixed')
+      .from('properties')
       .select('*')
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 

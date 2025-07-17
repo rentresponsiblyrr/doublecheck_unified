@@ -7,7 +7,7 @@ export class InspectionValidationService {
       console.log('🔍 Validating property access:', propertyId);
       
       const { data, error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('id, added_by')
         .eq('id', propertyId)
         .single();
@@ -33,7 +33,7 @@ export class InspectionValidationService {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data, error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('id')
         .eq('inspection_id', inspectionId);
 

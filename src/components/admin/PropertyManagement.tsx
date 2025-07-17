@@ -181,7 +181,7 @@ export default function PropertyManagement() {
       
       // Load properties with all related data
       const { data: propertiesData, error: propertiesError } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select(`
           *,
           inspections (
@@ -190,7 +190,7 @@ export default function PropertyManagement() {
             created_at,
             updated_at,
             inspector_id,
-            users!inspections_inspector_id_fkey (
+            profiles!inspections_inspector_id_fkey (
               email,
               name
             )
@@ -214,7 +214,7 @@ export default function PropertyManagement() {
               .from('audit_feedback')
               .select(`
                 *,
-                users!audit_feedback_auditor_id_fkey (
+                profiles!audit_feedback_auditor_id_fkey (
                   email,
                   name
                 )
@@ -349,7 +349,7 @@ export default function PropertyManagement() {
   const handleCreateProperty = async () => {
     try {
       const { data, error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .insert([formData])
         .select()
         .single();
@@ -371,7 +371,7 @@ export default function PropertyManagement() {
 
     try {
       const { error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .update(formData)
         .eq('id', editingProperty.id);
 

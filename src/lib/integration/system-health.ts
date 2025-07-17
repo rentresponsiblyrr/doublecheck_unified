@@ -145,7 +145,7 @@ export class SystemHealthValidator {
     try {
       // Test basic connectivity
       const { data: connectionTest, error: connectionError } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('id')
         .limit(1);
 

@@ -28,7 +28,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
       try {
         // Use optimized query with specific fields only
         const { data, error } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('id, inspection_id, label, category, evidence_type, status, created_at')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });
@@ -45,7 +45,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           console.warn('⚠️ No checklist items found, checking if inspection exists...');
           
           const { data: inspection, error: inspectionError } = await supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .select('id, property_id')
             .eq('id', inspectionId)
             .single();

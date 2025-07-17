@@ -21,7 +21,7 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
         // Step 1: Verify inspection exists first
         debugLogger.debug('SimplifiedInspectionData', 'Checking inspection exists');
         const { data: inspectionCheck, error: inspectionError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select('id, property_id, status, completed')
           .eq('id', inspectionId)
           .single();
@@ -40,7 +40,7 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
         // Step 2: Fetch checklist items with minimal fields to avoid RLS issues
         debugLogger.debug('SimplifiedInspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('id, inspection_id, label, category, evidence_type, status, notes, created_at')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });

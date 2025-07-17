@@ -51,7 +51,7 @@ const InspectionComplete = () => {
       console.log('Fetching inspection details:', inspectionId);
       
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           *,
           properties (
@@ -82,7 +82,7 @@ const InspectionComplete = () => {
         console.log('Fetching checklist summary for inspection:', inspectionId);
         
         const { data, error } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('status, static_safety_items(category)')
           .eq('inspection_id', inspectionId);
 

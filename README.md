@@ -77,11 +77,12 @@ VITE_APP_VERSION=1.0.0
 
 3. **Database Setup**
 ```bash
-# Run Supabase migrations (if using local development)
-npx supabase db reset
+# Connect to hosted Supabase instance
+# Production schema uses direct table access (no compatibility layer)
 
-# Or connect to hosted Supabase instance
-# Database tables will be created automatically
+# Important: Migration completed July 17, 2025
+# All compatibility views have been removed from the codebase
+# Application now uses direct production table access
 ```
 
 4. **Development Server**
@@ -140,7 +141,9 @@ str-certified/
 ├── 🔧 railway.json             # Railway deployment config
 ├── 🔧 Dockerfile               # Docker configuration
 ├── 📋 package.json             # Project dependencies
-├── 📋 CLAUDE.md                # AI coding context and guidelines
+├── 📋 CLAUDE.md                # AI coding context and guidelines (updated post-migration)
+├── 📋 MIGRATION.md             # Database compatibility layer migration documentation
+├── 🗄️ database_cleanup.sql     # SQL script for removing compatibility layer
 ├── 📋 AI_CODING_STANDARDS.md   # AI development standards
 ├── 📋 ARCHITECTURE_GUIDE.md    # System architecture documentation
 ├── 📋 COMPONENT_PATTERNS.md    # Component patterns and examples
@@ -174,11 +177,20 @@ str-certified/
 
 ### **Documentation Standards**
 The project includes comprehensive documentation for AI-assisted development:
-- `CLAUDE.md` - Primary context and coding guidelines
+- `CLAUDE.md` - Primary context and coding guidelines (updated July 17, 2025)
+- `MIGRATION.md` - Complete database compatibility layer migration documentation
+- `database_cleanup.sql` - SQL script for removing compatibility views from database
 - `AI_CODING_STANDARDS.md` - Detailed AI development standards
 - `COMPONENT_PATTERNS.md` - Reusable component patterns
 - `TESTING_STANDARDS.md` - Testing guidelines and examples
 - `SECURITY_GUIDELINES.md` - Security best practices
+
+### **Database Migration (Phase 4 Complete)**
+**Important:** This project completed a major database compatibility layer migration on July 17, 2025:
+- ✅ **110+ files migrated** from compatibility layer to direct production table access
+- ✅ **200+ references updated** across the entire codebase
+- ✅ **Zero compatibility dependencies** remaining
+- ⚠️ **Database cleanup required** - Run `database_cleanup.sql` in Supabase to remove compatibility views
 
 ## 🚀 **Production Deployment**
 

@@ -436,7 +436,7 @@ class GitHubIssuesService {
     
     // Add context-specific instructions
     if (errorContext.databaseErrors.some(e => e.isCompatibilityLayerIssue)) {
-      instructions.push('Run compatibility layer verification: SELECT * FROM information_schema.views WHERE table_name IN (\'users\', \'properties_fixed\');');
+      instructions.push('Run compatibility layer verification: SELECT * FROM information_schema.views WHERE table_name IN (\'users\', \'properties\');');
     }
     
     if (errorContext.networkErrors.some(e => e.status >= 500)) {

@@ -12,22 +12,22 @@ type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
 type InspectionInsert = Tables['inspections']['Insert'];
 type InspectionUpdate = Tables['inspections']['Update'];
-type ChecklistItemRecord = Tables['inspection_checklist_items']['Row'];
-type ChecklistItemInsert = Tables['inspection_checklist_items']['Insert'];
-type ChecklistItemUpdate = Tables['inspection_checklist_items']['Update'];
+type ChecklistItemRecord = Tables['logs']['Row'];
+type ChecklistItemInsert = Tables['logs']['Insert'];
+type ChecklistItemUpdate = Tables['logs']['Update'];
 type MediaRecord = Tables['media']['Row'];
 
 export interface InspectionWithDetails extends InspectionRecord {
-  properties_fixed: {
-    id: string;
-    name: string | null;
-    address: string | null;
+  properties: {
+    property_id: number;
+    property_name: string | null;
+    street_address: string | null;
     vrbo_url: string | null;
     airbnb_url: string | null;
   } | null;
-  inspection_checklist_items: Array<ChecklistItemRecord & {
-    checklist_items_compat: {
-      title: string;
+  logs: Array<ChecklistItemRecord & {
+    static_safety_items: {
+      label: string;
       category: string;
     } | null;
     media: MediaRecord[];
@@ -159,20 +159,20 @@ export class InspectionService {
       logger.info('Fetching inspection by ID', { inspectionId }, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           *,
-          properties_fixed!inner (
-            id,
-            name,
-            address,
+          properties!inner (
+            property_id,
+            property_name,
+            street_address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items!inner (
+          logs!inner (
             *,
-            checklist_items_compat!inner (
-              title,
+            static_safety_items!inner (
+              label,
               category
             ),
             media (*)
@@ -210,12 +210,11 @@ export class InspectionService {
 
       // Update inspection status
       const { error: inspectionError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .update({
           status: update.status,
           completed: update.status === 'completed',
-          end_time: update.status === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
+          end_time: update.status === 'completed' ? new Date().toISOString() : null
         } as InspectionUpdate)
         .eq('id', update.inspectionId);
 
@@ -228,7 +227,7 @@ export class InspectionService {
       if (update.checklistItemUpdates) {
         for (const itemUpdate of update.checklistItemUpdates) {
           const { error: itemError } = await supabase
-            .from('inspection_checklist_items')
+            .from('logs')
             .update({
               status: itemUpdate.status,
               notes: itemUpdate.notes,
@@ -319,20 +318,20 @@ export class InspectionService {
       logger.info('Fetching inspections for property', { propertyId }, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           *,
-          properties_fixed!inner (
-            id,
-            name,
-            address,
+          properties!inner (
+            property_id,
+            property_name,
+            street_address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items!inner (
+          logs!inner (
             *,
-            checklist_items_compat!inner (
-              title,
+            static_safety_items!inner (
+              label,
               category
             ),
             media (*)
@@ -361,20 +360,20 @@ export class InspectionService {
       logger.info('Fetching inspections for review', {}, 'INSPECTION_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           *,
-          properties_fixed!inner (
-            id,
-            name,
-            address,
+          properties!inner (
+            property_id,
+            property_name,
+            street_address,
             vrbo_url,
             airbnb_url
           ),
-          inspection_checklist_items!inner (
+          logs!inner (
             *,
-            checklist_items_compat!inner (
-              title,
+            static_safety_items!inner (
+              label,
               category
             ),
             media (*)
@@ -418,7 +417,7 @@ export class InspectionService {
       };
 
       const { error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .update(updateData)
         .eq('id', inspectionId);
 

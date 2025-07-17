@@ -142,7 +142,7 @@ export class DatabaseValidationService {
 
         // Fallback to direct insert
         const { data, error } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .insert({
             property_id: propertyIdUuid,
             inspector_id: inspectorId,
@@ -207,7 +207,7 @@ export class DatabaseValidationService {
     // Test for the status constraint issue we just found
     try {
       const { error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .insert({
           property_id: '00000000-0000-4000-8000-999999999999', // Use a non-existent property UUID
           inspector_id: '00000000-0000-4000-8000-000000000000',

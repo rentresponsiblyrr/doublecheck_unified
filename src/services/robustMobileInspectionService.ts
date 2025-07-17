@@ -16,7 +16,7 @@ export class RobustMobileInspectionService {
       console.log('🔍 Validating property access:', propertyId);
       
       const { data, error } = await supabase
-        .from('properties_fixed')
+        .from('properties')
         .select('id, added_by')
         .eq('id', propertyId)
         .single();
@@ -39,7 +39,7 @@ export class RobustMobileInspectionService {
       console.log('🔍 Finding active inspection for property:', propertyId);
 
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('id, inspector_id, status')
         .eq('property_id', propertyId)
         .eq('completed', false)
@@ -70,7 +70,7 @@ export class RobustMobileInspectionService {
         console.log(`🔄 Creating inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
         const { data, error } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .insert({
             property_id: propertyId,
             start_time: new Date().toISOString(),
@@ -119,7 +119,7 @@ export class RobustMobileInspectionService {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data, error } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('id')
         .eq('inspection_id', inspectionId);
 

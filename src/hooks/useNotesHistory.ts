@@ -22,7 +22,7 @@ export const useNotesHistory = (itemId: string) => {
     const loadNotesHistory = async () => {
       try {
         const { data, error } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('notes_history')
           .eq('id', itemId)
           .single();
@@ -73,7 +73,7 @@ export const useNotesHistory = (itemId: string) => {
             {
               event: 'UPDATE',
               schema: 'public',
-              table: 'inspection_checklist_items',
+              table: 'logs',
               filter: `id=eq.${itemId}`
             },
             (payload) => {

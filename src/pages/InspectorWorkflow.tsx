@@ -235,7 +235,7 @@ export function InspectorWorkflow() {
       try {
         // Load property from database
         const { data: property, error } = await supabase
-          .from('properties_fixed')
+          .from('properties')
           .select('*')
           .eq('id', propertyId)
           .single();
@@ -475,7 +475,7 @@ export function InspectorWorkflow() {
         
         // First, get all inspection checklist items for this inspection to get their database IDs
         const { data: inspectionChecklistItems, error: fetchError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .select('id, label')
           .eq('inspection_id', currentInspectionId);
         
@@ -526,7 +526,7 @@ export function InspectorWorkflow() {
             
             // Update inspection checklist item with AI analysis
             const { error: updateError } = await supabase
-              .from('inspection_checklist_items')
+              .from('logs')
               .update({
                 ai_status: photoData.analysis.score > 80 ? 'pass' : 'needs_review',
                 status: 'completed'
@@ -545,7 +545,7 @@ export function InspectorWorkflow() {
         
         // Update inspection status
         const { error: inspectionError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .update({
             status: 'completed',
             end_time: new Date().toISOString()

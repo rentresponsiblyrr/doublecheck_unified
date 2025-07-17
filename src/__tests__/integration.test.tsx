@@ -644,7 +644,7 @@ describe('STR Certified Integration Tests', () => {
       const workflow = {
         // Step 1: Inspector selects property
         selectProperty: async () => {
-          const property = await mockSupabase.from('properties_fixed').select('*').eq('id', 'test-1');
+          const property = await mockSupabase.from('properties').select('*').eq('id', 'test-1');
           return property.data?.[0];
         },
 
@@ -678,14 +678,14 @@ describe('STR Certified Integration Tests', () => {
 
         // Step 5: Upload and sync data
         syncData: async (inspectionData: any) => {
-          const result = await mockSupabase.from('inspections_fixed').insert(inspectionData);
+          const result = await mockSupabase.from('inspections').insert(inspectionData);
           return result.data;
         },
 
         // Step 6: Auditor reviews and approves
         auditReview: async (inspectionId: string) => {
           const result = await mockSupabase
-            .from('inspections_fixed')
+            .from('inspections')
             .update({ status: 'approved', reviewed_at: new Date().toISOString() })
             .eq('id', inspectionId);
           return result.data;

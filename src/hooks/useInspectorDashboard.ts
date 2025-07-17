@@ -53,9 +53,9 @@ async function fetchPropertiesWithInspections(userId: string) {
     
     console.warn('⚠️ RPC function failed, falling back to direct query:', result.error);
     
-    // Fallback to direct query using properties_fixed
+    // Fallback to direct query using properties
     const { data: properties, error } = await supabase
-      .from('properties_fixed')
+      .from('properties')
       .select(`
         id as property_id,
         name as property_name,
@@ -74,7 +74,7 @@ async function fetchPropertiesWithInspections(userId: string) {
     const enrichedProperties = await Promise.all(
       (properties || []).map(async (property) => {
         const { data: inspections } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select('id, status, completed')
           .eq('property_id', property.property_id);
         
@@ -120,7 +120,7 @@ export const useInspectorDashboard = () => {
         const [inspectionsResult, propertiesResult] = await Promise.all([
           // Fetch inspections
           supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .select(`
               id,
               property_id,
@@ -172,7 +172,7 @@ export const useInspectorDashboard = () => {
           inspectionsData.map(async (inspection) => {
             try {
               const { data: checklistItems } = await supabase
-                .from('inspection_checklist_items')
+                .from('logs')
                 .select('id, status')
                 .eq('inspection_id', inspection.id);
 

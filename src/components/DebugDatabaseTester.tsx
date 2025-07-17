@@ -15,7 +15,7 @@ export const useDebugDatabaseTester = (inspectionId: string) => {
       
       // Test specific inspection query
       const { data: inspectionTest, error: inspectionError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select('*')
         .eq('id', inspectionId)
         .single();

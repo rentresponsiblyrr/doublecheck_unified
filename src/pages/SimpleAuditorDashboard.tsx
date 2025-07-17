@@ -32,7 +32,7 @@ export default function SimpleAuditorDashboard() {
     queryKey: ['auditor-inspections'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .select(`
           id,
           status,

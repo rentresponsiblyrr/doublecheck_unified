@@ -56,7 +56,7 @@ export const useInspectionReports = () => {
       try {
         // Fetch inspections with property data and basic counts
         const { data: inspectionsData, error: inspectionsError } = await supabase
-          .from('inspections_fixed')
+          .from('inspections')
           .select(`
             id,
             property_id,
@@ -101,7 +101,7 @@ export const useInspectionReports = () => {
 
               // Get checklist items and their status
               const { data: checklistItems } = await supabase
-                .from('inspection_checklist_items')
+                .from('logs')
                 .select('id, status')
                 .eq('inspection_id', inspection.id);
 
