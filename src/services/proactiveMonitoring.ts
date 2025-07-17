@@ -680,11 +680,11 @@ export class ProactiveMonitoring {
   private async getInspectionCompletionRate(): Promise<number> {
     try {
       const { count: totalInspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*', { count: 'exact', head: true });
 
       const { count: completedInspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*', { count: 'exact', head: true })
         .eq('completed', true);
 

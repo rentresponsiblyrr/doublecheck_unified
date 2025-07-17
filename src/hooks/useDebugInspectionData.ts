@@ -31,7 +31,7 @@ export const useDebugInspectionData = (inspectionId: string) => {
         // Step 2: Verify inspection exists
         debugLogger.debug('DebugInspectionData', 'Checking inspection exists');
         const { data: inspectionCheck, error: inspectionError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select('*')
           .eq('id', inspectionId)
           .single();

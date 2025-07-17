@@ -259,7 +259,7 @@ export const useMobileDataManager = (userId?: string) => {
       // Enrich with inspection counts using efficient batch query
       const propertyIds = properties?.map(p => p.id) || [];
       const { data: inspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('property_id, status')
         .in('property_id', propertyIds);
       

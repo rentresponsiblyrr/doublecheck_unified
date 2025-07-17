@@ -45,7 +45,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           console.warn('⚠️ No checklist items found, checking if inspection exists...');
           
           const { data: inspection, error: inspectionError } = await supabase
-            .from('inspections')
+            .from('inspections_fixed')
             .select('id, property_id')
             .eq('id', inspectionId)
             .single();

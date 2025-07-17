@@ -118,7 +118,7 @@ export const getInspectionDetails = async (inspectionId: string) => {
     console.log('Fetching inspection details...', { inspectionId });
     
     const { data, error } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .select(`
         *,
         properties (

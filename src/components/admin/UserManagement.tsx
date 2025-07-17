@@ -118,7 +118,7 @@ export default function UserManagement() {
 
       // Get inspection counts for inspectors
       const { data: inspectionCounts, error: inspectionError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('inspector_id')
         .not('inspector_id', 'is', null);
 

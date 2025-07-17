@@ -106,7 +106,7 @@ export default function ReportManagement() {
       // Note: In production, you would have a dedicated 'reports' table
       // For now, we're checking if there are any completed inspections
       const { data: inspections, error: queryError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           id,
           status,

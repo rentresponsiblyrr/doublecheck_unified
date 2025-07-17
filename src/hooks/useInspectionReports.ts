@@ -56,7 +56,7 @@ export const useInspectionReports = () => {
       try {
         // Fetch inspections with property data and basic counts
         const { data: inspectionsData, error: inspectionsError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select(`
             id,
             property_id,

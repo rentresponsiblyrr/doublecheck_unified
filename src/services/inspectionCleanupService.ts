@@ -33,7 +33,7 @@ export class InspectionCleanupService {
 
       // Get all inspections with property and progress information
       const { data: inspections, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           id,
           property_id,
@@ -243,7 +243,7 @@ export class InspectionCleanupService {
 
       // Delete the inspections
       const { error: inspectionError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .delete()
         .in('id', inspectionsToDelete);
 

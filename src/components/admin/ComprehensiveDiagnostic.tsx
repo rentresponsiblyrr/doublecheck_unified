@@ -170,7 +170,7 @@ export default function ComprehensiveDiagnostic() {
           
         case 'Properties Table':
           const { data: properties, error: propertiesError } = await supabase
-            .from('properties')
+            .from('properties_fixed')
             .select('id, name')
             .limit(5);
           
@@ -184,7 +184,7 @@ export default function ComprehensiveDiagnostic() {
           
         case 'Inspections Table':
           const { data: inspections, error: inspectionsError } = await supabase
-            .from('inspections')
+            .from('inspections_fixed')
             .select('id, status')
             .limit(5);
           
@@ -296,7 +296,7 @@ export default function ComprehensiveDiagnostic() {
         case 'Foreign Keys':
           // Test foreign key relationships
           const { data: inspectionData, error: fkError } = await supabase
-            .from('inspections')
+            .from('inspections_fixed')
             .select(`
               id,
               property_id,
@@ -378,7 +378,7 @@ export default function ComprehensiveDiagnostic() {
         case 'Inspection Creation':
           // Test the inspection creation flow without actually creating
           const { data: testProperty } = await supabase
-            .from('properties')
+            .from('properties_fixed')
             .select('id')
             .limit(1)
             .single();

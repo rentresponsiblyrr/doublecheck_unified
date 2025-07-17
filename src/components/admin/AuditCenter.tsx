@@ -265,7 +265,7 @@ export default function AuditCenter() {
 
       try {
         const result = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select(`
             id,
             property_id,
@@ -302,7 +302,7 @@ export default function AuditCenter() {
         
         // Fallback: Get inspections without users join
         const basicResult = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select(`
             id,
             property_id,
@@ -601,7 +601,7 @@ export default function AuditCenter() {
     try {
       // Get overall stats
       const { data: inspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('status');
 
       const totalInspections = inspections?.length || 0;

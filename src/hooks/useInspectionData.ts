@@ -22,7 +22,7 @@ export const useInspectionData = (inspectionId: string) => {
         // First, verify the inspection exists and user has access
         debugLogger.debug('InspectionData', 'Verifying inspection exists');
         const { data: inspection, error: inspectionError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select('id, property_id, status, completed')
           .eq('id', inspectionId)
           .single();

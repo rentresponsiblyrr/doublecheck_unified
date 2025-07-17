@@ -67,7 +67,7 @@ export const useOptimizedPropertySelection = () => {
       console.log('📊 Fetching inspections for user:', user.id);
       
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*')
         .eq('inspector_id', user.id);
       

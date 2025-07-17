@@ -86,7 +86,7 @@ export default function SimpleInspectionManagement() {
 
       // Try to load from database
       const { data: dbInspections, error: dbError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           id,
           status,

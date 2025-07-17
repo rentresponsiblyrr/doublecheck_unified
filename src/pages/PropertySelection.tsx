@@ -130,7 +130,7 @@ const PropertySelection = () => {
       
       // Get all inspections for this user's properties to check status
       const { data: userProperties } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('id')
         .eq('added_by', user.id);
       

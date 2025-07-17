@@ -54,7 +54,7 @@ export async function createInspectionAtomic(
 
     // Create inspection first
     const { data: inspection, error: inspectionError } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .insert({
         ...data.inspection,
         start_time: new Date().toISOString()
@@ -84,7 +84,7 @@ export async function createInspectionAtomic(
     if (itemsError) {
       // Rollback: Delete the created inspection
       await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .delete()
         .eq('id', inspection.id);
 
@@ -230,7 +230,7 @@ export async function deleteInspectionAtomic(
 
     // Delete inspection
     const { error: inspectionDeleteError } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .delete()
       .eq('id', inspectionId);
 

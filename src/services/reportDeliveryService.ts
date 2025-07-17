@@ -365,7 +365,7 @@ Please address these issues immediately and schedule a re-inspection once resolv
    */
   private async getInspectionDetails(inspectionId: string) {
     const { data, error } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .select(`
         *,
         properties (name, address),

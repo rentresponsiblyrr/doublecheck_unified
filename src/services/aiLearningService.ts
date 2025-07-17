@@ -162,7 +162,7 @@ export class AILearningService {
 
       // Get property and inspector context from inspection
       const { data: inspection } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           *,
           properties (*),

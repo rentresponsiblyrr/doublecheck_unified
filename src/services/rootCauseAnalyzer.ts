@@ -353,11 +353,11 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
 
     try {
       const { count: totalInspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*', { count: 'exact', head: true });
 
       const { count: failedInspections } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'draft')
         .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());

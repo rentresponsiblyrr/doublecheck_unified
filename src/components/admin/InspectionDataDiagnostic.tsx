@@ -49,7 +49,7 @@ export default function InspectionDataDiagnostic() {
 
       // First, find the property
       const { data: properties, error: propError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('*')
         .ilike('name', `%${propertyName}%`);
 
@@ -69,7 +69,7 @@ export default function InspectionDataDiagnostic() {
 
       // Get all inspections for this property
       const { data: inspections, error: inspError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('*')
         .eq('property_id', property.id)
         .order('start_time', { ascending: false });

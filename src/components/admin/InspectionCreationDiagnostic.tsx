@@ -72,7 +72,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
 
       // 2. Find the specified property
       const { data: properties, error: propError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('id, name, status, added_by, created_at')
         .ilike('name', `%${propertyName.replace(' ', '%')}%`);
 
@@ -106,7 +106,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
 
       // 3. Check existing inspections for this property
       const { data: existingInspections, error: inspError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id, status, completed, start_time, inspector_id, end_time')
         .eq('property_id', property.id)
         .order('start_time', { ascending: false });
@@ -193,7 +193,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
         if (rpcResult) {
           try {
             await supabase
-              .from('inspections')
+              .from('inspections_fixed')
               .delete()
               .eq('id', rpcResult);
             
@@ -222,7 +222,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
         });
 
         const { data: insertResult, error: insertError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .insert({
             property_id: property.id,
             inspector_id: user.id,
@@ -256,7 +256,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
           // Clean up test insertion
           try {
             await supabase
-              .from('inspections')
+              .from('inspections_fixed')
               .delete()
               .eq('id', insertResult.id);
             

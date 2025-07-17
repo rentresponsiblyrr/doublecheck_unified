@@ -88,7 +88,7 @@ export const DebugInspectionPage = () => {
       try {
         // Load inspection with property details
         const { data: inspection, error: inspectionError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select(`
             *,
             properties (
