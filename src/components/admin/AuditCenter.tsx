@@ -110,7 +110,7 @@ interface AuditStats {
 }
 
 export default function AuditCenter() {
-  console.log('🔍 AuditCenter component rendering...');
+  // Render logging removed to prevent infinite console loops
   
   const navigate = useNavigate();
   const [completedInspections, setCompletedInspections] = useState<CompletedInspection[]>([]);

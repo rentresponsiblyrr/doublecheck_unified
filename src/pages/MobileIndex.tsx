@@ -162,15 +162,8 @@ const MobileIndex = () => {
    */
   const selectedPropertyStatus = selectedPropertyData?._statusResult || null;
 
-  console.log('📱 MobileIndex optimized rendering:', { 
-    isAuthenticated, 
-    propertiesCount: properties?.length || 0, 
-    isLoading, 
-    error: !!error,
-    selectedProperty,
-    authLoading,
-    cacheStats
-  });
+  // Render logging removed to prevent infinite console loops
+  // MobileIndex optimized rendering
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

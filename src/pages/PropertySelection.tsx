@@ -39,7 +39,7 @@ interface Inspection {
 }
 
 const PropertySelection = () => {
-  console.log('🏠 PropertySelection component mounting');
+  // Mount logging removed to prevent infinite console loops
   const navigate = useNavigate();
   const { user } = useAuth();
 

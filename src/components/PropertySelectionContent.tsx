@@ -81,16 +81,8 @@ export const PropertySelectionContent = ({
   const { actionState, clearError } = usePropertyActions();
   const { summary } = useInspectorDashboard();
 
-  console.log('🎯 PropertySelectionContent rendering with consolidated auth:', {
-    propertiesCount: properties.length,
-    inspectionsCount: inspections.length,
-    selectedProperty,
-    isCreatingInspection,
-    isLoading,
-    searchValue,
-    activeFilters,
-    actionError: actionState.error
-  });
+  // Render logging removed to prevent infinite console loops
+  // PropertySelectionContent rendering with consolidated auth
 
   const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
   const buttonText = selectedProperty ? getButtonText(selectedProperty) : "Start Inspection";

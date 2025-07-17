@@ -28,7 +28,7 @@ interface SimpleUser {
 }
 
 export default function SimpleUserManagement() {
-  console.log('🔍 SimpleUserManagement component rendering...');
+  // Render logging removed to prevent infinite console loops
   
   const [users, setUsers] = useState<SimpleUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);

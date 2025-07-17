@@ -54,14 +54,8 @@ export const MobilePropertyList = memo(({
   onPropertySelect,
   getPropertyStatus
 }: MobilePropertyListProps) => {
-  console.log('📱 Mobile Property List rendering:', {
-    propertiesCount: properties?.length || 0,
-    isLoading,
-    error: !!error,
-    isFetching,
-    selectedProperty,
-    hasSelection: !!onPropertySelect
-  });
+  // Render logging removed to prevent infinite console loops
+  // Mobile Property List rendering
 
   if (isLoading) {
     return (

@@ -79,7 +79,7 @@ interface RegionalData {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default function AdminOverview() {
-  console.log('🎯 AdminOverview component rendering...');
+  // Render logging removed to prevent infinite console loops
   
   const navigate = useNavigate();
   const [kpis, setKpis] = useState<BusinessKPIs>({
