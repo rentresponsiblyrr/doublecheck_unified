@@ -59,9 +59,9 @@ const PropertySelection = () => {
         throw propertiesError;
       }
 
-      // Get inspection stats for each property
+      // Get inspection stats for each property from the correct table
       const { data: inspectionsData, error: inspectionsError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('property_id, completed, status, id, created_at')
         .eq('inspector_id', user.id);
 
@@ -72,8 +72,8 @@ const PropertySelection = () => {
 
       // Aggregate data to match the expected PropertyData interface
       const enrichedProperties = propertiesData.map(property => {
-        // Convert integer ID to UUID-like string for frontend compatibility
-        const propertyIdUuid = `00000000-0000-0000-0000-${property.id.toString().padStart(12, '0')}`;
+        // Use the actual UUID from properties_fixed table
+        const propertyIdUuid = property.id;
         
         // Filter inspections for this property
         const propertyInspections = inspectionsData.filter(
@@ -109,7 +109,8 @@ const PropertySelection = () => {
         } as PropertyData;
       });
 
-      console.log('✅ Successfully fetched properties with manual aggregation:', enrichedProperties.length);
+      console.log('✅ Successfully fetched properties_fixed with manual aggregation:', enrichedProperties.length);
+      console.log('📊 Properties data sample:', enrichedProperties.slice(0, 2));
       return enrichedProperties;
     },
     enabled: !!user?.id, // Only run query when user is available

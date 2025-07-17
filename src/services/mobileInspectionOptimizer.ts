@@ -70,7 +70,7 @@ class MobileInspectionOptimizer {
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('name')
         .eq('id', propertyIdUuid)
         .eq('status', 'active')
