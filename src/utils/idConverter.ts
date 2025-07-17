@@ -72,11 +72,11 @@ export function convertUUIDLikePropertyIdToInt(propertyId: string): number {
  */
 export const IdConverter = {
   /**
-   * Properties use UUIDs in properties table (compatibility layer)
+   * Properties use integer IDs in production schema (converted to strings in frontend)
    */
   property: {
-    toDatabase: (id: string) => id, // Keep as UUID for properties table
-    validate: isValidUUID
+    toDatabase: (id: string) => parseInt(id, 10), // Convert string to integer for database
+    validate: (id: string) => !isNaN(parseInt(id, 10)) && parseInt(id, 10) > 0
   },
   
   /**

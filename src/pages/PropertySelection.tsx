@@ -115,11 +115,8 @@ const PropertySelection = () => {
   const { createInspection, isCreating } = useRobustInspectionCreation();
 
   const handleInspectionCreated = async () => {
-    // Refresh data after successful creation
-    await Promise.all([
-      refetchProperties(),
-      refetchInspections()
-    ]);
+    // Refresh data after successful creation (only need to refetch properties)
+    await refetchProperties();
   };
 
   const handlePropertyDeleted = async () => {
@@ -129,11 +126,8 @@ const PropertySelection = () => {
     setSelectedProperty(null);
     
     try {
-      // Force immediate refresh of both properties and inspections with fresh data
-      await Promise.all([
-        refetchProperties(),
-        refetchInspections()
-      ]);
+      // Force immediate refresh of properties data (contains inspection info)
+      await refetchProperties();
       
       console.log('✅ Data refresh completed successfully after property deletion');
     } catch (error) {

@@ -69,11 +69,13 @@ class MobileInspectionOptimizer {
       // Use propertyId as UUID string (no conversion needed)
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
+      // Convert property ID to integer for database query
+      const propertyIdInt = parseInt(propertyId, 10);
+      
       const { data, error } = await supabase
         .from('properties')
-        .select('name')
-        .eq('id', propertyIdUuid)
-        .eq('status', 'active')
+        .select('property_name')
+        .eq('property_id', propertyIdInt)
         .single();
 
       if (error || !data) {
@@ -81,7 +83,7 @@ class MobileInspectionOptimizer {
         return null;
       }
 
-      return { name: data.name || 'Property' };
+      return { name: data.property_name || 'Property' };
     } catch (error) {
       console.error('❌ Property info query failed:', error);
       return null;
@@ -90,13 +92,11 @@ class MobileInspectionOptimizer {
 
   private static async findActiveInspectionOptimized(propertyId: string): Promise<{ id: string } | null> {
     try {
-      // Use propertyId as UUID string (no conversion needed)
-      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
-
+      // Use propertyId as string (production schema)
       const { data, error } = await supabase
         .from('inspections')
         .select('id')
-        .eq('property_id', propertyIdUuid)
+        .eq('property_id', propertyId)
         .eq('completed', false)
         .order('start_time', { ascending: false })
         .limit(1)
@@ -132,9 +132,10 @@ class MobileInspectionOptimizer {
             throw new Error('User not authenticated');
           }
 
-          const rpcResult = await supabase.rpc('create_inspection_secure', {
-            p_property_id: propertyIdUuid,
-            p_inspector_id: user.id
+          // Use available RPC function instead of removed create_inspection_secure
+          const rpcResult = await supabase.rpc('create_inspection_compatibility', {
+            property_id: propertyId, // Pass as string
+            inspector_id: user.id
           });
           data = rpcResult.data;
           error = rpcResult.error;
@@ -146,13 +147,11 @@ class MobileInspectionOptimizer {
             throw new Error('User not authenticated');
           }
           
-          // Use propertyId as UUID string for direct insert
-          const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
-          
+          // Use propertyId as string for direct insert (production schema)
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyIdUuid,
+              property_id: propertyId, // Property ID as string in inspections table
               start_time: new Date().toISOString(),
               completed: false,
               status: 'draft',
