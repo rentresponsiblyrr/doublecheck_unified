@@ -112,10 +112,25 @@ export function isValidApiResponse(data: unknown): data is ApiResponse {
 // Environment validation function
 export function validateEnv(): AppEnv {
   try {
-    return envSchema.parse(import.meta.env);
+    const env = import.meta.env;
+    console.log('Validating environment:', {
+      hasSupabaseUrl: !!env.VITE_SUPABASE_URL,
+      hasSupabaseKey: !!env.VITE_SUPABASE_ANON_KEY,
+      nodeEnv: env.NODE_ENV || env.MODE,
+      mode: env.MODE
+    });
+    
+    // Use Vite's MODE if NODE_ENV is not set
+    const envToValidate = {
+      ...env,
+      NODE_ENV: env.NODE_ENV || env.MODE || 'development'
+    };
+    
+    return envSchema.parse(envToValidate);
   } catch (error) {
     console.error('Environment validation failed:', error);
-    throw new Error('Invalid environment configuration');
+    console.error('Available environment variables:', Object.keys(import.meta.env));
+    throw new Error(`Invalid environment configuration: ${error.message}`);
   }
 }
 
