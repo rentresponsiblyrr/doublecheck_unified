@@ -17,6 +17,7 @@ import { env } from "@/lib/config/environment";
 import { validateRequiredEnvVars } from "@/lib/config/environment";
 import { AppType, getAppTypeFromDomain, isInspectorDomain, isAdminDomain, logAppConfiguration } from "@/lib/config/app-type";
 import { supabase } from "@/integrations/supabase/client";
+import UnifiedRoutes from "@/components/UnifiedRoutes";
 
 // Core Pages
 import Index from "./pages/Index.tsx";
