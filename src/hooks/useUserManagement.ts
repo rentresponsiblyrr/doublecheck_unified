@@ -164,7 +164,7 @@ export const useUserManagement = () => {
             // Get inspection count for inspectors
             if (user.role === 'inspector') {
               const { data: inspections } = await supabase
-                .from('inspections')
+                .from('inspections_fixed')
                 .select('id')
                 .eq('inspector_id', user.id);
               inspectionCount = inspections?.length || 0;

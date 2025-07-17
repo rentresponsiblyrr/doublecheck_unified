@@ -27,15 +27,26 @@ export interface DatabaseDiagnostic {
   recommendations: string[];
 }
 
+/**
+ * Database Compatibility Layer Architecture
+ * 
+ * CRITICAL_TABLES: Core tables required for application functionality
+ * - Uses compatibility views that provide UUID interface to integer-based production tables
+ * - Updated in Phase 4 systematic fixes to use correct table names
+ */
 const CRITICAL_TABLES = [
-  'users',
-  'properties', 
-  'inspections',
-  'checklist_items'
+  'users',                      // Compatibility view for auth.users
+  'properties_fixed',           // Compatibility view for properties table with UUID conversion
+  'inspections_fixed',          // Compatibility view for inspections table with UUID conversion
+  'inspection_checklist_items'  // Compatibility view for logs table with field mapping
 ];
 
+/**
+ * OPTIONAL_TABLES: Supporting tables that enhance functionality
+ * - Direct table access (no compatibility layer needed)
+ */
 const OPTIONAL_TABLES = [
-  'media',
+  'media',                // Direct table - no compatibility layer needed
   'audit_feedback', 
   'inspection_reports',
   'webhook_notifications',
@@ -108,19 +119,8 @@ export class DatabaseDiagnosticService {
         
         role = userData?.role || null;
       } catch {
-        // If users table doesn't exist or user not found, fallback to default
-        try {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', authUser.user.id)
-            .single();
-          
-          role = profileData?.role || null;
-        } catch {
-          // Fallback to auth metadata
-          role = authUser.user.user_metadata?.role || null;
-        }
+        // If users view doesn't work, fallback to auth metadata
+        role = authUser.user.user_metadata?.role || null;
       }
 
       return {

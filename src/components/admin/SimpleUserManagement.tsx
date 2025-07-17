@@ -63,9 +63,9 @@ export default function SimpleUserManagement() {
 
       console.log('🔍 Querying users table...');
       
-      // Query profiles table (actual production table name)
+      // Query users table (compatibility view)
       const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id, email, full_name, phone, role, status, last_login_at, created_at, updated_at')
         .order('created_at', { ascending: false });
 

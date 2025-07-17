@@ -179,16 +179,16 @@ export default function AuditCenter() {
         }
       }
 
-      // Test profiles/users tables
+      // Test users table
       try {
-        const { error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
+        const { error: usersError } = await supabase
+          .from('users')
+          .select('id, name, email')
           .limit(1);
         
         diagnostics.users = {
-          accessible: !profilesError,
-          error: profilesError?.message
+          accessible: !usersError,
+          error: usersError?.message
         };
       } catch (err) {
         diagnostics.users = {
@@ -197,16 +197,16 @@ export default function AuditCenter() {
         };
       }
 
-      // Test profiles table as fallback
+      // Test compatibility layer (removed profiles fallback)
       try {
-        const { error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
+        const { error: usersError2 } = await supabase
+          .from('users')
+          .select('id, name, email')
           .limit(1);
         
         diagnostics.profiles = {
-          accessible: !profilesError,
-          error: profilesError?.message
+          accessible: !usersError2,
+          error: usersError2?.message
         };
       } catch (err) {
         diagnostics.profiles = {

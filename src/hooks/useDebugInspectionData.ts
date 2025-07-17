@@ -51,7 +51,7 @@ export const useDebugInspectionData = (inspectionId: string) => {
         // Step 3: Fetch checklist items with comprehensive logging
         debugLogger.debug('DebugInspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select('*')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });

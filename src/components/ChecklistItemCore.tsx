@@ -72,7 +72,7 @@ export const ChecklistItemCore = ({
 
       // Update checklist item status back to null (incomplete)
       const { error: statusError } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .update({ status: null })
         .eq('id', item.id);
 

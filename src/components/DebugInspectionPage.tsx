@@ -102,7 +102,7 @@ export const DebugInspectionPage = () => {
 
         // Load checklist items with media count
         const { data: checklistItems, error: itemsError } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select(`
             id, label, category, evidence_type, status, ai_status, notes,
             media!media_checklist_item_id_fkey(count)

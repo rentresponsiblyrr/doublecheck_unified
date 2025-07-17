@@ -6,7 +6,7 @@ export const debugDashboardData = async (userId?: string) => {
   try {
     // Get inspections with correct schema (no created_at column)
     const { data: allInspections, error: allError } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .select('id, inspector_id, status, start_time, end_time, completed')
       .order('start_time', { ascending: false, nullsFirst: false })
       .limit(10);
@@ -22,7 +22,7 @@ export const debugDashboardData = async (userId?: string) => {
     // Get user-specific inspections if userId provided
     if (userId) {
       const { data: userInspections, error: userError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id, inspector_id, status, start_time, end_time, completed')
         .eq('inspector_id', userId)
         .order('start_time', { ascending: false, nullsFirst: false });
@@ -39,7 +39,7 @@ export const debugDashboardData = async (userId?: string) => {
     if (allInspections && allInspections.length > 0) {
       const firstInspection = allInspections[0];
       const { data: checklistItems, error: checklistError } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .select('id, status, inspection_id')
         .eq('inspection_id', firstInspection.id);
 
@@ -52,7 +52,7 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Get property count
     const { data: properties, error: propError } = await supabase
-      .from('properties')
+      .from('properties_fixed')
       .select('id, name')
       .limit(5);
 
@@ -87,7 +87,7 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Check for inspections with null inspector_id
     const { data: nullInspections, error: nullError } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .select('id, inspector_id, status, created_at')
       .is('inspector_id', null)
       .limit(5);
@@ -100,7 +100,7 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Get unique statuses
     const { data: statusData, error: statusError } = await supabase
-      .from('inspections')
+      .from('inspections_fixed')
       .select('status')
       .limit(50);
 

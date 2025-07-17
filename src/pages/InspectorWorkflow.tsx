@@ -235,7 +235,7 @@ export function InspectorWorkflow() {
       try {
         // Load property from database
         const { data: property, error } = await supabase
-          .from('properties')
+          .from('properties_fixed')
           .select('*')
           .eq('id', propertyId)
           .single();
@@ -545,7 +545,7 @@ export function InspectorWorkflow() {
         
         // Update inspection status
         const { error: inspectionError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .update({
             status: 'completed',
             end_time: new Date().toISOString()

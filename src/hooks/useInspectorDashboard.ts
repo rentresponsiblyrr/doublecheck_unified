@@ -172,7 +172,7 @@ export const useInspectorDashboard = () => {
           inspectionsData.map(async (inspection) => {
             try {
               const { data: checklistItems } = await supabase
-                .from('checklist_items')
+                .from('inspection_checklist_items')
                 .select('id, status')
                 .eq('inspection_id', inspection.id);
 

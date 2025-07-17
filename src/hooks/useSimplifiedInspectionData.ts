@@ -40,7 +40,7 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
         // Step 2: Fetch checklist items with minimal fields to avoid RLS issues
         debugLogger.debug('SimplifiedInspectionData', 'Fetching checklist items');
         const { data: items, error: itemsError } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select('id, inspection_id, label, category, evidence_type, status, notes, created_at')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });

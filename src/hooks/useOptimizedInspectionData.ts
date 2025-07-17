@@ -28,7 +28,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
       try {
         // Use optimized query with specific fields only
         const { data, error } = await supabase
-          .from('checklist_items')
+          .from('inspection_checklist_items')
           .select('id, inspection_id, label, category, evidence_type, status, created_at')
           .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });

@@ -382,7 +382,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
 
     try {
       const { count: totalProperties } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('*', { count: 'exact', head: true });
 
       return {

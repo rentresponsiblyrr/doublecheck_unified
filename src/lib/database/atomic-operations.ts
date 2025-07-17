@@ -77,7 +77,7 @@ export async function createInspectionAtomic(
 
     // Insert checklist items
     const { data: insertedItems, error: itemsError } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .insert(checklistItems)
       .select('id');
 
@@ -127,7 +127,7 @@ export async function updateChecklistItemWithMediaAtomic(
 
     // Update checklist item first
     const { error: updateError } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .update({
         ...data.updates,
         updated_at: new Date().toISOString()
@@ -193,7 +193,7 @@ export async function deleteInspectionAtomic(
 
     // Get all checklist items for this inspection
     const { data: checklistItems, error: fetchError } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .select('id')
       .eq('inspection_id', inspectionId);
 
@@ -219,7 +219,7 @@ export async function deleteInspectionAtomic(
 
     // Delete checklist items
     const { error: itemsDeleteError } = await supabase
-      .from('checklist_items')
+      .from('inspection_checklist_items')
       .delete()
       .eq('inspection_id', inspectionId);
 
@@ -271,7 +271,7 @@ export async function batchUpdateChecklistItemsAtomic(
     // In a real transaction system, we'd use a single transaction
     for (const update of updates) {
       const { error } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .update({
           ...update.updates,
           updated_at: new Date().toISOString()
@@ -346,7 +346,7 @@ export async function createMediaUploadAtomic(
     // Update checklist item if status update provided
     if (itemStatusUpdate) {
       const { error: updateError } = await supabase
-        .from('checklist_items')
+        .from('inspection_checklist_items')
         .update({
           ...itemStatusUpdate,
           updated_at: new Date().toISOString()
