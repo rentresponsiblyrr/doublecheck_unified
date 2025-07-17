@@ -62,8 +62,8 @@ const PropertySelection = () => {
         throw propertiesError;
       }
 
-      console.log('✅ Properties fetched successfully:', propertiesData?.length || 0);
-      console.log('🔍 Properties data structure:', propertiesData?.[0]);
+      // Debug logs removed to prevent infinite console loops
+      // Properties fetched successfully: ${propertiesData?.length || 0}
 
       // The function returns the exact data structure we need
       return propertiesData || [];

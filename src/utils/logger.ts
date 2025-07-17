@@ -15,7 +15,12 @@ interface LogEntry {
 class Logger {
   private logs: LogEntry[] = [];
   private maxLogs = 1000;
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.DEV || import.meta.env.NODE_ENV === 'development';
+  private isProduction = import.meta.env.PROD || import.meta.env.NODE_ENV === 'production';
+  
+  // Throttling to prevent console spam
+  private logThrottle = new Map<string, number>();
+  private readonly THROTTLE_MS = 1000;
 
   private createLogEntry(
     level: LogLevel,
@@ -39,6 +44,28 @@ class Logger {
     return undefined;
   }
 
+  private shouldLogToConsole(message: string, level: LogLevel): boolean {
+    // Always allow error and warn logs
+    if (level === 'error' || level === 'warn') {
+      return true;
+    }
+    
+    // Block debug logs in production
+    if (this.isProduction && level === 'debug') {
+      return false;
+    }
+    
+    // Throttle frequent logs
+    const now = Date.now();
+    const lastLog = this.logThrottle.get(message);
+    if (lastLog && (now - lastLog) < this.THROTTLE_MS) {
+      return false;
+    }
+    
+    this.logThrottle.set(message, now);
+    return true;
+  }
+
   private addLog(entry: LogEntry) {
     this.logs.push(entry);
     
@@ -47,8 +74,8 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // In development, also log to console
-    if (this.isDevelopment) {
+    // Log to console with throttling
+    if (this.shouldLogToConsole(entry.message, entry.level)) {
       const consoleMethod = entry.level === 'error' ? 'error' : 
                            entry.level === 'warn' ? 'warn' : 'log';
       

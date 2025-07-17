@@ -64,7 +64,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
       showWarning: false
     }));
 
-    console.log('🔄 Session activity updated:', now.toLocaleTimeString());
+    // Session activity updated (log removed to prevent console spam)
     
     // Reset timers if warning was shown
     if (sessionState.showWarning) {

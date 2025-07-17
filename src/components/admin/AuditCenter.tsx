@@ -130,7 +130,6 @@ export default function AuditCenter() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
-    console.log('🔍 AuditCenter useEffect triggered...');
     initializeAuditCenter();
   }, [searchTerm]);
 

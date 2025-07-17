@@ -36,7 +36,6 @@ export default function SimpleUserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    console.log('🔍 SimpleUserManagement useEffect triggered...');
     loadUsers();
   }, []);
 

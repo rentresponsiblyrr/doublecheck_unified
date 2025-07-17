@@ -106,7 +106,6 @@ export default function SimpleChecklistManagement() {
   });
 
   useEffect(() => {
-    console.log('🔍 SimpleChecklistManagement useEffect triggered...');
     loadChecklistItems();
   }, []);
 

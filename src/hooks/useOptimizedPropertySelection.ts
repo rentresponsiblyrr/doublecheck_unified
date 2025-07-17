@@ -37,7 +37,7 @@ export const useOptimizedPropertySelection = () => {
         return [];
       }
 
-      console.log('📊 Fetching properties with inspections for user:', user.id);
+      // Debug log removed to prevent infinite console loops
       
       const { data, error } = await supabase.rpc('get_properties_with_inspections', {
         _user_id: user.id
@@ -48,7 +48,7 @@ export const useOptimizedPropertySelection = () => {
         throw error;
       }
 
-      console.log('✅ Successfully fetched properties for user:', data?.length || 0);
+      // Debug log removed to prevent infinite console loops
       return data as PropertyData[];
     },
     enabled: !!user?.id,
@@ -64,7 +64,7 @@ export const useOptimizedPropertySelection = () => {
         return [];
       }
 
-      console.log('📊 Fetching inspections for user:', user.id);
+      // Debug log removed to prevent infinite console loops
       
       const { data, error } = await supabase
         .from('inspections')
@@ -76,7 +76,7 @@ export const useOptimizedPropertySelection = () => {
         throw error;
       }
 
-      console.log('✅ Successfully fetched inspections for user:', data?.length || 0);
+      // Debug log removed to prevent infinite console loops
       return data as Inspection[];
     },
     enabled: !!user?.id,
