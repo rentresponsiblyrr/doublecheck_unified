@@ -94,7 +94,7 @@ class MobileInspectionOptimizer {
       const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id')
         .eq('property_id', propertyIdUuid)
         .eq('completed', false)
@@ -150,7 +150,7 @@ class MobileInspectionOptimizer {
           const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
           
           const insertResult = await supabase
-            .from('inspections')
+            .from('inspections_fixed')
             .insert({
               property_id: propertyIdUuid,
               start_time: new Date().toISOString(),
@@ -245,7 +245,7 @@ class MobileInspectionOptimizer {
   static async assignInspectorOptimized(inspectionId: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .update({ 
           inspector_id: (await supabase.auth.getUser()).data.user?.id,
           status: 'in_progress'
