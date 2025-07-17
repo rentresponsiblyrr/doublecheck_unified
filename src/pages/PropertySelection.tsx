@@ -47,17 +47,70 @@ const PropertySelection = () => {
 
       console.log('📊 Fetching properties with inspections for user:', user.id);
       
-      const { data, error } = await supabase.rpc('get_properties_with_inspections', {
-        _user_id: user.id
-      });
+      // TEMPORARY FIX: Direct query instead of missing RPC function
+      // Get all properties and manually aggregate inspection data
+      const { data: propertiesData, error: propertiesError } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error('❌ Error fetching properties:', error);
-        throw error;
+      if (propertiesError) {
+        console.error('❌ Error fetching properties:', propertiesError);
+        throw propertiesError;
       }
 
-      console.log('✅ Successfully fetched properties for user:', data?.length || 0);
-      return data as PropertyData[];
+      // Get inspection stats for each property
+      const { data: inspectionsData, error: inspectionsError } = await supabase
+        .from('inspections')
+        .select('property_id, completed, status, id, created_at')
+        .eq('inspector_id', user.id);
+
+      if (inspectionsError) {
+        console.error('❌ Error fetching inspections:', inspectionsError);
+        throw inspectionsError;
+      }
+
+      // Aggregate data to match the expected PropertyData interface
+      const enrichedProperties = propertiesData.map(property => {
+        // Convert integer ID to UUID-like string for frontend compatibility
+        const propertyIdUuid = `00000000-0000-0000-0000-${property.id.toString().padStart(12, '0')}`;
+        
+        // Filter inspections for this property
+        const propertyInspections = inspectionsData.filter(
+          inspection => inspection.property_id === property.id
+        );
+
+        // Calculate stats
+        const totalCount = propertyInspections.length;
+        const completedCount = propertyInspections.filter(
+          i => i.completed || i.status === 'completed' || i.status === 'approved'
+        ).length;
+        const activeCount = propertyInspections.filter(
+          i => !i.completed && (i.status === 'draft' || i.status === 'in_progress' || i.status === 'pending_review')
+        ).length;
+
+        // Find latest inspection
+        const latestInspection = propertyInspections
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+        return {
+          property_id: propertyIdUuid,
+          property_name: property.name,
+          property_address: property.address,
+          property_vrbo_url: property.vrbo_url,
+          property_airbnb_url: property.airbnb_url,
+          property_status: property.status || 'active',
+          property_created_at: property.created_at,
+          inspection_count: totalCount,
+          completed_inspection_count: completedCount,
+          active_inspection_count: activeCount,
+          latest_inspection_id: latestInspection?.id || null,
+          latest_inspection_completed: latestInspection?.completed || null
+        } as PropertyData;
+      });
+
+      console.log('✅ Successfully fetched properties with manual aggregation:', enrichedProperties.length);
+      return enrichedProperties;
     },
     enabled: !!user?.id, // Only run query when user is available
     retry: 2,

@@ -385,11 +385,7 @@ function AdminRoutesComponent() {
   return (
     <Routes>
       {/* Admin Dashboard - Default route for admin.doublecheckverified.com */}
-      <Route path="/" element={
-        <Suspense fallback={<LoadingFallback />}>
-          <AdminRoutes />
-        </Suspense>
-      } />
+      <Route path="/" element={<DirectAdminRouter />} />
 
       {/* Auditor Dashboard */}
       <Route path="/auditor" element={
@@ -410,11 +406,7 @@ function AdminRoutesComponent() {
       } />
 
       {/* Admin Routes - All admin functionality */}
-      <Route path="/admin/*" element={
-        <Suspense fallback={<LoadingFallback />}>
-          <AdminRoutes />
-        </Suspense>
-      } />
+      <Route path="/admin/*" element={<DirectAdminRouter />} />
 
       {/* Health Check Route */}
       <Route path="/health" element={<HealthCheckPage />} />
@@ -428,8 +420,9 @@ function AdminRoutesComponent() {
   );
 }
 
-// Lazy load admin routes to reduce bundle size
-const AdminRoutes = React.lazy(() => import("@/components/admin/AdminRoutes"));
+// NUCLEAR OPTION: Use direct router instead of broken AdminRoutes
+// const AdminRoutes = React.lazy(() => import("@/components/admin/AdminRoutes"));
+import DirectAdminRouter from "@/components/admin/DirectAdminRouter";
 
 // Domain redirect components
 function AdminRedirect() {
