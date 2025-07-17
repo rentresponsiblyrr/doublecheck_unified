@@ -39,7 +39,7 @@ export class RobustMobileInspectionService {
       console.log('🔍 Finding active inspection for property:', propertyId);
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id, inspector_id, status')
         .eq('property_id', propertyId)
         .eq('completed', false)
@@ -70,7 +70,7 @@ export class RobustMobileInspectionService {
         console.log(`🔄 Creating inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
         const { data, error } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .insert({
             property_id: propertyId,
             start_time: new Date().toISOString(),

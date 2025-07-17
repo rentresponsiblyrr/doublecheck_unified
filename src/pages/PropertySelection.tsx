@@ -141,7 +141,7 @@ const PropertySelection = () => {
       const propertyIds = userProperties.map(p => p.id);
       
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id, property_id, completed, start_time, status, inspector_id')
         .in('property_id', propertyIds);
       
