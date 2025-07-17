@@ -217,7 +217,7 @@ export const useInspectorDashboard = () => {
       }
       return failureCount < 2;
     },
-    refetchInterval: 60000, // Reduced frequency to avoid rate limits
+    refetchInterval: false, // Disabled to prevent render loops - manual refresh only
   });
 
   // Extract data from the new structure

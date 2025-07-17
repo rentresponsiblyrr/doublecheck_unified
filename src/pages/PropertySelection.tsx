@@ -70,7 +70,7 @@ const PropertySelection = () => {
     },
     enabled: !!user?.id, // Only run query when user is available
     retry: 2,
-    staleTime: 0, // Always refetch to ensure fresh data
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent infinite refetch loop
   });
 
   // Generate inspections from the properties data since get_properties_with_inspections includes inspection info

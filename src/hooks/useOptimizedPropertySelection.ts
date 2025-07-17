@@ -53,7 +53,7 @@ export const useOptimizedPropertySelection = () => {
     },
     enabled: !!user?.id,
     retry: 2,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent infinite refetch loop
   });
 
   const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useQuery({
@@ -81,7 +81,7 @@ export const useOptimizedPropertySelection = () => {
     },
     enabled: !!user?.id,
     retry: 2,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent infinite refetch loop
   });
 
   const {
