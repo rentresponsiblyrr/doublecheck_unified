@@ -96,7 +96,7 @@ export class AuditorService {
       logger.info('Fetching inspections pending review', { filters, limit }, 'AUDITOR_SERVICE');
 
       let query = supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           id,
           property_id,
@@ -184,7 +184,7 @@ export class AuditorService {
       logger.info('Fetching detailed inspection for review', { inspectionId }, 'AUDITOR_SERVICE');
 
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           id,
           property_id,
@@ -266,7 +266,7 @@ export class AuditorService {
 
       // Start transaction by updating inspection status
       const { error: inspectionError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .update({
           status: reviewDecision.decision === 'approved' ? 'approved' : 
                   reviewDecision.decision === 'rejected' ? 'rejected' : 'needs_revision',
@@ -362,7 +362,7 @@ export class AuditorService {
 
       // Get inspection counts and metrics - Get ALL inspections to show correct metrics
       const { data: inspectionMetrics, error: metricsError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id, status, created_at, end_time, inspector_id')
         .gte('created_at', startDate.toISOString());
 

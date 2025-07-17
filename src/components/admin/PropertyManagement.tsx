@@ -181,7 +181,7 @@ export default function PropertyManagement() {
       
       // Load properties with all related data
       const { data: propertiesData, error: propertiesError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select(`
           *,
           inspections (
@@ -349,7 +349,7 @@ export default function PropertyManagement() {
   const handleCreateProperty = async () => {
     try {
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .insert([formData])
         .select()
         .single();
@@ -371,7 +371,7 @@ export default function PropertyManagement() {
 
     try {
       const { error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .update(formData)
         .eq('id', editingProperty.id);
 
