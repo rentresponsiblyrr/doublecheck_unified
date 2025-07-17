@@ -71,10 +71,10 @@ export class InspectionCreationOptimizer {
         try {
           console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId: propertyIdUuid, inspectorId });
           
-          // Try the secure RPC function first
-          const rpcResult = await supabase.rpc('create_inspection_secure', {
-            p_property_id: propertyIdUuid,
-            p_inspector_id: inspectorId
+          // Use available compatibility RPC function
+          const rpcResult = await supabase.rpc('create_inspection_compatibility', {
+            property_id: propertyId, // Pass as string
+            inspector_id: inspectorId
           });
           
           console.log('🔧 RPC result:', rpcResult);

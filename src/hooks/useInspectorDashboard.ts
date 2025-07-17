@@ -57,16 +57,16 @@ async function fetchPropertiesWithInspections(userId: string) {
     const { data: properties, error } = await supabase
       .from('properties')
       .select(`
-        id as property_id,
-        name as property_name,
-        address as property_address,
+        property_id,
+        property_name,
+        street_address as property_address,
         vrbo_url as property_vrbo_url,
         airbnb_url as property_airbnb_url,
-        status as property_status,
+        scraped_at as property_scraped_at,
         created_at as property_created_at
       `)
-      .eq('added_by', userId)
-      .eq('status', 'active');
+      .eq('created_by', userId);
+      // Removed status filter - properties table doesn't have status column
     
     if (error) throw error;
     

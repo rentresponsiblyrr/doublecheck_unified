@@ -185,10 +185,10 @@ export const usePropertyActions = () => {
       let inspectionId: string;
       
       try {
-        // Try secure RPC function first
-        const { data: rpcData, error: rpcError } = await supabase.rpc('create_inspection_secure', {
-          p_property_id: propertyIdInt,
-          p_inspector_id: user.id
+        // Use available compatibility RPC function
+        const { data: rpcData, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {
+          property_id: selectedProperty.id, // Pass as string
+          inspector_id: user.id
         });
         
         if (rpcError) {

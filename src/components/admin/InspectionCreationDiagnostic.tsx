@@ -73,8 +73,8 @@ export const InspectionCreationDiagnostic: React.FC = () => {
       // 2. Find the specified property
       const { data: properties, error: propError } = await supabase
         .from('properties')
-        .select('id, name, status, added_by, created_at')
-        .ilike('name', `%${propertyName.replace(' ', '%')}%`);
+        .select('property_id, property_name, created_by, scraped_at')
+        .ilike('property_name', `%${propertyName.replace(' ', '%')}%`);
 
       if (propError) {
         addResult({
@@ -164,9 +164,9 @@ export const InspectionCreationDiagnostic: React.FC = () => {
         message: 'Testing create_inspection_secure function...'
       });
 
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_secure', {
-        p_property_id: property.id,
-        p_inspector_id: user.id
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {
+        property_id: property.property_id.toString(),
+        inspector_id: user.id
       });
 
       if (rpcError) {

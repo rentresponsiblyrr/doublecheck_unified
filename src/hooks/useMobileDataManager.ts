@@ -237,8 +237,8 @@ export const useMobileDataManager = (userId?: string) => {
           created_at,
           inspections!inner(status)
         `)
-        .eq('added_by', userId || '')
-        .eq('status', 'active');
+        .eq('created_by', userId || '');
+        // Removed status filter - properties table doesn't have status column
         
       if (propertiesError) {
         throw propertiesError;
