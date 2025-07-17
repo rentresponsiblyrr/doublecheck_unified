@@ -47,10 +47,10 @@ const PropertySelection = () => {
 
       console.log('📊 Fetching properties with inspections for user:', user.id);
       
-      // TEMPORARY FIX: Direct query instead of missing RPC function
-      // Get all properties and manually aggregate inspection data
+      // FIXED: Use properties_fixed table (compatibility layer)
+      // Get all properties from the correct table and manually aggregate inspection data
       const { data: propertiesData, error: propertiesError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('*')
         .order('created_at', { ascending: false });
       

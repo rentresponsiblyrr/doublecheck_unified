@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/UserMenu";
 import { Logo } from "@/components/Logo";
+import { AdminAccessButton } from "@/components/AdminAccessButton";
 
 interface PropertyHeaderProps {
   title: string;
@@ -56,6 +57,7 @@ export const PropertyHeader = ({
             <div className="text-sm font-medium text-blue-600">STR Certified</div>
             <div className="text-xs text-gray-500">DoubleCheck powered by Rent Responsibly</div>
           </div>
+          <AdminAccessButton className="hidden sm:flex" />
           <UserMenu />
         </div>
       </div>

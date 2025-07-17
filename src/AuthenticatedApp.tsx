@@ -132,36 +132,24 @@ interface AuthenticatedAppProps {
 }
 
 export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
-  const appType = getAppTypeFromDomain();
-  
-  // Session management configuration based on app type and environment
+  // SIMPLIFIED: Single session config for unified app
   const sessionConfig = React.useMemo(() => {
     const isDev = env.isDevelopment();
     
-    if (appType === AppType.INSPECTOR) {
-      return {
-        inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 110 * 60 * 1000, // 2min dev, 110min prod
-        warningDurationMs: isDev ? 30 * 1000 : 10 * 60 * 1000,        // 30sec dev, 10min prod
-        maxSessionDurationMs: isDev ? 10 * 60 * 1000 : 12 * 60 * 60 * 1000, // 10min dev, 12h prod
-        enableRememberMe: true
-      };
-    } else {
-      return {
-        inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 50 * 60 * 1000,  // 2min dev, 50min prod
-        warningDurationMs: isDev ? 30 * 1000 : 10 * 60 * 1000,        // 30sec dev, 10min prod
-        maxSessionDurationMs: isDev ? 8 * 60 * 1000 : 8 * 60 * 60 * 1000, // 8min dev, 8h prod
-        enableRememberMe: true
-      };
-    }
-  }, [appType]);
+    return {
+      inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 110 * 60 * 1000, // 2min dev, 110min prod
+      warningDurationMs: isDev ? 30 * 1000 : 10 * 60 * 1000,        // 30sec dev, 10min prod
+      maxSessionDurationMs: isDev ? 10 * 60 * 1000 : 12 * 60 * 60 * 1000, // 10min dev, 12h prod
+      enableRememberMe: true
+    };
+  }, []);
 
   const { sessionState, extendSession, logout } = useSessionManager(sessionConfig);
   
-  // Log app configuration and routing debug info
+  // SIMPLIFIED: Unified app logging
   React.useEffect(() => {
-    console.log('🔍 AuthenticatedApp Debug Info:');
+    console.log('🔍 Unified STR Certified App:');
     console.log('- Domain:', window.location.hostname);
-    console.log('- App Type:', appType);
     console.log('- Current Path:', window.location.pathname);
     console.log('- User:', user?.email);
     console.log('- Environment:', env.getEnvironment());
@@ -169,11 +157,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
       inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
       maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
     });
-    
-    if (env.isDevelopment()) {
-      logAppConfiguration();
-    }
-  }, [appType, user, sessionConfig]);
+  }, [user, sessionConfig]);
   
   return (
     <GlobalErrorBoundary>
@@ -210,7 +194,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                 
                 <BrowserRouter>
                   <Suspense fallback={<LoadingFallback />}>
-                    {appType === AppType.INSPECTOR ? <InspectorRoutes /> : <AdminRoutesComponent />}
+                    <UnifiedRoutes user={user} />
                   </Suspense>
                 </BrowserRouter>
                 

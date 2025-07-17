@@ -27,8 +27,8 @@
     "VITE_LOG_LEVEL": "${LOG_LEVEL}",
     
     "VITE_INSPECTOR_DOMAIN": "app.doublecheckverified.com",
-    "VITE_ADMIN_DOMAIN": "admin.doublecheckverified.com",
-    "VITE_ENABLE_DOMAIN_ROUTING": "true",
+    "VITE_ADMIN_DOMAIN": "app.doublecheckverified.com",
+    "VITE_ENABLE_DOMAIN_ROUTING": "false",
     "VITE_ENABLE_ANALYTICS": "true",
     "VITE_ENABLE_PWA": "true",
     "VITE_ENABLE_AI_FEATURES": "true",
@@ -86,10 +86,6 @@
       "domains": [
         {
           "domain": "app.doublecheckverified.com",
-          "path": "/"
-        },
-        {
-          "domain": "admin.doublecheckverified.com",
           "path": "/"
         }
       ]
