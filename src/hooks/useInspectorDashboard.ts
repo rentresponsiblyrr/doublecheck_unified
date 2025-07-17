@@ -74,7 +74,7 @@ async function fetchPropertiesWithInspections(userId: string) {
     const enrichedProperties = await Promise.all(
       (properties || []).map(async (property) => {
         const { data: inspections } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .select('id, status, completed')
           .eq('property_id', property.property_id);
         
@@ -120,7 +120,7 @@ export const useInspectorDashboard = () => {
         const [inspectionsResult, propertiesResult] = await Promise.all([
           // Fetch inspections
           supabase
-            .from('inspections')
+            .from('inspections_fixed')
             .select(`
               id,
               property_id,

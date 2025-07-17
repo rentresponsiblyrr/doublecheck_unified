@@ -51,7 +51,7 @@ const InspectionComplete = () => {
       console.log('Fetching inspection details:', inspectionId);
       
       const { data, error } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select(`
           *,
           properties (

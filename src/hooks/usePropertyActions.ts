@@ -160,7 +160,7 @@ export const usePropertyActions = () => {
 
       // Check if there's already an active inspection
       const { data: existingInspection, error: checkError } = await supabase
-        .from('inspections')
+        .from('inspections_fixed')
         .select('id')
         .eq('property_id', propertyIdInt)
         .eq('completed', false)
@@ -206,7 +206,7 @@ export const usePropertyActions = () => {
         
         // Fallback to direct insert with proper RLS context
         const { data: newInspection, error: createError } = await supabase
-          .from('inspections')
+          .from('inspections_fixed')
           .insert({
             property_id: propertyIdInt,
             inspector_id: user.id, // Always include inspector_id for RLS
