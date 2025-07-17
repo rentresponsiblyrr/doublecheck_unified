@@ -1,7 +1,7 @@
 {
   "name": "str-certified",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "AI-powered property inspection platform",
   "author": "STR Certified Team",
