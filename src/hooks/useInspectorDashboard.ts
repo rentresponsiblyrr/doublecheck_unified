@@ -53,9 +53,9 @@ async function fetchPropertiesWithInspections(userId: string) {
     
     console.warn('⚠️ RPC function failed, falling back to direct query:', result.error);
     
-    // Fallback to direct query
+    // Fallback to direct query using properties_fixed
     const { data: properties, error } = await supabase
-      .from('properties')
+      .from('properties_fixed')
       .select(`
         id as property_id,
         name as property_name,

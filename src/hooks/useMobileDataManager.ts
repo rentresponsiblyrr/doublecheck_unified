@@ -226,7 +226,7 @@ export const useMobileDataManager = (userId?: string) => {
       // Fallback to direct property query with manual inspection counting
       // Apply same filtering logic as database function - exclude completed inspections
       const { data: allProperties, error: propertiesError } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select(`
           id,
           name,

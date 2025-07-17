@@ -16,7 +16,7 @@ export class RobustMobileInspectionService {
       console.log('🔍 Validating property access:', propertyId);
       
       const { data, error } = await supabase
-        .from('properties')
+        .from('properties_fixed')
         .select('id, added_by')
         .eq('id', propertyId)
         .single();
