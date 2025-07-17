@@ -69,22 +69,50 @@ Deployment: Railway with Docker containerization
 
 ### **Data Architecture**
 
-#### **Core Entities (Production Schema)**
+#### **CRITICAL: Database Compatibility Layer (PHASE 4 COMPLETE)**
+**⚠️ ALWAYS USE COMPATIBILITY VIEWS - NEVER ACCESS BASE TABLES DIRECTLY**
+
+The application uses a **compatibility layer** to bridge between:
+- **Base Tables**: `properties` (integer IDs), `inspections` (integer property_ids)  
+- **Application Layer**: Expected UUID-based schema
+
+**MANDATORY TABLE USAGE PATTERNS:**
+```typescript
+// ✅ CORRECT - Use compatibility views
+supabase.from('properties_fixed')   // NOT from('properties')
+supabase.from('inspections_fixed')  // NOT from('inspections')
+
+// ✅ CORRECT - Use RPC functions for creation
+supabase.rpc('create_inspection_secure', { 
+  p_property_id: uuid,
+  p_inspector_id: uuid 
+})
+```
+
+**Compatibility Infrastructure:**
+- `int_to_uuid()` / `uuid_to_int()` conversion functions
+- `properties_fixed` view with INSERT/UPDATE/DELETE triggers
+- `inspections_fixed` view with INSERT/UPDATE/DELETE triggers
+- `create_inspection_secure()` RPC function for safe inspection creation
+- `get_properties_with_inspections()` function for property listings
+
+#### **Core Entities (Application Interface)**
 ```typescript
 Property {
-  property_id: number        // Integer primary key in DB
-  property_name: string      // NOT "name"
-  street_address: string     // NOT "address"
+  id: string                 // UUID from int_to_uuid(property_id)
+  name: string              // Mapped from property_name
+  url: string               // Mapped from listing_url
   vrbo_url?: string
   airbnb_url?: string
   scraped_data?: ScrapedPropertyData
-  amenities?: PropertyAmenity[]
+  added_by: string          // Mapped from created_by
+  scrape_date?: string      // Mapped from scraped_at
 }
 
 Inspection {
-  id: string
-  property_id: string        // Converted from integer to string for frontend
-  inspector_id: string       // References profiles.id
+  id: string                // UUID primary key
+  property_id: string       // UUID from int_to_uuid(base_property_id)
+  inspector_id: string      // References profiles.id
   status: 'draft' | 'in_progress' | 'completed' | 'auditing'
   checklist_items: ChecklistItem[]
   video_walkthrough?: VideoFile
