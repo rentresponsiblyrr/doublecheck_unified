@@ -1,4 +1,5 @@
 
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
@@ -8,6 +9,11 @@ import { PropertySelectionLoading } from "@/components/PropertySelectionLoading"
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
+import { Tables } from "@/integrations/supabase/types";
+
+// Use proper TypeScript types from Supabase
+type PropertyFixed = Tables<'properties_fixed'>;
+type InspectionFixed = Tables<'inspections_fixed'>;
 
 interface PropertyData {
   property_id: string;
@@ -47,116 +53,51 @@ const PropertySelection = () => {
 
       console.log('📊 Fetching properties with inspections for user:', user.id);
       
-      // FIXED: Use properties_fixed table (compatibility layer)
-      // Get all properties from the correct table and manually aggregate inspection data
+      // Use the existing get_properties_with_inspections function that works
       const { data: propertiesData, error: propertiesError } = await supabase
-        .from('properties_fixed')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_properties_with_inspections', { _user_id: user.id });
       
       if (propertiesError) {
         console.error('❌ Error fetching properties:', propertiesError);
         throw propertiesError;
       }
 
-      // Get inspection stats for each property from the correct table
-      const { data: inspectionsData, error: inspectionsError } = await supabase
-        .from('inspections_fixed')
-        .select('property_id, completed, status, id, created_at')
-        .eq('inspector_id', user.id);
+      console.log('✅ Properties fetched successfully:', propertiesData?.length || 0);
+      console.log('🔍 Properties data structure:', propertiesData?.[0]);
 
-      if (inspectionsError) {
-        console.error('❌ Error fetching inspections:', inspectionsError);
-        throw inspectionsError;
-      }
-
-      // Aggregate data to match the expected PropertyData interface
-      const enrichedProperties = propertiesData.map(property => {
-        // Use the actual UUID from properties_fixed table
-        const propertyIdUuid = property.id;
-        
-        // Filter inspections for this property
-        const propertyInspections = inspectionsData.filter(
-          inspection => inspection.property_id === property.id
-        );
-
-        // Calculate stats
-        const totalCount = propertyInspections.length;
-        const completedCount = propertyInspections.filter(
-          i => i.completed || i.status === 'completed' || i.status === 'approved'
-        ).length;
-        const activeCount = propertyInspections.filter(
-          i => !i.completed && (i.status === 'draft' || i.status === 'in_progress' || i.status === 'pending_review')
-        ).length;
-
-        // Find latest inspection
-        const latestInspection = propertyInspections
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
-        return {
-          property_id: propertyIdUuid,
-          property_name: property.name,
-          property_address: property.address,
-          property_vrbo_url: property.vrbo_url,
-          property_airbnb_url: property.airbnb_url,
-          property_status: property.status || 'active',
-          property_created_at: property.created_at,
-          inspection_count: totalCount,
-          completed_inspection_count: completedCount,
-          active_inspection_count: activeCount,
-          latest_inspection_id: latestInspection?.id || null,
-          latest_inspection_completed: latestInspection?.completed || null
-        } as PropertyData;
-      });
-
-      console.log('✅ Successfully fetched properties_fixed with manual aggregation:', enrichedProperties.length);
-      console.log('📊 Properties data sample:', enrichedProperties.slice(0, 2));
-      return enrichedProperties;
+      // The function returns the exact data structure we need
+      return propertiesData || [];
     },
     enabled: !!user?.id, // Only run query when user is available
     retry: 2,
     staleTime: 0, // Always refetch to ensure fresh data
   });
 
-  const { data: inspections = [], isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useQuery({
-    queryKey: ['inspections', user?.id],
-    queryFn: async () => {
-      if (!user?.id) {
-        console.log('❌ No user ID available, returning empty inspections');
-        return [];
+  // Generate inspections from the properties data since get_properties_with_inspections includes inspection info
+  const inspections = React.useMemo(() => {
+    if (!properties || properties.length === 0) return [];
+    
+    // Create inspection objects based on the properties data
+    const generatedInspections: Inspection[] = [];
+    
+    properties.forEach(property => {
+      if (property.latest_inspection_id) {
+        generatedInspections.push({
+          id: property.latest_inspection_id,
+          property_id: property.property_id,
+          completed: property.latest_inspection_completed || false,
+          start_time: null,
+          status: property.latest_inspection_completed ? 'completed' : 'in_progress'
+        });
       }
+    });
+    
+    return generatedInspections;
+  }, [properties]);
 
-      console.log('📊 Fetching inspections from database for user:', user.id);
-      
-      // Get all inspections for this user's properties to check status
-      const { data: userProperties } = await supabase
-        .from('properties_fixed')
-        .select('id')
-        .eq('added_by', user.id);
-      
-      if (!userProperties || userProperties.length === 0) {
-        return [];
-      }
-      
-      const propertyIds = userProperties.map(p => p.id);
-      
-      const { data, error } = await supabase
-        .from('inspections_fixed')
-        .select('id, property_id, completed, start_time, status, inspector_id')
-        .in('property_id', propertyIds);
-      
-      if (error) {
-        console.error('❌ Error fetching inspections:', error);
-        throw error;
-      }
-
-      console.log('✅ Successfully fetched inspections for user:', data?.length || 0);
-      return data as Inspection[];
-    },
-    enabled: !!user?.id, // Only run query when user is available
-    retry: 2,
-    staleTime: 0, // Always refetch to ensure fresh data
-  });
+  const inspectionsLoading = propertiesLoading;
+  const inspectionsError = propertiesError;
+  const refetchInspections = refetchProperties;
 
   const {
     selectedProperty,
