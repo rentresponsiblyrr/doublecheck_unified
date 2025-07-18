@@ -90,10 +90,7 @@ function App() {
             
             if (!roleError && userRole) {
               console.log('✅ User validated via RPC function with role:', userRole);
-              // Add role to session user object
-              session.user.role = userRole;
               userValid = true;
-              console.log('✅ User object updated with role:', session.user.role);
             } else {
               console.log('⚠️ User role validation failed, allowing auth session...', roleError?.message);
               // Still allow login if they have a valid auth session
