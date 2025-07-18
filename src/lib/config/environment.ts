@@ -147,6 +147,7 @@ class EnvironmentConfig {
       }
       throw error;
     }
+    */
   }
 
   // Getters for different configuration sections
