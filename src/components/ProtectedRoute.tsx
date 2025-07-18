@@ -13,8 +13,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   const { user, loading, error } = useAuth();
 
   // Only log in development and throttle to prevent infinite logs
-  if (import.meta.env.DEV && Math.random() < 0.1) {
-    console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole });
+  if (import.meta.env.DEV && Math.random() < 0.05) {
+    console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole, userRole: user?.role });
   }
 
   if (loading) {
