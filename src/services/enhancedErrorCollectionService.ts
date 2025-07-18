@@ -364,10 +364,10 @@ class EnhancedErrorCollectionService {
       // Track user frustration level
       this.updateUserFrustrationLevel();
 
-      // Use original console to avoid recursion
-      if (this.originalConsole.error) {
-        this.originalConsole.error('Enhanced error collected', { type: 'console', error });
-      }
+      // DISABLED: Enhanced error collection logging to prevent infinite loops
+      // if (this.originalConsole.error) {
+      //   this.originalConsole.error('Enhanced error collected', { type: 'console', error });
+      // }
     } finally {
       this.isCollectingConsoleError = false;
     }
@@ -393,7 +393,8 @@ class EnhancedErrorCollectionService {
       this.handleSupabaseError(error);
     }
 
-    logger.error('Network error collected', { error }, 'ERROR_COLLECTION');
+    // DISABLED: Network error logging to prevent infinite loops
+    // logger.error('Network error collected', { error }, 'ERROR_COLLECTION');
   }
 
   /**
@@ -435,7 +436,8 @@ class EnhancedErrorCollectionService {
     this.databaseErrors.push(error);
     this.maintainErrorLimit('database');
 
-    logger.error('Database error collected', { error }, 'ERROR_COLLECTION');
+    // DISABLED: Database error logging to prevent infinite loops
+    // logger.error('Database error collected', { error }, 'ERROR_COLLECTION');
   }
 
   /**

@@ -324,7 +324,12 @@ export class ErrorReporter {
           data: { arguments: args },
         });
 
-        this.originalConsole[level].apply(console, args);
+        // Use try-catch to prevent infinite loops
+        try {
+          this.originalConsole[level].apply(console, args);
+        } catch (error) {
+          // Silently fail to prevent infinite loops
+        }
       };
     });
   }

@@ -12,10 +12,8 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
   const { user, loading, error } = useAuth();
 
-  // Only log in development and throttle to prevent infinite logs
-  if (import.meta.env.DEV && Math.random() < 0.05) {
-    console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole, userRole: user?.role });
-  }
+  // REMOVED: ProtectedRoute logging to prevent infinite render loops
+  // console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole, userRole: user?.role });
 
   if (loading) {
     return (
@@ -29,18 +27,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (!user) {
-    if (import.meta.env.DEV) {
-      console.log('📱 No user, showing auth form');
-    }
+    // REMOVED: No user logging to prevent infinite render loops
+    // console.log('📱 No user, showing auth form');
     return <AuthForm />;
   }
 
   // Check role-based access - Use original app-type logic
   if (requiredRole && !isRoleAllowed(requiredRole)) {
-    // Only log once to prevent infinite logging
-    if (import.meta.env.DEV && Math.random() < 0.01) {
-      console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
-    }
+    // REMOVED: Role denial logging to prevent infinite render loops
+    // console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
     
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
