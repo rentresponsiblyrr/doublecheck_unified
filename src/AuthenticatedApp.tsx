@@ -87,18 +87,11 @@ function LoadingFallback() {
 // System Health Check Component
 function SystemHealthCheck({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Validate environment on app start - but don't crash the app
-    try {
-      validateRequiredEnvVars();
-      console.log('✅ Environment validation passed');
-    } catch (error) {
-      console.error('⚠️ Environment validation failed (non-critical):', error);
-      // Don't throw in production to prevent app crashes
-      // The app can still function with missing optional env vars
-    }
-
     // Initialize monitoring services only if configured
-    if (env.isProduction() && env.hasSentry()) {
+    const isProduction = import.meta.env.PROD;
+    const isDevelopment = import.meta.env.DEV;
+    
+    if (isProduction) {
       try {
         errorReporter.initialize({
           enableConsoleCapture: false, // Disable in production
@@ -115,13 +108,13 @@ function SystemHealthCheck({ children }: { children: React.ReactNode }) {
       enableWebVitals: true,
       enableResourceTiming: true,
       enableAIMetrics: true,
-      sampleRate: env.isProduction() ? 0.1 : 1.0,
+      sampleRate: isProduction ? 0.1 : 1.0,
     });
 
     // Track app initialization
     performanceTracker.trackMetric('app_initialization', Date.now(), 'ms', {
       category: 'startup',
-      environment: env.getEnvironment(),
+      environment: import.meta.env.MODE,
     });
 
   }, []);
@@ -154,7 +147,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
     console.log('- Domain:', window.location.hostname);
     console.log('- Current Path:', window.location.pathname);
     console.log('- User:', user?.email);
-    console.log('- Environment:', env.getEnvironment());
+    console.log('- Environment:', import.meta.env.MODE);
     console.log('- Session Config:', {
       inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
       maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
@@ -170,7 +163,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
             error={error}
             resetError={resetError}
             errorId={errorId}
-            showDetails={env.isDevelopment()}
+            showDetails={import.meta.env.DEV}
           />
         )}
         onError={(error, errorInfo) => {
@@ -208,7 +201,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                 />
                 
                 {/* Debug: Test bug report system in development only */}
-                {process.env.NODE_ENV === 'development' && (
+                {import.meta.env.DEV && (
                   <div 
                     style={{
                       position: 'fixed',
