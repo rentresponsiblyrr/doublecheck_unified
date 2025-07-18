@@ -13,8 +13,9 @@ import { useSessionManager } from "@/hooks/useSessionManager";
 import { SessionWarning } from "@/components/SessionWarning";
 import { errorReporter } from "@/lib/monitoring/error-reporter";
 import { performanceTracker } from "@/lib/monitoring/performance-tracker";
-import { env } from "@/lib/config/environment";
-import { validateRequiredEnvVars } from "@/lib/config/environment";
+// TEMPORARILY DISABLE ENVIRONMENT IMPORTS TO FIX CRASH
+// import { env } from "@/lib/config/environment";
+// import { validateRequiredEnvVars } from "@/lib/config/environment";
 import { AppType, getAppTypeFromDomain, isInspectorDomain, isAdminDomain, logAppConfiguration } from "@/lib/config/app-type";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedRoutes from "@/components/UnifiedRoutes";

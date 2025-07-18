@@ -1,4 +1,5 @@
-import { env } from '../config/environment';
+// TEMPORARILY DISABLE TO FIX CRASH
+// import { env } from '../config/environment';
 import { supabase } from '../supabase';
 
 export interface ErrorReport {

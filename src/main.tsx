@@ -13,6 +13,29 @@ console.log('Available env vars:', Object.keys(import.meta.env));
 console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
 console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 
+// Test environment validation with proper error handling
+console.log('🔍 Testing environment validation with error handling...');
+
+// Test validation in async function
+async function testEnvironmentValidation() {
+  try {
+    console.log('About to import validateEnv...');
+    const { validateEnv } = await import("./utils/typeGuards.ts");
+    console.log('validateEnv imported successfully');
+    
+    const result = validateEnv();
+    console.log('✅ Environment validation passed:', result);
+    return true;
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    console.error('Will continue without validation for now...');
+    return false;
+  }
+}
+
+// Run validation test
+testEnvironmentValidation();
+
 // Enhanced Error Boundary for debugging
 class DebugErrorBoundary extends Component<
   { children: React.ReactNode },

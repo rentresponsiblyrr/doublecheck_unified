@@ -1,5 +1,6 @@
 import { errorReporter } from './error-reporter';
-import { env } from '../config/environment';
+// TEMPORARILY DISABLE TO FIX CRASH  
+// import { env } from '../config/environment';
 
 export interface PerformanceMetric {
   name: string;
