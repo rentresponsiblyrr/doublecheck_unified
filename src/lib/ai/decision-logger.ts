@@ -403,7 +403,7 @@ ${this.getCriticalDecisions().slice(0, 5).map(d => `- ${d.action} (${d.timestamp
   private detectAIAgent(): string {
     // Try to detect the AI agent from environment or user agent
     // For now, default to a generic identifier
-    return process.env.AI_AGENT || 'claude-sonnet-4';
+    return import.meta.env.VITE_AI_AGENT || 'claude-sonnet-4';
   }
 
   private startFlushTimer(): void {

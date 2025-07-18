@@ -92,6 +92,7 @@ class EnhancedErrorCollectionService {
   private databaseErrors: DatabaseError[] = [];
   private maxErrorsPerType = 20;
   private isCollecting = true;
+  private isCollectingConsoleError = false;
   private originalConsole: { [key: string]: any } = {};
   private originalFetch: typeof fetch;
 
@@ -150,14 +151,28 @@ class EnhancedErrorCollectionService {
         // Call original console method
         this.originalConsole[level].apply(console, args);
         
+        // Prevent infinite recursion during error collection
+        if (this.isCollectingConsoleError) return;
+        
         // Capture for our monitoring
-        this.collectConsoleError({
-          level: level as 'error' | 'warn' | 'info',
-          message: args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-          ).join(' '),
-          source: 'javascript'
-        });
+        try {
+          this.collectConsoleError({
+            level: level as 'error' | 'warn' | 'info',
+            message: args.map(arg => {
+              if (typeof arg === 'object') {
+                try {
+                  return JSON.stringify(arg);
+                } catch (stringifyError) {
+                  return '[Object - JSON.stringify failed]';
+                }
+              }
+              return String(arg);
+            }).join(' '),
+            source: 'javascript'
+          });
+        } catch (error) {
+          // Silently fail to prevent further loops
+        }
       };
     });
   }
@@ -332,21 +347,30 @@ class EnhancedErrorCollectionService {
    * Collect console error with metadata
    */
   private collectConsoleError(errorData: Omit<ConsoleError, 'id' | 'timestamp'>) {
-    if (!this.isCollecting) return;
+    if (!this.isCollecting || this.isCollectingConsoleError) return;
 
-    const error: ConsoleError = {
-      id: this.generateId(),
-      timestamp: new Date().toISOString(),
-      ...errorData
-    };
+    this.isCollectingConsoleError = true;
+    
+    try {
+      const error: ConsoleError = {
+        id: this.generateId(),
+        timestamp: new Date().toISOString(),
+        ...errorData
+      };
 
-    this.consoleErrors.push(error);
-    this.maintainErrorLimit('console');
+      this.consoleErrors.push(error);
+      this.maintainErrorLimit('console');
 
-    // Track user frustration level
-    this.updateUserFrustrationLevel();
+      // Track user frustration level
+      this.updateUserFrustrationLevel();
 
-    logger.error('Enhanced error collected', { type: 'console', error }, 'ERROR_COLLECTION');
+      // Use original console to avoid recursion
+      if (this.originalConsole.error) {
+        this.originalConsole.error('Enhanced error collected', { type: 'console', error });
+      }
+    } finally {
+      this.isCollectingConsoleError = false;
+    }
   }
 
   /**
