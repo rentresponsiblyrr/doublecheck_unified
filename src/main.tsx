@@ -186,6 +186,14 @@ function initializeApp() {
     );
     
     console.log('🚨 Render complete!');
+    
+    // Clear console in development to prevent browser slowdown from infinite logs
+    if (import.meta.env.DEV) {
+      setTimeout(() => {
+        console.clear();
+        console.log('🚨 Console cleared to prevent browser slowdown');
+      }, 1000);
+    }
   } catch (error) {
     console.error('🚨 ERROR during app initialization:', error);
     document.body.innerHTML = `
