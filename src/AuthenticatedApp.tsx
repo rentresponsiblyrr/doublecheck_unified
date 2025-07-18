@@ -141,17 +141,19 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
 
   const { sessionState, extendSession, logout } = useSessionManager(sessionConfig);
   
-  // SIMPLIFIED: Unified app logging
+  // SIMPLIFIED: Unified app logging (throttled to prevent infinite loops)
   React.useEffect(() => {
-    console.log('🔍 Unified STR Certified App:');
-    console.log('- Domain:', window.location.hostname);
-    console.log('- Current Path:', window.location.pathname);
-    console.log('- User:', user?.email);
-    console.log('- Environment:', import.meta.env.MODE);
-    console.log('- Session Config:', {
-      inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
-      maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
-    });
+    if (import.meta.env.DEV && Math.random() < 0.1) {
+      console.log('🔍 Unified STR Certified App:');
+      console.log('- Domain:', window.location.hostname);
+      console.log('- Current Path:', window.location.pathname);
+      console.log('- User:', user?.email);
+      console.log('- Environment:', import.meta.env.MODE);
+      console.log('- Session Config:', {
+        inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
+        maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
+      });
+    }
   }, [user, sessionConfig]);
   
   return (

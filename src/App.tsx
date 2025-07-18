@@ -42,7 +42,10 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  console.log('🔍 App State:', { isAuthenticated, isLoading, hasUser: !!user, userEmail: user?.email });
+  // Only log app state changes in development and throttle to prevent infinite loops
+  if (import.meta.env.DEV && Math.random() < 0.01) {
+    console.log('🔍 App State:', { isAuthenticated, isLoading, hasUser: !!user, userEmail: user?.email });
+  }
 
   // Authentication setup - always start with login page
   useEffect(() => {

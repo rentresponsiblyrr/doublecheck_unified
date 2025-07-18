@@ -21,7 +21,10 @@ interface UnifiedRoutesProps {
 }
 
 export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
-  console.log('🚀 UnifiedRoutes loaded for user:', user?.email);
+  // Only log route loading in development and throttle to prevent infinite loops
+  if (import.meta.env.DEV && Math.random() < 0.01) {
+    console.log('🚀 UnifiedRoutes loaded for user:', user?.email);
+  }
   
   return (
     <Routes>
