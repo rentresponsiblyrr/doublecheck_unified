@@ -160,7 +160,22 @@ export function isFeatureEnabled(feature: string): boolean {
 // Check if user role is allowed for current app type
 export function isRoleAllowed(role: string): boolean {
   const config = getCurrentAppConfig();
-  return config.requiredRoles.includes(role);
+  
+  // Direct role match
+  if (config.requiredRoles.includes(role)) {
+    return true;
+  }
+  
+  // Role hierarchy: admin can access all roles, auditor can access inspector
+  if (config.requiredRoles.includes('admin') && (role === 'inspector' || role === 'auditor')) {
+    return true;
+  }
+  
+  if (config.requiredRoles.includes('auditor') && role === 'inspector') {
+    return true;
+  }
+  
+  return false;
 }
 
 // Domain utility functions

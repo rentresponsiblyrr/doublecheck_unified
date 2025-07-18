@@ -35,22 +35,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <AuthForm />;
   }
 
-  // Check role-based access - Fix: Check actual user role instead of app type requirement
-  if (requiredRole && user.role !== requiredRole) {
-    // For admin users, allow access to both admin and inspector routes
-    if (user.role === 'admin' && (requiredRole === 'inspector' || requiredRole === 'auditor')) {
-      // Admin can access all routes
-      return <>{children}</>;
-    }
-    
-    // For auditor users, allow access to inspector routes
-    if (user.role === 'auditor' && requiredRole === 'inspector') {
-      return <>{children}</>;
-    }
-    
+  // Check role-based access - Use original app-type logic
+  if (requiredRole && !isRoleAllowed(requiredRole)) {
     // Only log once to prevent infinite logging
     if (import.meta.env.DEV && Math.random() < 0.01) {
-      console.log('🚫 User role not allowed:', { requiredRole, userRole: user.role });
+      console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
     }
     
     return (
@@ -59,7 +48,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
           <div className="text-red-600 text-6xl mb-4">🚫</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
           <p className="text-gray-600">You don't have permission to access this application.</p>
-          <p className="text-sm text-gray-500 mt-2">Required role: {requiredRole} (You have: {user.role})</p>
+          <p className="text-sm text-gray-500 mt-2">Required role: {requiredRole}</p>
         </div>
       </div>
     );
