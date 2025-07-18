@@ -44,13 +44,14 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   const { userRole, user } = useFastAuth();
   
   // Debug logging to help troubleshoot
-  console.log('🔍 MobileInspectionCard Debug:', {
-    userRole,
-    hasUser: !!user,
-    userEmail: user?.email,
-    hasOnEdit: !!onEdit,
-    isAdmin: userRole === 'admin'
-  });
+  // REMOVED: MobileInspectionCard logging to prevent infinite render loops
+  // console.log('🔍 MobileInspectionCard Debug:', {
+  //   userRole,
+  //   hasUser: !!user,
+  //   userEmail: user?.email,
+  //   hasOnEdit: !!onEdit,
+  //   isAdmin: userRole === 'admin'
+  // });
   
   const isAdmin = userRole === 'admin';
 

@@ -36,7 +36,8 @@ class SimpleErrorBoundary extends Component<
 const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 
 function App() {
-  console.log('🚀 STR Certified App - Authentication-First Architecture v4 - DEBUG MODE');
+  // REMOVED: App component logging to prevent infinite render loops
+  // console.log('🚀 STR Certified App - Authentication-First Architecture v4 - DEBUG MODE');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Start with true - check session first
   const [user, setUser] = useState<any>(null);

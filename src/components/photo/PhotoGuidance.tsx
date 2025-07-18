@@ -277,7 +277,8 @@ export function PhotoGuidance({
       }
 
       // AI service disabled for security - use fallback analysis
-      console.log('Enhanced AI service disabled for security, using fallback analysis');
+      // REMOVED: PhotoGuidance logging to prevent infinite render loops
+      // console.log('Enhanced AI service disabled for security, using fallback analysis');
       const qualityChecker = createPhotoQualityChecker();
       
       try {
@@ -344,7 +345,8 @@ export function PhotoGuidance({
         }
         
         // AI analysis disabled for security - use fallback result
-        console.log('Enhanced AI analysis disabled for security, using fallback result');
+        // REMOVED: PhotoGuidance logging to prevent infinite render loops
+      // console.log('Enhanced AI analysis disabled for security, using fallback result');
         
         clearInterval(progressInterval);
         setCaptureProgress(100);

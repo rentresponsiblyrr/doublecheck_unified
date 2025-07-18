@@ -21,7 +21,8 @@ import {
 // Debug imports removed to prevent auto-execution errors
 
 const Index = () => {
-  console.log('📱 Inspector Dashboard - STR Certified');
+  // REMOVED: Index component logging to prevent infinite render loops
+  // console.log('📱 Inspector Dashboard - STR Certified');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { inspections, properties, recentInspections, summary, isLoading, error } = useInspectorDashboard();

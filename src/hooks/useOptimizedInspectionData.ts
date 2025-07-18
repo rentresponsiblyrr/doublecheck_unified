@@ -6,7 +6,8 @@ import { ChecklistItemType } from "@/types/inspection";
 import { cache, CACHE_KEYS, CACHE_TTL } from "@/utils/cache";
 
 export const useOptimizedInspectionData = (inspectionId: string) => {
-  console.log('🔍 useOptimizedInspectionData: Starting with inspectionId:', inspectionId);
+  // REMOVED: useOptimizedInspectionData logging to prevent infinite render loops
+  // console.log('🔍 useOptimizedInspectionData: Starting with inspectionId:', inspectionId);
 
   const { data: checklistItems = [], isLoading, refetch, isRefetching, error } = useQuery({
     queryKey: ['optimized-checklist-items', inspectionId],

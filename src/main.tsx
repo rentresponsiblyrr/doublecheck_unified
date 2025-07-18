@@ -1,20 +1,22 @@
 
-console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
+// REMOVED: Main.tsx startup logging to prevent infinite render loops
+// console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
 
 import { StrictMode, Component } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
-console.log('🚨 Basic imports loaded successfully');
+// REMOVED: Basic imports logging to prevent infinite render loops
+// console.log('🚨 Basic imports loaded successfully');
 
-// Test environment validation separately
-console.log('🚨 Testing environment validation...');
-console.log('Available env vars:', Object.keys(import.meta.env));
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+// REMOVED: Environment validation logging to prevent infinite render loops
+// console.log('🚨 Testing environment validation...');
+// console.log('Available env vars:', Object.keys(import.meta.env));
+// console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
+// console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 
-// Test environment validation with proper error handling
-console.log('🔍 Testing environment validation with error handling...');
+// REMOVED: Environment validation testing logging to prevent infinite render loops
+// console.log('🔍 Testing environment validation with error handling...');
 
 // Test validation in async function
 async function testEnvironmentValidation() {
@@ -116,8 +118,9 @@ try {
   console.error('🚨 Import test failed:', error);
 }
 
-console.log('🚨 About to render app with error boundary');
-console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
+// REMOVED: App rendering logging to prevent infinite render loops
+// console.log('🚨 About to render app with error boundary');
+// console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
 
 // Initialize Sentry for production error monitoring
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
