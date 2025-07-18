@@ -31,14 +31,14 @@ class DebugLogger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Console output with context
-    const consoleMethod = level === 'error' ? 'error' : 
-                         level === 'warn' ? 'warn' : 'log';
-    
-    console[consoleMethod](
-      `🔍 [${level.toUpperCase()}] [${context}] ${message}`,
-      data || ''
-    );
+    // DISABLED: Console output to prevent infinite loops
+    // const consoleMethod = level === 'error' ? 'error' : 
+    //                      level === 'warn' ? 'warn' : 'log';
+    // 
+    // console[consoleMethod](
+    //   `🔍 [${level.toUpperCase()}] [${context}] ${message}`,
+    //   data || ''
+    // );
   }
 
   debug(context: string, message: string, data?: DebugData) {

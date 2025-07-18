@@ -111,9 +111,10 @@ export class ErrorReporter {
     if (this.isInitialized) return;
 
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.setupGlobalHandlers();
-    this.setupBreadcrumbCapture();
-    this.startFlushTimer();
+    // DISABLED: All error monitoring to prevent infinite loops
+    // this.setupGlobalHandlers();
+    // this.setupBreadcrumbCapture();
+    // this.startFlushTimer();
     this.isInitialized = true;
 
     // Log initialization in development - TEMPORARILY DISABLED

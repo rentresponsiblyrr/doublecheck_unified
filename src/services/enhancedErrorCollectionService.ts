@@ -98,10 +98,11 @@ class EnhancedErrorCollectionService {
 
   constructor() {
     this.originalFetch = window.fetch;
-    this.initializeErrorCollection();
-    this.initializePerformanceMonitoring();
-    this.initializeNetworkMonitoring();
-    this.initializeDatabaseErrorDetection();
+    // DISABLED: All error collection to prevent infinite loops
+    // this.initializeErrorCollection();
+    // this.initializePerformanceMonitoring();
+    // this.initializeNetworkMonitoring();
+    // this.initializeDatabaseErrorDetection();
   }
 
   /**

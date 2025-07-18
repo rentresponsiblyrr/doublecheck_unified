@@ -74,16 +74,16 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Log to console with throttling
-    if (this.shouldLogToConsole(entry.message, entry.level)) {
-      const consoleMethod = entry.level === 'error' ? 'error' : 
-                           entry.level === 'warn' ? 'warn' : 'log';
-      
-      console[consoleMethod](
-        `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ''}${entry.message}`,
-        entry.data || ''
-      );
-    }
+    // DISABLED: Console output to prevent infinite loops
+    // if (this.shouldLogToConsole(entry.message, entry.level)) {
+    //   const consoleMethod = entry.level === 'error' ? 'error' : 
+    //                        entry.level === 'warn' ? 'warn' : 'log';
+    //   
+    //   console[consoleMethod](
+    //     `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ''}${entry.message}`,
+    //     entry.data || ''
+    //   );
+    // }
   }
 
   debug(message: string, data?: LogData, context?: string) {
@@ -123,7 +123,8 @@ class Logger {
       //   body: JSON.stringify(entry)
       // });
     } catch (error) {
-      console.error('Failed to send log to monitoring service:', error);
+      // DISABLED: Monitoring service error logging to prevent infinite loops
+      // console.error('Failed to send log to monitoring service:', error);
     }
   }
 
@@ -147,13 +148,13 @@ class Logger {
     return JSON.stringify(this.logs, null, 2);
   }
 
-  // Performance timing
+  // DISABLED: Performance timing to prevent infinite loops
   time(label: string) {
-    console.time(label);
+    // console.time(label);
   }
 
   timeEnd(label: string) {
-    console.timeEnd(label);
+    // console.timeEnd(label);
   }
 
   // User action tracking
