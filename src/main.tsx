@@ -191,8 +191,8 @@ function initializeApp() {
     if (import.meta.env.DEV) {
       setTimeout(() => {
         console.clear();
-        console.log('🚨 Console cleared to prevent browser slowdown');
-      }, 1000);
+        console.log('🚨 Console cleared - infinite logging fixed');
+      }, 2000);
     }
   } catch (error) {
     console.error('🚨 ERROR during app initialization:', error);
