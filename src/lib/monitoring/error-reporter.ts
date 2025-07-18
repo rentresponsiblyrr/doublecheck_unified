@@ -116,10 +116,10 @@ export class ErrorReporter {
     this.startFlushTimer();
     this.isInitialized = true;
 
-    // Log initialization in development
-    if (env.isDevelopment()) {
-      console.log('[ErrorReporter] Initialized with config:', this.config);
-    }
+    // Log initialization in development - TEMPORARILY DISABLED
+    // if (env.isDevelopment()) {
+    //   console.log('[ErrorReporter] Initialized with config:', this.config);
+    // }
   }
 
   /**
@@ -239,7 +239,7 @@ export class ErrorReporter {
       breadcrumbs: [...this.breadcrumbs],
       fingerprint,
       groupingKey,
-      environment: env.getEnvironment(),
+      environment: import.meta.env.MODE,
       release: import.meta.env.VITE_APP_VERSION || '1.0.0',
       tags: {
         browser: this.getBrowserName(),
@@ -487,11 +487,11 @@ export class ErrorReporter {
     this.errorQueue = [];
 
     try {
-      // In production, send to monitoring service
-      if (env.isProduction() && env.monitoring.sentryDsn) {
-        // Send to Sentry or similar service
-        await this.sendToMonitoringService(errors);
-      }
+      // In production, send to monitoring service - TEMPORARILY DISABLED
+      // if (env.isProduction() && env.monitoring.sentryDsn) {
+      //   // Send to Sentry or similar service
+      //   await this.sendToMonitoringService(errors);
+      // }
 
       // Also log to Supabase for internal tracking
       await this.logToSupabase(errors);
@@ -529,7 +529,7 @@ export class ErrorReporter {
    */
   private async logToSupabase(errors: ErrorReport[]) {
     // Supabase error logging disabled - error_logs table not created yet
-    if (!env.validateSupabaseConfig()) return;
+    // if (!env.validateSupabaseConfig()) return; // TEMPORARILY DISABLED
 
     // Temporarily disabled to avoid 404 errors
     console.log('[ErrorReporter] Supabase logging disabled, errors logged to console:', errors.length);

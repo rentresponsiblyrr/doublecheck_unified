@@ -69,7 +69,7 @@ const DEFAULT_CONFIG: TrackerConfig = {
   enableResourceTiming: true,
   enableAIMetrics: true,
   enableUserTiming: true,
-  sampleRate: env.isProduction() ? 0.1 : 1.0, // 10% in production, 100% in development
+  sampleRate: import.meta.env.PROD ? 0.1 : 1.0,
   slowThreshold: {
     pageLoad: 3000,
     api: 1000,
@@ -133,7 +133,7 @@ export class PerformanceTracker {
     // Track initial page load
     this.trackPageLoad();
 
-    if (env.isDevelopment()) {
+    if (import.meta.env.DEV) {
       console.log('[PerformanceTracker] Initialized with config:', this.config);
     }
   }
@@ -303,7 +303,7 @@ export class PerformanceTracker {
       unit,
       timestamp: new Date().toISOString(),
       tags: {
-        environment: env.getEnvironment(),
+        environment: import.meta.env.MODE,
         ...metadata?.tags,
       },
       metadata,
@@ -317,7 +317,7 @@ export class PerformanceTracker {
     }
 
     // Log in development
-    if (env.isDevelopment()) {
+    if (import.meta.env.DEV) {
       console.log('[PerformanceTracker] Metric:', metric);
     }
   }
@@ -440,7 +440,7 @@ export class PerformanceTracker {
     });
 
     // Log to console in development
-    if (env.isDevelopment()) {
+    if (import.meta.env.DEV) {
       console.warn(`[PerformanceTracker] Slow ${type} operation:`, {
         duration,
         details,
@@ -506,12 +506,12 @@ export class PerformanceTracker {
 
     try {
       // In production, send to monitoring service
-      if (env.isProduction()) {
+      if (import.meta.env.PROD) {
         await this.sendToMonitoringService(report);
       }
 
       // Log summary in development
-      if (env.isDevelopment()) {
+      if (import.meta.env.DEV) {
         console.log('[PerformanceTracker] Performance Report:', report);
       }
     } catch (error) {
