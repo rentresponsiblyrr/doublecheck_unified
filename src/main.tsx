@@ -1,44 +1,100 @@
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-import { validateEnv } from "./utils/typeGuards.ts";
+console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
 
-// Validate environment configuration
-try {
-  console.log('🔍 Starting environment validation...');
-  console.log('Available environment variables:', Object.keys(import.meta.env));
-  console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
-  console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
-  console.log('MODE:', import.meta.env.MODE);
-  console.log('NODE_ENV:', import.meta.env.NODE_ENV);
-  
-  const result = validateEnv();
-  console.log('✅ Environment validation passed:', result);
-} catch (error) {
-  console.error('❌ Environment validation failed:', error);
-  console.error('Error message:', error.message);
-  console.error('Available env vars:', Object.keys(import.meta.env));
-  console.error('Full environment:', import.meta.env);
-  
-  if (import.meta.env.PROD) {
-    // In production, show user-friendly error
-    document.body.innerHTML = `
-      <div style="padding: 20px; text-align: center; color: #ef4444;">
-        <h1>Configuration Error</h1>
-        <p>The application is not properly configured. Please contact support.</p>
-        <p style="font-size: 14px; color: #666; margin-top: 20px;">
-          Error: ${error.message}
-        </p>
-      </div>
-    `;
-    throw error;
-  } else {
-    // In development, just warn and continue
-    console.warn('⚠️ Environment validation failed in development mode, continuing anyway...');
+import { StrictMode, Component } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+
+console.log('🚨 Basic imports loaded successfully');
+
+// Test environment validation separately
+console.log('🚨 Testing environment validation...');
+console.log('Available env vars:', Object.keys(import.meta.env));
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+
+// Enhanced Error Boundary for debugging
+class DebugErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null; errorInfo: any }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    console.error('🚨 Error Boundary caught error:', error);
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('🚨 Error Boundary - Full error details:', error, errorInfo);
+    this.setState({
+      error,
+      errorInfo
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red', fontFamily: 'monospace', fontSize: '14px' }}>
+          <h1>🚨 ERROR BOUNDARY CAUGHT AN ERROR</h1>
+          <h2>Error: {this.state.error?.message}</h2>
+          <details style={{ marginTop: '20px' }}>
+            <summary>Stack Trace</summary>
+            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
+              {this.state.error?.stack}
+            </pre>
+          </details>
+          <details style={{ marginTop: '20px' }}>
+            <summary>Component Stack</summary>
+            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
+              {this.state.errorInfo?.componentStack}
+            </pre>
+          </details>
+        </div>
+      );
+    }
+
+    return this.props.children;
   }
 }
+
+// Test if the issue is with App import specifically
+console.log('🚨 Testing if we can import App component...');
+
+// Import the real App component now that basic React works
+console.log('🚨 Importing real App component...');
+import App from "./App.tsx";
+console.log('✅ Real App component imported successfully');
+
+// Use the real App component
+let TestComponent = App;
+
+try {
+  console.log('🚨 Attempting to import Supabase client...');
+  // Test if supabase import works
+  import("@/integrations/supabase/client").then(() => {
+    console.log('✅ Supabase client imported successfully');
+  }).catch((error) => {
+    console.error('❌ Supabase client import failed:', error);
+  });
+  
+  console.log('🚨 Attempting to import SimpleAuthForm...');
+  // Test if SimpleAuthForm works
+  import("@/components/SimpleAuthForm").then(() => {
+    console.log('✅ SimpleAuthForm imported successfully');
+  }).catch((error) => {
+    console.error('❌ SimpleAuthForm import failed:', error);
+  });
+} catch (error) {
+  console.error('🚨 Import test failed:', error);
+}
+
+console.log('🚨 About to render app with error boundary');
+console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
 
 // Initialize Sentry for production error monitoring
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
@@ -77,9 +133,53 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 
-// Initialize the React app with proper error boundaries
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+// Wait for DOM to be ready and initialize React app
+function initializeApp() {
+  try {
+    console.log('🚨 DOM ready, creating root element');
+    console.log('🚨 Document body:', document.body);
+    console.log('🚨 Document.querySelector("#root"):', document.querySelector("#root"));
+    console.log('🚨 Document.getElementById("root"):', document.getElementById("root"));
+    
+    const rootElement = document.getElementById("root");
+    console.log('🚨 Root element found:', !!rootElement);
+    console.log('🚨 Root element details:', rootElement);
+    
+    if (!rootElement) {
+      console.error('🚨 Root element not found! DOM content:');
+      console.error('🚨 Body innerHTML:', document.body.innerHTML);
+      throw new Error('Root element not found!');
+    }
+    
+    const root = createRoot(rootElement);
+    console.log('🚨 Root created, about to render');
+    
+    root.render(
+      <StrictMode>
+        <DebugErrorBoundary>
+          <TestComponent />
+        </DebugErrorBoundary>
+      </StrictMode>
+    );
+    
+    console.log('🚨 Render complete!');
+  } catch (error) {
+    console.error('🚨 ERROR during app initialization:', error);
+    document.body.innerHTML = `
+      <div style="padding: 20px; color: red; font-family: monospace;">
+        <h1>🚨 CRITICAL ERROR</h1>
+        <p>Error: ${error.message}</p>
+        <pre>${error.stack}</pre>
+      </div>
+    `;
+  }
+}
+
+// Check if DOM is already loaded or wait for it
+if (document.readyState === 'loading') {
+  console.log('🚨 DOM still loading, waiting...');
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  console.log('🚨 DOM already loaded');
+  initializeApp();
+}

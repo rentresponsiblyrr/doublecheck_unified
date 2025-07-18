@@ -92,21 +92,21 @@ class EnvironmentConfig {
 
   private validateEnvironment(): Environment {
     try {
-      // Get all environment variables
+      // Get all environment variables - use import.meta.env for browser compatibility
+      const vitEnv = typeof import.meta !== 'undefined' ? import.meta.env : {};
+      
       const env = {
-        NODE_ENV: process.env.NODE_ENV || (typeof import.meta !== 'undefined' ? import.meta.env?.MODE : 'development'),
-        PORT: process.env.PORT,
-        HOST: process.env.HOST,
+        NODE_ENV: vitEnv.NODE_ENV || vitEnv.MODE || 'development',
+        PORT: vitEnv.PORT,
+        HOST: vitEnv.HOST,
         
         // Import all VITE_ prefixed variables safely
-        ...(typeof import.meta !== 'undefined' && import.meta.env 
-          ? Object.entries(import.meta.env).reduce((acc, [key, value]) => {
-              if (key.startsWith('VITE_')) {
-                acc[key] = value;
-              }
-              return acc;
-            }, {} as Record<string, any>)
-          : {})
+        ...Object.entries(vitEnv).reduce((acc, [key, value]) => {
+          if (key.startsWith('VITE_')) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>)
       };
 
       // Validate against schema
