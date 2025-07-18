@@ -7,9 +7,21 @@ import { validateEnv } from "./utils/typeGuards.ts";
 
 // Validate environment configuration
 try {
-  validateEnv();
+  console.log('🔍 Starting environment validation...');
+  console.log('Available environment variables:', Object.keys(import.meta.env));
+  console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
+  console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+  console.log('MODE:', import.meta.env.MODE);
+  console.log('NODE_ENV:', import.meta.env.NODE_ENV);
+  
+  const result = validateEnv();
+  console.log('✅ Environment validation passed:', result);
 } catch (error) {
-  console.error('Environment validation failed:', error);
+  console.error('❌ Environment validation failed:', error);
+  console.error('Error message:', error.message);
+  console.error('Available env vars:', Object.keys(import.meta.env));
+  console.error('Full environment:', import.meta.env);
+  
   if (import.meta.env.PROD) {
     // In production, show user-friendly error
     document.body.innerHTML = `
@@ -22,6 +34,9 @@ try {
       </div>
     `;
     throw error;
+  } else {
+    // In development, just warn and continue
+    console.warn('⚠️ Environment validation failed in development mode, continuing anyway...');
   }
 }
 
