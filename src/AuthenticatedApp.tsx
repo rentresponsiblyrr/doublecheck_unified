@@ -136,7 +136,7 @@ interface AuthenticatedAppProps {
 export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   // SIMPLIFIED: Single session config for unified app
   const sessionConfig = React.useMemo(() => {
-    const isDev = env.isDevelopment();
+    const isDev = import.meta.env.DEV;
     
     return {
       inactivityTimeoutMs: isDev ? 2 * 60 * 1000 : 110 * 60 * 1000, // 2min dev, 110min prod
