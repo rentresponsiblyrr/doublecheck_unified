@@ -8,7 +8,7 @@ import { Database } from '@/integrations/supabase/types';
 
 // Add missing RPC functions that exist in the database
 export interface DatabaseFunctionsOverride {
-  create_inspection_secure: {
+  create_inspection_compatibility: {
     Args: {
       p_property_id: string; // UUID property ID (corrected from previous integer assumption)
       p_inspector_id: string; // UUID inspector ID

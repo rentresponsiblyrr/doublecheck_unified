@@ -15,9 +15,18 @@ class MobileInspectionOptimizer {
   private static readonly MAX_RETRIES = 2; // Reduced retries for mobile
 
   static async getOrCreateInspectionOptimized(propertyId: string): Promise<OptimizedInspectionResult> {
-    console.log('📱 Starting optimized mobile inspection flow for:', propertyId);
+    // REMOVED: Console logging to prevent infinite loops
+    // console.log('📱 Starting optimized mobile inspection flow for:', propertyId);
 
     try {
+      // Add detailed debugging for the property ID type issue
+      console.error('🔍 DEBUG: Property ID received:', { 
+        propertyId, 
+        type: typeof propertyId, 
+        length: propertyId.length,
+        isUUID: propertyId.includes('-'),
+        isInteger: /^\d+$/.test(propertyId)
+      });
       // Use a single optimized query to get property info and existing inspection
       const [propertyResult, inspectionResult] = await Promise.all([
         this.getPropertyInfo(propertyId),
@@ -25,12 +34,23 @@ class MobileInspectionOptimizer {
       ]);
 
       if (!propertyResult) {
-        throw new Error('Property not found or access denied');
+        // More detailed error with property ID information
+        const errorDetails = {
+          propertyId,
+          propertyIdType: typeof propertyId,
+          propertyIdLength: propertyId.length,
+          isUUID: propertyId.includes('-'),
+          isInteger: /^\d+$/.test(propertyId),
+          timestamp: new Date().toISOString()
+        };
+        console.error('🔍 DETAILED ERROR: Property not found:', errorDetails);
+        throw new Error(`Property not found or access denied. Property ID: ${propertyId} (Type: ${typeof propertyId}, Length: ${propertyId.length})`);
       }
 
       // If active inspection exists, return it
       if (inspectionResult) {
-        console.log('📋 Joining existing optimized inspection:', inspectionResult.id);
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('📋 Joining existing optimized inspection:', inspectionResult.id);
         
         const itemCount = await this.getChecklistItemCount(inspectionResult.id);
         
@@ -43,7 +63,8 @@ class MobileInspectionOptimizer {
       }
 
       // Create new inspection
-      console.log('🆕 Creating new optimized inspection for property:', propertyId);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log('🆕 Creating new optimized inspection for property:', propertyId);
       const newInspectionId = await this.createInspectionOptimized(propertyId);
       
       const itemCount = await this.getChecklistItemCount(newInspectionId);
@@ -66,24 +87,37 @@ class MobileInspectionOptimizer {
 
   private static async getPropertyInfo(propertyId: string): Promise<{ name: string } | null> {
     try {
-      // Use propertyId as UUID string (no conversion needed)
-      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
-
-      // Convert property ID to integer for database query
-      const propertyIdInt = parseInt(propertyId, 10);
+      // The database function now returns UUID property_id values
+      // We need to handle this correctly in the application layer
       
-      const { data, error } = await supabase
-        .from('properties')
-        .select('property_name')
-        .eq('property_id', propertyIdInt)
-        .single();
-
-      if (error || !data) {
-        console.error('❌ Property not found:', error);
+      if (!propertyId || propertyId.length === 0) {
+        throw new Error('Empty property ID provided');
+      }
+      
+      // Since we're getting UUID property_id from get_properties_with_inspections,
+      // we need to find the property by this UUID
+      
+      // The property_id we receive is actually a UUID that represents the property
+      // Let's try to get property info using the same function that lists properties
+      console.log('🔍 Getting property info for UUID property_id:', propertyId);
+      
+      const { data: propertiesData, error: propertiesError } = await supabase
+        .rpc('get_properties_with_inspections');
+      
+      if (propertiesError) {
+        console.error('❌ Error fetching properties for lookup:', propertiesError);
+        throw propertiesError;
+      }
+      
+      // Find the property with matching property_id
+      const property = propertiesData?.find(p => p.property_id === propertyId);
+      
+      if (!property) {
+        console.error('❌ Property not found with ID:', propertyId);
         return null;
       }
-
-      return { name: data.property_name || 'Property' };
+      
+      return { name: property.property_name || 'Property' };
     } catch (error) {
       console.error('❌ Property info query failed:', error);
       return null;
@@ -117,41 +151,43 @@ class MobileInspectionOptimizer {
   private static async createInspectionOptimized(propertyId: string): Promise<string> {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
-        console.log(`🔄 Creating optimized inspection attempt ${attempt}/${this.MAX_RETRIES}`);
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log(`🔄 Creating optimized inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
-        // Try RPC function first, fallback to direct insert
+        // Get current user for the secure function
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
         let data, error;
         
+        // Since we're receiving UUID property_id values from the database function,
+        // we need to handle this properly in inspection creation
+        
         try {
-          // Use propertyId as UUID string for the database function
-          const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
-
-          // Get current user for the secure function
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            throw new Error('User not authenticated');
-          }
-
-          // Use available RPC function instead of removed create_inspection_secure
+          // Try the RPC function with UUID property_id
+          console.log('🔄 Attempting inspection creation with UUID property_id:', propertyId);
+          
           const rpcResult = await supabase.rpc('create_inspection_compatibility', {
-            property_id: propertyId, // Pass as string
+            property_id: propertyId, // Pass UUID as string
             inspector_id: user.id
           });
           data = rpcResult.data;
           error = rpcResult.error;
-        } catch (rpcError) {
-          console.log('RPC function not available, using direct insert');
-          // Get current user from Supabase auth
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            throw new Error('User not authenticated');
-          }
           
-          // Use propertyId as string for direct insert (production schema)
+          if (!error && data) {
+            console.log('✅ RPC function succeeded with UUID property_id');
+          }
+        } catch (rpcError) {
+          console.log('⚠️ RPC function failed, trying direct insert with UUID property_id');
+          
+          // Try direct insert with UUID property_id
+          // The inspections table may actually accept UUID property_id values
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyId, // Property ID as string in inspections table
+              property_id: propertyId, // Use UUID property_id directly
               start_time: new Date().toISOString(),
               completed: false,
               status: 'draft',
@@ -161,13 +197,18 @@ class MobileInspectionOptimizer {
             .single();
           data = insertResult.data?.id;
           error = insertResult.error;
+          
+          if (!error && data) {
+            console.log('✅ Direct insert succeeded with UUID property_id');
+          }
         }
 
         if (error || !data) {
           throw error || new Error('No inspection ID returned');
         }
 
-        console.log('✅ Optimized inspection created:', data);
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('✅ Optimized inspection created:', data);
         
         // Brief wait for trigger to populate checklist items
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -181,6 +222,9 @@ class MobileInspectionOptimizer {
         const errorDetails = {
           attempt,
           propertyId,
+          propertyIdType: typeof propertyId,
+          propertyIdLength: propertyId.length,
+          isUUID: propertyId.includes('-'),
           errorMessage: error instanceof Error ? error.message : String(error),
           errorCode: (error as any)?.code,
           errorDetails: (error as any)?.details,
@@ -207,7 +251,8 @@ class MobileInspectionOptimizer {
 
   private static async getChecklistItemCount(inspectionId: string): Promise<number> {
     try {
-      console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
       
       // Query actual logs table for this inspection
       const { count, error } = await supabase
@@ -228,12 +273,14 @@ class MobileInspectionOptimizer {
         }
         
         const fallbackCount = staticCount || 8;
-        console.log(`📋 Using static safety items count as fallback: ${fallbackCount}`);
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log(`📋 Using static safety items count as fallback: ${fallbackCount}`);
         return fallbackCount;
       }
 
       const actualCount = count || 0;
-      console.log(`📋 Found ${actualCount} inspection checklist items for inspection ${inspectionId}`);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log(`📋 Found ${actualCount} inspection checklist items for inspection ${inspectionId}`);
       return actualCount;
     } catch (error) {
       console.error('❌ Failed to count inspection checklist items:', error);
@@ -254,7 +301,8 @@ class MobileInspectionOptimizer {
       if (error) {
         console.warn('⚠️ Inspector assignment failed (non-critical):', error);
       } else {
-        console.log('✅ Inspector assigned to optimized inspection');
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('✅ Inspector assigned to optimized inspection');
       }
     } catch (error) {
       console.warn('⚠️ Inspector assignment error (non-critical):', error);

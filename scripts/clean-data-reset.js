@@ -105,9 +105,9 @@ async function cleanDataReset() {
     const propertyIdsToDelete = propertiesToDelete.map(p => p.id);
     
     const { data: inspectionsToDelete, error: inspError } = await supabase
-      .from('inspections_fixed')
+      .from('inspections')
       .select('id')
-      .in('property_id', propertyIdsToDelete);
+      .in('property_id', propertyIdsToDelete.map(id => id.toString()));
     
     if (inspError) {
       console.error('❌ Error fetching inspections:', inspError);
@@ -121,7 +121,7 @@ async function cleanDataReset() {
       const inspectionIdsToDelete = inspectionsToDelete.map(i => i.id);
       
       const { data: checklistItemsToDelete, error: checklistError } = await supabase
-        .from('inspection_checklist_items')
+        .from('logs')
         .select('id')
         .in('inspection_id', inspectionIdsToDelete);
       
@@ -161,7 +161,7 @@ async function cleanDataReset() {
 
         // Step 7: Delete checklist items
         const { error: checklistDeleteError } = await supabase
-          .from('inspection_checklist_items')
+          .from('logs')
           .delete()
           .in('id', checklistItemIds);
         
@@ -186,7 +186,7 @@ async function cleanDataReset() {
 
       // Step 9: Delete inspections
       const { error: inspectionDeleteError } = await supabase
-        .from('inspections_fixed')
+        .from('inspections')
         .delete()
         .in('id', inspectionIdsToDelete);
       
@@ -199,7 +199,7 @@ async function cleanDataReset() {
 
     // Step 10: Delete properties
     const { error: propertyDeleteError } = await supabase
-      .from('properties_fixed')
+      .from('properties')
       .delete()
       .in('id', propertyIdsToDelete);
     

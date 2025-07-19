@@ -125,10 +125,10 @@ async function verifyDatabaseSchema() {
       }
     },
     {
-      name: 'users table',
+      name: 'profiles table',
       test: async () => {
         const { error } = await supabase
-          .from('users')
+          .from('profiles')
           .select('id')
           .limit(1);
         return !error || error.code !== '42P01';

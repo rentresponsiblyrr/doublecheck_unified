@@ -161,7 +161,7 @@ export const InspectionCreationDiagnostic: React.FC = () => {
       addResult({
         category: 'RPC Function Test',
         status: 'success',
-        message: 'Testing create_inspection_secure function...'
+        message: 'Testing create_inspection_compatibility function...'
       });
 
       const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {

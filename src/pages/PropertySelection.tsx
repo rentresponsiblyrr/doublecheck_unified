@@ -16,7 +16,7 @@ type Property = Tables<'properties'>;
 type Inspection = Tables<'inspections'>;
 
 interface PropertyData {
-  property_id: string;
+  property_id: string; // UUID from database - keeping as string for frontend consistency
   property_name: string;
   property_address: string;
   property_vrbo_url: string | null;
@@ -26,6 +26,10 @@ interface PropertyData {
   inspection_count?: number;
   completed_inspection_count?: number;
   active_inspection_count?: number;
+  draft_inspection_count?: number;
+  review_pipeline_count?: number;
+  approved_count?: number;
+  rejected_count?: number;
   latest_inspection_id?: string | null;
   latest_inspection_completed?: boolean | null;
 }
@@ -47,11 +51,13 @@ const PropertySelection = () => {
     queryKey: ['properties', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('❌ No user ID available, returning empty properties');
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('❌ No user ID available, returning empty properties');
         return [];
       }
 
-      console.log('📊 Fetching properties with inspections for user:', user.id);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log('📊 Fetching properties with inspections for user:', user.id);
       
       // Use the existing get_properties_with_inspections function that works
       const { data: propertiesData, error: propertiesError } = await supabase
@@ -120,7 +126,8 @@ const PropertySelection = () => {
   };
 
   const handlePropertyDeleted = async () => {
-    console.log('🔄 Property deleted, performing comprehensive data refresh...');
+    // REMOVED: Console logging to prevent infinite loops
+    // console.log('🔄 Property deleted, performing comprehensive data refresh...');
     
     // Clear selection immediately
     setSelectedProperty(null);
@@ -129,7 +136,8 @@ const PropertySelection = () => {
       // Force immediate refresh of properties data (contains inspection info)
       await refetchProperties();
       
-      console.log('✅ Data refresh completed successfully after property deletion');
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log('✅ Data refresh completed successfully after property deletion');
     } catch (error) {
       console.error('❌ Error during data refresh:', error);
       // Force a hard refresh if normal refetch fails

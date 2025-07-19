@@ -657,9 +657,7 @@ class EnhancedErrorCollectionService {
       'users',
       'static_safety_items',
       'logs',
-      'properties',
-      'uuid_to_int',
-      'int_to_uuid'
+      'properties'
     ];
     return compatibilityKeywords.some(keyword => message.includes(keyword));
   }
@@ -684,8 +682,8 @@ class EnhancedErrorCollectionService {
     if (message.includes('permission denied')) {
       return 'Verify Row Level Security policies and user permissions.';
     }
-    if (message.includes('uuid_to_int') || message.includes('int_to_uuid')) {
-      return 'Ensure UUID conversion functions are installed in database.';
+    if (message.includes('compatibility layer')) {
+      return 'The compatibility layer has been removed. Use direct production schema access.';
     }
     return 'Review database schema and compatibility layer configuration.';
   }

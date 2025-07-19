@@ -67,12 +67,12 @@ async function debugInspectionCreation() {
       console.log('⚠️  Unable to check existing inspections due to RLS restrictions');
     }
     
-    // Step 3: Test the create_inspection_secure RPC function
-    console.log('\n🧪 Step 3: Testing create_inspection_secure RPC function...');
+    // Step 3: Test the create_inspection_compatibility RPC function
+    console.log('\n🧪 Step 3: Testing create_inspection_compatibility RPC function...');
     
     try {
       const { data: inspectionResult, error: createError } = await supabase
-        .rpc('create_inspection_secure', {
+        .rpc('create_inspection_compatibility', {
           property_id: rhododendronProperty.property_id
         });
       

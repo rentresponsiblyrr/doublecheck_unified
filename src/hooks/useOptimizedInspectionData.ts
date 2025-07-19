@@ -12,7 +12,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
   const { data: checklistItems = [], isLoading, refetch, isRefetching, error } = useQuery({
     queryKey: ['optimized-checklist-items', inspectionId],
     queryFn: async () => {
-      console.log('📊 Fetching optimized checklist items for inspection:', inspectionId);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log('📊 Fetching optimized checklist items for inspection:', inspectionId);
       
       if (!inspectionId) {
         console.error('❌ No inspectionId provided to query');
@@ -22,7 +23,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
       // Check cache first
       const cachedData = cache.get<ChecklistItemType[]>(CACHE_KEYS.CHECKLIST_ITEMS(inspectionId));
       if (cachedData) {
-        console.log('✅ Using cached checklist data');
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('✅ Using cached checklist data');
         return cachedData;
       }
       
@@ -39,7 +41,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           throw error;
         }
 
-        console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
         
         // If no items found, check if inspection exists
         if (!data || data.length === 0) {
@@ -57,7 +60,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           }
           
           if (inspection) {
-            console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
+            // REMOVED: Console logging to prevent infinite loops
+            // console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
             return [];
           }
         }
@@ -73,7 +77,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           created_at: item.created_at || new Date().toISOString()
         })) as ChecklistItemType[];
         
-        console.log('🔄 Transformed checklist items:', transformedData.length);
+        // REMOVED: Console logging to prevent infinite loops
+        // console.log('🔄 Transformed checklist items:', transformedData.length);
         
         // Cache the results
         cache.set(CACHE_KEYS.CHECKLIST_ITEMS(inspectionId), transformedData, CACHE_TTL.SHORT);
@@ -89,21 +94,22 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
     staleTime: CACHE_TTL.SHORT, // 1 minute
     gcTime: CACHE_TTL.MEDIUM, // 5 minutes
     retry: (failureCount, error) => {
-      console.log(`🔄 Retry attempt ${failureCount} for checklist items:`, error);
+      // REMOVED: Console logging to prevent infinite loops
+      // console.log(`🔄 Retry attempt ${failureCount} for checklist items:`, error);
       return failureCount < 2; // Only retry twice
     },
   });
 
-  // Log state changes
-  useEffect(() => {
-    console.log('📊 useOptimizedInspectionData state changed:', {
-      inspectionId,
-      isLoading,
-      isRefetching,
-      itemCount: checklistItems.length,
-      hasError: !!error
-    });
-  }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
+  // REMOVED: State change logging to prevent infinite loops
+  // useEffect(() => {
+  //   console.log('📊 useOptimizedInspectionData state changed:', {
+  //     inspectionId,
+  //     isLoading,
+  //     isRefetching,
+  //     itemCount: checklistItems.length,
+  //     hasError: !!error
+  //   });
+  // }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
 
   // Enhanced refetch that clears cache
   const optimizedRefetch = async () => {

@@ -42,11 +42,12 @@ async function fetchPropertiesWithInspections(userId: string) {
         };
       });
       
-      console.log('🔧 Filtered properties:', {
-        original: result.data?.length || 0,
-        filtered: filteredData.length,
-        removed: (result.data?.length || 0) - filteredData.length
-      });
+      // REMOVED: Property filtering logging to prevent infinite loops
+      // console.log('🔧 Filtered properties:', {
+      //   original: result.data?.length || 0,
+      //   filtered: filteredData.length,
+      //   removed: (result.data?.length || 0) - filteredData.length
+      // });
       
       return { ...result, data: filteredData };
     }
@@ -113,7 +114,8 @@ export const useInspectorDashboard = () => {
         return { inspections: [], properties: [] };
       }
 
-      console.log('🔍 Fetching dashboard data for user:', user.id);
+      // REMOVED: Dashboard fetching logging to prevent infinite loops
+      // console.log('🔍 Fetching dashboard data for user:', user.id);
 
       try {
         // Fetch both inspections and properties in parallel
@@ -164,8 +166,9 @@ export const useInspectorDashboard = () => {
           // Continue with inspections only if properties fail
         }
 
-        console.log('✅ Successfully fetched', inspectionsData?.length || 0, 'inspections');
-        console.log('✅ Successfully fetched', propertiesData?.length || 0, 'properties');
+        // REMOVED: Success logging to prevent infinite loops
+        // console.log('✅ Successfully fetched', inspectionsData?.length || 0, 'inspections');
+        // console.log('✅ Successfully fetched', propertiesData?.length || 0, 'properties');
 
         // Transform inspections with progress calculation
         const inspectionsWithProgress = await Promise.all(
@@ -256,7 +259,8 @@ export const useInspectorDashboard = () => {
     }
   });
 
-  console.log('🔢 Status counts calculated:', statusCounts);
+  // REMOVED: Status counts logging to prevent infinite loops
+  // console.log('🔢 Status counts calculated:', statusCounts);
 
   // Calculate property-level aggregations with fallback handling
   let propertyStats = { totalInspections: 0, activeInspections: 0, completedInspections: 0 };
@@ -281,29 +285,29 @@ export const useInspectorDashboard = () => {
     pending_review: statusCounts.pending_review + statusCounts.approved,
   };
 
-  // Debug logging for summary
-  console.log('📊 Dashboard Summary:', summary);
-  console.log('📋 Inspection statuses:', inspections.map((i: InspectorInspection) => ({ id: i.id, status: i.status })));
-  console.log('🏠 Properties with inspections:', properties.map((p: any) => ({ 
-    id: p.property_id, 
-    name: p.property_name,
-    total: p.inspection_count,
-    active: p.active_inspection_count,
-    completed: p.completed_inspection_count
-  })));
+  // REMOVED: Debug logging that was causing infinite console loops
+  // console.log('📊 Dashboard Summary:', summary);
+  // console.log('📋 Inspection statuses:', inspections.map((i: InspectorInspection) => ({ id: i.id, status: i.status })));
+  // console.log('🏠 Properties with inspections:', properties.map((p: any) => ({ 
+  //   id: p.property_id, 
+  //   name: p.property_name,
+  //   total: p.inspection_count,
+  //   active: p.active_inspection_count,
+  //   completed: p.completed_inspection_count
+  // })));
 
-  // If no data found, provide helpful debug information
-  if (inspections.length === 0 && properties.length === 0) {
-    console.log('⚠️ No data found for this user. This could mean:');
-    console.log('1. User has no properties or inspections yet');
-    console.log('2. User ID mismatch in database');
-    console.log('3. Database connection issue');
-    console.log('4. Incorrect inspector_id relationship');
-  } else if (properties.length > 0 && inspections.length === 0) {
-    console.log('ℹ️ Properties found but no inspections. This suggests:');
-    console.log('1. User has properties but hasn\'t started inspecting them yet');
-    console.log('2. Inspections may need to be created for these properties');
-  }
+  // REMOVED: Debug information logging to prevent infinite loops
+  // if (inspections.length === 0 && properties.length === 0) {
+  //   console.log('⚠️ No data found for this user. This could mean:');
+  //   console.log('1. User has no properties or inspections yet');
+  //   console.log('2. User ID mismatch in database');
+  //   console.log('3. Database connection issue');
+  //   console.log('4. Incorrect inspector_id relationship');
+  // } else if (properties.length > 0 && inspections.length === 0) {
+  //   console.log('ℹ️ Properties found but no inspections. This suggests:');
+  //   console.log('1. User has properties but hasn\'t started inspecting them yet');
+  //   console.log('2. Inspections may need to be created for these properties');
+  // }
 
   // Get recent inspections (last 7 days)
   const recentInspections = inspections.filter((inspection: InspectorInspection) => {

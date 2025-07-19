@@ -24,43 +24,43 @@ async function testRestApiAccess() {
     console.log('🔑 API Key:', supabaseKey ? `${supabaseKey.substring(0, 20)}...` : 'Missing');
     
     try {
-        // Test 1: Basic properties_fixed access (the main issue)
-        console.log('\n🔍 Test 1: Basic properties_fixed access');
+        // Test 1: Basic properties access (production schema)
+        console.log('\n🔍 Test 1: Basic properties access');
         const { data: propertiesData, error: propertiesError } = await supabase
-            .from('properties_fixed')
+            .from('properties')
             .select('*')
             .order('created_at', { ascending: false });
         
         if (propertiesError) {
-            console.error('❌ properties_fixed error:', propertiesError);
+            console.error('❌ properties error:', propertiesError);
             throw propertiesError;
         }
         
-        console.log('✅ properties_fixed accessible');
+        console.log('✅ properties accessible');
         console.log('📊 Properties count:', propertiesData?.length || 0);
         console.log('🔍 Sample property:', propertiesData?.[0]);
         
-        // Test 2: Basic inspections_fixed access
-        console.log('\n🔍 Test 2: Basic inspections_fixed access');
+        // Test 2: Basic inspections access
+        console.log('\n🔍 Test 2: Basic inspections access');
         const { data: inspectionsData, error: inspectionsError } = await supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .select('*')
             .limit(5);
         
         if (inspectionsError) {
-            console.error('❌ inspections_fixed error:', inspectionsError);
+            console.error('❌ inspections error:', inspectionsError);
             throw inspectionsError;
         }
         
-        console.log('✅ inspections_fixed accessible');
+        console.log('✅ inspections accessible');
         console.log('📊 Inspections count:', inspectionsData?.length || 0);
         console.log('🔍 Sample inspection:', inspectionsData?.[0]);
         
         // Test 3: Filtered query (like the app does)
-        console.log('\n🔍 Test 3: Filtered properties_fixed query');
+        console.log('\n🔍 Test 3: Filtered properties query');
         const { data: filteredData, error: filteredError } = await supabase
-            .from('properties_fixed')
-            .select('id, name, address, vrbo_url, airbnb_url')
+            .from('properties')
+            .select('property_id, property_name, street_address, vrbo_url, airbnb_url')
             .order('created_at', { ascending: false })
             .limit(10);
         
@@ -69,13 +69,13 @@ async function testRestApiAccess() {
             throw filteredError;
         }
         
-        console.log('✅ Filtered properties_fixed query successful');
+        console.log('✅ Filtered properties query successful');
         console.log('📊 Filtered results count:', filteredData?.length || 0);
         
         // Test 4: Test with user ID filter (simulating app behavior)
         console.log('\n🔍 Test 4: User-specific inspections query');
         const { data: userInspections, error: userError } = await supabase
-            .from('inspections_fixed')
+            .from('inspections')
             .select('property_id, completed, status, id, created_at')
             .eq('inspector_id', '7615469e-14ed-4b5c-8566-efe09bd05dd3'); // User ID from logs
         
@@ -90,9 +90,7 @@ async function testRestApiAccess() {
         // Test 5: Test the exact query from the app
         console.log('\n🔍 Test 5: Exact app query simulation');
         const { data: exactData, error: exactError } = await supabase
-            .from('properties_fixed')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .rpc('get_properties_with_inspections');
         
         if (exactError) {
             console.error('❌ Exact app query error:', exactError);

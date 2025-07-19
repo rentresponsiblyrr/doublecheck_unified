@@ -295,7 +295,7 @@ async function insertTestData() {
     }
     
     const { data: insertedUsers, error: usersError } = await supabase
-      .from('users')
+      .from('profiles')
       .insert(users)
       .select('id, role');
     

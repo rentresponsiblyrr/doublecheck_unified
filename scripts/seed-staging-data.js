@@ -449,11 +449,11 @@ async function createTestUsers() {
       
       // Create user profile
       const { error: profileError } = await supabase
-        .from('users')
+        .from('profiles')
         .upsert({
           id: authData.user.id,
           email: user.email,
-          name: user.name,
+          full_name: user.name,
           role: user.role,
           is_active: true
         }, { onConflict: 'id' });

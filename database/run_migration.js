@@ -107,7 +107,7 @@ async function testConnection() {
   try {
     console.log('🔌 Testing Supabase connection...');
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('count')
       .limit(1);
     

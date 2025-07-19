@@ -60,8 +60,8 @@ async function debugInspectionCreation() {
     }
     
     // Test the RPC function directly
-    console.log('🧪 Testing create_inspection_secure RPC function...');
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_secure', {
+    console.log('🧪 Testing create_inspection_compatibility RPC function...');
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {
       p_property_id: property.id,
       p_inspector_id: user.id
     });

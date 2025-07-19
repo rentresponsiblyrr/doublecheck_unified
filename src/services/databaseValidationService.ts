@@ -65,14 +65,14 @@ export class DatabaseValidationService {
     const issues: string[] = [];
     const recommendations: string[] = [];
 
-    // Test RPC function
-    const rpcTest = await this.testRpcFunction('create_inspection_secure', {
+    // Test RPC function - now using create_inspection_compatibility
+    const rpcTest = await this.testRpcFunction('create_inspection_compatibility', {
       p_property_id: '00000000-0000-4000-8000-000000000000', // Use UUID for property ID
       p_inspector_id: '00000000-0000-4000-8000-000000000000'
     });
 
     if (!rpcTest.exists) {
-      issues.push('create_inspection_secure RPC function does not exist');
+      issues.push('create_inspection_compatibility RPC function does not exist');
       recommendations.push('Create the RPC function in the database or rely on direct inserts');
     }
 
@@ -118,7 +118,7 @@ export class DatabaseValidationService {
 
       // Try RPC function first
       try {
-        const { data, error } = await supabase.rpc('create_inspection_secure', {
+        const { data, error } = await supabase.rpc('create_inspection_compatibility', {
           p_property_id: propertyIdUuid,
           p_inspector_id: inspectorId
         });
@@ -289,7 +289,7 @@ export class DatabaseValidationService {
     }
 
     // Test RPC functions
-    const functions = ['create_inspection_secure', 'get_properties_with_inspections'];
+    const functions = ['create_inspection_compatibility', 'get_properties_with_inspections'];
     for (const func of functions) {
       const test = await this.testRpcFunction(func);
       checks.push({

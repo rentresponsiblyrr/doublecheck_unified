@@ -80,7 +80,6 @@ class AIIssueClassificationService {
       'relation does not exist',
       'users view',
       'static_safety_items',
-      'uuid_to_int',
       'properties'
     ],
     authenticationIssues: [
