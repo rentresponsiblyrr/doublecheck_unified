@@ -80,7 +80,7 @@ export default class AdminErrorBoundary extends React.Component<Props, State> {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => window.location.reload()}
+                    onClick={() => window.location.replace(window.location.pathname)}
                   >
                     Reload Page
                   </Button>

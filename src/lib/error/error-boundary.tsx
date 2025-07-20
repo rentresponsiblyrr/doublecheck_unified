@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorReporter } from '../monitoring/error-reporter';
 import { env } from '../config/environment';
+import { log } from '@/lib/logging/enterprise-logger';
 
 export interface ErrorBoundaryState {
   hasError: boolean;
@@ -56,12 +57,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { onError, level = 'component' } = this.props;
     const { errorId, retryCount } = this.state;
 
-    // Log to console in development
-    if (env.isDevelopment()) {
-      console.error('Error caught by ErrorBoundary:', error);
-      console.error('Error Info:', errorInfo);
-      console.error('Component Stack:', errorInfo.componentStack);
-    }
+    // Log with enterprise logger
+    log.error('Error caught by ErrorBoundary', error, {
+      component: 'ErrorBoundary',
+      action: 'componentDidCatch',
+      errorId: errorId || 'unknown',
+      level,
+      retryCount,
+      componentStack: errorInfo.componentStack,
+      errorName: error.name,
+      propsKeys: Object.keys(this.sanitizeProps())
+    }, 'ERROR_BOUNDARY_CATCH');
 
     // Update state with error info
     this.setState({ errorInfo });
@@ -287,7 +293,7 @@ function DefaultErrorFallback({
             </button>
             
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => window.location.replace(window.location.pathname)}
               className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Refresh Page

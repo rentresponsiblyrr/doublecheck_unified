@@ -42,9 +42,20 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
     const hasAccess = await checkAdminAccess();
     
     if (hasAccess) {
-      window.location.href = '/admin';
+      // Professional navigation - use React Router if available
+      if (window.history && window.history.pushState) {
+        window.history.pushState({}, '', '/admin');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } else {
+        // Fallback for cross-domain navigation
+        window.location.replace('/admin');
+      }
     } else {
-      alert('Access denied. Admin privileges required.');
+      // Professional user feedback instead of alert()
+      const event = new CustomEvent('access-denied', { 
+        detail: { message: 'Admin privileges required' }
+      });
+      window.dispatchEvent(event);
     }
   };
 
@@ -70,17 +81,44 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
           <span>Admin Dashboard</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => window.location.href = '/admin/users'}>
+        <DropdownMenuItem onClick={() => {
+          // Professional navigation
+          if (window.history && window.history.pushState) {
+            window.history.pushState({}, '', '/admin/users');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          } else {
+            window.location.replace('/admin/users');
+          }
+        }}>
           <Users className="mr-2 h-4 w-4" />
           <span>User Management</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => window.location.href = '/admin/audit'}>
+        <DropdownMenuItem onClick={() => {
+          // Professional navigation
+          if (window.history && window.history.pushState) {
+            window.history.pushState({}, '', '/admin/audit');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          } else {
+            window.location.replace('/admin/audit');
+          }
+        }}>
           <Eye className="mr-2 h-4 w-4" />
           <span>Audit Center</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem onClick={() => window.location.href = '/admin/health'}>
+        <DropdownMenuItem onClick={() => {
+          // Professional navigation - preserve history and state
+          try {
+            const url = new URL('/admin/health', window.location.origin);
+            window.history.pushState(null, '', url.href);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          } catch (error) {
+            // Graceful fallback
+            console.warn('Navigation error, using fallback:', error);
+            window.location.replace('/admin/health');
+          }
+        }}>
           <Shield className="mr-2 h-4 w-4" />
           <span>System Health</span>
         </DropdownMenuItem>

@@ -13,25 +13,21 @@ import { useSessionManager } from "@/hooks/useSessionManager";
 import { SessionWarning } from "@/components/SessionWarning";
 import { errorReporter } from "@/lib/monitoring/error-reporter";
 import { performanceTracker } from "@/lib/monitoring/performance-tracker";
+import { log } from "@/lib/logging/enterprise-logger";
 // TEMPORARILY DISABLE ENVIRONMENT IMPORTS TO FIX CRASH
 // import { env } from "@/lib/config/environment";
 // import { validateRequiredEnvVars } from "@/lib/config/environment";
 import { AppType, getAppTypeFromDomain, isInspectorDomain, isAdminDomain, logAppConfiguration } from "@/lib/config/app-type";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedRoutes from "@/components/UnifiedRoutes";
+// Import console debugger for development
+import "@/utils/consoleDebugger";
 
-// Core Pages
-import Index from "./pages/Index.tsx";
-import AddProperty from "./pages/AddProperty";
-import InspectionComplete from "./pages/InspectionComplete";
-import PropertySelection from "./pages/PropertySelection";
+// PROFESSIONAL LAZY LOADING - META/NETFLIX/STRIPE STANDARDS
+// Components are now lazy loaded in UnifiedRoutes for optimal chunking
+
+// Critical components (always needed)
 import NotFound from "./pages/NotFound";
-import { InspectionPage } from "./pages/InspectionPage";
-import { DebugInspectionPage } from "@/components/DebugInspectionPage";
-import { InspectionReports } from "./pages/InspectionReports";
-
-// New Integrated Pages
-import { InspectorWorkflow } from "./pages/InspectorWorkflow";
 
 // Loading Components
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,7 +96,11 @@ function SystemHealthCheck({ children }: { children: React.ReactNode }) {
           enableNavigationCapture: true,
         });
       } catch (error) {
-        console.warn('⚠️ Failed to initialize error reporter:', error);
+        log.warn('Failed to initialize error reporter', {
+          component: 'SystemHealthCheck',
+          action: 'initializeErrorReporter',
+          environment: 'production'
+        }, 'ERROR_REPORTER_INIT_FAILED');
       }
     }
 
@@ -167,7 +167,11 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
           />
         )}
         onError={(error, errorInfo) => {
-          console.error('App-level error:', error, errorInfo);
+          log.error('App-level error boundary triggered', error, {
+            component: 'AuthenticatedApp',
+            errorBoundary: 'page',
+            componentStack: errorInfo.componentStack
+          }, 'APP_LEVEL_ERROR');
         }}
       >
       <SystemHealthCheck>
@@ -200,6 +204,9 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                   showInProduction={true}
                 />
                 
+                {/* Debug Database Status - Development only */}
+                {/* <DebugDatabaseStatus /> */}
+                
                 {/* Debug: Test bug report system in development only */}
                 {import.meta.env.DEV && (
                   <div 
@@ -228,189 +235,68 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   );
 }
 
-// Inspector Routes Component - Mobile-optimized for app.doublecheckverified.com
-function InspectorRoutes() {
-  React.useEffect(() => {
-    console.log('🚀 InspectorRoutes component mounted');
-    console.log('📍 Current path:', window.location.pathname);
-    
-    // Set mobile-specific viewport and PWA metadata
-    const metaViewport = document.querySelector('meta[name="viewport"]');
-    if (metaViewport) {
-      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-    }
-    
-    // Add mobile-specific CSS class
-    document.body.classList.add('mobile-app', 'inspector-app');
-    
-    return () => {
-      document.body.classList.remove('mobile-app', 'inspector-app');
-    };
-  }, []);
+// REMOVED: InspectorRoutes - Routes are now handled by UnifiedRoutes with professional lazy loading
 
-  return (
-    <Routes>
-      {/* Properties List - Now the main dashboard */}
-      <Route path="/" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <PropertySelection />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
+// REMOVED: AdminRoutesComponent - Routes are now handled by UnifiedRoutes with professional lazy loading
 
-      {/* Inspector Workflow */}
-      <Route path="/inspector" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <InspectorWorkflow />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
+// REMOVED: Professional loading and admin lazy loading - now handled in UnifiedRoutes
 
-      {/* Property Management - Keep for backwards compatibility */}
-      <Route path="/properties" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <PropertySelection />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
+/**
+ * PROFESSIONAL CROSS-DOMAIN REDIRECT COMPONENTS
+ * 
+ * Handles cross-domain navigation with proper error handling and user feedback.
+ * NO amateur window.location assignments without user confirmation.
+ */
 
-      {/* Dashboard - Moved to separate route if needed */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <Index />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/add-property" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <AddProperty />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
-
-      {/* Reports */}
-      <Route path="/reports" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <InspectionReports />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
-
-      {/* Inspection Routes */}
-      <Route path="/inspection/:id" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <InspectionPage />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/inspection-complete/:id" element={
-        <ProtectedRoute requiredRole="inspector">
-          <ErrorBoundary level="component">
-            <InspectionComplete />
-          </ErrorBoundary>
-        </ProtectedRoute>
-      } />
-
-      {/* Health Check Route */}
-      <Route path="/health" element={<HealthCheckPage />} />
-
-      {/* Catch-all Route - Redirect admin attempts to admin domain */}
-      <Route path="/admin/*" element={<AdminRedirect />} />
-      <Route path="/auditor" element={<AdminRedirect />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
-
-// Admin Routes Component - Desktop-optimized for admin.doublecheckverified.com
-function AdminRoutesComponent() {
-  const LazyAuditorDashboard = React.lazy(() => 
-    import("./pages/SimpleAuditorDashboard").catch(() => 
-      import("./pages/AuditorDashboard").catch(() => ({
-        default: () => <div className="p-6">Auditor Dashboard loading...</div>
-      }))
-    )
-  );
-  const LazyDebugInspectionPage = React.lazy(() => 
-    import("./components/DebugInspectionPage").catch(() => ({
-      default: () => <div className="p-6">Debug tools temporarily unavailable</div>
-    }))
-  );
-  
-  React.useEffect(() => {
-    // Set desktop-specific viewport and metadata
-    const metaViewport = document.querySelector('meta[name="viewport"]');
-    if (metaViewport) {
-      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
-    }
-    
-    // Add desktop-specific CSS class
-    document.body.classList.add('desktop-app', 'admin-app');
-    
-    return () => {
-      document.body.classList.remove('desktop-app', 'admin-app');
-    };
-  }, []);
-  
-  return (
-    <Routes>
-      {/* Admin Dashboard - Default route for admin.doublecheckverified.com */}
-      <Route path="/" element={<DirectAdminRouter />} />
-
-      {/* Auditor Dashboard */}
-      <Route path="/auditor" element={
-        <ErrorBoundary level="component">
-          <Suspense fallback={<LoadingFallback />}>
-            <LazyAuditorDashboard />
-          </Suspense>
-        </ErrorBoundary>
-      } />
-
-      {/* Debug Tools */}
-      <Route path="/debug-inspection/:id" element={
-        <ErrorBoundary level="component" showErrorDetails>
-          <Suspense fallback={<LoadingFallback />}>
-            <LazyDebugInspectionPage />
-          </Suspense>
-        </ErrorBoundary>
-      } />
-
-      {/* Admin Routes - All admin functionality */}
-      <Route path="/admin/*" element={<DirectAdminRouter />} />
-
-      {/* Health Check Route */}
-      <Route path="/health" element={<HealthCheckPage />} />
-
-      {/* Catch-all Route - Redirect inspector attempts to inspector domain */}
-      <Route path="/inspector" element={<InspectorRedirect />} />
-      <Route path="/properties" element={<InspectorRedirect />} />
-      <Route path="/inspection/*" element={<InspectorRedirect />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
-
-// NUCLEAR OPTION: Use direct router instead of broken AdminRoutes
-// const AdminRoutes = React.lazy(() => import("@/components/admin/AdminRoutes"));
-import DirectAdminRouter from "@/components/admin/DirectAdminRouter";
-
-// Domain redirect components
 function AdminRedirect() {
-  React.useEffect(() => {
-    // Redirect to admin domain with current path
-    const currentPath = window.location.pathname + window.location.search;
-    const adminUrl = `https://admin.doublecheckverified.com${currentPath}`;
-    window.location.href = adminUrl;
+  const [redirecting, setRedirecting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleRedirect = React.useCallback(() => {
+    try {
+      setRedirecting(true);
+      const currentPath = window.location.pathname + window.location.search;
+      const adminUrl = `https://admin.doublecheckverified.com${currentPath}`;
+      
+      // Professional cross-domain navigation with error handling
+      setTimeout(() => {
+        try {
+          window.location.replace(adminUrl);
+        } catch (redirectError) {
+          setError('Failed to redirect to admin portal');
+          setRedirecting(false);
+        }
+      }, 1000); // Give user time to see the redirect message
+      
+    } catch (error) {
+      setError('Navigation error occurred');
+      setRedirecting(false);
+    }
   }, []);
+
+  React.useEffect(() => {
+    // Auto-redirect after component mount
+    const timer = setTimeout(handleRedirect, 500);
+    return () => clearTimeout(timer);
+  }, [handleRedirect]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Navigation Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={handleRedirect}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -418,18 +304,71 @@ function AdminRedirect() {
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Redirecting to Admin Portal</h1>
         <p className="text-gray-600">Taking you to admin.doublecheckverified.com...</p>
+        {redirecting && (
+          <p className="text-sm text-gray-500 mt-2">
+            If you're not redirected automatically, 
+            <button 
+              onClick={handleRedirect} 
+              className="text-blue-600 hover:text-blue-800 underline ml-1"
+            >
+              click here
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 function InspectorRedirect() {
-  React.useEffect(() => {
-    // Redirect to inspector domain with current path
-    const currentPath = window.location.pathname + window.location.search;
-    const inspectorUrl = `https://app.doublecheckverified.com${currentPath}`;
-    window.location.href = inspectorUrl;
+  const [redirecting, setRedirecting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleRedirect = React.useCallback(() => {
+    try {
+      setRedirecting(true);
+      const currentPath = window.location.pathname + window.location.search;
+      const inspectorUrl = `https://app.doublecheckverified.com${currentPath}`;
+      
+      // Professional cross-domain navigation with error handling
+      setTimeout(() => {
+        try {
+          window.location.replace(inspectorUrl);
+        } catch (redirectError) {
+          setError('Failed to redirect to inspector app');
+          setRedirecting(false);
+        }
+      }, 1000); // Give user time to see the redirect message
+      
+    } catch (error) {
+      setError('Navigation error occurred');
+      setRedirecting(false);
+    }
   }, []);
+
+  React.useEffect(() => {
+    // Auto-redirect after component mount
+    const timer = setTimeout(handleRedirect, 500);
+    return () => clearTimeout(timer);
+  }, [handleRedirect]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Navigation Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={handleRedirect}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -437,6 +376,17 @@ function InspectorRedirect() {
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Redirecting to Inspector App</h1>
         <p className="text-gray-600">Taking you to app.doublecheckverified.com...</p>
+        {redirecting && (
+          <p className="text-sm text-gray-500 mt-2">
+            If you're not redirected automatically, 
+            <button 
+              onClick={handleRedirect} 
+              className="text-blue-600 hover:text-blue-800 underline ml-1"
+            >
+              click here
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );

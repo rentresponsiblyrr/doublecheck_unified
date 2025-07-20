@@ -208,7 +208,7 @@ export function VideoRecorder({
             variant="outline" 
             size="sm" 
             className="mt-2 ml-2" 
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.replace(window.location.pathname)}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry

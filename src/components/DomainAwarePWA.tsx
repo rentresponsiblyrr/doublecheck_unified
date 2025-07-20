@@ -54,7 +54,7 @@ export const DomainAwarePWA: React.FC = () => {
         try {
           if (event.data && event.data.type === 'SKIP_WAITING') {
             // Update available, reload the page
-            setTimeout(() => window.location.reload(), 1000);
+            setTimeout(() => window.location.replace(window.location.pathname), 1000);
           }
         } catch (error) {
           console.warn('Service worker message handling error:', error);

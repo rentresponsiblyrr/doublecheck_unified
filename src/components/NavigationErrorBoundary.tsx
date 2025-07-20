@@ -29,11 +29,19 @@ export class NavigationErrorBoundary extends Component<Props, State> {
 
   private handleRetry = () => {
     this.setState({ hasError: false, error: undefined });
-    window.location.reload();
+    // Professional page refresh without destroying session
+    window.location.replace(window.location.pathname);
   };
 
   private handleNavigateHome = () => {
-    window.location.href = '/';
+    try {
+      // Professional navigation without session destruction
+      window.location.replace('/');
+    } catch (error) {
+      console.warn('Navigation error, using history fallback:', error);
+      window.history.pushState(null, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   };
 
   public render() {

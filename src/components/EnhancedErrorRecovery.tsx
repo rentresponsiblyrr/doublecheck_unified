@@ -174,7 +174,7 @@ export const EnhancedErrorRecovery: React.FC<ErrorRecoveryProps> = ({
             
             <div className="flex gap-3">
               <Button
-                onClick={() => window.location.reload()}
+                onClick={() => window.location.replace(window.location.pathname)}
                 variant="outline"
                 className="flex-1"
               >

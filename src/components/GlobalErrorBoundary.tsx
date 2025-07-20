@@ -47,12 +47,13 @@ export class GlobalErrorBoundary extends React.Component<
 
   handleSafeReturn = () => {
     try {
-      // Try React Router navigation first
-      window.history.pushState(null, '', '/');
-      window.location.reload();
+      // Professional navigation without session destruction
+      window.location.replace('/');
     } catch (e) {
-      // Fallback to direct navigation
-      window.location.href = '/';
+      // Graceful fallback - navigate home without reload
+      console.warn('Navigation failed, using history fallback:', e);
+      window.history.pushState(null, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 
@@ -130,7 +131,7 @@ export class GlobalErrorBoundary extends React.Component<
                   Return to Dashboard
                 </Button>
                 <Button
-                  onClick={() => window.location.reload()}
+                  onClick={() => window.location.replace(window.location.pathname)}
                   variant="outline"
                   className="w-full col-span-2"
                 >

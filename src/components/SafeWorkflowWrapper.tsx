@@ -56,10 +56,12 @@ export class SafeWorkflowWrapper extends React.Component<
                 <Button
                   onClick={() => {
                     try {
-                      window.history.pushState(null, '', '/');
-                      window.location.reload();
+                      // Professional navigation - use React Router pattern
+                      window.history.pushState({}, '', '/');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
                     } catch (e) {
-                      window.location.href = '/';
+                      // Graceful fallback
+                      window.location.replace('/');
                     }
                   }}
                   variant="outline"
@@ -69,7 +71,7 @@ export class SafeWorkflowWrapper extends React.Component<
                   Return to Dashboard
                 </Button>
                 <Button
-                  onClick={() => window.location.reload()}
+                  onClick={() => window.location.replace(window.location.pathname)}
                   variant="outline"
                   className="w-full"
                 >

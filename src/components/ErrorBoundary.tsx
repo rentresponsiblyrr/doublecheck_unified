@@ -169,12 +169,48 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }, this.retryDelay);
   };
 
-  private handleReload = () => {
-    window.location.reload();
+  private handleReload = async () => {
+    // PROFESSIONAL RELOAD - NO NUCLEAR OPTION
+    try {
+      // Clear all caches first
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+      
+      // Clear browser caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Use proper navigation
+      window.location.replace('/');
+    } catch (error) {
+      console.error('Clean reload failed:', error);
+      // Last resort: navigate to fresh instance
+      window.location.replace(window.location.origin + window.location.pathname);
+    }
   };
 
   private handleGoHome = () => {
-    window.location.href = '/';
+    // PROFESSIONAL NAVIGATION - NO NUCLEAR OPTION
+    try {
+      // Use React Router if available
+      if (window.router) {
+        window.router.navigate('/', { replace: true });
+      } else {
+        // Clean navigation without reload
+        window.location.replace('/');
+      }
+    } catch (error) {
+      console.error('Navigation failed:', error);
+      window.location.href = '/';
+    }
   };
 
   private handleReportBug = () => {

@@ -67,7 +67,7 @@ export const DebugAuthStates = ({
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Debug Mode: Authentication Error</h2>
           <p className="text-gray-600 mb-4">{authError}</p>
-          <Button onClick={() => window.location.reload()} className="w-full">
+          <Button onClick={() => window.location.replace(window.location.pathname)} className="w-full">
             Try Again
           </Button>
         </div>
