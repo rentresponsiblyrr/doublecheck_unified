@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
-import { IdConverter } from "@/utils/idConverter";
+// Removed IdConverter import - database now uses UUID strings directly
 
 interface PropertyActionError {
   type: 'network' | 'validation' | 'auth' | 'system';
@@ -155,14 +155,14 @@ export const usePropertyActions = () => {
     console.log('🚀 Starting inspection for property:', propertyId);
     
     return executeWithRetry(async () => {
-      // Convert propertyId to integer for database query
-      const propertyIdInt = IdConverter.property.toDatabase(propertyId);
+      // Use property ID directly as UUID string (post-migration database returns UUIDs)
+      const propertyIdForQuery = propertyId;
 
       // Check if there's already an active inspection
       const { data: existingInspection, error: checkError } = await supabase
         .from('inspections')
         .select('id')
-        .eq('property_id', propertyIdInt)
+        .eq('property_id', propertyIdForQuery)
         .eq('completed', false)
         .single();
       
@@ -187,7 +187,7 @@ export const usePropertyActions = () => {
       try {
         // Use available compatibility RPC function
         const { data: rpcData, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {
-          property_id: selectedProperty.id, // Pass as string
+          property_id: propertyIdForQuery, // Pass as UUID string
           inspector_id: user.id
         });
         
@@ -208,7 +208,7 @@ export const usePropertyActions = () => {
         const { data: newInspection, error: createError } = await supabase
           .from('inspections')
           .insert({
-            property_id: propertyIdInt,
+            property_id: propertyIdForQuery,
             inspector_id: user.id, // Always include inspector_id for RLS
             start_time: new Date().toISOString(),
             completed: false,

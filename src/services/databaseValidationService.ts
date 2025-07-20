@@ -3,7 +3,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { IdConverter, IdConversionError } from '@/utils/idConverter';
+import { IdConversionError } from '@/utils/idConverter';
 
 export class DatabaseValidationService {
   /**
@@ -113,8 +113,8 @@ export class DatabaseValidationService {
     error?: string;
   }> {
     try {
-      // Use property ID as UUID string
-      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
+      // Use property ID directly as UUID string (post-migration database returns UUIDs)
+      const propertyIdUuid = propertyId;
 
       // Try RPC function first
       try {

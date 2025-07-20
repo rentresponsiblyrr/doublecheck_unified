@@ -2,14 +2,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InspectionValidationService } from "./inspectionValidationService";
 import { STATUS_GROUPS, INSPECTION_STATUS } from "@/types/inspection-status";
-import { IdConverter } from "@/utils/idConverter";
+// Removed IdConverter import - database now uses UUID strings directly
+import { log } from '@/lib/logging/enterprise-logger';
+import { extractErrorInfo, formatSupabaseError } from '@/types/supabase-errors';
 
 export class InspectionCreationOptimizer {
   private static readonly MAX_RETRIES = 3;
 
   static async findActiveInspectionSecure(propertyId: string): Promise<string | null> {
     try {
-      console.log('🔍 Finding active inspection for property:', propertyId);
+      log.info('Finding active inspection for property', {
+        component: 'InspectionCreationOptimizer',
+        action: 'findActiveInspectionSecure',
+        propertyId
+      }, 'ACTIVE_INSPECTION_SEARCH_STARTED');
 
       // Define which statuses should prevent creating a new inspection
       // ACTIVE: draft, in_progress  
@@ -21,38 +27,60 @@ export class InspectionCreationOptimizer {
         INSPECTION_STATUS.NEEDS_REVISION
       ];
 
-      console.log('🔍 Looking for inspections with active statuses:', activeStatuses);
+      log.debug('Looking for inspections with active statuses', {
+        component: 'InspectionCreationOptimizer',
+        action: 'findActiveInspectionSecure',
+        propertyId,
+        activeStatuses,
+        statusCount: activeStatuses.length
+      }, 'ACTIVE_STATUSES_QUERY');
 
-      // Use propertyId as UUID string (no conversion needed)
-      const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
-
+      // Use propertyId directly - it's already in the correct format from get_properties_with_inspections
+      // The database function returns property_id as UUID strings, so no conversion needed
       const { data, error } = await supabase
         .from('inspections')
         .select('id, inspector_id, status, start_time')
-        .eq('property_id', propertyIdUuid)
+        .eq('property_id', propertyId)
         .in('status', activeStatuses)
         .order('start_time', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Active inspection query error:', error);
+        log.error('Active inspection query error', error, {
+          component: 'InspectionCreationOptimizer',
+          action: 'findActiveInspectionSecure',
+          propertyId
+        }, 'ACTIVE_INSPECTION_QUERY_ERROR');
         return null;
       }
 
       if (data) {
-        console.log('📋 Found active inspection that should be resumed:', {
-          id: data.id,
+        log.info('Found active inspection that should be resumed', {
+          component: 'InspectionCreationOptimizer',
+          action: 'findActiveInspectionSecure',
+          propertyId,
+          inspectionId: data.id,
           status: data.status,
-          start_time: data.start_time
-        });
+          startTime: data.start_time,
+          inspectorId: data.inspector_id
+        }, 'ACTIVE_INSPECTION_FOUND');
         return data.id;
       }
 
-      console.log('✅ No active inspection found - safe to create new one');
+      log.info('No active inspection found - safe to create new one', {
+        component: 'InspectionCreationOptimizer',
+        action: 'findActiveInspectionSecure',
+        propertyId,
+        checkedStatuses: activeStatuses.length
+      }, 'NO_ACTIVE_INSPECTION_FOUND');
       return null;
     } catch (error) {
-      console.error('❌ Failed to find active inspection:', error);
+      log.error('Failed to find active inspection', error as Error, {
+        component: 'InspectionCreationOptimizer',
+        action: 'findActiveInspectionSecure',
+        propertyId
+      }, 'ACTIVE_INSPECTION_SEARCH_FAILED');
       return null;
     }
   }
@@ -60,16 +88,30 @@ export class InspectionCreationOptimizer {
   static async createInspectionWithRetry(propertyId: string, inspectorId: string): Promise<string> {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
-        console.log(`🔄 Creating inspection attempt ${attempt}/${this.MAX_RETRIES}`);
+        log.info('Creating inspection attempt', {
+          component: 'InspectionCreationOptimizer',
+          action: 'createInspectionWithRetry',
+          attempt,
+          maxRetries: this.MAX_RETRIES,
+          propertyId,
+          inspectorId
+        }, 'INSPECTION_CREATION_ATTEMPT');
 
         // Try RPC function first, fallback to direct insert
         let data, error;
         
-        // Use propertyId as UUID string for database operations
-        const propertyIdUuid = IdConverter.property.toDatabase(propertyId);
+        // Use propertyId directly - it's already in the correct format from get_properties_with_inspections
+        // The database function returns property_id as UUID strings, so no conversion needed
 
         try {
-          console.log('🔧 Attempting RPC create_inspection_secure with:', { propertyId: propertyIdUuid, inspectorId });
+          log.debug('Attempting RPC create_inspection_compatibility', {
+            component: 'InspectionCreationOptimizer',
+            action: 'createInspectionWithRetry',
+            attempt,
+            propertyId,
+            inspectorId,
+            rpcFunction: 'create_inspection_compatibility'
+          }, 'RPC_INSPECTION_CREATE_ATTEMPT');
           
           // Use available compatibility RPC function
           const rpcResult = await supabase.rpc('create_inspection_compatibility', {
@@ -77,10 +119,23 @@ export class InspectionCreationOptimizer {
             inspector_id: inspectorId
           });
           
-          console.log('🔧 RPC result:', rpcResult);
+          log.debug('RPC result received', {
+            component: 'InspectionCreationOptimizer',
+            action: 'createInspectionWithRetry',
+            attempt,
+            hasData: !!rpcResult.data,
+            hasError: !!rpcResult.error,
+            errorCode: rpcResult.error?.code
+          }, 'RPC_INSPECTION_CREATE_RESULT');
           
           if (rpcResult.error) {
-            console.log('🔧 RPC function failed:', rpcResult.error.message);
+            log.warn('RPC function failed, will use fallback', {
+              component: 'InspectionCreationOptimizer',
+              action: 'createInspectionWithRetry',
+              attempt,
+              errorCode: rpcResult.error.code,
+              errorMessage: rpcResult.error.message
+            }, 'RPC_INSPECTION_CREATE_FAILED');
             // Provide specific error messages for common constraint violations  
             if (rpcResult.error.code === '23514') {
               throw new Error('Database constraint violation: The inspection status value is not allowed. Please contact support.');
@@ -101,13 +156,18 @@ export class InspectionCreationOptimizer {
           error = null;
           
         } catch (rpcError) {
-          console.log('🔧 RPC function not available or failed, using direct insert fallback:', rpcError);
+          log.info('RPC function not available, using direct insert fallback', {
+            component: 'InspectionCreationOptimizer',
+            action: 'createInspectionWithRetry',
+            attempt,
+            rpcError: rpcError instanceof Error ? rpcError.message : String(rpcError)
+          }, 'RPC_FALLBACK_TO_DIRECT_INSERT');
           
           // Fallback to direct insert with proper RLS context
           const insertResult = await supabase
             .from('inspections')
             .insert({
-              property_id: propertyIdUuid,
+              property_id: propertyId, // Use propertyId directly - already in correct format
               inspector_id: inspectorId, // Always include inspector_id for RLS
               start_time: new Date().toISOString(),
               completed: false,
@@ -116,7 +176,15 @@ export class InspectionCreationOptimizer {
             .select('id')
             .single();
             
-          console.log('🔧 Direct insert result:', insertResult);
+          log.debug('Direct insert result', {
+            component: 'InspectionCreationOptimizer',
+            action: 'createInspectionWithRetry',
+            attempt,
+            hasData: !!insertResult.data,
+            hasError: !!insertResult.error,
+            errorCode: insertResult.error?.code,
+            inspectionId: insertResult.data?.id
+          }, 'DIRECT_INSERT_RESULT');
           
           if (insertResult.error) {
             // Provide specific error messages for common constraint violations
@@ -143,7 +211,14 @@ export class InspectionCreationOptimizer {
           throw new Error('No inspection ID returned from database operation');
         }
 
-        console.log('✅ Inspection created successfully:', data);
+        log.info('Inspection created successfully', {
+          component: 'InspectionCreationOptimizer',
+          action: 'createInspectionWithRetry',
+          attempt,
+          propertyId,
+          inspectorId,
+          inspectionId: data
+        }, 'INSPECTION_CREATED_SUCCESS');
         
         // Verify checklist items were created by trigger
         try {
@@ -165,24 +240,34 @@ export class InspectionCreationOptimizer {
         return data;
 
       } catch (error) {
-        console.error(`❌ Inspection creation attempt ${attempt} failed:`, error);
+        log.error('Inspection creation attempt failed', error as Error, {
+          component: 'InspectionCreationOptimizer',
+          action: 'createInspectionWithRetry',
+          attempt,
+          maxRetries: this.MAX_RETRIES,
+          propertyId,
+          inspectorId,
+          ...extractErrorInfo(error)
+        }, 'INSPECTION_CREATION_ATTEMPT_FAILED');
         
         // Log detailed error information for debugging
         const errorDetails = {
           attempt,
           propertyId,
           errorMessage: error instanceof Error ? error.message : String(error),
-          errorCode: (error as any)?.code,
-          errorDetails: (error as any)?.details,
-          errorHint: (error as any)?.hint,
+          ...extractErrorInfo(error),
           timestamp: new Date().toISOString()
         };
-        console.error('🔍 Detailed error information:', errorDetails);
+        log.error('Detailed error information for inspection creation', undefined, {
+          component: 'InspectionCreationOptimizer',
+          action: 'createInspectionWithRetry',
+          ...errorDetails
+        }, 'INSPECTION_CREATION_DETAILED_ERROR');
         
         if (attempt === this.MAX_RETRIES) {
           // Provide more detailed error message
           const detailedMessage = error instanceof Error 
-            ? `${error.message}${(error as any)?.code ? ` (Code: ${(error as any).code})` : ''}`
+            ? formatSupabaseError(error)
             : 'Unknown error';
           throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts: ${detailedMessage}`);
         }
