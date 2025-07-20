@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { log } from '@/lib/logging/enterprise-logger';
 
 interface SimpleAuthFormProps {
   onAuthSuccess: () => void;
@@ -22,7 +23,13 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
     setSuccessMessage(null);
 
     try {
-      console.log('🔐 Attempting authentication for:', email);
+      log.info('Attempting authentication', {
+        component: 'SimpleAuthForm',
+        action: 'handleSubmit',
+        email,
+        isSignUp,
+        isResetPassword
+      }, 'AUTH_ATTEMPT_STARTED');
       
       if (isResetPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -30,7 +37,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         });
         
         if (error) {
-          console.error('❌ Password reset error:', error);
+          log.error('Password reset error', error, {
+            component: 'SimpleAuthForm',
+            action: 'handleSubmit',
+            email,
+            operation: 'resetPassword'
+          }, 'PASSWORD_RESET_ERROR');
           throw error;
         }
         
@@ -46,10 +58,22 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             }
           }
         });
-        console.log('📝 Sign up result:', { data, error });
+        log.info('Sign up result', {
+          component: 'SimpleAuthForm',
+          action: 'handleSubmit',
+          email,
+          hasData: !!data,
+          hasError: !!error,
+          userId: data?.user?.id
+        }, 'SIGN_UP_RESULT');
         
         if (error) {
-          console.error('❌ Sign up error:', error);
+          log.error('Sign up error', error, {
+            component: 'SimpleAuthForm',
+            action: 'handleSubmit',
+            email,
+            operation: 'signUp'
+          }, 'SIGN_UP_ERROR');
           throw error;
         }
         setSuccessMessage('Check your email for verification link');
@@ -58,22 +82,48 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
           email,
           password,
         });
-        console.log('🔑 Sign in result:', { data, error });
+        log.info('Sign in result', {
+          component: 'SimpleAuthForm',
+          action: 'handleSubmit',
+          email,
+          hasData: !!data,
+          hasError: !!error,
+          userId: data?.user?.id
+        }, 'SIGN_IN_RESULT');
         
         if (error) {
-          console.error('❌ Sign in error:', error);
+          log.error('Sign in error', error, {
+            component: 'SimpleAuthForm',
+            action: 'handleSubmit',
+            email,
+            operation: 'signIn'
+          }, 'SIGN_IN_ERROR');
           throw error;
         }
         
         if (data.user) {
-          console.log('✅ Authentication successful for user:', data.user.email);
+          log.info('Authentication successful', {
+            component: 'SimpleAuthForm',
+            action: 'handleSubmit',
+            userId: data.user.id,
+            userEmail: data.user.email,
+            operation: 'signIn'
+          }, 'AUTH_SUCCESS');
           onAuthSuccess();
         } else {
           throw new Error('Authentication succeeded but no user data received');
         }
       }
     } catch (error: any) {
-      console.error('🚨 Authentication error caught:', error);
+      log.error('Authentication error caught', error, {
+        component: 'SimpleAuthForm',
+        action: 'handleSubmit',
+        email,
+        isSignUp,
+        isResetPassword,
+        errorCode: error?.code,
+        errorStatus: error?.status
+      }, 'AUTH_ERROR_CAUGHT');
       
       // Handle specific Supabase auth errors with user-friendly messages
       let errorMessage = error.message;

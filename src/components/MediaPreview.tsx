@@ -9,12 +9,12 @@ interface MediaPreviewProps {
 
 export const MediaPreview = ({ media, onMediaClick }: MediaPreviewProps) => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.error('Thumbnail failed to load:', media.url);
+    // REMOVED: console.error('Thumbnail failed to load:', media.url);
     e.currentTarget.style.display = 'none';
   };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    console.error('Video thumbnail failed to load:', media.url);
+    // REMOVED: console.error('Video thumbnail failed to load:', media.url);
   };
 
   return (

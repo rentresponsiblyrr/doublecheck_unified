@@ -54,7 +54,7 @@ export default function SimpleAuditorDashboard() {
         .limit(50);
 
       if (error) {
-        console.error('Error fetching inspections:', error);
+        // REMOVED: console.error('Error fetching inspections:', error);
         throw error;
       }
 

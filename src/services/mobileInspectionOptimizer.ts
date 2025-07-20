@@ -19,7 +19,7 @@ class MobileInspectionOptimizer {
 
   static async getOrCreateInspectionOptimized(propertyId: string): Promise<OptimizedInspectionResult> {
     // REMOVED: Console logging to prevent infinite loops
-    // console.log('📱 Starting optimized mobile inspection flow for:', propertyId);
+    // // REMOVED: console.log('📱 Starting optimized mobile inspection flow for:', propertyId);
 
     try {
       // Log property ID details for debugging
@@ -59,7 +59,7 @@ class MobileInspectionOptimizer {
       // If active inspection exists, return it
       if (inspectionResult) {
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('📋 Joining existing optimized inspection:', inspectionResult.id);
+        // // REMOVED: console.log('📋 Joining existing optimized inspection:', inspectionResult.id);
         
         const itemCount = await this.getChecklistItemCount(inspectionResult.id);
         
@@ -73,7 +73,7 @@ class MobileInspectionOptimizer {
 
       // Create new inspection
       // REMOVED: Console logging to prevent infinite loops
-      // console.log('🆕 Creating new optimized inspection for property:', propertyId);
+      // // REMOVED: console.log('🆕 Creating new optimized inspection for property:', propertyId);
       const newInspectionId = await this.createInspectionOptimized(propertyId);
       
       const itemCount = await this.getChecklistItemCount(newInspectionId);
@@ -204,7 +204,7 @@ class MobileInspectionOptimizer {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         // REMOVED: Console logging to prevent infinite loops
-        // console.log(`🔄 Creating optimized inspection attempt ${attempt}/${this.MAX_RETRIES}`);
+        // // REMOVED: console.log(`🔄 Creating optimized inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
         // Get current user for the secure function
         const { data: { user } } = await supabase.auth.getUser();
@@ -340,7 +340,7 @@ class MobileInspectionOptimizer {
         }
 
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('✅ Optimized inspection created:', data);
+        // // REMOVED: console.log('✅ Optimized inspection created:', data);
         
         // Ensure checklist items are populated
         await this.ensureChecklistItemsPopulated(data);
@@ -384,7 +384,7 @@ class MobileInspectionOptimizer {
   private static async getChecklistItemCount(inspectionId: string): Promise<number> {
     try {
       // REMOVED: Console logging to prevent infinite loops
-      // console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
+      // // REMOVED: console.log(`📋 Fetching checklist item count for inspection:`, inspectionId);
       
       // Try logs table first (production schema)
       let count, error;
@@ -454,13 +454,13 @@ class MobileInspectionOptimizer {
         
         const fallbackCount = staticCount || 8;
         // REMOVED: Console logging to prevent infinite loops
-        // console.log(`📋 Using static safety items count as fallback: ${fallbackCount}`);
+        // // REMOVED: console.log(`📋 Using static safety items count as fallback: ${fallbackCount}`);
         return fallbackCount;
       }
 
       const actualCount = count || 0;
       // REMOVED: Console logging to prevent infinite loops
-      // console.log(`📋 Found ${actualCount} inspection checklist items for inspection ${inspectionId}`);
+      // // REMOVED: console.log(`📋 Found ${actualCount} inspection checklist items for inspection ${inspectionId}`);
       return actualCount;
     } catch (error) {
       log.error('Failed to count inspection checklist items', error as Error, {

@@ -191,7 +191,7 @@ export class PhotoOptimizer {
       const thumbnail = await this.resizeImage(image, width, height);
       return thumbnail.toDataURL('image/jpeg', 0.8);
     } catch (error) {
-      console.error('Failed to create thumbnail:', error);
+      // REMOVED: console.error('Failed to create thumbnail:', error);
       return '';
     }
   }

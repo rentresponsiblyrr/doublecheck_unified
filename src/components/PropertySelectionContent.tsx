@@ -228,7 +228,7 @@ export const PropertySelectionContent = ({
         </div>
 
         <PropertyErrorBoundary
-          onRetry={() => window.location.reload()}
+          onRetry={() => window.location.assign(window.location.href)}
           onNavigateHome={() => window.location.href = '/properties'}
           onAddProperty={() => window.location.href = '/add-property'}
         >

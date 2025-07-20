@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   const { user, loading, error } = useAuth();
 
   // REMOVED: ProtectedRoute logging to prevent infinite render loops
-  // console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole, userRole: user?.role });
+  // // REMOVED: console.log('📱 ProtectedRoute check:', { hasUser: !!user, loading, error, requiredRole, userRole: user?.role });
 
   if (loading) {
     return (
@@ -28,14 +28,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
 
   if (!user) {
     // REMOVED: No user logging to prevent infinite render loops
-    // console.log('📱 No user, showing auth form');
+    // // REMOVED: console.log('📱 No user, showing auth form');
     return <AuthForm />;
   }
 
   // Check role-based access - Use original app-type logic
   if (requiredRole && !isRoleAllowed(requiredRole)) {
     // REMOVED: Role denial logging to prevent infinite render loops
-    // console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
+    // // REMOVED: console.log('🚫 User role not allowed for this app type:', { requiredRole, userRole: user.role });
     
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">

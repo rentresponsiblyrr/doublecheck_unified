@@ -6,7 +6,8 @@
  * @version 2.0.0
  */
 
-import { logger } from '@/utils/logger';
+import { log } from '@/lib/logging/enterprise-logger';
+import { enterpriseServiceTracer } from '@/lib/services/enterprise-service-tracer';
 import type { BugReportData } from './userActivityService';
 import type { EnhancedErrorContext } from './enhancedErrorCollectionService';
 
@@ -107,17 +108,9 @@ class AIIssueClassificationService {
   }
 
   private getApiKey(): string {
-    // Try multiple environment variable names
-    const key = import.meta.env.VITE_OPENAI_API_KEY || 
-                import.meta.env.REACT_APP_OPENAI_API_KEY || 
-                import.meta.env.OPENAI_API_KEY;
-    
-    if (!key) {
-      logger.warn('OpenAI API key not found. AI classification will be limited.', {}, 'AI_CLASSIFICATION');
-      return '';
-    }
-    
-    return key;
+    // SECURITY: Direct AI integration disabled for security
+    logger.warn('AI classification disabled for security. Use AIProxyService instead.', {}, 'AI_CLASSIFICATION');
+    return '';
   }
 
   /**
@@ -155,17 +148,21 @@ class AIIssueClassificationService {
       this.cache.set(cacheKey, classification);
       
       // Log successful classification
-      logger.info('AI issue classification completed', {
+      log.info('AI issue classification completed', {
         issueType: classification.issueType,
         severity: classification.severity,
         complexity: classification.complexity,
-        analysisTime: Date.now() - startTime
+        analysisTime: Date.now() - startTime,
+        component: 'aiIssueClassificationService'
       }, 'AI_CLASSIFICATION');
       
       return classification;
       
     } catch (error) {
-      logger.error('AI classification failed, falling back to rule-based analysis', error, 'AI_CLASSIFICATION');
+      log.error('AI classification failed, falling back to rule-based analysis', error as Error, {
+        component: 'aiIssueClassificationService',
+        operation: 'classifyIssue'
+      }, 'AI_CLASSIFICATION_FAILED');
       
       // Fallback to rule-based analysis
       const ruleBasedAnalysis = this.performRuleBasedAnalysis(context);
@@ -626,7 +623,7 @@ Focus on:
     return Math.ceil(response.length / 4);
   }
 
-  private extractConfidenceFactors(context: IssueContext, parsed: any): string[] {
+  private extractConfidenceFactors(context: IssueContext, parsed: Partial<AIClassificationResult>): string[] {
     const factors = [];
     
     if (context.errorContext.consoleErrors.length > 0) factors.push('console errors available');

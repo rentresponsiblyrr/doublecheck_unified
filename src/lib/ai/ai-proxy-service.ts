@@ -1,9 +1,16 @@
 /**
  * AI Proxy Service - Secure server-side AI integration
  * Replaces direct OpenAI client calls with secure backend proxy
+ * 
+ * SECURITY: Includes PII scrubbing, prompt validation, and intelligent caching
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { piiScrubber } from '../security/pii-scrubber';
+import { promptValidator } from '../security/prompt-validator';
+import { aiCache } from './ai-cache';
+import { logger } from '../../utils/logger';
+import { log } from '../logging/enterprise-logger';
 
 export interface AIAnalysisRequest {
   imageBase64: string;
@@ -59,17 +66,53 @@ class AIProxyService {
    * Analyze inspection photo using secure backend AI proxy
    */
   async analyzeInspectionPhoto(request: AIAnalysisRequest): Promise<AIAnalysisResponse> {
+    const startTime = Date.now();
+    
+    // 1. Basic validation
     this.validateRequest(request);
     await this.checkRateLimit();
+
+    // 2. Security validation
+    const validationResult = promptValidator.validatePrompt(request.prompt, {
+      source: 'photo_analysis',
+      inspectionId: request.inspectionId
+    });
+
+    if (!validationResult.isValid) {
+      const criticalRisks = validationResult.risks.filter(r => r.severity === 'critical' || r.severity === 'high');
+      logger.error('Prompt validation failed', {
+        risks: criticalRisks.map(r => r.type),
+        inspectionId: request.inspectionId
+      }, 'AI_SECURITY');
+      throw new Error(`Security validation failed: ${criticalRisks.map(r => r.description).join(', ')}`);
+    }
+
+    // 3. Check cache first
+    const photoData = request.imageBase64 ? this.base64ToArrayBuffer(request.imageBase64) : undefined;
+    const cacheKey = await aiCache.get(validationResult.sanitizedPrompt, {
+      model: 'gpt-4-vision',
+      photoData,
+      context: { inspectionId: request.inspectionId, checklistItemId: request.checklistItemId }
+    });
+
+    if (cacheKey) {
+      logger.info('AI analysis cache hit', {
+        inspectionId: request.inspectionId,
+        savedCost: cacheKey.metadata.cost,
+        responseTime: Date.now() - startTime
+      }, 'AI_CACHE');
+      return cacheKey.response;
+    }
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-analysis', {
         body: {
           imageBase64: request.imageBase64,
-          prompt: this.sanitizePrompt(request.prompt),
+          prompt: validationResult.sanitizedPrompt, // Use sanitized prompt
           inspectionId: request.inspectionId,
           checklistItemId: request.checklistItemId,
           maxTokens: Math.min(request.maxTokens || 500, 1000), // Cap tokens
+          securityValidated: true // Flag for backend
         },
       });
 
@@ -82,12 +125,27 @@ class AIProxyService {
         throw new Error('Invalid AI response format');
       }
 
+      // 4. Cache the response
+      await aiCache.set(validationResult.sanitizedPrompt, data, {
+        model: 'gpt-4-vision',
+        photoData,
+        context: { inspectionId: request.inspectionId, checklistItemId: request.checklistItemId },
+        tokens: data.usage?.totalTokens || 0,
+        cost: data.usage?.cost || 0,
+        confidence: data.analysis?.confidence || 0
+      });
+
       // Log usage for monitoring
       await this.logUsage(request, data);
 
       return data;
     } catch (error) {
-      console.error('AI analysis error:', error);
+      log.error('AI analysis error', error as Error, {
+        component: 'AIProxyService',
+        action: 'analyzeInspectionPhoto',
+        inspectionId: request.inspectionId,
+        checklistItemId: request.checklistItemId
+      }, 'AI_ANALYSIS_ERROR');
       throw this.handleAIError(error);
     }
   }
@@ -114,7 +172,11 @@ class AIProxyService {
 
       return data;
     } catch (error) {
-      console.error('Checklist generation error:', error);
+      log.error('Checklist generation error', error as Error, {
+        component: 'AIProxyService',
+        action: 'generateDynamicChecklist',
+        inspectionType
+      }, 'CHECKLIST_GENERATION_ERROR');
       throw this.handleAIError(error);
     }
   }
@@ -142,7 +204,10 @@ class AIProxyService {
 
       return data;
     } catch (error) {
-      console.error('AI status check failed:', error);
+      log.error('AI status check failed', error as Error, {
+        component: 'AIProxyService',
+        action: 'getServiceStatus'
+      }, 'AI_STATUS_CHECK_FAILED');
       return {
         available: false,
         rateLimitRemaining: 0,
@@ -181,13 +246,25 @@ class AIProxyService {
   }
 
   private sanitizePrompt(prompt: string): string {
-    // Remove potentially dangerous content
+    // Note: This method is now replaced by the comprehensive promptValidator
+    // Keeping for backward compatibility
     return prompt
       .replace(/<script[^>]*>.*?<\/script>/gi, '')
       .replace(/javascript:/gi, '')
       .replace(/on\w+\s*=/gi, '')
       .trim()
       .substring(0, 2000);
+  }
+
+  private base64ToArrayBuffer(base64: string): ArrayBuffer {
+    // Remove data URL prefix if present
+    const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
   }
 
   private sanitizePropertyData(data: any): any {
@@ -296,7 +373,12 @@ class AIProxyService {
         created_at: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Failed to log AI usage:', error);
+      log.error('Failed to log AI usage', error as Error, {
+        component: 'AIProxyService',
+        action: 'logUsage',
+        inspectionId: request.inspectionId,
+        checklistItemId: request.checklistItemId
+      }, 'AI_USAGE_LOG_FAILED');
       // Don't throw - logging failure shouldn't break the main flow
     }
   }

@@ -1,10 +1,15 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { log } from "@/lib/logging/enterprise-logger";
 
 export class InspectionValidationService {
   static async validatePropertyAccess(propertyId: string): Promise<boolean> {
     try {
-      console.log('🔍 Validating property access:', propertyId);
+      log.info('Validating property access', {
+        component: 'InspectionValidationService',
+        action: 'validatePropertyAccess',
+        propertyId
+      }, 'PROPERTY_ACCESS_VALIDATION');
       
       const { data, error } = await supabase
         .from('properties')
@@ -13,21 +18,38 @@ export class InspectionValidationService {
         .single();
 
       if (error) {
-        console.error('❌ Property validation error:', error);
+        log.error('Property validation error', error, {
+          component: 'InspectionValidationService',
+          action: 'validatePropertyAccess',
+          propertyId
+        }, 'PROPERTY_VALIDATION_ERROR');
         return false;
       }
 
-      console.log('✅ Property access validated:', data?.id);
+      log.info('Property access validated successfully', {
+        component: 'InspectionValidationService',
+        action: 'validatePropertyAccess',
+        propertyId,
+        foundPropertyId: data?.id
+      }, 'PROPERTY_ACCESS_VALIDATED');
       return !!data;
     } catch (error) {
-      console.error('❌ Property access validation failed:', error);
+      log.error('Property access validation failed', error as Error, {
+        component: 'InspectionValidationService',
+        action: 'validatePropertyAccess',
+        propertyId
+      }, 'PROPERTY_ACCESS_VALIDATION_FAILED');
       return false;
     }
   }
 
   static async verifyChecklistItemsCreated(inspectionId: string): Promise<number> {
     try {
-      console.log('🔍 Verifying checklist items for inspection:', inspectionId);
+      log.info('Verifying checklist items creation', {
+        component: 'InspectionValidationService',
+        action: 'verifyChecklistItemsCreated',
+        inspectionId
+      }, 'CHECKLIST_ITEMS_VERIFICATION');
       
       // Wait a moment for the trigger to complete
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -38,20 +60,38 @@ export class InspectionValidationService {
         .eq('inspection_id', inspectionId);
 
       if (error) {
-        console.error('❌ Error verifying checklist items:', error);
+        log.error('Error verifying checklist items', error, {
+          component: 'InspectionValidationService',
+          action: 'verifyChecklistItemsCreated',
+          inspectionId
+        }, 'CHECKLIST_VERIFICATION_ERROR');
         return 0;
       }
 
       const count = data?.length || 0;
-      console.log(`📋 Verified ${count} checklist items created`);
+      log.info('Checklist items verification completed', {
+        component: 'InspectionValidationService',
+        action: 'verifyChecklistItemsCreated',
+        inspectionId,
+        itemsCount: count
+      }, 'CHECKLIST_ITEMS_VERIFIED');
       
       if (count === 0) {
-        console.warn('⚠️ No checklist items found - trigger may have failed');
+        log.warn('No checklist items found - trigger may have failed', {
+          component: 'InspectionValidationService',
+          action: 'verifyChecklistItemsCreated',
+          inspectionId,
+          itemsCount: count
+        }, 'CHECKLIST_ITEMS_NOT_FOUND');
       }
       
       return count;
     } catch (error) {
-      console.error('❌ Failed to verify checklist items:', error);
+      log.error('Failed to verify checklist items', error as Error, {
+        component: 'InspectionValidationService',
+        action: 'verifyChecklistItemsCreated',
+        inspectionId
+      }, 'CHECKLIST_VERIFICATION_FAILED');
       return 0;
     }
   }

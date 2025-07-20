@@ -92,7 +92,7 @@ export const useImageOptimization = () => {
       });
     } catch (error) {
       setIsOptimizing(false);
-      console.error('Image optimization failed:', error);
+      // REMOVED: console.error('Image optimization failed:', error);
       // Return original file if optimization fails
       return file;
     }

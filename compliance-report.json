@@ -1,0 +1,2911 @@
+{
+  "timestamp": "2025-07-20T04:22:57.719Z",
+  "stats": {
+    "filesScanned": 505,
+    "violationsFound": 414,
+    "godComponents": 55,
+    "nuclearErrors": 21,
+    "typeEscapes": 337
+  },
+  "violations": [
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/App.tsx",
+      "line": 1,
+      "message": "Component has 342 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/App.tsx",
+      "line": 20,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/AuthenticatedApp.professional.tsx",
+      "line": 1,
+      "message": "Component has 313 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/AuthenticatedApp.professional.tsx",
+      "line": 109,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/AuthenticatedApp.tsx",
+      "line": 1,
+      "message": "Component has 405 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/AuthenticatedApp.tsx",
+      "line": 126,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/Breadcrumbs.tsx",
+      "line": 26,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/BugReportDialog.tsx",
+      "line": 1,
+      "message": "Component has 743 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/BugReportDialog.tsx",
+      "line": 317,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/BugReportDialog.tsx",
+      "line": 332,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ChecklistDiagnostics.tsx",
+      "line": 14,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/DebugInfo.tsx",
+      "line": 3,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/DebugInspectionPage.tsx",
+      "line": 1,
+      "message": "Component has 599 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/DebugInspectionPage.tsx",
+      "line": 70,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/DebugInspectionPage.tsx",
+      "line": 71,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/DebugInspectionPage.tsx",
+      "line": 546,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/DebugPanel.tsx",
+      "line": 15,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 212,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 99,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 113,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 113,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 115,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/ErrorBoundary.tsx",
+      "line": 134,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/MobilePropertyList.tsx",
+      "line": 28,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/PropertyErrorBoundary.tsx",
+      "line": 41,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/PropertyErrorBoundary.tsx",
+      "line": 45,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/PropertyFormAlerts.tsx",
+      "line": 7,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/PropertyFormFields.tsx",
+      "line": 31,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/PropertyFormFields.tsx",
+      "line": 33,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/PropertySelectionContent.tsx",
+      "line": 232,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/PropertySelectionContent.tsx",
+      "line": 233,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/PropertySelectionError.tsx",
+      "line": 6,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/SimpleAuthForm.tsx",
+      "line": 117,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/SimplePropertyForm.tsx",
+      "line": 82,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/SystemHealthCheck.tsx",
+      "line": 1,
+      "message": "Component has 323 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/UnifiedRoutes.tsx",
+      "line": 161,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/UnifiedRoutes.tsx",
+      "line": 41,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/UploadedEvidence.tsx",
+      "line": 97,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/AILearningDashboard.tsx",
+      "line": 1,
+      "message": "Component has 620 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/AIPerformanceDashboard.tsx",
+      "line": 1,
+      "message": "Component has 847 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/admin/AIPerformanceDashboard.tsx",
+      "line": 211,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/AdminLayout.tsx",
+      "line": 1,
+      "message": "Component has 424 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/AdminOverview.tsx",
+      "line": 1,
+      "message": "Component has 558 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/AdminRoutes.tsx",
+      "line": 144,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/AdminRoutes.tsx",
+      "line": 150,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/AuditCenter.tsx",
+      "line": 1,
+      "message": "Component has 405 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/BugReportManagement.tsx",
+      "line": 1,
+      "message": "Component has 619 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/admin/BugReportManagement.tsx",
+      "line": 413,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/admin/BugReportManagement.tsx",
+      "line": 423,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/ChecklistDiagnostic.tsx",
+      "line": 1,
+      "message": "Component has 853 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/ComponentTest.tsx",
+      "line": 192,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/ComponentTest.tsx",
+      "line": 198,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/ComponentTest.tsx",
+      "line": 204,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/ComprehensiveDiagnostic.tsx",
+      "line": 1,
+      "message": "Component has 726 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/DirectAdminRouter.tsx",
+      "line": 172,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/DirectAdminRouter.tsx",
+      "line": 178,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/DirectAdminRouter.tsx",
+      "line": 184,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/DirectAdminRouter.tsx",
+      "line": 190,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/admin/EmergencyBypass.tsx",
+      "line": 85,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/InspectionCleanupUtility.tsx",
+      "line": 1,
+      "message": "Component has 368 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/InspectionCreationDiagnostic.tsx",
+      "line": 1,
+      "message": "Component has 435 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/admin/InspectionCreationDiagnostic.tsx",
+      "line": 34,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/InspectionManagement.tsx",
+      "line": 1,
+      "message": "Component has 655 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/PropertyManagement.tsx",
+      "line": 1,
+      "message": "Component has 1066 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/ReportManagement.tsx",
+      "line": 1,
+      "message": "Component has 523 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/SimpleBugReportManagement.tsx",
+      "line": 1,
+      "message": "Component has 543 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/SimpleInspectionManagement.tsx",
+      "line": 1,
+      "message": "Component has 384 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/SystemStatusPanel.tsx",
+      "line": 1,
+      "message": "Component has 358 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/checklist/ChecklistFormDialog.tsx",
+      "line": 1,
+      "message": "Component has 328 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/checklist/ChecklistManagementRedesigned.tsx",
+      "line": 1,
+      "message": "Component has 435 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/performance/PerformanceMonitoringDashboard.tsx",
+      "line": 1,
+      "message": "Component has 454 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/users/UserFormDialog.tsx",
+      "line": 1,
+      "message": "Component has 314 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/admin/users/UserManagementRedesigned.tsx",
+      "line": 1,
+      "message": "Component has 401 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/ai/AIAnalysisDisplay.tsx",
+      "line": 1,
+      "message": "Component has 451 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/ai/ChecklistGenerator.tsx",
+      "line": 1,
+      "message": "Component has 320 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/audit/FeedbackCollectionForm.tsx",
+      "line": 1,
+      "message": "Component has 700 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/FeedbackCollectionForm.tsx",
+      "line": 58,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/FeedbackCollectionForm.tsx",
+      "line": 235,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/FeedbackCollectionForm.tsx",
+      "line": 318,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/FeedbackCollectionForm.tsx",
+      "line": 491,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/audit/VideoAnnotationTools.tsx",
+      "line": 1,
+      "message": "Component has 553 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/VideoAnnotationTools.tsx",
+      "line": 383,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/audit/VideoComparisonPanel.tsx",
+      "line": 1,
+      "message": "Component has 535 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/VideoComparisonPanel.tsx",
+      "line": 287,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/VideoComparisonPanel.tsx",
+      "line": 393,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/audit/VideoReviewPlayer.tsx",
+      "line": 1,
+      "message": "Component has 562 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/audit/VideoReviewPlayer.tsx",
+      "line": 39,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/audit/VideoTimeline.tsx",
+      "line": 1,
+      "message": "Component has 446 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 82,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 90,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 98,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 106,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 114,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 122,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 130,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 138,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 146,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 154,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 162,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 170,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 178,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 186,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/charts/LazyCharts.tsx",
+      "line": 194,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/error/ErrorFallback.tsx",
+      "line": 1,
+      "message": "Component has 374 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/error/ProfessionalErrorBoundary.tsx",
+      "line": 1,
+      "message": "Component has 629 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/components/error/ProfessionalErrorFallback.tsx",
+      "line": 49,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/inspection/VideoWalkthroughPrompt.tsx",
+      "line": 1,
+      "message": "Component has 324 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/inspector/PhotoCaptureStep.tsx",
+      "line": 42,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/mobile/OfflineSync.tsx",
+      "line": 1,
+      "message": "Component has 513 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSync.tsx",
+      "line": 30,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSync.tsx",
+      "line": 78,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSync.tsx",
+      "line": 84,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 1,
+      "message": "Component has 785 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 49,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 55,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 61,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 62,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/mobile/OfflineSyncManager.tsx",
+      "line": 268,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/mobile/PhotoCaptureInterface.tsx",
+      "line": 1,
+      "message": "Component has 604 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/mobile/PhotoQualityIndicator.tsx",
+      "line": 1,
+      "message": "Component has 324 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/photo/PhotoComparisonView.tsx",
+      "line": 1,
+      "message": "Component has 582 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/photo/PhotoGuidance.tsx",
+      "line": 1,
+      "message": "Component has 1010 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/photo/PhotoGuidance.tsx",
+      "line": 53,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/photo/PhotoGuidance.tsx",
+      "line": 55,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/photo/PhotoGuidanceOverlay.tsx",
+      "line": 1,
+      "message": "Component has 476 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/photo/ReferencePhotoOverlay.tsx",
+      "line": 1,
+      "message": "Component has 456 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/reports/AuditTrailReport.tsx",
+      "line": 1,
+      "message": "Component has 377 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/reports/ListingOptimizationSuggestions.tsx",
+      "line": 1,
+      "message": "Component has 363 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/reports/ListingOptimizationSuggestions.tsx",
+      "line": 231,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/reports/ListingOptimizationSuggestions.tsx",
+      "line": 264,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/reports/ListingOptimizationSuggestions.tsx",
+      "line": 291,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/reports/ListingOptimizationSuggestions.tsx",
+      "line": 316,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/reports/PropertyManagerDelivery.tsx",
+      "line": 1,
+      "message": "Component has 365 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/reports/ReportGenerator.tsx",
+      "line": 1,
+      "message": "Component has 314 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/reports/ReportGenerator.tsx",
+      "line": 100,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/scrapers/PropertyDataDisplay.tsx",
+      "line": 1,
+      "message": "Component has 577 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/scrapers/PropertyDataDisplay.tsx",
+      "line": 465,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/scrapers/PropertyDataDisplay.tsx",
+      "line": 485,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/components/scrapers/PropertyDataDisplay.tsx",
+      "line": 506,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/video/EnhancedVideoPlayer.tsx",
+      "line": 1,
+      "message": "Component has 536 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/components/video/VideoUploadProgress.tsx",
+      "line": 1,
+      "message": "Component has 453 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useAuthInitialization.ts",
+      "line": 7,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useAuthInitialization.ts",
+      "line": 8,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useAuthStateListener.ts",
+      "line": 8,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useAuthStateListener.ts",
+      "line": 9,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useCamera.ts",
+      "line": 157,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useCamera.ts",
+      "line": 235,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useChannelManager.ts",
+      "line": 15,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useDataIntegrity.ts",
+      "line": 11,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useDataIntegrity.ts",
+      "line": 124,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useDebugInfoCombiner.ts",
+      "line": 3,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useDebugInfoCombiner.ts",
+      "line": 4,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useDebugInfoCombiner.ts",
+      "line": 5,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useEnterprisePerformanceMonitoring.ts",
+      "line": 33,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useEnterprisePerformanceMonitoring.ts",
+      "line": 104,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useEnterprisePerformanceMonitoring.ts",
+      "line": 111,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useInspectorDashboard.ts",
+      "line": 291,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useMemoryCleanup.ts",
+      "line": 216,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useMobileInspectionOptimizer.ts",
+      "line": 8,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useNotesHistory.ts",
+      "line": 65,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/usePerformanceMonitoring.ts",
+      "line": 504,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/usePropertyActions.ts",
+      "line": 34,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useSecureFileUpload.ts",
+      "line": 87,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useSecureFileUpload.ts",
+      "line": 189,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useSecureFileUpload.ts",
+      "line": 224,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/hooks/useSimplePropertySubmission.ts",
+      "line": 10,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 13,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 91,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 156,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 160,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 218,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 257,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 296,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-cache.ts",
+      "line": 446,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 47,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 156,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 242,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 270,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 270,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 309,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/ai-proxy-service.ts",
+      "line": 386,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/enhanced-ai-service.ts",
+      "line": 321,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/enhanced-ai-service.ts",
+      "line": 322,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/knowledge-base.ts",
+      "line": 483,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/knowledge-base.ts",
+      "line": 538,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/knowledge-base.ts",
+      "line": 544,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/learning-engine.ts",
+      "line": 337,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/learning-engine.ts",
+      "line": 337,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/learning-engine.ts",
+      "line": 639,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/learning-repository.ts",
+      "line": 88,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/photo-comparison.ts",
+      "line": 532,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/photo-quality-service.ts",
+      "line": 313,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/ai/types.ts",
+      "line": 78,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/atomic-operations.ts",
+      "line": 110,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/atomic-operations.ts",
+      "line": 179,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/atomic-operations.ts",
+      "line": 249,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/atomic-operations.ts",
+      "line": 302,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/atomic-operations.ts",
+      "line": 378,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 26,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 69,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 123,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 140,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 147,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 209,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 262,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 278,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 279,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 341,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 372,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 406,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 423,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 471,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/database/transaction-manager.ts",
+      "line": 472,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 33,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 68,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 145,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 290,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 323,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/error/api-error-handler.ts",
+      "line": 417,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/logging/enterprise-logger.ts",
+      "line": 469,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/logging/enterprise-logger.ts",
+      "line": 469,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/logging/enterprise-logger.ts",
+      "line": 478,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/mobile/photo-optimizer.ts",
+      "line": 412,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 382,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 382,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 399,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 498,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 498,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 549,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 767,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 994,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1001,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1008,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1022,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1052,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1054,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1064,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1095,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1096,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1099,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1134,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/ai-metrics.ts",
+      "line": 1225,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/apm-integration.ts",
+      "line": 710,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/apm-integration.ts",
+      "line": 711,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/apm-integration.ts",
+      "line": 712,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/apm-integration.ts",
+      "line": 736,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/error-reporter.ts",
+      "line": 448,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/error-reporter.ts",
+      "line": 448,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/error-reporter.ts",
+      "line": 453,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 71,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 464,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 464,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 496,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 507,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 507,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/health-check.ts",
+      "line": 507,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 13,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 23,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 32,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 60,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 116,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 129,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 312,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 535,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-monitor.ts",
+      "line": 547,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-tracker.ts",
+      "line": 199,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-tracker.ts",
+      "line": 212,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-tracker.ts",
+      "line": 235,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-tracker.ts",
+      "line": 433,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/monitoring/performance-tracker.ts",
+      "line": 596,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 302,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 360,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 373,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 622,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 726,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 781,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 920,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 926,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 949,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 968,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 994,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 994,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 996,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 1037,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 1131,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/optimization/cache-manager.ts",
+      "line": 1132,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 33,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 40,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 201,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 219,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 220,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 230,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 231,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 307,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 354,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 407,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 612,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/pagespeed-validator.ts",
+      "line": 684,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/preloader.ts",
+      "line": 63,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 561,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 647,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "NUCLEAR_ERROR_HANDLING",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 651,
+      "message": "Nuclear error handling detected: window.location.href =. Use graceful error recovery instead.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 24,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 25,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 26,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 27,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/performance/service-worker.ts",
+      "line": 187,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/circuit-breaker.ts",
+      "line": 79,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 9,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 52,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 94,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 129,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 358,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/resilience/rate-limiter.ts",
+      "line": 359,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/comprehensive-vrbo-scraper.ts",
+      "line": 145,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/comprehensive-vrbo-scraper.ts",
+      "line": 240,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/comprehensive-vrbo-scraper.ts",
+      "line": 241,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/comprehensive-vrbo-scraper.ts",
+      "line": 242,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/production-vrbo-scraper.ts",
+      "line": 288,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/production-vrbo-scraper.ts",
+      "line": 443,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/production-vrbo-scraper.ts",
+      "line": 564,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/production-vrbo-scraper.ts",
+      "line": 639,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/robust-scraping-service.ts",
+      "line": 381,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/robust-scraping-service.ts",
+      "line": 393,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/robust-scraping-service.ts",
+      "line": 408,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 219,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 244,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 245,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 259,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 260,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 274,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/simple-vrbo-scraper.ts",
+      "line": 309,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/static-vrbo-photo-extractor.ts",
+      "line": 333,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-browser-scraper.ts",
+      "line": 111,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-browser-scraper.ts",
+      "line": 312,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-browser-scraper.ts",
+      "line": 370,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-data-extractor.ts",
+      "line": 278,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-data-extractor.ts",
+      "line": 755,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-data-extractor.ts",
+      "line": 793,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-image-scraper.ts",
+      "line": 302,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-image-scraper.ts",
+      "line": 638,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-scraper.ts",
+      "line": 24,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/scrapers/vrbo-scraper.ts",
+      "line": 447,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/input-validator.ts",
+      "line": 39,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/input-validator.ts",
+      "line": 302,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/input-validator.ts",
+      "line": 379,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/input-validator.ts",
+      "line": 384,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/pii-scrubber.ts",
+      "line": 197,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/pii-scrubber.ts",
+      "line": 197,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/pii-scrubber.ts",
+      "line": 207,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/pii-scrubber.ts",
+      "line": 247,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/pii-scrubber.ts",
+      "line": 258,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 99,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 153,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 160,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 259,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 262,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 312,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 415,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 418,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 464,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 470,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 555,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 559,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 603,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 702,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 713,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 721,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 759,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 759,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/security/security-middleware.ts",
+      "line": 772,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/sync/queue-processor.ts",
+      "line": 37,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 12,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 19,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 29,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 50,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 54,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 58,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/utils/logger.ts",
+      "line": 62,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/video/video-processor.ts",
+      "line": 157,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/video/video-processor.ts",
+      "line": 629,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/video/video-processor.ts",
+      "line": 665,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/lib/video/video-processor.ts",
+      "line": 667,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/pages/AuditorDashboard.tsx",
+      "line": 1,
+      "message": "Component has 852 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/AuditorDashboard.tsx",
+      "line": 355,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/pages/InspectionReports.tsx",
+      "line": 1,
+      "message": "Component has 414 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/InspectorWorkflow.tsx",
+      "line": 124,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/InspectorWorkflow.tsx",
+      "line": 175,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/InspectorWorkflow.tsx",
+      "line": 180,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/InspectorWorkflow.tsx",
+      "line": 418,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/pages/InspectorWorkflowProfessional.tsx",
+      "line": 218,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "GOD_COMPONENT",
+      "file": "src/pages/SimpleAuditorDashboard.tsx",
+      "line": 1,
+      "message": "Component has 333 lines (limit: 300). Break into smaller, focused components.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 70,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 257,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 305,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 313,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 342,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 368,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/intelligentBugReportService.ts",
+      "line": 372,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/proactiveMonitoring.ts",
+      "line": 657,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/proactiveMonitoring.ts",
+      "line": 918,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/reportDeliveryService.ts",
+      "line": 415,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/reproductionStepsGenerator.ts",
+      "line": 240,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/services/rootCauseAnalyzer.ts",
+      "line": 372,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "SERVICE_LAYER_PYRAMID",
+      "file": "src/services/syncService.ts",
+      "line": 1,
+      "message": "Excessive service layer complexity detected (16 service calls). Simplify architecture.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/stores/appStore.ts",
+      "line": 223,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/stores/types.ts",
+      "line": 295,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/stores/types.ts",
+      "line": 296,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/databaseVerification.ts",
+      "line": 12,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/databaseVerification.ts",
+      "line": 19,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/requestDeduplication.ts",
+      "line": 29,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/requestDeduplication.ts",
+      "line": 58,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/requestDeduplication.ts",
+      "line": 94,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "TYPE_ESCAPE_HATCH",
+      "file": "src/utils/requestDeduplication.ts",
+      "line": 289,
+      "message": "'any' type detected in business logic. Use proper TypeScript interfaces.",
+      "severity": "CRITICAL"
+    }
+  ],
+  "passed": false
+}

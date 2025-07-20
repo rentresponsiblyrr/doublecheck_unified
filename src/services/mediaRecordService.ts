@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
+import { log } from '@/lib/logging/enterprise-logger';
 
 export const useMediaRecordService = () => {
   const { user } = useAuth();
@@ -12,14 +13,16 @@ export const useMediaRecordService = () => {
     filePath?: string
   ) => {
     try {
-      console.log('Saving media record with user attribution...', { 
-        checklistItemId, 
-        type, 
-        url, 
+      log.info('Saving media record with user attribution', {
+        component: 'useMediaRecordService',
+        action: 'saveMediaRecordWithAttribution',
+        checklistItemId,
+        type,
+        url,
         filePath,
         userId: user?.id,
-        userEmail: user?.email 
-      });
+        userEmail: user?.email
+      }, 'MEDIA_RECORD_SAVE_STARTED');
       
       // Get user name from auth metadata or email
       const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Unknown Inspector';
@@ -39,14 +42,34 @@ export const useMediaRecordService = () => {
         .single();
 
       if (error) {
-        console.error('Database insert error:', error);
+        log.error('Database insert error for media record', error, {
+          component: 'useMediaRecordService',
+          action: 'saveMediaRecordWithAttribution',
+          checklistItemId,
+          type,
+          userId: user?.id
+        }, 'MEDIA_RECORD_INSERT_ERROR');
         throw error;
       }
 
-      console.log('Media record saved with attribution:', data);
+      log.info('Media record saved with attribution', {
+        component: 'useMediaRecordService',
+        action: 'saveMediaRecordWithAttribution',
+        checklistItemId,
+        mediaId: data?.id,
+        type,
+        userId: user?.id,
+        uploadedByName: data?.uploaded_by_name
+      }, 'MEDIA_RECORD_SAVED');
       return data;
     } catch (error) {
-      console.error('Save media record error:', error);
+      log.error('Save media record error', error as Error, {
+        component: 'useMediaRecordService',
+        action: 'saveMediaRecordWithAttribution',
+        checklistItemId,
+        type,
+        userId: user?.id
+      }, 'MEDIA_RECORD_SAVE_FAILED');
       throw error;
     }
   };

@@ -51,14 +51,14 @@ export default function InspectionCleanupUtility() {
     try {
       setIsAnalyzing(true);
       setError(null);
-      console.log('🔍 Starting duplicate inspection analysis...');
+      // REMOVED: console.log('🔍 Starting duplicate inspection analysis...');
       
       const summary = await InspectionCleanupService.analyzeDuplicateInspections();
       setAnalysis(summary);
       
-      console.log('✅ Analysis complete:', summary);
+      // REMOVED: console.log('✅ Analysis complete:', summary);
     } catch (err) {
-      console.error('❌ Analysis failed:', err);
+      // REMOVED: console.error('❌ Analysis failed:', err);
       setError(err instanceof Error ? err.message : 'Analysis failed');
     } finally {
       setIsAnalyzing(false);
@@ -84,7 +84,7 @@ export default function InspectionCleanupUtility() {
       setError(null);
       
       const idsToDelete = analysis.safeToDelete.map(inspection => inspection.id);
-      console.log('🧹 Starting cleanup of inspections:', idsToDelete);
+      // REMOVED: console.log('🧹 Starting cleanup of inspections:', idsToDelete);
       
       await InspectionCleanupService.cleanupDuplicateInspections(idsToDelete);
       
@@ -94,7 +94,7 @@ export default function InspectionCleanupUtility() {
       await runAnalysis();
       
     } catch (err) {
-      console.error('❌ Cleanup failed:', err);
+      // REMOVED: console.error('❌ Cleanup failed:', err);
       setError(err instanceof Error ? err.message : 'Cleanup failed');
     } finally {
       setIsDeleting(false);

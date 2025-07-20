@@ -72,7 +72,7 @@ export default function DirectErrorLogger() {
 
   const testComponentImport = async (componentName: string) => {
     try {
-      console.log(`🧪 Testing import of ${componentName}...`);
+      // REMOVED: console.log(`🧪 Testing import of ${componentName}...`);
       
       switch (componentName) {
         case 'SimpleUserManagement':
@@ -91,16 +91,16 @@ export default function DirectErrorLogger() {
           throw new Error(`Unknown component: ${componentName}`);
       }
       
-      console.log(`✅ ${componentName} imported successfully`);
+      // REMOVED: console.log(`✅ ${componentName} imported successfully`);
       
     } catch (error) {
-      console.error(`❌ ${componentName} import failed:`, error);
+      // REMOVED: console.error(`❌ ${componentName} import failed:`, error);
     }
   };
 
   const renderComponent = (componentName: string) => {
     try {
-      console.log(`🎭 Attempting to render ${componentName}...`);
+      // REMOVED: console.log(`🎭 Attempting to render ${componentName}...`);
       
       switch (componentName) {
         case 'SimpleUserManagement': {
@@ -123,7 +123,7 @@ export default function DirectErrorLogger() {
           return <div>Component {componentName} not configured for direct render</div>;
       }
     } catch (error) {
-      console.error(`❌ ${componentName} render failed:`, error);
+      // REMOVED: console.error(`❌ ${componentName} render failed:`, error);
       return <div className="text-red-600">Failed to render {componentName}: {String(error)}</div>;
     }
   };
@@ -246,7 +246,7 @@ export default function DirectErrorLogger() {
         <CardContent>
           <div className="flex space-x-2">
             <Button onClick={() => setErrors([])}>Clear Errors</Button>
-            <Button onClick={() => window.location.reload()} variant="outline">
+            <Button onClick={() => window.location.assign(window.location.href)} variant="outline">
               Reload Page
             </Button>
           </div>

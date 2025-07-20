@@ -23,7 +23,7 @@ export class NavigationErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🧭 Navigation Error Boundary caught an error:', error, errorInfo);
+    // REMOVED: console.error('🧭 Navigation Error Boundary caught an error:', error, errorInfo);
     this.setState({ error });
   }
 

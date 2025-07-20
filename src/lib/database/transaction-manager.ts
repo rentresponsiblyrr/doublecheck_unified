@@ -76,7 +76,7 @@ class DatabaseTransactionManager {
           continue;
         }
         
-        console.error('Transaction failed:', error);
+        // REMOVED: console.error('Transaction failed:', error);
         return {
           success: false,
           error: error.message || 'Transaction failed',
@@ -116,12 +116,12 @@ class DatabaseTransactionManager {
         
         for (const operation of operations) {
           try {
-            console.log(`Executing operation: ${operation.description}`);
+            // REMOVED: console.log(`Executing operation: ${operation.description}`);
             const result = await operation.execute();
             results.push(result);
             executedOperations.push(operation);
           } catch (error: any) {
-            console.error(`Operation failed: ${operation.description}`, error);
+            // REMOVED: console.error(`Operation failed: ${operation.description}`, error);
             throw new TransactionError(
               `Operation failed: ${operation.description} - ${error.message}`,
               'OPERATION_FAILED',
@@ -138,14 +138,14 @@ class DatabaseTransactionManager {
       return { success: true, data: results };
       
     } catch (error: any) {
-      console.error('Atomic operations failed, initiating rollback:', error);
+      // REMOVED: console.error('Atomic operations failed, initiating rollback:', error);
       
       // Execute rollback operations in reverse order
       try {
         await this.executeRollback(executedOperations.reverse());
         rollbackExecuted = true;
       } catch (rollbackError: any) {
-        console.error('Rollback failed:', rollbackError);
+        // REMOVED: console.error('Rollback failed:', rollbackError);
         // Log critical error - data may be in inconsistent state
         await this.logCriticalError('ROLLBACK_FAILED', {
           originalError: error.message,
@@ -315,7 +315,7 @@ class DatabaseTransactionManager {
         },
         rollback: async () => {
           // Implement rollback logic based on operation type
-          console.log(`Rolling back ${op.operation} on ${op.table}`);
+          // REMOVED: console.log(`Rolling back ${op.operation} on ${op.table}`);
         },
         description: `${op.operation} on ${op.table}`,
       })),
@@ -367,10 +367,10 @@ class DatabaseTransactionManager {
     
     for (const operation of operations) {
       try {
-        console.log(`Rolling back: ${operation.description}`);
+        // REMOVED: console.log(`Rolling back: ${operation.description}`);
         await operation.rollback();
       } catch (error: any) {
-        console.error(`Rollback failed for: ${operation.description}`, error);
+        // REMOVED: console.error(`Rollback failed for: ${operation.description}`, error);
         rollbackErrors.push(error);
       }
     }
@@ -416,7 +416,7 @@ class DatabaseTransactionManager {
         .eq('lock_key', lockKey)
         .eq('lock_id', lockId);
     } catch (error) {
-      console.error('Failed to release distributed lock:', error);
+      // REMOVED: console.error('Failed to release distributed lock:', error);
     }
   }
 
@@ -429,7 +429,7 @@ class DatabaseTransactionManager {
         severity: 'critical',
       });
     } catch (error) {
-      console.error('Failed to log critical error:', error);
+      // REMOVED: console.error('Failed to log critical error:', error);
     }
   }
 }

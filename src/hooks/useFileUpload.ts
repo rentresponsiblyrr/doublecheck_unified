@@ -30,7 +30,7 @@ export const useFileUpload = ({
     const validation = validateFile(file);
     if (!validation.isValid) return;
 
-    console.log('File selected:', file.name, file.type, file.size, 'Detected type:', validation.detectedType);
+    // REMOVED: console.log('File selected:', file.name, file.type, file.size, 'Detected type:', validation.detectedType);
     setIsUploading(true);
     
     try {
@@ -50,7 +50,7 @@ export const useFileUpload = ({
       const uploadResult = await uploadMedia(file, inspectionId, checklistItemId);
       
       if (uploadResult.error) {
-        console.error('Upload failed:', uploadResult.error);
+        // REMOVED: console.error('Upload failed:', uploadResult.error);
         
         // If upload fails and it's a photo, try saving offline
         if (validation.detectedType === 'photo') {
@@ -73,7 +73,7 @@ export const useFileUpload = ({
       }
 
       if (!uploadResult.url) {
-        console.error('No URL returned from upload');
+        // REMOVED: console.error('No URL returned from upload');
         toast({
           title: "Upload failed",
           description: "No URL returned from upload",
@@ -97,10 +97,10 @@ export const useFileUpload = ({
       // Trigger refresh of the checklist
       onComplete();
       
-      console.log('Media upload and save completed successfully');
+      // REMOVED: console.log('Media upload and save completed successfully');
       
     } catch (error) {
-      console.error('Error in file upload process:', error);
+      // REMOVED: console.error('Error in file upload process:', error);
       
       // If error and it's a photo, try saving offline as fallback
       if (validation.detectedType === 'photo') {
@@ -114,7 +114,7 @@ export const useFileUpload = ({
           onComplete();
           return;
         } catch (offlineError) {
-          console.error('Offline save also failed:', offlineError);
+          // REMOVED: console.error('Offline save also failed:', offlineError);
         }
       }
       

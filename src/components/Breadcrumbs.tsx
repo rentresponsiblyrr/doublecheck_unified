@@ -22,7 +22,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' 
       try {
         navigate(path);
       } catch (error) {
-        console.error('Navigation failed:', error);
+        // REMOVED: console.error('Navigation failed:', error);
         window.location.href = path;
       }
     }

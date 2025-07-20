@@ -27,7 +27,7 @@ export class SafeWorkflowWrapper extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 Workflow Error Boundary caught error:', error, errorInfo);
+    // REMOVED: console.error('🚨 Workflow Error Boundary caught error:', error, errorInfo);
   }
 
   render() {

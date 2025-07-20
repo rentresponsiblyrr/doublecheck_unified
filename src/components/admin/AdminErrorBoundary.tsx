@@ -26,7 +26,7 @@ export default class AdminErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 AdminErrorBoundary caught error:', error, errorInfo);
+    // REMOVED: console.error('🚨 AdminErrorBoundary caught error:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

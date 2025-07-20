@@ -28,7 +28,7 @@ export const InspectionCompleteButton = ({
     
     setIsCompleting(true);
     try {
-      console.log('✅ Starting inspection completion:', inspectionId);
+      // REMOVED: console.log('✅ Starting inspection completion:', inspectionId);
       
       const { error } = await supabase
         .from('inspections')
@@ -40,7 +40,7 @@ export const InspectionCompleteButton = ({
         .eq('id', inspectionId);
 
       if (error) {
-        console.error('❌ Error completing inspection:', error);
+        // REMOVED: console.error('❌ Error completing inspection:', error);
         toast({
           title: "Error",
           description: "Failed to complete inspection. Please try again.",
@@ -49,7 +49,7 @@ export const InspectionCompleteButton = ({
         return;
       }
 
-      console.log('✅ Inspection completed successfully');
+      // REMOVED: console.log('✅ Inspection completed successfully');
       toast({
         title: "Inspection Complete!",
         description: `Inspection submitted with ${passedCount} passed and ${failedCount} failed items.`,
@@ -57,7 +57,7 @@ export const InspectionCompleteButton = ({
       
       navigate(`/inspection-complete/${inspectionId}`);
     } catch (error) {
-      console.error('💥 Failed to complete inspection:', error);
+      // REMOVED: console.error('💥 Failed to complete inspection:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

@@ -24,7 +24,7 @@ export const DomainAwarePWA: React.FC = () => {
       const shouldRegister = isInspectorDomain() && env.features.pwa;
       
       if (!shouldRegister) {
-        console.log('PWA registration skipped - not inspector domain or PWA disabled');
+        // REMOVED: console.log('PWA registration skipped - not inspector domain or PWA disabled');
         return;
       }
 
@@ -34,7 +34,7 @@ export const DomainAwarePWA: React.FC = () => {
         updateViaCache: 'none'
       });
 
-      console.log('PWA Service Worker registered successfully:', registration);
+      // REMOVED: console.log('PWA Service Worker registered successfully:', registration);
 
       // Listen for updates with timeout protection
       registration.addEventListener('updatefound', () => {
@@ -43,7 +43,7 @@ export const DomainAwarePWA: React.FC = () => {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
-              console.log('New PWA version available. Refresh to update.');
+              // REMOVED: console.log('New PWA version available. Refresh to update.');
             }
           });
         }
@@ -62,7 +62,7 @@ export const DomainAwarePWA: React.FC = () => {
       });
 
     } catch (error) {
-      console.error('PWA Service Worker registration failed:', error);
+      // REMOVED: console.error('PWA Service Worker registration failed:', error);
       // Don't throw the error to prevent app crashes
     }
   };
@@ -156,7 +156,7 @@ export const DomainAwarePWA: React.FC = () => {
     `;
     document.head.appendChild(script2);
 
-    console.log('Analytics script added for admin domain');
+    // REMOVED: console.log('Analytics script added for admin domain');
   };
 
   return null; // This component doesn't render anything
@@ -180,7 +180,7 @@ export const usePWAInstallation = () => {
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
       setCanInstall(false);
-      console.log('PWA installed successfully');
+      // REMOVED: console.log('PWA installed successfully');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

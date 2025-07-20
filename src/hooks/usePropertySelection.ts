@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
-import { STATUS_GROUPS, INSPECTION_STATUS } from "@/types/inspection-status";
+import { STATUS_GROUPS, INSPECTION_STATUS, type InspectionStatus } from "@/types/inspection-status";
 
 interface Inspection {
   id: string;
   property_id: string;
   completed: boolean;
   start_time: string | null;
-  status?: string;
+  status?: InspectionStatus;
 }
 
 export const usePropertySelection = (inspections: Inspection[]) => {
@@ -27,7 +27,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    console.log('🚀 Starting inspection for property:', selectedProperty);
+    // REMOVED: console.log('🚀 Starting inspection for property:', selectedProperty);
     await startOrJoinInspection(selectedProperty);
   };
 
@@ -37,7 +37,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    console.log('🔄 Retrying inspection for property:', selectedProperty);
+    // REMOVED: console.log('🔄 Retrying inspection for property:', selectedProperty);
     await retryInspection(selectedProperty);
   };
 
@@ -53,7 +53,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
 
     // Find any inspection with active status (should prevent new inspection)
     const activeInspections = propertyInspections.filter(i => 
-      activeStatuses.includes(i.status as any) || 
+      (i.status && activeStatuses.includes(i.status)) || 
       (!i.completed && (!i.status || i.status === 'available' || i.status === 'draft'))
     );
 
@@ -64,7 +64,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
 
     // Find truly completed inspections that are in review pipeline
     const completedInspections = propertyInspections.filter(i => 
-      STATUS_GROUPS.REVIEW_PIPELINE.includes(i.status as any) || 
+      (i.status && STATUS_GROUPS.REVIEW_PIPELINE.includes(i.status)) || 
       (i.completed && i.status === INSPECTION_STATUS.COMPLETED)
     );
 

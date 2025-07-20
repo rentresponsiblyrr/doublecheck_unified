@@ -51,7 +51,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // REMOVED: console.error('ErrorBoundary caught an error:', error, errorInfo);
     
     this.setState({ errorInfo });
     
@@ -92,7 +92,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
     } catch (loggingError) {
-      console.error('Failed to log error:', loggingError);
+      // REMOVED: console.error('Failed to log error:', loggingError);
     }
   }
 
@@ -106,7 +106,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         body: JSON.stringify(errorReport),
       });
     } catch (error) {
-      console.error('Failed to send error to monitoring service:', error);
+      // REMOVED: console.error('Failed to send error to monitoring service:', error);
     }
   }
 
@@ -155,7 +155,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Failed to log retry attempt:', error);
+      // REMOVED: console.error('Failed to log retry attempt:', error);
     }
 
     // Wait before retry
@@ -191,7 +191,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       // Use proper navigation
       window.location.replace('/');
     } catch (error) {
-      console.error('Clean reload failed:', error);
+      // REMOVED: console.error('Clean reload failed:', error);
       // Last resort: navigate to fresh instance
       window.location.replace(window.location.origin + window.location.pathname);
     }
@@ -208,7 +208,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         window.location.replace('/');
       }
     } catch (error) {
-      console.error('Navigation failed:', error);
+      // REMOVED: console.error('Navigation failed:', error);
       window.location.href = '/';
     }
   };
@@ -385,7 +385,7 @@ export function withErrorBoundary<P extends object>(
 
 // Async error handler for promises
 export function handleAsyncError(error: Error, context?: string) {
-  console.error('Async error occurred:', error, context);
+  // REMOVED: console.error('Async error occurred:', error, context);
   
   // Create a synthetic error boundary event
   const errorEvent = new CustomEvent('asyncError', {
@@ -399,7 +399,7 @@ export function handleAsyncError(error: Error, context?: string) {
 if (typeof window !== 'undefined') {
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
+    // REMOVED: console.error('Unhandled promise rejection:', event.reason);
     handleAsyncError(
       event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
       'unhandledrejection'
@@ -408,7 +408,7 @@ if (typeof window !== 'undefined') {
 
   // Handle global JavaScript errors
   window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
+    // REMOVED: console.error('Global error:', event.error);
     handleAsyncError(
       event.error || new Error(event.message),
       'global'

@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function DatabaseConnectivityTest() {
   // REMOVED: DatabaseConnectivityTest logging to prevent infinite render loops
-  // console.log('🔍 DatabaseConnectivityTest component rendering...');
+  // // REMOVED: console.log('🔍 DatabaseConnectivityTest component rendering...');
   const [testResults, setTestResults] = useState<string>('Click "Test Database Connection" to run connectivity tests');
   const [isLoading, setIsLoading] = useState(false);
 

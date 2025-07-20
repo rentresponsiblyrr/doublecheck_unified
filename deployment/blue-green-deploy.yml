@@ -1,0 +1,429 @@
+# Blue-Green Deployment Configuration for STR Certified
+# Enterprise-grade zero-downtime deployment strategy
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue-green-config
+  namespace: str-certified
+data:
+  # Deployment configuration
+  blue_replicas: "3"
+  green_replicas: "3" 
+  health_check_path: "/health"
+  health_check_timeout: "30s"
+  health_check_interval: "10s"
+  readiness_threshold: "80"  # Percentage of healthy instances required
+  rollback_threshold: "60"   # Trigger rollback if health drops below this
+  traffic_switch_delay: "30s"
+  
+  # Monitoring configuration
+  metrics_retention: "7d"
+  alert_threshold_error_rate: "5"
+  alert_threshold_response_time: "2000"
+  alert_threshold_availability: "99"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: str-certified-blue
+  namespace: str-certified
+  labels:
+    app: str-certified
+    version: blue
+    tier: production
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: str-certified
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: str-certified
+        version: blue
+        tier: production
+      annotations:
+        deployment.kubernetes.io/revision: "1"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: str-certified
+        image: str-certified:blue-latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        
+        # Resource limits for production
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        # Environment variables
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: VITE_APP_VERSION
+          value: "blue"
+        - name: DEPLOYMENT_COLOR
+          value: "blue"
+        - name: DEPLOYMENT_TIMESTAMP
+          value: "$(BUILD_TIMESTAMP)"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        
+        # Startup probe for slow-starting applications
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+        
+        # Security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts for logs and temp files
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: logs
+          mountPath: /app/logs
+      
+      # Volumes
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      
+      # Pod security and scheduling
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
+      
+      # Ensure pods are spread across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: str-certified
+                  version: blue
+              topologyKey: kubernetes.io/hostname
+      
+      # Tolerations for dedicated nodes
+      tolerations:
+      - key: "production-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: str-certified-green
+  namespace: str-certified
+  labels:
+    app: str-certified
+    version: green
+    tier: production
+spec:
+  replicas: 0  # Initially scaled down
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: str-certified
+      version: green
+  template:
+    metadata:
+      labels:
+        app: str-certified
+        version: green
+        tier: production
+      annotations:
+        deployment.kubernetes.io/revision: "1"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: str-certified
+        image: str-certified:green-latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: VITE_APP_VERSION
+          value: "green"
+        - name: DEPLOYMENT_COLOR
+          value: "green"
+        - name: DEPLOYMENT_TIMESTAMP
+          value: "$(BUILD_TIMESTAMP)"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 30
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: logs
+          mountPath: /app/logs
+      
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: str-certified
+                  version: green
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: str-certified-blue
+  namespace: str-certified
+  labels:
+    app: str-certified
+    version: blue
+spec:
+  selector:
+    app: str-certified
+    version: blue
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: str-certified-green
+  namespace: str-certified
+  labels:
+    app: str-certified
+    version: green
+spec:
+  selector:
+    app: str-certified
+    version: green
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: str-certified-active
+  namespace: str-certified
+  labels:
+    app: str-certified
+    tier: production
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+spec:
+  selector:
+    app: str-certified
+    version: blue  # This gets updated during deployment
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  type: LoadBalancer
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: str-certified-ingress
+  namespace: str-certified
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - str-certified.com
+    - www.str-certified.com
+    secretName: str-certified-tls
+  rules:
+  - host: str-certified.com
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: str-certified-active
+            port:
+              number: 80
+  - host: www.str-certified.com
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: str-certified-active
+            port:
+              number: 80
+
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: str-certified-monitoring
+  namespace: str-certified
+  labels:
+    app: str-certified
+spec:
+  selector:
+    matchLabels:
+      app: str-certified
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-07-20T01:41:06.896Z",
+  "bundleAnalysis": {
+    "totalSize": 10915,
+    "grade": "C",
+    "meetsMetaStandard": false,
+    "meetsEliteStandard": false,
+    "recommendations": [
+      "Implement aggressive code splitting",
+      "Remove unused dependencies",
+      "Enable tree shaking optimization",
+      "CRITICAL: Bundle size exceeds Meta standards",
+      "Consider micro-frontend architecture"
+    ]
+  },
+  "dependencyAnalysis": {
+    "totalDependencies": 92,
+    "heavyDependencies": [],
+    "grade": "C"
+  },
+  "codeQualityAnalysis": {
+    "totalFiles": 489,
+    "totalLines": 136243,
+    "averageFileSize": 278.6155419222904,
+    "largeFiles": 179,
+    "grade": "C"
+  },
+  "overallGrade": "C",
+  "actionItems": [
+    "PRIORITY 1: Optimize bundle size to meet elite standards",
+    "PRIORITY 3: Refactor large files to improve maintainability"
+  ]
+}

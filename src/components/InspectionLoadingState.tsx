@@ -6,7 +6,7 @@ interface InspectionLoadingStateProps {
 }
 
 export const InspectionLoadingState = ({ inspectionId }: InspectionLoadingStateProps) => {
-  console.log('⏳ Showing loading state for inspection:', inspectionId);
+  // REMOVED: console.log('⏳ Showing loading state for inspection:', inspectionId);
   
   return (
     <div className="min-h-screen bg-gray-50">

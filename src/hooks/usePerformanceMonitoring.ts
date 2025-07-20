@@ -656,7 +656,7 @@ export const useComponentLifecycleMonitoring = (componentName: string) => {
     return () => {
       // Component unmounting
       const lifetime = performance.now() - mountTime.current;
-      console.log(`[${componentName}] Unmounting after ${lifetime.toFixed(0)}ms, ${updateCount.current} updates`);
+      // REMOVED: console.log(`[${componentName}] Unmounting after ${lifetime.toFixed(0)}ms, ${updateCount.current} updates`);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

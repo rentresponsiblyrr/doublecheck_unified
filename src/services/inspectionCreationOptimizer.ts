@@ -282,7 +282,11 @@ export class InspectionCreationOptimizer {
 
   static async assignInspectorToInspection(inspectionId: string): Promise<void> {
     try {
-      console.log('👤 Assigning current user to inspection:', inspectionId);
+      log.info('Assigning current user to inspection', {
+        component: 'InspectionCreationOptimizer',
+        action: 'assignInspector',
+        metadata: { inspectionId }
+      }, 'ASSIGN_INSPECTOR_START');
       
       // Try RPC function first, fallback to direct update
       try {
@@ -294,10 +298,10 @@ export class InspectionCreationOptimizer {
           throw new Error(`RPC assign failed: ${error.message}`);
         }
 
-        console.log('✅ Inspector assigned successfully via RPC');
+        // REMOVED: console.log('✅ Inspector assigned successfully via RPC');
         return;
       } catch (rpcError) {
-        console.log('🔧 RPC assign function not available, using direct update:', rpcError);
+        // REMOVED: console.log('🔧 RPC assign function not available, using direct update:', rpcError);
         
         // Fallback to direct update
         const { data: { user } } = await supabase.auth.getUser();
@@ -314,10 +318,10 @@ export class InspectionCreationOptimizer {
           throw new Error(`Direct update failed: ${updateError.message}`);
         }
 
-        console.log('✅ Inspector assigned successfully via direct update');
+        // REMOVED: console.log('✅ Inspector assigned successfully via direct update');
       }
     } catch (error) {
-      console.error('❌ Failed to assign inspector:', error);
+      // REMOVED: console.error('❌ Failed to assign inspector:', error);
       // Don't throw - this is not critical for mobile flow
     }
   }

@@ -1,0 +1,341 @@
+# Chaos Engineering Configuration for STR Certified
+# Advanced resilience testing for AI-powered inspection platform
+
+config:
+  target: 'http://localhost:3000'
+  
+  # Chaos testing phases
+  phases:
+    # Baseline - normal operation
+    - duration: 60
+      arrivalRate: 10
+      name: "Baseline Performance"
+    
+    # Database connection chaos
+    - duration: 120
+      arrivalRate: 15
+      name: "Database Chaos Injection"
+      chaos:
+        - type: "database_latency"
+          frequency: 0.1
+          delay: { min: 1000, max: 3000 }
+    
+    # Memory pressure chaos
+    - duration: 120
+      arrivalRate: 15
+      name: "Memory Pressure Injection"
+      chaos:
+        - type: "memory_leak"
+          frequency: 0.05
+          size: "10MB"
+    
+    # Network partition simulation
+    - duration: 120
+      arrivalRate: 15
+      name: "Network Partition Simulation"
+      chaos:
+        - type: "network_partition"
+          frequency: 0.08
+          duration: 5000
+    
+    # CPU spike simulation
+    - duration: 120
+      arrivalRate: 15
+      name: "CPU Spike Injection"
+      chaos:
+        - type: "cpu_spike"
+          frequency: 0.1
+          duration: 2000
+    
+    # Recovery validation
+    - duration: 60
+      arrivalRate: 8
+      name: "Recovery Validation"
+
+  processor: "./chaos-processor.js"
+
+scenarios:
+  # Critical Path Resilience Testing
+  - name: "Inspection Workflow Resilience"
+    weight: 40
+    flow:
+      # Test authentication resilience
+      - post:
+          url: "/api/auth/session"
+          json:
+            email: "chaos.inspector@strcertified.com"
+            password: "ChaosPassword123!"
+          beforeRequest: "injectAuthChaos"
+          expect:
+            - statusCode: [200, 401, 503] # Accept auth failures during chaos
+          capture:
+            - json: "$.access_token"
+              as: "authToken"
+              ifUndefined: "skip"
+      
+      # Test property listing resilience
+      - get:
+          url: "/api/properties"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          beforeRequest: "injectDatabaseChaos"
+          expect:
+            - statusCode: [200, 500, 503] # Accept database failures
+          capture:
+            - json: "$.data[0].property_id"
+              as: "propertyId"
+              ifUndefined: "1"
+      
+      # Test inspection creation resilience
+      - post:
+          url: "/api/inspections"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            property_id: "{{ propertyId }}"
+            inspector_id: "chaos-inspector-1"
+          beforeRequest: "injectNetworkChaos"
+          expect:
+            - statusCode: [201, 500, 503, 408] # Accept various failures
+          capture:
+            - json: "$.data.id"
+              as: "inspectionId"
+              ifUndefined: "chaos-inspection-1"
+      
+      # Test AI service resilience
+      - post:
+          url: "/api/ai/photo-quality"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          formData:
+            file: "@./test-assets/sample-photo.jpg"
+          beforeRequest: "injectAIChaos"
+          expect:
+            - statusCode: [200, 500, 503, 408] # Accept AI service failures
+
+  # Database Resilience Testing
+  - name: "Database Chaos Testing"
+    weight: 25
+    flow:
+      - get:
+          url: "/api/properties"
+          beforeRequest: "injectDatabaseLatency"
+          expect:
+            - responseTime: [0, 10000] # Allow up to 10s response time
+      
+      - get:
+          url: "/api/inspections"
+          beforeRequest: "injectDatabaseConnectionDrop"
+          expect:
+            - statusCode: [200, 500, 503]
+
+  # AI Service Chaos Testing
+  - name: "AI Service Chaos"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/ai/photo-compare"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            inspection_photo_url: "chaos-test.jpg"
+            reference_photo_url: "chaos-ref.jpg"
+          beforeRequest: "injectAIServiceChaos"
+          expect:
+            - statusCode: [200, 500, 503, 408]
+
+  # Infrastructure Chaos Testing
+  - name: "Infrastructure Chaos"
+    weight: 15
+    flow:
+      - get:
+          url: "/health"
+          beforeRequest: "injectInfrastructureChaos"
+          expect:
+            - statusCode: [200, 500, 503]
+
+# Resilience Metrics and Monitoring
+metrics:
+  chaos_impact:
+    - name: "chaos_injection_rate"
+      description: "Rate of chaos injections per minute"
+      type: "counter"
+    
+    - name: "service_recovery_time"
+      description: "Time to recover from chaos injection"
+      type: "histogram"
+    
+    - name: "error_rate_during_chaos"
+      description: "Error rate increase during chaos"
+      type: "histogram"
+    
+    - name: "response_time_degradation"
+      description: "Response time increase during chaos"
+      type: "histogram"
+
+  business_metrics:
+    - name: "inspection_completion_rate"
+      description: "Inspection completion rate during chaos"
+      type: "histogram"
+    
+    - name: "photo_upload_success_rate"
+      description: "Photo upload success rate during chaos"
+      type: "histogram"
+    
+    - name: "ai_accuracy_during_chaos"
+      description: "AI accuracy during system stress"
+      type: "histogram"
+
+# Failure Scenarios
+failure_scenarios:
+  database_failures:
+    - name: "connection_pool_exhaustion"
+      trigger: "high_connection_count"
+      impact: "database_unavailable"
+      recovery: "connection_pool_reset"
+    
+    - name: "query_timeout"
+      trigger: "slow_query_injection"
+      impact: "request_timeout"
+      recovery: "query_optimization"
+    
+    - name: "deadlock_injection"
+      trigger: "concurrent_transactions"
+      impact: "transaction_failure"
+      recovery: "deadlock_resolution"
+
+  ai_service_failures:
+    - name: "model_unavailable"
+      trigger: "ai_service_overload"
+      impact: "ai_predictions_fail"
+      recovery: "fallback_to_cache"
+    
+    - name: "rate_limit_exceeded"
+      trigger: "high_ai_request_rate"
+      impact: "ai_requests_throttled"
+      recovery: "exponential_backoff"
+
+  infrastructure_failures:
+    - name: "memory_exhaustion"
+      trigger: "memory_leak_simulation"
+      impact: "service_degradation"
+      recovery: "automatic_restart"
+    
+    - name: "cpu_saturation"
+      trigger: "cpu_intensive_operation"
+      impact: "response_time_increase"
+      recovery: "load_balancing"
+
+# Recovery Validation
+recovery_validation:
+  automatic_recovery:
+    - test: "service_restart_after_crash"
+      expected: "service_available_within_30s"
+    
+    - test: "database_reconnection"
+      expected: "connection_restored_within_10s"
+    
+    - test: "circuit_breaker_activation"
+      expected: "fallback_response_immediate"
+
+  data_consistency:
+    - test: "inspection_data_integrity"
+      expected: "no_data_loss_after_recovery"
+    
+    - test: "photo_upload_completion"
+      expected: "uploads_resume_after_network_recovery"
+
+# SLO Validation During Chaos
+slo_validation:
+  availability:
+    target: 99.9
+    tolerance_during_chaos: 95.0
+    measurement_window: "5_minutes"
+  
+  response_time:
+    p95_target: 2000
+    p95_tolerance_during_chaos: 5000
+    measurement_window: "5_minutes"
+  
+  error_rate:
+    target: 0.1
+    tolerance_during_chaos: 5.0
+    measurement_window: "5_minutes"
+
+# Gradual Chaos Injection
+chaos_patterns:
+  blast_radius:
+    - level: "single_instance"
+      scope: "one_service_instance"
+      impact: "minimal"
+    
+    - level: "service_level"
+      scope: "entire_service"
+      impact: "moderate"
+    
+    - level: "infrastructure_level"
+      scope: "entire_infrastructure"
+      impact: "severe"
+
+  injection_patterns:
+    - pattern: "gradual_increase"
+      description: "Slowly increase chaos intensity"
+      duration: "15_minutes"
+    
+    - pattern: "spike_injection"
+      description: "Sudden chaos injection"
+      duration: "2_minutes"
+    
+    - pattern: "sustained_chaos"
+      description: "Sustained chaos over time"
+      duration: "30_minutes"
+
+# Post-Chaos Analysis
+analysis:
+  metrics_to_collect:
+    - "response_time_distribution"
+    - "error_rate_by_endpoint"
+    - "resource_utilization"
+    - "ai_model_performance"
+    - "database_query_performance"
+    - "user_experience_metrics"
+  
+  reports:
+    - type: "resilience_scorecard"
+      format: "json"
+      output: "./chaos-results/resilience-scorecard.json"
+    
+    - type: "failure_analysis"
+      format: "markdown"
+      output: "./chaos-results/failure-analysis.md"
+    
+    - type: "recovery_timeline"
+      format: "html"
+      output: "./chaos-results/recovery-timeline.html"
+
+# Continuous Chaos Engineering
+continuous_chaos:
+  schedule:
+    - frequency: "daily"
+      intensity: "low"
+      duration: "30_minutes"
+      time: "02:00"
+    
+    - frequency: "weekly"
+      intensity: "medium"
+      duration: "2_hours"
+      time: "Saturday_02:00"
+    
+    - frequency: "monthly"
+      intensity: "high"
+      duration: "4_hours"
+      time: "first_Sunday_02:00"
+  
+  environments:
+    - name: "staging"
+      enabled: true
+      intensity_limit: "medium"
+    
+    - name: "production"
+      enabled: false  # Enable only for mature systems
+      intensity_limit: "low"

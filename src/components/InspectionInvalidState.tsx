@@ -7,12 +7,12 @@ export const InspectionInvalidState = () => {
   const navigate = useNavigate();
 
   const handleGoHome = () => {
-    console.log('🏠 Navigating to home from invalid inspection state');
+    // REMOVED: console.log('🏠 Navigating to home from invalid inspection state');
     navigate('/', { replace: true });
   };
 
   const handleGoToProperties = () => {
-    console.log('📋 Navigating to properties from invalid inspection state');
+    // REMOVED: console.log('📋 Navigating to properties from invalid inspection state');
     navigate('/properties', { replace: true });
   };
 

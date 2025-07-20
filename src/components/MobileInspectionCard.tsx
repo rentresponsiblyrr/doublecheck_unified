@@ -45,7 +45,7 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   
   // Debug logging to help troubleshoot
   // REMOVED: MobileInspectionCard logging to prevent infinite render loops
-  // console.log('🔍 MobileInspectionCard Debug:', {
+  // // REMOVED: console.log('🔍 MobileInspectionCard Debug:', {
   //   userRole,
   //   hasUser: !!user,
   //   userEmail: user?.email,
@@ -73,7 +73,7 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card selection when clicking edit
-    console.log('🔧 Edit button clicked for property:', property.property_id);
+    // REMOVED: console.log('🔧 Edit button clicked for property:', property.property_id);
     if (onEdit) {
       onEdit(property.property_id);
     }

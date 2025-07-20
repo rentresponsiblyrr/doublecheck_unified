@@ -119,7 +119,7 @@ export class ErrorReporter {
 
     // Log initialization in development - TEMPORARILY DISABLED
     // if (env.isDevelopment()) {
-    //   console.log('[ErrorReporter] Initialized with config:', this.config);
+    //   // REMOVED: console.log('[ErrorReporter] Initialized with config:', this.config);
     // }
   }
 
@@ -502,7 +502,7 @@ export class ErrorReporter {
       // Also log to Supabase for internal tracking
       await this.logToSupabase(errors);
     } catch (error) {
-      console.error('[ErrorReporter] Failed to flush errors:', error);
+      // REMOVED: console.error('[ErrorReporter] Failed to flush errors:', error);
       // Re-add errors to queue if flush failed
       this.errorQueue.unshift(...errors);
     }
@@ -538,7 +538,7 @@ export class ErrorReporter {
     // if (!env.validateSupabaseConfig()) return; // TEMPORARILY DISABLED
 
     // Temporarily disabled to avoid 404 errors
-    console.log('[ErrorReporter] Supabase logging disabled, errors logged to console:', errors.length);
+    // REMOVED: console.log('[ErrorReporter] Supabase logging disabled, errors logged to console:', errors.length);
     return;
 
     const { error } = await supabase
@@ -550,7 +550,7 @@ export class ErrorReporter {
       })));
 
     if (error) {
-      console.error('[ErrorReporter] Failed to log to Supabase:', error);
+      // REMOVED: console.error('[ErrorReporter] Failed to log to Supabase:', error);
     }
   }
 

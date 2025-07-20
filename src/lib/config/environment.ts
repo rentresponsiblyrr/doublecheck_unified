@@ -92,7 +92,7 @@ class EnvironmentConfig {
 
   private validateEnvironment(): Environment {
     // TEMPORARILY RETURN MOCK ENVIRONMENT TO BYPASS VALIDATION
-    console.log('⚠️ Using mock environment - validation bypassed');
+    // REMOVED: console.log('⚠️ Using mock environment - validation bypassed');
     const vitEnv = typeof import.meta !== 'undefined' ? import.meta.env : {};
     
     return {
@@ -129,18 +129,18 @@ class EnvironmentConfig {
       
       // Log validation success in development
       if (validated.NODE_ENV === 'development' && validated.VITE_DEBUG_MODE) {
-        console.log('✅ Environment variables validated successfully');
+        // REMOVED: console.log('✅ Environment variables validated successfully');
       }
 
       return validated;
     } catch (error) {
       if (error instanceof z.ZodError) {
         this.validationErrors = error;
-        console.error('❌ Environment validation failed:', error.errors);
+        // REMOVED: console.error('❌ Environment validation failed:', error.errors);
         
         // Log error but don't crash the app during initialization
         const errorDetails = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
-        console.error(`❌ Environment configuration validation failed: ${errorDetails}`);
+        // REMOVED: console.error(`❌ Environment configuration validation failed: ${errorDetails}`);
         
         // Return defaults to prevent app crash - validation can be checked later
         return envSchema.parse({});
@@ -337,7 +337,7 @@ class EnvironmentConfig {
       }
     };
 
-    console.log('🔧 Environment Configuration:', sanitized);
+    // REMOVED: console.log('🔧 Environment Configuration:', sanitized);
   }
 }
 

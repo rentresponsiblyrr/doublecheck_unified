@@ -5,6 +5,50 @@ import { missingAmenityDetector } from './missingAmenityDetector';
 import type { InspectionForReview } from './auditorService';
 import type { ScrapedPropertyData } from '@/lib/scrapers/types';
 
+// Type definitions for AI service results
+export interface DiscoveryResult {
+  wellDocumented: string[];
+  suggestions: {
+    descriptionAdditions: string[];
+  };
+}
+
+export interface MissingAmenityAlert {
+  amenityName: string;
+  evidence: {
+    reasoning: string;
+    photoUrls: string[];
+  };
+  recommendation: {
+    specificSuggestion: string;
+    priority: 'immediate' | 'suggested' | 'consider';
+  };
+  category: string;
+}
+
+export interface UnderUtilizedAlert {
+  amenityName: string;
+  evidence: {
+    reasoning: string;
+  };
+  recommendation: {
+    specificSuggestion: string;
+    priority: string;
+  };
+}
+
+export interface MissingResult {
+  criticalMissing: MissingAmenityAlert[];
+  underUtilized: UnderUtilizedAlert[];
+  opportunityAmenities: Array<{
+    amenityName: string;
+    category: string;
+  }>;
+  summary: {
+    totalMissing: number;
+  };
+}
+
 export interface ListingOptimizationReport {
   propertyName: string;
   inspectionId: string;
@@ -161,12 +205,12 @@ export class AmenityComparisonEngine {
    * Process discovered opportunities from analysis results
    */
   private processDiscoveredOpportunities(
-    discoveryResult: any,
-    missingResult: any,
+    discoveryResult: DiscoveryResult,
+    missingResult: MissingResult,
     inspection: InspectionForReview
   ) {
     // Critical missing amenities
-    const criticalMissing = missingResult.criticalMissing.map((alert: any) => ({
+    const criticalMissing = missingResult.criticalMissing.map((alert: MissingAmenityAlert) => ({
       amenity: alert.amenityName,
       evidence: alert.evidence.reasoning,
       suggestion: alert.recommendation.specificSuggestion,
@@ -174,7 +218,7 @@ export class AmenityComparisonEngine {
     }));
 
     // Under-utilized amenities
-    const underUtilized = missingResult.underUtilized.map((alert: any) => ({
+    const underUtilized = missingResult.underUtilized.map((alert: UnderUtilizedAlert) => ({
       amenity: alert.amenityName,
       currentStatus: alert.evidence.reasoning,
       suggestion: alert.recommendation.specificSuggestion
@@ -206,7 +250,7 @@ export class AmenityComparisonEngine {
     roomTypes.forEach(roomType => {
       const roomItems = inspection.checklist_items.filter(item => 
         item.title.toLowerCase().includes(roomType) || 
-        (item as any).room_type?.toLowerCase() === roomType
+        ('room_type' in item && typeof item.room_type === 'string' && item.room_type.toLowerCase() === roomType)
       );
 
       if (roomItems.length > 0) {
@@ -265,8 +309,8 @@ export class AmenityComparisonEngine {
    * Generate actionable recommendations
    */
   private generateActionableRecommendations(
-    discoveryResult: any,
-    missingResult: any,
+    discoveryResult: DiscoveryResult,
+    missingResult: MissingResult,
     scrapedData: ScrapedPropertyData
   ) {
     const amenityCheckboxes: Array<{
@@ -289,7 +333,7 @@ export class AmenityComparisonEngine {
     }> = [];
 
     // Process critical missing amenities
-    missingResult.criticalMissing.forEach((alert: any) => {
+    missingResult.criticalMissing.forEach((alert: MissingAmenityAlert) => {
       amenityCheckboxes.push({
         amenity: alert.amenityName,
         action: 'add',
@@ -306,7 +350,7 @@ export class AmenityComparisonEngine {
     });
 
     // Process under-utilized amenities
-    missingResult.underUtilized.forEach((alert: any) => {
+    missingResult.underUtilized.forEach((alert: UnderUtilizedAlert) => {
       amenityCheckboxes.push({
         amenity: alert.amenityName,
         action: 'feature',
@@ -349,12 +393,20 @@ export class AmenityComparisonEngine {
   /**
    * Generate summary of findings
    */
-  private generateSummary(discoveryResult: any, missingResult: any, recommendations: any) {
+  private generateSummary(
+    discoveryResult: DiscoveryResult, 
+    missingResult: MissingResult, 
+    recommendations: {
+      amenityCheckboxes: Array<{ amenity: string; action: string; reason: string; }>;
+      descriptionUpdates: Array<{ section: string; currentText: string; suggestedAddition: string; rationale: string; }>;
+      photoSuggestions: Array<{ amenity: string; suggestion: string; availablePhotos: string[]; }>;
+    }
+  ) {
     const totalOpportunities = missingResult.criticalMissing.length + 
                               missingResult.underUtilized.length + 
                               missingResult.opportunityAmenities.length;
 
-    const highPriorityActions = missingResult.criticalMissing.filter((alert: any) => 
+    const highPriorityActions = missingResult.criticalMissing.filter((alert: MissingAmenityAlert) => 
       alert.recommendation.priority === 'immediate'
     ).length;
 
@@ -362,7 +414,7 @@ export class AmenityComparisonEngine {
     
     // Add key findings
     if (missingResult.criticalMissing.length > 0) {
-      const highValueMissing = missingResult.criticalMissing.filter((alert: any) => 
+      const highValueMissing = missingResult.criticalMissing.filter((alert: MissingAmenityAlert) => 
         alert.category === 'high_value'
       );
       if (highValueMissing.length > 0) {
@@ -393,8 +445,8 @@ export class AmenityComparisonEngine {
   /**
    * Calculate estimated impact of improvements
    */
-  private calculateEstimatedImpact(missingResult: any): string {
-    const highValueCount = missingResult.criticalMissing.filter((alert: any) => 
+  private calculateEstimatedImpact(missingResult: MissingResult): string {
+    const highValueCount = missingResult.criticalMissing.filter((alert: MissingAmenityAlert) => 
       alert.category === 'high_value'
     ).length;
 

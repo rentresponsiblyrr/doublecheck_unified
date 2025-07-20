@@ -5,7 +5,7 @@ export const usePropertyErrorHandler = () => {
   const { toast } = useToast();
 
   const handleSubmissionError = (error: Error | unknown, isEditing: boolean) => {
-    console.log('🔍 Analyzing submission error:', {
+    // REMOVED: console.log('🔍 Analyzing submission error:', {
       code: error.code,
       message: error.message,
       details: error.details,
@@ -68,7 +68,7 @@ export const usePropertyErrorHandler = () => {
       }
     }
 
-    console.log('📋 Error analysis result:', {
+    // REMOVED: console.log('📋 Error analysis result:', {
       originalError: error.code,
       userMessage: errorMessage,
       isTemporary,
@@ -85,7 +85,7 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleUnexpectedError = () => {
-    console.error('💥 Handling unexpected error');
+    // REMOVED: console.error('💥 Handling unexpected error');
     
     toast({
       title: "Unexpected Error",
@@ -95,7 +95,7 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleSuccess = (propertyName: string, isEditing: boolean) => {
-    console.log('🎉 Handling successful submission:', {
+    // REMOVED: console.log('🎉 Handling successful submission:', {
       propertyName,
       operation: isEditing ? 'update' : 'create'
     });

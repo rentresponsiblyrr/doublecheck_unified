@@ -33,7 +33,7 @@ export const useOptimizedPropertySelection = () => {
     queryKey: ['properties', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('❌ No user ID available, returning empty properties');
+        // REMOVED: console.log('❌ No user ID available, returning empty properties');
         return [];
       }
 
@@ -44,7 +44,7 @@ export const useOptimizedPropertySelection = () => {
       });
       
       if (error) {
-        console.error('❌ Error fetching properties:', error);
+        // REMOVED: console.error('❌ Error fetching properties:', error);
         throw error;
       }
 
@@ -60,7 +60,7 @@ export const useOptimizedPropertySelection = () => {
     queryKey: ['inspections', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('❌ No user ID available, returning empty inspections');
+        // REMOVED: console.log('❌ No user ID available, returning empty inspections');
         return [];
       }
 
@@ -72,7 +72,7 @@ export const useOptimizedPropertySelection = () => {
         .eq('inspector_id', user.id);
       
       if (error) {
-        console.error('❌ Error fetching inspections:', error);
+        // REMOVED: console.error('❌ Error fetching inspections:', error);
         throw error;
       }
 

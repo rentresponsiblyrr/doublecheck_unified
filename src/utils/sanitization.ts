@@ -138,7 +138,7 @@ export const sanitizeAIContent = (content: string): string => {
 /**
  * Sanitizes JSON data for safe display
  */
-export const sanitizeJSONDisplay = (obj: any): string => {
+export const sanitizeJSONDisplay = (obj: unknown): string => {
   try {
     const jsonString = JSON.stringify(obj, null, 2);
     return sanitizeText(jsonString);
@@ -174,7 +174,7 @@ export const sanitizeFileName = (fileName: string): string => {
 /**
  * Sanitizes error messages for user display
  */
-export const sanitizeErrorMessage = (error: any): string => {
+export const sanitizeErrorMessage = (error: unknown): string => {
   if (!error) return 'An unknown error occurred';
   
   let message = '';

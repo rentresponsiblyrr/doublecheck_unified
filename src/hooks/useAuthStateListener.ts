@@ -1,7 +1,8 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCachedRole } from '@/utils/mobileCacheUtils';
+import { log } from '@/lib/logging/enterprise-logger';
 
 interface UseAuthStateListenerProps {
   setSession: (session: any) => void;
@@ -22,6 +23,7 @@ export const useAuthStateListener = ({
   fetchUserRole,
   initializeAuth
 }: UseAuthStateListenerProps) => {
+  const authInitialized = useRef(false);
   
   useEffect(() => {
     let isMounted = true;
@@ -30,7 +32,14 @@ export const useAuthStateListener = ({
       async (event, session) => {
         if (!isMounted) return;
         
-        console.log('📱 Mobile auth state changed:', event, session?.user?.email);
+        log.info('Mobile auth state changed', {
+          component: 'useAuthStateListener',
+          action: 'onAuthStateChange',
+          event,
+          userEmail: session?.user?.email,
+          hasSession: !!session,
+          hasUser: !!session?.user
+        }, 'AUTH_STATE_CHANGED');
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -48,7 +57,11 @@ export const useAuthStateListener = ({
                 setUserRole(role);
               }
             }).catch(error => {
-              console.error('📱 Background mobile role fetch failed:', error);
+              log.error('Background mobile role fetch failed', error as Error, {
+                component: 'useAuthStateListener',
+                action: 'fetchUserRole',
+                userId: session.user.id
+              }, 'BACKGROUND_ROLE_FETCH_FAILED');
             });
           }
         } else {
@@ -64,12 +77,19 @@ export const useAuthStateListener = ({
       }
     );
 
-    initializeAuth().catch((error) => {
-      if (isMounted) {
-        console.error('📱 Failed to initialize mobile auth:', error);
-        setLoading(false);
-      }
-    });
+    // Initialize auth only once
+    if (authInitialized.current === false) {
+      authInitialized.current = true;
+      initializeAuth().catch((error) => {
+        if (isMounted) {
+          log.error('Failed to initialize mobile auth', error as Error, {
+            component: 'useAuthStateListener',
+            action: 'initializeAuth'
+          }, 'AUTH_INITIALIZATION_FAILED');
+          setLoading(false);
+        }
+      });
+    }
 
     return () => {
       isMounted = false;

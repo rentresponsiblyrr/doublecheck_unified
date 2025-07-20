@@ -3,7 +3,7 @@ import AdminLayout from './AdminLayout';
 
 // Direct imports - no lazy loading
 import AdminOverview from './AdminOverview';
-import { ComponentHealthMonitor } from './ComponentHealthMonitor';
+// import { ComponentHealthMonitor } from './ComponentHealthMonitor';
 import { UserManagementFallback } from './fallbacks/UserManagementFallback';
 import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
 import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
@@ -58,9 +58,9 @@ export default function DirectAdminRouter() {
     });
   }, [currentPath]);
 
-  console.log('🔥 DIRECT ADMIN ROUTER LOADED');
-  console.log('Current path:', currentPath);
-  console.log('Debug info:', debugInfo);
+  // REMOVED: console.log('🔥 DIRECT ADMIN ROUTER LOADED');
+  // REMOVED: console.log('Current path:', currentPath);
+  // REMOVED: console.log('Debug info:', debugInfo);
 
   // Direct component rendering based on path
   const renderComponent = () => {
@@ -78,7 +78,7 @@ export default function DirectAdminRouter() {
               <div>Time: {new Date().toLocaleString()}</div>
             </div>
           </div>
-          <ComponentHealthMonitor />
+          {/* <ComponentHealthMonitor /> */}
         </div>
       );
     }

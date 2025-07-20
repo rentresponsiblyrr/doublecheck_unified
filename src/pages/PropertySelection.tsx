@@ -52,19 +52,19 @@ const PropertySelection = () => {
     queryFn: async () => {
       if (!user?.id) {
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('❌ No user ID available, returning empty properties');
+        // // REMOVED: console.log('❌ No user ID available, returning empty properties');
         return [];
       }
 
       // REMOVED: Console logging to prevent infinite loops
-      // console.log('📊 Fetching properties with inspections for user:', user.id);
+      // // REMOVED: console.log('📊 Fetching properties with inspections for user:', user.id);
       
       // Use the existing get_properties_with_inspections function that works
       const { data: propertiesData, error: propertiesError } = await supabase
         .rpc('get_properties_with_inspections', { _user_id: user.id });
       
       if (propertiesError) {
-        console.error('❌ Error fetching properties:', propertiesError);
+        // REMOVED: console.error('❌ Error fetching properties:', propertiesError);
         throw propertiesError;
       }
 
@@ -79,26 +79,19 @@ const PropertySelection = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes - prevent infinite refetch loop
   });
 
-  // Generate inspections from the properties data since get_properties_with_inspections includes inspection info
+  // Properly derive inspections from properties data - no circular dependencies
   const inspections = React.useMemo(() => {
-    if (!properties || properties.length === 0) return [];
+    if (!properties?.length) return [];
     
-    // Create inspection objects based on the properties data
-    const generatedInspections: Inspection[] = [];
-    
-    properties.forEach(property => {
-      if (property.latest_inspection_id) {
-        generatedInspections.push({
-          id: property.latest_inspection_id,
-          property_id: property.property_id,
-          completed: property.latest_inspection_completed || false,
-          start_time: null,
-          status: property.latest_inspection_completed ? 'completed' : 'in_progress'
-        });
-      }
-    });
-    
-    return generatedInspections;
+    return properties
+      .filter(property => property.latest_inspection_id)
+      .map(property => ({
+        id: property.latest_inspection_id!,
+        property_id: property.property_id,
+        completed: property.latest_inspection_completed || false,
+        start_time: null,
+        status: property.latest_inspection_completed ? 'completed' : 'in_progress'
+      }));
   }, [properties]);
 
   const inspectionsLoading = propertiesLoading;
@@ -127,7 +120,7 @@ const PropertySelection = () => {
 
   const handlePropertyDeleted = async () => {
     // REMOVED: Console logging to prevent infinite loops
-    // console.log('🔄 Property deleted, performing comprehensive data refresh...');
+    // // REMOVED: console.log('🔄 Property deleted, performing comprehensive data refresh...');
     
     // Clear selection immediately
     setSelectedProperty(null);
@@ -137,11 +130,19 @@ const PropertySelection = () => {
       await refetchProperties();
       
       // REMOVED: Console logging to prevent infinite loops
-      // console.log('✅ Data refresh completed successfully after property deletion');
+      // // REMOVED: console.log('✅ Data refresh completed successfully after property deletion');
     } catch (error) {
-      console.error('❌ Error during data refresh:', error);
-      // Force a hard refresh if normal refetch fails
-      window.location.reload();
+      // REMOVED: console.error('❌ Error during data refresh:', error);
+      // Use proper error handling instead of nuclear reload
+      // REMOVED: console.error('❌ Data refresh failed, clearing cache and retrying:', error);
+      // Clear the query cache and try again
+      try {
+        await refetchProperties();
+      } catch (retryError) {
+        // REMOVED: console.error('❌ Retry also failed:', retryError);
+        // Last resort: navigate to home page instead of reload
+        navigate('/', { replace: true });
+      }
     }
   };
 
@@ -152,7 +153,7 @@ const PropertySelection = () => {
         refetchInspections()
       ]);
     } catch (error) {
-      console.error('❌ Retry failed:', error);
+      // REMOVED: console.error('❌ Retry failed:', error);
     }
   };
 

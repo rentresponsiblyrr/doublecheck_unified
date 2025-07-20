@@ -2,6 +2,7 @@
 // Validates photo quality and provides re-upload prompts
 
 import { STRCertifiedAIService } from './openai-service';
+import { AIProxyService } from './ai-proxy-service';
 import { aiDecisionLogger } from './decision-logger';
 import { logger } from '../../utils/logger';
 import { errorReporter } from '../monitoring/error-reporter';
@@ -61,7 +62,7 @@ export interface ChecklistItemContext {
 
 export class PhotoQualityService {
   private static instance: PhotoQualityService;
-  private aiService: STRCertifiedAIService;
+  private aiService: AIProxyService;
   private qualityThresholds: Record<string, number> = {
     safety: 85,
     compliance: 80,
@@ -71,8 +72,8 @@ export class PhotoQualityService {
   };
 
   private constructor() {
-    // AI service disabled for security - API key should never be in browser
-    this.aiService = null as any;
+    // Use secure backend proxy for AI analysis
+    this.aiService = AIProxyService.getInstance();
   }
 
   static getInstance(): PhotoQualityService {
@@ -232,31 +233,40 @@ export class PhotoQualityService {
     issues: PhotoQualityIssue[];
     confidence: number;
   }> {
-    // AI analysis disabled for security - return default quality score
-    logger.info('AI photo analysis disabled for security', { photoName: photo.name }, 'PHOTO_QUALITY_AI');
-    
-    return {
-      qualityScore: 75, // Default acceptable quality score
-      issues: [],
-      confidence: 50 // Low confidence since no AI analysis
-    };
+    logger.info('Starting AI photo quality analysis', { photoName: photo.name }, 'PHOTO_QUALITY_AI');
     
     try {
-      const analysisResult = await this.aiService.analyzeInspectionPhoto(
-        photo,
+      // Convert file to base64 for AI analysis
+      const base64Image = await this.fileToBase64(photo);
+      
+      // Build the analysis prompt
+      const prompt = this.buildQualityAnalysisPrompt(context);
+      
+      const analysisResult = await this.aiService.analyzeInspectionPhoto({
+        imageBase64: base64Image,
         prompt,
-        {
-          includeDetailedAnalysis: true,
-          checkSafetyConcerns: context.safetyRelated,
-          compareToStandards: context.complianceRequired
-        }
-      );
+        inspectionId: 'quality-check', // Placeholder for quality checks
+        checklistItemId: context.title, // Use title as identifier
+        maxTokens: 500
+      });
 
       return this.parseQualityAnalysis(analysisResult);
     } catch (error) {
       logger.error('AI photo analysis failed', error, 'PHOTO_QUALITY_AI');
       throw error;
     }
+  }
+
+  /**
+   * Convert file to base64 string
+   */
+  private async fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   /**
@@ -308,22 +318,22 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
     const issues: PhotoQualityIssue[] = [];
     
     // Extract quality score from reasoning or default to confidence
-    const qualityScore = this.extractQualityScore(analysisResult.reasoning) || 
-                        Math.min(analysisResult.confidence, 80);
+    const qualityScore = this.extractQualityScore(analysisResult.analysis?.reasoning) || 
+                        Math.min(analysisResult.analysis?.confidence || 70, 80);
     
     // Parse issues from reasoning
-    const parsedIssues = this.extractIssuesFromReasoning(analysisResult.reasoning);
+    const parsedIssues = this.extractIssuesFromReasoning(analysisResult.analysis?.reasoning || '');
     issues.push(...parsedIssues);
     
-    // Add safety concerns as issues
-    if (analysisResult.safety_concerns && analysisResult.safety_concerns.length > 0) {
-      analysisResult.safety_concerns.forEach((concern: string) => {
+    // Add any issues from analysis
+    if (analysisResult.analysis?.issues && Array.isArray(analysisResult.analysis.issues)) {
+      analysisResult.analysis.issues.forEach((issue: string) => {
         issues.push({
-          type: 'safety_equipment_not_visible',
-          severity: 'high',
-          description: concern,
-          fixSuggestion: 'Ensure safety equipment is clearly visible and properly positioned',
-          blocking: true
+          type: 'poor_composition',
+          severity: 'medium',
+          description: issue,
+          fixSuggestion: 'Address the identified issue and retake the photo',
+          blocking: false
         });
       });
     }
@@ -331,7 +341,7 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
     return {
       qualityScore,
       issues,
-      confidence: analysisResult.confidence
+      confidence: analysisResult.analysis?.confidence || 70
     };
   }
 

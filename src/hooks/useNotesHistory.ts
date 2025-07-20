@@ -43,7 +43,7 @@ export const useNotesHistory = (itemId: string) => {
         }
         setNotesHistory(history);
       } catch (error) {
-        console.error('Failed to load notes history:', error);
+        // REMOVED: console.error('Failed to load notes history:', error);
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +58,7 @@ export const useNotesHistory = (itemId: string) => {
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
     
     if (!ENABLE_REALTIME) {
-      console.log('📝 Notes realtime subscription disabled to prevent WebSocket errors');
+      // REMOVED: console.log('📝 Notes realtime subscription disabled to prevent WebSocket errors');
       return;
     }
     
@@ -146,7 +146,7 @@ export const useNotesHistory = (itemId: string) => {
       });
       return true;
     } catch (error) {
-      console.error('Notes save error:', error);
+      // REMOVED: console.error('Notes save error:', error);
       toast({
         title: "Save failed",
         description: "Failed to save notes. Please try again.",

@@ -85,9 +85,9 @@ class PropertyStatusService {
    * @example
    * ```typescript
    * const result = propertyStatusService.calculatePropertyStatus(property);
-   * console.log(result.status); // 'in-progress'
-   * console.log(result.config.textLabel); // 'In Progress'
-   * console.log(result.metadata.calculationReason); // 'Has active inspections'
+   * // REMOVED: console.log(result.status); // 'in-progress'
+   * // REMOVED: console.log(result.config.textLabel); // 'In Progress'
+   * // REMOVED: console.log(result.metadata.calculationReason); // 'Has active inspections'
    * ```
    */
   calculatePropertyStatus(property: PropertyWithInspections): PropertyStatusResult {
@@ -271,7 +271,7 @@ class PropertyStatusService {
    * Create a safe fallback status result when calculation fails
    * Ensures the application never crashes due to status calculation errors
    */
-  private createFallbackStatusResult(property: PropertyWithInspections, error: any): PropertyStatusResult {
+  private createFallbackStatusResult(property: PropertyWithInspections, error: Error): PropertyStatusResult {
     logger.error('Creating fallback status result', error, 'PROPERTY_STATUS_SERVICE');
     
     return {

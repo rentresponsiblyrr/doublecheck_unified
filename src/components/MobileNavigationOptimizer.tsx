@@ -17,7 +17,7 @@ export const MobileNavigationOptimizer: React.FC<MobileNavigationOptimizerProps>
   // Mobile-specific navigation guards
   const checkNavigationPermissions = useCallback((path: string) => {
     if (!isAuthenticated && path !== '/' && path !== '/auth') {
-      console.log('📱 Unauthorized navigation blocked:', path);
+      // REMOVED: console.log('📱 Unauthorized navigation blocked:', path);
       navigate('/', { replace: true });
       toast({
         title: "Authentication Required",
@@ -58,7 +58,7 @@ export const MobileNavigationOptimizer: React.FC<MobileNavigationOptimizerProps>
   useEffect(() => {
     const handleNavigationError = (event: ErrorEvent) => {
       if (event.message?.includes('Navigation')) {
-        console.error('📱 Navigation error:', event);
+        // REMOVED: console.error('📱 Navigation error:', event);
         toast({
           title: "Navigation Error",
           description: "Failed to navigate. Returning to home.",

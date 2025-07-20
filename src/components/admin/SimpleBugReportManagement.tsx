@@ -129,7 +129,7 @@ export default function SimpleBugReportManagement() {
         setReports(dbReports || mockBugReports);
       }
     } catch (err) {
-      console.error('Failed to load bug reports:', err);
+      // REMOVED: console.error('Failed to load bug reports:', err);
       setError('Failed to load bug reports. Using demo data.');
       setReports(mockBugReports);
     } finally {
@@ -164,7 +164,7 @@ export default function SimpleBugReportManagement() {
       ));
       
     } catch (err) {
-      console.error('Failed to update bug report status:', err);
+      // REMOVED: console.error('Failed to update bug report status:', err);
       alert('Failed to update status. Please try again.');
     }
   };

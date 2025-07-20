@@ -4,19 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
 import { cache, CACHE_KEYS, CACHE_TTL } from "@/utils/cache";
+import { log } from '@/lib/logging/enterprise-logger';
 
 export const useOptimizedInspectionData = (inspectionId: string) => {
   // REMOVED: useOptimizedInspectionData logging to prevent infinite render loops
-  // console.log('🔍 useOptimizedInspectionData: Starting with inspectionId:', inspectionId);
+  // // REMOVED: console.log('🔍 useOptimizedInspectionData: Starting with inspectionId:', inspectionId);
 
   const { data: checklistItems = [], isLoading, refetch, isRefetching, error } = useQuery({
     queryKey: ['optimized-checklist-items', inspectionId],
     queryFn: async () => {
       // REMOVED: Console logging to prevent infinite loops
-      // console.log('📊 Fetching optimized checklist items for inspection:', inspectionId);
+      // // REMOVED: console.log('📊 Fetching optimized checklist items for inspection:', inspectionId);
       
       if (!inspectionId) {
-        console.error('❌ No inspectionId provided to query');
+        log.error('No inspectionId provided to query', undefined, {
+          component: 'useOptimizedInspectionData',
+          action: 'queryFn'
+        }, 'NO_INSPECTION_ID_PROVIDED');
         throw new Error('Inspection ID is required');
       }
 
@@ -24,29 +28,143 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
       const cachedData = cache.get<ChecklistItemType[]>(CACHE_KEYS.CHECKLIST_ITEMS(inspectionId));
       if (cachedData) {
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('✅ Using cached checklist data');
+        // // REMOVED: console.log('✅ Using cached checklist data');
         return cachedData;
       }
       
       try {
-        // Use optimized query with specific fields only
-        const { data, error } = await supabase
+        // Try logs table first (production schema)
+        let data, error;
+        
+        // First get the inspection to find its property_id
+        const { data: inspection } = await supabase
+          .from('inspections')
+          .select('property_id')
+          .eq('id', inspectionId)
+          .single();
+
+        if (!inspection) {
+          throw new Error('Inspection not found');
+        }
+
+        const logsResult = await supabase
           .from('logs')
-          .select('id, inspection_id, label, category, evidence_type, status, created_at')
-          .eq('inspection_id', inspectionId)
-          .order('created_at', { ascending: true });
+          .select('id, property_id, label, category, evidence_type, status, created_at')
+          .eq('property_id', inspection.property_id)
+          .order('created_at', { ascending: true});
+        
+        data = logsResult.data;
+        error = logsResult.error;
+
+        // If logs table doesn't exist, try checklist_items table
+        if (error && (error.code === 'PGRST116' || error.message?.includes('does not exist'))) {
+          log.info('logs table not found, trying checklist_items table', {
+            component: 'useOptimizedInspectionData',
+            action: 'queryFn',
+            inspectionId,
+            errorCode: error.code,
+            fallbackTable: 'checklist_items'
+          }, 'LOGS_TABLE_FALLBACK');
+          
+          const checklistResult = await supabase
+            .from('checklist_items')
+            .select('id, inspection_id, label, category, evidence_type, status, created_at')
+            .eq('inspection_id', inspectionId)
+            .order('created_at', { ascending: true });
+            
+          data = checklistResult.data;
+          error = checklistResult.error;
+
+          // If that also fails, try with different field names
+          if (error && error.message?.includes('column')) {
+            log.info('Trying checklist_items with alternative field names', {
+              component: 'useOptimizedInspectionData',
+              action: 'queryFn',
+              inspectionId,
+              errorMessage: error.message,
+              fallbackApproach: 'alternative_fields'
+            }, 'ALTERNATIVE_FIELDS_FALLBACK');
+            
+            const altResult = await supabase
+              .from('checklist_items')
+              .select('id, inspection_id, title, category, status, created_at')
+              .eq('inspection_id', inspectionId)
+              .order('created_at', { ascending: true });
+              
+            if (!altResult.error) {
+              // Map alternative field names to expected format
+              type LogsTableItem = {
+                id: string;
+                inspection_id: string;
+                title: string;
+                category: string;
+                status: string;
+                created_at: string;
+              };
+              data = altResult.data?.map((item: LogsTableItem) => ({
+                ...item,
+                label: item.title || '',
+                evidence_type: 'photo' // Default fallback
+              }));
+              error = null;
+            } else {
+              data = altResult.data;
+              error = altResult.error;
+            }
+          }
+        }
         
         if (error) {
-          console.error('❌ Database error fetching checklist items:', error);
+          log.error('Database error fetching checklist items', error, {
+            component: 'useOptimizedInspectionData',
+            action: 'queryFn',
+            inspectionId,
+            errorCode: error.code
+          }, 'CHECKLIST_FETCH_ERROR');
+          
+          // If it's a 404 error, check if inspection exists
+          if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+            log.warn('Checklist table access failed, checking if inspection exists', {
+              component: 'useOptimizedInspectionData',
+              action: 'queryFn',
+              inspectionId,
+              errorCode: error.code,
+              verificationStep: 'inspection_existence_check'
+            }, 'CHECKLIST_ACCESS_FAILED');
+            
+            const { data: inspection, error: inspectionError } = await supabase
+              .from('inspections')
+              .select('id, property_id')
+              .eq('id', inspectionId)
+              .single();
+              
+            if (!inspectionError && inspection) {
+              log.info('Inspection exists but no checklist items found - returning empty array', {
+                component: 'useOptimizedInspectionData',
+                action: 'queryFn',
+                inspectionId,
+                inspectionExists: true,
+                checklistItemsCount: 0
+              }, 'EMPTY_CHECKLIST_ITEMS');
+              // Return empty array for now, the manual population should handle this
+              return [];
+            }
+          }
+          
           throw error;
         }
 
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
+        // // REMOVED: console.log('✅ Successfully fetched checklist items:', data?.length || 0, 'items');
         
         // If no items found, check if inspection exists
         if (!data || data.length === 0) {
-          console.warn('⚠️ No checklist items found, checking if inspection exists...');
+          log.warn('No checklist items found, checking if inspection exists', {
+            component: 'useOptimizedInspectionData',
+            action: 'queryFn',
+            inspectionId,
+            dataLength: data?.length || 0
+          }, 'NO_CHECKLIST_ITEMS_FOUND');
           
           const { data: inspection, error: inspectionError } = await supabase
             .from('inspections')
@@ -55,13 +173,18 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
             .single();
             
           if (inspectionError) {
-            console.error('❌ Error checking inspection:', inspectionError);
+            log.error('Error checking inspection', inspectionError, {
+              component: 'useOptimizedInspectionData',
+              action: 'queryFn',
+              inspectionId,
+              verificationStep: 'inspection_existence_check'
+            }, 'INSPECTION_CHECK_ERROR');
             throw new Error('Inspection not found');
           }
           
           if (inspection) {
             // REMOVED: Console logging to prevent infinite loops
-            // console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
+            // // REMOVED: console.log('📝 Inspection exists but no checklist items. This should have been populated by trigger.');
             return [];
           }
         }
@@ -78,14 +201,18 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
         })) as ChecklistItemType[];
         
         // REMOVED: Console logging to prevent infinite loops
-        // console.log('🔄 Transformed checklist items:', transformedData.length);
+        // // REMOVED: console.log('🔄 Transformed checklist items:', transformedData.length);
         
         // Cache the results
         cache.set(CACHE_KEYS.CHECKLIST_ITEMS(inspectionId), transformedData, CACHE_TTL.SHORT);
         
         return transformedData;
       } catch (fetchError) {
-        console.error('💥 Error in checklist items query:', fetchError);
+        log.error('Error in checklist items query', fetchError, {
+          component: 'useOptimizedInspectionData',
+          action: 'queryFn',
+          inspectionId
+        }, 'CHECKLIST_QUERY_ERROR');
         throw fetchError;
       }
     },
@@ -95,14 +222,14 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
     gcTime: CACHE_TTL.MEDIUM, // 5 minutes
     retry: (failureCount, error) => {
       // REMOVED: Console logging to prevent infinite loops
-      // console.log(`🔄 Retry attempt ${failureCount} for checklist items:`, error);
+      // // REMOVED: console.log(`🔄 Retry attempt ${failureCount} for checklist items:`, error);
       return failureCount < 2; // Only retry twice
     },
   });
 
   // REMOVED: State change logging to prevent infinite loops
   // useEffect(() => {
-  //   console.log('📊 useOptimizedInspectionData state changed:', {
+  //   // REMOVED: console.log('📊 useOptimizedInspectionData state changed:', {
   //     inspectionId,
   //     isLoading,
   //     isRefetching,

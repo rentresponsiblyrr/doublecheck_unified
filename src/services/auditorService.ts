@@ -1,6 +1,7 @@
 // Auditor Service - Handles auditor dashboard data and review operations
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { errorManager } from '@/lib/error/enterprise-error-handler';
 import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
@@ -167,8 +168,8 @@ export class AuditorService {
 
       return { success: true, data: enhancedInspections };
     } catch (error) {
-      logger.error('Unexpected error fetching inspections for review', error, 'AUDITOR_SERVICE');
-      return { success: false, error: 'Unexpected error occurred' };
+      logger.error('Failed to fetch inspections for review', error as Error, 'AUDITOR_SERVICE');
+      return { success: false, error: 'Failed to fetch inspections for review' };
     }
   }
 
@@ -243,8 +244,8 @@ export class AuditorService {
 
       return { success: true, data: enhancedInspection };
     } catch (error) {
-      logger.error('Unexpected error fetching inspection details', error, 'AUDITOR_SERVICE');
-      return { success: false, error: 'Unexpected error occurred' };
+      logger.error('Failed to fetch inspection details', error as Error, 'AUDITOR_SERVICE');
+      return { success: false, error: 'Failed to fetch inspection details' };
     }
   }
 
@@ -327,8 +328,8 @@ export class AuditorService {
 
       return { success: true };
     } catch (error) {
-      logger.error('Failed to submit review decision', error, 'AUDITOR_SERVICE');
-      return { success: false, error: error instanceof Error ? error.message : 'Unexpected error occurred' };
+      logger.error('Failed to submit review decision', error as Error, 'AUDITOR_SERVICE');
+      return { success: false, error: 'Failed to submit review decision' };
     }
   }
 
@@ -428,8 +429,8 @@ export class AuditorService {
       logger.info('Successfully calculated auditor metrics', metrics, 'AUDITOR_SERVICE');
       return { success: true, data: metrics };
     } catch (error) {
-      logger.error('Failed to calculate auditor metrics', error, 'AUDITOR_SERVICE');
-      return { success: false, error: error instanceof Error ? error.message : 'Unexpected error occurred' };
+      logger.error('Failed to calculate auditor metrics', error as Error, 'AUDITOR_SERVICE');
+      return { success: false, error: 'Failed to calculate auditor metrics' };
     }
   }
 

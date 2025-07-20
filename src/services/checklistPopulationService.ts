@@ -2,6 +2,7 @@
 import { ChecklistDataService } from "./checklistDataService";
 import { ChecklistValidationService } from "./checklistValidationService";
 import { ChecklistAuditService } from "./checklistAuditService";
+import { log } from '@/lib/logging/enterprise-logger';
 
 export class ChecklistPopulationService {
   private dataService: ChecklistDataService;
@@ -16,7 +17,11 @@ export class ChecklistPopulationService {
 
   async populateChecklistItems(inspectionId: string): Promise<void> {
     try {
-      console.log('📋 Starting enhanced checklist population for inspection:', inspectionId);
+      log.info('Starting enhanced checklist population for inspection', {
+        component: 'ChecklistPopulationService',
+        action: 'populateChecklistItems',
+        inspectionId
+      }, 'CHECKLIST_POPULATION_STARTED');
       
       // Initialize valid categories from database
       await this.validationService.initializeValidCategories();
@@ -39,15 +44,29 @@ export class ChecklistPopulationService {
       // Log audit trail
       await this.auditService.logPopulationAudit(inspectionId, checklistItems, staticItems);
 
-      console.log('✅ Successfully populated checklist items with enhanced validation');
+      log.info('Successfully populated checklist items with enhanced validation', {
+        component: 'ChecklistPopulationService',
+        action: 'populateChecklistItems',
+        inspectionId,
+        itemsCount: checklistItems.length
+      }, 'CHECKLIST_POPULATION_SUCCESS');
       
     } catch (error) {
-      console.error('💥 Error in enhanced checklist population:', error);
+      log.error('Error in enhanced checklist population', error as Error, {
+        component: 'ChecklistPopulationService',
+        action: 'populateChecklistItems',
+        inspectionId
+      }, 'CHECKLIST_POPULATION_ERROR');
       
       // Enhanced error reporting
       if (error instanceof Error) {
         if (error.message.includes('category')) {
-          console.error('🔍 Category-related error detected. Check database constraints and category validation.');
+          log.error('Category-related error detected. Check database constraints and category validation.', error, {
+            component: 'ChecklistPopulationService',
+            action: 'populateChecklistItems',
+            inspectionId,
+            errorType: 'CATEGORY_VALIDATION_ERROR'
+          }, 'CATEGORY_ERROR_DETECTED');
         }
       }
       

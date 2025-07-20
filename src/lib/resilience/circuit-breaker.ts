@@ -144,7 +144,7 @@ export class CircuitBreaker {
       this.successCount = 0;
     }
 
-    console.log(`Circuit breaker '${this.name}' transitioned from ${oldState} to ${newState}`);
+    // REMOVED: console.log(`Circuit breaker '${this.name}' transitioned from ${oldState} to ${newState}`);
     this.notifyListeners();
   }
 
@@ -158,7 +158,7 @@ export class CircuitBreaker {
       try {
         listener(metrics);
       } catch (error) {
-        console.error('Circuit breaker listener error:', error);
+        // REMOVED: console.error('Circuit breaker listener error:', error);
       }
     });
   }

@@ -106,7 +106,7 @@ export const usePhotoComparison = (
           const parsed = JSON.parse(savedHistory);
           setComparisonHistory(parsed.slice(0, maxHistoryItems));
         } catch (error) {
-          console.error('Failed to load comparison history:', error);
+          // REMOVED: console.error('Failed to load comparison history:', error);
         }
       }
     }

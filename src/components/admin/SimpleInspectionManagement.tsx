@@ -113,7 +113,7 @@ export default function SimpleInspectionManagement() {
         setInspections(transformedData.length > 0 ? transformedData : mockInspections);
       }
     } catch (err) {
-      console.error('Failed to load inspections:', err);
+      // REMOVED: console.error('Failed to load inspections:', err);
       setError('Failed to load inspections. Using demo data.');
       setInspections(mockInspections);
     } finally {

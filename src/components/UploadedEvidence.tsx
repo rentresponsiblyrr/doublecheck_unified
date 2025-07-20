@@ -54,7 +54,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Failed to load media items:', error);
+        // REMOVED: console.error('Failed to load media items:', error);
         if (isMountedRef.current) {
           setIsLoading(false);
         }
@@ -74,7 +74,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
     
     if (!ENABLE_REALTIME) {
-      console.log('📷 Media realtime subscription disabled to prevent WebSocket errors');
+      // REMOVED: console.log('📷 Media realtime subscription disabled to prevent WebSocket errors');
       return;
     }
     
@@ -84,7 +84,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       try {
         // Create unique channel name
         const channelName = `media-${checklistItemId}`;
-        console.log('Setting up media channel:', channelName);
+        // REMOVED: console.log('Setting up media channel:', channelName);
 
         const channel = createChannel(channelName, {
           mediaChanges: {
@@ -95,7 +95,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
               filter: `checklist_item_id=eq.${checklistItemId}`
             },
             callback: (payload: any) => {
-              console.log('Media update received:', payload);
+              // REMOVED: console.log('Media update received:', payload);
               
               if (!isMountedRef.current) return;
               
@@ -132,7 +132,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
 
         // Subscribe to the channel with comprehensive error handling
         await subscribeChannel(channelName, (status: string) => {
-          console.log('Media subscription status:', status);
+          // REMOVED: console.log('Media subscription status:', status);
           if (status === 'CHANNEL_ERROR') {
             console.warn('⚠️ Media realtime subscription failed, falling back to manual refresh');
             // App will continue to work with manual refreshes
@@ -178,7 +178,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Download failed:', error);
+      // REMOVED: console.error('Download failed:', error);
     }
   };
 

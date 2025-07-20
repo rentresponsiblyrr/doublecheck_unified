@@ -332,7 +332,7 @@ export class AIMetricsCollector {
           await this.triggerAlert('low_accuracy', { accuracy });
         }
       } catch (error) {
-        console.error('Accuracy monitoring error:', error);
+        // REMOVED: console.error('Accuracy monitoring error:', error);
       }
     }, 5 * 60 * 1000);
     this.intervalIds.add(accuracyInterval);
@@ -346,7 +346,7 @@ export class AIMetricsCollector {
           await this.triggerAlert('high_hourly_cost', { cost: hourlyCost });
         }
       } catch (error) {
-        console.error('Cost monitoring error:', error);
+        // REMOVED: console.error('Cost monitoring error:', error);
       }
     }, 60 * 60 * 1000);
     this.intervalIds.add(costInterval);
@@ -360,7 +360,7 @@ export class AIMetricsCollector {
           await this.triggerAlert('slow_p95_response', { p95 });
         }
       } catch (error) {
-        console.error('Performance monitoring error:', error);
+        // REMOVED: console.error('Performance monitoring error:', error);
       }
     }, 60 * 1000);
     this.intervalIds.add(performanceInterval);

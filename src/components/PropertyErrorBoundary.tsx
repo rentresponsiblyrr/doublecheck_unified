@@ -28,7 +28,7 @@ export class PropertyErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🏠 Property Error Boundary caught an error:', error, errorInfo);
+    // REMOVED: console.error('🏠 Property Error Boundary caught an error:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

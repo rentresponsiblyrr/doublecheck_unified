@@ -24,7 +24,7 @@ export const useOfflineStorage = () => {
         const photos = JSON.parse(stored);
         setOfflinePhotos(photos);
       } catch (error) {
-        console.error('Error loading offline photos:', error);
+        // REMOVED: console.error('Error loading offline photos:', error);
       }
     }
 
@@ -88,7 +88,7 @@ export const useOfflineStorage = () => {
         description: "Photo will be uploaded when you're back online.",
       });
     } catch (error) {
-      console.error('Error saving photo offline:', error);
+      // REMOVED: console.error('Error saving photo offline:', error);
       toast({
         title: "Storage error",
         description: "Could not save photo offline. Storage might be full.",

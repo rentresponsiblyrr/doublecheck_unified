@@ -41,10 +41,10 @@ export class VerboseErrorBoundary extends Component<VerboseErrorBoundaryProps, V
     const { errorId } = this.state;
 
     // FORCE ERROR VISIBILITY - Log to console even in production
-    console.error(`🚨 VERBOSE ERROR BOUNDARY CAUGHT ERROR in ${componentName}:`, error);
-    console.error(`🚨 ERROR INFO:`, errorInfo);
-    console.error(`🚨 COMPONENT STACK:`, errorInfo.componentStack);
-    console.error(`🚨 ERROR ID:`, errorId);
+    // REMOVED: console.error(`🚨 VERBOSE ERROR BOUNDARY CAUGHT ERROR in ${componentName}:`, error);
+    // REMOVED: console.error(`🚨 ERROR INFO:`, errorInfo);
+    // REMOVED: console.error(`🚨 COMPONENT STACK:`, errorInfo.componentStack);
+    // REMOVED: console.error(`🚨 ERROR ID:`, errorId);
 
     // Also log to window for debugging
     if (typeof window !== 'undefined') {
@@ -155,7 +155,7 @@ TIMESTAMP: ${new Date().toISOString()}
 
               <div className="flex space-x-2 pt-4">
                 <Button 
-                  onClick={() => window.location.reload()} 
+                  onClick={() => window.location.assign(window.location.href)} 
                   variant="destructive"
                   size="sm"
                 >

@@ -27,8 +27,34 @@ export class InspectionErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('📋 Inspection Error Boundary caught an error:', error, errorInfo);
+    // REMOVED: console.error('📋 Inspection Error Boundary caught an error:', error, errorInfo);
+    
+    // Track specific error types for better recovery
+    const errorType = this.categorizeError(error);
+    // REMOVED: console.log('🔍 Error categorized as:', errorType);
+    
     this.setState({ error, errorInfo });
+  }
+
+  private categorizeError(error: Error): string {
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('handleretry') || message.includes('initialization')) {
+      return 'component_initialization';
+    }
+    if (message.includes('404') || message.includes('not found')) {
+      return 'data_access';
+    }
+    if (message.includes('constraint') || message.includes('check constraint')) {
+      return 'database_constraint';
+    }
+    if (message.includes('media') || message.includes('upload')) {
+      return 'media_error';
+    }
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'network_error';
+    }
+    return 'unknown';
   }
 
   private handleRetry = () => {
@@ -37,12 +63,42 @@ export class InspectionErrorBoundary extends Component<Props, State> {
   };
 
   private handleNavigateHome = () => {
-    window.location.href = '/properties';
+    try {
+      // Professional navigation with state preservation
+      const url = new URL('/properties', window.location.origin);
+      window.history.pushState(null, '', url.href);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      
+      // Graceful fallback if navigation doesn't work
+      setTimeout(() => {
+        if (!window.location.pathname.includes('properties')) {
+          window.location.assign('/properties');
+        }
+      }, 100);
+    } catch (error) {
+      console.warn('Navigation error, using fallback:', error);
+      window.location.assign('/properties');
+    }
   };
 
   private handleRestartInspection = () => {
     if (this.props.inspectionId) {
-      window.location.href = `/inspection/${this.props.inspectionId}`;
+      try {
+        // Professional navigation with inspection context preservation
+        const url = new URL(`/inspection/${this.props.inspectionId}`, window.location.origin);
+        window.history.pushState(null, '', url.href);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        
+        // Graceful fallback verification
+        setTimeout(() => {
+          if (!window.location.pathname.includes(`inspection/${this.props.inspectionId}`)) {
+            window.location.assign(`/inspection/${this.props.inspectionId}`);
+          }
+        }, 100);
+      } catch (error) {
+        console.warn('Inspection navigation error, using fallback:', error);
+        window.location.assign(`/inspection/${this.props.inspectionId}`);
+      }
     }
   };
 

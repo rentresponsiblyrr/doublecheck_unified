@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthProvider';
+import { log } from '@/lib/logging/enterprise-logger';
 
 // Types
 interface Property {
@@ -74,22 +75,41 @@ export function PropertySelector({
     queryKey: ['properties', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('❌ PropertySelector: No user ID available, returning empty properties');
+        log.warn('PropertySelector: No user ID available, returning empty properties', {
+          component: 'PropertySelector',
+          action: 'queryFn',
+          hasUser: !!user
+        }, 'NO_USER_ID_AVAILABLE');
         return [];
       }
 
-      console.log('🏠 PropertySelector: Fetching properties for user:', user.id);
+      log.info('PropertySelector: Fetching properties for user', {
+        component: 'PropertySelector',
+        action: 'queryFn',
+        userId: user.id
+      }, 'PROPERTIES_FETCH_STARTED');
       
       const { data, error } = await supabase.rpc('get_properties_with_inspections', {
         _user_id: user.id
       });
       
       if (error) {
-        console.error('❌ PropertySelector: Error fetching properties:', error);
+        log.error('PropertySelector: Error fetching properties', error, {
+          component: 'PropertySelector',
+          action: 'queryFn',
+          userId: user.id,
+          rpcFunction: 'get_properties_with_inspections'
+        }, 'PROPERTIES_FETCH_ERROR');
         throw error;
       }
 
-      console.log('✅ PropertySelector: Successfully fetched properties:', data?.length || 0);
+      log.info('PropertySelector: Successfully fetched properties', {
+        component: 'PropertySelector',
+        action: 'queryFn',
+        userId: user.id,
+        propertiesCount: data?.length || 0,
+        rpcFunction: 'get_properties_with_inspections'
+      }, 'PROPERTIES_FETCH_SUCCESS');
       return data as PropertyData[];
     },
     enabled: !!user?.id, // Only run query when user is available
@@ -133,7 +153,12 @@ export function PropertySelector({
     if (!newPropertyUrl.trim()) return;
     
     try {
-      console.log('🏠 Creating property from URL:', newPropertyUrl);
+      log.info('Creating property from URL', {
+        component: 'PropertySelector',
+        action: 'handleAddProperty',
+        propertyUrl: newPropertyUrl,
+        userId: user?.id
+      }, 'PROPERTY_CREATION_STARTED');
       
       // This would integrate with property scraping service
       // For now, create a basic property structure
@@ -148,15 +173,29 @@ export function PropertySelector({
         images: []
       };
       
-      console.log('✅ Property created, calling onPropertySelected');
+      log.info('Property created, calling onPropertySelected', {
+        component: 'PropertySelector',
+        action: 'handleAddProperty',
+        newPropertyId: newProperty.id,
+        propertyAddress: newProperty.address
+      }, 'PROPERTY_CREATED_SUCCESS');
       await Promise.resolve(onPropertySelected(newProperty));
       
       setShowAddForm(false);
       setNewPropertyUrl('');
       
-      console.log('✅ Property selection completed');
+      log.info('Property selection completed', {
+        component: 'PropertySelector',
+        action: 'handleAddProperty',
+        selectedPropertyId: newProperty.id
+      }, 'PROPERTY_SELECTION_COMPLETED');
     } catch (error) {
-      console.error('❌ PropertySelector: Error adding property:', error);
+      log.error('PropertySelector: Error adding property', error as Error, {
+        component: 'PropertySelector',
+        action: 'handleAddProperty',
+        propertyUrl: newPropertyUrl,
+        userId: user?.id
+      }, 'PROPERTY_CREATION_ERROR');
       // Don't throw the error, just log it
     }
   };

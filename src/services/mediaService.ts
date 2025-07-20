@@ -57,7 +57,7 @@ export class MediaService {
       const filePath = mediaRecord.file_path || mediaRecord.path || mediaRecord.url || '';
       
       if (!filePath) {
-        console.error('❌ No file path found in media record:', mediaRecord);
+        // REMOVED: console.error('❌ No file path found in media record:', mediaRecord);
         return { success: false, error: 'No file path found in media record' };
       }
       

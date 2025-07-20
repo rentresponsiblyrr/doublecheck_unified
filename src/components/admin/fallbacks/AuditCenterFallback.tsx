@@ -66,7 +66,7 @@ export const AuditCenterFallback: React.FC = () => {
             Open Supabase Dashboard
           </button>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.assign(window.location.href)}
             className="block w-full text-left px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
           >
             Retry Component Load

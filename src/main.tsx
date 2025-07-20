@@ -1,60 +1,76 @@
 
 // REMOVED: Main.tsx startup logging to prevent infinite render loops
-// console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
+// // REMOVED: console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
 
 import { StrictMode, Component } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import { log } from "@/lib/logging/enterprise-logger";
+
+// Enterprise system initialization
+import { enterpriseInitializer } from "@/lib/initialization/enterprise-initialization";
+import type { EnterpriseConfig } from "@/lib/initialization/enterprise-initialization";
 
 // REMOVED: Basic imports logging to prevent infinite render loops
-// console.log('🚨 Basic imports loaded successfully');
+// // REMOVED: console.log('🚨 Basic imports loaded successfully');
 
 // REMOVED: Environment validation logging to prevent infinite render loops
-// console.log('🚨 Testing environment validation...');
-// console.log('Available env vars:', Object.keys(import.meta.env));
-// console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
-// console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+// // REMOVED: console.log('🚨 Testing environment validation...');
+// // REMOVED: console.log('Available env vars:', Object.keys(import.meta.env));
+// // REMOVED: console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
+// // REMOVED: console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 
 // REMOVED: Environment validation testing logging to prevent infinite render loops
-// console.log('🔍 Testing environment validation with error handling...');
+// // REMOVED: console.log('🔍 Testing environment validation with error handling...');
 
-// Test validation in async function
-async function testEnvironmentValidation() {
-  try {
-    console.log('About to import validateEnv...');
-    const { validateEnv } = await import("./utils/typeGuards.ts");
-    console.log('validateEnv imported successfully');
-    
-    const result = validateEnv();
-    console.log('✅ Environment validation passed:', result);
-    return true;
-  } catch (error) {
-    console.error('❌ Environment validation failed:', error);
-    console.error('Will continue without validation for now...');
-    return false;
+// Environment validation in development only
+if (import.meta.env.DEV) {
+  async function testEnvironmentValidation() {
+    try {
+      const { validateEnv } = await import("./utils/typeGuards.ts");
+      const result = validateEnv();
+      log.info('Environment validation passed', {
+        component: 'main',
+        action: 'validateEnvironment',
+        result
+      }, 'ENVIRONMENT_VALIDATION_PASSED');
+      return true;
+    } catch (error) {
+      log.error('Environment validation failed', error as Error, {
+        component: 'main',
+        action: 'validateEnvironment'
+      }, 'ENVIRONMENT_VALIDATION_FAILED');
+      return false;
+    }
   }
+  
+  testEnvironmentValidation();
 }
-
-// Run validation test
-testEnvironmentValidation();
 
 // Enhanced Error Boundary for debugging
 class DebugErrorBoundary extends Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: Error | null; errorInfo: any }
+  { hasError: boolean; error: Error | null; errorInfo: React.ErrorInfo | null }
 > {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error: Error) {
-    console.error('🚨 Error Boundary caught error:', error);
+    log.error('Error Boundary caught error in main.tsx', error, {
+      component: 'DebugErrorBoundary',
+      boundary: 'main'
+    }, 'ERROR_BOUNDARY_TRIGGERED');
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('🚨 Error Boundary - Full error details:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    log.error('Error Boundary - Full error details', error, {
+      component: 'DebugErrorBoundary',
+      boundary: 'main',
+      componentStack: errorInfo.componentStack
+    }, 'ERROR_BOUNDARY_DETAILS');
     this.setState({
       error,
       errorInfo
@@ -87,40 +103,32 @@ class DebugErrorBoundary extends Component<
   }
 }
 
-// Test if the issue is with App import specifically
-console.log('🚨 Testing if we can import App component...');
-
-// Import the real App component now that basic React works
-console.log('🚨 Importing real App component...');
+// Import the real App component
 import App from "./App.tsx";
-console.log('✅ Real App component imported successfully');
 
 // Use the real App component
 let TestComponent = App;
 
-try {
-  console.log('🚨 Attempting to import Supabase client...');
-  // Test if supabase import works
-  import("@/integrations/supabase/client").then(() => {
-    console.log('✅ Supabase client imported successfully');
-  }).catch((error) => {
-    console.error('❌ Supabase client import failed:', error);
+// Test imports in development
+if (import.meta.env.DEV) {
+  import("@/integrations/supabase/client").catch((error) => {
+    log.error('Supabase client import failed', error as Error, {
+      component: 'main',
+      action: 'importSupabaseClient'
+    }, 'SUPABASE_IMPORT_FAILED');
   });
   
-  console.log('🚨 Attempting to import SimpleAuthForm...');
-  // Test if SimpleAuthForm works
-  import("@/components/SimpleAuthForm").then(() => {
-    console.log('✅ SimpleAuthForm imported successfully');
-  }).catch((error) => {
-    console.error('❌ SimpleAuthForm import failed:', error);
+  import("@/components/SimpleAuthForm").catch((error) => {
+    log.error('SimpleAuthForm import failed', error as Error, {
+      component: 'main',
+      action: 'importSimpleAuthForm'
+    }, 'SIMPLE_AUTH_FORM_IMPORT_FAILED');
   });
-} catch (error) {
-  console.error('🚨 Import test failed:', error);
 }
 
 // REMOVED: App rendering logging to prevent infinite render loops
-// console.log('🚨 About to render app with error boundary');
-// console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
+// // REMOVED: console.log('🚨 About to render app with error boundary');
+// // REMOVED: console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
 
 // Initialize Sentry for production error monitoring
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
@@ -159,26 +167,80 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 
-// Wait for DOM to be ready and initialize React app
-function initializeApp() {
-  try {
-    console.log('🚨 DOM ready, creating root element');
-    console.log('🚨 Document body:', document.body);
-    console.log('🚨 Document.querySelector("#root"):', document.querySelector("#root"));
-    console.log('🚨 Document.getElementById("root"):', document.getElementById("root"));
+// Initialize enterprise systems
+async function initializeEnterpriseSystem() {
+  const enterpriseConfig: EnterpriseConfig = {
+    environment: import.meta.env.PROD ? 'production' : 'development',
+    serviceName: 'str-certified-frontend',
+    serviceVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
     
+    logging: {
+      enableConsole: import.meta.env.DEV,
+      enableRemote: import.meta.env.PROD,
+      remoteEndpoint: import.meta.env.VITE_LOGGING_ENDPOINT,
+      apiKey: import.meta.env.VITE_LOGGING_API_KEY,
+      minLevel: import.meta.env.DEV ? 'DEBUG' : 'INFO',
+    },
+    
+    tracing: {
+      samplingRate: import.meta.env.DEV ? 1.0 : 0.1,
+      exporterEndpoint: import.meta.env.VITE_TRACING_ENDPOINT,
+      enableProfiling: import.meta.env.DEV,
+    },
+    
+    apm: {
+      provider: 'custom',
+      apiKey: import.meta.env.VITE_APM_API_KEY,
+      enableRUM: true,
+      enableProfiling: import.meta.env.DEV,
+    },
+    
+    errorHandling: {
+      enableCircuitBreaker: true,
+      maxRetries: 3,
+      timeoutMs: 30000,
+    },
+    
+    security: {
+      enableOWASP: true,
+      enableThreatDetection: import.meta.env.PROD,
+      enableSecurityMiddleware: true,
+      anomalyThreshold: import.meta.env.PROD ? 0.7 : 0.9,
+      maxFailedAttempts: 5,
+      lockoutDurationMs: 900000, // 15 minutes
+    },
+  };
+
+  try {
+    await enterpriseInitializer.initialize(enterpriseConfig);
+    log.info('Enterprise systems initialized successfully', {
+      component: 'main',
+      environment: enterpriseConfig.environment,
+      serviceName: enterpriseConfig.serviceName,
+    }, 'ENTERPRISE_INITIALIZATION_SUCCESS');
+  } catch (error) {
+    // Fall back to basic logging if enterprise init fails
+    // REMOVED: console.error('Enterprise initialization failed, continuing with basic logging:', error);
+  }
+}
+
+// Wait for DOM to be ready and initialize React app
+async function initializeApp() {
+  try {
+    // Initialize enterprise systems first
+    await initializeEnterpriseSystem();
     const rootElement = document.getElementById("root");
-    console.log('🚨 Root element found:', !!rootElement);
-    console.log('🚨 Root element details:', rootElement);
     
     if (!rootElement) {
-      console.error('🚨 Root element not found! DOM content:');
-      console.error('🚨 Body innerHTML:', document.body.innerHTML);
+      log.fatal('Root element not found', undefined, {
+        component: 'main',
+        action: 'initializeApp',
+        domContent: document.body.innerHTML
+      }, 'ROOT_ELEMENT_NOT_FOUND');
       throw new Error('Root element not found!');
     }
     
     const root = createRoot(rootElement);
-    console.log('🚨 Root created, about to render');
     
     root.render(
       <StrictMode>
@@ -188,17 +250,26 @@ function initializeApp() {
       </StrictMode>
     );
     
-    console.log('🚨 Render complete!');
-    
-    // Clear console in development to prevent browser slowdown from infinite logs
     if (import.meta.env.DEV) {
-      setTimeout(() => {
-        console.clear();
-        console.log('🚨 Console cleared - infinite logging fixed');
-      }, 2000);
+      log.info('STR Certified app initialized successfully', {
+        component: 'main',
+        action: 'initializeApp',
+        environment: 'development'
+      }, 'APP_INITIALIZED');
     }
+    
+    // DISABLED: Console clearing was causing infinite reload loops
+    // if (import.meta.env.DEV) {
+    //   setTimeout(() => {
+    //     console.clear();
+    //     // REMOVED: console.log('🚨 Console cleared - infinite logging fixed');
+    //   }, 2000);
+    // }
   } catch (error) {
-    console.error('🚨 ERROR during app initialization:', error);
+    log.fatal('ERROR during app initialization', error as Error, {
+      component: 'main',
+      action: 'initializeApp'
+    }, 'APP_INITIALIZATION_ERROR');
     document.body.innerHTML = `
       <div style="padding: 20px; color: red; font-family: monospace;">
         <h1>🚨 CRITICAL ERROR</h1>
@@ -211,9 +282,13 @@ function initializeApp() {
 
 // Check if DOM is already loaded or wait for it
 if (document.readyState === 'loading') {
-  console.log('🚨 DOM still loading, waiting...');
-  document.addEventListener('DOMContentLoaded', initializeApp);
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeApp().catch(error => {
+      // REMOVED: console.error('Failed to initialize app:', error);
+    });
+  });
 } else {
-  console.log('🚨 DOM already loaded');
-  initializeApp();
+  initializeApp().catch(error => {
+    // REMOVED: console.error('Failed to initialize app:', error);
+  });
 }

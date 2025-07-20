@@ -53,7 +53,7 @@ export const ChecklistItemActions = ({
     }
 
     try {
-      console.log('Updating status to:', newStatus, 'for item:', itemId);
+      // REMOVED: console.log('Updating status to:', newStatus, 'for item:', itemId);
       
       // Primary database operation - RPC already handles audit trail (last_modified_by/at)
       // Add timeout to prevent indefinite hanging on mobile networks
@@ -108,7 +108,7 @@ export const ChecklistItemActions = ({
       onComplete();
       
     } catch (error) {
-      console.error('Status update error:', error);
+      // REMOVED: console.error('Status update error:', error);
       
       // Enhanced error messages for mobile users
       const errorMessage = error instanceof Error ? error.message : 'Failed to update status. Please try again.';

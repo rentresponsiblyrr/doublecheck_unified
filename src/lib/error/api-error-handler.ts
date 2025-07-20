@@ -1,5 +1,6 @@
 import { ErrorReporter } from '../monitoring/error-reporter';
 import { env } from '../config/environment';
+import { log } from '@/lib/logging/enterprise-logger';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type ErrorCategory = 'network' | 'validation' | 'authentication' | 'authorization' | 'server' | 'client' | 'unknown';
@@ -78,13 +79,18 @@ export class ApiErrorHandler {
       category: apiError.category,
     });
 
-    // Log in development
-    if (env.isDevelopment()) {
-      console.error('[API Error]', {
-        error: apiError,
-        context,
-      });
-    }
+    // Log all API errors with enterprise logger
+    log.error('API Error occurred', apiError, {
+      component: 'ApiErrorHandler',
+      action: 'handleError',
+      url: context.url,
+      method: context.method,
+      userId: context.userId,
+      category: apiError.category,
+      severity: apiError.severity,
+      status: apiError.status,
+      code: apiError.code
+    }, 'API_ERROR_HANDLED');
 
     return apiError;
   }
@@ -114,9 +120,17 @@ export class ApiErrorHandler {
 
         const delay = this.calculateDelay(attempt, config);
         
-        if (env.isDevelopment()) {
-          console.log(`[API Retry] Attempt ${attempt}/${config.maxAttempts}, waiting ${delay}ms`);
-        }
+        log.debug('API retry attempt scheduled', {
+          component: 'ApiErrorHandler',
+          action: 'executeWithRetry',
+          attempt,
+          maxAttempts: config.maxAttempts,
+          delayMs: delay,
+          url: context.url,
+          method: context.method,
+          errorCategory: lastError.category,
+          errorStatus: lastError.status
+        }, 'API_RETRY_SCHEDULED');
 
         await this.delay(delay);
       }

@@ -74,16 +74,24 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // DISABLED: Console output to prevent infinite loops
-    // if (this.shouldLogToConsole(entry.message, entry.level)) {
-    //   const consoleMethod = entry.level === 'error' ? 'error' : 
-    //                        entry.level === 'warn' ? 'warn' : 'log';
-    //   
-    //   console[consoleMethod](
-    //     `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ''}${entry.message}`,
-    //     entry.data || ''
-    //   );
-    // }
+    // FIXED: Re-enabled console output with proper throttling
+    if (this.shouldLogToConsole(entry.message, entry.level)) {
+      const consoleMethod = entry.level === 'error' ? 'error' : 
+                           entry.level === 'warn' ? 'warn' : 'log';
+      
+      const logMessage = `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ''}${entry.message}`;
+      
+      // Use try-catch to prevent any logging errors from crashing the app
+      try {
+        if (entry.data && typeof entry.data === 'object') {
+          console[consoleMethod](logMessage, entry.data);
+        } else {
+          console[consoleMethod](logMessage, entry.data || '');
+        }
+      } catch (consoleError) {
+        // Silently fail if console logging breaks - don't crash the app
+      }
+    }
   }
 
   debug(message: string, data?: LogData, context?: string) {
@@ -124,7 +132,7 @@ class Logger {
       // });
     } catch (error) {
       // DISABLED: Monitoring service error logging to prevent infinite loops
-      // console.error('Failed to send log to monitoring service:', error);
+      // // REMOVED: console.error('Failed to send log to monitoring service:', error);
     }
   }
 

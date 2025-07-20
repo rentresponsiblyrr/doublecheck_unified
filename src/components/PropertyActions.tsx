@@ -34,7 +34,7 @@ export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActions
       onPropertyDeleted();
     } catch (error) {
       // Error is already handled in the hook
-      console.error('Delete failed:', error);
+      // REMOVED: console.error('Delete failed:', error);
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);

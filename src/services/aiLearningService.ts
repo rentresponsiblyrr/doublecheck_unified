@@ -21,10 +21,55 @@ import type {
   ModelPerformanceMetrics
 } from '@/types/ai-database';
 
+// Context interfaces for AI Learning Service
+export interface AIContext {
+  property?: {
+    type?: string;
+    value?: number;
+    amenities?: string[];
+  };
+  temporal?: {
+    season?: string;
+    timeOfDay?: string;
+    months?: number[];
+  };
+  inspector?: {
+    id: string;
+    performanceMetrics?: Record<string, number>;
+  };
+  inspection?: {
+    id: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+    category?: string;
+  };
+}
+
+export interface PatternConditions {
+  property?: {
+    type?: string[];
+    value_range?: { min?: number; max?: number };
+    amenities?: { includes?: string[]; excludes?: string[] };
+  };
+  temporal?: {
+    months?: number[];
+    seasons?: string[];
+  };
+  inspector?: {
+    experience_level?: string[];
+    performance_threshold?: { min?: number; max?: number };
+  };
+}
+
+export interface SelectedContext {
+  knowledge_entries: any[];
+  applied_patterns: CAGContextPattern[];
+  dynamic_context: Record<string, unknown>;
+}
+
 export class AILearningService {
   private static instance: AILearningService;
   private embeddingCache = new Map<string, number[]>();
-  private contextCache = new Map<string, any>();
+  private contextCache = new Map<string, AIContext>();
   
   private constructor() {}
   
@@ -322,7 +367,7 @@ export class AILearningService {
       // Log the CAG query for analysis
       await this.logRAGQuery({
         query_text: request.query,
-        query_type: request.model_type as any,
+        query_type: request.model_type,
         retrieved_knowledge_ids: knowledgeResults.results.map(r => r.id),
         similarity_scores: knowledgeResults.results.map(r => r.similarity),
         selected_context: selectedContext,
@@ -348,7 +393,7 @@ export class AILearningService {
   /**
    * Finds applicable context patterns based on current context
    */
-  private async findApplicablePatterns(context: any): Promise<CAGContextPattern[]> {
+  private async findApplicablePatterns(context: AIContext): Promise<CAGContextPattern[]> {
     try {
       const { data, error } = await supabase
         .from('cag_context_patterns')
@@ -376,7 +421,7 @@ export class AILearningService {
   /**
    * Evaluates if pattern conditions match current context
    */
-  private evaluatePatternConditions(conditions: any, context: any): boolean {
+  private evaluatePatternConditions(conditions: PatternConditions, context: AIContext): boolean {
     try {
       // Property type matching
       if (conditions.property?.type && context.property?.type) {
@@ -545,17 +590,8 @@ export class AILearningService {
 
     try {
       // Use OpenAI's embedding API
-      const response = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          input: text,
-          model: 'text-embedding-3-small'
-        })
-      });
+      // SECURITY: Use backend proxy instead of direct OpenAI API calls
+      throw new Error('Direct OpenAI embedding calls disabled for security. Use backend proxy instead.');
 
       if (!response.ok) {
         throw new Error(`OpenAI API error: ${response.status}`);
@@ -628,7 +664,7 @@ export class AILearningService {
   /**
    * Generates dynamic context based on current situation
    */
-  private async generateDynamicContext(context: any, modelType: string): Promise<Record<string, any>> {
+  private async generateDynamicContext(context: AIContext, modelType: string): Promise<Record<string, unknown>> {
     return {
       model_type: modelType,
       timestamp: new Date().toISOString(),
@@ -641,14 +677,17 @@ export class AILearningService {
   /**
    * Generates contextual hints based on property and situation
    */
-  private generateContextualHints(context: any): string[] {
+  private generateContextualHints(context: SelectedContext): string[] {
     const hints: string[] = [];
     
-    if (context.property?.type === 'luxury') {
+    // Access dynamic context for property and temporal information
+    const dynamicContext = context.dynamic_context as any; // Temporary - would need proper typing for dynamic_context
+    
+    if (dynamicContext?.property?.type === 'luxury') {
       hints.push('Focus on high-end finishes and premium amenities');
     }
     
-    if (context.temporal?.season === 'winter') {
+    if (dynamicContext?.temporal?.season === 'winter') {
       hints.push('Pay special attention to heating systems and insulation');
     }
     
@@ -658,7 +697,7 @@ export class AILearningService {
   /**
    * Calculates priority adjustments based on context
    */
-  private calculatePriorityAdjustments(context: any): Record<string, number> {
+  private calculatePriorityAdjustments(context: SelectedContext): Record<string, number> {
     const adjustments: Record<string, number> = {};
     
     // Seasonal adjustments
@@ -692,7 +731,7 @@ export class AILearningService {
     return 'evening';
   }
 
-  private generateContextExplanation(context: any): string {
+  private generateContextExplanation(context: SelectedContext): string {
     const parts: string[] = [];
     
     if (context.knowledge_entries?.length > 0) {
@@ -706,7 +745,7 @@ export class AILearningService {
     return parts.join(', ') || 'Basic context applied';
   }
 
-  private calculateContextConfidence(context: any): number {
+  private calculateContextConfidence(context: SelectedContext): number {
     let confidence = 0.5; // Base confidence
     
     if (context.knowledge_entries?.length > 0) {

@@ -15,7 +15,7 @@ export const MobileAuthLoading: React.FC<MobileAuthLoadingProps> = ({ onRefresh 
         <div className="mt-4 space-y-2">
           <button
             onClick={() => {
-              console.log('📱 Mobile recovery triggered');
+              // REMOVED: console.log('📱 Mobile recovery triggered');
               onRefresh();
             }}
             className="text-sm text-blue-600 hover:text-blue-800 underline block w-full"

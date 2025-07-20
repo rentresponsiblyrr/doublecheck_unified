@@ -10,6 +10,7 @@
 import { OpenAI } from 'openai';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorDetails, SystemContext, ErrorTrendAnalysis } from '@/types/errorTypes';
+import { log } from '@/lib/logging/enterprise-logger';
 
 interface MonitoringMetric {
   id: string;
@@ -87,14 +88,13 @@ export class ProactiveMonitoring {
   private monitoringInterval?: number;
 
   constructor() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured for proactive monitoring');
-    }
-    this.openai = new OpenAI({ 
-      apiKey, 
-      dangerouslyAllowBrowser: true 
-    });
+    // SECURITY: Direct AI integration disabled for security
+    log.warn('ProactiveMonitoring: Direct AI integration disabled. Use AIProxyService instead.', {
+      component: 'ProactiveMonitoring',
+      action: 'constructor',
+      securityMeasure: 'AI_INTEGRATION_DISABLED'
+    }, 'AI_INTEGRATION_DISABLED');
+    this.openai = null as any; // DISABLED
   }
 
   /**
@@ -106,7 +106,12 @@ export class ProactiveMonitoring {
     }
 
     this.isMonitoring = true;
-    console.log('🔍 Starting proactive issue detection monitoring...');
+    log.info('Starting proactive issue detection monitoring', {
+      component: 'ProactiveMonitoring',
+      action: 'startMonitoring',
+      monitoringCycle: '30s',
+      features: ['performance', 'userBehavior', 'systemHealth']
+    }, 'MONITORING_STARTED');
 
     // Initialize baselines
     await this.initializeBaselines();
@@ -116,7 +121,11 @@ export class ProactiveMonitoring {
       try {
         await this.runMonitoringCycle();
       } catch (error) {
-        console.error('❌ Monitoring cycle failed:', error);
+        log.error('Monitoring cycle failed', error as Error, {
+          component: 'ProactiveMonitoring',
+          action: 'runMonitoringCycle',
+          intervalMs: 30000
+        }, 'MONITORING_CYCLE_FAILED');
       }
     }, 30000); // Check every 30 seconds
 
@@ -139,7 +148,12 @@ export class ProactiveMonitoring {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = undefined;
     }
-    console.log('⏹️ Stopped proactive monitoring');
+    log.info('Stopped proactive monitoring', {
+      component: 'ProactiveMonitoring',
+      action: 'stopMonitoring',
+      totalMetrics: Array.from(this.metrics.values()).reduce((sum, arr) => sum + arr.length, 0),
+      totalAnomalies: Array.from(this.anomalies.values()).reduce((sum, arr) => sum + arr.length, 0)
+    }, 'MONITORING_STOPPED');
   }
 
   /**
@@ -739,12 +753,17 @@ export class ProactiveMonitoring {
    * Trigger alert for anomaly
    */
   private async triggerAlert(anomaly: AnomalyDetection): Promise<void> {
-    console.warn('🚨 Anomaly detected:', {
+    log.warn('Anomaly detected', {
+      component: 'ProactiveMonitoring',
+      action: 'triggerAlert',
+      anomalyId: anomaly.id,
       severity: anomaly.severity,
       description: anomaly.description,
       confidence: anomaly.confidence,
-      recommendations: anomaly.recommendations
-    });
+      recommendations: anomaly.recommendations,
+      metricId: anomaly.metricId,
+      type: anomaly.type
+    }, 'ANOMALY_DETECTED');
 
     // In a real system, this would send notifications via email, Slack, etc.
   }
@@ -898,12 +917,16 @@ export class ProactiveMonitoring {
     anomalies: AnomalyDetection[],
     predictions: any
   ): void {
-    console.log('📊 Monitoring Summary:', {
+    log.debug('Monitoring summary', {
+      component: 'ProactiveMonitoring',
+      action: 'logMonitoringSummary',
       metricsCollected: metrics.length,
       anomaliesDetected: anomalies.length,
       criticalAnomalies: anomalies.filter(a => a.severity === 'critical').length,
-      timestamp: new Date().toISOString()
-    });
+      highAnomalies: anomalies.filter(a => a.severity === 'high').length,
+      mediumAnomalies: anomalies.filter(a => a.severity === 'medium').length,
+      lowAnomalies: anomalies.filter(a => a.severity === 'low').length
+    }, 'MONITORING_SUMMARY');
   }
 
   /**

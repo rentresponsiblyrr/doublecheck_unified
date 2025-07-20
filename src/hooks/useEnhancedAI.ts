@@ -6,14 +6,20 @@ import { enhancedAIService } from '@/lib/ai/enhanced-ai-service';
 import { aiLearningService } from '@/services/aiLearningService';
 import { logger } from '@/utils/logger';
 import { useRequestDeduplication } from '@/utils/requestDeduplication';
+import type { 
+  AIPrediction, 
+  AuditorCorrection, 
+  AIValidationResult, 
+  ChecklistItemForAI 
+} from '@/types/ai-interfaces';
 
 // Exponential backoff utility
-const exponentialBackoff = async (
-  fn: () => Promise<any>,
+const exponentialBackoff = async <T>(
+  fn: () => Promise<T>,
   retries: number = 3,
   baseDelay: number = 1000,
   maxDelay: number = 30000
-): Promise<any> => {
+): Promise<T> => {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await fn();
@@ -123,7 +129,7 @@ interface UseEnhancedAIReturn {
 
   // Inspection Validation
   validateInspection: (
-    checklistItems: any[],
+    checklistItems: ChecklistItemForAI[],
     photos: File[],
     context: InspectionContext
   ) => Promise<{
@@ -133,7 +139,7 @@ interface UseEnhancedAIReturn {
     confidence: number;
     context_insights: string[];
   }>;
-  validationResult: any | null;
+  validationResult: AIValidationResult | null;
   isValidating: boolean;
   validationError: Error | null;
 
@@ -153,8 +159,8 @@ interface UseEnhancedAIReturn {
   submitFeedback: (
     inspectionId: string,
     checklistItemId: string,
-    aiPrediction: any,
-    auditorCorrection: any,
+    aiPrediction: AIPrediction,
+    auditorCorrection: AuditorCorrection,
     category: string,
     feedbackType: 'correction' | 'validation' | 'suggestion' | 'issue'
   ) => Promise<void>;
@@ -178,7 +184,7 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
   const [checklistError, setChecklistError] = useState<Error | null>(null);
 
   // Validation State
-  const [validationResult, setValidationResult] = useState<any | null>(null);
+  const [validationResult, setValidationResult] = useState<AIValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<Error | null>(null);
 
@@ -315,7 +321,7 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
   // ===================================================================
 
   const validateInspection = useCallback(async (
-    checklistItems: any[],
+    checklistItems: ChecklistItemForAI[],
     photos: File[],
     context: InspectionContext
   ) => {
@@ -524,8 +530,8 @@ export const useEnhancedAI = (): UseEnhancedAIReturn => {
   const submitFeedback = useCallback(async (
     inspectionId: string,
     checklistItemId: string,
-    aiPrediction: any,
-    auditorCorrection: any,
+    aiPrediction: AIPrediction,
+    auditorCorrection: AuditorCorrection,
     category: string,
     feedbackType: 'correction' | 'validation' | 'suggestion' | 'issue'
   ) => {

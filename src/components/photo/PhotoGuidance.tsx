@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import type { PhotoAnalysisResult, PropertyData } from '@/types/ai-interfaces';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,9 +51,9 @@ interface PhotoGuidanceProps {
   checklist: ChecklistData;
   onPhotoCapture: (roomType: string) => Promise<PhotoResult>;
   onAllPhotosComplete: () => void;
-  onPhotoStored?: (itemId: string, photoFile: File, analysis: any) => void;
+  onPhotoStored?: (itemId: string, photoFile: File, analysis: PhotoAnalysisResult) => void;
   inspectionId?: string;
-  propertyData?: any; // For enhanced AI context
+  propertyData?: PropertyData; // For enhanced AI context
 }
 
 export function PhotoGuidance({ 
@@ -216,7 +217,7 @@ export function PhotoGuidance({
       (window as any).backgroundUploads.push(uploadPromise);
 
     } catch (error) {
-      console.error('Video completion failed:', error);
+      // REMOVED: console.error('Video completion failed:', error);
       logger.error('Video completion failed', error, 'PHOTO_GUIDANCE');
     }
   }, [currentItem, onPhotoStored, inspectionId, onPhotoCapture, currentItemIndex, totalItems, onAllPhotosComplete]);
@@ -278,7 +279,7 @@ export function PhotoGuidance({
 
       // AI service disabled for security - use fallback analysis
       // REMOVED: PhotoGuidance logging to prevent infinite render loops
-      // console.log('Enhanced AI service disabled for security, using fallback analysis');
+      // // REMOVED: console.log('Enhanced AI service disabled for security, using fallback analysis');
       const qualityChecker = createPhotoQualityChecker();
       
       try {
@@ -346,7 +347,7 @@ export function PhotoGuidance({
         
         // AI analysis disabled for security - use fallback result
         // REMOVED: PhotoGuidance logging to prevent infinite render loops
-      // console.log('Enhanced AI analysis disabled for security, using fallback result');
+      // // REMOVED: console.log('Enhanced AI analysis disabled for security, using fallback result');
         
         clearInterval(progressInterval);
         setCaptureProgress(100);
@@ -407,7 +408,7 @@ export function PhotoGuidance({
         await onPhotoCapture(currentItem.roomType || currentItem.category);
         
       } catch (error) {
-        console.error('AI analysis failed:', error);
+        // REMOVED: console.error('AI analysis failed:', error);
         clearInterval(progressInterval);
         setCaptureProgress(100);
         
@@ -477,7 +478,7 @@ export function PhotoGuidance({
       }
       
     } catch (error) {
-      console.error('Photo capture failed:', error);
+      // REMOVED: console.error('Photo capture failed:', error);
     } finally {
       setIsCapturing(false);
       setCaptureProgress(0);
@@ -593,7 +594,7 @@ export function PhotoGuidance({
             variant="outline" 
             size="sm" 
             className="mt-2 ml-2" 
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.assign(window.location.href)}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry

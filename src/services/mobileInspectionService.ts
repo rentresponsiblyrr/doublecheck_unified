@@ -1,6 +1,7 @@
 
 import { InspectionValidationService } from "./inspectionValidationService";
 import { InspectionCreationOptimizer } from "./inspectionCreationOptimizer";
+import { log } from '@/lib/logging/enterprise-logger';
 
 export interface MobileInspectionResult {
   inspectionId: string;
@@ -10,7 +11,11 @@ export interface MobileInspectionResult {
 
 export class MobileInspectionService {
   static async getOrCreateInspection(propertyId: string): Promise<MobileInspectionResult> {
-    console.log('🚀 Starting mobile inspection flow for property:', propertyId);
+    log.info('Starting mobile inspection flow for property', {
+      component: 'MobileInspectionService',
+      action: 'getOrCreateInspection',
+      propertyId
+    }, 'MOBILE_INSPECTION_FLOW_STARTED');
 
     // Step 1: Validate property access with RLS
     const hasAccess = await InspectionValidationService.validatePropertyAccess(propertyId);
@@ -21,7 +26,13 @@ export class MobileInspectionService {
     // Step 2: Check for existing active inspection
     const activeInspectionId = await InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
     if (activeInspectionId) {
-      console.log('📋 Joining existing inspection:', activeInspectionId);
+      log.info('Joining existing inspection', {
+        component: 'MobileInspectionService',
+        action: 'getOrCreateInspection',
+        propertyId,
+        activeInspectionId,
+        isNew: false
+      }, 'JOINING_EXISTING_INSPECTION');
       
       // Verify checklist items exist
       const itemCount = await InspectionValidationService.verifyChecklistItemsCreated(activeInspectionId);
@@ -34,7 +45,12 @@ export class MobileInspectionService {
     }
 
     // Step 3: Create new inspection with retry logic
-    console.log('🆕 Creating new inspection for property:', propertyId);
+    log.info('Creating new inspection for property', {
+      component: 'MobileInspectionService',
+      action: 'getOrCreateInspection',
+      propertyId,
+      isNew: true
+    }, 'CREATING_NEW_INSPECTION');
     const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId);
     
     // Step 4: Verify checklist items were created

@@ -798,7 +798,7 @@ if (typeof window !== 'undefined') {
                 import.meta.env.REACT_APP_GITHUB_TOKEN || 
                 '';
 
-  console.log('🐛 GitHub Service Configuration:', {
+  // REMOVED: console.log('🐛 GitHub Service Configuration:', {
     owner,
     repo,
     token: token ? `${token.substring(0, 10)}...` : 'NOT SET',
@@ -807,7 +807,7 @@ if (typeof window !== 'undefined') {
 
   if (owner && repo && token && token !== 'your-github-token-here') {
     githubIssuesService.configure({ owner, repo, token });
-    console.log('✅ GitHub service configured successfully');
+    // REMOVED: console.log('✅ GitHub service configured successfully');
   } else {
     console.warn('⚠️ GitHub service not configured - missing credentials');
   }

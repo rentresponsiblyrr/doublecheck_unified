@@ -10,6 +10,7 @@
 import { OpenAI } from 'openai';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorDetails, ErrorPattern, SystemContext } from '@/types/errorTypes';
+import { log } from '@/lib/logging/enterprise-logger';
 
 interface RootCauseAnalysis {
   confidence: number;
@@ -45,19 +46,37 @@ interface ConfigChange {
   description: string;
 }
 
+interface SystemMetrics {
+  memoryUsage: MemoryUsage;
+  performanceMetrics: PerformanceData;
+  networkHealth: string;
+}
+
+interface MemoryUsage {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+  memoryPressure: 'high' | 'normal';
+}
+
+interface PerformanceData {
+  loadTime: number;
+  renderTime: number;
+  responseTime: number;
+}
+
 export class RootCauseAnalyzer {
   private openai: OpenAI;
   private analysisCache = new Map<string, RootCauseAnalysis>();
 
   constructor() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured for root cause analysis');
-    }
-    this.openai = new OpenAI({ 
-      apiKey, 
-      dangerouslyAllowBrowser: true 
-    });
+    // SECURITY: Direct AI integration disabled for security
+    log.warn('RootCauseAnalyzer: Direct AI integration disabled. Use AIProxyService instead.', {
+      component: 'RootCauseAnalyzer',
+      action: 'constructor',
+      securityMeasure: 'AI_INTEGRATION_DISABLED'
+    }, 'AI_INTEGRATION_DISABLED');
+    this.openai = null as unknown as OpenAI; // DISABLED
   }
 
   /**
@@ -92,7 +111,13 @@ export class RootCauseAnalyzer {
       
       return enhancedAnalysis;
     } catch (error) {
-      console.error('❌ Root cause analysis failed:', error);
+      log.error('Root cause analysis failed', error as Error, {
+        component: 'RootCauseAnalyzer',
+        action: 'analyzeRootCause',
+        errorId: errorDetails.id,
+        hasPatterns: !!patterns?.length,
+        hasSystemContext: !!systemContext
+      }, 'ROOT_CAUSE_ANALYSIS_FAILED');
       return this.getFallbackAnalysis(errorDetails);
     }
   }
@@ -212,8 +237,12 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
     try {
       return JSON.parse(analysisText);
     } catch (parseError) {
-      console.error('❌ Failed to parse AI analysis response:', parseError);
-      console.error('Raw response:', analysisText);
+      log.error('Failed to parse AI analysis response', parseError as Error, {
+        component: 'RootCauseAnalyzer',
+        action: 'parseAnalysisResponse',
+        rawResponseLength: analysisText?.length || 0,
+        hasResponse: !!analysisText
+      }, 'ANALYSIS_RESPONSE_PARSE_FAILED');
       throw new Error('Invalid JSON response from AI analysis');
     }
   }
@@ -270,7 +299,10 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
         }
       ];
     } catch (error) {
-      console.error('❌ Failed to get recent changes:', error);
+      log.error('Failed to get recent changes', error as Error, {
+        component: 'RootCauseAnalyzer',
+        action: 'getRecentSystemChanges'
+      }, 'RECENT_CHANGES_FETCH_FAILED');
       return [];
     }
   }
@@ -304,7 +336,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get system performance metrics
    */
-  private async getSystemMetrics(): Promise<any> {
+  private async getSystemMetrics(): Promise<SystemMetrics> {
     return {
       memoryUsage: this.getMemoryUsage(),
       performanceMetrics: this.getPerformanceMetrics(),
@@ -315,9 +347,15 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get memory usage information
    */
-  private getMemoryUsage(): any {
+  private getMemoryUsage(): MemoryUsage {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as Performance & {
+        memory: {
+          usedJSHeapSize: number;
+          totalJSHeapSize: number;
+          jsHeapSizeLimit: number;
+        }
+      }).memory;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
@@ -448,7 +486,13 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
           created_at: new Date().toISOString()
         });
     } catch (error) {
-      console.error('❌ Failed to store analysis for learning:', error);
+      log.error('Failed to store analysis for learning', error as Error, {
+        component: 'RootCauseAnalyzer',
+        action: 'storeAnalysisForLearning',
+        errorId: errorDetails.id,
+        analysisCategory: analysis.category,
+        confidence: analysis.confidence
+      }, 'ANALYSIS_STORAGE_FAILED');
     }
   }
 

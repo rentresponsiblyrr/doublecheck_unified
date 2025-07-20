@@ -16,7 +16,7 @@ export const useMobileAuthHooks = () => {
       }
     }
 
-    console.log('📱 Fetching mobile role for:', userId);
+    // REMOVED: console.log('📱 Fetching mobile role for:', userId);
     
     return new Promise((resolve) => {
       // Mobile-friendly timeout (1 second)
@@ -41,10 +41,10 @@ export const useMobileAuthHooks = () => {
           
           const role = data || 'inspector';
           setCachedRole(userId, role);
-          console.log('📱 Mobile role fetched:', role);
+          // REMOVED: console.log('📱 Mobile role fetched:', role);
           resolve(role);
         } catch (error) {
-          console.error('📱 Mobile role fetch error:', error);
+          // REMOVED: console.error('📱 Mobile role fetch error:', error);
           clearTimeout(timeout);
           resolve('inspector');
         }
@@ -55,7 +55,7 @@ export const useMobileAuthHooks = () => {
   }, []);
 
   const clearSession = useCallback((userId?: string) => {
-    console.log('📱 Clearing mobile session...');
+    // REMOVED: console.log('📱 Clearing mobile session...');
     
     try {
       localStorage.removeItem('supabase.auth.token');
@@ -65,9 +65,9 @@ export const useMobileAuthHooks = () => {
         clearCachedRole(userId);
       }
       
-      console.log('📱 Mobile session cleared');
+      // REMOVED: console.log('📱 Mobile session cleared');
     } catch (error) {
-      console.error('📱 Mobile session clear error:', error);
+      // REMOVED: console.error('📱 Mobile session clear error:', error);
     }
   }, []);
 
@@ -148,7 +148,7 @@ export const useMobileAuthHooks = () => {
         description: "You have been signed out of your mobile session.",
       });
     } catch (error) {
-      console.error('📱 Mobile sign out error:', error);
+      // REMOVED: console.error('📱 Mobile sign out error:', error);
       toast({
         title: "Mobile Sign Out Error",
         description: "There was an issue signing out.",

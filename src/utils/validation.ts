@@ -3,6 +3,7 @@
  * Provides comprehensive validation rules and sanitization functions
  */
 
+import React from 'react';
 import { z } from 'zod';
 import { sanitizeText, sanitizeSearchQuery, sanitizeURL } from './sanitization';
 
@@ -163,7 +164,7 @@ export const searchQuerySchema = z.object({
     .max(500, 'Search query is too long')
     .transform((val) => sanitizeSearchQuery(val)),
   category: optionalStringSchema,
-  filters: z.record(z.any()).optional()
+  filters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional()
 });
 
 /**
@@ -307,9 +308,9 @@ export const useFormValidation = <T>(schema: z.ZodSchema<T>) => {
     }
   }, [schema]);
   
-  const validateField = React.useCallback((fieldName: string, value: any) => {
+  const validateField = React.useCallback((fieldName: string, value: unknown) => {
     try {
-      const fieldSchema = (schema as any).shape[fieldName];
+      const fieldSchema = (schema as { shape: Record<string, unknown> }).shape[fieldName];
       if (fieldSchema) {
         fieldSchema.parse(value);
         setErrors(prev => {
@@ -343,6 +344,3 @@ export const useFormValidation = <T>(schema: z.ZodSchema<T>) => {
     hasErrors: Object.keys(errors).length > 0
   };
 };
-
-// React import for the hook
-const React = require('react');

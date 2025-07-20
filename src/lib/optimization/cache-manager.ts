@@ -538,7 +538,7 @@ export class CacheManager {
         return true;
       }
     } catch (error) {
-      console.error('Failed to compress item:', error);
+      // REMOVED: console.error('Failed to compress item:', error);
     }
     
     return false;
@@ -564,7 +564,7 @@ export class CacheManager {
       const exists = await this.get(key);
       if (!exists) {
         // In production, would fetch from source
-        console.log(`Would warm cache for key: ${key}`);
+        // REMOVED: console.log(`Would warm cache for key: ${key}`);
       }
     }
   }
@@ -580,7 +580,7 @@ export class CacheManager {
     // Warm cache for critical application paths
     for (const path of paths) {
       // In production, would pre-fetch data for these paths
-      console.log(`Warming cache for critical path: ${path}`);
+      // REMOVED: console.log(`Warming cache for critical path: ${path}`);
     }
   }
 

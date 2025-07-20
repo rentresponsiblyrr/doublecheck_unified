@@ -4,7 +4,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export const PropertySelectionLoading = () => {
   // REMOVED: Console log that was causing infinite loop
-  // console.log('⏳ PropertySelection showing loading state');
+  // // REMOVED: console.log('⏳ PropertySelection showing loading state');
   
   return (
     <div className="min-h-screen bg-gray-50">

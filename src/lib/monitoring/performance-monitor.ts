@@ -413,7 +413,7 @@ class PerformanceMonitor {
       }
 
     } catch (error) {
-      console.error('Failed to flush performance metrics:', error);
+      // REMOVED: console.error('Failed to flush performance metrics:', error);
       // Re-add metrics to queue for retry
       this.metrics.unshift(...metricsToFlush);
       this.interactions.unshift(...interactionsToFlush);

@@ -7,7 +7,7 @@ export const useChecklistItemMedia = (checklistItemId: string) => {
   return useQuery({
     queryKey: ['checklist-item-media', checklistItemId],
     queryFn: async () => {
-      console.log('Fetching media for checklist item:', checklistItemId);
+      // REMOVED: console.log('Fetching media for checklist item:', checklistItemId);
       
       const { data, error } = await supabase
         .from('media')
@@ -16,11 +16,11 @@ export const useChecklistItemMedia = (checklistItemId: string) => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching media:', error);
+        // REMOVED: console.error('Error fetching media:', error);
         throw error;
       }
 
-      console.log('Fetched media:', data);
+      // REMOVED: console.log('Fetched media:', data);
       
       return (data || []).map(item => ({
         id: item.id,

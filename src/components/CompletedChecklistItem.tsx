@@ -93,7 +93,7 @@ export const CompletedChecklistItem = ({ item, onComplete }: CompletedChecklistI
       await refetchMedia();
       onComplete();
     } catch (error) {
-      console.error('Delete error:', error);
+      // REMOVED: console.error('Delete error:', error);
       toast({
         title: "Delete failed",
         description: "Failed to delete evidence. Please try again.",

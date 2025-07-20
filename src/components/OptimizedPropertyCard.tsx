@@ -173,7 +173,7 @@ export const OptimizedPropertyCard = ({
               propertyName={property.property_name}
               onPropertyDeleted={onPropertyDeleted || (() => {
                 // Refresh the parent component
-                window.location.reload();
+                window.location.assign(window.location.href);
               })}
             />
           </div>

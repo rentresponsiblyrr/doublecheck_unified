@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { ScrapedPropertyData } from '@/lib/scrapers/types';
+import { log } from '@/lib/logging/enterprise-logger';
+import type { Property } from '@/stores/types';
 
 export interface PropertyData {
   name: string;
@@ -19,9 +21,17 @@ export class PropertyService {
    * Add a new property with automatic data enhancement
    * This replaces the need for separate import + add steps
    */
-  async addProperty(propertyData: PropertyData, userId?: string): Promise<PropertyServiceResult<any>> {
+  async addProperty(propertyData: PropertyData, userId?: string): Promise<PropertyServiceResult<Property>> {
     try {
-      console.log('🏠 Adding property:', propertyData);
+      log.info('Adding property', {
+        component: 'PropertyService',
+        action: 'addProperty',
+        hasName: !!propertyData.name,
+        hasAddress: !!propertyData.address,
+        hasVrboUrl: !!propertyData.vrbo_url,
+        hasAirbnbUrl: !!propertyData.airbnb_url,
+        userId
+      }, 'PROPERTY_ADD_STARTED');
 
       // Get current user if not provided
       if (!userId) {
@@ -66,7 +76,14 @@ export class PropertyService {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📝 Inserting property with data:', propertyToInsert);
+      log.debug('Inserting property with data', {
+        component: 'PropertyService',
+        action: 'addProperty',
+        propertyName: propertyToInsert.name,
+        hasVrboUrl: !!propertyToInsert.vrbo_url,
+        hasAirbnbUrl: !!propertyToInsert.airbnb_url,
+        addedBy: propertyToInsert.added_by
+      }, 'PROPERTY_INSERT_ATTEMPT');
 
       // Insert property into database (direct table access)
       // TODO: Create proper RPC function for property creation once RLS is configured
@@ -83,14 +100,27 @@ export class PropertyService {
         .single();
 
       if (insertError) {
-        console.error('❌ Database insertion failed:', insertError);
+        log.error('Database insertion failed for property', insertError, {
+          component: 'PropertyService',
+          action: 'addProperty',
+          propertyName: propertyToInsert.name,
+          userId: propertyToInsert.added_by,
+          errorCode: insertError.code
+        }, 'PROPERTY_INSERT_ERROR');
         return { 
           success: false, 
           error: `Failed to save property: ${insertError.message}` 
         };
       }
 
-      console.log('✅ Property added successfully:', insertedProperty);
+      log.info('Property added successfully', {
+        component: 'PropertyService',
+        action: 'addProperty',
+        propertyId: insertedProperty.property_id,
+        propertyName: insertedProperty.property_name,
+        hasVrboUrl: !!insertedProperty.vrbo_url,
+        hasAirbnbUrl: !!insertedProperty.airbnb_url
+      }, 'PROPERTY_ADDED_SUCCESS');
 
       // Attempt to get enhanced data if VRBO URL is provided (non-blocking)
       let scrapedData: ScrapedPropertyData | null = null;
@@ -99,10 +129,22 @@ export class PropertyService {
           const enhancedData = await this.enhancePropertyData(propertyData.vrbo_url!);
           if (enhancedData.success) {
             scrapedData = enhancedData.data;
-            console.log('✅ Enhanced property data available:', scrapedData);
+            log.info('Enhanced property data available', {
+              component: 'PropertyService',
+              action: 'addProperty',
+              propertyId: insertedProperty.property_id,
+              hasScrapedData: !!scrapedData,
+              listingId: scrapedData?.listingId
+            }, 'PROPERTY_DATA_ENHANCED');
           }
         } catch (error) {
-          console.warn('⚠️ Could not enhance property data, continuing with basic info:', error);
+          log.warn('Could not enhance property data, continuing with basic info', {
+            component: 'PropertyService',
+            action: 'addProperty',
+            propertyId: insertedProperty.property_id,
+            vrboUrl: propertyData.vrbo_url,
+            error: error instanceof Error ? error.message : String(error)
+          }, 'PROPERTY_ENHANCEMENT_FAILED');
           // Continue without enhanced data - not a critical failure
         }
       }
@@ -117,7 +159,12 @@ export class PropertyService {
       };
 
     } catch (error) {
-      console.error('❌ Property service error:', error);
+      log.error('Property service error', error as Error, {
+        component: 'PropertyService',
+        action: 'addProperty',
+        userId,
+        hasPropertyData: !!propertyData
+      }, 'PROPERTY_SERVICE_ERROR');
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unexpected error occurred'
@@ -200,10 +247,15 @@ export class PropertyService {
   /**
    * Update existing property
    */
-  async updateProperty(id: string, propertyData: Partial<PropertyData>): Promise<PropertyServiceResult<any>> {
+  async updateProperty(id: string, propertyData: Partial<PropertyData>): Promise<PropertyServiceResult<Property>> {
     try {
       // Map app fields to database fields
-      const updateData: any = {};
+      const updateData: {
+        property_name?: string;
+        street_address?: string;
+        vrbo_url?: string;
+        airbnb_url?: string;
+      } = {};
       if (propertyData.name) updateData.property_name = propertyData.name;
       if (propertyData.address) updateData.street_address = propertyData.address;
       if (propertyData.vrbo_url) updateData.vrbo_url = propertyData.vrbo_url;
@@ -232,7 +284,7 @@ export class PropertyService {
   /**
    * Get property by ID
    */
-  async getProperty(id: string): Promise<PropertyServiceResult<any>> {
+  async getProperty(id: string): Promise<PropertyServiceResult<Property>> {
     try {
       // Use RPC function to get property data since direct access is restricted by RLS
       const { data: allProperties, error } = await supabase
@@ -242,7 +294,7 @@ export class PropertyService {
         return { success: false, error: error.message };
       }
       
-      const data = allProperties?.find((prop: any) => prop.property_id === id);
+      const data = allProperties?.find((prop: { property_id: string }) => prop.property_id === id);
       if (!data) {
         return { success: false, error: 'Property not found' };
       }

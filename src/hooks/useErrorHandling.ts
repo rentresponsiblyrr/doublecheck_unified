@@ -3,12 +3,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { apiErrorHandler, ApiError, ApiErrorContext } from '@/lib/error/api-error-handler';
 import { errorReporter } from '@/lib/monitoring/error-reporter';
 import { env } from '@/lib/config/environment';
+import type { ErrorContext, ErrorDetails, ErrorHandlingOptions } from '@/types/error-handling';
 
 export interface ErrorState {
   error: Error | ApiError | null;
   isError: boolean;
   errorMessage: string | null;
-  errorDetails: Record<string, any> | null;
+  errorDetails: ErrorDetails | null;
   errorId: string | null;
   retryCount: number;
   isRetrying: boolean;
@@ -22,7 +23,7 @@ export interface UseErrorHandlingOptions {
   onError?: (error: Error | ApiError) => void;
   onRetry?: () => void;
   onSuccess?: () => void;
-  context?: Record<string, any>;
+  context?: ErrorContext;
   resetOnUnmount?: boolean;
 }
 
@@ -30,14 +31,14 @@ export interface ErrorHandlingUtils {
   error: ErrorState;
   setError: (error: Error | ApiError | string | null) => void;
   clearError: () => void;
-  handleError: (error: any, context?: ApiErrorContext | Record<string, any>) => void;
-  handleApiError: (error: any, apiContext: ApiErrorContext) => Promise<void>;
+  handleError: (error: Error | ApiError | string, context?: ApiErrorContext | ErrorContext) => void;
+  handleApiError: (error: Error | ApiError | string, apiContext: ApiErrorContext) => Promise<void>;
   retry: () => Promise<void>;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   withErrorHandling: <T>(
     asyncFn: () => Promise<T>,
-    options?: { showLoading?: boolean; context?: Record<string, any> }
+    options?: { showLoading?: boolean; context?: ErrorContext }
   ) => Promise<T | null>;
 }
 
@@ -121,7 +122,7 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
 
     // Log in development
     if (env.isDevelopment()) {
-      console.error('[useErrorHandling]', errorObj);
+      // REMOVED: console.error('[useErrorHandling]', errorObj);
     }
   }, [config, toast]);
 
@@ -149,8 +150,8 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
    * Handle generic errors
    */
   const handleError = useCallback((
-    error: any,
-    context?: ApiErrorContext | Record<string, any>
+    error: Error | ApiError | string,
+    context?: ApiErrorContext | ErrorContext
   ) => {
     const errorObj = error instanceof Error ? error : new Error(String(error));
     
@@ -179,7 +180,7 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
    * Handle API errors specifically
    */
   const handleApiError = useCallback(async (
-    error: any,
+    error: Error | ApiError | string,
     apiContext: ApiErrorContext
   ) => {
     try {
@@ -261,7 +262,7 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
    */
   const withErrorHandling = useCallback(async <T,>(
     asyncFn: () => Promise<T>,
-    options?: { showLoading?: boolean; context?: Record<string, any> }
+    options?: { showLoading?: boolean; context?: ErrorContext }
   ): Promise<T | null> => {
     // Store the function for potential retry
     retryFnRef.current = async () => {
@@ -315,7 +316,7 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
 /**
  * Hook for handling form errors
  */
-export function useFormErrorHandling<T extends Record<string, any>>() {
+export function useFormErrorHandling<T extends Record<string, unknown>>() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof T, string>>>({});
   const { toast } = useToast();
 
@@ -364,14 +365,14 @@ export function useAsyncError() {
   const [state, setState] = useState<{
     loading: boolean;
     error: Error | null;
-    data: any;
+    data: unknown;
   }>({
     loading: false,
     error: null,
     data: null,
   });
 
-  const execute = useCallback(async (asyncFunction: () => Promise<any>) => {
+  const execute = useCallback(async <TResult>(asyncFunction: () => Promise<TResult>): Promise<TResult | null> => {
     setState({ loading: true, error: null, data: null });
 
     try {

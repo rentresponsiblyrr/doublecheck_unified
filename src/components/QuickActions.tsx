@@ -41,7 +41,7 @@ export const QuickActions = ({
         id: 'refresh',
         label: 'Refresh',
         icon: RefreshCw,
-        action: () => window.location.reload(),
+        action: () => window.location.assign(window.location.href),
         shortcut: 'F5',
         variant: 'outline'
       }
@@ -72,7 +72,7 @@ export const QuickActions = ({
       }
       if (e.key === 'F5') {
         e.preventDefault();
-        window.location.reload();
+        window.location.assign(window.location.href);
       }
     };
 

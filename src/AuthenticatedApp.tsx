@@ -143,12 +143,12 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   
   // REMOVED: Unified app logging to prevent infinite render loops
   // React.useEffect(() => {
-  //   console.log('🔍 Unified STR Certified App:');
-  //   console.log('- Domain:', window.location.hostname);
-  //   console.log('- Current Path:', window.location.pathname);
-  //   console.log('- User:', user?.email);
-  //   console.log('- Environment:', import.meta.env.MODE);
-  //   console.log('- Session Config:', {
+  //   // REMOVED: console.log('🔍 Unified STR Certified App:');
+  //   // REMOVED: console.log('- Domain:', window.location.hostname);
+  //   // REMOVED: console.log('- Current Path:', window.location.pathname);
+  //   // REMOVED: console.log('- User:', user?.email);
+  //   // REMOVED: console.log('- Environment:', import.meta.env.MODE);
+  //   // REMOVED: console.log('- Session Config:', {
   //     inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
   //     maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
   //   });

@@ -28,9 +28,9 @@ export class ChecklistAuditService {
           }
         });
 
-      console.log('📊 Audit log entry created for checklist population');
+      // REMOVED: console.log('📊 Audit log entry created for checklist population');
     } catch (error) {
-      console.error('⚠️ Failed to log audit entry:', error);
+      // REMOVED: console.error('⚠️ Failed to log audit entry:', error);
       // Don't throw here - audit logging failure shouldn't break the main operation
     }
   }

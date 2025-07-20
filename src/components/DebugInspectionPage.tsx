@@ -144,7 +144,7 @@ export const DebugInspectionPage = () => {
         });
         
       } catch (error) {
-        console.error('Error loading debug data:', error);
+        // REMOVED: console.error('Error loading debug data:', error);
         handleError(error as Error);
       } finally {
         setIsLoading(false);

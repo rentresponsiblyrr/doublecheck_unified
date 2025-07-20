@@ -114,7 +114,7 @@ export function VideoRecorder({
         
         mediaRecorderRef.current = mediaRecorder;
       } catch (err) {
-        console.error('Failed to create MediaRecorder:', err);
+        // REMOVED: console.error('Failed to create MediaRecorder:', err);
         setError('Video recording not supported on this device');
       }
     }
@@ -139,7 +139,7 @@ export function VideoRecorder({
       onStartRecording();
     } catch (err) {
       setError('Failed to start recording');
-      console.error('Recording start error:', err);
+      // REMOVED: console.error('Recording start error:', err);
     }
   }, [stream, onStartRecording]);
 

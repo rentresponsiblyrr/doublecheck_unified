@@ -40,8 +40,8 @@ class VRBOScraperTestRunner {
    * Runs all tests
    */
   async runAllTests(): Promise<void> {
-    console.log('🚀 Starting VRBO Scraper Test Suite');
-    console.log('=====================================');
+    // REMOVED: console.log('🚀 Starting VRBO Scraper Test Suite');
+    // REMOVED: console.log('=====================================');
 
     // Run individual tests
     await this.testUrlValidation();
@@ -61,7 +61,7 @@ class VRBOScraperTestRunner {
    */
   private async testUrlValidation(): Promise<void> {
     const testName = 'URL Validation';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -115,7 +115,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -127,7 +127,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -136,7 +136,7 @@ class VRBOScraperTestRunner {
    */
   private async testBrowserScraperCreation(): Promise<void> {
     const testName = 'Browser Scraper Creation';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -166,7 +166,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -178,7 +178,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -187,7 +187,7 @@ class VRBOScraperTestRunner {
    */
   private async testStaticFallback(): Promise<void> {
     const testName = 'Static Fallback';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -213,7 +213,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -225,7 +225,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -234,7 +234,7 @@ class VRBOScraperTestRunner {
    */
   private async testErrorHandling(): Promise<void> {
     const testName = 'Error Handling';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -262,7 +262,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -274,7 +274,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -283,7 +283,7 @@ class VRBOScraperTestRunner {
    */
   private async testMockScraping(): Promise<void> {
     const testName = 'Mock Scraping';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -311,7 +311,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -323,7 +323,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -332,7 +332,7 @@ class VRBOScraperTestRunner {
    */
   private async testRealScraping(): Promise<void> {
     const testName = 'Real Scraping';
-    console.log(`\n📋 Running ${testName}...`);
+    // REMOVED: console.log(`\n📋 Running ${testName}...`);
     
     try {
       const startTime = Date.now();
@@ -359,7 +359,7 @@ class VRBOScraperTestRunner {
         }
       });
       
-      console.log(`✅ ${testName} passed (${duration}ms)`);
+      // REMOVED: console.log(`✅ ${testName} passed (${duration}ms)`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -371,7 +371,7 @@ class VRBOScraperTestRunner {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
-      console.log(`❌ ${testName} failed:`, error);
+      // REMOVED: console.log(`❌ ${testName} failed:`, error);
     }
   }
 
@@ -379,29 +379,29 @@ class VRBOScraperTestRunner {
    * Print test results summary
    */
   private printTestResults(): void {
-    console.log('\n📊 Test Results Summary');
-    console.log('========================');
+    // REMOVED: console.log('\n📊 Test Results Summary');
+    // REMOVED: console.log('========================');
     
     const passed = this.testResults.filter(r => r.status === 'passed').length;
     const failed = this.testResults.filter(r => r.status === 'failed').length;
     const total = this.testResults.length;
     
-    console.log(`Total Tests: ${total}`);
-    console.log(`Passed: ${passed}`);
-    console.log(`Failed: ${failed}`);
-    console.log(`Success Rate: ${Math.round((passed / total) * 100)}%`);
+    // REMOVED: console.log(`Total Tests: ${total}`);
+    // REMOVED: console.log(`Passed: ${passed}`);
+    // REMOVED: console.log(`Failed: ${failed}`);
+    // REMOVED: console.log(`Success Rate: ${Math.round((passed / total) * 100)}%`);
     
-    console.log('\nDetailed Results:');
+    // REMOVED: console.log('\nDetailed Results:');
     this.testResults.forEach(result => {
       const status = result.status === 'passed' ? '✅' : '❌';
-      console.log(`${status} ${result.testName} (${result.duration}ms)`);
+      // REMOVED: console.log(`${status} ${result.testName} (${result.duration}ms)`);
       
       if (result.error) {
-        console.log(`   Error: ${result.error}`);
+        // REMOVED: console.log(`   Error: ${result.error}`);
       }
       
       if (result.details) {
-        console.log(`   Details:`, result.details);
+        // REMOVED: console.log(`   Details:`, result.details);
       }
     });
   }

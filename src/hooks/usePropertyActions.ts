@@ -88,7 +88,7 @@ export const usePropertyActions = () => {
         
         return result;
       } catch (error) {
-        console.error(`❌ ${actionName} attempt ${attempt + 1} failed:`, error);
+        // REMOVED: console.error(`❌ ${actionName} attempt ${attempt + 1} failed:`, error);
         
         const classifiedError = classifyError(error, actionName);
         
@@ -119,7 +119,7 @@ export const usePropertyActions = () => {
   }, [toast]);
 
   const deleteProperty = useCallback(async (propertyId: string) => {
-    console.log('🗑️ Starting comprehensive property deletion:', propertyId);
+    // REMOVED: console.log('🗑️ Starting comprehensive property deletion:', propertyId);
     
     return executeWithRetry(async () => {
       // Use the existing utility which has the full deletion logic
@@ -139,10 +139,10 @@ export const usePropertyActions = () => {
 
   const editProperty = useCallback((propertyId: string) => {
     try {
-      console.log('🔧 Navigating to edit property:', propertyId);
+      // REMOVED: console.log('🔧 Navigating to edit property:', propertyId);
       navigate(`/add-property?edit=${propertyId}`);
     } catch (error) {
-      console.error('❌ Navigation error:', error);
+      // REMOVED: console.error('❌ Navigation error:', error);
       toast({
         title: "Navigation Failed",
         description: "Could not navigate to edit page. Please try again.",
@@ -152,7 +152,7 @@ export const usePropertyActions = () => {
   }, [navigate, toast]);
 
   const startInspection = useCallback(async (propertyId: string) => {
-    console.log('🚀 Starting inspection for property:', propertyId);
+    // REMOVED: console.log('🚀 Starting inspection for property:', propertyId);
     
     return executeWithRetry(async () => {
       // Use property ID directly as UUID string (post-migration database returns UUIDs)
@@ -171,7 +171,7 @@ export const usePropertyActions = () => {
       }
       
       if (existingInspection) {
-        console.log('📋 Joining existing inspection:', existingInspection.id);
+        // REMOVED: console.log('📋 Joining existing inspection:', existingInspection.id);
         navigate(`/inspection/${existingInspection.id}`);
         return existingInspection.id;
       }
@@ -202,7 +202,7 @@ export const usePropertyActions = () => {
         inspectionId = rpcData;
         
       } catch (rpcError) {
-        console.log('🔧 RPC function not available, using direct insert:', rpcError);
+        // REMOVED: console.log('🔧 RPC function not available, using direct insert:', rpcError);
         
         // Fallback to direct insert with proper RLS context
         const { data: newInspection, error: createError } = await supabase
@@ -228,7 +228,7 @@ export const usePropertyActions = () => {
         inspectionId = newInspection.id;
       }
       
-      console.log('✅ Created new inspection:', inspectionId);
+      // REMOVED: console.log('✅ Created new inspection:', inspectionId);
       navigate(`/inspection/${inspectionId}`);
       
       toast({

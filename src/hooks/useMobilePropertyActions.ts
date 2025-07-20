@@ -10,12 +10,12 @@ export const useMobilePropertyActions = () => {
   const { startOrJoinInspection } = useMobileInspectionFlow();
 
   const handleEdit = (propertyId: string) => {
-    console.log('📱 Mobile edit property:', propertyId);
+    // REMOVED: console.log('📱 Mobile edit property:', propertyId);
     navigate(`/add-property?edit=${propertyId}`);
   };
 
   const handleDelete = async (propertyId: string, propertyName: string) => {
-    console.log('📱 Mobile delete property:', propertyId);
+    // REMOVED: console.log('📱 Mobile delete property:', propertyId);
     
     try {
       // Use comprehensive deletion utility to handle all cascades properly
@@ -26,7 +26,7 @@ export const useMobilePropertyActions = () => {
         description: `${propertyName} has been deleted successfully.`,
       });
     } catch (error) {
-      console.error('❌ Mobile delete error:', error);
+      // REMOVED: console.error('❌ Mobile delete error:', error);
       
       // Handle specific error messages from the deletion utility
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete property. Please try again.';
@@ -40,7 +40,7 @@ export const useMobilePropertyActions = () => {
   };
 
   const handleStartInspection = async (propertyId: string) => {
-    console.log('📱 Mobile start inspection for property:', propertyId);
+    // REMOVED: console.log('📱 Mobile start inspection for property:', propertyId);
     await startOrJoinInspection(propertyId);
   };
 

@@ -1,4 +1,6 @@
 
+import { log } from '@/lib/logging/enterprise-logger';
+
 export class InspectionRetryService {
   async executeWithRetry<T>(
     operation: () => Promise<T>,
@@ -10,14 +12,26 @@ export class InspectionRetryService {
 
     while (attempts < maxAttempts) {
       attempts++;
-      console.log(`🔄 Executing operation attempt ${attempts}/${maxAttempts}`);
+      log.debug('Executing operation attempt', {
+        component: 'InspectionRetryService',
+        action: 'executeWithRetry',
+        attempt: attempts,
+        maxAttempts,
+        baseDelay
+      }, 'RETRY_ATTEMPT_STARTED');
 
       try {
         const result = await operation();
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`❌ Attempt ${attempts} failed:`, lastError);
+        log.error('Retry attempt failed', lastError, {
+          component: 'InspectionRetryService',
+          action: 'executeWithRetry',
+          attempt: attempts,
+          maxAttempts,
+          nextDelay: attempts < maxAttempts ? baseDelay * (attempts + 1) : null
+        }, 'RETRY_ATTEMPT_FAILED');
         
         if (attempts === maxAttempts) {
           break;

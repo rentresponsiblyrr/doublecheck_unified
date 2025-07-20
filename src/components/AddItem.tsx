@@ -50,7 +50,7 @@ export const AddItem = ({ inspectionId, onItemAdded }: AddItemProps) => {
         .single();
 
       if (staticError) {
-        console.error('Error creating static safety item:', staticError);
+        // REMOVED: console.error('Error creating static safety item:', staticError);
         toast({
           title: "Error",
           description: "Failed to create checklist item template",
@@ -71,7 +71,7 @@ export const AddItem = ({ inspectionId, onItemAdded }: AddItemProps) => {
         });
 
       if (error) {
-        console.error('Error adding checklist item:', error);
+        // REMOVED: console.error('Error adding checklist item:', error);
         toast({
           title: "Error",
           description: "Failed to add item. Please try again.",
@@ -92,7 +92,7 @@ export const AddItem = ({ inspectionId, onItemAdded }: AddItemProps) => {
       setIsAdding(false);
       onItemAdded();
     } catch (error) {
-      console.error('Error adding item:', error);
+      // REMOVED: console.error('Error adding item:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred.",

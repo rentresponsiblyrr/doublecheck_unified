@@ -22,19 +22,19 @@ export const useAuthState = () => {
     
     // Prevent concurrent role loading
     if (roleLoadingRef.current) {
-      console.log('📱 Role loading already in progress, waiting...');
+      // REMOVED: console.log('📱 Role loading already in progress, waiting...');
       await roleLoadingRef.current;
       return;
     }
     
-    console.log('📱 Loading mobile user role...');
+    // REMOVED: console.log('📱 Loading mobile user role...');
     
     const roleLoadingPromise = (async () => {
       try {
         const role = await fetchUserRole(user.id, false);
         setUserRole(role);
       } catch (error) {
-        console.error('📱 Failed to load mobile role:', error);
+        // REMOVED: console.error('📱 Failed to load mobile role:', error);
         setUserRole('inspector');
       } finally {
         roleLoadingRef.current = null;
@@ -54,7 +54,7 @@ export const useAuthState = () => {
   }, [user?.id, clearSession]);
 
   const forceRefresh = useCallback(async () => {
-    console.log('📱 Mobile force refresh...');
+    // REMOVED: console.log('📱 Mobile force refresh...');
     setLoading(true);
     setError(null);
     initializationRef.current = null;
@@ -66,7 +66,7 @@ export const useAuthState = () => {
         description: "Your mobile session has been refreshed.",
       });
     } catch (error) {
-      console.error('📱 Mobile refresh failed:', error);
+      // REMOVED: console.error('📱 Mobile refresh failed:', error);
       toast({
         title: "Mobile Refresh Failed",
         description: "Please try signing in again.",

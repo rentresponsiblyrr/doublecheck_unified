@@ -28,20 +28,20 @@ export const MobileErrorRecovery: React.FC<MobileErrorRecoveryProps> = ({
   const errorMessage = error instanceof Error ? error.message : error;
   const canRetry = retryCount < maxRetries;
 
+  const handleRetry = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+    onRetry();
+  }, [onRetry]);
+
   // Auto-retry on network reconnection
   useEffect(() => {
     if (isOnline && retryCount > 0 && canRetry) {
-      console.log('📱 Network reconnected, auto-retrying...');
+      // REMOVED: console.log('📱 Network reconnected, auto-retrying...');
       setTimeout(() => {
         handleRetry();
       }, 1000);
     }
   }, [isOnline, retryCount, canRetry, handleRetry]);
-
-  const handleRetry = useCallback(() => {
-    setRetryCount(prev => prev + 1);
-    onRetry();
-  }, [onRetry]);
 
   const isNetworkError = errorMessage.toLowerCase().includes('network') || 
                         errorMessage.toLowerCase().includes('fetch') ||

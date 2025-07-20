@@ -49,18 +49,18 @@ export class RealWorldVRBOTestRunner {
    * Run all real-world tests
    */
   async runAllTests(): Promise<void> {
-    console.log('🚀 Starting Real-World VRBO Scraper Tests');
-    console.log('==========================================');
-    console.log(`Testing ${TEST_CONFIG.options.maxTestProperties} properties`);
-    console.log(`Timeout per property: ${TEST_CONFIG.options.timeoutPerProperty}ms`);
-    console.log('');
+    // REMOVED: console.log('🚀 Starting Real-World VRBO Scraper Tests');
+    // REMOVED: console.log('==========================================');
+    // REMOVED: console.log(`Testing ${TEST_CONFIG.options.maxTestProperties} properties`);
+    // REMOVED: console.log(`Timeout per property: ${TEST_CONFIG.options.timeoutPerProperty}ms`);
+    // REMOVED: console.log('');
 
     const urlsToTest = TEST_CONFIG.testUrls.slice(0, TEST_CONFIG.options.maxTestProperties);
 
     for (let i = 0; i < urlsToTest.length; i++) {
       const url = urlsToTest[i];
-      console.log(`\n📋 Testing Property ${i + 1}/${urlsToTest.length}: ${url}`);
-      console.log(''.padEnd(60, '-'));
+      // REMOVED: console.log(`\n📋 Testing Property ${i + 1}/${urlsToTest.length}: ${url}`);
+      // REMOVED: console.log(''.padEnd(60, '-'));
 
       // Test 1: Browser Automation Scraping
       await this.testBrowserAutomation(url);
@@ -88,7 +88,7 @@ export class RealWorldVRBOTestRunner {
     const startTime = Date.now();
     
     try {
-      console.log(`   🔍 Testing ${testName}...`);
+      // REMOVED: console.log(`   🔍 Testing ${testName}...`);
       
       const result = await Promise.race([
         scrapeBrowserVRBOProperty(url, {
@@ -127,11 +127,11 @@ export class RealWorldVRBOTestRunner {
           metadata: result.metadata
         });
 
-        console.log(`   ✅ ${testName} SUCCESS`);
-        console.log(`      Photos: ${totalPhotos} (${galleryPhotos} gallery + ${staticPhotos} static)`);
-        console.log(`      Time: ${duration}ms`);
-        console.log(`      Completeness: ${completeness}%`);
-        console.log(`      Scroll Cycles: ${result.data.galleryLoadingResult?.scrollCyclesCompleted || 0}`);
+        // REMOVED: console.log(`   ✅ ${testName} SUCCESS`);
+        // REMOVED: console.log(`      Photos: ${totalPhotos} (${galleryPhotos} gallery + ${staticPhotos} static)`);
+        // REMOVED: console.log(`      Time: ${duration}ms`);
+        // REMOVED: console.log(`      Completeness: ${completeness}%`);
+        // REMOVED: console.log(`      Scroll Cycles: ${result.data.galleryLoadingResult?.scrollCyclesCompleted || 0}`);
         
         if (TEST_CONFIG.options.enableDetailedLogging) {
           this.logDetailedResults(result.data.propertyData, 'Browser Automation');
@@ -154,8 +154,8 @@ export class RealWorldVRBOTestRunner {
         errorMessage
       });
 
-      console.log(`   ❌ ${testName} FAILED: ${errorMessage}`);
-      console.log(`      Time: ${duration}ms`);
+      // REMOVED: console.log(`   ❌ ${testName} FAILED: ${errorMessage}`);
+      // REMOVED: console.log(`      Time: ${duration}ms`);
     }
   }
 
@@ -167,7 +167,7 @@ export class RealWorldVRBOTestRunner {
     const startTime = Date.now();
     
     try {
-      console.log(`   🔍 Testing ${testName}...`);
+      // REMOVED: console.log(`   🔍 Testing ${testName}...`);
       
       const propertyData = await Promise.race([
         scrapeVRBOProperty(url),
@@ -190,10 +190,10 @@ export class RealWorldVRBOTestRunner {
         propertyData
       });
 
-      console.log(`   ✅ ${testName} SUCCESS`);
-      console.log(`      Photos: ${photoCount}`);
-      console.log(`      Time: ${duration}ms`);
-      console.log(`      Completeness: ${completeness}%`);
+      // REMOVED: console.log(`   ✅ ${testName} SUCCESS`);
+      // REMOVED: console.log(`      Photos: ${photoCount}`);
+      // REMOVED: console.log(`      Time: ${duration}ms`);
+      // REMOVED: console.log(`      Completeness: ${completeness}%`);
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -209,8 +209,8 @@ export class RealWorldVRBOTestRunner {
         errorMessage
       });
 
-      console.log(`   ❌ ${testName} FAILED: ${errorMessage}`);
-      console.log(`      Time: ${duration}ms`);
+      // REMOVED: console.log(`   ❌ ${testName} FAILED: ${errorMessage}`);
+      // REMOVED: console.log(`      Time: ${duration}ms`);
     }
   }
 
@@ -222,20 +222,20 @@ export class RealWorldVRBOTestRunner {
     const staticResult = this.testResults.find(r => r.url === url && r.testName === 'Static Fallback');
 
     if (browserResult && staticResult) {
-      console.log(`   📊 Performance Comparison:`);
-      console.log(`      Browser: ${browserResult.photoCount} photos in ${browserResult.duration}ms`);
-      console.log(`      Static:  ${staticResult.photoCount} photos in ${staticResult.duration}ms`);
+      // REMOVED: console.log(`   📊 Performance Comparison:`);
+      // REMOVED: console.log(`      Browser: ${browserResult.photoCount} photos in ${browserResult.duration}ms`);
+      // REMOVED: console.log(`      Static:  ${staticResult.photoCount} photos in ${staticResult.duration}ms`);
       
       const photoImprovement = browserResult.photoCount - staticResult.photoCount;
       const timeOverhead = browserResult.duration - staticResult.duration;
       
-      console.log(`      Photo Improvement: +${photoImprovement} photos (${Math.round((photoImprovement / Math.max(staticResult.photoCount, 1)) * 100)}%)`);
-      console.log(`      Time Overhead: +${timeOverhead}ms`);
+      // REMOVED: console.log(`      Photo Improvement: +${photoImprovement} photos (${Math.round((photoImprovement / Math.max(staticResult.photoCount, 1)) * 100)}%)`);
+      // REMOVED: console.log(`      Time Overhead: +${timeOverhead}ms`);
       
       if (photoImprovement > 0) {
-        console.log(`      ✅ Browser automation extracted ${photoImprovement} more photos`);
+        // REMOVED: console.log(`      ✅ Browser automation extracted ${photoImprovement} more photos`);
       } else {
-        console.log(`      ⚠️  Browser automation didn't improve photo extraction`);
+        // REMOVED: console.log(`      ⚠️  Browser automation didn't improve photo extraction`);
       }
     }
   }
@@ -244,18 +244,18 @@ export class RealWorldVRBOTestRunner {
    * Log detailed results for a property
    */
   private logDetailedResults(propertyData: VRBOPropertyData, method: string): void {
-    console.log(`\n      📄 ${method} - Property Details:`);
-    console.log(`         Title: ${propertyData.title?.substring(0, 50)}...`);
-    console.log(`         Property ID: ${propertyData.vrboId}`);
-    console.log(`         Bedrooms: ${propertyData.specifications?.bedrooms || 'N/A'}`);
-    console.log(`         Bathrooms: ${propertyData.specifications?.bathrooms || 'N/A'}`);
-    console.log(`         Max Guests: ${propertyData.specifications?.maxGuests || 'N/A'}`);
-    console.log(`         Amenities: ${propertyData.amenities?.length || 0}`);
-    console.log(`         Rooms: ${propertyData.rooms?.length || 0}`);
-    console.log(`         Location: ${propertyData.location?.city || 'N/A'}, ${propertyData.location?.state || 'N/A'}`);
+    // REMOVED: console.log(`\n      📄 ${method} - Property Details:`);
+    // REMOVED: console.log(`         Title: ${propertyData.title?.substring(0, 50)}...`);
+    // REMOVED: console.log(`         Property ID: ${propertyData.vrboId}`);
+    // REMOVED: console.log(`         Bedrooms: ${propertyData.specifications?.bedrooms || 'N/A'}`);
+    // REMOVED: console.log(`         Bathrooms: ${propertyData.specifications?.bathrooms || 'N/A'}`);
+    // REMOVED: console.log(`         Max Guests: ${propertyData.specifications?.maxGuests || 'N/A'}`);
+    // REMOVED: console.log(`         Amenities: ${propertyData.amenities?.length || 0}`);
+    // REMOVED: console.log(`         Rooms: ${propertyData.rooms?.length || 0}`);
+    // REMOVED: console.log(`         Location: ${propertyData.location?.city || 'N/A'}, ${propertyData.location?.state || 'N/A'}`);
     
     if (propertyData.amenities && propertyData.amenities.length > 0) {
-      console.log(`         Top Amenities: ${propertyData.amenities.slice(0, 3).map(a => a.name).join(', ')}`);
+      // REMOVED: console.log(`         Top Amenities: ${propertyData.amenities.slice(0, 3).map(a => a.name).join(', ')}`);
     }
   }
 
@@ -306,17 +306,17 @@ export class RealWorldVRBOTestRunner {
   private printFinalResults(): void {
     const totalDuration = Date.now() - this.startTime;
     
-    console.log('\n\n📊 FINAL TEST RESULTS SUMMARY');
-    console.log('================================');
-    console.log(`Total Test Duration: ${totalDuration}ms (${Math.round(totalDuration / 1000)}s)`);
-    console.log(`Properties Tested: ${TEST_CONFIG.options.maxTestProperties}`);
-    console.log('');
+    // REMOVED: console.log('\n\n📊 FINAL TEST RESULTS SUMMARY');
+    // REMOVED: console.log('================================');
+    // REMOVED: console.log(`Total Test Duration: ${totalDuration}ms (${Math.round(totalDuration / 1000)}s)`);
+    // REMOVED: console.log(`Properties Tested: ${TEST_CONFIG.options.maxTestProperties}`);
+    // REMOVED: console.log('');
 
     // Success rate
     const successfulTests = this.testResults.filter(r => r.success);
     const successRate = Math.round((successfulTests.length / this.testResults.length) * 100);
-    console.log(`Success Rate: ${successfulTests.length}/${this.testResults.length} (${successRate}%)`);
-    console.log('');
+    // REMOVED: console.log(`Success Rate: ${successfulTests.length}/${this.testResults.length} (${successRate}%)`);
+    // REMOVED: console.log('');
 
     // Browser automation results
     const browserResults = this.testResults.filter(r => r.testName === 'Browser Automation' && r.success);
@@ -327,11 +327,11 @@ export class RealWorldVRBOTestRunner {
       const avgTime = Math.round(browserResults.reduce((sum, r) => sum + r.duration, 0) / browserResults.length);
       const avgCompleteness = Math.round(browserResults.reduce((sum, r) => sum + r.dataCompleteness, 0) / browserResults.length);
 
-      console.log('🤖 Browser Automation Results:');
-      console.log(`   Average Photos: ${avgPhotos} (${avgGalleryPhotos} gallery + ${avgStaticPhotos} static)`);
-      console.log(`   Average Time: ${avgTime}ms`);
-      console.log(`   Average Completeness: ${avgCompleteness}%`);
-      console.log('');
+      // REMOVED: console.log('🤖 Browser Automation Results:');
+      // REMOVED: console.log(`   Average Photos: ${avgPhotos} (${avgGalleryPhotos} gallery + ${avgStaticPhotos} static)`);
+      // REMOVED: console.log(`   Average Time: ${avgTime}ms`);
+      // REMOVED: console.log(`   Average Completeness: ${avgCompleteness}%`);
+      // REMOVED: console.log('');
     }
 
     // Static fallback results
@@ -341,11 +341,11 @@ export class RealWorldVRBOTestRunner {
       const avgTime = Math.round(staticResults.reduce((sum, r) => sum + r.duration, 0) / staticResults.length);
       const avgCompleteness = Math.round(staticResults.reduce((sum, r) => sum + r.dataCompleteness, 0) / staticResults.length);
 
-      console.log('📄 Static Fallback Results:');
-      console.log(`   Average Photos: ${avgPhotos}`);
-      console.log(`   Average Time: ${avgTime}ms`);
-      console.log(`   Average Completeness: ${avgCompleteness}%`);
-      console.log('');
+      // REMOVED: console.log('📄 Static Fallback Results:');
+      // REMOVED: console.log(`   Average Photos: ${avgPhotos}`);
+      // REMOVED: console.log(`   Average Time: ${avgTime}ms`);
+      // REMOVED: console.log(`   Average Completeness: ${avgCompleteness}%`);
+      // REMOVED: console.log('');
     }
 
     // Performance comparison
@@ -353,45 +353,45 @@ export class RealWorldVRBOTestRunner {
       const photoImprovement = browserResults.reduce((sum, r) => sum + r.photoCount, 0) - staticResults.reduce((sum, r) => sum + r.photoCount, 0);
       const timeOverhead = browserResults.reduce((sum, r) => sum + r.duration, 0) - staticResults.reduce((sum, r) => sum + r.duration, 0);
       
-      console.log('⚡ Performance Comparison:');
-      console.log(`   Photo Improvement: +${photoImprovement} total photos`);
-      console.log(`   Time Overhead: +${timeOverhead}ms total`);
-      console.log(`   Cost/Benefit: ${Math.round(photoImprovement / (timeOverhead / 1000))} extra photos per second`);
-      console.log('');
+      // REMOVED: console.log('⚡ Performance Comparison:');
+      // REMOVED: console.log(`   Photo Improvement: +${photoImprovement} total photos`);
+      // REMOVED: console.log(`   Time Overhead: +${timeOverhead}ms total`);
+      // REMOVED: console.log(`   Cost/Benefit: ${Math.round(photoImprovement / (timeOverhead / 1000))} extra photos per second`);
+      // REMOVED: console.log('');
     }
 
     // Failed tests
     const failedTests = this.testResults.filter(r => !r.success);
     if (failedTests.length > 0) {
-      console.log('❌ Failed Tests:');
+      // REMOVED: console.log('❌ Failed Tests:');
       failedTests.forEach(test => {
-        console.log(`   ${test.testName} - ${test.url}: ${test.errorMessage}`);
+        // REMOVED: console.log(`   ${test.testName} - ${test.url}: ${test.errorMessage}`);
       });
-      console.log('');
+      // REMOVED: console.log('');
     }
 
     // Recommendations
-    console.log('💡 Recommendations:');
+    // REMOVED: console.log('💡 Recommendations:');
     if (browserResults.length > 0) {
       const avgPhotos = browserResults.reduce((sum, r) => sum + r.photoCount, 0) / browserResults.length;
       if (avgPhotos > 15) {
-        console.log('   ✅ Browser automation is effectively extracting photos (>15 avg)');
+        // REMOVED: console.log('   ✅ Browser automation is effectively extracting photos (>15 avg)');
       } else {
-        console.log('   ⚠️  Browser automation may need optimization (<15 avg photos)');
+        // REMOVED: console.log('   ⚠️  Browser automation may need optimization (<15 avg photos)');
       }
     }
     
     if (successRate < 80) {
-      console.log('   ⚠️  Success rate is below 80% - investigate error handling');
+      // REMOVED: console.log('   ⚠️  Success rate is below 80% - investigate error handling');
     } else {
-      console.log('   ✅ Success rate is acceptable (>80%)');
+      // REMOVED: console.log('   ✅ Success rate is acceptable (>80%)');
     }
 
-    console.log('\n🎯 Next Steps:');
-    console.log('   1. Review failed tests and improve error handling');
-    console.log('   2. Optimize browser automation for better photo extraction');
-    console.log('   3. Consider rate limiting and anti-bot measures');
-    console.log('   4. Test with larger sample size for production validation');
+    // REMOVED: console.log('\n🎯 Next Steps:');
+    // REMOVED: console.log('   1. Review failed tests and improve error handling');
+    // REMOVED: console.log('   2. Optimize browser automation for better photo extraction');
+    // REMOVED: console.log('   3. Consider rate limiting and anti-bot measures');
+    // REMOVED: console.log('   4. Test with larger sample size for production validation');
   }
 
   /**
@@ -413,8 +413,8 @@ export class RealWorldVRBOTestRunner {
     };
 
     // In a real implementation, you'd save to a file
-    console.log('\n💾 Results saved to test-results.json');
-    console.log(JSON.stringify(resultsData, null, 2));
+    // REMOVED: console.log('\n💾 Results saved to test-results.json');
+    // REMOVED: console.log(JSON.stringify(resultsData, null, 2));
   }
 }
 

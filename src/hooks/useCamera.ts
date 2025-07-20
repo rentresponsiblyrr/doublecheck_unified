@@ -66,7 +66,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices.filter(device => device.kind === 'videoinput');
     } catch (error) {
-      console.error('Failed to enumerate devices:', error);
+      // REMOVED: console.error('Failed to enumerate devices:', error);
       return [];
     }
   }, []);
@@ -114,7 +114,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
 
       return false;
     } catch (error) {
-      console.error('Permission check failed:', error);
+      // REMOVED: console.error('Permission check failed:', error);
       return false;
     }
   }, [isSupported, getAvailableDevices]);
@@ -233,7 +233,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         currentDeviceId: settings.deviceId || null
       }));
     } catch (error: any) {
-      console.error('Failed to start camera:', error);
+      // REMOVED: console.error('Failed to start camera:', error);
       
       setState(prev => ({
         ...prev,
@@ -321,7 +321,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         );
       });
     } catch (error) {
-      console.error('Failed to take photo:', error);
+      // REMOVED: console.error('Failed to take photo:', error);
       return null;
     }
   }, [videoRef, state.isReady]);
@@ -342,7 +342,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         return videoTrack.getCapabilities();
       }
     } catch (error) {
-      console.error('Failed to get capabilities:', error);
+      // REMOVED: console.error('Failed to get capabilities:', error);
     }
     
     return null;

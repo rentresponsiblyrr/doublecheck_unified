@@ -70,7 +70,7 @@ export function ChecklistGenerator({
       }, 200);
 
       // AI service disabled for security - use fallback checklist generation
-      console.log('Enhanced AI service disabled for security, using fallback generation');
+      // REMOVED: console.log('Enhanced AI service disabled for security, using fallback generation');
       
       // Use fallback dynamic checklist generator instead
       const result = await dynamicChecklistGenerator.generateDynamicChecklist({
@@ -106,7 +106,7 @@ export function ChecklistGenerator({
       clearInterval(progressInterval);
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate checklist';
       setError(errorMessage);
-      console.error('Checklist generation failed:', err);
+      // REMOVED: console.error('Checklist generation failed:', err);
     } finally {
       setIsGenerating(false);
     }

@@ -22,7 +22,7 @@ import {
 
 const Index = () => {
   // REMOVED: Index component logging to prevent infinite render loops
-  // console.log('📱 Inspector Dashboard - STR Certified');
+  // // REMOVED: console.log('📱 Inspector Dashboard - STR Certified');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { inspections, properties, recentInspections, summary, isLoading, error } = useInspectorDashboard();
@@ -82,7 +82,7 @@ const Index = () => {
               Add Your First Property
             </Button>
             <Button 
-              onClick={() => window.location.reload()} 
+              onClick={() => window.location.replace('/')} 
               variant="outline" 
               className="w-full"
             >

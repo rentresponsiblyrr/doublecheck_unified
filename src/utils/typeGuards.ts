@@ -1,5 +1,6 @@
 // Runtime type guards for critical data flows
 import { z } from 'zod';
+import { log } from '@/lib/logging/enterprise-logger';
 
 // Environment validation schema
 export const envSchema = z.object({
@@ -113,12 +114,14 @@ export function isValidApiResponse(data: unknown): data is ApiResponse {
 export function validateEnv(): AppEnv {
   try {
     const env = import.meta.env;
-    console.log('Validating environment:', {
+    log.debug('Validating environment configuration', {
+      component: 'typeGuards',
+      action: 'validateEnv',
       hasSupabaseUrl: !!env.VITE_SUPABASE_URL,
       hasSupabaseKey: !!env.VITE_SUPABASE_ANON_KEY,
       nodeEnv: env.NODE_ENV || env.MODE,
       mode: env.MODE
-    });
+    }, 'ENVIRONMENT_VALIDATION');
     
     // Use Vite's MODE if NODE_ENV is not set
     const envToValidate = {
@@ -128,8 +131,11 @@ export function validateEnv(): AppEnv {
     
     return envSchema.parse(envToValidate);
   } catch (error) {
-    console.error('Environment validation failed:', error);
-    console.error('Available environment variables:', Object.keys(import.meta.env));
+    log.error('Environment validation failed', error as Error, {
+      component: 'typeGuards',
+      action: 'validateEnv',
+      availableEnvVars: Object.keys(import.meta.env)
+    }, 'ENVIRONMENT_VALIDATION_FAILED');
     throw new Error(`Invalid environment configuration: ${error.message}`);
   }
 }

@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-07-20T04:23:04.531Z",
+  "overallScore": 0,
+  "compliance": {
+    "passed": false,
+    "violationsCount": 414,
+    "filesScanned": 505,
+    "score": 0
+  },
+  "performance": {
+    "passed": false,
+    "violationsCount": -1,
+    "bundleSize": "Unknown",
+    "score": 0,
+    "error": "Performance audit not found"
+  },
+  "security": {
+    "passed": false,
+    "highRisk": -1,
+    "mediumRisk": -1,
+    "lowRisk": -1,
+    "score": 0,
+    "error": "Security scan not found"
+  },
+  "coverage": {
+    "lines": 0,
+    "statements": 0,
+    "functions": 0,
+    "branches": 0,
+    "score": 0,
+    "error": "Coverage data not found"
+  },
+  "trends": [],
+  "recommendations": [
+    {
+      "category": "Architecture",
+      "priority": "HIGH",
+      "message": "Fix architecture compliance violations immediately",
+      "action": "Run npm run architecture-compliance to see detailed violations"
+    },
+    {
+      "category": "Performance",
+      "priority": "HIGH",
+      "message": "Optimize performance issues",
+      "action": "Run npm run performance-audit to see detailed issues"
+    },
+    {
+      "category": "Testing",
+      "priority": "MEDIUM",
+      "message": "Increase test coverage to meet STR Certified standards",
+      "action": "Add unit tests for untested components and services"
+    }
+  ]
+}

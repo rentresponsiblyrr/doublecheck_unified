@@ -31,7 +31,7 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
       
       return !error && (data === 'admin' || data === 'super_admin');
     } catch (error) {
-      console.error('Error checking admin access:', error);
+      // REMOVED: console.error('Error checking admin access:', error);
       return false;
     } finally {
       setIsChecking(false);

@@ -418,7 +418,7 @@ export const usePhotoGuidance = (options: UsePhotoGuidanceOptions): UsePhotoGuid
         setGuidanceState(progressData.guidanceState);
       }
     } catch (error) {
-      console.error('Failed to load progress:', error);
+      // REMOVED: console.error('Failed to load progress:', error);
     }
   }, [checklistItem.id, enableOfflineMode]);
 
@@ -473,7 +473,7 @@ export const useOfflineGuidance = () => {
         
         setCachedGuidance(cached);
       } catch (error) {
-        console.error('Failed to load cached guidance:', error);
+        // REMOVED: console.error('Failed to load cached guidance:', error);
       } finally {
         setIsLoading(false);
       }

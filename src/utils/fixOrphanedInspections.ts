@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const fixOrphanedInspections = async (userId: string) => {
   try {
-    console.log('🔧 Fixing orphaned inspections for user:', userId);
+    // REMOVED: console.log('🔧 Fixing orphaned inspections for user:', userId);
 
     // Get inspections with null inspector_id
     const { data: orphanedInspections, error: fetchError } = await supabase
@@ -16,16 +16,16 @@ export const fixOrphanedInspections = async (userId: string) => {
       .limit(10);
 
     if (fetchError) {
-      console.error('❌ Error fetching orphaned inspections:', fetchError);
+      // REMOVED: console.error('❌ Error fetching orphaned inspections:', fetchError);
       return { success: false, error: fetchError.message };
     }
 
     if (!orphanedInspections || orphanedInspections.length === 0) {
-      console.log('✅ No orphaned inspections found');
+      // REMOVED: console.log('✅ No orphaned inspections found');
       return { success: true, updated: 0 };
     }
 
-    console.log(`🔧 Found ${orphanedInspections.length} orphaned inspections`);
+    // REMOVED: console.log(`🔧 Found ${orphanedInspections.length} orphaned inspections`);
 
     // Update orphaned inspections to assign them to current user
     const { error: updateError } = await supabase
@@ -34,15 +34,15 @@ export const fixOrphanedInspections = async (userId: string) => {
       .is('inspector_id', null);
 
     if (updateError) {
-      console.error('❌ Error updating orphaned inspections:', updateError);
+      // REMOVED: console.error('❌ Error updating orphaned inspections:', updateError);
       return { success: false, error: updateError.message };
     }
 
-    console.log(`✅ Successfully assigned ${orphanedInspections.length} orphaned inspections to user ${userId}`);
+    // REMOVED: console.log(`✅ Successfully assigned ${orphanedInspections.length} orphaned inspections to user ${userId}`);
     return { success: true, updated: orphanedInspections.length };
 
   } catch (error) {
-    console.error('❌ Fix orphaned inspections failed:', error);
+    // REMOVED: console.error('❌ Fix orphaned inspections failed:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -52,7 +52,7 @@ export const fixOrphanedInspections = async (userId: string) => {
  */
 export const createTestInspection = async (userId: string) => {
   try {
-    console.log('🧪 Creating test inspection for user:', userId);
+    // REMOVED: console.log('🧪 Creating test inspection for user:', userId);
 
     // Get a property to use
     const { data: properties, error: propError } = await supabase
@@ -61,7 +61,7 @@ export const createTestInspection = async (userId: string) => {
       .limit(1);
 
     if (propError || !properties || properties.length === 0) {
-      console.error('❌ No properties found for test inspection');
+      // REMOVED: console.error('❌ No properties found for test inspection');
       return { success: false, error: 'No properties available' };
     }
 
@@ -81,15 +81,15 @@ export const createTestInspection = async (userId: string) => {
       .single();
 
     if (inspectionError) {
-      console.error('❌ Error creating test inspection:', inspectionError);
+      // REMOVED: console.error('❌ Error creating test inspection:', inspectionError);
       return { success: false, error: inspectionError.message };
     }
 
-    console.log('✅ Created test inspection:', inspection);
+    // REMOVED: console.log('✅ Created test inspection:', inspection);
     return { success: true, inspection };
 
   } catch (error) {
-    console.error('❌ Create test inspection failed:', error);
+    // REMOVED: console.error('❌ Create test inspection failed:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };

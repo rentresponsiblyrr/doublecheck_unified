@@ -1,0 +1,315 @@
+# Artillery Load Testing Configuration for STR Certified
+# Enterprise-grade performance testing for AI-powered inspection platform
+
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm-up"
+    
+    # Gradual ramp-up to simulate realistic user growth
+    - duration: 120
+      arrivalRate: 2
+      rampTo: 20
+      name: "Ramp-up"
+    
+    # Sustained load simulation
+    - duration: 300
+      arrivalRate: 20
+      name: "Sustained Load"
+    
+    # Peak traffic simulation
+    - duration: 180
+      arrivalRate: 20
+      rampTo: 50
+      name: "Peak Traffic"
+    
+    # Stress testing beyond normal capacity
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 100
+      name: "Stress Test"
+    
+    # Cool-down phase
+    - duration: 60
+      arrivalRate: 100
+      rampTo: 5
+      name: "Cool-down"
+
+  # Performance thresholds
+  ensure:
+    # 95% of requests should complete within 2 seconds
+    - p95: 2000
+    # 99% of requests should complete within 5 seconds  
+    - p99: 5000
+    # Error rate should be less than 1%
+    - http.response_time.mean: 1000
+    - http.response_time.max: 10000
+
+  # Payload configuration
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "property_id"
+      - "inspector_id"
+      - "property_name"
+    order: sequence
+    cast: false
+
+  # Environment variables
+  environments:
+    staging:
+      target: 'https://str-certified-staging.railway.app'
+    production:
+      target: 'https://str-certified.railway.app'
+
+  # Request defaults
+  defaults:
+    headers:
+      'User-Agent': 'Artillery Load Test'
+      'Accept': 'application/json'
+      'Content-Type': 'application/json'
+
+  # Processor for custom logic
+  processor: "./load-test-processor.js"
+
+scenarios:
+  # Critical User Journey: Property Inspection Workflow
+  - name: "Property Inspection Flow"
+    weight: 60
+    flow:
+      # 1. Authentication
+      - post:
+          url: "/api/auth/session"
+          json:
+            email: "test.inspector@strcertified.com"
+            password: "TestPassword123!"
+          capture:
+            - json: "$.access_token"
+              as: "authToken"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: 200
+            
+      # 2. Fetch Properties List
+      - get:
+          url: "/api/properties"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+          capture:
+            - json: "$.data[0].property_id"
+              as: "propertyId"
+              
+      # 3. Create New Inspection
+      - post:
+          url: "/api/inspections"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            property_id: "{{ propertyId }}"
+            inspector_id: "{{ userId }}"
+            status: "draft"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "inspectionId"
+              
+      # 4. Fetch Checklist Items
+      - get:
+          url: "/api/inspections/{{ inspectionId }}/checklist"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            
+      # 5. Simulate Photo Upload
+      - post:
+          url: "/api/inspections/{{ inspectionId }}/photos"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          formData:
+            file: "@./test-assets/sample-photo.jpg"
+            checklist_item_id: "smoke-detector-check"
+          expect:
+            - statusCode: 201
+            
+      # 6. Update Inspection Status
+      - patch:
+          url: "/api/inspections/{{ inspectionId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            status: "completed"
+          expect:
+            - statusCode: 200
+
+  # AI Photo Analysis Load Testing
+  - name: "AI Photo Analysis Flow"
+    weight: 25
+    flow:
+      # Authentication
+      - post:
+          url: "/api/auth/session"
+          json:
+            email: "test.inspector@strcertified.com"
+            password: "TestPassword123!"
+          capture:
+            - json: "$.access_token"
+              as: "authToken"
+              
+      # AI Photo Quality Check
+      - post:
+          url: "/api/ai/photo-quality"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          formData:
+            file: "@./test-assets/sample-photo.jpg"
+            context: '{"room_type": "bathroom", "item_type": "smoke_detector"}'
+          expect:
+            - statusCode: 200
+            - hasProperty: "quality_score"
+            
+      # AI Photo Comparison
+      - post:
+          url: "/api/ai/photo-compare"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            inspection_photo_url: "https://example.com/inspection.jpg"
+            reference_photo_url: "https://example.com/reference.jpg"
+            checklist_item_id: "smoke-detector-check"
+          expect:
+            - statusCode: 200
+            - hasProperty: "similarity_score"
+
+  # Admin Dashboard Load Testing
+  - name: "Admin Dashboard Flow"
+    weight: 10
+    flow:
+      # Admin Authentication
+      - post:
+          url: "/api/auth/session"
+          json:
+            email: "admin@strcertified.com"
+            password: "AdminPassword123!"
+          capture:
+            - json: "$.access_token"
+              as: "adminToken"
+              
+      # Fetch Dashboard Analytics
+      - get:
+          url: "/api/admin/dashboard/analytics"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          expect:
+            - statusCode: 200
+            
+      # Fetch Inspection Reports
+      - get:
+          url: "/api/admin/reports/inspections"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          qs:
+            date_from: "2024-01-01"
+            date_to: "2024-12-31"
+            status: "completed"
+          expect:
+            - statusCode: 200
+            
+      # Fetch AI Performance Metrics
+      - get:
+          url: "/api/admin/ai/performance"
+          headers:
+            Authorization: "Bearer {{ adminToken }}"
+          expect:
+            - statusCode: 200
+
+  # Mobile App API Load Testing
+  - name: "Mobile App Sync Flow"
+    weight: 5
+    flow:
+      # Mobile Authentication
+      - post:
+          url: "/api/auth/mobile/session"
+          json:
+            device_id: "test-device-{{ $uuid }}"
+            email: "mobile.inspector@strcertified.com"
+            password: "MobilePassword123!"
+          capture:
+            - json: "$.access_token"
+              as: "mobileToken"
+            - json: "$.user.id"
+              as: "mobileUserId"
+              
+      # Sync Offline Data
+      - post:
+          url: "/api/mobile/sync"
+          headers:
+            Authorization: "Bearer {{ mobileToken }}"
+          json:
+            inspections: []
+            photos: []
+            last_sync: "2024-01-01T00:00:00Z"
+          expect:
+            - statusCode: 200
+            
+      # Fetch Mobile Configuration
+      - get:
+          url: "/api/mobile/config"
+          headers:
+            Authorization: "Bearer {{ mobileToken }}"
+          expect:
+            - statusCode: 200
+
+# Chaos Engineering Scenarios
+chaos:
+  # Simulate database connection issues
+  - name: "Database Latency Injection"
+    frequency: 0.05  # 5% of requests
+    delay:
+      min: 2000
+      max: 5000
+      
+  # Simulate network issues
+  - name: "Network Packet Loss"
+    frequency: 0.02  # 2% of requests
+    action: "drop_connection"
+    
+  # Simulate memory pressure
+  - name: "Memory Pressure Simulation"
+    frequency: 0.01  # 1% of requests
+    action: "increase_payload_size"
+    multiplier: 10
+
+# Performance Monitoring
+monitoring:
+  # Custom metrics to track
+  metrics:
+    - name: "ai_response_time"
+      description: "AI service response time"
+      type: "histogram"
+      
+    - name: "photo_upload_success_rate"
+      description: "Photo upload success rate"
+      type: "counter"
+      
+    - name: "database_query_duration"
+      description: "Database query duration"
+      type: "histogram"
+      
+  # Alerting thresholds
+  alerts:
+    - metric: "http.response_time.p95"
+      threshold: 3000
+      action: "email"
+      
+    - metric: "http.codes.5xx"
+      threshold: 50
+      action: "slack"

@@ -1,7 +1,14 @@
 
-import React, { useEffect, Suspense, useState, Component } from 'react';
+import React, { useEffect, Suspense, Component } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleAuthForm } from "@/components/SimpleAuthForm";
+import { useAppStore, useAuth, useAuthActions } from "@/stores/appStore";
+import { useAdvancedPreloader } from "@/lib/performance/preloader";
+import { useAdvancedResourceHints } from "@/lib/performance/resource-hints";
+import { registerServiceWorker } from "@/lib/performance/service-worker";
+import { useCoreWebVitals } from "@/lib/performance/core-web-vitals";
+import { usePageSpeedValidator } from "@/lib/performance/pagespeed-validator";
+import { log } from "@/lib/logging/enterprise-logger";
 
 
 
@@ -20,7 +27,11 @@ class SimpleErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('App Error Boundary caught an error:', error, errorInfo);
+    log.error('Application error boundary caught an error', error, {
+      component: 'SimpleErrorBoundary',
+      componentStack: errorInfo.componentStack,
+      errorBoundary: 'App'
+    }, 'ERROR_BOUNDARY_TRIGGERED');
   }
 
   render() {
@@ -36,138 +47,202 @@ class SimpleErrorBoundary extends Component<
 const LazyAuthenticatedApp = React.lazy(() => import('./AuthenticatedApp'));
 
 function App() {
-  // REMOVED: App component logging to prevent infinite render loops
-  // console.log('🚀 STR Certified App - Authentication-First Architecture v4 - DEBUG MODE');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Start with true - check session first
-  const [user, setUser] = useState<any>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
+  // PROFESSIONAL STATE MANAGEMENT - NO AMATEUR USESTATE CHAOS
+  const { isAuthenticated, isLoading, user, error: authError } = useAuth();
+  const { login, logout, refreshSession, clearError } = useAuthActions();
 
-  // REMOVED: App state logging to prevent infinite render loops
-  // console.log('🔍 App State:', { isAuthenticated, isLoading, hasUser: !!user, userEmail: user?.email });
+  // BLEEDING EDGE: Advanced preloading and resource hints
+  const { startPreloading, metrics: preloadMetrics } = useAdvancedPreloader({
+    enablePredictive: true,
+    enableResourceHints: true,
+    enableIntersectionObserver: true,
+    networkAware: true,
+    criticalRoutes: ['/', '/inspections', '/properties', '/admin']
+  });
 
-  // Authentication setup - always start with login page
+  const { hintsManager } = useAdvancedResourceHints({
+    enableDnsPrefetch: true,
+    enablePreconnect: true,
+    enableModulePreload: true,
+    enablePreload: true,
+    networkAware: true,
+    preloadStrategy: 'balanced',
+    criticalOrigins: [
+      'https://api.openai.com',
+      'https://supabase.co',
+      'https://fonts.googleapis.com'
+    ]
+  });
+
+  // BLEEDING EDGE: Core Web Vitals optimization for 100% PageSpeed score
+  const { vitals, score, forceOptimization, generateReport } = useCoreWebVitals({
+    enableRealTimeMonitoring: true,
+    enableAutoOptimization: true,
+    performanceBudget: {
+      lcp: 1200,  // Ultra-aggressive for 100% score
+      fid: 30,    // Instant response
+      cls: 0.03,  // Minimal layout shift
+      fcp: 800,   // Lightning fast paint
+      ttfb: 150,  // Ultra-fast server response
+      inp: 50     // Instant interactions
+    },
+    samplingRate: 1.0
+  });
+
+  // BLEEDING EDGE: PageSpeed 100 validation
+  const { validatePageSpeed100, runAudit, generateReport: generatePageSpeedReport } = usePageSpeedValidator({
+    strategy: 'mobile',
+    categories: ['performance', 'accessibility', 'best-practices', 'seo'],
+    enableMonitoring: true,
+    monitoringInterval: 60, // Monitor every hour
+    alertThreshold: 95 // Alert if score drops below 95
+  });
+
+  // BLEEDING EDGE: Initialize advanced preloading and service worker on app start
   useEffect(() => {
-    console.log('🔍 Setting up auth listener - forcing login page');
-    
-    // Check if there's an existing valid session with timeout protection
-    const checkSession = async () => {
-      console.log('🚀 Starting session check...');
-      
-      try {
-        // Add timeout protection to prevent hanging
-        const sessionCheckPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout after 5 seconds')), 5000)
-        );
-        
-        console.log('🔍 Calling supabase.auth.getSession() with 5s timeout...');
-        const { data: { session }, error } = await Promise.race([sessionCheckPromise, timeoutPromise]) as any;
-        console.log('✅ Session check completed:', { session: session?.user?.email, error });
-        
-        if (error) {
-          console.error('Session check error:', error);
-          await supabase.auth.signOut();
-          return;
-        }
-        
-        // If we have a valid session, verify user with robust fallback
-        if (session?.user) {
-          console.log('🔍 Verifying user session...', session.user.id);
-          
-          let userValid = false;
-          
-          try {
-            console.log('🔍 Calling RPC get_user_role_simple with 3s timeout...');
-            // Use the RPC function with timeout protection
-            const rpcPromise = supabase.rpc('get_user_role_simple', { 
-              _user_id: session.user.id 
-            });
-            const rpcTimeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('RPC timeout after 3 seconds')), 3000)
-            );
-            
-            const { data: userRole, error: roleError } = await Promise.race([rpcPromise, rpcTimeoutPromise]) as any;
-            console.log('✅ RPC call completed:', { userRole, roleError });
-            
-            if (!roleError && userRole) {
-              console.log('✅ User validated via RPC function with role:', userRole);
-              userValid = true;
-            } else {
-              console.log('⚠️ User role validation failed, allowing auth session...', roleError?.message);
-              // Still allow login if they have a valid auth session
-              userValid = true;
-            }
-          } catch (rpcError) {
-            console.log('⚠️ RPC validation failed (possibly timeout), allowing auth session...', rpcError);
-            // Still allow login if they have a valid auth session
-            userValid = true;
-          }
-          
-          // Final fallback: allow login if user has valid auth session
-          if (!userValid) {
-            console.log('⚠️ No user data found in tables, allowing login with auth session only');
-            userValid = true;
-          }
-          
-          if (userValid) {
-            console.log('✅ Valid session found, authenticating user');
-            setUser(session.user);
-            setIsAuthenticated(true);
+    if (startPreloading) {
+      log.info('Starting advanced preloading system', {
+        component: 'App',
+        action: 'startPreloading',
+        enablePredictive: true,
+        enableResourceHints: true
+      }, 'PRELOADING_STARTED');
+      startPreloading().catch(error => {
+        log.error('Advanced preloading failed', error, {
+          component: 'App',
+          action: 'startPreloading'
+        }, 'PRELOADING_FAILED');
+      });
+    }
+
+    // BLEEDING EDGE: Register service worker for offline caching
+    registerServiceWorker().then(registration => {
+      if (registration) {
+        log.info('Service worker registered successfully', {
+          component: 'App',
+          action: 'registerServiceWorker',
+          registration: !!registration
+        }, 'SERVICE_WORKER_REGISTERED');
+      }
+    }).catch(error => {
+      log.error('Service worker registration failed', error, {
+        component: 'App',
+        action: 'registerServiceWorker'
+      }, 'SERVICE_WORKER_FAILED');
+    });
+
+    // BLEEDING EDGE: Force Core Web Vitals optimization for 100% score
+    if (forceOptimization) {
+      log.info('Forcing Core Web Vitals optimization', {
+        component: 'App',
+        action: 'forceOptimization',
+        performanceBudget: { lcp: 1200, fid: 30, cls: 0.03 }
+      }, 'CORE_WEB_VITALS_OPTIMIZATION');
+      forceOptimization().catch(error => {
+        log.error('Core Web Vitals optimization failed', error, {
+          component: 'App',
+          action: 'forceOptimization'
+        }, 'CORE_WEB_VITALS_FAILED');
+      });
+    }
+
+    // BLEEDING EDGE: Validate PageSpeed 100 after optimizations
+    setTimeout(() => {
+      if (validatePageSpeed100) {
+        log.info('Running PageSpeed 100 validation', {
+          component: 'App',
+          action: 'validatePageSpeed100',
+          strategy: 'mobile',
+          categories: ['performance', 'accessibility', 'best-practices', 'seo']
+        }, 'PAGESPEED_VALIDATION_STARTED');
+        validatePageSpeed100().then(isPageSpeed100 => {
+          if (isPageSpeed100) {
+            log.info('PageSpeed 100 achieved!', {
+              component: 'App',
+              action: 'validatePageSpeed100',
+              score: 100,
+              achievement: 'pagespeed-100'
+            }, 'PAGESPEED_100_ACHIEVED');
           } else {
-            console.log('❌ User session invalid, requiring fresh login');
-            await supabase.auth.signOut();
+            log.warn('Working toward PageSpeed 100', {
+              component: 'App',
+              action: 'validatePageSpeed100',
+              score: '<100'
+            }, 'PAGESPEED_OPTIMIZATION_NEEDED');
+            if (generatePageSpeedReport) {
+              const report = generatePageSpeedReport();
+              log.info('PageSpeed report generated', {
+                component: 'App',
+                report: report
+              }, 'PAGESPEED_REPORT_GENERATED');
+            }
           }
-        } else {
-          console.log('ℹ️ No existing session found');
-        }
-      } catch (error) {
-        console.error('🚨 Session check error (possibly timeout):', error);
-        if (error.message?.includes('timeout')) {
-          console.error('🕐 TIMEOUT DETECTED - Auth service may be hanging');
-        }
-        // Don't sign out on timeout - just continue without auth
-      } finally {
-        console.log('🏁 Session check completed, setting loading to false');
-        setIsLoading(false);
+        }).catch(error => {
+          log.error('PageSpeed validation failed', error, {
+            component: 'App',
+            action: 'validatePageSpeed100'
+          }, 'PAGESPEED_VALIDATION_FAILED');
+        });
       }
-    };
+    }, 5000); // Wait 5 seconds for optimizations to take effect
+  }, [startPreloading, forceOptimization, validatePageSpeed100, generatePageSpeedReport]);
 
-    checkSession().catch(error => {
-      console.error('🚨 Failed to check session:', error);
-      setIsLoading(false);
+  // PROFESSIONAL SESSION MANAGEMENT - USE STORE ACTIONS
+  useEffect(() => {
+    log.info('Initializing professional session management', {
+      component: 'App',
+      action: 'sessionManagement'
+    }, 'SESSION_MANAGEMENT_INIT');
+    
+    // Use professional session refresh from store
+    refreshSession().catch(error => {
+      log.error('Professional session refresh failed', error, {
+        component: 'App',
+        action: 'refreshSession'
+      }, 'SESSION_REFRESH_FAILED');
     });
     
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email);
-      
-      try {
-        // Only set authenticated on explicit SIGNED_IN event
+    // Professional auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        log.info('Auth state changed', {
+          component: 'App',
+          action: 'authStateChange',
+          event: event,
+          hasSession: !!session,
+          hasUser: !!session?.user
+        }, 'AUTH_STATE_CHANGED');
+        
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ User signed in, loading authenticated app');
-          setUser(session.user);
-          setIsAuthenticated(true);
-          setAuthError(null);
+          try {
+            await login(session.user);
+            
+            // BLEEDING EDGE: Trigger route-specific preloading after auth
+            if (startPreloading) {
+              log.info('Triggering post-auth preloading', {
+                component: 'App',
+                action: 'postAuthPreloading',
+                userId: session.user.id
+              }, 'POST_AUTH_PRELOADING');
+              startPreloading();
+            }
+          } catch (error) {
+            log.error('Professional login failed', error, {
+              component: 'App',
+              action: 'login',
+              userId: session?.user?.id
+            }, 'LOGIN_FAILED');
+          }
         } else if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out, returning to login');
-          setUser(null);
-          setIsAuthenticated(false);
-          setAuthError(null);
-        } else {
-          // For other events, maintain current state but don't auto-authenticate
-          console.log('🔄 Auth event processed:', event);
+          await logout();
         }
-      } catch (error: any) {
-        console.error('🚨 Auth state change error:', error);
-        setAuthError(`Authentication error: ${error.message}`);
-        setIsAuthenticated(false);
-        setUser(null);
       }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refreshSession, login, logout, startPreloading]);
 
   // Show loading spinner while checking auth
   if (isLoading) {
@@ -186,18 +261,27 @@ function App() {
   if (!isAuthenticated || authError) {
     return <SimpleAuthForm 
       onAuthSuccess={async () => {
-        console.log('🔄 Auth success callback triggered, getting current user...');
+        log.info('Professional auth success callback triggered', {
+          component: 'App',
+          action: 'authSuccessCallback'
+        }, 'AUTH_SUCCESS_CALLBACK');
         try {
           const { data: { user: currentUser }, error } = await supabase.auth.getUser();
           if (error) throw error;
           
-          console.log('✅ Got current user:', currentUser?.email);
-          setUser(currentUser);
-          setIsAuthenticated(true);
-          setAuthError(null);
+          log.info('Professional login with current user', {
+            component: 'App',
+            action: 'authSuccessCallback',
+            userEmail: currentUser?.email,
+            userId: currentUser?.id
+          }, 'AUTH_SUCCESS_LOGIN');
+          await login(currentUser!);
+          clearError();
         } catch (error) {
-          console.error('❌ Failed to get user after auth success:', error);
-          setAuthError('Failed to complete authentication');
+          log.error('Professional auth callback failed', error, {
+            component: 'App',
+            action: 'authSuccessCallback'
+          }, 'AUTH_CALLBACK_FAILED');
         }
       }} 
       initialError={authError}
@@ -214,17 +298,21 @@ function App() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Application Error</h1>
             <p className="text-gray-600 mb-4">The application encountered an error. Please try refreshing the page.</p>
             <button 
-              onClick={() => window.location.reload()} 
+              onClick={() => {
+                // Professional app recovery - use store actions
+                logout();
+                clearError();
+              }} 
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
-              Refresh Page
+              Reset Application
             </button>
             <div className="mt-4">
               <button 
                 onClick={() => {
-                  setIsAuthenticated(false);
-                  setUser(null);
-                  setAuthError(null);
+                  // Professional return to login
+                  logout();
+                  clearError();
                 }} 
                 className="text-blue-600 hover:text-blue-800 text-sm"
               >

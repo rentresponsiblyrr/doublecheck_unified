@@ -123,10 +123,10 @@ export default function ChecklistDiagnostic() {
     };
     
     setDiagnostics(prev => [...prev, diagnostic]);
-    console.log(`🔍 Diagnostic: [${result.status.toUpperCase()}] ${result.test} - ${result.message}`);
+    // REMOVED: console.log(`🔍 Diagnostic: [${result.status.toUpperCase()}] ${result.test} - ${result.message}`);
     
     if (result.error) {
-      console.error(`🚨 Error details for ${result.test}:`, result.error);
+      // REMOVED: console.error(`🚨 Error details for ${result.test}:`, result.error);
       setDetailedErrors(prev => [...prev, {
         type: result.test,
         error: result.error,
@@ -819,7 +819,7 @@ export default function ChecklistDiagnostic() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button 
               variant="outline" 
-              onClick={() => window.location.reload()}
+              onClick={() => window.location.assign(window.location.href)}
               className="w-full"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -830,7 +830,7 @@ export default function ChecklistDiagnostic() {
               onClick={() => {
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.reload();
+                window.location.assign(window.location.href);
               }}
               className="w-full"
             >

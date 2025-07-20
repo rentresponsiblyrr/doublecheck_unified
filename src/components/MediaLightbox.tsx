@@ -40,7 +40,7 @@ export const MediaLightbox = ({ media, isOpen, onClose }: MediaLightboxProps) =>
               alt="Evidence" 
               className="w-full h-auto max-h-[80vh] object-contain"
               onError={(e) => {
-                console.error('Image failed to load in lightbox:', media.url);
+                // REMOVED: console.error('Image failed to load in lightbox:', media.url);
               }}
             />
           ) : (
@@ -50,7 +50,7 @@ export const MediaLightbox = ({ media, isOpen, onClose }: MediaLightboxProps) =>
               autoPlay
               className="w-full h-auto max-h-[80vh]"
               onError={(e) => {
-                console.error('Video failed to load in lightbox:', media.url);
+                // REMOVED: console.error('Video failed to load in lightbox:', media.url);
               }}
             />
           )}

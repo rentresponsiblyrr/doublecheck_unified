@@ -11,6 +11,7 @@ import {
   type InspectionStatus 
 } from '@/types/inspection-status';
 import { logger } from '@/utils/logger';
+import type { PropertyWithInspections } from './propertyStatusService';
 
 // Types for count results
 export interface InspectionCounts {
@@ -165,7 +166,7 @@ class StatusCountService {
         withoutInspections: 0
       };
 
-      properties?.forEach((property: any) => {
+      properties?.forEach((property: PropertyWithInspections) => {
         const totalInspections = property.inspection_count || 0;
         const activeInspections = property.active_inspection_count || 0;
 
@@ -322,7 +323,7 @@ class StatusCountService {
   /**
    * Calculate property-level statistics from inspection data
    */
-  calculatePropertyStats(properties: any[]): { totalInspections: number; activeInspections: number; completedInspections: number } {
+  calculatePropertyStats(properties: PropertyWithInspections[]): { totalInspections: number; activeInspections: number; completedInspections: number } {
     return properties.reduce((stats, property) => ({
       totalInspections: stats.totalInspections + (property.inspection_count || 0),
       activeInspections: stats.activeInspections + (property.active_inspection_count || 0),

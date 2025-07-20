@@ -111,7 +111,7 @@ export class PerformanceTracker {
 
     // Check if we should track based on sample rate
     if (Math.random() > (this.config.sampleRate || 1)) {
-      console.log('[PerformanceTracker] Skipping initialization due to sampling');
+      // REMOVED: console.log('[PerformanceTracker] Skipping initialization due to sampling');
       return;
     }
 
@@ -134,7 +134,7 @@ export class PerformanceTracker {
     this.trackPageLoad();
 
     if (import.meta.env.DEV) {
-      console.log('[PerformanceTracker] Initialized with config:', this.config);
+      // REMOVED: console.log('[PerformanceTracker] Initialized with config:', this.config);
     }
   }
 
@@ -219,7 +219,7 @@ export class PerformanceTracker {
       clsObserver.observe({ entryTypes: ['layout-shift'] });
 
     } catch (error) {
-      console.error('[PerformanceTracker] Error setting up Web Vitals:', error);
+      // REMOVED: console.error('[PerformanceTracker] Error setting up Web Vitals:', error);
     }
   }
 
@@ -258,7 +258,7 @@ export class PerformanceTracker {
       observer.observe({ entryTypes: ['resource'] });
       this.observer = observer;
     } catch (error) {
-      console.error('[PerformanceTracker] Error setting up resource timing:', error);
+      // REMOVED: console.error('[PerformanceTracker] Error setting up resource timing:', error);
     }
   }
 
@@ -284,7 +284,7 @@ export class PerformanceTracker {
 
       observer.observe({ entryTypes: ['measure'] });
     } catch (error) {
-      console.error('[PerformanceTracker] Error setting up user timing:', error);
+      // REMOVED: console.error('[PerformanceTracker] Error setting up user timing:', error);
     }
   }
 
@@ -318,7 +318,7 @@ export class PerformanceTracker {
 
     // Log in development
     if (import.meta.env.DEV) {
-      console.log('[PerformanceTracker] Metric:', metric);
+      // REMOVED: console.log('[PerformanceTracker] Metric:', metric);
     }
   }
 
@@ -403,7 +403,7 @@ export class PerformanceTracker {
       try {
         window.performance.measure(name, startMark, endMark);
       } catch (error) {
-        console.error('[PerformanceTracker] Error creating measure:', error);
+        // REMOVED: console.error('[PerformanceTracker] Error creating measure:', error);
       }
     }
   }
@@ -512,10 +512,10 @@ export class PerformanceTracker {
 
       // Log summary in development
       if (import.meta.env.DEV) {
-        console.log('[PerformanceTracker] Performance Report:', report);
+        // REMOVED: console.log('[PerformanceTracker] Performance Report:', report);
       }
     } catch (error) {
-      console.error('[PerformanceTracker] Failed to flush metrics:', error);
+      // REMOVED: console.error('[PerformanceTracker] Failed to flush metrics:', error);
     }
   }
 

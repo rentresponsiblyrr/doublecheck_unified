@@ -93,7 +93,7 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
         user_agent: navigator.userAgent,
       });
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      // REMOVED: console.error('Failed to log security event:', error);
     }
   }, []);
 
@@ -187,7 +187,7 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
       return result;
 
     } catch (error: any) {
-      console.error('File upload error:', error);
+      // REMOVED: console.error('File upload error:', error);
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 
@@ -222,7 +222,7 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
       return await uploadFile(validatedImage, customPath || 'images');
       
     } catch (error: any) {
-      console.error('Image upload error:', error);
+      // REMOVED: console.error('Image upload error:', error);
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { log } from '@/lib/logging/enterprise-logger';
 
 export interface SessionConfig {
   inactivityTimeoutMs: number; // Time before warning (default: 110 minutes)
@@ -91,7 +92,12 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
 
   // Force logout
   const forceLogout = useCallback(async (reason: string) => {
-    console.log('🚪 Session timeout - forcing logout:', reason);
+    log.info('Session timeout - forcing logout', {
+      component: 'useSessionManager',
+      action: 'forceLogout',
+      reason,
+      sessionDuration: Date.now() - sessionStartRef.current.getTime()
+    }, 'SESSION_FORCE_LOGOUT');
     
     clearWarningTimers();
     
@@ -106,10 +112,14 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
       
       // Show user-friendly logout message
       alert(`Your session has expired due to ${reason}. Please log in again.`);
-      window.location.reload();
+      window.location.replace('/');
     } catch (error) {
-      console.error('❌ Error during forced logout:', error);
-      window.location.reload(); // Force reload as fallback
+      log.error('Error during forced logout', error as Error, {
+        component: 'useSessionManager',
+        action: 'forceLogout',
+        reason
+      }, 'FORCE_LOGOUT_ERROR');
+      window.location.replace('/'); // Force reload as fallback
     }
   }, [clearWarningTimers]);
 
@@ -142,7 +152,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   // Show warning and schedule logout
   const showInactivityWarning = useCallback(() => {
     // REMOVED: Inactivity warning log to prevent console spam
-    // console.log('⚠️ Showing inactivity warning');
+    // // REMOVED: console.log('⚠️ Showing inactivity warning');
     
     setSessionState(prev => ({
       ...prev,
@@ -166,7 +176,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
     }, fullConfig.inactivityTimeoutMs);
     
     // REMOVED: Session warning scheduling log to prevent infinite console loops
-    // console.log(`📅 Session warning scheduled for ${new Date(Date.now() + fullConfig.inactivityTimeoutMs).toLocaleTimeString()}`);
+    // // REMOVED: console.log(`📅 Session warning scheduled for ${new Date(Date.now() + fullConfig.inactivityTimeoutMs).toLocaleTimeString()}`);
   }, [clearWarningTimers, showInactivityWarning, fullConfig.inactivityTimeoutMs]);
 
   // Check maximum session duration
@@ -190,14 +200,14 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   // Extend session (called when user interacts during warning)
   const extendSession = useCallback(() => {
     // REMOVED: Session extension log to prevent console spam
-    // console.log('🔄 Session extended by user action');
+    // // REMOVED: console.log('🔄 Session extended by user action');
     updateActivity();
   }, [updateActivity]);
 
   // Manual logout
   const logout = useCallback(async () => {
     // REMOVED: Manual logout log to prevent console spam
-    // console.log('👋 Manual logout initiated');
+    // // REMOVED: console.log('👋 Manual logout initiated');
     clearWarningTimers();
     
     try {
@@ -208,14 +218,17 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
         showWarning: false
       }));
     } catch (error) {
-      console.error('❌ Error during manual logout:', error);
+      log.error('Error during manual logout', error as Error, {
+        component: 'useSessionManager',
+        action: 'logout'
+      }, 'MANUAL_LOGOUT_ERROR');
     }
   }, [clearWarningTimers]);
 
   // Set up activity listeners
   useEffect(() => {
     // REMOVED: Session manager initialization log to prevent infinite console loops
-    // console.log('🔒 Session manager initialized with config:', {
+    // // REMOVED: console.log('🔒 Session manager initialized with config:', {
     //   inactivityTimeout: Math.floor(fullConfig.inactivityTimeoutMs / 60000) + ' minutes',
     //   warningDuration: Math.floor(fullConfig.warningDurationMs / 60000) + ' minutes',
     //   maxSessionDuration: Math.floor(fullConfig.maxSessionDurationMs / 3600000) + ' hours'

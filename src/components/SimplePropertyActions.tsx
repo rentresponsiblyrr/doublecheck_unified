@@ -40,19 +40,19 @@ export const SimplePropertyActions = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
-    console.log('✏️ Editing property:', propertyId);
+    // REMOVED: console.log('✏️ Editing property:', propertyId);
     navigate(`/add-property?edit=${propertyId}`);
   };
 
   const handleDelete = async () => {
-    console.log('🗑️ Starting comprehensive property deletion:', propertyId);
+    // REMOVED: console.log('🗑️ Starting comprehensive property deletion:', propertyId);
     setIsDeleting(true);
 
     try {
       // Use the comprehensive deletion utility that handles all cascade conflicts
       await deletePropertyData(propertyId);
 
-      console.log('✅ Property deleted successfully via comprehensive deletion');
+      // REMOVED: console.log('✅ Property deleted successfully via comprehensive deletion');
       toast({
         title: "Property Deleted",
         description: `"${propertyName}" and all associated data have been permanently removed.`,
@@ -61,7 +61,7 @@ export const SimplePropertyActions = ({
       setShowDeleteDialog(false);
       onPropertyDeleted();
     } catch (error) {
-      console.error('💥 Comprehensive property deletion failed:', error);
+      // REMOVED: console.error('💥 Comprehensive property deletion failed:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       if (errorMessage.includes('already in progress')) {

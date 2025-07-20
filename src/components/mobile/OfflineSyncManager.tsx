@@ -151,7 +151,7 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
         updateSyncStatus(queue);
       }
     } catch (error) {
-      console.error('Failed to load sync queue:', error);
+      // REMOVED: console.error('Failed to load sync queue:', error);
     }
   };
 
@@ -162,7 +162,7 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
       setSyncQueue(queue);
       updateSyncStatus(queue);
     } catch (error) {
-      console.error('Failed to save sync queue:', error);
+      // REMOVED: console.error('Failed to save sync queue:', error);
     }
   }, []);
 
@@ -256,7 +256,7 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
       }));
 
     } catch (error) {
-      console.error('Sync failed:', error);
+      // REMOVED: console.error('Sync failed:', error);
       setSyncStatus(prev => ({ ...prev, isSyncing: false }));
     }
   };

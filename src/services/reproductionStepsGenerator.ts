@@ -9,6 +9,7 @@
 
 import { OpenAI } from 'openai';
 import { ErrorDetails, SystemContext, UserFrustrationMetrics } from '@/types/errorTypes';
+import { log } from '@/lib/logging/enterprise-logger';
 
 interface ReproductionSteps {
   id: string;
@@ -102,14 +103,13 @@ export class ReproductionStepsGenerator {
   private stepsCache = new Map<string, ReproductionSteps>();
 
   constructor() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured for reproduction steps generation');
-    }
-    this.openai = new OpenAI({ 
-      apiKey, 
-      dangerouslyAllowBrowser: true 
-    });
+    // SECURITY: Direct AI integration disabled for security
+    log.warn('ReproductionStepsGenerator: Direct AI integration disabled. Use AIProxyService instead.', {
+      component: 'ReproductionStepsGenerator',
+      action: 'constructor',
+      securityMeasure: 'AI_INTEGRATION_DISABLED'
+    }, 'AI_INTEGRATION_DISABLED');
+    this.openai = null as any; // DISABLED
   }
 
   /**
@@ -145,7 +145,13 @@ export class ReproductionStepsGenerator {
       
       return optimizedSteps;
     } catch (error) {
-      console.error('❌ Reproduction steps generation failed:', error);
+      log.error('Reproduction steps generation failed', error as Error, {
+        component: 'ReproductionStepsGenerator',
+        action: 'generateReproductionSteps',
+        errorId: errorDetails.id,
+        hasSystemContext: !!systemContext,
+        hasFrustrationMetrics: !!frustrationMetrics
+      }, 'REPRODUCTION_STEPS_GENERATION_FAILED');
       return this.getFallbackSteps(errorDetails, systemContext);
     }
   }
@@ -306,8 +312,12 @@ Focus on the specific error: "${errorDetails.message}"
         createdAt: new Date().toISOString()
       };
     } catch (parseError) {
-      console.error('❌ Failed to parse AI reproduction steps:', parseError);
-      console.error('Raw response:', stepsText);
+      log.error('Failed to parse AI reproduction steps', parseError as Error, {
+        component: 'ReproductionStepsGenerator',
+        action: 'parseReproductionSteps',
+        rawResponseLength: stepsText?.length || 0,
+        hasResponse: !!stepsText
+      }, 'REPRODUCTION_STEPS_PARSE_FAILED');
       throw new Error('Invalid JSON response from AI steps generation');
     }
   }

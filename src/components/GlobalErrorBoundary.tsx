@@ -28,16 +28,16 @@ export class GlobalErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo });
-    console.error('🚨 Global Error Boundary caught error:', error, errorInfo);
+    // REMOVED: console.error('🚨 Global Error Boundary caught error:', error, errorInfo);
     
     // Log to external service if configured
     try {
       if (window.location.hostname.includes('doublecheckverified.com')) {
         // In production, could send to monitoring service
-        console.error('Production error logged:', { error, errorInfo });
+        // REMOVED: console.error('Production error logged:', { error, errorInfo });
       }
     } catch (e) {
-      console.error('Failed to log error:', e);
+      // REMOVED: console.error('Failed to log error:', e);
     }
   }
 

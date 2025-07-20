@@ -11,13 +11,13 @@ export const uploadMedia = async (
   checklistItemId: string
 ): Promise<{ url: string; error: null } | { url: null; error: string }> => {
   try {
-    console.log('Starting media upload...', { inspectionId, checklistItemId, fileName: file.name });
+    // REMOVED: console.log('Starting media upload...', { inspectionId, checklistItemId, fileName: file.name });
     
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${inspectionId}/${checklistItemId}/${fileName}`;
     
-    console.log('Upload path:', filePath);
+    // REMOVED: console.log('Upload path:', filePath);
     
     const { data, error } = await supabase.storage
       .from('inspection-media')
@@ -27,22 +27,22 @@ export const uploadMedia = async (
       });
 
     if (error) {
-      console.error('Storage upload error:', error);
+      // REMOVED: console.error('Storage upload error:', error);
       return { url: null, error: error.message };
     }
 
-    console.log('Upload successful:', data);
+    // REMOVED: console.log('Upload successful:', data);
 
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from('inspection-media')
       .getPublicUrl(filePath);
 
-    console.log('Public URL generated:', publicUrl);
+    // REMOVED: console.log('Public URL generated:', publicUrl);
 
     return { url: publicUrl, error: null };
   } catch (error) {
-    console.error('Upload function error:', error);
+    // REMOVED: console.error('Upload function error:', error);
     return { url: null, error: error instanceof Error ? error.message : 'Upload failed' };
   }
 };
@@ -55,7 +55,7 @@ export const saveMediaRecord = async (
   filePath?: string
 ) => {
   try {
-    console.log('Saving media record...', { checklistItemId, type, url, filePath });
+    // REMOVED: console.log('Saving media record...', { checklistItemId, type, url, filePath });
     
     const { data, error } = await supabase
       .from('media')
@@ -70,14 +70,14 @@ export const saveMediaRecord = async (
       .single();
 
     if (error) {
-      console.error('Database insert error:', error);
+      // REMOVED: console.error('Database insert error:', error);
       throw error;
     }
 
-    console.log('Media record saved:', data);
+    // REMOVED: console.log('Media record saved:', data);
     return data;
   } catch (error) {
-    console.error('Save media record error:', error);
+    // REMOVED: console.error('Save media record error:', error);
     throw error;
   }
 };
@@ -88,7 +88,7 @@ export const updateChecklistItemStatus = async (
   status: 'completed' | null
 ) => {
   try {
-    console.log('Updating checklist item status...', { checklistItemId, status });
+    // REMOVED: console.log('Updating checklist item status...', { checklistItemId, status });
     
     // Phase 4 Fix: Use logs (compatibility view)
     // Maps to production logs table with proper field transformations
@@ -100,14 +100,14 @@ export const updateChecklistItemStatus = async (
       .single();
 
     if (error) {
-      console.error('Status update error:', error);
+      // REMOVED: console.error('Status update error:', error);
       throw error;
     }
 
-    console.log('Status updated:', data);
+    // REMOVED: console.log('Status updated:', data);
     return data;
   } catch (error) {
-    console.error('Update status error:', error);
+    // REMOVED: console.error('Update status error:', error);
     throw error;
   }
 };
@@ -115,7 +115,7 @@ export const updateChecklistItemStatus = async (
 // Helper function to get inspection details
 export const getInspectionDetails = async (inspectionId: string) => {
   try {
-    console.log('Fetching inspection details...', { inspectionId });
+    // REMOVED: console.log('Fetching inspection details...', { inspectionId });
     
     const { data, error } = await supabase
       .from('inspections')
@@ -131,14 +131,14 @@ export const getInspectionDetails = async (inspectionId: string) => {
       .single();
 
     if (error) {
-      console.error('Inspection fetch error:', error);
+      // REMOVED: console.error('Inspection fetch error:', error);
       throw error;
     }
 
-    console.log('Inspection details fetched:', data);
+    // REMOVED: console.log('Inspection details fetched:', data);
     return data;
   } catch (error) {
-    console.error('Get inspection details error:', error);
+    // REMOVED: console.error('Get inspection details error:', error);
     throw error;
   }
 };

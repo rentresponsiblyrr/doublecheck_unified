@@ -407,7 +407,7 @@ Format as JSON:
       return Array.isArray(parsed) ? parsed : [parsed];
     } catch (error) {
       // Return empty array if parsing fails
-      console.error('Failed to parse checklist response:', error);
+      // REMOVED: console.error('Failed to parse checklist response:', error);
       return [];
     }
   }

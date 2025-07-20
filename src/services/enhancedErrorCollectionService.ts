@@ -93,7 +93,7 @@ class EnhancedErrorCollectionService {
   private maxErrorsPerType = 20;
   private isCollecting = true;
   private isCollectingConsoleError = false;
-  private originalConsole: { [key: string]: any } = {};
+  private originalConsole: Record<string, (...args: unknown[]) => void> = {};
   private originalFetch: typeof fetch;
 
   constructor() {
@@ -148,7 +148,7 @@ class EnhancedErrorCollectionService {
     ['error', 'warn', 'info'].forEach(level => {
       this.originalConsole[level] = console[level as keyof Console];
       
-      (console as any)[level] = (...args: any[]) => {
+      (console as Record<string, (...args: unknown[]) => void>)[level] = (...args: unknown[]) => {
         // Call original console method
         this.originalConsole[level].apply(console, args);
         
@@ -184,10 +184,10 @@ class EnhancedErrorCollectionService {
   private monitorResourceErrors() {
     window.addEventListener('error', (event) => {
       if (event.target !== window && event.target) {
-        const target = event.target as HTMLElement;
+        const target = event.target as HTMLElement & { src?: string; href?: string };
         this.collectConsoleError({
           level: 'error',
-          message: `Resource failed to load: ${(target as any).src || (target as any).href}`,
+          message: `Resource failed to load: ${target.src || target.href || 'unknown'}`,
           source: 'resource'
         });
       }
@@ -267,8 +267,9 @@ class EnhancedErrorCollectionService {
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         entries.forEach(entry => {
+          const fidEntry = entry as PerformanceEventTiming & { processingStart: number };
           this.updatePerformanceMetrics({ 
-            firstInputDelay: (entry as any).processingStart - entry.startTime 
+            firstInputDelay: fidEntry.processingStart - entry.startTime 
           });
         });
       }).observe({ entryTypes: ['first-input'] });
@@ -277,7 +278,8 @@ class EnhancedErrorCollectionService {
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
         entryList.getEntries().forEach(entry => {
-          clsValue += (entry as any).value;
+          const clsEntry = entry as PerformanceEntry & { value: number };
+          clsValue += clsEntry.value;
         });
         this.updatePerformanceMetrics({ cumulativeLayoutShift: clsValue });
       }).observe({ entryTypes: ['layout-shift'] });
@@ -298,7 +300,13 @@ class EnhancedErrorCollectionService {
   private monitorMemoryUsage() {
     const collectMemory = () => {
       if ('memory' in performance) {
-        const memory = (performance as any).memory;
+        const memory = (performance as Performance & {
+          memory: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          }
+        }).memory;
         this.updatePerformanceMetrics({
           usedJSHeapSize: memory.usedJSHeapSize,
           totalJSHeapSize: memory.totalJSHeapSize,
@@ -334,7 +342,7 @@ class EnhancedErrorCollectionService {
   private initializeDatabaseErrorDetection() {
     // Monitor for specific Supabase/database errors
     const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       originalConsoleError.apply(console, args);
       
       const message = args.join(' ');

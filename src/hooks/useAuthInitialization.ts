@@ -28,7 +28,7 @@ export const useAuthInitialization = ({
       return initializationRef.current;
     }
 
-    console.log('📱 Mobile auth initialization...');
+    // REMOVED: console.log('📱 Mobile auth initialization...');
     setError(null);
 
     const initPromise = new Promise<void>(async (resolve) => {
@@ -46,7 +46,7 @@ export const useAuthInitialization = ({
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('📱 Mobile user found, setting role...');
+          // REMOVED: console.log('📱 Mobile user found, setting role...');
           const cachedRole = getCachedRole(session.user.id);
           if (cachedRole) {
             setUserRole(cachedRole);
@@ -61,16 +61,16 @@ export const useAuthInitialization = ({
           }
         } else {
           setUserRole(null);
-          console.log('📱 No mobile session found');
+          // REMOVED: console.log('📱 No mobile session found');
         }
         
         setLoading(false);
         setError(null);
-        console.log('📱 Mobile auth initialization complete');
+        // REMOVED: console.log('📱 Mobile auth initialization complete');
         resolve();
         
       } catch (error) {
-        console.error('📱 Mobile auth initialization error:', error);
+        // REMOVED: console.error('📱 Mobile auth initialization error:', error);
         setUser(null);
         setSession(null);
         setUserRole(null);

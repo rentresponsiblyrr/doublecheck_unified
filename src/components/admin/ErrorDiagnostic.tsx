@@ -93,7 +93,7 @@ export default function ErrorDiagnostic() {
 
   const testComponent = async (componentName: string, path: string) => {
     try {
-      console.log(`🧪 Testing component: ${componentName}`);
+      // REMOVED: console.log(`🧪 Testing component: ${componentName}`);
       
       // Try to dynamically import the component
       switch (componentName) {
@@ -111,13 +111,13 @@ export default function ErrorDiagnostic() {
           break;
       }
       
-      console.log(`✅ Component ${componentName} imported successfully`);
+      // REMOVED: console.log(`✅ Component ${componentName} imported successfully`);
       
       // Try to navigate to the component
       window.history.pushState({}, '', path);
       
     } catch (error) {
-      console.error(`❌ Component ${componentName} failed:`, error);
+      // REMOVED: console.error(`❌ Component ${componentName} failed:`, error);
     }
   };
 
@@ -228,7 +228,7 @@ export default function ErrorDiagnostic() {
               Clear Errors
             </Button>
             <Button 
-              onClick={() => window.location.reload()}
+              onClick={() => window.location.assign(window.location.href)}
               variant="outline"
             >
               <RefreshCw className="h-4 w-4 mr-2" />

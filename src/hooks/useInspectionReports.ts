@@ -47,11 +47,11 @@ export const useInspectionReports = () => {
     queryKey: ['inspection-reports', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        console.log('❌ No user ID available for reports');
+        // REMOVED: console.log('❌ No user ID available for reports');
         return [];
       }
 
-      console.log('🔍 Fetching comprehensive inspection reports for user:', user.id);
+      // REMOVED: console.log('🔍 Fetching comprehensive inspection reports for user:', user.id);
 
       try {
         // Fetch inspections with property data and basic counts
@@ -76,16 +76,16 @@ export const useInspectionReports = () => {
           .order('start_time', { ascending: false, nullsFirst: false });
 
         if (inspectionsError) {
-          console.error('❌ Failed to fetch inspections:', inspectionsError);
+          // REMOVED: console.error('❌ Failed to fetch inspections:', inspectionsError);
           throw new Error(`Database error: ${inspectionsError.message}`);
         }
 
         if (!inspectionsData || inspectionsData.length === 0) {
-          console.log('📝 No inspections found for reports');
+          // REMOVED: console.log('📝 No inspections found for reports');
           return [];
         }
 
-        console.log('✅ Fetched', inspectionsData.length, 'inspections for reports');
+        // REMOVED: console.log('✅ Fetched', inspectionsData.length, 'inspections for reports');
 
         // Process each inspection to gather detailed metrics
         const enrichedInspections = await Promise.all(
@@ -194,7 +194,7 @@ export const useInspectionReports = () => {
 
         return enrichedInspections;
       } catch (error) {
-        console.error('❌ Reports query execution failed:', error);
+        // REMOVED: console.error('❌ Reports query execution failed:', error);
         throw error;
       }
     },
@@ -242,7 +242,7 @@ export const useInspectionReports = () => {
       : 0,
   };
 
-  console.log('📊 Reports Summary:', summary);
+  // REMOVED: console.log('📊 Reports Summary:', summary);
 
   return {
     inspections: rawData,

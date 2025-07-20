@@ -266,7 +266,7 @@ export default function ReportManagement() {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={() => window.location.assign(window.location.href)}>
             <TrendingUp className="h-4 w-4 mr-2" />
             Refresh Data
           </Button>

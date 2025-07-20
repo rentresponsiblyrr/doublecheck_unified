@@ -184,7 +184,7 @@ export const RuntimeValidationWrapper: React.FC<RuntimeValidationWrapperProps> =
           </button>
           
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.assign(window.location.href)}
             className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
           >
             Reload Page

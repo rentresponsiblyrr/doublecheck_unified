@@ -57,7 +57,7 @@ export const useEnhancedOfflineStorage = () => {
             totalPendingSize: metrics.totalPendingSize
           }));
           
-          console.log('📱 Loaded offline photos:', {
+          // REMOVED: console.log('📱 Loaded offline photos:', {
             total: photos.length,
             pending: metrics.pendingCount,
             failed: metrics.failedCount,
@@ -65,7 +65,7 @@ export const useEnhancedOfflineStorage = () => {
           });
         }
       } catch (error) {
-        console.error('📱 Error loading offline photos:', error);
+        // REMOVED: console.error('📱 Error loading offline photos:', error);
         toast({
           title: "Storage Error",
           description: "Failed to load offline photos from storage.",
@@ -84,7 +84,7 @@ export const useEnhancedOfflineStorage = () => {
     prevOnlineRef.current = isOnline;
     
     if (wasOffline) {
-      console.log('📱 Network restored, checking for pending photos...');
+      // REMOVED: console.log('📱 Network restored, checking for pending photos...');
       const timeoutId = setTimeout(() => {
         // Check if there are pending photos and sync
         if (storageState.photos.some(p => !p.uploaded)) {
@@ -101,7 +101,7 @@ export const useEnhancedOfflineStorage = () => {
     checklistItemId: string,
     inspectionId: string
   ): Promise<string> => {
-    console.log('📱 Saving photo offline:', { 
+    // REMOVED: console.log('📱 Saving photo offline:', { 
       size: `${(file.size / 1024).toFixed(2)}KB`,
       type: file.type 
     });
@@ -141,7 +141,7 @@ export const useEnhancedOfflineStorage = () => {
         description: `Photo will sync when online. ${metrics.pendingCount + 1} pending.`,
       });
     } catch (error) {
-      console.error('📱 Error saving to localStorage:', error);
+      // REMOVED: console.error('📱 Error saving to localStorage:', error);
       
       // If storage is full, try to clean up old uploaded photos
       cleanupUploadedPhotos();
@@ -158,7 +158,7 @@ export const useEnhancedOfflineStorage = () => {
 
   const syncOfflinePhotos = useCallback(async () => {
     if (storageState.syncInProgress || !isOnline) {
-      console.log('📱 Sync skipped:', { 
+      // REMOVED: console.log('📱 Sync skipped:', { 
         syncInProgress: storageState.syncInProgress, 
         isOnline 
       });
@@ -168,11 +168,11 @@ export const useEnhancedOfflineStorage = () => {
     const pendingPhotos = storageState.photos.filter(p => !p.uploaded && p.retryCount < 3);
     
     if (pendingPhotos.length === 0) {
-      console.log('📱 No photos to sync');
+      // REMOVED: console.log('📱 No photos to sync');
       return;
     }
 
-    console.log(`📱 Starting sync of ${pendingPhotos.length} photos...`);
+    // REMOVED: console.log(`📱 Starting sync of ${pendingPhotos.length} photos...`);
     
     setStorageState(prev => ({
       ...prev,
@@ -197,10 +197,10 @@ export const useEnhancedOfflineStorage = () => {
         }));
         
         successCount++;
-        console.log(`📱 Uploaded photo ${photo.id}`);
+        // REMOVED: console.log(`📱 Uploaded photo ${photo.id}`);
         
       } catch (error) {
-        console.error(`📱 Failed to upload photo ${photo.id}:`, error);
+        // REMOVED: console.error(`📱 Failed to upload photo ${photo.id}:`, error);
         
         // Increment retry count
         setStorageState(prev => ({
@@ -240,7 +240,7 @@ export const useEnhancedOfflineStorage = () => {
       });
     }
 
-    console.log('📱 Sync completed:', { successCount, failureCount });
+    // REMOVED: console.log('📱 Sync completed:', { successCount, failureCount });
   }, [storageState.syncInProgress, storageState.photos, isOnline, toast]);
 
   const cleanupUploadedPhotos = useCallback(() => {
@@ -257,7 +257,7 @@ export const useEnhancedOfflineStorage = () => {
       remainingPhotos.map(photo => ({ ...photo, file: null }))
     ));
     
-    console.log('📱 Cleaned up uploaded photos');
+    // REMOVED: console.log('📱 Cleaned up uploaded photos');
   }, [storageState.photos, calculateStorageMetrics]);
 
   const forceRetryFailed = useCallback(() => {

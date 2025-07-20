@@ -40,7 +40,7 @@ export function useMemoryCleanup(): ResourceManager {
       try {
         cleanupFn();
       } catch (error) {
-        console.error('Cleanup function failed:', error);
+        // REMOVED: console.error('Cleanup function failed:', error);
       }
     });
 
@@ -57,7 +57,7 @@ export function useMemoryCleanup(): ResourceManager {
       try {
         element.removeEventListener(event, handler);
       } catch (error) {
-        console.error('Failed to remove event listener:', error);
+        // REMOVED: console.error('Failed to remove event listener:', error);
       }
     });
     eventListeners.current.length = 0;
@@ -215,7 +215,7 @@ export function useSafeFetch() {
       return response;
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        console.log('Fetch aborted');
+        // REMOVED: console.log('Fetch aborted');
       }
       throw error;
     } finally {

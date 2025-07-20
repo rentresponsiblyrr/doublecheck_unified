@@ -224,7 +224,7 @@ export const PhotoCaptureInterface: React.FC<PhotoCaptureInterfaceProps> = ({
       }, 1500);
 
     } catch (error) {
-      console.error('Capture error:', error);
+      // REMOVED: console.error('Capture error:', error);
       setIsProcessing(false);
     }
   };

@@ -17,7 +17,7 @@ export const useRobustInspectionCreation = () => {
     }
 
     if (!user?.id) {
-      console.error('❌ No user ID available for inspection creation');
+      // REMOVED: console.error('❌ No user ID available for inspection creation');
       toast({
         title: "Authentication required",
         description: "You must be logged in to create an inspection.",
@@ -27,9 +27,9 @@ export const useRobustInspectionCreation = () => {
     }
 
     setIsCreating(true);
-    console.log('🚀 Starting robust inspection creation for property:', propertyId);
-    console.log('🔧 User context:', { userId: user.id, userEmail: user.email });
-    console.log('🔧 Property ID validation:', { 
+    // REMOVED: console.log('🚀 Starting robust inspection creation for property:', propertyId);
+    // REMOVED: console.log('🔧 User context:', { userId: user.id, userEmail: user.email });
+    // REMOVED: console.log('🔧 Property ID validation:', { 
       propertyId, 
       type: typeof propertyId, 
       isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(propertyId) 
@@ -58,7 +58,7 @@ export const useRobustInspectionCreation = () => {
       return inspectionId;
 
     } catch (error) {
-      console.error('💥 Inspection creation failed:', error);
+      // REMOVED: console.error('💥 Inspection creation failed:', error);
       toast({
         title: "Failed to create inspection",
         description: error instanceof Error ? error.message : "Please try again.",

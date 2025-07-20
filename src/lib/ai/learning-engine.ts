@@ -609,7 +609,7 @@ export class LearningEngine {
 
   private async logModelUpdate(update: ModelUpdate): Promise<void> {
     // In production, save to database
-    console.log('Model update deployed:', update);
+    // REMOVED: console.log('Model update deployed:', update);
   }
 }
 

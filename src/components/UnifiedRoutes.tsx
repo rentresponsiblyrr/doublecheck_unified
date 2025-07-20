@@ -1,20 +1,41 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Inspector Pages
-import Index from "../pages/Index";
-import AddProperty from "../pages/AddProperty";
-import InspectionComplete from "../pages/InspectionComplete";
-import PropertySelection from "../pages/PropertySelection";
+// PROFESSIONAL LAZY LOADING - META/NETFLIX/STRIPE STANDARDS
+// Only import critical components immediately
 import NotFound from "../pages/NotFound";
-import { InspectionPage } from "../pages/InspectionPage";
-import { InspectionReports } from "../pages/InspectionReports";
-import { InspectorWorkflow } from "../pages/InspectorWorkflow";
 
-// Admin Components - Direct imports (no lazy loading)
-import DirectAdminRouter from "./admin/DirectAdminRouter";
+// LAZY LOADED COMPONENTS - Split by feature for optimal chunking
+const Index = React.lazy(() => import("../pages/Index"));
+const AddProperty = React.lazy(() => import("../pages/AddProperty"));
+const InspectionComplete = React.lazy(() => import("../pages/InspectionComplete"));
+const PropertySelection = React.lazy(() => import("../pages/PropertySelection"));
+const InspectionPage = React.lazy(() => import("../pages/InspectionPage").then(module => ({ default: module.InspectionPage })));
+const InspectionReports = React.lazy(() => import("../pages/InspectionReports").then(module => ({ default: module.InspectionReports })));
+const InspectorWorkflow = React.lazy(() => import("../pages/InspectorWorkflow").then(module => ({ default: module.InspectorWorkflow })));
+
+// Admin Components - Lazy loaded for professional chunking
+const DirectAdminRouter = React.lazy(() => import("./admin/DirectAdminRouter"));
+
+// PROFESSIONAL LOADING FALLBACK
+function ProfessionalLoadingFallback({ message = "Loading..." }: { message?: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center space-y-6 p-8">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-48 mx-auto" />
+          <Skeleton className="h-4 w-32 mx-auto" />
+          <Skeleton className="h-4 w-24 mx-auto" />
+        </div>
+        <p className="text-sm text-gray-600 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+}
 
 interface UnifiedRoutesProps {
   user: any;
@@ -22,7 +43,7 @@ interface UnifiedRoutesProps {
 
 export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
   // REMOVED: Route loading logging to prevent infinite render loops
-  // console.log('🚀 UnifiedRoutes loaded for user:', user?.email);
+  // // REMOVED: console.log('🚀 UnifiedRoutes loaded for user:', user?.email);
   
   return (
     <Routes>
@@ -32,7 +53,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <PropertySelection />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading property dashboard..." />}>
+              <PropertySelection />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -41,7 +64,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/inspector" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <InspectorWorkflow />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading inspector workflow..." />}>
+              <InspectorWorkflow />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -50,7 +75,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/properties" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <PropertySelection />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading properties..." />}>
+              <PropertySelection />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -59,7 +86,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/add-property" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <AddProperty />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading property form..." />}>
+              <AddProperty />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -68,7 +97,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/dashboard" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <Index />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading dashboard..." />}>
+              <Index />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -77,7 +108,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/reports" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <InspectionReports />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading inspection reports..." />}>
+              <InspectionReports />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -86,7 +119,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/inspection/:id" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <InspectionPage />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading inspection..." />}>
+              <InspectionPage />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -94,7 +129,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/inspection-complete/:id" element={
         <ProtectedRoute requiredRole="inspector">
           <ErrorBoundary level="component">
-            <InspectionComplete />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading completion page..." />}>
+              <InspectionComplete />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />
@@ -105,7 +142,9 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
       <Route path="/admin/*" element={
         <ProtectedRoute requiredRole="admin">
           <ErrorBoundary level="component">
-            <DirectAdminRouter />
+            <Suspense fallback={<ProfessionalLoadingFallback message="Loading admin portal..." />}>
+              <DirectAdminRouter />
+            </Suspense>
           </ErrorBoundary>
         </ProtectedRoute>
       } />

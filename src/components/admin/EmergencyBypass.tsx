@@ -8,7 +8,7 @@ import { AlertTriangle, Shield, Users, CheckSquare, Building } from 'lucide-reac
 export default function EmergencyBypass() {
   const navigateToComponent = (path: string) => {
     window.history.pushState({}, '', path);
-    window.location.reload();
+    window.location.assign(window.location.href);
   };
 
   return (
@@ -121,7 +121,7 @@ export default function EmergencyBypass() {
               <p>await window.supabase.auth.getSession()</p>
               <p></p>
               <p>// Force reload without cache:</p>
-              <p>window.location.reload(true)</p>
+              <p>window.location.assign(window.location.href)</p>
             </div>
           </CardContent>
         </Card>

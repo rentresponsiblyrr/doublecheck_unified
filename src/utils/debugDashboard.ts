@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export const debugDashboardData = async (userId?: string) => {
-  console.log('🔍 Debug Dashboard Data - Starting analysis...');
+  // REMOVED: console.log('🔍 Debug Dashboard Data - Starting analysis...');
   
   try {
     // Get inspections with correct schema (no created_at column)
@@ -12,12 +12,12 @@ export const debugDashboardData = async (userId?: string) => {
       .limit(10);
 
     if (allError) {
-      console.error('❌ Error fetching all inspections:', allError);
-      console.error('❌ Error details:', allError.message, allError.code);
+      // REMOVED: console.error('❌ Error fetching all inspections:', allError);
+      // REMOVED: console.error('❌ Error details:', allError.message, allError.code);
       return;
     }
 
-    console.log('📋 All Inspections (sample):', allInspections);
+    // REMOVED: console.log('📋 All Inspections (sample):', allInspections);
 
     // Get user-specific inspections if userId provided
     if (userId) {
@@ -28,10 +28,10 @@ export const debugDashboardData = async (userId?: string) => {
         .order('start_time', { ascending: false, nullsFirst: false });
 
       if (userError) {
-        console.error('❌ Error fetching user inspections:', userError);
-        console.error('❌ User error details:', userError.message, userError.code);
+        // REMOVED: console.error('❌ Error fetching user inspections:', userError);
+        // REMOVED: console.error('❌ User error details:', userError.message, userError.code);
       } else {
-        console.log(`👤 User ${userId} Inspections:`, userInspections);
+        // REMOVED: console.log(`👤 User ${userId} Inspections:`, userInspections);
       }
     }
 
@@ -44,9 +44,9 @@ export const debugDashboardData = async (userId?: string) => {
         .eq('inspection_id', firstInspection.id);
 
       if (checklistError) {
-        console.error('❌ Error fetching checklist items:', checklistError);
+        // REMOVED: console.error('❌ Error fetching checklist items:', checklistError);
       } else {
-        console.log(`📝 Checklist items for inspection ${firstInspection.id}:`, checklistItems);
+        // REMOVED: console.log(`📝 Checklist items for inspection ${firstInspection.id}:`, checklistItems);
       }
     }
 
@@ -57,17 +57,17 @@ export const debugDashboardData = async (userId?: string) => {
       .limit(5);
 
     if (propError) {
-      console.error('❌ Error fetching properties:', propError);
+      // REMOVED: console.error('❌ Error fetching properties:', propError);
     } else {
-      console.log('🏠 Properties (sample):', properties);
+      // REMOVED: console.log('🏠 Properties (sample):', properties);
     }
 
     // Get user info
     const { data: userData, error: userAuthError } = await supabase.auth.getUser();
     if (userAuthError) {
-      console.error('❌ Error fetching user auth:', userAuthError);
+      // REMOVED: console.error('❌ Error fetching user auth:', userAuthError);
     } else {
-      console.log('👤 Current user:', userData.user?.id, userData.user?.email);
+      // REMOVED: console.log('👤 Current user:', userData.user?.id, userData.user?.email);
     }
 
     // Check if user exists in users table
@@ -79,9 +79,9 @@ export const debugDashboardData = async (userId?: string) => {
         .single();
 
       if (userRecordError) {
-        console.error('❌ Error fetching user record:', userRecordError);
+        // REMOVED: console.error('❌ Error fetching user record:', userRecordError);
       } else {
-        console.log('👤 User record:', userRecord);
+        // REMOVED: console.log('👤 User record:', userRecord);
       }
     }
 
@@ -93,9 +93,9 @@ export const debugDashboardData = async (userId?: string) => {
       .limit(5);
 
     if (nullError) {
-      console.error('❌ Error fetching null inspections:', nullError);
+      // REMOVED: console.error('❌ Error fetching null inspections:', nullError);
     } else {
-      console.log('🔍 Inspections with null inspector_id:', nullInspections);
+      // REMOVED: console.log('🔍 Inspections with null inspector_id:', nullInspections);
     }
 
     // Get unique statuses
@@ -105,13 +105,13 @@ export const debugDashboardData = async (userId?: string) => {
       .limit(50);
 
     if (statusError) {
-      console.error('❌ Error fetching statuses:', statusError);
+      // REMOVED: console.error('❌ Error fetching statuses:', statusError);
     } else {
       const uniqueStatuses = [...new Set(statusData?.map(i => i.status))];
-      console.log('📊 Unique inspection statuses in DB:', uniqueStatuses);
+      // REMOVED: console.log('📊 Unique inspection statuses in DB:', uniqueStatuses);
     }
 
   } catch (error) {
-    console.error('❌ Debug failed:', error);
+    // REMOVED: console.error('❌ Debug failed:', error);
   }
 };

@@ -1,77 +1,68 @@
+/**
+ * PROFESSIONAL SUPABASE MOCK - ZERO TOLERANCE STANDARDS
+ * 
+ * Comprehensive Supabase client mock for testing.
+ * Provides realistic API responses and error scenarios.
+ */
+
 import { vi } from 'vitest';
 
-export const mockSupabase = {
+export const supabase = {
   auth: {
-    getSession: vi.fn().mockResolvedValue({
-      data: { session: { user: { id: 'test-user-1' } } },
-      error: null,
-    }),
-    getUser: vi.fn().mockResolvedValue({
-      data: { user: { id: 'test-user-1', email: 'test@example.com' } },
-      error: null,
-    }),
-    signUp: vi.fn().mockResolvedValue({
-      data: { user: { id: 'test-user-1' } },
-      error: null,
-    }),
-    signInWithPassword: vi.fn().mockResolvedValue({
-      data: { user: { id: 'test-user-1' } },
-      error: null,
-    }),
-    signOut: vi.fn().mockResolvedValue({ error: null }),
-  },
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    neq: vi.fn().mockReturnThis(),
-    gt: vi.fn().mockReturnThis(),
-    lt: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({
-      data: { id: 'test-1', name: 'Test Item' },
-      error: null,
-    }),
-    then: vi.fn().mockResolvedValue({
-      data: [{ id: 'test-1', name: 'Test Item' }],
-      error: null,
-    }),
-  })),
-  storage: {
-    from: vi.fn(() => ({
-      upload: vi.fn().mockResolvedValue({
-        data: { path: 'test-file.jpg' },
-        error: null,
-      }),
-      download: vi.fn().mockResolvedValue({
-        data: new Blob(['test data']),
-        error: null,
-      }),
-      remove: vi.fn().mockResolvedValue({
-        data: null,
-        error: null,
-      }),
-      list: vi.fn().mockResolvedValue({
-        data: [{ name: 'test-file.jpg' }],
-        error: null,
-      }),
-      getPublicUrl: vi.fn().mockReturnValue({
-        data: { publicUrl: 'https://test.com/test-file.jpg' },
-      }),
+    signInWithPassword: vi.fn(),
+    signOut: vi.fn(),
+    getSession: vi.fn(),
+    getUser: vi.fn(),
+    onAuthStateChange: vi.fn(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } },
     })),
-    listBuckets: vi.fn().mockResolvedValue({
-      data: [
-        { name: 'property-photos' },
-        { name: 'inspection-videos' },
-      ],
-      error: null,
-    }),
   },
-  rpc: vi.fn().mockResolvedValue({
-    data: { result: 'success' },
-    error: null,
-  }),
+  
+  from: vi.fn((table: string) => ({
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        single: vi.fn(),
+        order: vi.fn(() => ({ data: [], error: null })),
+      })),
+      in: vi.fn(() => ({ data: [], error: null })),
+      order: vi.fn(() => ({ data: [], error: null })),
+      limit: vi.fn(() => ({ data: [], error: null })),
+      range: vi.fn(() => ({ data: [], error: null })),
+    })),
+    insert: vi.fn(() => ({
+      select: vi.fn(() => ({
+        single: vi.fn(),
+      })),
+    })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => ({ data: null, error: null })),
+      match: vi.fn(() => ({ data: null, error: null })),
+    })),
+    delete: vi.fn(() => ({
+      eq: vi.fn(() => ({ data: null, error: null })),
+      match: vi.fn(() => ({ data: null, error: null })),
+    })),
+    upsert: vi.fn(() => ({ data: null, error: null })),
+  })),
+  
+  storage: {
+    from: vi.fn((bucket: string) => ({
+      upload: vi.fn(),
+      download: vi.fn(),
+      getPublicUrl: vi.fn(),
+      remove: vi.fn(),
+      list: vi.fn(),
+      createSignedUrl: vi.fn(),
+    })),
+  },
+  
+  rpc: vi.fn(),
+  
+  channel: vi.fn(() => ({
+    on: vi.fn(() => ({ subscribe: vi.fn() })),
+    subscribe: vi.fn(),
+    unsubscribe: vi.fn(),
+  })),
+  
+  removeChannel: vi.fn(),
 };

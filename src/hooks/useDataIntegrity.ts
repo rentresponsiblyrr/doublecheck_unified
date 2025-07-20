@@ -92,7 +92,7 @@ export const useDataIntegrity = (inspectionId?: string) => {
       }
 
     } catch (error) {
-      console.error('Data integrity check failed:', error);
+      // REMOVED: console.error('Data integrity check failed:', error);
       toast({
         title: "Integrity Check Failed",
         description: "Unable to complete data integrity checks.",
@@ -138,7 +138,7 @@ export const useDataIntegrity = (inspectionId?: string) => {
       setChecks(prev => prev.filter(c => c.id !== issueId));
       
     } catch (error) {
-      console.error('Failed to fix issue:', error);
+      // REMOVED: console.error('Failed to fix issue:', error);
       toast({
         title: "Fix Failed",
         description: "Unable to fix the data integrity issue.",

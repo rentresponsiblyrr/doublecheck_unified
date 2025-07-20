@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { log } from '@/lib/logging/enterprise-logger';
 
 export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -18,26 +19,34 @@ export const AuthForm = () => {
 
   // Debug logging for form field changes
   useEffect(() => {
-    console.log('📱 AuthForm mounted');
+    log.debug('AuthForm mounted', {
+      component: 'AuthForm',
+      action: 'mount'
+    }, 'AUTHFORM_MOUNTED');
+    
     const emailInput = document.querySelector('input[type="email"]');
     const passwordInput = document.querySelector('input[type="password"]');
-    console.log('📱 Email input found:', emailInput ? {
-      disabled: (emailInput as HTMLInputElement).disabled,
-      readOnly: (emailInput as HTMLInputElement).readOnly,
-      value: (emailInput as HTMLInputElement).value,
-      style: (emailInput as HTMLInputElement).style
-    } : 'not found');
-    console.log('📱 Password input found:', passwordInput ? {
-      disabled: (passwordInput as HTMLInputElement).disabled,
-      readOnly: (passwordInput as HTMLInputElement).readOnly,
-      value: (passwordInput as HTMLInputElement).value,
-      style: (passwordInput as HTMLInputElement).style
-    } : 'not found');
+    
+    log.debug('Form inputs validation', {
+      component: 'AuthForm',
+      action: 'validateInputs',
+      emailInputFound: !!emailInput,
+      passwordInputFound: !!passwordInput,
+      emailDisabled: emailInput ? (emailInput as HTMLInputElement).disabled : null,
+      passwordDisabled: passwordInput ? (passwordInput as HTMLInputElement).disabled : null
+    }, 'FORM_INPUTS_VALIDATED');
   }, []);
 
   useEffect(() => {
-    console.log('📱 Form state changed:', { email: email.length, password: password.length, loading });
-  }, [email, password, loading]);
+    log.debug('Form state changed', {
+      component: 'AuthForm',
+      action: 'stateChange',
+      emailLength: email.length,
+      passwordLength: password.length,
+      isLoading: loading,
+      isSignUpMode: isSignUp
+    }, 'FORM_STATE_CHANGED');
+  }, [email, password, loading, isSignUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +62,13 @@ export const AuthForm = () => {
         : await signIn(currentEmail, currentPassword);
 
       if (error) {
-        console.error('Auth error:', error);
+        log.error('Authentication error during form submission', error, {
+          component: 'AuthForm',
+          action: 'handleSubmit',
+          isSignUp,
+          emailLength: currentEmail.length,
+          hasPassword: !!currentPassword
+        }, 'AUTH_FORM_SUBMISSION_ERROR');
         // Restore form values if there was an error
         setEmail(currentEmail);
         setPassword(currentPassword);
@@ -78,7 +93,12 @@ export const AuthForm = () => {
         });
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      log.error('Unexpected authentication error', error as Error, {
+        component: 'AuthForm',
+        action: 'handleSubmit',
+        isSignUp,
+        emailLength: currentEmail.length
+      }, 'AUTH_UNEXPECTED_ERROR');
       // Restore form values on error
       setEmail(currentEmail);
       setPassword(currentPassword);

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ensureValidCategory } from "@/utils/categoryMapping";
+import { log } from '@/lib/logging/enterprise-logger';
 
 export interface StaticSafetyItem {
   id: string;
@@ -20,7 +21,10 @@ export interface ChecklistItem {
 
 export class ChecklistDataService {
   async fetchStaticSafetyItems(): Promise<StaticSafetyItem[]> {
-    console.log('📋 Fetching static safety items from database...');
+    log.info('Fetching static safety items from database', {
+      component: 'ChecklistDataService',
+      action: 'fetchStaticSafetyItems'
+    }, 'STATIC_SAFETY_ITEMS_FETCH_STARTED');
     
     const { data: staticItems, error: fetchError } = await supabase
       .from('static_safety_items')
@@ -29,16 +33,28 @@ export class ChecklistDataService {
       .eq('required', true);
 
     if (fetchError) {
-      console.error('❌ Error fetching static safety items:', fetchError);
+      log.error('Error fetching static safety items', fetchError, {
+        component: 'ChecklistDataService',
+        action: 'fetchStaticSafetyItems'
+      }, 'STATIC_SAFETY_ITEMS_FETCH_ERROR');
       throw fetchError;
     }
 
     if (!staticItems || staticItems.length === 0) {
-      console.warn('⚠️ No static safety items found');
+      log.warn('No static safety items found', {
+        component: 'ChecklistDataService',
+        action: 'fetchStaticSafetyItems',
+        filters: { deleted: false, required: true }
+      }, 'NO_STATIC_SAFETY_ITEMS_FOUND');
       return [];
     }
 
-    console.log(`✅ Found ${staticItems.length} static safety items`);
+    log.info('Found static safety items', {
+      component: 'ChecklistDataService',
+      action: 'fetchStaticSafetyItems',
+      itemCount: staticItems.length,
+      filters: { deleted: false, required: true }
+    }, 'STATIC_SAFETY_ITEMS_FOUND');
     
     // Apply category normalization
     const normalizedItems = staticItems.map(item => ({
@@ -50,10 +66,18 @@ export class ChecklistDataService {
   }
 
   async insertChecklistItems(checklistItems: ChecklistItem[]): Promise<void> {
-    console.log('📝 Inserting checklist items:', checklistItems.length);
+    log.info('Inserting checklist items', {
+      component: 'ChecklistDataService',
+      action: 'insertChecklistItems',
+      itemCount: checklistItems.length
+    }, 'CHECKLIST_ITEMS_INSERT_STARTED');
 
     if (checklistItems.length === 0) {
-      console.warn('⚠️ No checklist items to insert');
+      log.warn('No checklist items to insert', {
+        component: 'ChecklistDataService',
+        action: 'insertChecklistItems',
+        itemCount: 0
+      }, 'NO_CHECKLIST_ITEMS_TO_INSERT');
       return;
     }
 
@@ -68,8 +92,12 @@ export class ChecklistDataService {
       // However, the checklist table is for templates, not inspection-specific items
       // For now, we'll create a proper inspection-specific approach
       
-      console.log('⚠️ Checklist data service needs redesign - current table is for templates only');
-      console.log('📋 Normalized items to be handled:', normalizedItems.length);
+      log.warn('Checklist data service needs redesign - current table is for templates only', {
+        component: 'ChecklistDataService',
+        action: 'insertChecklistItems',
+        normalizedItemCount: normalizedItems.length,
+        issue: 'TABLE_STRUCTURE_MISMATCH'
+      }, 'CHECKLIST_SERVICE_REDESIGN_NEEDED');
       
       // TODO: Implement proper inspection-specific checklist item creation
       // This should either:
@@ -79,9 +107,17 @@ export class ChecklistDataService {
       
       return; // Skip actual insertion until table structure is clarified
 
-      console.log('✅ Successfully inserted checklist items');
+      log.info('Successfully inserted checklist items', {
+        component: 'ChecklistDataService',
+        action: 'insertChecklistItems',
+        itemCount: normalizedItems.length
+      }, 'CHECKLIST_ITEMS_INSERTED');
     } catch (error) {
-      console.error('💥 Insertion error:', error);
+      log.error('Checklist items insertion error', error as Error, {
+        component: 'ChecklistDataService',
+        action: 'insertChecklistItems',
+        itemCount: normalizedItems.length
+      }, 'CHECKLIST_ITEMS_INSERT_ERROR');
       throw error;
     }
   }

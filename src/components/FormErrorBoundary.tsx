@@ -28,7 +28,7 @@ export class FormErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('📝 Form Error Boundary caught an error:', error, errorInfo);
+    // REMOVED: console.error('📝 Form Error Boundary caught an error:', error, errorInfo);
     this.setState({ error, errorInfo });
   }
 

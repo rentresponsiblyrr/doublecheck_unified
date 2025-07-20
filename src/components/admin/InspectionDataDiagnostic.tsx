@@ -45,7 +45,7 @@ export default function InspectionDataDiagnostic() {
     setError(null);
     
     try {
-      console.log('🔍 Running diagnostic for property:', propertyName);
+      // REMOVED: console.log('🔍 Running diagnostic for property:', propertyName);
 
       // First, find the property
       const { data: properties, error: propError } = await supabase
@@ -65,7 +65,7 @@ export default function InspectionDataDiagnostic() {
 
       const property = properties[0];
       setPropertyInfo(property);
-      console.log('🏠 Found property:', property);
+      // REMOVED: console.log('🏠 Found property:', property);
 
       // Get all inspections for this property
       const { data: inspections, error: inspError } = await supabase
@@ -92,7 +92,7 @@ export default function InspectionDataDiagnostic() {
       }));
 
       setInspectionData(diagnosticData);
-      console.log('📊 Diagnostic data:', diagnosticData);
+      // REMOVED: console.log('📊 Diagnostic data:', diagnosticData);
 
       // Test the database function too
       const { data: functionResult, error: funcError } = await supabase.rpc('get_properties_with_inspections', {
@@ -101,13 +101,13 @@ export default function InspectionDataDiagnostic() {
 
       if (!funcError && functionResult) {
         const propertyInFunction = functionResult.find(p => p.property_name === property.name);
-        console.log('🔧 Database function result for this property:', propertyInFunction);
+        // REMOVED: console.log('🔧 Database function result for this property:', propertyInFunction);
       } else {
         console.warn('⚠️ Database function failed:', funcError);
       }
 
     } catch (err) {
-      console.error('❌ Diagnostic failed:', err);
+      // REMOVED: console.error('❌ Diagnostic failed:', err);
       setError(err instanceof Error ? err.message : 'Diagnostic failed');
     } finally {
       setIsLoading(false);

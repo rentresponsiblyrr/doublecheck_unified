@@ -68,7 +68,7 @@ export const useMobileErrorRecovery = () => {
           });
           return true;
         } catch (error) {
-          console.error('📱 Auth refresh failed:', error);
+          // REMOVED: console.error('📱 Auth refresh failed:', error);
           return false;
         }
       }
@@ -97,7 +97,7 @@ export const useMobileErrorRecovery = () => {
           });
           return true;
         } catch (error) {
-          console.error('📱 Cache clear failed:', error);
+          // REMOVED: console.error('📱 Cache clear failed:', error);
           return false;
         }
       }
@@ -117,7 +117,7 @@ export const useMobileErrorRecovery = () => {
           });
           return true;
         } catch (error) {
-          console.error('📱 Session reset failed:', error);
+          // REMOVED: console.error('📱 Session reset failed:', error);
           return false;
         }
       }
@@ -127,7 +127,7 @@ export const useMobileErrorRecovery = () => {
       description: 'Reload the application',
       priority: 5,
       action: async () => {
-        window.location.reload();
+        window.location.replace('/');
         return true;
       }
     }
@@ -148,16 +148,16 @@ export const useMobileErrorRecovery = () => {
       errorHistory: [...prev.errorHistory.slice(-9), errorRecord] // Keep last 10 errors
     }));
 
-    console.log('📱 Error recorded:', errorRecord);
+    // REMOVED: console.log('📱 Error recorded:', errorRecord);
   }, []);
 
   const attemptRecovery = useCallback(async (context: string = 'unknown') => {
     if (recoveryState.recoveryInProgress) {
-      console.log('📱 Recovery already in progress');
+      // REMOVED: console.log('📱 Recovery already in progress');
       return false;
     }
 
-    console.log('📱 Starting mobile error recovery...');
+    // REMOVED: console.log('📱 Starting mobile error recovery...');
     
     setRecoveryState(prev => ({ ...prev, recoveryInProgress: true }));
 
@@ -166,17 +166,17 @@ export const useMobileErrorRecovery = () => {
 
     for (const strategy of strategies) {
       try {
-        console.log(`📱 Trying recovery strategy: ${strategy.name}`);
+        // REMOVED: console.log(`📱 Trying recovery strategy: ${strategy.name}`);
         
         const success = await strategy.action();
         
         if (success) {
-          console.log(`✅ Recovery successful with: ${strategy.name}`);
+          // REMOVED: console.log(`✅ Recovery successful with: ${strategy.name}`);
           recoverySuccessful = true;
           break;
         }
       } catch (error) {
-        console.error(`❌ Recovery strategy ${strategy.name} failed:`, error);
+        // REMOVED: console.error(`❌ Recovery strategy ${strategy.name} failed:`, error);
       }
       
       // Wait between strategies to avoid overwhelming the system
@@ -210,7 +210,7 @@ export const useMobileErrorRecovery = () => {
       
       // Auto-recover if errors are frequent (within 30 seconds)
       if (timeSinceLastError < 30000) {
-        console.log('📱 Frequent errors detected, starting auto-recovery...');
+        // REMOVED: console.log('📱 Frequent errors detected, starting auto-recovery...');
         setTimeout(() => {
           attemptRecovery('auto-recovery');
         }, 2000);

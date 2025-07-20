@@ -8,52 +8,47 @@ import AdminOverview from './AdminOverview';
 import PropertyManagement from './PropertyManagement';
 import SimpleInspectionManagement from './SimpleInspectionManagement';
 
-// Import simple, working components
-import SimpleUserManagement from './SimpleUserManagement';
-import SimpleChecklistManagement from './SimpleChecklistManagement';
+// Import canonical components (consolidated from multiple variants)
+import UserManagement from './UserManagement';
+import ChecklistManagement from './ChecklistManagement';
 import SimpleBugReportManagement from './SimpleBugReportManagement';
 import AdminDiagnostics from './AdminDiagnostics';
 import ComponentTest from './ComponentTest';
 // import RobustAdminWrapper from './RobustAdminWrapper'; // Removed to expose real errors
 import SimpleTestComponent from './SimpleTestComponent';
-import SimpleUserManagementFixed from './SimpleUserManagementFixed';
-import SimpleChecklistManagementFixed from './SimpleChecklistManagementFixed';
-import AuditCenterFixed from './AuditCenterFixed';
-import GitHubIntegrationTest from './GitHubIntegrationTest';
-import ComprehensiveGitHubTest from './ComprehensiveGitHubTest';
+// Removed: Fixed variants consolidated into canonical components
+// Removed: Redundant test components (GitHubIntegrationTest, ComprehensiveGitHubTest)
 
 // Import fallback components
 import { UserManagementFallback } from './fallbacks/UserManagementFallback';
 import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
 import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
 
-// Import health monitoring
-import { ComponentHealthMonitor } from './ComponentHealthMonitor';
+// Removed: ComponentHealthMonitor (redundant test component)
 
 // Import remaining components directly
 import ReportManagement from './ReportManagement';
 import AuditCenter from './AuditCenter';
 import ComingSoonPage from './ComingSoonPage';
-import SimpleAdminTest from './SimpleAdminTest';
+// Removed: SimpleAdminTest, SimpleTestPage (redundant test components)
 import InspectionCleanupUtility from './InspectionCleanupUtility';
 import InspectionDataDiagnostic from './InspectionDataDiagnostic';
 import DatabaseConnectivityTest from './DatabaseConnectivityTest';
-import SimpleTestPage from './SimpleTestPage';
+// Removed: SimpleTestPage (redundant)
 import AdminErrorBoundary from './AdminErrorBoundary';
 import InspectionCreationDiagnostic from './InspectionCreationDiagnostic';
 import ChecklistDiagnostic from './ChecklistDiagnostic';
 import ErrorDiagnostic from './ErrorDiagnostic';
 import DirectErrorLogger from './DirectErrorLogger';
-import ComponentImportTest from './ComponentImportTest';
+// Removed: ComponentImportTest (redundant)
 import EmergencyBypass from './EmergencyBypass';
 import ComprehensiveDiagnostic from './ComprehensiveDiagnostic';
-import { AdminDeploymentTest } from './AdminDeploymentTest';
-import { AdminRoutesTest } from './AdminRoutesTest';
+// Removed: AdminDeploymentTest, AdminRoutesTest (redundant test components)
 // import { VerboseErrorBoundary } from './VerboseErrorBoundary'; // Removed to expose real errors
 
 // Loading fallback
 const AdminLoadingFallback = () => {
-  console.log('⏳ AdminLoadingFallback rendering...');
+  // REMOVED: console.log('⏳ AdminLoadingFallback rendering...');
   return (
     <div className="p-8 bg-blue-50 border-2 border-blue-300 rounded-lg">
       <div className="text-center">
@@ -77,15 +72,15 @@ const AdminLoadingFallback = () => {
 
 // Admin Routes Component
 export default function AdminRoutes() {
-  console.log('🔍 AdminRoutes component rendering...');
-  console.log('📍 Current location:', window.location.pathname);
-  console.log('📍 Current search params:', window.location.search);
+  // REMOVED: console.log('🔍 AdminRoutes component rendering...');
+  // REMOVED: console.log('📍 Current location:', window.location.pathname);
+  // REMOVED: console.log('📍 Current search params:', window.location.search);
   
   // EMERGENCY DEBUG: Show what AdminRoutes is receiving
-  console.log('🔍 AdminRoutes Debug:');
-  console.log('- Full pathname:', window.location.pathname);
-  console.log('- useLocation pathname:', useLocation().pathname);
-  console.log('- React Router state:', useLocation().state);
+  // REMOVED: console.log('🔍 AdminRoutes Debug:');
+  // REMOVED: console.log('- Full pathname:', window.location.pathname);
+  // REMOVED: console.log('- useLocation pathname:', useLocation().pathname);
+  // REMOVED: console.log('- React Router state:', useLocation().state);
   
   // For debugging - show a simple test first
   if (window.location.pathname === '/admin/test' || window.location.search.includes('debug=true')) {
@@ -103,11 +98,11 @@ export default function AdminRoutes() {
   const currentPath = window.location.pathname;
   const routerPath = useLocation().pathname;
   
-  console.log('🚨 EMERGENCY PATH CHECK:');
-  console.log('- window.location.pathname:', JSON.stringify(currentPath));
-  console.log('- useLocation().pathname:', JSON.stringify(routerPath));
-  console.log('- currentPath includes health:', currentPath.includes('health'));
-  console.log('- routerPath includes health:', routerPath.includes('health'));
+  // REMOVED: console.log('🚨 EMERGENCY PATH CHECK:');
+  // REMOVED: console.log('- window.location.pathname:', JSON.stringify(currentPath));
+  // REMOVED: console.log('- useLocation().pathname:', JSON.stringify(routerPath));
+  // REMOVED: console.log('- currentPath includes health:', currentPath.includes('health'));
+  // REMOVED: console.log('- routerPath includes health:', routerPath.includes('health'));
   
   if (currentPath.includes('health') || routerPath.includes('health') || currentPath === '/admin/health') {
     return (
@@ -122,7 +117,7 @@ export default function AdminRoutes() {
               <div>Time: {new Date().toLocaleString()}</div>
             </div>
           </div>
-          <ComponentHealthMonitor />
+          <DatabaseConnectivityTest />
         </div>
       </AdminLayout>
     );
@@ -158,7 +153,7 @@ export default function AdminRoutes() {
                 Go to User Management
               </button>
               <button 
-                onClick={() => window.location.reload()}
+                onClick={() => window.location.assign(window.location.href)}
                 className="block w-full text-left px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Reload Page
@@ -179,12 +174,11 @@ export default function AdminRoutes() {
           <Route path="/" element={<AdminOverview />} />
             
           {/* All routes use relative paths - works for both /admin/* and direct routes */}
-          <Route path="deployment-test" element={<AdminDeploymentTest />} />
-          <Route path="routes-test" element={<AdminRoutesTest />} />
+          {/* Removed: deployment-test and routes-test routes (redundant test components) */}
           <Route path="properties" element={<PropertyManagement />} />
           <Route path="users" element={
             <AdminErrorBoundary componentName="User Management" fallback={<UserManagementFallback />}>
-              <SimpleUserManagement />
+              <UserManagement />
             </AdminErrorBoundary>
           } />
           <Route path="inspections" element={<SimpleInspectionManagement />} />
@@ -198,7 +192,7 @@ export default function AdminRoutes() {
           <Route path="reports" element={<ReportManagement />} />
           <Route path="checklists" element={
             <AdminErrorBoundary componentName="Checklist Management" fallback={<ChecklistManagementFallback />}>
-              <SimpleChecklistManagement />
+              <ChecklistManagement />
             </AdminErrorBoundary>
           } />
           <Route path="performance" element={
@@ -257,21 +251,20 @@ export default function AdminRoutes() {
           } />
           <Route path="bug-reports" element={<SimpleBugReportManagement />} />
           <Route path="diagnostics" element={<AdminDiagnostics />} />
-          <Route path="health" element={<ComponentHealthMonitor />} />
+          <Route path="health" element={<DatabaseConnectivityTest />} />
           <Route path="component-test" element={<ComponentTest />} />
-          <Route path="github-test" element={<GitHubIntegrationTest />} />
-          <Route path="github-comprehensive" element={<ComprehensiveGitHubTest />} />
+          {/* Removed: github-test and github-comprehensive routes (redundant test components) */}
           <Route path="db-test" element={
             <AdminErrorBoundary>
               <DatabaseConnectivityTest />
             </AdminErrorBoundary>
           } />
-          <Route path="simple-test" element={<SimpleTestPage />} />
+          {/* Removed: simple-test route (redundant test component) */}
           <Route path="inspection-creation-diagnostic" element={<InspectionCreationDiagnostic />} />
           <Route path="checklist-diagnostic" element={<ChecklistDiagnostic />} />
           <Route path="error-diagnostic" element={<ErrorDiagnostic />} />
           <Route path="direct-error-logger" element={<DirectErrorLogger />} />
-          <Route path="component-import-test" element={<ComponentImportTest />} />
+          {/* Removed: component-import-test route (redundant test component) */}
           <Route path="emergency-bypass" element={<EmergencyBypass />} />
           <Route path="comprehensive-diagnostic" element={<ComprehensiveDiagnostic />} />
           
@@ -281,7 +274,7 @@ export default function AdminRoutes() {
       </AdminLayout>
     );
   } catch (error) {
-    console.error('AdminRoutes routing failed:', error);
+    // REMOVED: console.error('AdminRoutes routing failed:', error);
     return emergencyFallback;
   }
 }

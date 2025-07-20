@@ -1,0 +1,151 @@
+name: STR Certified Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: 🏗️ Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: 📦 Install Dependencies
+      run: npm ci
+      
+    - name: 🔍 TypeScript Compilation Check
+      run: npm run typecheck
+      
+    - name: 🧹 ESLint Code Quality
+      run: npm run lint
+      
+    - name: 🧪 Unit & Integration Tests
+      run: npm run test:coverage
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        
+    - name: 🏗️ Production Build Test
+      run: npm run build
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+        
+    - name: 🏛️ Architecture Compliance Check
+      run: npm run architecture-compliance
+      
+    - name: ⚡ Performance Audit
+      run: npm run performance-audit
+      
+    - name: 🔒 Security Scan
+      run: npm run security-scan
+      
+    - name: 📊 Generate Quality Report
+      run: npm run code-quality-report
+      
+    - name: 🧪 Load Testing (if main branch)
+      if: github.ref == 'refs/heads/main'
+      run: npm run test:load
+      
+    - name: 📈 Upload Coverage Reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        
+    - name: 📋 Upload Quality Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: quality-reports-${{ matrix.node-version }}
+        path: |
+          compliance-report.json
+          performance-audit.json
+          security-scan.json
+          code-quality-report.json
+          coverage/
+          
+    - name: 💬 Comment PR with Quality Report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const qualityReport = JSON.parse(fs.readFileSync('code-quality-report.json', 'utf8'));
+            const score = qualityReport.overallScore;
+            const grade = score >= 95 ? 'A+' : score >= 90 ? 'A' : score >= 85 ? 'A-' : 
+                         score >= 80 ? 'B+' : score >= 75 ? 'B' : score >= 70 ? 'B-' : 
+                         score >= 65 ? 'C+' : score >= 60 ? 'C' : score >= 55 ? 'C-' : 
+                         score >= 50 ? 'D' : 'F';
+            
+            const emoji = grade.startsWith('A') ? '🚀' : grade.startsWith('B') ? '✅' : 
+                         grade.startsWith('C') ? '⚠️' : '❌';
+            
+            const comment = `## ${emoji} STR Certified Quality Gates Report
+            
+            **Overall Quality Score: ${score}/100 (Grade: ${grade})**
+            
+            ### 📊 Detailed Breakdown
+            - **Architecture Compliance**: ${qualityReport.compliance?.score || 0}/100
+            - **Security Score**: ${qualityReport.security?.score || 0}/100  
+            - **Performance Score**: ${qualityReport.performance?.score || 0}/100
+            - **Test Coverage**: ${qualityReport.coverage?.score || 0}%
+            
+            ### 🔍 Key Metrics
+            ${qualityReport.compliance?.violationsCount > 0 ? `- ⚠️ ${qualityReport.compliance.violationsCount} architecture violations` : '- ✅ No architecture violations'}
+            ${qualityReport.security?.highRisk > 0 ? `- 🚨 ${qualityReport.security.highRisk} high-risk security issues` : '- 🔒 No high-risk security issues'}
+            ${qualityReport.performance?.bundleSize !== 'Unknown' ? `- 📦 Bundle size: ${qualityReport.performance.bundleSize}MB` : ''}
+            
+            ${qualityReport.recommendations?.length > 0 ? `### 🔧 Priority Recommendations
+            ${qualityReport.recommendations.slice(0, 3).map(r => `- **${r.priority}**: ${r.message}`).join('\n')}` : '### ✨ All Quality Standards Met!'}
+            
+            ---
+            *This report was generated automatically by STR Certified Quality Gates*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+          } catch (error) {
+            console.log('Could not generate quality report comment:', error.message);
+          }
+
+  block-on-quality-failures:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: always()
+    
+    steps:
+    - name: 🚫 Block Merge on Quality Failures
+      if: needs.quality-gates.result == 'failure'
+      run: |
+        echo "❌ Quality gates failed - blocking merge"
+        echo "🔧 Fix all critical violations before merging"
+        exit 1
+        
+    - name: ✅ Quality Gates Passed
+      if: needs.quality-gates.result == 'success'
+      run: |
+        echo "✅ All quality gates passed - ready for production"
+        echo "🚀 Code meets STR Certified engineering standards"

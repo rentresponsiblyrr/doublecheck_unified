@@ -8,8 +8,44 @@
  */
 
 import { OpenAI } from 'openai';
+import { 
+  LearningOutcome, 
+  AIPerformanceAnalysis, 
+  LearningRecommendation,
+  LearningContextData,
+  AIModelMetrics 
+} from '@/types/learning-system';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorDetails, ErrorResolutionHistory } from '@/types/errorTypes';
+import { log } from '@/lib/logging/enterprise-logger';
+
+interface AIResult {
+  classification?: {
+    category: string;
+    subcategory?: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+  };
+  rootCause?: {
+    primaryCause: string;
+    contributingFactors: string[];
+    affectedComponents: string[];
+  };
+  reproduction?: {
+    steps: string[];
+    environment: string;
+    success: boolean;
+  };
+  healing?: {
+    suggestions: string[];
+    automatedFixes: string[];
+    riskLevel: 'low' | 'medium' | 'high';
+  };
+  prediction?: {
+    likelihood: number;
+    timeframe: string;
+    preventionActions: string[];
+  };
+}
 
 interface LearningDataPoint {
   id: string;
@@ -19,14 +55,14 @@ interface LearningDataPoint {
   // Original AI prediction/analysis
   aiPrediction: {
     confidence: number;
-    result: any;
+    result: AIResult;
     model: string;
     timestamp: string;
   };
   
   // Actual outcome/correction
   actualOutcome: {
-    result: any;
+    result: AIResult;
     verifiedBy: 'human' | 'automated' | 'user_feedback';
     timestamp: string;
     source: string;
@@ -149,14 +185,14 @@ export class LearningSystem {
   private isLearning = false;
 
   constructor() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured for learning system');
-    }
-    this.openai = new OpenAI({ 
-      apiKey, 
-      dangerouslyAllowBrowser: true 
-    });
+    // SECURITY: Direct AI integration disabled for security
+    log.warn('LearningSystem: Direct AI integration disabled', {
+      component: 'LearningSystem',
+      action: 'constructor',
+      reason: 'security',
+      recommendation: 'Use AIProxyService instead'
+    }, 'AI_INTEGRATION_DISABLED');
+    this.openai = null as any; // DISABLED
   }
 
   /**
@@ -165,9 +201,9 @@ export class LearningSystem {
   async recordLearningData(
     errorId: string,
     category: LearningDataPoint['category'],
-    aiPrediction: any,
-    actualOutcome: any,
-    context: any
+    aiPrediction: AIResult,
+    actualOutcome: AIResult,
+    context: Record<string, unknown>
   ): Promise<void> {
     try {
       const accuracy = await this.calculateAccuracy(aiPrediction, actualOutcome, category);
@@ -208,7 +244,12 @@ export class LearningSystem {
       await this.analyzeLearningData(category);
 
     } catch (error) {
-      console.error('❌ Failed to record learning data:', error);
+      log.error('Failed to record learning data', error as Error, {
+        component: 'LearningSystem',
+        action: 'recordLearningData',
+        errorId,
+        category
+      }, 'LEARNING_DATA_RECORD_FAILED');
     }
   }
 
@@ -240,7 +281,11 @@ export class LearningSystem {
       await this.analyzeFeedback(userFeedback);
 
     } catch (error) {
-      console.error('❌ Failed to record user feedback:', error);
+      log.error('Failed to record user feedback', error as Error, {
+        component: 'LearningSystem',
+        action: 'recordUserFeedback',
+        errorId
+      }, 'USER_FEEDBACK_RECORD_FAILED');
     }
   }
 
@@ -265,7 +310,11 @@ export class LearningSystem {
       this.recommendations.push(...recommendations);
 
     } catch (error) {
-      console.error('❌ Failed to analyze resolution outcome:', error);
+      log.error('Failed to analyze resolution outcome', error as Error, {
+        component: 'LearningSystem',
+        action: 'analyzeResolutionOutcome',
+        errorId
+      }, 'RESOLUTION_ANALYSIS_FAILED');
     }
   }
 
@@ -286,7 +335,10 @@ export class LearningSystem {
       return prioritizedRecommendations;
 
     } catch (error) {
-      console.error('❌ Failed to generate model recommendations:', error);
+      log.error('Failed to generate model recommendations', error as Error, {
+        component: 'LearningSystem',
+        action: 'generateModelRecommendations'
+      }, 'MODEL_RECOMMENDATIONS_FAILED');
       return [];
     }
   }
@@ -295,8 +347,8 @@ export class LearningSystem {
    * Calculate accuracy between AI prediction and actual outcome
    */
   private async calculateAccuracy(
-    aiPrediction: any,
-    actualOutcome: any,
+    aiPrediction: AIResult,
+    actualOutcome: AIResult,
     category: string
   ): Promise<LearningDataPoint['accuracy']> {
     let overall = 0;
@@ -341,7 +393,7 @@ export class LearningSystem {
   /**
    * Calculate classification accuracy
    */
-  private calculateClassificationAccuracy(aiPrediction: any, actualOutcome: any): number {
+  private calculateClassificationAccuracy(aiPrediction: AIResult, actualOutcome: AIResult): number {
     if (!aiPrediction.classification || !actualOutcome.classification) {
       return 0;
     }
@@ -366,7 +418,7 @@ export class LearningSystem {
   /**
    * Calculate root cause accuracy
    */
-  private calculateRootCauseAccuracy(aiPrediction: any, actualOutcome: any): number {
+  private calculateRootCauseAccuracy(aiPrediction: AIResult, actualOutcome: AIResult): number {
     if (!aiPrediction.rootCause || !actualOutcome.rootCause) {
       return 0;
     }
@@ -387,7 +439,7 @@ export class LearningSystem {
   /**
    * Calculate reproduction accuracy
    */
-  private calculateReproductionAccuracy(aiPrediction: any, actualOutcome: any): number {
+  private calculateReproductionAccuracy(aiPrediction: AIResult, actualOutcome: AIResult): number {
     if (!aiPrediction.steps || !actualOutcome.successRate) {
       return 0;
     }
@@ -405,7 +457,7 @@ export class LearningSystem {
   /**
    * Calculate healing accuracy
    */
-  private calculateHealingAccuracy(aiPrediction: any, actualOutcome: any): number {
+  private calculateHealingAccuracy(aiPrediction: AIResult, actualOutcome: AIResult): number {
     if (!aiPrediction.suggestions || !actualOutcome.results) {
       return 0;
     }
@@ -428,7 +480,7 @@ export class LearningSystem {
   /**
    * Calculate prediction accuracy
    */
-  private calculatePredictionAccuracy(aiPrediction: any, actualOutcome: any): number {
+  private calculatePredictionAccuracy(aiPrediction: AIResult, actualOutcome: AIResult): number {
     if (!aiPrediction.predictions || !actualOutcome.actualEvents) {
       return 0;
     }
@@ -441,7 +493,7 @@ export class LearningSystem {
     let total = predicted.length;
 
     for (const prediction of predicted) {
-      const matchingActual = actual.find((a: any) => 
+      const matchingActual = actual.find((a: LearningOutcome) => 
         a.type === prediction.type && 
         Math.abs(new Date(a.timestamp).getTime() - new Date(prediction.timestamp).getTime()) < 3600000 // 1 hour tolerance
       );
@@ -457,7 +509,7 @@ export class LearningSystem {
   /**
    * Calculate confidence calibration
    */
-  private calculateConfidenceCalibration(aiPrediction: any, actualOutcome: any): number {
+  private calculateConfidenceCalibration(aiPrediction: LearningOutcome, actualOutcome: LearningOutcome): number {
     const predictedConfidence = aiPrediction.confidence || 0.5;
     const actualAccuracy = actualOutcome.accuracy || 0;
 
@@ -472,9 +524,9 @@ export class LearningSystem {
    * Generate insights from prediction vs outcome comparison
    */
   private async generateInsights(
-    aiPrediction: any,
-    actualOutcome: any,
-    context: any
+    aiPrediction: LearningOutcome,
+    actualOutcome: LearningOutcome,
+    context: LearningContextData
   ): Promise<LearningDataPoint['insights']> {
     const prompt = `
 Analyze this AI prediction vs actual outcome and provide learning insights:
@@ -519,7 +571,10 @@ Format as JSON with arrays of strings for each category.
         return JSON.parse(insightsText);
       }
     } catch (error) {
-      console.error('❌ Failed to generate insights:', error);
+      log.error('Failed to generate insights from AI prediction analysis', error as Error, {
+        component: 'LearningSystem',
+        action: 'generateInsights'
+      }, 'INSIGHTS_GENERATION_FAILED');
     }
 
     // Fallback insights
@@ -656,7 +711,12 @@ Format as JSON with arrays of strings for each category.
           created_at: dataPoint.createdAt
         });
     } catch (error) {
-      console.error('❌ Failed to store learning data:', error);
+      log.error('Failed to store learning data in database', error as Error, {
+        component: 'LearningSystem',
+        action: 'storeLearningData',
+        dataPointId: dataPoint.id,
+        errorId: dataPoint.errorId
+      }, 'LEARNING_DATA_STORAGE_FAILED');
     }
   }
 
@@ -679,7 +739,12 @@ Format as JSON with arrays of strings for each category.
           created_at: feedback.createdAt
         });
     } catch (error) {
-      console.error('❌ Failed to store user feedback:', error);
+      log.error('Failed to store user feedback in database', error as Error, {
+        component: 'LearningSystem',
+        action: 'storeUserFeedback',
+        feedbackId: feedback.id,
+        errorId: feedback.errorId
+      }, 'USER_FEEDBACK_STORAGE_FAILED');
     }
   }
 
@@ -723,15 +788,21 @@ Format as JSON with arrays of strings for each category.
   /**
    * Update performance metrics based on new learnings
    */
-  private async updatePerformanceMetrics(learnings: any): Promise<void> {
+  private async updatePerformanceMetrics(learnings: LearningOutcome[]): Promise<void> {
     // Update metrics based on resolution outcomes
-    console.log('Updating performance metrics with new learnings:', learnings);
+    log.info('Updating performance metrics with new learnings', {
+      component: 'LearningSystem',
+      action: 'updatePerformanceMetrics',
+      errorId: learnings.errorId,
+      resolutionTime: learnings.resolutionTime,
+      successful: learnings.successful
+    }, 'PERFORMANCE_METRICS_UPDATE');
   }
 
   /**
    * Generate improvement recommendations
    */
-  private async generateImprovementRecommendations(learnings: any): Promise<LearningRecommendation[]> {
+  private async generateImprovementRecommendations(learnings: LearningOutcome[]): Promise<LearningRecommendation[]> {
     const recommendations: LearningRecommendation[] = [];
 
     if (learnings.resolutionTime > 3600000) { // > 1 hour
@@ -791,7 +862,7 @@ Format as JSON with arrays of strings for each category.
   /**
    * Generate AI-powered recommendations
    */
-  private async generateAIRecommendations(performanceAnalysis: any): Promise<LearningRecommendation[]> {
+  private async generateAIRecommendations(performanceAnalysis: AIPerformanceAnalysis): Promise<LearningRecommendation[]> {
     // Simplified recommendation generation
     const recommendations: LearningRecommendation[] = [];
 
@@ -852,7 +923,14 @@ Format as JSON with arrays of strings for each category.
    */
   private async analyzeFeedback(feedback: UserFeedback): Promise<void> {
     // Store feedback insights for future improvements
-    console.log('Analyzing user feedback:', feedback);
+    log.info('Analyzing user feedback for insights', {
+      component: 'LearningSystem',
+      action: 'analyzeFeedback',
+      feedbackId: feedback.id,
+      errorId: feedback.errorId,
+      overallRating: Object.values(feedback.feedback).reduce((sum, val) => sum + val, 0) / Object.values(feedback.feedback).length,
+      userExperience: feedback.context.userExperience
+    }, 'FEEDBACK_ANALYSIS');
   }
 
   /**

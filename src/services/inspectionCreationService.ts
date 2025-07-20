@@ -23,7 +23,7 @@ export class InspectionCreationService {
       // Use the correct method from InspectionCreationOptimizer
       return await InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
     } catch (error) {
-      console.error('Error checking for existing inspection:', error);
+      // REMOVED: console.error('Error checking for existing inspection:', error);
       return null;
     }
   }
@@ -44,7 +44,7 @@ export class InspectionCreationService {
         
         return newInspectionId;
       } catch (error) {
-        console.error('Error in inspection creation process:', error);
+        // REMOVED: console.error('Error in inspection creation process:', error);
         throw error;
       }
     });

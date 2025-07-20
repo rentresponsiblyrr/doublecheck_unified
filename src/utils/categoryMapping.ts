@@ -8,7 +8,7 @@ let VALID_CATEGORIES: string[] = ['safety', 'accessibility', 'amenities', 'clean
 // Function to update valid categories from database
 export const updateValidCategories = (categories: string[]) => {
   VALID_CATEGORIES = categories;
-  console.log('🔄 Updated valid categories:', categories);
+  // REMOVED: console.log('🔄 Updated valid categories:', categories);
 };
 
 // Get current valid categories
@@ -19,13 +19,13 @@ export const getValidCategories = (): readonly string[] => {
 // Enhanced validation function
 export const validateCategory = (category: string): boolean => {
   const isValid = VALID_CATEGORIES.includes(category);
-  console.log(`🔍 validateCategory("${category}") = ${isValid}`);
+  // REMOVED: console.log(`🔍 validateCategory("${category}") = ${isValid}`);
   return isValid;
 };
 
 // Function to ensure a category is valid, with auto-correction
 export const ensureValidCategory = (category: string | null | undefined): string => {
-  console.log(`🔄 ensureValidCategory called with: "${category}"`);
+  // REMOVED: console.log(`🔄 ensureValidCategory called with: "${category}"`);
   
   // Handle null, undefined, or empty values
   if (!category || category.trim() === '') {
@@ -37,7 +37,7 @@ export const ensureValidCategory = (category: string | null | undefined): string
   
   // Check if already valid
   if (validateCategory(trimmedCategory)) {
-    console.log(`✅ Category "${trimmedCategory}" is already valid`);
+    // REMOVED: console.log(`✅ Category "${trimmedCategory}" is already valid`);
     return trimmedCategory;
   }
   
@@ -48,7 +48,7 @@ export const ensureValidCategory = (category: string | null | undefined): string
   );
   
   if (matchedCategory) {
-    console.log(`📝 Case-insensitive mapping: "${trimmedCategory}" -> "${matchedCategory}"`);
+    // REMOVED: console.log(`📝 Case-insensitive mapping: "${trimmedCategory}" -> "${matchedCategory}"`);
     return matchedCategory;
   }
   
@@ -59,7 +59,7 @@ export const ensureValidCategory = (category: string | null | undefined): string
   );
   
   if (partialMatch) {
-    console.log(`📝 Partial mapping: "${trimmedCategory}" -> "${partialMatch}"`);
+    // REMOVED: console.log(`📝 Partial mapping: "${trimmedCategory}" -> "${partialMatch}"`);
     return partialMatch;
   }
   
@@ -83,7 +83,7 @@ export const ensureValidCategory = (category: string | null | undefined): string
   
   const mappedCategory = categoryMap[lowerCategory];
   if (mappedCategory) {
-    console.log(`📝 Enhanced mapping: "${trimmedCategory}" -> "${mappedCategory}"`);
+    // REMOVED: console.log(`📝 Enhanced mapping: "${trimmedCategory}" -> "${mappedCategory}"`);
     return mappedCategory;
   }
   
