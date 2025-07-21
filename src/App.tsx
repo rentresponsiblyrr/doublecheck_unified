@@ -41,7 +41,7 @@ function App() {
 
   // Authentication state
   if (!isAuthenticated) {
-    return <SimpleAuthForm />;
+    return <SimpleAuthForm onAuthSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // Authenticated app
