@@ -9,14 +9,14 @@ export interface TableInfo {
   name: string;
   exists: boolean;
   error?: string;
-  sampleRow?: any;
+  sampleRow?: Record<string, unknown>;
   columns?: string[];
 }
 
 export interface DatabaseStatus {
   tables: TableInfo[];
   validStatusValues: string[];
-  inspectionConstraints: any;
+  inspectionConstraints: Record<string, unknown>;
   recommendations: string[];
 }
 

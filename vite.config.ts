@@ -276,8 +276,9 @@ export default defineConfig(({ mode }) => {
                   return 'vendor-carousel';
                 }
                 
-                // Group small utilities together
-                if (['use-', 'is-', 'has-', 'get-', 'can-', 'detect-'].some(prefix => moduleName.startsWith(prefix))) {
+                // Group small utilities together (EXCLUDE React hooks to prevent import errors)
+                if (['use-', 'is-', 'has-', 'get-', 'can-', 'detect-'].some(prefix => moduleName.startsWith(prefix)) && 
+                    !moduleName.includes('react') && !id.includes('node_modules/react')) {
                   return 'vendor-utils-small';
                 }
                 

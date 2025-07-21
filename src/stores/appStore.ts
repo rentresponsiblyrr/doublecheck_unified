@@ -220,7 +220,7 @@ export const useAppStore = create<AppStore>()(
           role: state.role,
           sessionExpiresAt: state.sessionExpiresAt,
         }),
-        migrate: (persistedState: any, version: number) => {
+        migrate: (persistedState: Record<string, unknown>, version: number) => {
           // Handle store migrations
           if (version === 0) {
             // Migrate from v0 to v1

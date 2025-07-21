@@ -261,8 +261,8 @@ export interface ErrorReportResponse {
   reportId: string;
   error: ErrorDetails;
   analysis?: ErrorAnalysisResult;
-  rootCauseAnalysis?: any; // Will be defined in rootCauseAnalyzer
-  suggestions?: any; // Will be defined in reproductionStepsGenerator
+  rootCauseAnalysis?: Record<string, unknown>; // Will be defined in rootCauseAnalyzer
+  suggestions?: string[]; // Will be defined in reproductionStepsGenerator
   estimatedResolution?: {
     timeframe: string;
     confidence: number;

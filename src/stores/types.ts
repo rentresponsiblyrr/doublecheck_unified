@@ -292,8 +292,8 @@ export interface UIStore extends UIState, UIActions {
 export interface StorePersistConfig {
   name: string;
   version: number;
-  partialize?: (state: any) => any;
-  migrate?: (persistedState: any, version: number) => any;
+  partialize?: (state: Record<string, unknown>) => Record<string, unknown>;
+  migrate?: (persistedState: Record<string, unknown>, version: number) => Record<string, unknown>;
 }
 
 /**

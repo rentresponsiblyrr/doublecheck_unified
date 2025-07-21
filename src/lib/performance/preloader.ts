@@ -60,7 +60,7 @@ export class AdvancedPreloader {
   private preloadQueue: Map<string, PreloadResource> = new Map();
   private activePreloads: Set<string> = new Set();
   private intersectionObserver?: IntersectionObserver;
-  private networkInfo?: any;
+  private networkInfo?: NetworkInformation;
   private performanceMetrics: Map<string, number> = new Map();
 
   constructor(config: Partial<PreloadConfig> = {}) {

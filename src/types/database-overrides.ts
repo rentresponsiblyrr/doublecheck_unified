@@ -29,7 +29,7 @@ export interface DatabaseFunctionsOverride {
       step: string;
       status: string;
       message: string;
-      details: any;
+      details: Record<string, unknown>;
     }[];
   };
   verify_inspection_creation_fix: {
