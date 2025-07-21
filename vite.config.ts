@@ -256,9 +256,7 @@ export default defineConfig(({ mode }) => {
                   return 'react-core';
                 }
                 
-                if (moduleName === 'react-remove-scroll' || moduleName === 'react-style-singleton') {
-                  return 'vendor-react-utils';
-                }
+                // React utilities moved to vendor-react-ecosystem above
                 
                 if (moduleName === '@floating-ui' || id.includes('@floating-ui')) {
                   return 'vendor-floating-ui';
@@ -283,8 +281,13 @@ export default defineConfig(({ mode }) => {
                   return 'vendor-utils-small';
                 }
                 
-                // Group React ecosystem together
+                // Group React ecosystem together (including utilities)
                 if (moduleName.startsWith('react-') && !moduleName.includes('router')) {
+                  return 'vendor-react-ecosystem';
+                }
+                
+                // Keep React utilities with ecosystem to prevent import errors
+                if (moduleName === 'react-remove-scroll' || moduleName === 'react-style-singleton') {
                   return 'vendor-react-ecosystem';
                 }
                 
