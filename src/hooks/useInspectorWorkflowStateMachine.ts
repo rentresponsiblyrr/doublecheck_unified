@@ -27,7 +27,7 @@ export type WorkflowEvent =
   | { type: 'PROPERTY_CREATED'; payload: { propertyId: string } }
   | { type: 'START_SCRAPING'; payload: { url: string } }
   | { type: 'SCRAPING_PROGRESS'; payload: { progress: number } }
-  | { type: 'SCRAPING_SUCCESS'; payload: { propertyData: any } }
+  | { type: 'SCRAPING_SUCCESS'; payload: { propertyData: Record<string, unknown> } }
   | { type: 'SCRAPING_FAILED'; payload: { error: string } }
   | { type: 'SELECT_PROPERTY'; payload: { propertyId: string } }
   | { type: 'CREATE_INSPECTION' }

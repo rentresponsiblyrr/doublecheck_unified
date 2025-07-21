@@ -43,12 +43,15 @@ export const useInspectionData = (inspectionId: string) => {
 
         debugLogger.info('InspectionData', 'Inspection verified', inspection);
 
-        // Fetch checklist items with error handling
-        debugLogger.debug('InspectionData', 'Fetching checklist items');
+        // Fetch checklist items with error handling - CORRECTED: logs table uses property_id, not inspection_id
+        debugLogger.debug('InspectionData', 'Fetching checklist items', { 
+          propertyId: inspection.property_id,
+          inspectionId 
+        });
         const { data: items, error: itemsError } = await supabase
           .from('logs')
-          .select('id, inspection_id, static_safety_item_id, status, inspector_notes, is_critical, score, photo_evidence_required, created_at, static_safety_items(title, description, category)')
-          .eq('inspection_id', inspectionId)
+          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, inspector_id, created_at, static_safety_items(id, label, category)')
+          .eq('property_id', inspection.property_id)
           .order('created_at', { ascending: true });
         
         if (itemsError) {
@@ -62,7 +65,11 @@ export const useInspectionData = (inspectionId: string) => {
 
         debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
           count: items?.length || 0,
-          sampleItems: items?.slice(0, 3).map(i => ({ id: i.id, label: i.label, status: i.status })) || []
+          sampleItems: items?.slice(0, 3).map(i => ({ 
+            id: i.log_id, 
+            label: i.static_safety_items?.label, 
+            pass: i.pass 
+          })) || []
         });
         
         // If no items found, provide helpful information
@@ -77,15 +84,15 @@ export const useInspectionData = (inspectionId: string) => {
           return [];
         }
         
-        // Transform the data to match our TypeScript interface
+        // Transform the data to match our TypeScript interface - CORRECTED for logs table schema
         const transformedData: ChecklistItemType[] = items.map(item => ({
-          id: item.id,
-          inspection_id: item.inspection_id,
-          label: item.static_safety_items?.title || '',
+          id: item.log_id.toString(), // Convert integer to string for compatibility
+          inspection_id: inspectionId, // Use the passed inspectionId since logs doesn't store it
+          label: item.static_safety_items?.label || '',
           category: item.static_safety_items?.category || 'safety',
-          evidence_type: item.photo_evidence_required ? 'photo' : 'video',
-          status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
-          notes: item.inspector_notes,
+          evidence_type: 'photo', // Default to photo for now
+          status: item.pass === true ? 'completed' : item.pass === false ? 'failed' : null,
+          notes: item.inspector_remarks || '',
           created_at: item.created_at || new Date().toISOString()
         }));
         

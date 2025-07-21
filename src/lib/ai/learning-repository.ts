@@ -25,7 +25,7 @@ export interface LearningEntry {
   impact: Impact;
   related_learnings: string[];
   tags: string[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export type LearningType = 
@@ -85,7 +85,7 @@ export interface LearningContext {
 export interface Evidence {
   type: 'code_example' | 'performance_data' | 'user_feedback' | 'test_results' | 'metrics' | 'documentation';
   description: string;
-  data: any;
+  data: Record<string, unknown>;
   source: string;
   timestamp: string;
   reliability: 'high' | 'medium' | 'low';
@@ -139,7 +139,7 @@ export interface KnowledgeNode {
   id: string;
   type: 'learning' | 'pattern' | 'concept' | 'tool' | 'practice';
   label: string;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   weight: number;
 }
 
@@ -148,7 +148,7 @@ export interface KnowledgeEdge {
   target: string;
   relationship: 'relates_to' | 'depends_on' | 'contradicts' | 'enhances' | 'replaces';
   weight: number;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 export interface LearningQuery {

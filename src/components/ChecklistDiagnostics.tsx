@@ -11,7 +11,7 @@ interface AuditEntry {
   operation_type: string;
   items_affected: number;
   created_at: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface ChecklistDiagnosticsProps {

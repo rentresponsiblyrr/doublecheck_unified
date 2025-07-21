@@ -9,7 +9,7 @@ import { hapticFeedback } from '../../lib/mobile/haptic-feedback';
 
 interface WorkflowGestureControllerProps {
   children: ReactNode;
-  onGesture?: (gesture: GestureType, data?: any) => void;
+  onGesture?: (gesture: GestureType, data?: { direction?: string; velocity?: number; distance?: number }) => void;
   enableGestures?: boolean;
 }
 

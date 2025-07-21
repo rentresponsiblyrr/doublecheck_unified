@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { OfflineData } from '@/types/payload-types';
 
 // Sub-components
 import { SyncStatusCard } from './sync/SyncStatusCard';
@@ -22,7 +23,7 @@ interface SyncItem {
   id: string;
   type: 'inspection' | 'photo' | 'video' | 'checklist' | 'report';
   action: 'create' | 'update' | 'delete';
-  data: any;
+  data: Record<string, unknown>;
   size: number;
   status: 'pending' | 'syncing' | 'completed' | 'failed' | 'conflict';
   lastAttempt?: Date;
@@ -34,8 +35,8 @@ interface SyncItem {
 interface SyncConflict {
   id: string;
   type: 'inspection' | 'photo' | 'video' | 'checklist' | 'report';
-  localData: any;
-  serverData: any;
+  localData: Record<string, unknown>;
+  serverData: Record<string, unknown>;
   timestamp: Date;
   description: string;
 }

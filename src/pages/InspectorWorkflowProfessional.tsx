@@ -13,6 +13,7 @@ import { Wifi, WifiOff, AlertTriangle, Upload } from 'lucide-react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useErrorRecovery } from '@/utils/errorRecovery';
 import { useAuth } from '@/components/AuthProvider';
+import { PhotoAnalysis } from '@/types/ai-analysis';
 
 // Professional component imports
 import { PropertySelectionStep } from '@/components/inspector/PropertySelectionStep';
@@ -214,7 +215,7 @@ export function InspectorWorkflowProfessional() {
   }, []);
 
   // Professional photo storage
-  const handlePhotoStored = useCallback(async (itemId: string, photoFile: File, analysis: any) => {
+  const handlePhotoStored = useCallback(async (itemId: string, photoFile: File, analysis: PhotoAnalysis | null) => {
     // Professional photo storage logic
   }, []);
 

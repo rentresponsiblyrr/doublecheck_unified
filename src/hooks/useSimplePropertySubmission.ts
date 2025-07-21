@@ -5,9 +5,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import type { PropertyFormData } from "@/types/propertySubmission";
+import { ScrapedPropertyData } from "@/types/scraped-data";
 
 interface ExtendedPropertyFormData extends PropertyFormData {
-  scraped_vrbo_data?: any;
+  scraped_vrbo_data?: ScrapedPropertyData;
 }
 
 export const useSimplePropertySubmission = () => {

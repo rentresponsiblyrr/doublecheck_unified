@@ -8,7 +8,7 @@ interface DataIntegrityCheck {
   type: 'missing_data' | 'orphaned_record' | 'duplicate_data' | 'invalid_state';
   severity: 'low' | 'medium' | 'high';
   message: string;
-  data?: any;
+  data?: Record<string, unknown>[];
 }
 
 export const useDataIntegrity = (inspectionId?: string) => {
@@ -120,7 +120,7 @@ export const useDataIntegrity = (inspectionId?: string) => {
         
         case 'orphaned_record':
           if (issueId === 'orphaned-media' && issue.data) {
-            const mediaIds = issue.data.map((item: any) => item.id);
+            const mediaIds = issue.data?.map((item) => (item as { id: string }).id) || [];
             await supabase
               .from('media')
               .delete()

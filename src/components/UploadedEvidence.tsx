@@ -92,7 +92,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
               table: 'media',
               filter: `checklist_item_id=eq.${checklistItemId}`
             },
-            callback: (payload: any) => {
+            callback: (payload: { eventType: string; new: MediaUpload; old?: MediaUpload }) => {
               
               if (!isMountedRef.current) return;
               

@@ -310,7 +310,7 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
    * @param analysisResult - Raw AI analysis result
    * @returns Structured quality analysis
    */
-  private parseQualityAnalysis(analysisResult: any): {
+  private parseQualityAnalysis(analysisResult: Record<string, unknown>): {
     qualityScore: number;
     issues: PhotoQualityIssue[];
     confidence: number;
