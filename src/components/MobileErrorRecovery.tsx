@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ const MobileErrorRecovery: React.FC<MobileErrorRecoveryProps> = ({
   const [recoveryActions, setRecoveryActions] = useState<RecoveryAction[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline'>('online');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     // Check initial connection status
@@ -139,7 +141,9 @@ const MobileErrorRecovery: React.FC<MobileErrorRecoveryProps> = ({
           duration: 3000,
         });
       } else {
-        window.location.reload();
+        // Professional fallback navigation
+        window.history.pushState(null, '', window.location.pathname);
+        navigate(0); // React Router refresh
       }
     } catch (error) {
       updateActionStatus('refresh-page', 'error');

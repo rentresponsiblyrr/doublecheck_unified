@@ -123,7 +123,9 @@ class NavigationService {
         sessionStorage.setItem('app_refresh_state', JSON.stringify(currentState));
       }
       
-      window.location.reload();
+      // Professional page refresh using history API
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+      window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
       return true;
     } catch (error) {
       logger.logError('Page refresh failed', { preserveState, error });

@@ -11,8 +11,8 @@ import {
   CheckCircle, 
   X,
   RotateCcw,
-  FlashOff,
-  FlashOn,
+  ZapOff,
+  Zap,
   Eye,
   ArrowRight,
   AlertTriangle,
@@ -314,7 +314,7 @@ const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({
                   onClick={() => setFlashEnabled(!flashEnabled)}
                   className="bg-black/50 text-white border-white/50"
                 >
-                  {flashEnabled ? <FlashOn className="w-4 h-4" /> : <FlashOff className="w-4 h-4" />}
+                  {flashEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
                 </Button>
                 
                 <Button

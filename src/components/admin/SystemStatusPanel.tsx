@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Activity, Database, Users, FileText, Zap, Clock, TrendingUp } from 'lucide-react';
-import { productionDatabaseService } from '@/services/productionDatabaseService';
+import { productionDb } from '@/services/productionDatabaseService';
 import { logger } from '@/lib/utils/logger';
 
 interface SystemMetrics {
@@ -32,13 +32,13 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({ className 
       setIsLoading(true);
       
       // Fetch properties
-      const { data: properties } = await productionDatabaseService.getProperties();
+      const { data: properties } = await productionDb.getProperties();
       
       // Fetch inspections
-      const { data: inspections } = await productionDatabaseService.getInspections();
+      const { data: inspections } = await productionDb.getInspections();
       
       // Fetch users
-      const { data: users } = await productionDatabaseService.getUsers();
+      const { data: users } = await productionDb.getUsers();
       
       // Calculate metrics
       const completedInspections = inspections?.filter(i => i.status === 'completed').length || 0;

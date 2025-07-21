@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertTriangle, XCircle, RefreshCw, Database, Server, Zap } from 'lucide-react';
-import { productionDatabaseService } from '@/services/productionDatabaseService';
+import { productionDb } from '@/services/productionDatabaseService';
 import { logger } from '@/lib/utils/logger';
 
 interface HealthCheckResult {
@@ -32,7 +32,7 @@ export const ProductionHealthCheck: React.FC<ProductionHealthCheckProps> = ({ cl
       // Database connectivity check
       const dbStart = Date.now();
       try {
-        const { data: properties } = await productionDatabaseService.getProperties();
+        const { data: properties } = await productionDb.getProperties();
         const dbTime = Date.now() - dbStart;
         checks.push({
           service: 'Database Connection',
@@ -52,7 +52,7 @@ export const ProductionHealthCheck: React.FC<ProductionHealthCheckProps> = ({ cl
 
       // Authentication check
       try {
-        const { data: { user } } = await productionDatabaseService.getCurrentUser();
+        const { data: { user } } = await productionDb.getCurrentUser();
         checks.push({
           service: 'Authentication',
           status: user ? 'healthy' : 'warning',
@@ -69,7 +69,7 @@ export const ProductionHealthCheck: React.FC<ProductionHealthCheckProps> = ({ cl
 
       // User permissions check
       try {
-        const { data: users } = await productionDatabaseService.getUsers();
+        const { data: users } = await productionDb.getUsers();
         checks.push({
           service: 'User Permissions',
           status: 'healthy',
@@ -86,7 +86,7 @@ export const ProductionHealthCheck: React.FC<ProductionHealthCheckProps> = ({ cl
 
       // Static safety items check
       try {
-        const { data: items } = await productionDatabaseService.getStaticSafetyItems();
+        const { data: items } = await productionDb.getStaticSafetyItems();
         checks.push({
           service: 'Static Safety Items',
           status: 'healthy',
