@@ -5,6 +5,7 @@ import { MediaLightbox } from "@/components/MediaLightbox";
 import { MediaItem } from "@/components/MediaItem";
 import { supabase } from "@/integrations/supabase/client";
 import { useChannelManager } from "@/hooks/useChannelManager";
+import { ApiResponse } from "@/types/payload-types";
 
 interface MediaUploadWithAttribution extends MediaUpload {
   user_id?: string;

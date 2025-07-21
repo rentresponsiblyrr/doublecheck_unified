@@ -20,6 +20,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
+import { PhotoAnalysis } from '@/types/ai-analysis';
 
 // Step Components (Professional Single-Responsibility Components)
 import { PropertySelectionStep } from './PropertySelectionStep';
@@ -85,7 +86,7 @@ interface WorkflowState {
   selectedProperty: Property | null;
   generatedChecklist: ChecklistData | null;
   currentInspectionId: string | null;
-  capturedPhotos: Record<string, { file: File; analysis: any }>;
+  capturedPhotos: Record<string, { file: File; analysis: PhotoAnalysis | null }>;
   isRecording: boolean;
   offlineMode: boolean;
   syncProgress: number;
@@ -99,7 +100,7 @@ type WorkflowAction =
   | { type: 'SET_SELECTED_PROPERTY'; payload: Property | null }
   | { type: 'SET_GENERATED_CHECKLIST'; payload: ChecklistData | null }
   | { type: 'SET_INSPECTION_ID'; payload: string | null }
-  | { type: 'SET_CAPTURED_PHOTOS'; payload: Record<string, { file: File; analysis: any }> }
+  | { type: 'SET_CAPTURED_PHOTOS'; payload: Record<string, { file: File; analysis: PhotoAnalysis | null }> }
   | { type: 'SET_IS_RECORDING'; payload: boolean }
   | { type: 'SET_OFFLINE_MODE'; payload: boolean }
   | { type: 'SET_SYNC_PROGRESS'; payload: number }

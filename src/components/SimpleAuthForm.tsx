@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from '@/utils/logger';
+import { logger, logError, logInfo } from '@/utils/logger';
 
 interface SimpleAuthFormProps {
   onAuthSuccess?: () => void;
@@ -23,7 +23,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
     setSuccessMessage(null);
 
     try {
-      logger.logInfo('Attempting authentication', {
+      logInfo('Attempting authentication', {
         component: 'SimpleAuthForm',
         action: 'handleSubmit',
         email,
@@ -37,7 +37,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         });
         
         if (error) {
-          logger.logError('Password reset error', error, {
+          logError('Password reset error', error, {
             component: 'SimpleAuthForm',
             action: 'handleSubmit',
             email,
@@ -58,7 +58,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             }
           }
         });
-        logger.logInfo('Sign up result', {
+        logInfo('Sign up result', {
           component: 'SimpleAuthForm',
           action: 'handleSubmit',
           email,
@@ -68,7 +68,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         });
         
         if (error) {
-          logger.logError('Sign up error', error, {
+          logError('Sign up error', error, {
             component: 'SimpleAuthForm',
             action: 'handleSubmit',
             email,
@@ -82,7 +82,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
           email,
           password,
         });
-        logger.logInfo('Sign in result', {
+        logInfo('Sign in result', {
           component: 'SimpleAuthForm',
           action: 'handleSubmit',
           email,
@@ -92,7 +92,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         });
         
         if (error) {
-          logger.logError('Sign in error', error, {
+          logError('Sign in error', error, {
             component: 'SimpleAuthForm',
             action: 'handleSubmit',
             email,
@@ -102,7 +102,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         }
         
         if (data.user) {
-          logger.logInfo('Authentication successful', {
+          logInfo('Authentication successful', {
             component: 'SimpleAuthForm',
             action: 'handleSubmit',
             userId: data.user.id,
@@ -115,7 +115,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
         }
       }
     } catch (error: any) {
-      logger.logError('Authentication error caught', error, {
+      logError('Authentication error caught', error, {
         component: 'SimpleAuthForm',
         action: 'handleSubmit',
         email,

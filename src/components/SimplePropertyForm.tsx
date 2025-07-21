@@ -10,6 +10,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import type { PropertyFormData } from "@/types/propertySubmission";
+import { ScrapedPropertyData } from "@/types/scraped-data";
 
 export const SimplePropertyForm = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
@@ -75,7 +76,7 @@ export const SimplePropertyForm = () => {
     }
   };
 
-  const handleVRBODataScraped = (data: any) => {
+  const handleVRBODataScraped = (data: ScrapedPropertyData) => {
     setScrapedVRBOData(data);
   };
 

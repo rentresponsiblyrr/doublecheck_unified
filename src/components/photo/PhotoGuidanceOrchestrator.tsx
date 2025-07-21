@@ -121,7 +121,7 @@ export const PhotoGuidanceOrchestrator: React.FC<PhotoGuidanceOrchestratorProps>
   }, [announceToScreenReader, onError]);
 
   // Handle analysis completion
-  const handleAnalysisComplete = useCallback((analysisResult: any) => {
+  const handleAnalysisComplete = useCallback((analysisResult: PhotoAnalysis) => {
     try {
       setWorkflowState(prev => ({
         ...prev,

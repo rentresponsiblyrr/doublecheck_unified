@@ -8,7 +8,7 @@ import { Loader2, ExternalLink, CheckCircle, AlertTriangle } from "lucide-react"
 import { scrapePropertyRobustly, getScrapingJobStatus } from "@/lib/scrapers/robust-scraping-service";
 import { validateVRBOURL } from "@/lib/scrapers/url-validator";
 import { dynamicChecklistGenerator } from "@/lib/ai/dynamic-checklist-generator";
-import type { ScrapedPropertyData } from "@/lib/scrapers/types";
+import { ScrapedPropertyData } from "@/types/scraped-data";
 
 interface FormData {
   name: string;
@@ -28,9 +28,13 @@ interface VRBOScrapingState {
   isLoading: boolean;
   isSuccess: boolean;
   error: string | null;
-  scrapedData: any | null;
+  scrapedData: ScrapedPropertyData | null;
   jobId?: string;
-  urlValidation?: any;
+  urlValidation?: {
+    isValid: boolean;
+    error?: string;
+    extractedData?: Partial<ScrapedPropertyData>;
+  };
   canRetryLater?: boolean;
   backgroundProcessing?: boolean;
 }
