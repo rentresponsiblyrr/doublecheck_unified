@@ -85,7 +85,7 @@ global.Worker = class MockWorker {
     // Mock worker implementation
   }
   
-  postMessage(data: any) {
+  postMessage(data: unknown) {
     // Mock postMessage
   }
   
@@ -93,11 +93,11 @@ global.Worker = class MockWorker {
     // Mock terminate
   }
   
-  addEventListener(type: string, listener: any) {
+  addEventListener(type: string, listener: EventListener) {
     // Mock addEventListener
   }
   
-  removeEventListener(type: string, listener: any) {
+  removeEventListener(type: string, listener: EventListener) {
     // Mock removeEventListener
   }
 };

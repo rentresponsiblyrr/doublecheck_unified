@@ -6,7 +6,7 @@ import { useSimplifiedInspectionData } from "@/hooks/useSimplifiedInspectionData
 import { debugLogger } from "@/utils/debugLogger";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionContent } from "@/components/InspectionContent";
-import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
+import { MobileErrorRecovery } from "@/components/MobileErrorRecovery.tsx";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 

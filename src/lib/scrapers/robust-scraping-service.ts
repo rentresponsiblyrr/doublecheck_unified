@@ -378,7 +378,7 @@ export class RobustScrapingService {
   /**
    * Error categorization for better handling
    */
-  private categorizeError(error: any): string {
+  private categorizeError(error: Error | unknown): string {
     if (error?.message?.includes('timeout')) return 'TIMEOUT_ERROR';
     if (error?.message?.includes('rate limit')) return 'RATE_LIMIT_ERROR';
     if (error?.message?.includes('403') || error?.message?.includes('blocked')) return 'ACCESS_DENIED_ERROR';
@@ -390,7 +390,7 @@ export class RobustScrapingService {
   /**
    * Determine error severity
    */
-  private getErrorSeverity(error: any): 'low' | 'medium' | 'high' {
+  private getErrorSeverity(error: Error | unknown): 'low' | 'medium' | 'high' {
     const errorCode = this.categorizeError(error);
     switch (errorCode) {
       case 'PROPERTY_NOT_FOUND_ERROR': return 'high'; // Don't retry
@@ -405,7 +405,7 @@ export class RobustScrapingService {
   /**
    * Determine if error is recoverable
    */
-  private isErrorRecoverable(error: any): boolean {
+  private isErrorRecoverable(error: Error | unknown): boolean {
     const errorCode = this.categorizeError(error);
     switch (errorCode) {
       case 'PROPERTY_NOT_FOUND_ERROR': return false; // Invalid property ID

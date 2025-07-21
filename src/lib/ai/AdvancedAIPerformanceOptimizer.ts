@@ -82,7 +82,7 @@ export interface AIRequest {
 
 export interface AIResponse {
   requestId: string;
-  result: any;
+  result: unknown;
   model: string;
   tokensUsed: number;
   responseTime: number;
@@ -901,15 +901,25 @@ export class AdvancedAIPerformanceOptimizer {
     return Promise.resolve({});
   }
 
-  private analyzeCacheOptimization(): any {
+  private analyzeCacheOptimization(): {
+    potential: number;
+    savings: number;
+  } {
     return { potential: 0, savings: 0 };
   }
 
-  private analyzeBatchOptimization(): any {
+  private analyzeBatchOptimization(): {
+    potential: number;
+    savings: number;
+    requests: number;
+  } {
     return { potential: 0, savings: 0, requests: 0 };
   }
 
-  private analyzeModelOptimization(): any {
+  private analyzeModelOptimization(): {
+    potential: number;
+    savings: number;
+  } {
     return { potential: 0, savings: 0 };
   }
 

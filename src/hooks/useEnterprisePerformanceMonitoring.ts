@@ -30,7 +30,7 @@ export function useEnterprisePerformanceMonitoring() {
   const trackUserAction = useCallback((
     action: string,
     element?: string,
-    metadata?: any
+    metadata?: Record<string, unknown>
   ) => {
     trackInteraction({
       type: 'click',
@@ -101,14 +101,14 @@ export function useEnterprisePerformanceMonitoring() {
     name: string,
     value: number,
     unit?: string,
-    context?: any
+    context?: Record<string, unknown>
   ) => {
     trackMetric(name, value, unit, context);
   }, []);
 
   const trackApplicationError = useCallback((
     error: Error,
-    context?: any
+    context?: Record<string, unknown>
   ) => {
     trackError(error, context);
   }, []);

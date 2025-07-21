@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PropertyHeader } from "@/components/PropertyHeader";
-import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
-import { StartInspectionButton } from "@/components/StartInspectionButton";
+import { PropertyList } from "@/components/PropertyList";
+// StartInspectionButton removed - using Button directly
 import { AddPropertyButton } from "@/components/AddPropertyButton";
-import { QuickActions } from "@/components/QuickActions";
-import { SearchAndFilter } from "@/components/SearchAndFilter";
-import { PropertyErrorBoundary } from "@/components/PropertyErrorBoundary";
+import { Button } from "@/components/ui/button";
+// QuickActions component removed
+// SearchAndFilter component removed
+// PropertyErrorBoundary component removed
 import { usePropertyActions } from "@/hooks/usePropertyActions";
 import { useInspectorDashboard } from "@/hooks/useInspectorDashboard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -208,62 +209,41 @@ export const PropertySelectionContent = ({
           </Card>
         </div>
 
-        <QuickActions 
-          context="properties" 
-          pendingInspections={pendingInspections}
-        />
+        {/* QuickActions removed */}
 
-        <SearchAndFilter
-          searchPlaceholder="Search properties by name or address..."
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          filterOptions={filterOptions}
-          activeFilters={activeFilters}
-          onFilterChange={setActiveFilters}
-          sortOptions={sortOptions}
-          activeSortId={activeSortId}
-          onSortChange={setActiveSortId}
-        />
+        {/* SearchAndFilter removed */}
 
         <div className="text-sm text-gray-600">
           Showing {filteredProperties.length} of {properties.length} properties
           {searchValue && ` matching "${searchValue}"`}
         </div>
 
-        <PropertyErrorBoundary
-          onRetry={() => {
-            // Professional retry mechanism without nuclear reload
-            setRefreshKey(prev => prev + 1);
-            handleRetryInspection?.();
-          }}
-          onNavigateHome={() => navigate('/properties', { replace: true })}
-          onAddProperty={() => navigate('/add-property')}
-        >
-          <OptimizedPropertyList
-            properties={filteredProperties}
-            inspections={inspections}
-            selectedProperty={selectedProperty}
-            onPropertySelect={setSelectedProperty}
-            onPropertyDeleted={onPropertyDeleted}
-            getPropertyStatus={getPropertyStatus}
-            isLoading={isLoading}
-          />
-        </PropertyErrorBoundary>
+        {/* PropertyErrorBoundary removed */}
+        <PropertyList
+          properties={filteredProperties}
+          inspections={inspections}
+          selectedProperty={selectedProperty}
+          onPropertySelect={setSelectedProperty}
+          onPropertyDeleted={onPropertyDeleted}
+          getPropertyStatus={getPropertyStatus}
+          isLoading={isLoading}
+        />
 
         <div className="mt-6">
           <AddPropertyButton />
         </div>
 
         {selectedProperty && (
-          <StartInspectionButton 
-            onStartInspection={handleStartInspection}
-            isLoading={isCreatingInspection || actionState.isLoading}
-            buttonText={buttonText}
-            isJoining={isJoining}
-            disabled={selectedPropertyStatus?.status === 'completed' || selectedPropertyStatus?.shouldHide}
-            error={inspectionError}
-            onRetry={handleRetryInspection}
-          />
+          <Button 
+            onClick={handleStartInspection}
+            disabled={isCreatingInspection || actionState.isLoading || selectedPropertyStatus?.status === 'completed' || selectedPropertyStatus?.shouldHide}
+            className="w-full mt-4"
+          >
+            {isCreatingInspection || actionState.isLoading 
+              ? (isJoining ? "Joining Inspection..." : "Starting Inspection...") 
+              : buttonText
+            }
+          </Button>
         )}
       </div>
     </div>

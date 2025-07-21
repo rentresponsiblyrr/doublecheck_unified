@@ -108,7 +108,17 @@ export class VRBOBrowserScraper extends ComprehensiveVRBOScraper {
       fieldsFailed: []
     };
 
-    let browserSession: any = null;
+    let browserSession: {
+      sessionId: string;
+      page: {
+        url: () => Promise<string>;
+        evaluate: (fn: () => unknown) => Promise<unknown>;
+        screenshot: (options: { path: string; fullPage: boolean }) => Promise<void>;
+        metrics: () => Promise<{ JSHeapUsedSize: number; JSHeapTotalSize: number }>;
+        [key: string]: unknown;
+      };
+      browser: unknown;
+    } | null = null;
     let sessionId = '';
 
     try {
@@ -309,7 +319,14 @@ export class VRBOBrowserScraper extends ComprehensiveVRBOScraper {
    * @param url - Original URL
    * @returns Promise<VRBOPropertyData>
    */
-  private async extractPageData(page: any, url: string): Promise<VRBOPropertyData> {
+  private async extractPageData(
+    page: {
+      evaluate: (fn: () => unknown) => Promise<unknown>;
+      url: () => Promise<string>;
+      [key: string]: unknown;
+    }, 
+    url: string
+  ): Promise<VRBOPropertyData> {
     const html = await page.content();
     const propertyId = this.extractPropertyId(url) || 'unknown';
     
@@ -367,7 +384,15 @@ export class VRBOBrowserScraper extends ComprehensiveVRBOScraper {
    * @param startTime - Start time
    * @returns Browser metadata
    */
-  private async calculateBrowserMetadata(browserSession: any, startTime: number): Promise<BrowserScrapingResult['browserMetadata']> {
+  private async calculateBrowserMetadata(
+    browserSession: {
+      page: {
+        url: () => Promise<string>;
+        metrics: () => Promise<{ JSHeapUsedSize: number; JSHeapTotalSize: number }>;
+      };
+    }, 
+    startTime: number
+  ): Promise<BrowserScrapingResult['browserMetadata']> {
     try {
       const viewport = await browserSession.page.viewport();
       const metrics = await browserSession.page.metrics();
@@ -422,7 +447,10 @@ export class VRBOBrowserScraper extends ComprehensiveVRBOScraper {
   /**
    * Utility methods
    */
-  private mergeAmenities(browserAmenities: any[], staticAmenities: any[]): any[] {
+  private mergeAmenities(
+    browserAmenities: unknown[], 
+    staticAmenities: unknown[]
+  ): unknown[] {
     const amenityMap = new Map<string, any>();
     
     // Add browser amenities first

@@ -255,7 +255,7 @@ export class EnhancedAIService extends STRCertifiedAIService {
    * Validates inspection completeness with contextual awareness
    */
   async validateInspectionCompletenessWithContext(
-    checklistItems: any[],
+    checklistItems: DynamicChecklistItem[],
     photos: File[],
     inspectionContext: InspectionContext
   ): Promise<{
@@ -318,8 +318,16 @@ export class EnhancedAIService extends STRCertifiedAIService {
   async processAuditorFeedback(
     inspectionId: string,
     checklistItemId: string,
-    aiPrediction: any,
-    auditorCorrection: any,
+    aiPrediction: {
+      value: unknown;
+      confidence?: number;
+      reasoning?: string;
+    },
+    auditorCorrection: {
+      value: unknown;
+      confidence?: number;
+      reasoning?: string;
+    },
     category: string,
     feedbackType: 'correction' | 'validation' | 'suggestion' | 'issue'
   ): Promise<void> {
@@ -339,7 +347,7 @@ export class EnhancedAIService extends STRCertifiedAIService {
           reasoning: auditorCorrection.reasoning || 'Auditor correction'
         },
         feedback_type: feedbackType,
-        category: category as any
+        category: category
       };
 
       await aiLearningService.submitAuditorFeedback(feedbackRequest);
@@ -508,7 +516,7 @@ export class EnhancedAIService extends STRCertifiedAIService {
   }
 
   private generateContextualInsights(
-    checklistItems: any[],
+    checklistItems: DynamicChecklistItem[],
     photos: File[],
     cagContext: CAGContextResponse,
     inspectionContext: InspectionContext

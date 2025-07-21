@@ -392,8 +392,8 @@ export class PhotoComparisonEngine {
   }
 
   private calculateFeatureMatchRate(
-    inspectorItems: any[],
-    listingItems: any[]
+    inspectorItems: { type: string; [key: string]: unknown }[],
+    listingItems: { type: string; [key: string]: unknown }[]
   ): number {
     if (listingItems.length === 0) return 1;
     
@@ -529,7 +529,7 @@ export class PhotoComparisonEngine {
     };
   }
 
-  private createErrorResult(error: any, startTime: number): PhotoComparisonResult {
+  private createErrorResult(error: Error | unknown, startTime: number): PhotoComparisonResult {
     return {
       similarity_score: 0,
       discrepancies: [{

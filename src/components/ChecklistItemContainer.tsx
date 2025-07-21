@@ -15,7 +15,7 @@ interface ChecklistItemContainerProps {
 
 // Determine priority based on item properties
 const getItemPriority = (item: ChecklistItemType): 'high' | 'medium' | 'low' => {
-  if (item.required) return 'high';
+  // Use category to determine priority since 'required' doesn't exist in the type
   if (item.category === 'safety' || item.category === 'legal') return 'high';
   if (item.category === 'amenities') return 'low';
   return 'medium';

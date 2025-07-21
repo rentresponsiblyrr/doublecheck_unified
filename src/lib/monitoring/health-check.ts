@@ -33,7 +33,7 @@ interface ServiceStatus {
   latency?: number;
   lastCheck: string;
   error?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 interface MemoryMetrics {
@@ -68,7 +68,7 @@ export class HealthCheckService {
   private errorCount: number = 0;
   private requestCount: number = 0;
   private recentErrors: Map<string, { count: number; lastOccurred: Date }> = new Map();
-  private supabase: any;
+  private supabase: ReturnType<typeof createClient> | null = null;
 
   private constructor() {
     this.startTime = Date.now();
@@ -461,7 +461,11 @@ export class HealthCheckService {
   /**
    * Express/HTTP handler for health endpoint
    */
-  async handleHealthRequest(req: any, res: any): Promise<void> {
+  async handleHealthRequest(req: {
+    query?: { full?: string };
+  }, res: {
+    status: (code: number) => { json: (data: unknown) => void };
+  }): Promise<void> {
     try {
       const fullCheck = req.query.full === 'true';
       
@@ -493,7 +497,11 @@ export const checkLiveness = () => healthCheck.checkLiveness();
 export function healthCheckMiddleware() {
   return {
     name: 'health-check',
-    configureServer(server: any) {
+    configureServer(server: {
+      middlewares: {
+        use: (handler: (req: unknown, res: unknown, next: () => void) => void) => void;
+      };
+    }) {
       // Only initialize health check during development server, not during build
       let healthCheckInstance: HealthCheckService | null = null;
       
@@ -503,7 +511,7 @@ export function healthCheckMiddleware() {
         return;
       }
       
-      server.middlewares.use(async (req: any, res: any, next: any) => {
+      server.middlewares.use(async (req: unknown, res: unknown, next: () => void) => {
         if (!healthCheckInstance) {
           next();
           return;

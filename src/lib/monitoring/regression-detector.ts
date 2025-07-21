@@ -323,7 +323,7 @@ export class PerformanceRegressionDetector {
   /**
    * Group metrics by name
    */
-  private groupMetricsByName(metrics: any[]): Map<string, number[]> {
+  private groupMetricsByName(metrics: { name: string; value: number }[]): Map<string, number[]> {
     const groups = new Map<string, number[]>();
     
     metrics.forEach(metric => {
@@ -382,7 +382,12 @@ export class PerformanceRegressionDetector {
    */
   private async createRegressionAlert(
     metricName: string,
-    analysis: any,
+    analysis: {
+      severity: 'warning' | 'critical' | 'emergency';
+      currentMean: number;
+      degradationPercentage: number;
+      confidence: number;
+    },
     baseline: RegressionBaseline
   ): Promise<RegressionAlert> {
     const alertId = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -613,7 +618,7 @@ export class PerformanceRegressionDetector {
   /**
    * Generate suggested actions
    */
-  private generateSuggestedActions(metricName: string, analysis: any): string[] {
+  private generateSuggestedActions(metricName: string, analysis: { severity: string; degradationPercentage: number }): string[] {
     const actions: string[] = [];
     
     if (metricName.includes('bundle') || metricName.includes('size')) {

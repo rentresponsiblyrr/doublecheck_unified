@@ -1,8 +1,8 @@
 
 export const useDebugInfoCombiner = (
-  authDebugInfo: any,
-  loadDebugInfo: any,
-  submissionDebugInfo: any
+  authDebugInfo: Record<string, unknown>,
+  loadDebugInfo: Record<string, unknown>,
+  submissionDebugInfo: Record<string, unknown>
 ) => {
   return {
     ...authDebugInfo,

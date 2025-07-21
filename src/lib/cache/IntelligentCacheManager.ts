@@ -223,7 +223,7 @@ export class IntelligentCacheManager {
   /**
    * Batch operations for performance optimization
    */
-  async setBatch<T>(store: string, entries: Array<{ key: string; data: T; options?: any }>): Promise<void> {
+  async setBatch<T>(store: string, entries: Array<{ key: string; data: T; options?: Partial<CacheEntry<T>['metadata']> }>): Promise<void> {
     if (!this.isInitialized || !this.db) {
       await this.initializeCache();
     }
@@ -384,7 +384,7 @@ export class IntelligentCacheManager {
   /**
    * Decompress data
    */
-  private async decompressData<T>(data: any): Promise<T> {
+  private async decompressData<T>(data: ArrayBuffer | T): Promise<T> {
     if (data._compressed && data._algorithm === 'json') {
       return JSON.parse(data._data);
     }
@@ -394,7 +394,7 @@ export class IntelligentCacheManager {
   /**
    * Check if data is compressed
    */
-  private isCompressed(data: any): boolean {
+  private isCompressed(data: unknown): boolean {
     return data && typeof data === 'object' && data._compressed === true;
   }
 

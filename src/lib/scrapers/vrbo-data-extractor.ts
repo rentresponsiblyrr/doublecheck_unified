@@ -275,7 +275,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
               if (data[prop]) {
                 const features = Array.isArray(data[prop]) ? data[prop] : [data[prop]];
                 
-                features.forEach((feature: any) => {
+                features.forEach((feature: unknown) => {
                   let amenityName: string;
                   
                   if (typeof feature === 'string') {
@@ -752,7 +752,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
     return this.getDefaultLocation();
   }
 
-  private calculateHiddenDataCount(html: string, amenities: PropertyAmenity[], descriptions: any): number {
+  private calculateHiddenDataCount(html: string, amenities: PropertyAmenity[], descriptions: unknown): number {
     // Calculate how much hidden data was revealed
     return 0;
   }
@@ -790,6 +790,6 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
 }
 
 // Export factory function
-export const createVRBODataExtractor = (config?: any): VRBODataExtractor => {
+export const createVRBODataExtractor = (config?: Record<string, unknown>): VRBODataExtractor => {
   return new VRBODataExtractor(config);
 };

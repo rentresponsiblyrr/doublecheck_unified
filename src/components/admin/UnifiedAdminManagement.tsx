@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 // Import existing admin components that we'll consolidate
-import { ComponentErrorBoundary } from '@/components/error/ComponentErrorBoundary';
+import { ComponentErrorBoundary } from '@/components/error/UniversalErrorBoundary';
 import { FunctionalUserManagement } from './FunctionalUserManagement';
 import { FunctionalChecklistManagement } from './FunctionalChecklistManagement';
 import { ProductionHealthCheck } from './ProductionHealthCheck';

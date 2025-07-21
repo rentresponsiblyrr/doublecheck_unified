@@ -5,7 +5,7 @@ import { useInspectionData } from "@/hooks/useInspectionData";
 import { InspectionInvalidState } from "@/components/InspectionInvalidState";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionContent } from "@/components/InspectionContent";
-import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
+import { MobileErrorRecovery } from "@/components/MobileErrorRecovery.tsx";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useNavigate } from "react-router-dom";
 import { debugLogger } from "@/utils/debugLogger";

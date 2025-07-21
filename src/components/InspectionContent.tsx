@@ -2,13 +2,15 @@
 import { useState, useMemo } from "react";
 import { MobileOptimizedLayout } from "@/components/MobileOptimizedLayout";
 import { InspectionProgressTracker } from "@/components/InspectionProgressTracker";
-import { InspectionFilters, type SortOption, type SortDirection } from "@/components/InspectionFilters";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
 import { ChecklistItemType } from "@/types/inspection";
 import { debugLogger } from "@/utils/debugLogger";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
+
+type SortOption = "order" | "title" | "category" | "status" | "priority";
+type SortDirection = "asc" | "desc";
 
 interface InspectionContentProps {
   inspectionId: string;
@@ -53,8 +55,7 @@ export const InspectionContent = ({
       
       // Filter by search query
       const matchesSearch = !searchQuery.trim() || 
-        item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.category?.toLowerCase().includes(searchQuery.toLowerCase());
       
       return matchesCompletedFilter && matchesCategoryFilter && matchesSearch;
@@ -66,7 +67,7 @@ export const InspectionContent = ({
       
       switch (sortBy) {
         case 'title':
-          comparison = (a.title || '').localeCompare(b.title || '');
+          comparison = (a.label || '').localeCompare(b.label || '');
           break;
         case 'category':
           comparison = (a.category || '').localeCompare(b.category || '');
@@ -78,14 +79,19 @@ export const InspectionContent = ({
           break;
         }
         case 'priority': {
-          const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-          comparison = (priorityOrder[a.priority as keyof typeof priorityOrder] || 0) - 
-                      (priorityOrder[b.priority as keyof typeof priorityOrder] || 0);
+          // Since priority doesn't exist in the type, we'll determine it by category/type
+          const getPriority = (item: ChecklistItemType) => {
+            if (item.category === 'safety' || item.category === 'legal') return 3;
+            if (item.category === 'amenities') return 1;
+            return 2;
+          };
+          comparison = getPriority(a) - getPriority(b);
           break;
         }
         case 'order':
         default:
-          comparison = (a.order || 0) - (b.order || 0);
+          // Use created_at as the order since there's no order field
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
       }
       
@@ -144,26 +150,7 @@ export const InspectionContent = ({
           <InspectionProgressTracker checklistItems={safeChecklistItems} showDetailed />
         )}
 
-        {/* Filters - only show if we have items */}
-        {totalCount > 0 && (
-          <InspectionFilters
-            checklistItems={safeChecklistItems}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            showCompleted={showCompleted}
-            onToggleCompleted={() => setShowCompleted(!showCompleted)}
-            onRefresh={onRefetch}
-            isRefetching={isRefetching}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onSortChange={(newSortBy: SortOption, newDirection: SortDirection) => {
-              setSortBy(newSortBy);
-              setSortDirection(newDirection);
-            }}
-          />
-        )}
+        {/* TODO: Add filters component here if needed */}
 
         {/* Checklist Items or Empty State */}
         <InspectionList

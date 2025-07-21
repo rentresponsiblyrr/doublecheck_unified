@@ -142,7 +142,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
       }
 
       // Step 3: Extract images if enabled
-      let imageResult: any = { success: true, data: [], errors: [] };
+      let imageResult: ScrapingResult<PhotoData[]> = { success: true, data: [], errors: [] };
       if (finalOptions.includeImages) {
         logger.info('Step 3: Extracting property images', { url }, 'COMPREHENSIVE_VRBO_SCRAPER');
         imageResult = await this.imageScraper.scrapeAllImages(url, {
@@ -237,9 +237,9 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    * @returns Combined scraping result
    */
   private combineScrapingResults(
-    propertyResult: any,
-    comprehensiveResult: any,
-    imageResult: any,
+    propertyResult: ScrapingResult<VRBOPropertyData>,
+    comprehensiveResult: ScrapingResult<ScrapedPropertyData>,
+    imageResult: ScrapingResult<PhotoData[]>,
     options: ComprehensiveScrapingOptions
   ): Omit<ComprehensiveScrapingResult, 'extractionReport'> {
     // Start with basic property data

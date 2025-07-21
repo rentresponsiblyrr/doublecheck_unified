@@ -479,7 +479,7 @@ class VectorIndex {
 
   constructor(public dimension: number) {}
 
-  async add(id: string, vector: number[], metadata?: any): Promise<void> {
+  async add(id: string, vector: number[], metadata?: Record<string, unknown>): Promise<void> {
     this.vectors.set(id, { id, vector, metadata });
   }
 
@@ -534,13 +534,13 @@ class VectorIndex {
 interface Vector {
   id: string;
   vector: number[];
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface VectorMatch {
   id: string;
   similarity: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface SearchResult {

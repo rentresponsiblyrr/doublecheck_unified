@@ -36,7 +36,7 @@ import { useState } from "react";
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { MobileOptimizedPropertyList } from "@/components/MobileOptimizedPropertyList";
-import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
+import { MobileErrorRecovery } from "@/components/MobileErrorRecovery.tsx";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useMobileDataManager } from "@/hooks/useMobileDataManager";
 import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
