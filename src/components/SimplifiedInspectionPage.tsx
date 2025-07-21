@@ -1,5 +1,6 @@
 
 import { useParams, useNavigate } from "react-router-dom";
+import { useCallback, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useSimplifiedInspectionData } from "@/hooks/useSimplifiedInspectionData";
 import { debugLogger } from "@/utils/debugLogger";
@@ -7,7 +8,7 @@ import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionContent } from "@/components/InspectionContent";
 import { MobileErrorRecovery } from "@/components/MobileErrorRecovery";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 
 export const SimplifiedInspectionPage = () => {
   debugLogger.info('SimplifiedInspectionPage', 'Component rendering');
@@ -16,8 +17,29 @@ export const SimplifiedInspectionPage = () => {
   const navigate = useNavigate();
   const inspectionId = params.id;
 
-  const { user, loading: authLoading, error: authError } = useAuth();
+  const { user, loading: authLoading, error: authError, refetch: refetchAuth } = useAuth();
   const isAuthenticated = !!user;
+  const [authRetryKey, setAuthRetryKey] = useState(0);
+
+  /**
+   * WCAG 2.1 AA Compliance: Screen reader announcements
+   * Announces all status changes to assistive technology users
+   */
+  const announceToScreenReader = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', priority);
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    document.body.appendChild(announcement);
+    
+    // Clean up announcement after screen readers have processed it
+    setTimeout(() => {
+      if (document.body.contains(announcement)) {
+        document.body.removeChild(announcement);
+      }
+    }, 2000);
+  }, []);
   
   debugLogger.info('SimplifiedInspectionPage', 'Route and auth analysis', { 
     params, 
@@ -35,18 +57,45 @@ export const SimplifiedInspectionPage = () => {
       pathname: window.location.pathname
     });
     
+    // WCAG 2.1 AA: Announce error to screen readers
+    announceToScreenReader('Error: Invalid inspection URL. No inspection ID found.', 'assertive');
+    
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Inspection</h2>
-          <p className="text-gray-600 mb-4">No inspection ID found in the URL.</p>
-          <Button onClick={() => navigate('/properties')} className="w-full">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+      <main 
+        className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+        aria-labelledby="invalid-inspection-title"
+      >
+        <div 
+          className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full text-center"
+          role="alert"
+          aria-live="assertive"
+        >
+          <AlertTriangle 
+            className="w-12 h-12 text-red-500 mx-auto mb-4" 
+            aria-hidden="true"
+          />
+          <h1 
+            id="invalid-inspection-title"
+            className="text-xl font-semibold text-gray-900 mb-2"
+          >
+            Invalid Inspection URL
+          </h1>
+          <p className="text-gray-600 mb-4" role="status">
+            No inspection ID found in the URL. Please check the link and try again.
+          </p>
+          <Button 
+            onClick={() => {
+              announceToScreenReader('Navigating back to properties page.', 'polite');
+              navigate('/properties');
+            }} 
+            className="w-full h-12 touch-manipulation focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            aria-label="Return to properties page to select a valid inspection"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
             Return to Properties
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -86,17 +135,67 @@ export const SimplifiedInspectionPage = () => {
   // Auth error state
   if (authError) {
     debugLogger.error('SimplifiedInspectionPage', 'Authentication error', authError);
+    
+    // WCAG 2.1 AA: Announce authentication error
+    announceToScreenReader(`Authentication error: ${authError}`, 'assertive');
+    
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Error</h2>
-          <p className="text-gray-600 mb-4">{authError}</p>
-          <Button onClick={() => window.location.assign(window.location.href)} className="w-full">
-            Try Again
-          </Button>
+      <main 
+        className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+        aria-labelledby="auth-error-title"
+      >
+        <div 
+          className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full text-center"
+          role="alert"
+          aria-live="assertive"
+        >
+          <AlertTriangle 
+            className="w-12 h-12 text-red-500 mx-auto mb-4" 
+            aria-hidden="true"
+          />
+          <h1 
+            id="auth-error-title"
+            className="text-xl font-semibold text-gray-900 mb-2"
+          >
+            Authentication Error
+          </h1>
+          <p className="text-gray-600 mb-4" role="status">
+            {authError}
+          </p>
+          <div className="space-y-2">
+            <Button 
+              onClick={() => {
+                announceToScreenReader('Retrying authentication...', 'polite');
+                // WCAG 2.1 AA: Professional error recovery - trigger auth retry without destroying session
+                setAuthRetryKey(prev => prev + 1);
+                if (refetchAuth) {
+                  refetchAuth();
+                } else {
+                  // Graceful fallback: navigate to sign-in without nuclear reload
+                  navigate('/', { replace: true });
+                }
+              }} 
+              className="w-full h-12 touch-manipulation focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Retry authentication to access inspection"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+              Try Again
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                announceToScreenReader('Navigating to properties page.', 'polite');
+                navigate('/properties');
+              }} 
+              className="w-full h-12 touch-manipulation focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Return to properties page without retrying authentication"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+              Return to Properties
+            </Button>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -133,7 +232,11 @@ const InspectionDataLoader = ({ inspectionId }: { inspectionId: string }) => {
 
   // Handle data loading errors
   if (error) {
-    debugLogger.error('InspectionDataLoader', 'Data loading error', error);
+    debugLogger.error('InspectionDataLoader', 'Data loading error', { 
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <MobileErrorRecovery

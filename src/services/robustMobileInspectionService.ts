@@ -13,7 +13,6 @@ export class RobustMobileInspectionService {
 
   static async validatePropertyAccess(propertyId: string): Promise<boolean> {
     try {
-      // REMOVED: console.log('🔍 Validating property access:', propertyId);
       
       const { data, error } = await supabase
         .from('properties')
@@ -22,21 +21,17 @@ export class RobustMobileInspectionService {
         .single();
 
       if (error) {
-        // REMOVED: console.error('❌ Property validation error:', error);
         return false;
       }
 
-      // REMOVED: console.log('✅ Property access validated:', data?.id);
       return !!data;
     } catch (error) {
-      // REMOVED: console.error('❌ Property access validation failed:', error);
       return false;
     }
   }
 
   static async findActiveInspectionSecure(propertyId: string): Promise<string | null> {
     try {
-      // REMOVED: console.log('🔍 Finding active inspection for property:', propertyId);
 
       const { data, error } = await supabase
         .from('inspections')
@@ -48,18 +43,15 @@ export class RobustMobileInspectionService {
         .maybeSingle();
 
       if (error) {
-        // REMOVED: console.error('❌ Active inspection query error:', error);
         return null;
       }
 
       if (data) {
-        // REMOVED: console.log('📋 Found active inspection:', data.id, 'Status:', data.status);
         return data.id;
       }
 
       return null;
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to find active inspection:', error);
       return null;
     }
   }
@@ -67,7 +59,6 @@ export class RobustMobileInspectionService {
   static async createInspectionWithRetry(propertyId: string): Promise<string> {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
-        // REMOVED: console.log(`🔄 Creating inspection attempt ${attempt}/${this.MAX_RETRIES}`);
 
         const { data, error } = await supabase
           .from('inspections')
@@ -89,7 +80,6 @@ export class RobustMobileInspectionService {
           throw new Error('No inspection ID returned from database');
         }
 
-        // REMOVED: console.log('✅ Inspection created successfully:', data.id);
         
         // Verify checklist items were created by trigger
         await this.verifyChecklistItemsCreated(data.id);
@@ -97,7 +87,6 @@ export class RobustMobileInspectionService {
         return data.id;
 
       } catch (error) {
-        // REMOVED: console.error(`❌ Inspection creation attempt ${attempt} failed:`, error);
         
         if (attempt === this.MAX_RETRIES) {
           throw new Error(`Failed to create inspection after ${this.MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -113,7 +102,6 @@ export class RobustMobileInspectionService {
 
   static async verifyChecklistItemsCreated(inspectionId: string): Promise<number> {
     try {
-      // REMOVED: console.log('🔍 Verifying checklist items for inspection:', inspectionId);
       
       // Wait a moment for the trigger to complete
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -124,27 +112,22 @@ export class RobustMobileInspectionService {
         .eq('inspection_id', inspectionId);
 
       if (error) {
-        // REMOVED: console.error('❌ Error verifying checklist items:', error);
         return 0;
       }
 
       const count = data?.length || 0;
-      // REMOVED: console.log(`📋 Verified ${count} checklist items created`);
       
       if (count === 0) {
-        console.warn('⚠️ No checklist items found - trigger may have failed');
         // Could potentially try to manually populate here if needed
       }
       
       return count;
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to verify checklist items:', error);
       return 0;
     }
   }
 
   static async getOrCreateInspectionRobust(propertyId: string): Promise<RobustInspectionResult> {
-    // REMOVED: console.log('🚀 Starting robust mobile inspection flow for property:', propertyId);
 
     // Step 1: Validate property access with RLS
     const hasAccess = await this.validatePropertyAccess(propertyId);
@@ -155,7 +138,6 @@ export class RobustMobileInspectionService {
     // Step 2: Check for existing active inspection
     const activeInspectionId = await this.findActiveInspectionSecure(propertyId);
     if (activeInspectionId) {
-      // REMOVED: console.log('📋 Joining existing inspection:', activeInspectionId);
       
       // Verify checklist items exist
       const itemCount = await this.verifyChecklistItemsCreated(activeInspectionId);
@@ -168,7 +150,6 @@ export class RobustMobileInspectionService {
     }
 
     // Step 3: Create new inspection with retry logic
-    // REMOVED: console.log('🆕 Creating new inspection for property:', propertyId);
     const newInspectionId = await this.createInspectionWithRetry(propertyId);
     
     // Step 4: Verify checklist items were created
@@ -183,7 +164,6 @@ export class RobustMobileInspectionService {
 
   static async assignInspectorToInspection(inspectionId: string): Promise<void> {
     try {
-      // REMOVED: console.log('👤 Assigning current user to inspection:', inspectionId);
       
       const { data, error } = await supabase.rpc('assign_inspector_to_inspection', {
         p_inspection_id: inspectionId
@@ -193,9 +173,7 @@ export class RobustMobileInspectionService {
         throw error;
       }
 
-      // REMOVED: console.log('✅ Inspector assigned successfully');
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to assign inspector:', error);
       // Don't throw - this is not critical for mobile flow
     }
   }

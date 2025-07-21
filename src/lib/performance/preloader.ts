@@ -377,7 +377,6 @@ export class AdvancedPreloader {
       this.performanceMetrics.set(resourceKey, loadTime);
       
     } catch (error) {
-      console.warn(`Preload failed for ${resource.href}:`, error);
     } finally {
       this.activePreloads.delete(resourceKey);
     }
@@ -472,7 +471,6 @@ export class AdvancedPreloader {
 
   private async preloadRoute(route: string, probability: number): Promise<void> {
     // Implementation for route preloading
-    // REMOVED: console.log(`Preloading route ${route} with probability ${probability}`);
   }
 
   private async getRouteResources(route: string): Promise<PreloadResource[]> {
@@ -482,7 +480,6 @@ export class AdvancedPreloader {
 
   private async preloadComponent(componentName: string): Promise<void> {
     // Implementation for component preloading
-    // REMOVED: console.log(`Preloading component: ${componentName}`);
   }
 
   private adjustPredictionsForBehavior(predictions: Map<string, number>): void {
@@ -571,7 +568,6 @@ export function useAdvancedPreloader(config?: Partial<PreloadConfig>) {
     setPreloader(instance);
 
     // Start bleeding-edge preloading
-    instance.startOptimizedPreloading().catch(console.error);
 
     // Update metrics periodically
     const metricsInterval = setInterval(() => {

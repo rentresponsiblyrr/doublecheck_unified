@@ -122,7 +122,6 @@ export function useErrorHandling(options?: UseErrorHandlingOptions): ErrorHandli
 
     // Log in development
     if (env.isDevelopment()) {
-      // REMOVED: console.error('[useErrorHandling]', errorObj);
     }
   }, [config, toast]);
 

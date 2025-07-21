@@ -461,7 +461,6 @@ class CorrelationManager {
       const traceCount = this.completedTraces.length;
       if (traceCount > 100) {
         // In production, export traces here
-        console.debug(`[CorrelationManager] ${traceCount} traces ready for export`);
       }
     }, 30000); // Every 30 seconds
   }

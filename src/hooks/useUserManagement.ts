@@ -99,19 +99,10 @@ export const useUserManagement = () => {
         }
       }
 
-      // Step 4: Fallback to profiles table if needed (but profiles table should not exist in this schema)
-      if (!result.usersTableExists || !result.currentUserHasAccess) {
-        const { data: profilesTest, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, email, role')
-          .limit(1);
-
-        if (!profilesError) {
-          result.fallbackToProfiles = true;
-          logger.info('✅ Falling back to profiles table', {}, 'USER_MANAGEMENT');
-        } else {
-          logger.warn('⚠️ Profiles table also not accessible:', profilesError, 'USER_MANAGEMENT');
-        }
+      // Step 4: No fallback needed - users table is the production schema
+      // Profiles table does not exist in production
+      if (!result.usersTableExists) {
+        logger.error('❌ Users table not accessible - this is a critical error', {}, 'USER_MANAGEMENT');
       }
 
       logger.info('📊 Diagnostic complete', result, 'USER_MANAGEMENT');

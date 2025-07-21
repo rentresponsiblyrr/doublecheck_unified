@@ -133,7 +133,6 @@ export const ChecklistFormDialog: React.FC<ChecklistFormDialogProps> = ({
       await onSave(sanitizedData);
       onClose();
     } catch (error) {
-      // REMOVED: console.error('Error saving checklist item:', error);
       setValidationErrors({
         form: error instanceof Error ? error.message : 'Failed to save checklist item'
       });

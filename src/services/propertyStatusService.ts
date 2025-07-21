@@ -85,9 +85,6 @@ class PropertyStatusService {
    * @example
    * ```typescript
    * const result = propertyStatusService.calculatePropertyStatus(property);
-   * // REMOVED: console.log(result.status); // 'in-progress'
-   * // REMOVED: console.log(result.config.textLabel); // 'In Progress'
-   * // REMOVED: console.log(result.metadata.calculationReason); // 'Has active inspections'
    * ```
    */
   calculatePropertyStatus(property: PropertyWithInspections): PropertyStatusResult {

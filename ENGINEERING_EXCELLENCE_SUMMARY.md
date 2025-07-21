@@ -99,7 +99,7 @@ Our engineers are measured against these standards:
 
 ---
 
-## **🚫 BANNED PATTERNS - IMMEDIATE TERMINATION**
+## **🎯 PATTERNS TO IMPROVE - GROWTH OPPORTUNITIES**
 
 These patterns will result in **immediate termination**:
 

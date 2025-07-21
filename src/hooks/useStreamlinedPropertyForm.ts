@@ -154,7 +154,6 @@ export const useStreamlinedPropertyForm = (): UseStreamlinedPropertyFormReturn =
       }
 
     } catch (error) {
-      // REMOVED: console.error('❌ Form submission error:', error);
       
       toast({
         title: "Error Adding Property",

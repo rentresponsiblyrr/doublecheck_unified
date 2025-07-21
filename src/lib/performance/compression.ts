@@ -163,11 +163,9 @@ export class AdvancedCompressionManager {
       // Cache result for future use
       this.compressionCache.set(cacheKey, result);
       
-      // REMOVED: console.log(`🗜️ Compressed ${url || 'resource'}: ${algorithm} ${(result.compressionRatio * 100).toFixed(1)}% (saved ${(result.savings / 1024).toFixed(1)}KB)`);
       
       return result;
     } catch (error) {
-      console.warn(`Compression failed for ${url}:`, error);
       return {
         originalSize,
         compressedSize: originalSize,
@@ -275,7 +273,6 @@ export class AdvancedCompressionManager {
     const maxPush = this.http2Config.maxPushResources;
     const selected = pushCandidates.slice(0, maxPush).map(candidate => candidate.url);
 
-    // REMOVED: console.log(`📡 HTTP/2 Push manifest generated: ${selected.length} resources`);
     return selected;
   }
 
@@ -365,20 +362,17 @@ export class AdvancedCompressionManager {
     }
     
     // Fallback: return original data (would implement polyfill in production)
-    console.warn('CompressionStream not supported, skipping gzip compression');
     return data.buffer;
   }
 
   private async brotliCompress(data: Uint8Array): Promise<ArrayBuffer> {
     // Similar implementation to gzip but with 'deflate-raw' 
     // (Brotli not yet supported in CompressionStream)
-    console.warn('Brotli compression not yet supported in browser, falling back to gzip');
     return this.gzipCompress(data);
   }
 
   private async zstdCompress(data: Uint8Array): Promise<ArrayBuffer> {
     // Zstandard is not yet supported in browsers
-    console.warn('Zstandard compression not supported in browser, falling back to gzip');
     return this.gzipCompress(data);
   }
 
@@ -473,7 +467,6 @@ export class AdvancedCompressionManager {
       } catch {}
     }
     
-    // REMOVED: console.log('🗜️ Compression support:', Array.from(this.supportedAlgorithms));
   }
 
   private initializeNetworkMonitoring(): void {
@@ -496,7 +489,6 @@ export class AdvancedCompressionManager {
           saveData: connection.saveData
         };
         
-        // REMOVED: console.log('📡 Network condition changed:', this.networkCondition);
       });
     }
   }

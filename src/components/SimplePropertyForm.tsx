@@ -37,7 +37,6 @@ export const SimplePropertyForm = () => {
       
       if (!editId) return;
 
-      // REMOVED: console.log('📝 Loading property for edit:', editId);
       setIsLoadingProperty(true);
 
       try {
@@ -48,12 +47,10 @@ export const SimplePropertyForm = () => {
           .single();
 
         if (error) {
-          // REMOVED: console.error('❌ Error loading property:', error);
           return;
         }
 
         if (data) {
-          // REMOVED: console.log('✅ Property loaded for edit:', data);
           setFormData({
             name: data.name || '',
             address: data.address || '',
@@ -62,7 +59,6 @@ export const SimplePropertyForm = () => {
           });
         }
       } catch (error) {
-        // REMOVED: console.error('💥 Unexpected error loading property:', error);
       } finally {
         setIsLoadingProperty(false);
       }
@@ -80,14 +76,11 @@ export const SimplePropertyForm = () => {
   };
 
   const handleVRBODataScraped = (data: any) => {
-    // REMOVED: console.log('📊 VRBO data scraped:', data);
     setScrapedVRBOData(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // REMOVED: console.log('📝 Form submitted with data:', formData);
-    // REMOVED: console.log('📊 Scraped VRBO data:', scrapedVRBOData);
     
     // Clear previous errors
     setFormErrors({});
@@ -100,7 +93,6 @@ export const SimplePropertyForm = () => {
     
     const success = await submitProperty(submissionData);
     if (!success) {
-      // REMOVED: console.log('❌ Submission failed');
     }
   };
 

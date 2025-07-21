@@ -6,13 +6,11 @@ export const useSmartCache = () => {
   const queryClient = useQueryClient();
 
   const invalidatePropertyData = useCallback(() => {
-    // REMOVED: console.log('🔄 Smart Cache: Invalidating property data');
     queryClient.invalidateQueries({ queryKey: ['optimized-properties'] });
     queryClient.invalidateQueries({ queryKey: ['properties'] });
   }, [queryClient]);
 
   const prefetchProperty = useCallback((propertyId: string) => {
-    // REMOVED: console.log(`🚀 Smart Cache: Prefetching property ${propertyId}`);
     // This could be expanded to prefetch specific property details
     queryClient.prefetchQuery({
       queryKey: ['property', propertyId],
@@ -25,7 +23,6 @@ export const useSmartCache = () => {
   }, [queryClient]);
 
   const warmCache = useCallback(() => {
-    // REMOVED: console.log('🔥 Smart Cache: Warming cache with property data');
     queryClient.prefetchQuery({
       queryKey: ['optimized-properties'],
       staleTime: 30000
@@ -35,12 +32,10 @@ export const useSmartCache = () => {
   const getCacheSize = useCallback(() => {
     const cache = queryClient.getQueryCache();
     const queries = cache.getAll();
-    // REMOVED: console.log(`📊 Smart Cache: ${queries.length} queries cached`);
     return queries.length;
   }, [queryClient]);
 
   const clearCache = useCallback(() => {
-    // REMOVED: console.log('🧹 Smart Cache: Clearing all cached data');
     queryClient.clear();
   }, [queryClient]);
 

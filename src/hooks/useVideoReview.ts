@@ -430,7 +430,6 @@ export const useVideoReviewSession = (videoId: string, auditorId: string) => {
             sessions.push(session);
           }
         } catch (error) {
-          // REMOVED: console.error('Failed to load session:', error);
         }
       }
     }

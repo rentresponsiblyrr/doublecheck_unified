@@ -21,10 +21,24 @@ export interface CacheStrategy {
     cacheName: string;
     maxEntries?: number;
     maxAgeSeconds?: number;
-    cacheKeyWillBeUsed?: (params: any) => Promise<string>;
-    cacheWillUpdate?: (params: any) => Promise<Response | undefined>;
-    fetchDidFail?: (params: any) => Promise<void>;
-    requestWillFetch?: (params: any) => Promise<Request>;
+    cacheKeyWillBeUsed?: (params: {
+      request: Request;
+      mode: 'read' | 'write';
+    }) => Promise<string>;
+    cacheWillUpdate?: (params: {
+      request: Request;
+      response: Response;
+      event: ExtendableEvent;
+    }) => Promise<Response | undefined>;
+    fetchDidFail?: (params: {
+      request: Request;
+      error: Error;
+      event: ExtendableEvent;
+    }) => Promise<void>;
+    requestWillFetch?: (params: {
+      request: Request;
+      event: ExtendableEvent;
+    }) => Promise<Request>;
   };
 }
 
@@ -139,7 +153,6 @@ const CACHE_STRATEGIES: CacheStrategy[] = [
 declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener('install', (event: ExtendableEvent) => {
-  // REMOVED: console.log(`🚀 BLEEDING EDGE: Service Worker v${SW_VERSION} installing`);
   
   event.waitUntil(
     (async () => {
@@ -158,7 +171,6 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 });
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
-  // REMOVED: console.log(`✅ BLEEDING EDGE: Service Worker v${SW_VERSION} activated`);
   
   event.waitUntil(
     (async () => {
@@ -184,8 +196,10 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(handleFetchWithStrategy(event.request));
 });
 
-self.addEventListener('sync', (event: any) => {
-  // REMOVED: console.log('🔄 Background sync event:', event.tag);
+self.addEventListener('sync', (event: ExtendableEvent & {
+  tag: string;
+  lastChance?: boolean;
+}) => {
   
   if (event.tag === 'offline-sync') {
     event.waitUntil(processOfflineQueue());
@@ -213,7 +227,6 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
       break;
       
     default:
-      console.warn('Unknown message type:', type);
   }
 });
 
@@ -269,7 +282,6 @@ async function handleNetworkFirst(request: Request, cacheName: string): Promise<
     
     return networkResponse;
   } catch (error) {
-    console.warn('Network failed, trying cache:', error);
     
     // Fallback to cache
     const cachedResponse = await caches.match(request);
@@ -327,7 +339,6 @@ async function handleCacheFirst(request: Request, cacheName: string, maxAge?: nu
     
     return networkResponse;
   } catch (error) {
-    console.warn('Network and cache failed:', error);
     return getOfflineFallback(request);
   }
 }
@@ -345,7 +356,6 @@ async function handleStaleWhileRevalidate(request: Request, cacheName: string): 
       return response;
     })
     .catch(error => {
-      console.warn('Background fetch failed:', error);
       return null;
     });
   
@@ -393,9 +403,7 @@ async function precacheCriticalResources(): Promise<void> {
   
   try {
     await cache.addAll(criticalResources);
-    // REMOVED: console.log('✅ Critical resources precached');
   } catch (error) {
-    // REMOVED: console.error('❌ Failed to precache critical resources:', error);
   }
 }
 
@@ -407,7 +415,6 @@ async function cleanupOldCaches(): Promise<void> {
   
   await Promise.all(
     oldCaches.map(cacheName => {
-      // REMOVED: console.log('🗑️ Deleting old cache:', cacheName);
       return caches.delete(cacheName);
     })
   );
@@ -424,7 +431,6 @@ async function cacheUrls(urls: string[]): Promise<void> {
           await cache.put(url, response);
         }
       } catch (error) {
-        console.warn(`Failed to cache ${url}:`, error);
       }
     })
   );
@@ -461,14 +467,12 @@ async function queueOfflineRequest(request: Request): Promise<void> {
     const store = tx.objectStore(OFFLINE_QUEUE_NAME);
     await store.add(queueItem);
     
-    // REMOVED: console.log('📥 Queued offline request:', request.url);
     
     // Register for background sync
     if ('serviceWorker' in self && 'sync' in self.registration) {
       await self.registration.sync.register('offline-sync');
     }
   } catch (error) {
-    // REMOVED: console.error('Failed to queue offline request:', error);
   }
 }
 
@@ -492,12 +496,10 @@ async function processOfflineQueue(): Promise<void> {
         if (response.ok) {
           // Success - remove from queue
           await store.delete(item.timestamp);
-          // REMOVED: console.log('✅ Processed offline request:', item.url);
         } else {
           throw new Error(`HTTP ${response.status}`);
         }
       } catch (error) {
-        console.warn('Failed to process offline request:', error);
         
         // Increment retry count
         item.retryCount++;
@@ -505,7 +507,6 @@ async function processOfflineQueue(): Promise<void> {
         if (item.retryCount >= MAX_RETRY_ATTEMPTS) {
           // Max retries reached - remove from queue
           await store.delete(item.timestamp);
-          // REMOVED: console.error('❌ Max retries reached for:', item.url);
         } else {
           // Update retry count
           await store.put(item);
@@ -513,7 +514,6 @@ async function processOfflineQueue(): Promise<void> {
       }
     }
   } catch (error) {
-    // REMOVED: console.error('Failed to process offline queue:', error);
   }
 }
 
@@ -521,9 +521,7 @@ async function initializeBackgroundSync(): Promise<void> {
   if ('serviceWorker' in self && 'sync' in self.registration) {
     try {
       await self.registration.sync.register('offline-sync');
-      // REMOVED: console.log('✅ Background sync initialized');
     } catch (error) {
-      console.warn('Background sync not supported:', error);
     }
   }
 }
@@ -558,7 +556,7 @@ function getOfflineFallback(request: Request): Response {
           <div class="icon">📡</div>
           <h1>You're Offline</h1>
           <p>No internet connection detected. Please check your network and try again.</p>
-          <button class="retry" onclick="window.navigator.onLine && fetch('/').then(() => window.location.href = window.location.href).catch(() => setTimeout(() => location.href = location.href, 1000))">Try Again</button>
+          <button class="retry" onclick="window.navigator.onLine && fetch('/').then(() => self.clients.claim()).catch(() => console.log('Retry failed'))">Try Again</button>
         </div>
       </body>
       </html>
@@ -616,7 +614,6 @@ async function openOfflineDB(): Promise<IDBDatabase> {
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator)) {
-    console.warn('Service Worker not supported');
     return null;
   }
   
@@ -625,7 +622,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       scope: '/'
     });
     
-    // REMOVED: console.log('✅ Service Worker registered:', registration.scope);
     
     // Update service worker when new version available
     registration.addEventListener('updatefound', () => {
@@ -633,23 +629,13 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // REMOVED: console.log('🔄 New Service Worker available');
             // Notify user about update
             if (confirm('A new version is available. Refresh to update?')) {
               newWorker.postMessage({ type: 'SKIP_WAITING' });
-              // Professional graceful update - preserve user state
-              try {
-                // Save current state if possible
-                const currentPath = window.location.pathname;
-                const currentState = history.state;
-                
-                // Perform graceful navigation refresh
-                window.location.href = window.location.href;
-              } catch (error) {
-                // Fallback for edge cases
-                console.warn('Graceful update failed, using navigation refresh:', error);
-                window.location.href = window.location.origin + window.location.pathname;
-              }
+              // Professional graceful update - post message to clients for update
+              self.clients.matchAll().then(clients => {
+                clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+              });
             }
           }
         });
@@ -658,7 +644,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     
     return registration;
   } catch (error) {
-    // REMOVED: console.error('❌ Service Worker registration failed:', error);
     return null;
   }
 }

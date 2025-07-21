@@ -18,6 +18,11 @@ import { enterpriseServiceTracer } from '../services/enterprise-service-tracer';
 import { EnterpriseSecurityManager } from './enterprise-security-manager';
 import { ThreatDetectionEngine, type SecurityEvent } from './threat-detection-engine';
 
+// Type definitions for request/response bodies
+type RequestBody = string | Record<string, unknown> | FormData | ArrayBuffer | Blob | null | undefined;
+type ResponseBody = string | Record<string, unknown> | null | undefined;
+type SanitizedData = string | Record<string, unknown> | null;
+
 export interface SecurityMiddlewareConfig {
   // Security scanning settings
   scanning: {
@@ -96,7 +101,7 @@ export interface SecurityScanResult {
   riskScore: number;
   violations: SecurityViolation[];
   warnings: SecurityWarning[];
-  sanitized?: any;
+  sanitized?: SanitizedData;
   blocked: boolean;
   reason?: string;
 }
@@ -150,14 +155,14 @@ class SecurityMiddleware {
     method: string,
     path: string,
     headers: Record<string, string>,
-    body?: any,
+    body?: RequestBody,
     query?: Record<string, string>
   ): Promise<{ 
     context: SecurityContext; 
     result: SecurityScanResult;
     modifiedRequest?: {
       headers: Record<string, string>;
-      body?: any;
+      body?: RequestBody;
       query?: Record<string, string>;
     };
   }> {
@@ -256,10 +261,10 @@ class SecurityMiddleware {
     context: SecurityContext,
     statusCode: number,
     headers: Record<string, string>,
-    body?: any
+    body?: ResponseBody
   ): Promise<{
     secureHeaders: Record<string, string>;
-    sanitizedBody?: any;
+    sanitizedBody?: ResponseBody;
     violations: SecurityViolation[];
   }> {
     return enterpriseServiceTracer.traceServiceOperation(
@@ -309,7 +314,7 @@ class SecurityMiddleware {
     method: string,
     path: string,
     headers: Record<string, string>,
-    body?: any
+    body?: RequestBody
   ): SecurityContext {
     const requestId = headers['x-request-id'] || this.generateRequestId();
     const ipAddress = this.extractClientIP(headers);
@@ -412,10 +417,10 @@ class SecurityMiddleware {
    * Input validation and sanitization
    */
   private async validateAndSanitizeInput(
-    request: { headers: Record<string, string>; body?: any; query?: Record<string, string> },
+    request: { headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> },
     context: SecurityContext,
     result: SecurityScanResult
-  ): Promise<{ headers: Record<string, string>; body?: any; query?: Record<string, string> }> {
+  ): Promise<{ headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> }> {
     const sanitized = { ...request };
     
     // Validate and sanitize query parameters
@@ -461,13 +466,13 @@ class SecurityMiddleware {
    * Validate request body for security threats
    */
   private async validateRequestBody(
-    body: any,
+    body: RequestBody,
     context: SecurityContext
   ): Promise<{
     violations: SecurityViolation[];
     warnings: SecurityWarning[];
     riskScore: number;
-    sanitized: any;
+    sanitized: SanitizedData;
   }> {
     const violations: SecurityViolation[] = [];
     const warnings: SecurityWarning[] = [];
@@ -552,11 +557,11 @@ class SecurityMiddleware {
    * Scan response for data leaks
    */
   private async scanForDataLeaks(
-    body: any,
+    body: ResponseBody,
     context: SecurityContext
   ): Promise<{
     violations: SecurityViolation[];
-    sanitized: any;
+    sanitized: ResponseBody;
   }> {
     const violations: SecurityViolation[] = [];
     let sanitized = body;
@@ -600,7 +605,7 @@ class SecurityMiddleware {
    */
   private createSecurityEvent(
     context: SecurityContext,
-    request: { headers: Record<string, string>; body?: any; query?: Record<string, string> }
+    request: { headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> }
   ): SecurityEvent {
     return {
       id: `event_${context.requestId}`,
@@ -699,7 +704,7 @@ class SecurityMiddleware {
   }
 
   private async validateFileUploads(
-    body: any,
+    body: RequestBody,
     context: SecurityContext,
     result: SecurityScanResult
   ): Promise<void> {
@@ -710,15 +715,15 @@ class SecurityMiddleware {
   }
 
   private async sanitizeObjectRecursively(
-    obj: any,
+    obj: Record<string, unknown>,
     context: SecurityContext,
     violations: SecurityViolation[]
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     if (typeof obj !== 'object' || obj === null) {
       return obj;
     }
     
-    const sanitized: any = Array.isArray(obj) ? [] : {};
+    const sanitized: Record<string, unknown> = Array.isArray(obj) ? [] : {};
     
     for (const [key, value] of Object.entries(obj)) {
       if (typeof value === 'string') {
@@ -756,7 +761,7 @@ class SecurityMiddleware {
     return "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;";
   }
 
-  private sanitizeErrorResponse(body: any, context: SecurityContext): any {
+  private sanitizeErrorResponse(body: ResponseBody, context: SecurityContext): ResponseBody {
     // Sanitize error responses to prevent information disclosure
     if (typeof body === 'object' && body.error) {
       return {
@@ -769,7 +774,7 @@ class SecurityMiddleware {
   }
 
   private validateResponseContent(
-    body: any,
+    body: ResponseBody,
     context: SecurityContext
   ): { violations: SecurityViolation[] } {
     // Validate response content

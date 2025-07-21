@@ -644,7 +644,7 @@ export const DEFAULT_SCRAPER_CONFIG: ScraperConfig = {
 } as const;
 
 // Export convenience functions
-export const createVRBOScraper = (config?: Partial<ScraperConfig>) => new VRBOScraper(config);
+// Removed duplicate export - use the implementation above
 
 // Export robust scraping service for production use
 export { robustScrapingService, scrapePropertyRobustly } from './robust-scraping-service';

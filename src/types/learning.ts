@@ -1,5 +1,18 @@
 // AI Learning System Types for STR Certified
 
+// Core value types for AI learning system
+type LearningValue = string | number | boolean | {
+  status: 'pass' | 'fail' | 'needs_review';
+  confidence: number;
+  details?: string;
+  measurements?: Record<string, number>;
+  detected_items?: string[];
+  quality_score?: number;
+} | null;
+
+type PatternConditionValue = string | number | boolean | RegExp;
+type ModelParameterValue = string | number | boolean | Record<string, unknown>;
+
 export interface AuditorFeedback {
   id: string;
   inspectionId: string;
@@ -230,8 +243,8 @@ export interface FeedbackFormData {
 export interface FeedbackItem {
   id: string;
   type: FeedbackCategory;
-  aiValue: any;
-  correctValue: any;
+  aiValue: LearningValue;
+  correctValue: LearningValue;
   confidenceRating: number; // 0-100
   severity: 'minor' | 'moderate' | 'major';
   explanation?: string;
@@ -296,7 +309,7 @@ export interface LearningPattern {
     conditions: Array<{
       field: string;
       operator: 'equals' | 'contains' | 'gt' | 'lt' | 'regex';
-      value: any;
+      value: PatternConditionValue;
     }>;
     frequency: number; // Minimum occurrences
     timeWindow?: number; // Hours
@@ -317,8 +330,8 @@ export interface LearningPattern {
     longTerm: string[];
     modelAdjustments?: {
       parameter: string;
-      currentValue: any;
-      suggestedValue: any;
+      currentValue: ModelParameterValue;
+      suggestedValue: ModelParameterValue;
     }[];
   };
 }

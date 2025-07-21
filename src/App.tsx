@@ -247,9 +247,9 @@ function App() {
   // Show loading spinner while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <div id="app-loading-container" className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div id="app-loading-content" className="text-center">
+          <div id="app-loading-spinner" className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">STR Certified</h1>
           <p className="text-gray-600">Loading...</p>
         </div>
@@ -292,9 +292,9 @@ function App() {
   return (
     <SimpleErrorBoundary
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="text-center">
-            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+        <div id="app-error-container" className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div id="app-error-content" className="text-center">
+            <div id="app-error-icon" className="text-red-600 text-6xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Application Error</h1>
             <p className="text-gray-600 mb-4">The application encountered an error. Please try refreshing the page.</p>
             <button 
@@ -307,7 +307,7 @@ function App() {
             >
               Reset Application
             </button>
-            <div className="mt-4">
+            <div id="app-error-secondary-actions" className="mt-4">
               <button 
                 onClick={() => {
                   // Professional return to login
@@ -324,9 +324,9 @@ function App() {
       }
     >
       <Suspense fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <div id="app-suspense-container" className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div id="app-suspense-content" className="text-center">
+            <div id="app-suspense-spinner" className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">STR Certified</h1>
             <p className="text-gray-600">Initializing application...</p>
           </div>

@@ -6,6 +6,67 @@ import { aiDecisionLogger } from './decision-logger';
 import { logger } from '../../utils/logger';
 import type { VRBOPropertyData, PropertyAmenity } from '../scrapers/types';
 
+// Type for AI service (nullable for security)
+type NullableAIService = STRCertifiedAIService | null;
+
+// Room data interface
+interface RoomData {
+  type: string;
+  count?: number;
+  features?: string[];
+}
+
+// AI Response data types
+type AIResponseData = AIGeneratedItem | AIGeneratedItem[] | AIEnhancementResponse;
+
+// Property data for AI service
+interface AIPropertyData {
+  property_type: 'apartment' | 'house' | 'condo' | 'townhouse' | 'other';
+  room_count: {
+    bedrooms: number;
+    bathrooms: number;
+  };
+  amenities: string[];
+  description: string;
+  location: PropertyLocation;
+  special_features: string[];
+}
+
+// Property location interface
+interface PropertyLocation {
+  city: string;
+  state: string;
+  country?: string;
+}
+
+// Property amenity processing types
+type AmenityMap<T> = Record<string, T>;
+type CategoryMapping = AmenityMap<ChecklistCategory>;
+type PriorityMapping = AmenityMap<'critical' | 'high' | 'medium' | 'low'>;
+type TimeMapping = AmenityMap<number>;
+type SubjectMapping = AmenityMap<string[]>;
+type InstructionMapping = AmenityMap<string>;
+
+// AI-generated checklist item interface
+interface AIGeneratedItem {
+  title: string;
+  description: string;
+  category: ChecklistCategory;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  required: boolean;
+  estimatedTimeMinutes?: number;
+  roomType?: string;
+  gptPrompt?: string;
+  referencePhoto?: string;
+}
+
+// AI enhancement response interface
+interface AIEnhancementResponse {
+  enhancedItems: AIGeneratedItem[];
+  suggestions: string[];
+  confidence: number;
+}
+
 // Dynamic Checklist Types
 export interface DynamicChecklistItem {
   id: string;
@@ -80,12 +141,12 @@ export interface ChecklistGenerationResult {
 
 export class DynamicChecklistGenerator {
   private static instance: DynamicChecklistGenerator;
-  private aiService: STRCertifiedAIService;
+  private aiService: NullableAIService;
   private baseRequirements: DynamicChecklistItem[] = [];
 
   private constructor() {
     // AI service disabled for security - API key should never be in browser
-    this.aiService = null as any;
+    this.aiService = null;
     
     this.initializeBaseRequirements();
   }
@@ -221,7 +282,7 @@ export class DynamicChecklistGenerator {
       return result;
 
     } catch (error) {
-      logger.error('Failed to generate dynamic checklist', error, 'CHECKLIST_GENERATION');
+      logger.error('Failed to generate dynamic checklist', { error: (error as Error).message });
       throw error;
     }
   }
@@ -273,7 +334,7 @@ export class DynamicChecklistGenerator {
    */
   private generateBedroomItems(
     bedroomCount: number,
-    rooms: Array<{type: string; count?: number; features?: string[]}>,
+    rooms: RoomData[],
     startOrder: number
   ): DynamicChecklistItem[] {
     const items: DynamicChecklistItem[] = [];
@@ -320,7 +381,7 @@ export class DynamicChecklistGenerator {
    */
   private generateBathroomItems(
     bathroomCount: number,
-    rooms: Array<{type: string; count?: number; features?: string[]}>,
+    rooms: RoomData[],
     startOrder: number
   ): DynamicChecklistItem[] {
     const items: DynamicChecklistItem[] = [];
@@ -419,7 +480,7 @@ export class DynamicChecklistGenerator {
       instructions: amenityInstructions,
       metadata: {
         generatedFrom: 'vrbo_amenity',
-        sourceData: amenity,
+        sourceData: amenity as unknown as Record<string, unknown>,
         aiGenerated: false
       }
     };
@@ -584,7 +645,7 @@ export class DynamicChecklistGenerator {
         instructions: 'Take photos from same angles as listing photos. Document any discrepancies between actual property and listing images.',
         metadata: {
           generatedFrom: 'compliance_rule',
-          sourceData: { verificationType: 'listing_accuracy', vrboUrl: propertyData.vrboUrl },
+          sourceData: { verificationType: 'listing_accuracy', vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl },
           aiGenerated: false
         }
       },
@@ -611,7 +672,7 @@ export class DynamicChecklistGenerator {
           sourceData: { 
             verificationType: 'amenity_accuracy', 
             listedAmenities: propertyData.amenities.length,
-            vrboUrl: propertyData.vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
           },
           aiGenerated: false
         }
@@ -640,7 +701,7 @@ export class DynamicChecklistGenerator {
             verificationType: 'room_count_accuracy',
             listedBedrooms: propertyData.specifications.bedrooms,
             listedBathrooms: propertyData.specifications.bathrooms,
-            vrboUrl: propertyData.vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
           },
           aiGenerated: false
         }
@@ -668,7 +729,7 @@ export class DynamicChecklistGenerator {
           sourceData: { 
             verificationType: 'capacity_accuracy',
             listedCapacity: propertyData.specifications.maxGuests,
-            vrboUrl: propertyData.vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
           },
           aiGenerated: false
         }
@@ -732,37 +793,8 @@ export class DynamicChecklistGenerator {
       // AI enhancement disabled for security - return items without AI enhancement
       logger.info('AI enhancement disabled for security', { itemCount: items.length }, 'CHECKLIST_GENERATION');
       return items;
-      
-      const response = await this.aiService.generateDynamicChecklist({
-        property_type: propertyData.specifications.propertyType,
-        room_count: {
-          bedrooms: propertyData.specifications.bedrooms,
-          bathrooms: propertyData.specifications.bathrooms
-        },
-        amenities: propertyData.amenities.map(a => a.name),
-        description: propertyData.description,
-        location: propertyData.location,
-        special_features: propertyData.amenities.map(a => a.name)
-      });
-
-      // Merge AI suggestions with existing items
-      const enhancedItems = [...items];
-      
-      // Add AI-generated items that don't conflict with existing ones
-      response.forEach(aiItem => {
-        const existingItem = enhancedItems.find(item => 
-          item.title.toLowerCase().includes(aiItem.title.toLowerCase()) ||
-          aiItem.title.toLowerCase().includes(item.title.toLowerCase())
-        );
-        
-        if (!existingItem && aiItem.title && aiItem.description) {
-          enhancedItems.push(this.convertAIItemToChecklistItem(aiItem, enhancedItems.length + 1));
-        }
-      });
-
-      return enhancedItems.sort((a, b) => a.order - b.order);
     } catch (error) {
-      logger.error('AI enhancement failed, using base checklist', error, 'CHECKLIST_AI_ENHANCEMENT');
+      logger.error('AI enhancement failed, using base checklist', { error: (error as Error).message });
       return items;
     }
   }
@@ -773,18 +805,18 @@ export class DynamicChecklistGenerator {
    * @param order - Order in checklist
    * @returns DynamicChecklistItem
    */
-  private convertAIItemToChecklistItem(aiItem: {title: string; description: string; category: string; priority: string; required: boolean; roomType?: string; gptPrompt?: string; referencePhoto?: string}, order: number): DynamicChecklistItem {
+  private convertAIItemToChecklistItem(aiItem: AIGeneratedItem, order: number): DynamicChecklistItem {
     return {
       id: `ai_generated_${order}`,
       title: aiItem.title,
       description: aiItem.description,
-      category: aiItem.category || 'general',
-      required: aiItem.required || false,
+      category: aiItem.category,
+      required: aiItem.required,
       evidenceRequired: true,
       safetyRelated: aiItem.category === 'safety',
       complianceRequired: aiItem.category === 'compliance',
-      priority: aiItem.priority || 'medium',
-      estimatedTimeMinutes: aiItem.estimated_time_minutes || 5,
+      priority: aiItem.priority,
+      estimatedTimeMinutes: aiItem.estimatedTimeMinutes || 5,
       order,
       passFailOptions: ['pass', 'fail', 'not_applicable'],
       naRequiresNote: true,
@@ -793,7 +825,7 @@ export class DynamicChecklistGenerator {
       canRename: false,
       metadata: {
         generatedFrom: 'vrbo_amenity',
-        sourceData: aiItem,
+        sourceData: aiItem as unknown as Record<string, unknown>,
         aiGenerated: true
       }
     };
@@ -802,7 +834,7 @@ export class DynamicChecklistGenerator {
   // Helper methods for amenity processing
 
   private getAmenityInstructions(amenity: PropertyAmenity): string {
-    const instructions: Record<string, string> = {
+    const instructions: InstructionMapping = {
       'Hot Tub': 'Check water temperature, cleanliness, and safety features. Verify cover is present.',
       'Fireplace': 'Inspect safety screen, damper, and surrounding area. Check for soot or damage.',
       'Pool': 'Verify water clarity, safety barriers, and pool equipment functionality.',
@@ -818,7 +850,7 @@ export class DynamicChecklistGenerator {
   }
 
   private mapAmenityToCategory(amenityCategory: string): ChecklistCategory {
-    const categoryMap: Record<string, ChecklistCategory> = {
+    const categoryMap: CategoryMapping = {
       'kitchen': 'kitchen',
       'outdoor': 'outdoor',
       'entertainment': 'entertainment',
@@ -835,7 +867,7 @@ export class DynamicChecklistGenerator {
   }
 
   private mapAmenityPriority(amenityPriority: string): 'critical' | 'high' | 'medium' | 'low' {
-    const priorityMap: Record<string, 'critical' | 'high' | 'medium' | 'low'> = {
+    const priorityMap: PriorityMapping = {
       'essential': 'critical',
       'important': 'high',
       'nice_to_have': 'medium'
@@ -845,7 +877,7 @@ export class DynamicChecklistGenerator {
   }
 
   private getAmenityInspectionTime(amenity: PropertyAmenity): number {
-    const timeMap: Record<string, number> = {
+    const timeMap: TimeMapping = {
       'Hot Tub': 8,
       'Pool': 10,
       'Fireplace': 6,
@@ -860,7 +892,7 @@ export class DynamicChecklistGenerator {
   }
 
   private getAmenityExpectedSubjects(amenity: PropertyAmenity): string[] {
-    const subjectMap: Record<string, string[]> = {
+    const subjectMap: SubjectMapping = {
       'Hot Tub': ['hot_tub', 'cover', 'controls', 'safety_features'],
       'Fireplace': ['fireplace', 'screen', 'damper', 'surrounding_area'],
       'Pool': ['pool', 'water', 'safety_barriers', 'equipment'],

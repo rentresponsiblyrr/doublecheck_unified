@@ -19,6 +19,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { ErrorDetails, ErrorResolutionHistory } from '@/types/errorTypes';
 import { log } from '@/lib/logging/enterprise-logger';
 
+// Types for learning context data
+type SystemStateData = Record<string, string | number | boolean | null>;
+type UserBehaviorData = Record<string, string | number | boolean | null>;
+type EnvironmentalFactorsData = Record<string, string | number | boolean | null>;
+
+// Type for resolution learnings
+interface ResolutionLearnings {
+  errorId: string;
+  resolutionTime: number | null;
+  resolutionType: string;
+  successful: boolean;
+  verificationMetrics?: unknown;
+}
+
+// Type for overall performance analysis
+interface OverallPerformanceAnalysis {
+  avgAccuracy: number;
+  avgResponseTime: number;
+  categoriesNeedingImprovement: string[];
+  overallTrend: string;
+}
+
 interface AIResult {
   classification?: {
     category: string;
@@ -77,9 +99,9 @@ interface LearningDataPoint {
   
   // Context that influenced the prediction
   context: {
-    systemState: Record<string, any>;
-    userBehavior: Record<string, any>;
-    environmentalFactors: Record<string, any>;
+    systemState: SystemStateData;
+    userBehavior: UserBehaviorData;
+    environmentalFactors: EnvironmentalFactorsData;
   };
   
   // Learning insights
@@ -192,7 +214,7 @@ export class LearningSystem {
       reason: 'security',
       recommendation: 'Use AIProxyService instead'
     }, 'AI_INTEGRATION_DISABLED');
-    this.openai = null as any; // DISABLED
+    this.openai = null as unknown as OpenAI; // DISABLED
   }
 
   /**
@@ -774,7 +796,7 @@ Format as JSON with arrays of strings for each category.
   private async extractResolutionLearnings(
     errorId: string,
     resolutionHistory: ErrorResolutionHistory
-  ): Promise<any> {
+  ): Promise<ResolutionLearnings> {
     return {
       errorId,
       resolutionTime: resolutionHistory.timeline.closed ? 
@@ -836,7 +858,7 @@ Format as JSON with arrays of strings for each category.
   /**
    * Analyze overall system performance
    */
-  private async analyzeOverallPerformance(): Promise<any> {
+  private async analyzeOverallPerformance(): Promise<OverallPerformanceAnalysis> {
     const allMetrics = Array.from(this.performanceMetrics.values());
     
     return {

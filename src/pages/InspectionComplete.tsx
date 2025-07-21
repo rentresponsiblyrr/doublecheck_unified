@@ -48,7 +48,6 @@ const InspectionComplete = () => {
     queryFn: async () => {
       if (!inspectionId) throw new Error('No inspection ID provided');
       
-      // REMOVED: console.log('Fetching inspection details:', inspectionId);
       
       const { data, error } = await supabase
         .from('inspections')
@@ -64,11 +63,9 @@ const InspectionComplete = () => {
         .single();
       
       if (error) {
-        // REMOVED: console.error('Error fetching inspection details:', error);
         throw error;
       }
 
-      // REMOVED: console.log('Fetched inspection details:', data);
       return data as InspectionDetails;
     },
     enabled: !!inspectionId,
@@ -79,7 +76,6 @@ const InspectionComplete = () => {
 
     const fetchChecklistSummary = async () => {
       try {
-        // REMOVED: console.log('Fetching checklist summary for inspection:', inspectionId);
         
         const { data, error } = await supabase
           .from('logs')
@@ -87,7 +83,6 @@ const InspectionComplete = () => {
           .eq('inspection_id', inspectionId);
 
         if (error) {
-          // REMOVED: console.error('Error fetching checklist items:', error);
           return;
         }
 
@@ -108,9 +103,7 @@ const InspectionComplete = () => {
         });
 
         setSummary({ total, completed, categories });
-        // REMOVED: console.log('Checklist summary:', { total, completed, categories });
       } catch (error) {
-        // REMOVED: console.error('Failed to fetch checklist summary:', error);
       }
     };
 
@@ -301,7 +294,6 @@ const InspectionComplete = () => {
           inspectionId={inspectionId}
           propertyName={inspection.properties.name}
           onReportGenerated={(reportId) => {
-            // REMOVED: console.log('Report generated:', reportId);
           }}
         />
 

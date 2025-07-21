@@ -16,7 +16,6 @@ const OptimizedProperties = () => {
   const { handleEdit, handleDelete, handleStartInspection } = useMobilePropertyActions();
 
   // Debug logging
-  // REMOVED: console.log('🏠 OptimizedProperties Debug:', {
     userRole,
     hasUser: !!user,
     userEmail: user?.email,

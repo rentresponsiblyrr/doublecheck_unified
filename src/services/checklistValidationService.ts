@@ -7,7 +7,6 @@ export class ChecklistValidationService {
   
   async initializeValidCategories(): Promise<void> {
     try {
-      // REMOVED: console.log('🔄 Fetching valid categories from database...');
       
       const { data: categories, error } = await supabase
         .from('categories')
@@ -16,7 +15,6 @@ export class ChecklistValidationService {
         .order('sort_order', { ascending: true });
       
       if (error) {
-        // REMOVED: console.error('❌ Error fetching categories:', error);
         // Use fallback categories if database fetch fails
         updateValidCategories(['safety', 'accessibility', 'amenities', 'cleanliness', 'accuracy']);
         return;
@@ -25,9 +23,7 @@ export class ChecklistValidationService {
       const validCategories = categories?.map(c => c.name) || ['safety'];
       updateValidCategories(validCategories);
       
-      // REMOVED: console.log('✅ Successfully updated valid categories:', validCategories);
     } catch (error) {
-      // REMOVED: console.error('❌ Error initializing valid categories:', error);
       // Use fallback categories if any error occurs
       updateValidCategories(['safety', 'accessibility', 'amenities', 'cleanliness', 'accuracy']);
     }
@@ -38,7 +34,6 @@ export class ChecklistValidationService {
       throw new Error('No valid static safety items found for checklist population');
     }
     
-    // REMOVED: console.log(`🔍 Validating ${staticItems.length} static items...`);
     
     // Log category distribution
     const categoryStats = staticItems.reduce((acc, item) => {
@@ -47,14 +42,12 @@ export class ChecklistValidationService {
       return acc;
     }, {} as Record<string, number>);
     
-    // REMOVED: console.log('📊 Category distribution in static items:', categoryStats);
   }
 
   transformToChecklistItems(
     staticItems: StaticSafetyItem[], 
     inspectionId: string
   ): ChecklistItem[] {
-    // REMOVED: console.log(`🔄 Transforming ${staticItems.length} static items to checklist items`);
     
     const checklistItems: ChecklistItem[] = [];
     
@@ -72,11 +65,9 @@ export class ChecklistValidationService {
           created_at: new Date().toISOString()
         };
         
-        // REMOVED: console.log(`✅ Transformed item: "${item.label}" with category "${item.category}" -> "${safeCategory}"`);
         checklistItems.push(checklistItem);
         
       } catch (error) {
-        // REMOVED: console.error(`❌ Error transforming static item "${item.label}":`, error);
         
         // Create a safe fallback item with guaranteed valid category
         const fallbackItem: ChecklistItem = {
@@ -88,24 +79,20 @@ export class ChecklistValidationService {
           created_at: new Date().toISOString()
         };
         
-        // REMOVED: console.log(`🔄 Created fallback item for "${item.label}" with safety category`);
         checklistItems.push(fallbackItem);
       }
     }
     
-    // REMOVED: console.log(`✅ Successfully transformed ${checklistItems.length} checklist items`);
     
     // Final validation of all items
     const allValid = checklistItems.every(item => validateCategory(item.category));
     if (!allValid) {
-      console.warn('⚠️ Some items may have invalid categories after transformation');
     }
     
     return checklistItems;
   }
   
   async validateChecklistCreation(checklistItems: ChecklistItem[]): Promise<void> {
-    // REMOVED: console.log('🔍 Performing final validation before database insertion...');
     
     if (checklistItems.length === 0) {
       throw new Error('No checklist items to insert');
@@ -117,7 +104,5 @@ export class ChecklistValidationService {
       return acc;
     }, {} as Record<string, number>);
 
-    // REMOVED: console.log('📊 Final category distribution for insertion:', finalCategoryStats);
-    // REMOVED: console.log('✅ All checklist items passed final validation');
   }
 }

@@ -14,11 +14,19 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting - Strict mode enabled */
+    /* Linting - Enhanced strict mode for production excellence */
     "strict": true, // Enable all strict type checking options
+    "noImplicitAny": true, // Disallow any types without explicit declaration
+    "strictNullChecks": true, // Enable strict null checks
+    "strictFunctionTypes": true, // Enable strict function types
+    "strictBindCallApply": true, // Enable strict bind/call/apply checks
+    "strictPropertyInitialization": true, // Require property initialization
+    "noImplicitReturns": true, // Error on code paths that don't return a value
+    "noUncheckedIndexedAccess": true, // Add undefined to un-declared fields
     "noUnusedLocals": true, // Catch unused variables
     "noUnusedParameters": true, // Catch unused function parameters  
     "noFallthroughCasesInSwitch": true, // Prevent switch statement bugs
+    "exactOptionalPropertyTypes": true, // Exact optional property types
 
     "baseUrl": ".",
     "paths": {

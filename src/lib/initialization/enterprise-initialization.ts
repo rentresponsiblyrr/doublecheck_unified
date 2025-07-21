@@ -85,7 +85,6 @@ class EnterpriseInitializer {
    */
   async initialize(config: EnterpriseConfig): Promise<void> {
     if (this.isInitialized) {
-      console.warn('Enterprise systems already initialized');
       return;
     }
 
@@ -136,7 +135,6 @@ class EnterpriseInitializer {
       }, 'ENTERPRISE_INITIALIZATION_COMPLETE');
 
     } catch (error) {
-      // REMOVED: console.error('Failed to initialize enterprise systems:', error);
       throw new Error(`Enterprise initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -157,7 +155,6 @@ class EnterpriseInitializer {
       sanitizeData: this.config!.environment === 'production',
     });
 
-    // REMOVED: console.log('✅ Enterprise logging initialized');
   }
 
   /**
@@ -167,7 +164,6 @@ class EnterpriseInitializer {
     // errorManager is pre-configured with sensible defaults
     // Just ensure it's available for use throughout the application
 
-    // REMOVED: console.log('✅ Enterprise error handling initialized');
   }
 
   /**
@@ -189,7 +185,6 @@ class EnterpriseInitializer {
       enableProfiling: this.config!.tracing.enableProfiling,
     });
 
-    // REMOVED: console.log('✅ Distributed tracing initialized');
   }
 
   /**
@@ -215,7 +210,6 @@ class EnterpriseInitializer {
       },
     });
 
-    // REMOVED: console.log('✅ APM and monitoring initialized');
   }
 
   /**
@@ -336,7 +330,6 @@ class EnterpriseInitializer {
       });
     }
 
-    // REMOVED: console.log('✅ Enterprise security systems initialized');
   }
 
   /**
@@ -345,7 +338,6 @@ class EnterpriseInitializer {
   private async initializeServiceTracer(): Promise<void> {
     // Service tracer automatically connects to initialized systems
     enterpriseServiceTracer;
-    // REMOVED: console.log('✅ Service tracer integration initialized');
   }
 
   /**
@@ -394,7 +386,6 @@ class EnterpriseInitializer {
       process.exit(0);
     });
 
-    // REMOVED: console.log('✅ Global error handlers setup complete');
   }
 
   /**
@@ -450,7 +441,6 @@ class EnterpriseInitializer {
       }
     }, 30000); // Every 30 seconds
 
-    // REMOVED: console.log('✅ Health monitoring started');
   }
 
   /**
@@ -475,9 +465,7 @@ class EnterpriseInitializer {
       const apm = APMIntegration.getInstance();
       await apm.exportToAPM();
 
-      // REMOVED: console.log('✅ Enterprise systems shutdown complete');
     } catch (error) {
-      // REMOVED: console.error('Error during graceful shutdown:', error);
     }
   }
 

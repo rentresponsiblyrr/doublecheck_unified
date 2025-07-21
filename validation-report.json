@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-07-21T02:58:44.546Z",
+  "isCompliant": false,
+  "metrics": {
+    "componentCount": 470,
+    "typeSafetyViolations": 332,
+    "nuclearPatterns": 71,
+    "godComponents": 0,
+    "typeScriptErrors": 0
+  },
+  "violations": [
+    {
+      "type": "COMPONENT_COUNT_VIOLATION",
+      "current": 470,
+      "target": 150,
+      "severity": "HIGH"
+    },
+    {
+      "type": "TYPE_SAFETY_VIOLATION",
+      "current": 332,
+      "target": 0,
+      "severity": "HIGH"
+    },
+    {
+      "type": "NUCLEAR_PATTERN_VIOLATION",
+      "current": 71,
+      "target": 0,
+      "severity": "CRITICAL"
+    }
+  ],
+  "targets": {
+    "MAX_COMPONENTS": 150,
+    "MAX_ANY_TYPES": 0,
+    "MAX_COMPONENT_LINES": 300,
+    "MAX_WINDOW_LOCATION": 0,
+    "MIN_TEST_COVERAGE": 90
+  },
+  "summary": {
+    "totalViolations": 3,
+    "criticalViolations": 1,
+    "highViolations": 2,
+    "complianceScore": 70
+  }
+}

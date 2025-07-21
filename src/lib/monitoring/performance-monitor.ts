@@ -5,12 +5,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Type definitions for performance monitoring
+type ContextData = Record<string, string | number | boolean | null | undefined>;
+type MetadataRecord = Record<string, unknown>;
+type ErrorContext = Record<string, unknown>;
+type PerformanceMemory = {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+};
+type NetworkConnection = {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+};
+
 export interface PerformanceMetric {
   name: string;
   value: number;
   unit: string;
   timestamp: number;
-  context?: any;
+  context?: ContextData;
   tags?: Record<string, string>;
 }
 
@@ -20,7 +35,7 @@ export interface UserInteraction {
   page: string;
   timestamp: number;
   duration?: number;
-  metadata?: any;
+  metadata?: MetadataRecord;
   userId?: string;
 }
 
@@ -29,7 +44,7 @@ export interface SystemHealth {
   value: number;
   status: 'healthy' | 'warning' | 'critical';
   timestamp: number;
-  details?: any;
+  details?: ContextData;
 }
 
 class PerformanceMonitor {
@@ -57,7 +72,7 @@ class PerformanceMonitor {
   }
 
   // Core metric tracking
-  trackMetric(name: string, value: number, unit: string = 'ms', context?: any, tags?: Record<string, string>): void {
+  trackMetric(name: string, value: number, unit: string = 'ms', context?: ContextData, tags?: Record<string, string>): void {
     const metric: PerformanceMetric = {
       name,
       value,
@@ -113,8 +128,9 @@ class PerformanceMonitor {
         this.trackMetric(`function.${name}`, performance.now() - start, 'ms', { success: true }, tags);
         return result;
       }
-    } catch (error: any) {
-      this.trackMetric(`function.${name}`, performance.now() - start, 'ms', { success: false, error: error.message }, tags);
+    } catch (error: unknown) {
+      const errorObj = error as Error;
+      this.trackMetric(`function.${name}`, performance.now() - start, 'ms', { success: false, error: errorObj.message }, tags);
       throw error;
     }
   }
@@ -126,8 +142,9 @@ class PerformanceMonitor {
       const result = await fn();
       this.trackMetric(`async.${name}`, performance.now() - start, 'ms', { success: true }, tags);
       return result;
-    } catch (error: any) {
-      this.trackMetric(`async.${name}`, performance.now() - start, 'ms', { success: false, error: error.message }, tags);
+    } catch (error: unknown) {
+      const errorObj = error as Error;
+      this.trackMetric(`async.${name}`, performance.now() - start, 'ms', { success: false, error: errorObj.message }, tags);
       throw error;
     }
   }
@@ -147,7 +164,6 @@ class PerformanceMonitor {
       try {
         this.observer.observe({ entryTypes: ['navigation', 'measure', 'mark'] });
       } catch (error) {
-        console.warn('Performance observer not fully supported:', error);
       }
 
       // Navigation observer for page transitions
@@ -162,7 +178,6 @@ class PerformanceMonitor {
       try {
         this.navigationObserver.observe({ entryTypes: ['navigation'] });
       } catch (error) {
-        console.warn('Navigation observer not supported:', error);
       }
     }
 
@@ -293,7 +308,7 @@ class PerformanceMonitor {
 
     // Memory usage (if available)
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as { memory: PerformanceMemory }).memory;
       this.trackMetric('memory.used', memory.usedJSHeapSize, 'bytes');
       this.trackMetric('memory.total', memory.totalJSHeapSize, 'bytes');
       this.trackMetric('memory.limit', memory.jsHeapSizeLimit, 'bytes');
@@ -301,7 +316,7 @@ class PerformanceMonitor {
 
     // Connection information
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as { connection: NetworkConnection }).connection;
       this.trackMetric('network.effectiveType', connection.effectiveType === '4g' ? 4 : connection.effectiveType === '3g' ? 3 : 2, 'rating');
       this.trackMetric('network.downlink', connection.downlink, 'mbps');
       this.trackMetric('network.rtt', connection.rtt, 'ms');
@@ -309,7 +324,7 @@ class PerformanceMonitor {
   }
 
   // Error tracking
-  trackError(error: Error, context?: any): void {
+  trackError(error: Error, context?: ErrorContext): void {
     this.trackInteraction({
       type: 'error',
       element: 'error_boundary',
@@ -413,7 +428,6 @@ class PerformanceMonitor {
       }
 
     } catch (error) {
-      // REMOVED: console.error('Failed to flush performance metrics:', error);
       // Re-add metrics to queue for retry
       this.metrics.unshift(...metricsToFlush);
       this.interactions.unshift(...interactionsToFlush);
@@ -459,7 +473,6 @@ class PerformanceMonitor {
       const { data: { user } } = supabase.auth.getUser();
       return user?.id;
     } catch (error) {
-      console.warn('Failed to get current user ID:', error);
       return undefined;
     }
   }
@@ -532,7 +545,7 @@ class PerformanceMonitor {
 export const performanceMonitor = PerformanceMonitor.getInstance();
 
 // Utility functions for easy access
-export const trackMetric = (name: string, value: number, unit?: string, context?: any, tags?: Record<string, string>) =>
+export const trackMetric = (name: string, value: number, unit?: string, context?: ContextData, tags?: Record<string, string>) =>
   performanceMonitor.trackMetric(name, value, unit, context, tags);
 
 export const trackInteraction = (interaction: Omit<UserInteraction, 'timestamp' | 'page'>) =>
@@ -544,7 +557,7 @@ export const measureFunction = <T>(name: string, fn: () => T, tags?: Record<stri
 export const measureAsync = <T>(name: string, fn: () => Promise<T>, tags?: Record<string, string>) =>
   performanceMonitor.measureAsync(name, fn, tags);
 
-export const trackError = (error: Error, context?: any) =>
+export const trackError = (error: Error, context?: ErrorContext) =>
   performanceMonitor.trackError(error, context);
 
 export const startTimer = (name: string) =>

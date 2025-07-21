@@ -758,7 +758,6 @@ export class EnterpriseErrorHandler {
           'ERROR_ALERT'
         );
       } catch (error) {
-        // REMOVED: console.error('Failed to process alert:', error);
       }
     }
   }

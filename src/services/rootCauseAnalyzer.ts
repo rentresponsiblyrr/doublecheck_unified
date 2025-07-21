@@ -63,6 +63,42 @@ interface PerformanceData {
   loadTime: number;
   renderTime: number;
   responseTime: number;
+  available?: boolean;
+}
+
+interface SystemChange {
+  type: 'deployment' | 'config' | 'code' | 'infrastructure';
+  timestamp: string;
+  description: string;
+  author?: string;
+  impact?: string;
+}
+
+interface DatabaseHealth {
+  activeConnections?: number;
+  successfulTransactions?: number;
+  rolledBackTransactions?: number;
+  healthStatus: 'healthy' | 'degraded' | 'unknown';
+  error?: string;
+}
+
+interface InspectionContext {
+  totalInspections?: number;
+  recentFailures?: number;
+  failureRate?: number;
+  error?: string;
+}
+
+interface PropertyContext {
+  totalProperties?: number;
+  avgPropertiesPerUser?: number;
+  error?: string;
+}
+
+interface AIServiceHealth {
+  openaiStatus: 'operational' | 'degraded' | 'down';
+  lastSuccessfulCall: string;
+  rateLimitStatus: 'normal' | 'warning' | 'critical';
 }
 
 export class RootCauseAnalyzer {
@@ -282,7 +318,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get recent system changes that might be related
    */
-  private async getRecentSystemChanges(): Promise<any[]> {
+  private async getRecentSystemChanges(): Promise<SystemChange[]> {
     try {
       // In a real system, this would check git commits, deployments, config changes
       // For now, return placeholder data
@@ -310,7 +346,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get database health metrics
    */
-  private async getDatabaseHealthMetrics(): Promise<any> {
+  private async getDatabaseHealthMetrics(): Promise<DatabaseHealth> {
     try {
       const { data, error } = await supabase
         .from('pg_stat_database')
@@ -363,28 +399,38 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
         memoryPressure: memory.usedJSHeapSize / memory.jsHeapSizeLimit > 0.8 ? 'high' : 'normal'
       };
     }
-    return { available: false };
+    return {
+      usedJSHeapSize: 0,
+      totalJSHeapSize: 0,
+      jsHeapSizeLimit: 0,
+      memoryPressure: 'normal'
+    };
   }
 
   /**
    * Get performance metrics
    */
-  private getPerformanceMetrics(): any {
+  private getPerformanceMetrics(): PerformanceData {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navigation) {
       return {
         loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-        networkLatency: navigation.responseStart - navigation.requestStart
+        renderTime: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+        responseTime: navigation.responseStart - navigation.requestStart
       };
     }
-    return { available: false };
+    return {
+      loadTime: 0,
+      renderTime: 0,
+      responseTime: 0,
+      available: false
+    };
   }
 
   /**
    * Get inspection-related context
    */
-  private async getInspectionContext(errorDetails: ErrorDetails): Promise<any> {
+  private async getInspectionContext(errorDetails: ErrorDetails): Promise<InspectionContext | null> {
     if (!errorDetails.message.toLowerCase().includes('inspection')) {
       return null;
     }
@@ -413,7 +459,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get property-related context
    */
-  private async getPropertyContext(errorDetails: ErrorDetails): Promise<any> {
+  private async getPropertyContext(errorDetails: ErrorDetails): Promise<PropertyContext | null> {
     if (!errorDetails.message.toLowerCase().includes('property')) {
       return null;
     }
@@ -435,7 +481,7 @@ Format your response as valid JSON matching the RootCauseAnalysis interface.
   /**
    * Get AI service health
    */
-  private async getAIServiceHealth(errorDetails: ErrorDetails): Promise<any> {
+  private async getAIServiceHealth(errorDetails: ErrorDetails): Promise<AIServiceHealth | null> {
     if (!errorDetails.message.toLowerCase().includes('ai')) {
       return null;
     }

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from './AdminLayout';
 
@@ -48,7 +48,6 @@ import ComprehensiveDiagnostic from './ComprehensiveDiagnostic';
 
 // Loading fallback
 const AdminLoadingFallback = () => {
-  // REMOVED: console.log('⏳ AdminLoadingFallback rendering...');
   return (
     <div className="p-8 bg-blue-50 border-2 border-blue-300 rounded-lg">
       <div className="text-center">
@@ -72,15 +71,9 @@ const AdminLoadingFallback = () => {
 
 // Admin Routes Component
 export default function AdminRoutes() {
-  // REMOVED: console.log('🔍 AdminRoutes component rendering...');
-  // REMOVED: console.log('📍 Current location:', window.location.pathname);
-  // REMOVED: console.log('📍 Current search params:', window.location.search);
+  const navigate = useNavigate();
   
   // EMERGENCY DEBUG: Show what AdminRoutes is receiving
-  // REMOVED: console.log('🔍 AdminRoutes Debug:');
-  // REMOVED: console.log('- Full pathname:', window.location.pathname);
-  // REMOVED: console.log('- useLocation pathname:', useLocation().pathname);
-  // REMOVED: console.log('- React Router state:', useLocation().state);
   
   // For debugging - show a simple test first
   if (window.location.pathname === '/admin/test' || window.location.search.includes('debug=true')) {
@@ -98,11 +91,6 @@ export default function AdminRoutes() {
   const currentPath = window.location.pathname;
   const routerPath = useLocation().pathname;
   
-  // REMOVED: console.log('🚨 EMERGENCY PATH CHECK:');
-  // REMOVED: console.log('- window.location.pathname:', JSON.stringify(currentPath));
-  // REMOVED: console.log('- useLocation().pathname:', JSON.stringify(routerPath));
-  // REMOVED: console.log('- currentPath includes health:', currentPath.includes('health'));
-  // REMOVED: console.log('- routerPath includes health:', routerPath.includes('health'));
   
   if (currentPath.includes('health') || routerPath.includes('health') || currentPath === '/admin/health') {
     return (
@@ -141,22 +129,25 @@ export default function AdminRoutes() {
             <h3 className="font-semibold text-red-800 mb-2">Available Actions:</h3>
             <div className="space-y-2">
               <button 
-                onClick={() => window.location.href = '/admin/health'}
+                onClick={() => navigate('/admin/health')}
                 className="block w-full text-left px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 Go to Health Monitor
               </button>
               <button 
-                onClick={() => window.location.href = '/admin/users'}
+                onClick={() => navigate('/admin/users')}
                 className="block w-full text-left px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 Go to User Management
               </button>
               <button 
-                onClick={() => window.location.assign(window.location.href)}
+                onClick={() => {
+                  // Professional recovery: Reset router state and navigate to admin root
+                  navigate('/admin', { replace: true });
+                }}
                 className="block w-full text-left px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
-                Reload Page
+                Reset to Admin Home
               </button>
             </div>
           </div>
@@ -274,7 +265,6 @@ export default function AdminRoutes() {
       </AdminLayout>
     );
   } catch (error) {
-    // REMOVED: console.error('AdminRoutes routing failed:', error);
     return emergencyFallback;
   }
 }

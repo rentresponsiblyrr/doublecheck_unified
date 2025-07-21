@@ -7,7 +7,6 @@ export const AddPropertyButton = () => {
   const navigate = useNavigate();
 
   const handleAddProperty = () => {
-    // REMOVED: console.log('🎯 Navigating to add property page');
     navigate('/add-property');
   };
 

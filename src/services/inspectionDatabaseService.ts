@@ -15,11 +15,9 @@ export class InspectionDatabaseService {
       .single();
 
     if (createError) {
-      // REMOVED: console.error('❌ Database inspection creation failed:', createError);
       throw createError;
     }
 
-    // REMOVED: console.log('✅ Inspection record created successfully:', newInspection.id);
     return newInspection.id;
   }
 }

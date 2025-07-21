@@ -33,7 +33,6 @@ export class FeedbackProcessor {
       // Validate feedback item
       const validation = await this.validateFeedbackItem(item);
       if (!validation.isValid) {
-        console.warn(`Invalid feedback item: ${validation.errors.join(', ')}`);
         continue;
       }
 
@@ -343,7 +342,6 @@ export class FeedbackProcessor {
       try {
         await this.processFeedbackItem(item);
       } catch (error) {
-        // REMOVED: console.error('Failed to process feedback:', error);
         item.attempts++;
         if (item.attempts < 3) {
           this.feedbackQueue.push(item); // Retry
@@ -354,7 +352,6 @@ export class FeedbackProcessor {
 
   private async processFeedbackItem(item: FeedbackQueueItem): Promise<void> {
     // In production, would send to learning engine
-    // REMOVED: console.log('Processing feedback:', item.feedback.id);
   }
 
   private async storeFeedback(feedback: AuditorFeedback[]): Promise<void> {

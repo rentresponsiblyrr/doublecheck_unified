@@ -58,13 +58,13 @@ You are being evaluated as a **potential world-class software engineer**. We onl
 
 ---
 
-## **🚫 BANNED PATTERNS - IMMEDIATE TERMINATION**
+## **🎯 PATTERNS TO IMPROVE - LEARNING OPPORTUNITIES**
 
 The following patterns will result in **immediate termination** without warning:
 
 ### **1. NUCLEAR ERROR HANDLING**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 window.location.reload();
 window.location.assign();
 location.href = '/error';
@@ -72,7 +72,7 @@ location.href = '/error';
 
 ### **2. LYING TO REACT ABOUT DEPENDENCIES**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 useEffect(() => {
   doSomething(prop, state);
 }, []); // prop and state are dependencies but not declared
@@ -80,7 +80,7 @@ useEffect(() => {
 
 ### **3. GOD COMPONENTS**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 const MegaComponent = () => {
   // 500+ lines handling multiple responsibilities
 };
@@ -88,7 +88,7 @@ const MegaComponent = () => {
 
 ### **4. TYPE SYSTEM ESCAPE HATCHES**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 const process = (data: any) => data.whatever;
 // @ts-ignore
 const result = dangerousOperation();
@@ -96,7 +96,7 @@ const result = dangerousOperation();
 
 ### **5. SERVICE LAYER PYRAMIDS**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 class Service {
   constructor(
     private dep1: Service1,

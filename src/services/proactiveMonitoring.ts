@@ -24,7 +24,7 @@ interface MonitoringMetric {
   trend: 'increasing' | 'decreasing' | 'stable';
   timestamp: string;
   source: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean>;
 }
 
 interface AnomalyDetection {
@@ -77,6 +77,32 @@ interface SystemHealthIndicator {
   };
   dependencies: string[];
   lastChecked: string;
+}
+
+interface DatabaseHealthDetails {
+  responseTime: number;
+  connectionCount?: number;
+  activeQueries?: number;
+  errorRate?: number;
+  error?: string;
+}
+
+interface MonitoringPredictions {
+  nextAnomaly?: {
+    probability: number;
+    estimatedTime: string;
+    expectedSeverity: string;
+  };
+  performanceTrend: {
+    direction: 'improving' | 'degrading' | 'stable';
+    confidence: number;
+    estimatedChange: number;
+  };
+  resourceUtilization: {
+    predicted: number;
+    timeHorizon: string;
+    confidence: number;
+  };
 }
 
 export class ProactiveMonitoring {
@@ -654,7 +680,7 @@ export class ProactiveMonitoring {
   /**
    * Check database health
    */
-  private async checkDatabaseHealth(): Promise<{ score: number; details: any }> {
+  private async checkDatabaseHealth(): Promise<{ score: number; details: DatabaseHealthDetails }> {
     try {
       const startTime = Date.now();
       const { data, error } = await supabase
@@ -915,7 +941,7 @@ export class ProactiveMonitoring {
   private logMonitoringSummary(
     metrics: MonitoringMetric[],
     anomalies: AnomalyDetection[],
-    predictions: any
+    predictions: MonitoringPredictions
   ): void {
     log.debug('Monitoring summary', {
       component: 'ProactiveMonitoring',

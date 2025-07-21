@@ -61,7 +61,7 @@ export interface PatternConditions {
 }
 
 export interface SelectedContext {
-  knowledge_entries: any[];
+  knowledge_entries: KnowledgeBaseEntry[];
   applied_patterns: CAGContextPattern[];
   dynamic_context: Record<string, unknown>;
 }

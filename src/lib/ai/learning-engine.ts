@@ -334,7 +334,7 @@ export class LearningEngine {
     return adjustments.reduce((sum, adj) => sum + adj, 0) / feedback.length;
   }
 
-  private isPredictionCorrect(aiValue: any, auditorValue: any): boolean {
+  private isPredictionCorrect(aiValue: unknown, auditorValue: unknown): boolean {
     // Handle different types of values
     if (typeof aiValue === 'boolean' && typeof auditorValue === 'boolean') {
       return aiValue === auditorValue;
@@ -533,15 +533,35 @@ export class LearningEngine {
     return this.calculateAccuracy(feedback);
   }
 
-  private async checkAchievements(feedback: AuditorFeedback[], accuracy: number): Promise<any[]> {
+  private async checkAchievements(feedback: AuditorFeedback[], accuracy: number): Promise<Array<{
+    id: string;
+    type: string;
+    description: string;
+    unlockedAt: Date;
+  }>> {
     return [];
   }
 
   private async generatePredictions(
     feedback: AuditorFeedback[],
     currentAccuracy: number,
-    categoryProgress: Map<any, any>
-  ): Promise<any> {
+    categoryProgress: Map<FeedbackCategory, {
+      startAccuracy: number;
+      currentAccuracy: number;
+      improvement: number;
+      dataPoints: number;
+      nextMilestone: {
+        target: number;
+        estimatedDate: Date;
+        requiredFeedback: number;
+      };
+    }>
+  ): Promise<{
+    nextWeekAccuracy: number;
+    nextMonthAccuracy: number;
+    timeToTarget: number;
+    bottlenecks: string[];
+  }> {
     return {
       nextWeekAccuracy: currentAccuracy + 1.2,
       nextMonthAccuracy: currentAccuracy + 4.5,
@@ -583,11 +603,19 @@ export class LearningEngine {
 
   private async calculateModelImprovements(): Promise<{
     averageImprovement: number;
-    categoryImprovements: any[];
+    categoryImprovements: Array<{
+      category: FeedbackCategory;
+      improvement: number;
+      confidence: number;
+    }>;
   }> {
     return {
       averageImprovement: 5.5,
-      categoryImprovements: []
+      categoryImprovements: [] as Array<{
+        category: FeedbackCategory;
+        improvement: number;
+        confidence: number;
+      }>
     };
   }
 
@@ -599,7 +627,11 @@ export class LearningEngine {
     return total;
   }
 
-  private async validateModels(): Promise<any> {
+  private async validateModels(): Promise<{
+    testSetAccuracy: number;
+    crossValidation: number;
+    auditorApproval: number;
+  }> {
     return {
       testSetAccuracy: 82.5,
       crossValidation: 81.2,
@@ -609,7 +641,6 @@ export class LearningEngine {
 
   private async logModelUpdate(update: ModelUpdate): Promise<void> {
     // In production, save to database
-    // REMOVED: console.log('Model update deployed:', update);
   }
 }
 
@@ -622,7 +653,17 @@ class ConfidenceModel {
     // Update model parameters based on feedback
   }
 
-  async getProgress(): Promise<any> {
+  async getProgress(): Promise<{
+    startAccuracy: number;
+    currentAccuracy: number;
+    improvement: number;
+    dataPoints: number;
+    nextMilestone: {
+      target: number;
+      estimatedDate: Date;
+      requiredFeedback: number;
+    };
+  }> {
     return {
       startAccuracy: 75,
       currentAccuracy: 82,
@@ -636,7 +677,11 @@ class ConfidenceModel {
     };
   }
 
-  serialize(): any {
+  serialize(): {
+    category: FeedbackCategory;
+    parameters: Record<string, unknown>;
+    lastUpdated: Date;
+  } {
     return {
       category: this.category,
       parameters: {},

@@ -1,33 +1,33 @@
+/**
+ * Mobile Auth Loading Component
+ * 
+ * Simple loading component for mobile authentication.
+ * Created to fix build issues.
+ */
 
 import React from 'react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { RefreshCw } from 'lucide-react';
 
 interface MobileAuthLoadingProps {
-  onRefresh: () => void;
+  onRefresh?: () => void;
 }
 
 export const MobileAuthLoading: React.FC<MobileAuthLoadingProps> = ({ onRefresh }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="text-center max-w-sm w-full">
-        <LoadingSpinner message="Loading mobile app..." />
-        
-        <div className="mt-4 space-y-2">
-          <button
-            onClick={() => {
-              // REMOVED: console.log('📱 Mobile recovery triggered');
-              onRefresh();
-            }}
-            className="text-sm text-blue-600 hover:text-blue-800 underline block w-full"
-          >
-            Taking too long? Tap to refresh
-          </button>
-          
-          <div className="text-xs text-gray-500">
-            Mobile optimization active
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <RefreshCw className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+      <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+      <p className="text-gray-600 text-center mb-4">
+        Please wait while we set up your session.
+      </p>
+      {onRefresh && (
+        <button
+          onClick={onRefresh}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Retry
+        </button>
+      )}
     </div>
   );
 };

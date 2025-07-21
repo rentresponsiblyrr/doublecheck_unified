@@ -64,7 +64,6 @@ export const useMobileInspectionOptimizer = () => {
 
   const startOrJoinInspection = useCallback(async (propertyId: string) => {
     if (!propertyId || isLoading) {
-      console.warn('⚠️ Invalid property ID or operation already in progress');
       return null;
     }
 
@@ -84,7 +83,6 @@ export const useMobileInspectionOptimizer = () => {
     });
 
     try {
-      // REMOVED: console.log('🚀 Starting optimized mobile inspection flow for:', propertyId);
       
       // Race between the actual operation and timeout
       const result = await Promise.race([
@@ -105,7 +103,6 @@ export const useMobileInspectionOptimizer = () => {
       const toastTitle = result.isNew ? 'Inspection Created' : 'Joining Inspection';
       const toastDescription = `${actionText} inspection for ${result.propertyName} with ${result.checklistItemsCount} items`;
 
-      // REMOVED: console.log(`✅ Successfully ${actionText} optimized inspection:`, result.inspectionId);
       
       toast({
         title: toastTitle,
@@ -125,7 +122,6 @@ export const useMobileInspectionOptimizer = () => {
       }
       
       const errorDetails = getErrorDetails(error);
-      // REMOVED: console.error('💥 Optimized mobile inspection flow error:', error);
       
       setError(errorDetails.userMessage);
       toast({
@@ -144,7 +140,6 @@ export const useMobileInspectionOptimizer = () => {
 
   // Retry mechanism - calls the same function with the last used property ID
   const retryInspection = useCallback(async (propertyId: string) => {
-    // REMOVED: console.log('🔄 Retrying inspection creation for property:', propertyId);
     return await startOrJoinInspection(propertyId);
   }, [startOrJoinInspection]);
 

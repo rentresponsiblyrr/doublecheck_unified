@@ -47,11 +47,9 @@ export const useInspectionReports = () => {
     queryKey: ['inspection-reports', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        // REMOVED: console.log('❌ No user ID available for reports');
         return [];
       }
 
-      // REMOVED: console.log('🔍 Fetching comprehensive inspection reports for user:', user.id);
 
       try {
         // Fetch inspections with property data and basic counts
@@ -76,16 +74,13 @@ export const useInspectionReports = () => {
           .order('start_time', { ascending: false, nullsFirst: false });
 
         if (inspectionsError) {
-          // REMOVED: console.error('❌ Failed to fetch inspections:', inspectionsError);
           throw new Error(`Database error: ${inspectionsError.message}`);
         }
 
         if (!inspectionsData || inspectionsData.length === 0) {
-          // REMOVED: console.log('📝 No inspections found for reports');
           return [];
         }
 
-        // REMOVED: console.log('✅ Fetched', inspectionsData.length, 'inspections for reports');
 
         // Process each inspection to gather detailed metrics
         const enrichedInspections = await Promise.all(
@@ -163,7 +158,6 @@ export const useInspectionReports = () => {
                 overrides_count: auditFeedback?.overrides_count || null,
               } as InspectionReport;
             } catch (error) {
-              console.warn(`Failed to process inspection ${inspection.id}:`, error);
               // Return basic inspection data if detailed processing fails
               return {
                 id: inspection.id,
@@ -194,7 +188,6 @@ export const useInspectionReports = () => {
 
         return enrichedInspections;
       } catch (error) {
-        // REMOVED: console.error('❌ Reports query execution failed:', error);
         throw error;
       }
     },
@@ -242,7 +235,6 @@ export const useInspectionReports = () => {
       : 0,
   };
 
-  // REMOVED: console.log('📊 Reports Summary:', summary);
 
   return {
     inspections: rawData,

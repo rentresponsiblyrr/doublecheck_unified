@@ -332,7 +332,6 @@ export class AIMetricsCollector {
           await this.triggerAlert('low_accuracy', { accuracy });
         }
       } catch (error) {
-        // REMOVED: console.error('Accuracy monitoring error:', error);
       }
     }, 5 * 60 * 1000);
     this.intervalIds.add(accuracyInterval);
@@ -346,7 +345,6 @@ export class AIMetricsCollector {
           await this.triggerAlert('high_hourly_cost', { cost: hourlyCost });
         }
       } catch (error) {
-        // REMOVED: console.error('Cost monitoring error:', error);
       }
     }, 60 * 60 * 1000);
     this.intervalIds.add(costInterval);
@@ -360,7 +358,6 @@ export class AIMetricsCollector {
           await this.triggerAlert('slow_p95_response', { p95 });
         }
       } catch (error) {
-        // REMOVED: console.error('Performance monitoring error:', error);
       }
     }, 60 * 1000);
     this.intervalIds.add(performanceInterval);
@@ -379,7 +376,7 @@ export class AIMetricsCollector {
     return 0;
   }
 
-  private calculateIOUAccuracy(predicted: any, actual: any): number {
+  private calculateIOUAccuracy(predicted: DetectionBox, actual: DetectionBox): number {
     // Intersection over Union calculation for object detection
     // Simplified implementation
     return 0.85; // Mock value
@@ -396,7 +393,7 @@ export class AIMetricsCollector {
     return thresholds[operationType] || 2000;
   }
 
-  private async triggerAlert(type: string, data: any): Promise<void> {
+  private async triggerAlert(type: string, data: AlertData): Promise<void> {
     const alert: Alert = {
       id: `alert_${Date.now()}`,
       type,
@@ -409,7 +406,6 @@ export class AIMetricsCollector {
     await this.metrics.store('alerts', alert);
     
     // In production, would send notifications
-    console.warn(`Performance Alert: ${type}`, data);
   }
 
   private getAlertSeverity(type: string): 'low' | 'medium' | 'high' | 'critical' {
@@ -472,7 +468,7 @@ export class AIMetricsCollector {
     };
   }
 
-  private analyzeTrend(metrics: any[], field: string): Trend {
+  private analyzeTrend(metrics: TrendableMetric[], field: string): Trend {
     if (metrics.length < 2) {
       return { direction: 'stable', change: 0, confidence: 0 };
     }
@@ -495,7 +491,7 @@ export class AIMetricsCollector {
     };
   }
 
-  private generateRecommendations(summary: any, trends: any): Recommendation[] {
+  private generateRecommendations(summary: MetricsSummary, trends: TrendAnalysis): Recommendation[] {
     const recommendations: Recommendation[] = [];
 
     // Accuracy recommendations
@@ -546,7 +542,7 @@ export class AIMetricsCollector {
     return recommendations;
   }
 
-  private evaluateBenchmarks(summary: any): BenchmarkResult[] {
+  private evaluateBenchmarks(summary: MetricsSummary): BenchmarkResult[] {
     const benchmarks: BenchmarkConfig[] = [
       { name: 'Accuracy Target', target: 0.85, actual: summary.accuracy.average, unit: '%', multiplier: 100 },
       { name: 'Response Time (p95)', target: 2000, actual: summary.performance.p95, unit: 'ms' },
@@ -573,7 +569,7 @@ export class AIMetricsCollector {
     return sorted[Math.max(0, index)];
   }
 
-  private groupByCategory(metrics: AccuracyMetric[]): Record<string, any> {
+  private groupByCategory(metrics: AccuracyMetric[]): Record<string, AccuracySummary> {
     const groups: Record<string, AccuracyMetric[]> = {};
     
     metrics.forEach(m => {
@@ -584,11 +580,11 @@ export class AIMetricsCollector {
     return Object.entries(groups).reduce((acc, [category, metrics]) => {
       acc[category] = this.calculateAccuracySummary(metrics);
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, AccuracySummary>);
   }
 
-  private groupByModel(metrics: any[]): Record<string, any> {
-    const groups: Record<string, any[]> = {};
+  private groupByModel(metrics: ModelableMetric[]): Record<string, ModelableMetric[]> {
+    const groups: Record<string, ModelableMetric[]> = {};
     
     metrics.forEach(m => {
       const model = m.modelVersion || m.model || 'unknown';
@@ -599,7 +595,7 @@ export class AIMetricsCollector {
     return groups;
   }
 
-  private groupByOperation(metrics: ResponseTimeMetric[]): Record<string, any> {
+  private groupByOperation(metrics: ResponseTimeMetric[]): Record<string, PerformanceSummary> {
     const groups: Record<string, ResponseTimeMetric[]> = {};
     
     metrics.forEach(m => {
@@ -610,10 +606,10 @@ export class AIMetricsCollector {
     return Object.entries(groups).reduce((acc, [operation, metrics]) => {
       acc[operation] = this.calculatePerformanceSummary(metrics);
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, PerformanceSummary>);
   }
 
-  private groupByEndpoint(metrics: APIUsageMetric[]): Record<string, any> {
+  private groupByEndpoint(metrics: APIUsageMetric[]): Record<string, UsageSummary> {
     const groups: Record<string, APIUsageMetric[]> = {};
     
     metrics.forEach(m => {
@@ -624,7 +620,7 @@ export class AIMetricsCollector {
     return Object.entries(groups).reduce((acc, [endpoint, metrics]) => {
       acc[endpoint] = this.calculateUsageSummary(metrics);
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, UsageSummary>);
   }
 
   private analyzeErrors(metrics: AccuracyMetric[]): ErrorAnalysis {
@@ -762,9 +758,9 @@ export class AIMetricsCollector {
 // Supporting classes
 
 class MetricsStore {
-  private data: Map<string, any[]> = new Map();
+  private data: Map<string, StorableMetric[]> = new Map();
 
-  async store(type: string, metric: any): Promise<void> {
+  async store(type: string, metric: StorableMetric): Promise<void> {
     if (!this.data.has(type)) {
       this.data.set(type, []);
     }
@@ -773,7 +769,7 @@ class MetricsStore {
     // In production, would persist to database
   }
 
-  async query(type: string, start: Date, end: Date): Promise<any[]> {
+  async query(type: string, start: Date, end: Date): Promise<StorableMetric[]> {
     const metrics = this.data.get(type) || [];
     return metrics.filter(m => 
       m.timestamp >= start && m.timestamp <= end
@@ -984,6 +980,107 @@ class CostCalculator {
   }
 }
 
+// Additional Types for Type Safety
+
+type PredictionValue = string | number | boolean | DetectionBox | ClassificationResult | MeasurementResult;
+
+interface DetectionBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
+}
+
+interface ClassificationResult {
+  class: string;
+  confidence: number;
+}
+
+interface MeasurementResult {
+  value: number;
+  unit: string;
+  confidence: number;
+}
+
+interface AlertData {
+  [key: string]: string | number | boolean | Date | undefined;
+}
+
+interface TrendableMetric {
+  timestamp: Date;
+  [field: string]: Date | string | number | boolean | undefined;
+}
+
+interface ModelableMetric {
+  modelVersion?: string;
+  model?: string;
+  timestamp: Date;
+  [key: string]: unknown;
+}
+
+interface MetricsSummary {
+  accuracy: AccuracySummary;
+  performance: PerformanceSummary;
+  usage: UsageSummary;
+  costs: CostSummary;
+}
+
+interface TrendAnalysis {
+  accuracyTrend: Trend;
+  performanceTrend: Trend;
+  costTrend: Trend;
+}
+
+interface DetailedMetadata {
+  processingTime?: number;
+  inputSize?: number;
+  features?: string[];
+  modelUsed?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cached?: boolean;
+  [key: string]: unknown;
+}
+
+interface ReportSummary {
+  accuracy: AccuracySummary;
+  performance: PerformanceSummary;
+  usage: UsageSummary;
+  costs: CostSummary;
+}
+
+interface ReportTrends {
+  accuracyTrend: Trend;
+  performanceTrend: Trend;
+  costTrend: Trend;
+}
+
+interface ReportDetails {
+  accuracy: {
+    byCategory: Record<string, AccuracySummary>;
+    byModel: Record<string, ModelableMetric[]>;
+    errorAnalysis: ErrorAnalysis;
+  };
+  performance: {
+    byOperation: Record<string, PerformanceSummary>;
+    percentiles: Record<string, number>;
+    slowestOperations: SlowOperation[];
+  };
+  usage: {
+    byEndpoint: Record<string, UsageSummary>;
+    byModel: Record<string, ModelableMetric[]>;
+    rateLimitStatus: RateLimitAnalysis;
+  };
+  costs: {
+    byModel: Record<string, number>;
+    byDay: DailyCost[];
+    projections: CostProjection;
+  };
+}
+
+type StorableMetric = AccuracyMetric | ResponseTimeMetric | APIUsageMetric | PerformanceReport | Alert | Record<string, unknown>;
+
 // Types
 
 interface PredictionResult {
@@ -991,21 +1088,21 @@ interface PredictionResult {
   modelVersion: string;
   category: string;
   confidence: number;
-  value: any;
+  value: PredictionValue;
   processingTime: number;
   inputSize: number;
   features: string[];
 }
 
 interface GroundTruth {
-  value: any;
+  value: PredictionValue;
   source: string;
 }
 
 interface UserFeedback {
   rating: number;
   wasHelpful: boolean;
-  correctedValue?: any;
+  correctedValue?: PredictionValue;
 }
 
 interface AIOperation {
@@ -1018,8 +1115,8 @@ interface AIOperation {
   cached?: boolean;
 }
 
-interface OperationMetadata {
-  [key: string]: any;
+interface OperationMetadata extends DetailedMetadata {
+  [key: string]: unknown;
 }
 
 interface APICall {
@@ -1049,9 +1146,9 @@ interface AccuracyMetric {
   feedback?: {
     rating: number;
     wasHelpful: boolean;
-    correctedValue?: any;
+    correctedValue?: PredictionValue;
   };
-  metadata: any;
+  metadata: DetailedMetadata;
 }
 
 interface ResponseTimeMetric {
@@ -1061,7 +1158,7 @@ interface ResponseTimeMetric {
   duration: number;
   success: boolean;
   error?: string;
-  metadata: any;
+  metadata: DetailedMetadata;
 }
 
 interface APIUsageMetric {
@@ -1092,11 +1189,11 @@ interface PerformanceReport {
   id: string;
   generatedAt: Date;
   period: { start: Date; end: Date };
-  summary: any;
-  trends: any;
+  summary: ReportSummary;
+  trends: ReportTrends;
   recommendations: Recommendation[];
   benchmarks: BenchmarkResult[];
-  details: any;
+  details: ReportDetails;
   alerts: Alert[];
 }
 
@@ -1131,7 +1228,7 @@ interface Alert {
   type: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
-  data: any;
+  data: AlertData;
   status: 'active' | 'resolved';
 }
 
@@ -1222,7 +1319,7 @@ interface SlowOperation {
   operation: string;
   duration: number;
   timestamp: Date;
-  metadata: any;
+  metadata: DetailedMetadata;
 }
 
 interface RateLimitAnalysis {

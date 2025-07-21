@@ -267,18 +267,20 @@ export function logAppConfiguration(): void {
   const config = getCurrentAppConfig();
   const domain = getCurrentDomain();
   
-  // REMOVED: console.log(`🚀 App Type: ${getAppTypeDisplayName()}`);
-  // REMOVED: console.log(`🌐 Current Domain: ${domain}`);
-  // REMOVED: console.log(`🔍 Domain Detection:`, {
+  log.info('App configuration loaded', {
+    component: 'AppType',
+    action: 'logAppConfiguration',
+    domain: domain.current,
+    appType: config.type,
     isInspector: isInspectorDomain(),
     isAdmin: isAdminDomain(),
     isDevelopment: isDevelopmentDomain()
-  });
-  // REMOVED: console.log(`📱 Enabled Features:`, config.enabledFeatures);
-  // REMOVED: console.log(`🚫 Excluded Routes:`, config.excludedRoutes);
-  // REMOVED: console.log(`👤 Required Roles:`, config.requiredRoles);
-  // REMOVED: console.log(`📦 Bundle Config:`, {
+  }, 'APP_CONFIGURATION_LOADED');
+  
+  log.debug('Bundle configuration', {
+    component: 'AppType',
+    action: 'logAppConfiguration',
     includes: config.bundle.includeComponents.length,
     excludes: config.bundle.excludeComponents.length
-  });
+  }, 'BUNDLE_CONFIGURATION');
 }

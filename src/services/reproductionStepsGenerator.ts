@@ -237,7 +237,7 @@ export class ReproductionStepsGenerator {
   private async generateAISteps(
     errorDetails: ErrorDetails,
     systemContext: SystemContext,
-    behaviorAnalysis: any,
+    behaviorAnalysis: Record<string, unknown>,
     userJourney?: UserJourney
   ): Promise<ReproductionSteps> {
     const prompt = `

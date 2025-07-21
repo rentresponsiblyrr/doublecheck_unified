@@ -23,21 +23,17 @@ export const usePropertySelection = (inspections: Inspection[]) => {
 
   const handleStartInspection = async () => {
     if (!selectedProperty) {
-      console.warn('⚠️ No property selected for inspection');
       return;
     }
 
-    // REMOVED: console.log('🚀 Starting inspection for property:', selectedProperty);
     await startOrJoinInspection(selectedProperty);
   };
 
   const handleRetryInspection = async () => {
     if (!selectedProperty) {
-      console.warn('⚠️ No property selected for retry');
       return;
     }
 
-    // REMOVED: console.log('🔄 Retrying inspection for property:', selectedProperty);
     await retryInspection(selectedProperty);
   };
 

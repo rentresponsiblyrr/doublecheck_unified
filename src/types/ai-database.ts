@@ -1,6 +1,10 @@
 // AI Database Types for STR Certified Learning System
 // Corresponds to the enhanced Supabase schema for AI learning infrastructure
 
+// Type definitions for flexible data structures
+type FlexibleValue = string | number | boolean | object | null | undefined;
+type MetadataRecord = Record<string, FlexibleValue>;
+
 export type KnowledgeCategory = 
   | 'building_codes'
   | 'safety_regulations'
@@ -50,7 +54,7 @@ export interface KnowledgeBaseEntry {
     version?: string;
     effective_date?: string;
     expiration_date?: string;
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   // Usage tracking
@@ -96,7 +100,7 @@ export interface AuditorFeedbackEntry {
   
   // Core feedback data
   ai_prediction: {
-    value: any;
+    value: FlexibleValue;
     confidence: number;
     reasoning?: string;
     model_version: string;
@@ -104,7 +108,7 @@ export interface AuditorFeedbackEntry {
   };
   
   auditor_correction: {
-    value: any;
+    value: FlexibleValue;
     confidence: number;
     reasoning: string;
     severity?: 'minor' | 'moderate' | 'major';
@@ -209,7 +213,7 @@ export interface AIModelVersion {
     temperature?: number;
     max_tokens?: number;
     confidence_threshold?: number;
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   training_config: {
@@ -217,7 +221,7 @@ export interface AIModelVersion {
     batch_size?: number;
     epochs?: number;
     validation_split?: number;
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   // Deployment information
@@ -289,7 +293,7 @@ export interface CAGContextPattern {
       specializations?: string[];
       performance_threshold?: number;
     };
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   context_data: {
@@ -298,7 +302,7 @@ export interface CAGContextPattern {
     quality_threshold?: number;
     priority_adjustments?: Record<string, number>;
     regulatory_emphasis?: string[];
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   weight: number; // 0-1, importance of this pattern
@@ -333,14 +337,14 @@ export interface RAGQueryLog {
   selected_context: {
     knowledge_entries?: KnowledgeSearchResult[];
     applied_patterns?: CAGContextPattern[];
-    dynamic_context?: Record<string, any>;
+    dynamic_context?: MetadataRecord;
   };
   context_selection_reason?: string;
   
   // CAG-specific context augmentation
   cag_patterns_applied: string[];
   context_weight: number;
-  dynamic_context: Record<string, any>;
+  dynamic_context: MetadataRecord;
   
   // Performance metrics
   query_time_ms?: number;
@@ -425,7 +429,7 @@ export interface LearningInsight {
     confidence?: number;
     frequency?: number;
     trend_strength?: number;
-    [key: string]: any;
+    [key: string]: FlexibleValue;
   };
   
   // Implementation tracking
@@ -462,9 +466,9 @@ export interface SemanticSearchResponse {
 export interface CAGContextRequest {
   query: string;
   context: {
-    property?: any;
-    inspector?: any;
-    temporal?: any;
+    property?: MetadataRecord;
+    inspector?: MetadataRecord;
+    temporal?: MetadataRecord;
   };
   model_type: string;
   options?: {
@@ -478,7 +482,7 @@ export interface CAGContextResponse {
   selected_context: {
     knowledge_entries: KnowledgeSearchResult[];
     applied_patterns: CAGContextPattern[];
-    dynamic_context: Record<string, any>;
+    dynamic_context: MetadataRecord;
   };
   context_explanation: string;
   confidence_score: number;
@@ -526,7 +530,7 @@ export interface PaginatedResponse<T> {
 export interface TimeSeriesData {
   timestamp: string;
   value: number;
-  metadata?: Record<string, any>;
+  metadata?: MetadataRecord;
 }
 
 export interface PerformanceBenchmark {

@@ -4,6 +4,34 @@
 import { logger } from '../../utils/logger';
 import type { VRBOPropertyData, ScrapingResult, ScrapingError, PropertyAmenity, PropertySpecifications, PropertyLocation } from './types';
 
+// Type definitions for JSON-LD and metadata structures
+type JsonLdData = {
+  '@type'?: string;
+  name?: string;
+  description?: string;
+  numberOfRooms?: string | number;
+  numberOfBathrooms?: string | number;
+  occupancy?: string | number;
+  address?: {
+    addressLocality?: string;
+    addressRegion?: string;
+    addressCountry?: string;
+  };
+  [key: string]: unknown;
+} | null;
+
+type OpenGraphData = {
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
+};
+
+type PageMetadata = {
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
+};
+
 export interface SimpleScrapingOptions {
   timeout: number;
   userAgent: string;
@@ -216,7 +244,7 @@ export class SimpleVRBOScraper {
   /**
    * Extract JSON-LD structured data
    */
-  private extractJsonLd(html: string): any {
+  private extractJsonLd(html: string): JsonLdData {
     try {
       const jsonLdMatch = html.match(/<script[^>]*type=['"]application\/ld\+json['"][^>]*>(.*?)<\/script>/gis);
       if (jsonLdMatch) {
@@ -241,8 +269,8 @@ export class SimpleVRBOScraper {
   /**
    * Extract Open Graph data
    */
-  private extractOpenGraph(html: string): any {
-    const ogData: any = {};
+  private extractOpenGraph(html: string): OpenGraphData {
+    const ogData: OpenGraphData = {};
     
     const titleMatch = html.match(/<meta[^>]*property=['"]og:title['"][^>]*content=['"]([^'"]*)['"]/i);
     if (titleMatch) ogData.title = this.cleanText(titleMatch[1]);
@@ -256,8 +284,8 @@ export class SimpleVRBOScraper {
   /**
    * Extract page title and meta description
    */
-  private extractPageData(html: string): any {
-    const pageData: any = {};
+  private extractPageData(html: string): PageMetadata {
+    const pageData: PageMetadata = {};
     
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     if (titleMatch) pageData.title = this.cleanText(titleMatch[1]);
@@ -271,7 +299,7 @@ export class SimpleVRBOScraper {
   /**
    * Extract property specifications (bedrooms, bathrooms, etc.)
    */
-  private extractSpecifications(html: string, jsonLd: any): PropertySpecifications {
+  private extractSpecifications(html: string, jsonLd: JsonLdData): PropertySpecifications {
     let bedrooms = 0;
     let bathrooms = 0;
     let maxGuests = 1;
@@ -306,7 +334,7 @@ export class SimpleVRBOScraper {
   /**
    * Extract location data
    */
-  private extractLocation(html: string, jsonLd: any): PropertyLocation {
+  private extractLocation(html: string, jsonLd: JsonLdData): PropertyLocation {
     let city = '';
     let state = '';
     let country = 'United States';

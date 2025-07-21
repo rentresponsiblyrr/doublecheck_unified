@@ -2,6 +2,23 @@ import { ErrorReporter } from '../monitoring/error-reporter';
 import { env } from '../config/environment';
 import { log } from '@/lib/logging/enterprise-logger';
 
+// Type definitions for error handling
+type ErrorDetails = Record<string, unknown>;
+type RequestBody = string | object | FormData | ArrayBuffer | Blob | null | undefined;
+type UnknownError = Error | {
+  message?: string;
+  status?: number;
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+  data?: unknown;
+  code?: string;
+  details?: unknown;
+  [key: string]: unknown;
+};
+type LoggingData = Record<string, unknown>;
+
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type ErrorCategory = 'network' | 'validation' | 'authentication' | 'authorization' | 'server' | 'client' | 'unknown';
 
@@ -10,7 +27,7 @@ export interface ApiError extends Error {
   code?: string;
   category?: ErrorCategory;
   severity?: ErrorSeverity;
-  details?: Record<string, any>;
+  details?: ErrorDetails;
   retry?: boolean;
   userMessage?: string;
   timestamp?: string;
@@ -30,7 +47,7 @@ export interface ApiErrorContext {
   url: string;
   method: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: RequestBody;
   userId?: string;
   sessionId?: string;
 }
@@ -65,7 +82,7 @@ export class ApiErrorHandler {
    * Handle API errors with retry logic
    */
   async handleError(
-    error: any,
+    error: UnknownError,
     context: ApiErrorContext,
     retryConfig?: RetryConfig
   ): Promise<ApiError> {
@@ -142,7 +159,7 @@ export class ApiErrorHandler {
   /**
    * Normalize various error types into ApiError
    */
-  private normalizeError(error: any, context: ApiErrorContext): ApiError {
+  private normalizeError(error: UnknownError, context: ApiErrorContext): ApiError {
     // Already an ApiError
     if (error instanceof Error && 'category' in error) {
       return error as ApiError;
@@ -287,7 +304,7 @@ export class ApiErrorHandler {
   /**
    * Get user-friendly message based on status code
    */
-  private getUserMessage(status: number, error: any): string {
+  private getUserMessage(status: number, error: UnknownError): string {
     const customMessage = error.response?.data?.message || error.data?.message;
     if (customMessage) return customMessage;
 
@@ -320,7 +337,7 @@ export class ApiErrorHandler {
   /**
    * Get user-friendly message for Supabase errors
    */
-  private getSupabaseUserMessage(error: any): string {
+  private getSupabaseUserMessage(error: UnknownError): string {
     if (error.message.includes('Invalid login credentials')) {
       return 'Invalid email or password. Please try again.';
     }
@@ -346,7 +363,7 @@ export class ApiErrorHandler {
   /**
    * Format error for logging
    */
-  formatErrorForLogging(error: ApiError, context?: ApiErrorContext): Record<string, any> {
+  formatErrorForLogging(error: ApiError, context?: ApiErrorContext): LoggingData {
     return {
       message: error.message,
       status: error.status,
@@ -414,7 +431,7 @@ export class ApiErrorHandler {
 export const apiErrorHandler = ApiErrorHandler.getInstance();
 
 // Export convenience functions
-export const handleApiError = (error: any, context: ApiErrorContext) =>
+export const handleApiError = (error: UnknownError, context: ApiErrorContext) =>
   apiErrorHandler.handleError(error, context);
 
 export const executeWithRetry = <T>(

@@ -236,7 +236,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       await adminSignOut();
       navigate('/');
     } catch (error) {
-      // REMOVED: console.error('Sign out failed:', error);
       // Force navigation even if sign out fails
       navigate('/');
     }

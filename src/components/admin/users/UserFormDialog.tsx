@@ -127,7 +127,6 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
       await onSave(sanitizedData);
       onClose();
     } catch (error) {
-      // REMOVED: console.error('Error saving user:', error);
       setValidationErrors({
         form: error instanceof Error ? error.message : 'Failed to save user'
       });

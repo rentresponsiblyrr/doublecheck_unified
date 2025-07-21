@@ -28,7 +28,6 @@ export const useAuthInitialization = ({
       return initializationRef.current;
     }
 
-    // REMOVED: console.log('📱 Mobile auth initialization...');
     setError(null);
 
     const initPromise = new Promise<void>(async (resolve) => {
@@ -46,7 +45,6 @@ export const useAuthInitialization = ({
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // REMOVED: console.log('📱 Mobile user found, setting role...');
           const cachedRole = getCachedRole(session.user.id);
           if (cachedRole) {
             setUserRole(cachedRole);
@@ -56,21 +54,17 @@ export const useAuthInitialization = ({
             fetchUserRole(session.user.id, false).then(role => {
               setUserRole(role);
             }).catch(() => {
-              console.warn('📱 Background mobile role fetch failed');
             });
           }
         } else {
           setUserRole(null);
-          // REMOVED: console.log('📱 No mobile session found');
         }
         
         setLoading(false);
         setError(null);
-        // REMOVED: console.log('📱 Mobile auth initialization complete');
         resolve();
         
       } catch (error) {
-        // REMOVED: console.error('📱 Mobile auth initialization error:', error);
         setUser(null);
         setSession(null);
         setUserRole(null);

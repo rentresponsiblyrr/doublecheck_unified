@@ -29,7 +29,6 @@ export class InspectionCleanupService {
    */
   static async analyzeDuplicateInspections(): Promise<CleanupSummary> {
     try {
-      // REMOVED: console.log('🔍 Analyzing duplicate inspections...');
 
       // Get all inspections with property and progress information
       const { data: inspections, error } = await supabase
@@ -89,7 +88,6 @@ export class InspectionCleanupService {
         
         if (inspections.length > 1) {
           duplicateGroups++;
-          // REMOVED: console.log(`🏠 Property ${inspections[0].property_name} has ${inspections.length} inspections`);
           
           // Apply business logic to determine which to keep
           const analyzed = this.analyzePropertyInspections(inspections);
@@ -111,11 +109,9 @@ export class InspectionCleanupService {
         safeToDelete
       };
 
-      // REMOVED: console.log('📊 Cleanup Analysis Summary:', summary);
       return summary;
 
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to analyze duplicate inspections:', error);
       throw error;
     }
   }
@@ -132,7 +128,6 @@ export class InspectionCleanupService {
       new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
     );
 
-    // REMOVED: console.log(`  📋 Analyzing ${sorted.length} inspections for property:`, sorted[0].property_name);
 
     // Business logic for determining which inspections to keep:
     
@@ -211,11 +206,9 @@ export class InspectionCleanupService {
    */
   static async cleanupDuplicateInspections(inspectionsToDelete: string[]): Promise<void> {
     if (inspectionsToDelete.length === 0) {
-      // REMOVED: console.log('✅ No inspections to delete');
       return;
     }
 
-    // REMOVED: console.log(`🧹 Starting cleanup of ${inspectionsToDelete.length} duplicate inspections...`);
 
     try {
       // Delete inspection checklist items first (foreign key constraint)
@@ -228,7 +221,6 @@ export class InspectionCleanupService {
         throw new Error(`Failed to delete inspection checklist items: ${checklistError.message}`);
       }
 
-      // REMOVED: console.log('✅ Deleted associated inspection checklist items');
 
       // Delete media files associated with checklist items
       const { error: mediaError } = await supabase
@@ -237,7 +229,6 @@ export class InspectionCleanupService {
         .in('checklist_item_id', inspectionsToDelete); // This may not work if we already deleted inspection checklist items
 
       if (mediaError) {
-        console.warn('⚠️ Could not delete some media files:', mediaError.message);
         // Continue anyway - media cleanup can be done separately
       }
 
@@ -251,10 +242,8 @@ export class InspectionCleanupService {
         throw new Error(`Failed to delete inspections: ${inspectionError.message}`);
       }
 
-      // REMOVED: console.log(`✅ Successfully deleted ${inspectionsToDelete.length} duplicate inspections`);
 
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to cleanup duplicate inspections:', error);
       throw error;
     }
   }

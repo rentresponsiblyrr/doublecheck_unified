@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function DatabaseConnectivityTest() {
   // REMOVED: DatabaseConnectivityTest logging to prevent infinite render loops
-  // // REMOVED: console.log('🔍 DatabaseConnectivityTest component rendering...');
   const [testResults, setTestResults] = useState<string>('Click "Test Database Connection" to run connectivity tests');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -68,8 +67,8 @@ export default function DatabaseConnectivityTest() {
       result += '👥 Users Table Detailed Test:\n';
       try {
         const { data: users, error: usersError } = await supabase
-          .from('users')
-          .select('id, email, name, role, status, created_at')
+          .from('profiles')
+          .select('id, email, full_name, role, created_at')
           .limit(5);
         
         if (usersError) {
@@ -80,7 +79,7 @@ export default function DatabaseConnectivityTest() {
         } else if (users && users.length > 0) {
           result += `  Records Found: ✅ ${users.length} users\n`;
           users.forEach((user, index) => {
-            result += `    ${index + 1}. ${user.email} (${user.role || 'no role'}) - ${user.status || 'no status'}\n`;
+            result += `    ${index + 1}. ${user.email} (${user.role || 'no role'})\n`;
           });
         } else {
           result += `  Records Found: ⚠️ 0 users (table is empty)\n`;
@@ -98,7 +97,7 @@ export default function DatabaseConnectivityTest() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: userRecord, error: userError } = await supabase
-            .from('users')
+            .from('profiles')
             .select('role')
             .eq('id', user.id)
             .single();

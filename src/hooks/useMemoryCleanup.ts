@@ -40,7 +40,6 @@ export function useMemoryCleanup(): ResourceManager {
       try {
         cleanupFn();
       } catch (error) {
-        // REMOVED: console.error('Cleanup function failed:', error);
       }
     });
 
@@ -57,7 +56,6 @@ export function useMemoryCleanup(): ResourceManager {
       try {
         element.removeEventListener(event, handler);
       } catch (error) {
-        // REMOVED: console.error('Failed to remove event listener:', error);
       }
     });
     eventListeners.current.length = 0;
@@ -215,7 +213,6 @@ export function useSafeFetch() {
       return response;
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        // REMOVED: console.log('Fetch aborted');
       }
       throw error;
     } finally {
@@ -282,7 +279,6 @@ export function useMediaStream() {
 
   const addStream = useCallback((stream: MediaStream) => {
     if (memoryManager.isCleanedUp) {
-      console.warn('Attempting to add stream to unmounted component');
       return;
     }
 

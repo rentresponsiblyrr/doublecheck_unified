@@ -14,14 +14,14 @@ export interface ErrorReport {
   userAgent: string;
   userId?: string;
   sessionId: string;
-  context: Record<string, any>;
+  context: Record<string, unknown>;
   breadcrumbs: Breadcrumb[];
   fingerprint: string;
   groupingKey: string;
   environment: string;
   release?: string;
   tags: Record<string, string>;
-  extra: Record<string, any>;
+  extra: Record<string, unknown>;
 }
 
 export interface Breadcrumb {
@@ -30,7 +30,7 @@ export interface Breadcrumb {
   category: string;
   message: string;
   level: 'debug' | 'info' | 'warning' | 'error';
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export interface UserContext {
@@ -88,7 +88,7 @@ export class ErrorReporter {
   private userContext: UserContext | null = null;
   private flushTimer: NodeJS.Timeout | null = null;
   private isInitialized = false;
-  private originalConsole: Record<string, any> = {};
+  private originalConsole: Record<string, (...args: unknown[]) => void> = {};
   private originalFetch: typeof fetch;
 
   private constructor() {
@@ -119,7 +119,6 @@ export class ErrorReporter {
 
     // Log initialization in development - TEMPORARILY DISABLED
     // if (env.isDevelopment()) {
-    //   // REMOVED: console.log('[ErrorReporter] Initialized with config:', this.config);
     // }
   }
 
@@ -128,7 +127,7 @@ export class ErrorReporter {
    */
   reportError(
     error: Error | string,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
     severity: ErrorReport['severity'] = 'medium'
   ): string {
     // Create error object if string provided
@@ -206,7 +205,7 @@ export class ErrorReporter {
    */
   private createErrorReport(
     error: Error,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
     severity: ErrorReport['severity'] = 'medium'
   ): ErrorReport {
     const fingerprint = this.generateFingerprint(error);
@@ -316,12 +315,12 @@ export class ErrorReporter {
     ['log', 'info', 'warn', 'error'].forEach((level) => {
       this.originalConsole[level] = console[level as keyof Console];
       
-      (console as any)[level] = (...args: any[]) => {
+      (console as Record<string, (...args: unknown[]) => void>)[level] = (...args: unknown[]) => {
         this.addBreadcrumb({
           type: 'console',
           category: 'console',
           message: args.map(arg => String(arg)).join(' '),
-          level: level as any,
+          level: level as Breadcrumb['level'],
           data: { arguments: args },
         });
 
@@ -445,12 +444,12 @@ export class ErrorReporter {
   /**
    * Sanitize data to remove sensitive information
    */
-  private sanitizeData(data: any): any {
+  private sanitizeData(data: unknown): unknown {
     if (!data) return data;
 
     const sanitized = JSON.parse(JSON.stringify(data));
 
-    const sanitizeObject = (obj: any) => {
+    const sanitizeObject = (obj: Record<string, unknown>) => {
       Object.keys(obj).forEach(key => {
         // Check if key matches sensitive pattern
         const isSensitive = this.config.sensitiveDataPatterns?.some(
@@ -502,7 +501,6 @@ export class ErrorReporter {
       // Also log to Supabase for internal tracking
       await this.logToSupabase(errors);
     } catch (error) {
-      // REMOVED: console.error('[ErrorReporter] Failed to flush errors:', error);
       // Re-add errors to queue if flush failed
       this.errorQueue.unshift(...errors);
     }
@@ -538,7 +536,6 @@ export class ErrorReporter {
     // if (!env.validateSupabaseConfig()) return; // TEMPORARILY DISABLED
 
     // Temporarily disabled to avoid 404 errors
-    // REMOVED: console.log('[ErrorReporter] Supabase logging disabled, errors logged to console:', errors.length);
     return;
 
     const { error } = await supabase
@@ -550,7 +547,6 @@ export class ErrorReporter {
       })));
 
     if (error) {
-      // REMOVED: console.error('[ErrorReporter] Failed to log to Supabase:', error);
     }
   }
 
@@ -644,9 +640,15 @@ export class ErrorReporter {
     return 'Desktop';
   }
 
-  private getMemoryInfo(): Record<string, any> {
+  private getMemoryInfo(): Record<string, number> {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as Performance & {
+        memory: {
+          usedJSHeapSize: number;
+          totalJSHeapSize: number;
+          jsHeapSizeLimit: number;
+        };
+      }).memory;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
@@ -656,9 +658,15 @@ export class ErrorReporter {
     return {};
   }
 
-  private getConnectionInfo(): Record<string, any> {
+  private getConnectionInfo(): Record<string, string | number> {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & {
+        connection: {
+          effectiveType: string;
+          downlink: number;
+          rtt: number;
+        };
+      }).connection;
       return {
         effectiveType: connection.effectiveType,
         downlink: connection.downlink,
@@ -679,7 +687,7 @@ export class ErrorReporter {
 
     // Restore original methods
     Object.keys(this.originalConsole).forEach(level => {
-      (console as any)[level] = this.originalConsole[level];
+      (console as Record<string, (...args: unknown[]) => void>)[level] = this.originalConsole[level];
     });
 
     window.fetch = this.originalFetch;

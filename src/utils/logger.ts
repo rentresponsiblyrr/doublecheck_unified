@@ -132,7 +132,6 @@ class Logger {
       // });
     } catch (error) {
       // DISABLED: Monitoring service error logging to prevent infinite loops
-      // // REMOVED: console.error('Failed to send log to monitoring service:', error);
     }
   }
 
@@ -158,11 +157,9 @@ class Logger {
 
   // DISABLED: Performance timing to prevent infinite loops
   time(label: string) {
-    // console.time(label);
   }
 
   timeEnd(label: string) {
-    // console.timeEnd(label);
   }
 
   // User action tracking

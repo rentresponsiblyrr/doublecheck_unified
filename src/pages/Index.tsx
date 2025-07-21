@@ -22,7 +22,6 @@ import {
 
 const Index = () => {
   // REMOVED: Index component logging to prevent infinite render loops
-  // // REMOVED: console.log('📱 Inspector Dashboard - STR Certified');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { inspections, properties, recentInspections, summary, isLoading, error } = useInspectorDashboard();
@@ -82,7 +81,12 @@ const Index = () => {
               Add Your First Property
             </Button>
             <Button 
-              onClick={() => window.location.replace('/')} 
+              onClick={() => {
+                // NUCLEAR REMOVED: window.location.replace('/')
+                // Professional page refresh without session destruction
+                window.history.pushState(null, '', '/');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }} 
               variant="outline" 
               className="w-full"
             >

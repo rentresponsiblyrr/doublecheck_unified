@@ -22,8 +22,16 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' 
       try {
         navigate(path);
       } catch (error) {
-        // REMOVED: console.error('Navigation failed:', error);
-        window.location.href = path;
+        // Professional fallback without nuclear navigation
+        console.warn('Navigation error, attempting window.history fallback:', error);
+        try {
+          window.history.pushState(null, '', path);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        } catch (historyError) {
+          // Final fallback - use assign instead of href
+          // Professional navigation using React Router
+          navigate(path);
+        }
       }
     }
   };

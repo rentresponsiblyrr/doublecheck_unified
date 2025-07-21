@@ -6,6 +6,17 @@ import { aiDecisionLogger } from '../ai/decision-logger';
 import { logger } from '../../utils/logger';
 import type { PhotoData, ScrapingResult, ScrapingError, ScrapingMetadata, PhotoCategory, RoomType } from './types';
 
+// Enhanced types for image processing
+type ImageMetadata = Record<string, unknown>;
+type ScraperConfig = Record<string, unknown>;
+
+// JSON-LD image data structure
+interface JSONLDImageData {
+  url?: string;
+  contentUrl?: string;
+  [key: string]: unknown;
+}
+
 interface ImageExtractionOptions {
   includeThumbnails: boolean;
   includeHighRes: boolean;
@@ -21,7 +32,7 @@ interface ImageDiscoveryResult {
   galleryImages: string[];
   thumbnails: string[];
   highResImages: string[];
-  metadata: Record<string, any>;
+  metadata: ImageMetadata;
 }
 
 interface ImageProcessingResult {
@@ -49,6 +60,31 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
   };
 
   /**
+   * Validates VRBO URL format
+   */
+  private validateVRBOUrl(url: string): boolean {
+    return /^https?:\/\/(www\.)?(vrbo|homeaway)\.com\/.*\/?\d+/i.test(url);
+  }
+
+  /**
+   * Fetches property page HTML content
+   */
+  private async fetchPropertyPageHtml(url: string): Promise<string> {
+    // Simplified implementation - in production would use proper HTTP client
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'STR-Certified-Scraper/1.0'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch property page: ${response.status}`);
+    }
+    
+    return response.text();
+  }
+
+  /**
    * Comprehensive image extraction from VRBO property page
    * @param url - VRBO property URL
    * @param options - Image extraction options
@@ -62,7 +98,7 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
       scrapedAt: new Date(),
       duration: 0,
       sourceUrl: url,
-      userAgent: this.httpClient.defaults.headers['User-Agent'] as string,
+      userAgent: 'STR-Certified-Scraper/1.0',
       rateLimited: false,
       dataCompleteness: 0,
       fieldsScraped: [],
@@ -73,19 +109,19 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
       // Log image scraping start
       await aiDecisionLogger.logSimpleDecision(
         `Starting comprehensive VRBO image scraping: ${url}`,
-        'image_scraping',
+        'architectural_choice',
         `Extracting images with options: ${JSON.stringify(finalOptions)}`,
         [url],
         'high'
       );
 
       // Validate URL
-      if (!this.isValidVRBOUrl(url)) {
+      if (!this.validateVRBOUrl(url)) {
         throw new Error('Invalid VRBO URL provided');
       }
 
       // Fetch the main property page
-      const html = await this.fetchMainPropertyPage(url);
+      const html = await this.fetchPropertyPageHtml(url);
       
       // Discover all images on the page
       const imageDiscovery = await this.discoverAllImages(html, finalOptions);
@@ -123,7 +159,7 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
       metadata.duration = Date.now() - startTime;
       metadata.fieldsFailed = ['images'];
       
-      logger.error('VRBO image scraping failed', error, 'VRBO_IMAGE_SCRAPER');
+      logger.error('VRBO image scraping failed', { error: error instanceof Error ? error.message : String(error) });
 
       return {
         success: false,
@@ -283,7 +319,7 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
     const images: string[] = [];
     
     try {
-      const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis;
+      const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
       const matches = html.match(jsonLdRegex);
       
       if (matches) {
@@ -299,15 +335,20 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
               if (data[prop]) {
                 const imageData = Array.isArray(data[prop]) ? data[prop] : [data[prop]];
                 
-                imageData.forEach((img: any) => {
+                imageData.forEach((img: unknown) => {
                   let imageUrl: string;
                   
                   if (typeof img === 'string') {
                     imageUrl = img;
-                  } else if (img.url) {
-                    imageUrl = img.url;
-                  } else if (img.contentUrl) {
-                    imageUrl = img.contentUrl;
+                  } else if (typeof img === 'object' && img !== null) {
+                    const imgObj = img as JSONLDImageData;
+                    if (imgObj.url && typeof imgObj.url === 'string') {
+                      imageUrl = imgObj.url;
+                    } else if (imgObj.contentUrl && typeof imgObj.contentUrl === 'string') {
+                      imageUrl = imgObj.contentUrl;
+                    } else {
+                      return;
+                    }
                   } else {
                     return;
                   }
@@ -324,7 +365,7 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
         });
       }
     } catch (error) {
-      logger.warn('Failed to extract JSON-LD images', error, 'VRBO_IMAGE_SCRAPER');
+      logger.warn('Failed to extract JSON-LD images', { error: error instanceof Error ? error.message : String(error) });
     }
     
     return images;
@@ -371,8 +412,8 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
    * @param html - HTML content
    * @returns Object with metadata
    */
-  private extractImageMetadata(html: string): Record<string, any> {
-    const metadata: Record<string, any> = {};
+  private extractImageMetadata(html: string): ImageMetadata {
+    const metadata: ImageMetadata = {};
     
     // Count gallery sections
     const gallerySelectors = [
@@ -430,9 +471,9 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
       return {
         url,
         thumbnailUrl: isThumbnail ? url : this.generateThumbnailUrl(url),
-        alt: this.extractAltTextForImage(url, discovery.metadata.altTexts || []),
+        alt: this.extractAltTextForImage(url, (discovery.metadata.altTexts as string[]) || []),
         category: this.categorizeImageByUrl(url),
-        room: this.categorizeImageByRoom(url, discovery.metadata.altTexts || []),
+        room: this.categorizeImageByRoom(url, (discovery.metadata.altTexts as string[]) || []),
         size: isHighRes ? { width: 1200, height: 800 } : { width: 400, height: 300 },
         order: index + 1
       };
@@ -635,6 +676,6 @@ export class VRBOImageScraper extends ProductionVRBOScraper {
 }
 
 // Export factory function
-export const createVRBOImageScraper = (config?: any): VRBOImageScraper => {
+export const createVRBOImageScraper = (config?: ScraperConfig): VRBOImageScraper => {
   return new VRBOImageScraper(config);
 };

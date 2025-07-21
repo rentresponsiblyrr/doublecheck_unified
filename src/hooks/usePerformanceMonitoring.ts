@@ -108,7 +108,6 @@ export const usePerformanceMonitoring = (
 
         return () => observer.disconnect();
       } catch (error) {
-        console.warn('PerformanceObserver not supported:', error);
       }
     }
   }, [thresholds.renderTime]);
@@ -357,7 +356,6 @@ export const usePerformanceMonitoring = (
     
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.warn(`[Performance Alert] ${message}`, metrics);
     }
   }, [options]);
 
@@ -484,7 +482,6 @@ interface PerformanceTracker {
 function handlePerformanceEntry(entry: PerformanceEntry): void {
   // Log long tasks
   if (entry.duration > 50) {
-    console.warn(`Long task detected: ${entry.name} (${entry.duration.toFixed(2)}ms)`);
   }
 }
 
@@ -656,7 +653,6 @@ export const useComponentLifecycleMonitoring = (componentName: string) => {
     return () => {
       // Component unmounting
       const lifetime = performance.now() - mountTime.current;
-      // REMOVED: console.log(`[${componentName}] Unmounting after ${lifetime.toFixed(0)}ms, ${updateCount.current} updates`);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

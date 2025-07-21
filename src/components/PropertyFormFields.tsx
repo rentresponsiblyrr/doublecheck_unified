@@ -147,7 +147,6 @@ export const PropertyFormFields = ({ formData, formErrors, onInputChange, onVRBO
         });
       }
     } catch (error) {
-      // REMOVED: console.error('VRBO scraping service error:', error);
       setVRBOState({
         isLoading: false,
         isSuccess: false,

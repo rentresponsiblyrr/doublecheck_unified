@@ -84,7 +84,7 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
   }, []);
 
   // Log security events
-  const logSecurityEvent = useCallback(async (event: string, details: any) => {
+import type { SecurityEvent } from '../types/business-logic';\n\n  const logSecurityEvent = useCallback(async (event: string, details: Record<string, unknown>) => {
     try {
       await supabase.from('security_audit_log').insert({
         event_type: event,
@@ -93,7 +93,6 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
         user_agent: navigator.userAgent,
       });
     } catch (error) {
-      // REMOVED: console.error('Failed to log security event:', error);
     }
   }, []);
 
@@ -187,7 +186,6 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
       return result;
 
     } catch (error: any) {
-      // REMOVED: console.error('File upload error:', error);
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 
@@ -222,7 +220,6 @@ export function useSecureFileUpload(): UseSecureFileUploadReturn {
       return await uploadFile(validatedImage, customPath || 'images');
       
     } catch (error: any) {
-      // REMOVED: console.error('Image upload error:', error);
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 

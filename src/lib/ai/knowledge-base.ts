@@ -412,7 +412,6 @@ export class KnowledgeBase {
 
     // Add default entries
     defaultEntries.forEach(entry => {
-      this.addEntry(entry).catch(console.error);
     });
   }
 

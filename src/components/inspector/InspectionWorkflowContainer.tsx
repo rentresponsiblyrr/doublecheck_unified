@@ -211,7 +211,6 @@ export const InspectionWorkflowContainer: React.FC = () => {
     try {
       navigate('/');
     } catch (error) {
-      // REMOVED: console.error('Navigation failed:', error);
       navigate('/');
     }
   }, [navigate]);
@@ -219,7 +218,6 @@ export const InspectionWorkflowContainer: React.FC = () => {
   // Error Boundary Setup
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      // REMOVED: console.error('🚨 Unhandled promise rejection in InspectionWorkflow:', event.reason);
       event.preventDefault();
       handleError(new Error('Something went wrong. Please try again.'));
     };

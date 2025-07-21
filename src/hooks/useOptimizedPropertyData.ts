@@ -21,7 +21,6 @@ export const useOptimizedPropertyData = (userId?: string) => {
   return useQuery({
     queryKey: ['optimized-properties', userId],
     queryFn: async () => {
-      // REMOVED: console.log('🚀 Fetching optimized property data...');
       const startTime = Date.now();
 
       // Use the optimized database function
@@ -32,11 +31,9 @@ export const useOptimizedPropertyData = (userId?: string) => {
       const fetchDuration = Date.now() - startTime;
       
       if (error) {
-        // REMOVED: console.error('❌ Error fetching optimized properties:', error);
         throw error;
       }
 
-      // REMOVED: console.log(`✅ Optimized properties loaded in ${fetchDuration}ms`, {
         count: data?.length || 0,
         fetchDuration,
         timestamp: new Date().toISOString()

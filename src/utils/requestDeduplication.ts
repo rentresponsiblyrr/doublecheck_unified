@@ -5,6 +5,10 @@
 
 import { logger } from '@/utils/logger';
 
+// Types for request deduplication context and parameters
+type RequestContext = Record<string, unknown>;
+type RequestParameters = Record<string, unknown>;
+
 interface PendingRequest<T> {
   promise: Promise<T>;
   timestamp: number;
@@ -18,15 +22,15 @@ interface CacheEntry<T> {
 }
 
 class RequestDeduplicator {
-  private pendingRequests = new Map<string, PendingRequest<any>>();
-  private cache = new Map<string, CacheEntry<any>>();
+  private pendingRequests = new Map<string, PendingRequest<unknown>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private maxCacheSize = 1000;
   private defaultTTL = 5 * 60 * 1000; // 5 minutes
 
   /**
    * Generates a cache key for a file and context
    */
-  private generateFileHash(file: File, context: any): Promise<string> {
+  private generateFileHash(file: File, context: RequestContext): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
@@ -55,7 +59,7 @@ class RequestDeduplicator {
   /**
    * Generates a simple hash for non-file requests
    */
-  private generateRequestKey(operation: string, params: any): string {
+  private generateRequestKey(operation: string, params: RequestParameters): string {
     const paramsString = JSON.stringify(params, Object.keys(params).sort());
     const hash = btoa(paramsString).replace(/[^a-zA-Z0-9]/g, '');
     return `${operation}_${hash}`;
@@ -91,7 +95,7 @@ class RequestDeduplicator {
    */
   async deduplicatePhotoAnalysis<T>(
     file: File,
-    context: any,
+    context: RequestContext,
     analysisFunction: (signal: AbortSignal) => Promise<T>,
     ttl: number = this.defaultTTL
   ): Promise<T> {
@@ -286,7 +290,7 @@ export const useRequestDeduplication = () => {
   const deduplicatePhotoAnalysis = React.useCallback(
     <T>(
       file: File,
-      context: any,
+      context: RequestContext,
       analysisFunction: (signal: AbortSignal) => Promise<T>,
       ttl?: number
     ) => {

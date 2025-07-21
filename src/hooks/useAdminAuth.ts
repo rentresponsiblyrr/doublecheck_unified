@@ -25,34 +25,30 @@ export const useAdminAuth = (): AdminAuthState & {
   const loadUserRole = useCallback(async (userId: string) => {
     try {
       const { data: profile, error: profileError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('role')
         .eq('id', userId)
         .single();
 
       if (profileError) {
-        console.warn('Could not load user role, defaulting to admin:', profileError);
         setUserRole('admin');
         return;
       }
 
       setUserRole(profile?.role || 'admin');
     } catch (err) {
-      // REMOVED: console.error('Error loading user role:', err);
       setUserRole('admin');
     }
   }, []);
 
   // Initialize authentication state
   useEffect(() => {
-    // REMOVED: console.log('🔐 Initializing admin authentication...');
     
     const initializeAuth = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // REMOVED: console.log('🔍 AdminAuth: Getting session with 5s timeout...');
         // Get current session with timeout protection
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
@@ -60,10 +56,8 @@ export const useAdminAuth = (): AdminAuthState & {
         );
         
         const { data: { session: currentSession }, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-        // REMOVED: console.log('✅ AdminAuth: Session check completed:', { session: currentSession?.user?.email, sessionError });
         
         if (sessionError) {
-          // REMOVED: console.error('Session error:', sessionError);
           setError(sessionError.message);
           setSession(null);
           setUser(null);
@@ -72,11 +66,9 @@ export const useAdminAuth = (): AdminAuthState & {
         }
 
         if (currentSession?.user) {
-          // REMOVED: console.log('✅ Valid admin session found:', currentSession.user.email);
           setSession(currentSession);
           setUser(currentSession.user);
           
-          // REMOVED: console.log('🔍 AdminAuth: Loading user role with timeout...');
           try {
             // Add timeout to loadUserRole as well
             await Promise.race([
@@ -85,25 +77,19 @@ export const useAdminAuth = (): AdminAuthState & {
                 setTimeout(() => reject(new Error('User role loading timeout after 3 seconds')), 3000)
               )
             ]);
-            // REMOVED: console.log('✅ AdminAuth: User role loaded successfully');
           } catch (roleError) {
-            console.warn('⚠️ AdminAuth: User role loading failed (possibly timeout), continuing...', roleError);
             setUserRole('admin'); // Default fallback
           }
         } else {
-          // REMOVED: console.log('❌ No valid admin session found');
           setSession(null);
           setUser(null);
           setUserRole(null);
         }
       } catch (err) {
-        // REMOVED: console.error('Auth initialization error (possibly timeout):', err);
         if (err.message?.includes('timeout')) {
-          // REMOVED: console.error('🕐 TIMEOUT DETECTED in AdminAuth - Auth service may be hanging');
         }
         setError(err instanceof Error ? err.message : 'Authentication error');
       } finally {
-        // REMOVED: console.log('🏁 AdminAuth: Initialization completed, setting loading to false');
         setLoading(false);
       }
     };
@@ -112,7 +98,6 @@ export const useAdminAuth = (): AdminAuthState & {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      // REMOVED: console.log('🔐 Admin auth state changed:', event, newSession?.user?.email);
       
       try {
         if (newSession?.user) {
@@ -129,7 +114,6 @@ export const useAdminAuth = (): AdminAuthState & {
           }
         }
       } catch (err) {
-        // REMOVED: console.error('Auth state change error:', err);
         setError(err instanceof Error ? err.message : 'Authentication error');
       }
     });
@@ -144,7 +128,6 @@ export const useAdminAuth = (): AdminAuthState & {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
-        // REMOVED: console.error('Sign out error:', error);
         setError(error.message);
       } else {
         setUser(null);
@@ -153,7 +136,6 @@ export const useAdminAuth = (): AdminAuthState & {
         setError(null);
       }
     } catch (err) {
-      // REMOVED: console.error('Sign out error:', err);
       setError(err instanceof Error ? err.message : 'Sign out failed');
     } finally {
       setLoading(false);
@@ -168,7 +150,6 @@ export const useAdminAuth = (): AdminAuthState & {
       const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
       
       if (error) {
-        // REMOVED: console.error('Session refresh error:', error);
         setError(error.message);
         return;
       }
@@ -179,7 +160,6 @@ export const useAdminAuth = (): AdminAuthState & {
         await loadUserRole(refreshedSession.user.id);
       }
     } catch (err) {
-      // REMOVED: console.error('Session refresh error:', err);
       setError(err instanceof Error ? err.message : 'Session refresh failed');
     } finally {
       setLoading(false);

@@ -194,7 +194,10 @@ export class PIIScrubber {
   /**
    * Scrub PII from objects (recursive)
    */
-  scrubObject(obj: any, context?: { source?: string; userId?: string }): any {
+  scrubObject(
+    obj: unknown, 
+    context?: { source?: string; userId?: string }
+  ): unknown {
     if (typeof obj === 'string') {
       return this.scrubText(obj, context).scrubbedText;
     }
@@ -204,7 +207,7 @@ export class PIIScrubber {
     }
     
     if (obj && typeof obj === 'object') {
-      const scrubbed: any = {};
+      const scrubbed: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         // Skip certain fields that should never be scrubbed
         if (this.isExemptField(key)) {
@@ -244,7 +247,10 @@ export class PIIScrubber {
   /**
    * Validate that data is safe to send to AI services
    */
-  validateDataForAI(data: any, source: string): { safe: boolean; issues: string[] } {
+  validateDataForAI(
+    data: unknown, 
+    source: string
+  ): { safe: boolean; issues: string[] } {
     const issues: string[] = [];
     
     if (typeof data === 'string') {
@@ -255,7 +261,7 @@ export class PIIScrubber {
     } else if (typeof data === 'object') {
       // Check for common problematic fields
       const sensitiveFields = ['password', 'token', 'secret', 'key', 'auth'];
-      const checkObject = (obj: any, path: string = '') => {
+      const checkObject = (obj: unknown, path: string = '') => {
         if (typeof obj === 'object' && obj !== null) {
           for (const [key, value] of Object.entries(obj)) {
             const currentPath = path ? `${path}.${key}` : key;

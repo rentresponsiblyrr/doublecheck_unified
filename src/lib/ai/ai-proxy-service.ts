@@ -12,6 +12,65 @@ import { aiCache } from './ai-cache';
 import { logger } from '../../utils/logger';
 import { log } from '../logging/enterprise-logger';
 
+// Type definitions for AI service data structures
+type PropertyData = {
+  propertyType?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  squareFootage?: number;
+  amenities?: string[];
+  location?: {
+    city?: string;
+    state?: string;
+    zipCode?: string;
+  };
+  internalNotes?: unknown;
+  ownerPrivateInfo?: unknown;
+  financialData?: unknown;
+  [key: string]: unknown;
+};
+
+type ChecklistGenerationResult = {
+  checklist: Array<{
+    id: string;
+    title: string;
+    category: string;
+    required: boolean;
+    evidenceType: string;
+  }>;
+  metadata: {
+    generatedAt: string;
+    model: string;
+    confidence: number;
+  };
+};
+
+type ErrorDetails = {
+  retryAfter?: number;
+  statusCode?: number;
+  timestamp?: string;
+  [key: string]: unknown;
+};
+
+type UnknownError = Error | { message?: string; [key: string]: unknown; };
+
+type ResponseData = {
+  analysis?: {
+    status?: string;
+    confidence?: number;
+    reasoning?: string;
+  };
+  usage?: {
+    totalTokens?: number;
+    cost?: number;
+  };
+  metadata?: {
+    model?: string;
+    processingTimeMs?: number;
+  };
+  [key: string]: unknown;
+};
+
 export interface AIAnalysisRequest {
   imageBase64: string;
   prompt: string;
@@ -44,7 +103,7 @@ export interface AIAnalysisResponse {
 export interface AIError {
   code: string;
   message: string;
-  details?: any;
+  details?: ErrorDetails;
 }
 
 class AIProxyService {
@@ -153,7 +212,7 @@ class AIProxyService {
   /**
    * Generate dynamic checklist using secure backend
    */
-  async generateDynamicChecklist(propertyData: any, inspectionType: string): Promise<any> {
+  async generateDynamicChecklist(propertyData: PropertyData, inspectionType: string): Promise<ChecklistGenerationResult> {
     this.validatePropertyData(propertyData);
     await this.checkRateLimit();
 
@@ -239,7 +298,7 @@ class AIProxyService {
     }
   }
 
-  private validatePropertyData(data: any): void {
+  private validatePropertyData(data: PropertyData): void {
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid property data');
     }
@@ -267,7 +326,7 @@ class AIProxyService {
     return bytes.buffer;
   }
 
-  private sanitizePropertyData(data: any): any {
+  private sanitizePropertyData(data: PropertyData): PropertyData {
     // Deep clone and sanitize property data
     const sanitized = JSON.parse(JSON.stringify(data));
     
@@ -306,7 +365,7 @@ class AIProxyService {
     }
   }
 
-  private isValidResponse(data: any): boolean {
+  private isValidResponse(data: ResponseData): boolean {
     return (
       data &&
       typeof data === 'object' &&
@@ -383,7 +442,7 @@ class AIProxyService {
     }
   }
 
-  private handleAIError(error: any): AIError {
+  private handleAIError(error: UnknownError): AIError {
     if (error.message?.includes('rate limit')) {
       return {
         code: 'RATE_LIMIT_EXCEEDED',

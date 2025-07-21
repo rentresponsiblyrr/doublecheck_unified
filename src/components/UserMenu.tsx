@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/components/AuthProvider';
 import { LogOut, User, Shield, CheckCircle, RefreshCw, Bug } from 'lucide-react';
-import BugReportDialog from '@/components/BugReportDialog';
+import { BugReportDialog } from '@/components/BugReportDialog';
 
 export const UserMenu = () => {
   const { user, userRole, signOut, loadUserRole } = useAuth();

@@ -11,6 +11,16 @@
 
 import { createAdvancedPreloader } from './preloader';
 
+// Extended Navigator interface for connection API
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    effectiveType: '2g' | '3g' | '4g' | 'slow-2g';
+    downlink: number;
+    rtt: number;
+    saveData: boolean;
+  };
+}
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -27,6 +37,9 @@ export interface ResourceHint {
   type?: string;
   id?: string;
 }
+
+type ValidPriority = 'critical' | 'high' | 'medium' | 'low';
+type ValidAsType = 'script' | 'style' | 'image' | 'font' | 'fetch' | 'document';
 
 export interface NetworkCondition {
   effectiveType: '2g' | '3g' | '4g' | 'slow-2g';
@@ -91,7 +104,6 @@ export class AdvancedResourceHintsManager {
    * BLEEDING EDGE: Inject critical resource hints with smart prioritization
    */
   public injectCriticalHints(): void {
-    // REMOVED: console.log('🚀 BLEEDING EDGE: Injecting critical resource hints');
 
     // DNS prefetch for external domains (highest priority)
     this.addDnsPrefetch('https://fonts.googleapis.com', 'critical');
@@ -119,7 +131,6 @@ export class AdvancedResourceHintsManager {
 
     const connection = this.networkCondition;
     
-    // REMOVED: console.log(`📡 Network-aware hints for ${connection.effectiveType} connection`);
 
     // Conservative strategy for slow connections
     if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
@@ -139,7 +150,6 @@ export class AdvancedResourceHintsManager {
    * BLEEDING EDGE: Route-based resource hints with prediction
    */
   public injectRouteBasedHints(currentRoute: string, predictedRoutes: string[]): void {
-    // REMOVED: console.log(`🎯 Route-based hints for ${currentRoute}`);
 
     // Current route critical resources
     this.injectRouteSpecificHints(currentRoute, 'high');
@@ -170,7 +180,7 @@ export class AdvancedResourceHintsManager {
     const hint: ResourceHint = {
       rel: 'dns-prefetch',
       href,
-      priority: priority as any,
+      priority: priority as ValidPriority,
       id: `dns-${this.generateHintId(href)}`
     };
 
@@ -183,7 +193,7 @@ export class AdvancedResourceHintsManager {
     const hint: ResourceHint = {
       rel: 'preconnect',
       href,
-      priority: priority as any,
+      priority: priority as ValidPriority,
       crossorigin: crossorigin ? 'anonymous' : undefined,
       id: `preconnect-${this.generateHintId(href)}`
     };
@@ -197,7 +207,7 @@ export class AdvancedResourceHintsManager {
     const hint: ResourceHint = {
       rel: 'modulepreload',
       href,
-      priority: priority as any,
+      priority: priority as ValidPriority,
       crossorigin: 'anonymous',
       id: `modulepreload-${this.generateHintId(href)}`
     };
@@ -211,8 +221,8 @@ export class AdvancedResourceHintsManager {
     const hint: ResourceHint = {
       rel: 'preload',
       href,
-      as: as as any,
-      priority: priority as any,
+      as: as as ValidAsType,
+      priority: priority as ValidPriority,
       id: `preload-${this.generateHintId(href)}`,
       ...options
     };
@@ -226,7 +236,7 @@ export class AdvancedResourceHintsManager {
     const hint: ResourceHint = {
       rel: 'prefetch',
       href,
-      priority: priority as any,
+      priority: priority as ValidPriority,
       id: `prefetch-${this.generateHintId(href)}`,
       ...options
     };
@@ -239,7 +249,6 @@ export class AdvancedResourceHintsManager {
   // ============================================================================
 
   private injectConservativeHints(): void {
-    // REMOVED: console.log('🐌 Conservative strategy for slow connection');
     
     // Only critical preloads
     this.addPreload('/assets/js/index-*.js', 'script', 'critical', { fetchPriority: 'high' });
@@ -253,7 +262,6 @@ export class AdvancedResourceHintsManager {
   }
 
   private injectBalancedHints(): void {
-    // REMOVED: console.log('⚖️ Balanced strategy for medium connection');
     
     // Core application chunks
     this.addPreload('/assets/js/index-*.js', 'script', 'high', { fetchPriority: 'high' });
@@ -272,7 +280,6 @@ export class AdvancedResourceHintsManager {
   }
 
   private injectAggressiveHints(): void {
-    // REMOVED: console.log('🚀 Aggressive strategy for fast connection');
     
     // All critical chunks with high priority
     this.addPreload('/assets/js/index-*.js', 'script', 'critical', { fetchPriority: 'high' });
@@ -314,31 +321,31 @@ export class AdvancedResourceHintsManager {
       case '/':
       case '/dashboard':
         hints.push(
-          { rel: 'preload', href: '/assets/js/dashboard-*.js', as: 'script', priority: priority as any },
-          { rel: 'preload', href: '/assets/images/hero-bg.webp', as: 'image', priority: priority as any }
+          { rel: 'preload', href: '/assets/js/dashboard-*.js', as: 'script', priority: priority as ValidPriority },
+          { rel: 'preload', href: '/assets/images/hero-bg.webp', as: 'image', priority: priority as ValidPriority }
         );
         break;
 
       case '/inspections':
       case '/inspection/*':
         hints.push(
-          { rel: 'preload', href: '/assets/js/inspection-*.js', as: 'script', priority: priority as any },
-          { rel: 'preload', href: '/assets/js/camera-*.js', as: 'script', priority: priority as any },
-          { rel: 'prefetch', href: '/assets/js/ai-analysis-*.js', as: 'script', priority: priority as any }
+          { rel: 'preload', href: '/assets/js/inspection-*.js', as: 'script', priority: priority as ValidPriority },
+          { rel: 'preload', href: '/assets/js/camera-*.js', as: 'script', priority: priority as ValidPriority },
+          { rel: 'prefetch', href: '/assets/js/ai-analysis-*.js', as: 'script', priority: priority as ValidPriority }
         );
         break;
 
       case '/admin/*':
         hints.push(
-          { rel: 'prefetch', href: '/assets/js/admin-features-*.js', as: 'script', priority: priority as any },
-          { rel: 'prefetch', href: '/assets/js/charts-admin-only-*.js', as: 'script', priority: priority as any }
+          { rel: 'prefetch', href: '/assets/js/admin-features-*.js', as: 'script', priority: priority as ValidPriority },
+          { rel: 'prefetch', href: '/assets/js/charts-admin-only-*.js', as: 'script', priority: priority as ValidPriority }
         );
         break;
 
       default:
         // Generic route hints
         hints.push(
-          { rel: 'prefetch', href: '/assets/js/ui-extended-*.js', as: 'script', priority: 'low' as any }
+          { rel: 'prefetch', href: '/assets/js/ui-extended-*.js', as: 'script', priority: 'low' as ValidPriority }
         );
     }
 
@@ -381,7 +388,6 @@ export class AdvancedResourceHintsManager {
     const priorityScore = this.getPriorityScore(hint.priority || 'low');
     this.hintPriorities.set(hint.id || hint.href, priorityScore);
 
-    // REMOVED: console.log(`✅ Injected ${hint.rel} hint: ${hint.href} (priority: ${hint.priority})`);
   }
 
   private cleanupUnusedHints(): void {
@@ -463,7 +469,6 @@ export class AdvancedResourceHintsManager {
       link.parentNode.removeChild(link);
       this.activeHints.delete(id);
       this.hintPriorities.delete(id);
-      // REMOVED: console.log(`🗑️ Removed hint: ${id}`);
     }
   }
 
@@ -474,7 +479,7 @@ export class AdvancedResourceHintsManager {
   }
 
   private isDataSaverEnabled(): boolean {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as NavigatorWithConnection).connection;
     return connection?.saveData === true;
   }
 
@@ -505,7 +510,7 @@ export class AdvancedResourceHintsManager {
   }
 
   private initializeNetworkMonitoring(): void {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as NavigatorWithConnection).connection;
     if (connection) {
       this.networkCondition = {
         effectiveType: connection.effectiveType,
@@ -548,7 +553,6 @@ export class AdvancedResourceHintsManager {
   // ============================================================================
 
   public startAdvancedHinting(): void {
-    // REMOVED: console.log('🚀 BLEEDING EDGE: Starting advanced resource hinting');
     
     this.injectCriticalHints();
     this.injectNetworkAwareHints();

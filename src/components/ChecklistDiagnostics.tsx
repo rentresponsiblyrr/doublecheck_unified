@@ -32,13 +32,11 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
           .order('created_at', { ascending: false });
 
         if (error) {
-          // REMOVED: console.error('Error fetching audit data:', error);
           return;
         }
 
         setAuditEntries(data || []);
       } catch (error) {
-        // REMOVED: console.error('Error in audit fetch:', error);
       } finally {
         setIsLoading(false);
       }

@@ -22,7 +22,6 @@ export const useMobilePropertyData = (userId?: string) => {
   return useQuery({
     queryKey: ['mobile-properties', userId],
     queryFn: async () => {
-      // REMOVED: console.log('📱 Fetching mobile property data...');
       const startTime = Date.now();
 
       try {
@@ -41,11 +40,9 @@ export const useMobilePropertyData = (userId?: string) => {
         const fetchDuration = Date.now() - startTime;
         
         if (error) {
-          // REMOVED: console.error('❌ Mobile property fetch error:', error);
           throw new Error(`Failed to load properties: ${error.message}`);
         }
 
-        // REMOVED: console.log(`✅ Mobile properties loaded in ${fetchDuration}ms`, {
           count: data?.length || 0,
           fetchDuration,
           timestamp: new Date().toISOString()
@@ -53,7 +50,6 @@ export const useMobilePropertyData = (userId?: string) => {
 
         return (data || []) as MobilePropertyData[];
       } catch (error) {
-        // REMOVED: console.error('❌ Mobile property data fetch failed:', error);
         throw error;
       }
     },
@@ -62,7 +58,6 @@ export const useMobilePropertyData = (userId?: string) => {
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: (failureCount, error) => {
-      // REMOVED: console.log(`🔄 Mobile property query retry attempt ${failureCount + 1}`);
       return failureCount < 1; // Only 1 retry on mobile
     },
     retryDelay: 2000,

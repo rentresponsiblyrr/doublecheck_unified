@@ -6,7 +6,6 @@ import { useOptimizedPropertySelection } from "@/hooks/useOptimizedPropertySelec
 
 const OptimizedPropertySelection = () => {
   // REMOVED: OptimizedPropertySelection logging to prevent infinite render loops
-  // // REMOVED: console.log('🏠 OptimizedPropertySelection component mounting');
 
   const {
     properties,

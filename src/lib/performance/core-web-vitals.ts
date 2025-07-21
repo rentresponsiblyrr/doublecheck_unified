@@ -125,7 +125,6 @@ export class CoreWebVitalsOptimizer {
   private startMonitoring(): void {
     if (!this.config.enableRealTimeMonitoring) return;
 
-    // REMOVED: console.log('🎯 BLEEDING EDGE: Starting Core Web Vitals monitoring');
 
     // Performance Observer for Web Vitals
     if ('PerformanceObserver' in window) {
@@ -141,7 +140,6 @@ export class CoreWebVitalsOptimizer {
           entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'paint', 'navigation'] 
         });
       } catch (error) {
-        console.warn('Some performance metrics not supported:', error);
       }
     }
 
@@ -224,7 +222,6 @@ export class CoreWebVitalsOptimizer {
       const lastEntry = entries[entries.length - 1];
       
       this.vitals.lcp = lastEntry.startTime;
-      // REMOVED: console.log(`📏 LCP: ${lastEntry.startTime.toFixed(1)}ms`);
       
       this.checkAndOptimize('lcp', lastEntry.startTime);
     });
@@ -232,7 +229,6 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'largest-contentful-paint', buffered: true });
     } catch (error) {
-      console.warn('LCP measurement not supported');
     }
   }
 
@@ -243,7 +239,6 @@ export class CoreWebVitalsOptimizer {
         const fid = fidEntry.processingStart - fidEntry.startTime;
         
         this.vitals.fid = fid;
-        // REMOVED: console.log(`⚡ FID: ${fid.toFixed(1)}ms`);
         
         this.checkAndOptimize('fid', fid);
       }
@@ -252,7 +247,6 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'first-input', buffered: true });
     } catch (error) {
-      console.warn('FID measurement not supported');
     }
   }
 
@@ -268,7 +262,6 @@ export class CoreWebVitalsOptimizer {
           clsValue += clsEntry.value;
           this.vitals.cls = clsValue;
           
-          // REMOVED: console.log(`📐 CLS: ${clsValue.toFixed(4)}`);
           this.checkAndOptimize('cls', clsValue);
         }
       }
@@ -277,7 +270,6 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'layout-shift', buffered: true });
     } catch (error) {
-      console.warn('CLS measurement not supported');
     }
   }
 
@@ -293,7 +285,6 @@ export class CoreWebVitalsOptimizer {
         maxINP = Math.max(maxINP, inp);
         this.vitals.inp = maxINP;
         
-        // REMOVED: console.log(`🎮 INP: ${inp.toFixed(1)}ms (max: ${maxINP.toFixed(1)}ms)`);
         this.checkAndOptimize('inp', maxINP);
       }
     });
@@ -301,7 +292,6 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'event', buffered: true });
     } catch (error) {
-      console.warn('INP measurement not supported');
     }
   }
 
@@ -419,7 +409,6 @@ export class CoreWebVitalsOptimizer {
     const budget = this.config.performanceBudget[metric];
     
     if (value > budget) {
-      console.warn(`🚨 ${metric.toUpperCase()} budget exceeded: ${value.toFixed(1)} > ${budget}`);
       await this.triggerOptimizations(metric);
     }
   }
@@ -433,7 +422,6 @@ export class CoreWebVitalsOptimizer {
         .sort((a, b) => b.impact - a.impact); // Sort by impact
 
       for (const optimization of relevantOptimizations) {
-        // REMOVED: console.log(`🔧 Applying optimization: ${optimization.name}`);
         
         try {
           await optimization.implementation();
@@ -444,11 +432,9 @@ export class CoreWebVitalsOptimizer {
           // Check if we've improved enough
           const currentValue = this.vitals[metric];
           if (currentValue && currentValue <= this.config.performanceBudget[metric]) {
-            // REMOVED: console.log(`✅ ${metric.toUpperCase()} optimized successfully`);
             break;
           }
         } catch (error) {
-          // REMOVED: console.error(`❌ Optimization failed: ${optimization.name}`, error);
           await optimization.rollback();
         }
       }
@@ -543,7 +529,6 @@ export class CoreWebVitalsOptimizer {
 
   private async implementAggressiveCodeSplitting(): Promise<void> {
     // This would be handled at build time, but we can trigger dynamic imports
-    // REMOVED: console.log('🔄 Triggering aggressive code splitting');
     
     // Mark for next build optimization
     localStorage.setItem('enable-aggressive-splitting', 'true');
@@ -637,12 +622,10 @@ export class CoreWebVitalsOptimizer {
       }
     });
 
-    // REMOVED: console.log('⚡ Event handlers optimized for INP');
   }
 
   private revertEventOptimizations(): void {
     // Event optimizations would need specific tracking to revert
-    // REMOVED: console.log('🔄 Event optimizations reverted');
   }
 
   // ============================================================================
@@ -678,7 +661,6 @@ export class CoreWebVitalsOptimizer {
           
           // Check if element lacks dimensions
           if (!element.style.width && !element.style.height && !element.hasAttribute('width') && !element.hasAttribute('height')) {
-            console.warn('⚠️ Potential CLS risk: Element added without dimensions', element);
             
             // Auto-fix if possible
             if (element.tagName === 'IMG') {
@@ -706,12 +688,10 @@ export class CoreWebVitalsOptimizer {
           const delay = endTime - startTime;
           
           if (isFirstInput) {
-            // REMOVED: console.log(`⚡ First Input Delay: ${delay.toFixed(1)}ms`);
             isFirstInput = false;
           }
           
           if (delay > 50) {
-            console.warn(`🐌 Slow interaction detected: ${delay.toFixed(1)}ms on ${eventType}`);
           }
         });
       }, { once: isFirstInput });
@@ -751,7 +731,6 @@ export class CoreWebVitalsOptimizer {
       img.decoding = 'sync';
     }
     
-    // REMOVED: console.log('🎯 LCP candidate optimized:', element);
   }
 
   // ============================================================================
@@ -842,7 +821,6 @@ export class CoreWebVitalsOptimizer {
       })
       .join(' | ');
     
-    // REMOVED: console.log(`📊 Core Web Vitals: ${vitalsString}`);
   }
 
   private sleep(ms: number): Promise<void> {
@@ -874,14 +852,11 @@ export class CoreWebVitalsOptimizer {
   }
 
   public async forceOptimization(): Promise<void> {
-    // REMOVED: console.log('🚀 BLEEDING EDGE: Forcing all optimizations');
     
     for (const optimization of this.optimizations.values()) {
       try {
         await optimization.implementation();
-        // REMOVED: console.log(`✅ Applied: ${optimization.name}`);
       } catch (error) {
-        // REMOVED: console.error(`❌ Failed: ${optimization.name}`, error);
       }
     }
   }

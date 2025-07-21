@@ -155,7 +155,6 @@ export function InspectorWorkflowProfessional() {
     try {
       navigate('/');
     } catch (error) {
-      // REMOVED: console.error('Navigation failed:', error);
       navigate('/');
     }
   }, [navigate]);
@@ -217,7 +216,6 @@ export function InspectorWorkflowProfessional() {
   // Professional photo storage
   const handlePhotoStored = useCallback(async (itemId: string, photoFile: File, analysis: any) => {
     // Professional photo storage logic
-    // REMOVED: console.log('Photo stored professionally:', { itemId, fileSize: photoFile.size, analysis });
   }, []);
 
   // Professional video handling

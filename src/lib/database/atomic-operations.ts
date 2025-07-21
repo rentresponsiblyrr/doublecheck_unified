@@ -7,6 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import type { Database } from '@/integrations/supabase/types';
 
+// Type for error handling in atomic operations
+type AtomicOperationError = Error | { message: string; [key: string]: unknown; };
+
 type Tables = Database['public']['Tables'];
 type ChecklistItemInsert = Tables['checklist_items']['Insert'];
 type MediaInsert = Tables['media']['Insert'];
@@ -107,9 +110,10 @@ export async function createInspectionAtomic(
       }
     };
 
-  } catch (error: any) {
-    logger.error('Atomic inspection creation failed', error, 'ATOMIC_OPERATIONS');
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error as AtomicOperationError;
+    logger.error('Atomic inspection creation failed', errorObj, 'ATOMIC_OPERATIONS');
+    return { success: false, error: errorObj.message };
   }
 }
 
@@ -176,9 +180,10 @@ export async function updateChecklistItemWithMediaAtomic(
       data: { media_ids: mediaIds }
     };
 
-  } catch (error: any) {
-    logger.error('Atomic checklist item update failed', error, 'ATOMIC_OPERATIONS');
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error as AtomicOperationError;
+    logger.error('Atomic checklist item update failed', errorObj, 'ATOMIC_OPERATIONS');
+    return { success: false, error: errorObj.message };
   }
 }
 
@@ -246,9 +251,10 @@ export async function deleteInspectionAtomic(
 
     return { success: true };
 
-  } catch (error: any) {
-    logger.error('Atomic inspection deletion failed', error, 'ATOMIC_OPERATIONS');
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error as AtomicOperationError;
+    logger.error('Atomic inspection deletion failed', errorObj, 'ATOMIC_OPERATIONS');
+    return { success: false, error: errorObj.message };
   }
 }
 
@@ -299,9 +305,10 @@ export async function batchUpdateChecklistItemsAtomic(
       data: { updated_count: successCount }
     };
 
-  } catch (error: any) {
-    logger.error('Atomic batch update failed', error, 'ATOMIC_OPERATIONS');
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error as AtomicOperationError;
+    logger.error('Atomic batch update failed', errorObj, 'ATOMIC_OPERATIONS');
+    return { success: false, error: errorObj.message };
   }
 }
 
@@ -375,8 +382,9 @@ export async function createMediaUploadAtomic(
       data: { media_id: media.id }
     };
 
-  } catch (error: any) {
-    logger.error('Atomic media upload creation failed', error, 'ATOMIC_OPERATIONS');
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error as AtomicOperationError;
+    logger.error('Atomic media upload creation failed', errorObj, 'ATOMIC_OPERATIONS');
+    return { success: false, error: errorObj.message };
   }
 }

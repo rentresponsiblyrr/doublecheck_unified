@@ -41,7 +41,6 @@ export const SystemHealthCheck: React.FC<{
 
     try {
       // Check database access
-      // REMOVED: console.log('🔍 Running database health check...');
       const dbValidation = await schemaValidationService.validateTableAccess();
       
       if (!dbValidation.isValid) {
@@ -58,7 +57,6 @@ export const SystemHealthCheck: React.FC<{
       }
 
       // Check authentication
-      // REMOVED: console.log('🔍 Running authentication health check...');
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
@@ -90,7 +88,6 @@ export const SystemHealthCheck: React.FC<{
       }
 
       // Check network connectivity
-      // REMOVED: console.log('🔍 Running network health check...');
       try {
         const networkStart = Date.now();
         const { error: networkError } = await supabase
@@ -155,7 +152,6 @@ export const SystemHealthCheck: React.FC<{
         onError?.(status);
       }
     } catch (error) {
-      // REMOVED: console.error('Health check error:', error);
       const errorStatus: HealthStatus = {
         overall: 'error',
         database: 'error',

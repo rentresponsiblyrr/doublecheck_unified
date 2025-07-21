@@ -112,7 +112,7 @@ export class DatabaseDiagnosticService {
       let role: string | null = null;
       try {
         const { data: userData } = await supabase
-          .from('users')
+          .from('profiles')
           .select('role')
           .eq('id', authUser.user.id)
           .single();
@@ -307,7 +307,7 @@ export class DatabaseDiagnosticService {
     try {
       // Quick test of the most critical table
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('id')
         .limit(1);
 

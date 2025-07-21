@@ -54,7 +54,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
           setIsLoading(false);
         }
       } catch (error) {
-        // REMOVED: console.error('Failed to load media items:', error);
         if (isMountedRef.current) {
           setIsLoading(false);
         }
@@ -74,7 +73,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
     
     if (!ENABLE_REALTIME) {
-      // REMOVED: console.log('📷 Media realtime subscription disabled to prevent WebSocket errors');
       return;
     }
     
@@ -84,7 +82,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       try {
         // Create unique channel name
         const channelName = `media-${checklistItemId}`;
-        // REMOVED: console.log('Setting up media channel:', channelName);
 
         const channel = createChannel(channelName, {
           mediaChanges: {
@@ -95,7 +92,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
               filter: `checklist_item_id=eq.${checklistItemId}`
             },
             callback: (payload: any) => {
-              // REMOVED: console.log('Media update received:', payload);
               
               if (!isMountedRef.current) return;
               
@@ -132,23 +128,18 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
 
         // Subscribe to the channel with comprehensive error handling
         await subscribeChannel(channelName, (status: string) => {
-          // REMOVED: console.log('Media subscription status:', status);
           if (status === 'CHANNEL_ERROR') {
-            console.warn('⚠️ Media realtime subscription failed, falling back to manual refresh');
             // App will continue to work with manual refreshes
           } else if (status === 'CLOSED') {
-            console.warn('⚠️ Media channel closed, realtime updates disabled');
           }
         });
 
       } catch (error) {
-        console.warn('⚠️ Failed to setup media realtime subscription:', error);
         // Continue without realtime - component will still work with initial data load
       }
     };
 
     setupSubscription().catch(error => {
-      console.warn('⚠️ Media subscription setup failed completely:', error);
       // Gracefully continue without realtime capabilities
     });
 
@@ -160,7 +151,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         const channelName = `media-${checklistItemId}`;
         cleanupChannel(channelName);
       } catch (error) {
-        console.warn('⚠️ Error cleaning up media channel:', error);
       }
     };
   }, [checklistItemId, createChannel, subscribeChannel, cleanupChannel]);
@@ -178,7 +168,6 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      // REMOVED: console.error('Download failed:', error);
     }
   };
 

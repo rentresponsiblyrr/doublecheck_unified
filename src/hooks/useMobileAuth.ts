@@ -5,7 +5,6 @@ export const useMobileAuth = () => {
   const authContext = useAuth();
   
   if (!authContext) {
-    console.warn('⚠️ useMobileAuth called outside of auth provider context');
     return {
       user: null,
       userRole: null,

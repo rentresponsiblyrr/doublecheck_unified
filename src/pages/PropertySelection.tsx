@@ -52,19 +52,16 @@ const PropertySelection = () => {
     queryFn: async () => {
       if (!user?.id) {
         // REMOVED: Console logging to prevent infinite loops
-        // // REMOVED: console.log('❌ No user ID available, returning empty properties');
         return [];
       }
 
       // REMOVED: Console logging to prevent infinite loops
-      // // REMOVED: console.log('📊 Fetching properties with inspections for user:', user.id);
       
       // Use the existing get_properties_with_inspections function that works
       const { data: propertiesData, error: propertiesError } = await supabase
         .rpc('get_properties_with_inspections', { _user_id: user.id });
       
       if (propertiesError) {
-        // REMOVED: console.error('❌ Error fetching properties:', propertiesError);
         throw propertiesError;
       }
 
@@ -120,7 +117,6 @@ const PropertySelection = () => {
 
   const handlePropertyDeleted = async () => {
     // REMOVED: Console logging to prevent infinite loops
-    // // REMOVED: console.log('🔄 Property deleted, performing comprehensive data refresh...');
     
     // Clear selection immediately
     setSelectedProperty(null);
@@ -130,16 +126,12 @@ const PropertySelection = () => {
       await refetchProperties();
       
       // REMOVED: Console logging to prevent infinite loops
-      // // REMOVED: console.log('✅ Data refresh completed successfully after property deletion');
     } catch (error) {
-      // REMOVED: console.error('❌ Error during data refresh:', error);
       // Use proper error handling instead of nuclear reload
-      // REMOVED: console.error('❌ Data refresh failed, clearing cache and retrying:', error);
       // Clear the query cache and try again
       try {
         await refetchProperties();
       } catch (retryError) {
-        // REMOVED: console.error('❌ Retry also failed:', retryError);
         // Last resort: navigate to home page instead of reload
         navigate('/', { replace: true });
       }
@@ -153,7 +145,6 @@ const PropertySelection = () => {
         refetchInspections()
       ]);
     } catch (error) {
-      // REMOVED: console.error('❌ Retry failed:', error);
     }
   };
 

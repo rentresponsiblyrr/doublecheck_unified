@@ -8,6 +8,51 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Type definitions for test mocks
+type MockFileContent = string | ArrayBuffer | Uint8Array;
+type MockFileOptions = {
+  type?: string;
+  lastModified?: number;
+  [key: string]: unknown;
+};
+
+type MockEventHandler = ((event: Event) => void) | null;
+
+type MockFileReaderResult = string | ArrayBuffer | null;
+
+interface MockFile {
+  content: MockFileContent[];
+  name: string;
+  options: MockFileOptions;
+  size: number;
+  type: string;
+}
+
+interface MockFileReader {
+  onload: MockEventHandler;
+  onerror: MockEventHandler;
+  onabort: MockEventHandler;
+  result: MockFileReaderResult;
+  readAsDataURL(file: MockFile): void;
+  readAsText(file: MockFile): void;
+}
+
+interface MockMediaRecorder {
+  start: () => void;
+  stop: () => void;
+  pause: () => void;
+  resume: () => void;
+  addEventListener: (type: string, listener: EventListener) => void;
+  removeEventListener: (type: string, listener: EventListener) => void;
+  state: string;
+  ondataavailable: MockEventHandler;
+  onstop: MockEventHandler;
+  onerror: MockEventHandler;
+  onstart: MockEventHandler;
+  onpause: MockEventHandler;
+  onresume: MockEventHandler;
+}
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -48,32 +93,32 @@ global.URL.createObjectURL = vi.fn(() => 'mock-url');
 global.URL.revokeObjectURL = vi.fn();
 
 // Mock File and FileReader
-global.File = class MockFile {
-  constructor(public content: any[], public name: string, public options: any = {}) {}
+global.File = class MockFileImpl implements MockFile {
+  constructor(public content: MockFileContent[], public name: string, public options: MockFileOptions = {}) {}
   get size() { return this.content.length; }
   get type() { return this.options.type || ''; }
-} as any;
+} as unknown as typeof File;
 
-global.FileReader = class MockFileReader {
-  onload: any = null;
-  onerror: any = null;
-  onabort: any = null;
-  result: any = null;
+global.FileReader = class MockFileReaderImpl implements MockFileReader {
+  onload: MockEventHandler = null;
+  onerror: MockEventHandler = null;
+  onabort: MockEventHandler = null;
+  result: MockFileReaderResult = null;
   
-  readAsDataURL(file: any) {
+  readAsDataURL(file: MockFile) {
     setTimeout(() => {
       this.result = `data:${file.type};base64,mock-data`;
-      if (this.onload) this.onload({ target: this });
+      if (this.onload) this.onload({ target: this } as Event);
     }, 0);
   }
   
-  readAsText(file: any) {
+  readAsText(file: MockFile) {
     setTimeout(() => {
       this.result = 'mock file content';
-      if (this.onload) this.onload({ target: this });
+      if (this.onload) this.onload({ target: this } as Event);
     }, 0);
   }
-} as any;
+} as unknown as typeof FileReader;
 
 // Mock canvas for photo capture testing
 global.HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
@@ -102,7 +147,7 @@ global.HTMLVideoElement.prototype.pause = vi.fn();
 global.HTMLVideoElement.prototype.load = vi.fn();
 
 // Mock MediaRecorder for video testing
-global.MediaRecorder = vi.fn().mockImplementation(() => ({
+global.MediaRecorder = vi.fn().mockImplementation((): MockMediaRecorder => ({
   start: vi.fn(),
   stop: vi.fn(),
   pause: vi.fn(),
@@ -116,7 +161,7 @@ global.MediaRecorder = vi.fn().mockImplementation(() => ({
   onstart: null,
   onpause: null,
   onresume: null,
-})) as any;
+})) as unknown as typeof MediaRecorder;
 
 // Mock getUserMedia for camera testing
 Object.defineProperty(navigator, 'mediaDevices', {

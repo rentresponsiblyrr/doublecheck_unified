@@ -298,10 +298,8 @@ export class InspectionCreationOptimizer {
           throw new Error(`RPC assign failed: ${error.message}`);
         }
 
-        // REMOVED: console.log('✅ Inspector assigned successfully via RPC');
         return;
       } catch (rpcError) {
-        // REMOVED: console.log('🔧 RPC assign function not available, using direct update:', rpcError);
         
         // Fallback to direct update
         const { data: { user } } = await supabase.auth.getUser();
@@ -318,10 +316,8 @@ export class InspectionCreationOptimizer {
           throw new Error(`Direct update failed: ${updateError.message}`);
         }
 
-        // REMOVED: console.log('✅ Inspector assigned successfully via direct update');
       }
     } catch (error) {
-      // REMOVED: console.error('❌ Failed to assign inspector:', error);
       // Don't throw - this is not critical for mobile flow
     }
   }

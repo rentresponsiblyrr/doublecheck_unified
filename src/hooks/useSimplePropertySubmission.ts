@@ -66,7 +66,6 @@ export const useSimplePropertySubmission = () => {
   };
 
   const submitProperty = async (formData: ExtendedPropertyFormData) => {
-    // REMOVED: console.log('🚀 Starting simple property submission...', { isEditing, formData });
     
     if (!validateForm(formData)) {
       return false;
@@ -83,7 +82,6 @@ export const useSimplePropertySubmission = () => {
         scraped_data: formData.scraped_vrbo_data || null,
       };
 
-      // REMOVED: console.log('📝 Submitting data:', submitData);
 
       let result;
       if (isEditing) {
@@ -111,7 +109,6 @@ export const useSimplePropertySubmission = () => {
       const { data, error } = result;
 
       if (error) {
-        // REMOVED: console.error('❌ Database error:', error);
         
         let errorMessage = "An error occurred while saving the property.";
         
@@ -137,7 +134,6 @@ export const useSimplePropertySubmission = () => {
         return false;
       }
 
-      // REMOVED: console.log('✅ Property saved successfully:', data);
 
       toast({
         title: `Property ${isEditing ? 'Updated' : 'Added'}`,
@@ -150,7 +146,6 @@ export const useSimplePropertySubmission = () => {
 
       return true;
     } catch (error) {
-      // REMOVED: console.error('💥 Unexpected error:', error);
       
       toast({
         title: "Unexpected Error",

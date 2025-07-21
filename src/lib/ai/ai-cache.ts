@@ -7,10 +7,30 @@
 
 import { logger } from '../../utils/logger';
 
+// AI Response types for better type safety
+export type AIResponse = {
+  content: string;
+  choices?: Array<{
+    message: {
+      content: string;
+      role: string;
+    };
+    finish_reason?: string;
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  model?: string;
+  created?: number;
+  [key: string]: unknown;
+};
+
 export interface CacheEntry {
   id: string;
   key: string;
-  response: any;
+  response: AIResponse;
   metadata: {
     model: string;
     tokens: number;
@@ -88,7 +108,7 @@ export class AICache {
     options: {
       model?: string;
       photoData?: ArrayBuffer;
-      context?: any;
+      context?: Record<string, unknown>;
       similarityCheck?: boolean;
     } = {}
   ): Promise<CacheEntry | null> {
@@ -153,11 +173,11 @@ export class AICache {
    */
   async set(
     prompt: string,
-    response: any,
+    response: AIResponse,
     options: {
       model?: string;
       photoData?: ArrayBuffer;
-      context?: any;
+      context?: Record<string, unknown>;
       tokens?: number;
       cost?: number;
       confidence?: number;
@@ -215,7 +235,7 @@ export class AICache {
    */
   private async findSimilarEntry(
     prompt: string,
-    options: { model?: string; photoData?: ArrayBuffer; context?: any }
+    options: { model?: string; photoData?: ArrayBuffer; context?: Record<string, unknown> }
   ): Promise<CacheEntry | null> {
     const targetContextHash = await this.hashObject(options.context || {});
     const targetPhotoHash = options.photoData ? await this.hashPhoto(options.photoData) : undefined;
@@ -254,7 +274,7 @@ export class AICache {
    */
   private async generateCacheKey(
     prompt: string,
-    options: { model?: string; photoData?: ArrayBuffer; context?: any }
+    options: { model?: string; photoData?: ArrayBuffer; context?: Record<string, unknown> }
   ): Promise<string> {
     const components = [
       prompt.trim().toLowerCase(),
@@ -293,7 +313,7 @@ export class AICache {
   /**
    * Hash an object
    */
-  private async hashObject(obj: any): Promise<string> {
+  private async hashObject(obj: Record<string, unknown>): Promise<string> {
     const jsonString = JSON.stringify(obj, Object.keys(obj).sort());
     return await this.hashString(jsonString);
   }
@@ -443,7 +463,7 @@ export class AICache {
   /**
    * Export cache for backup/analysis
    */
-  exportCache(): { entries: CacheEntry[]; stats: any; config: CacheConfig } {
+  exportCache(): { entries: CacheEntry[]; stats: typeof this.stats; config: CacheConfig } {
     return {
       entries: Array.from(this.cache.values()),
       stats: this.stats,

@@ -293,7 +293,12 @@ function DefaultErrorFallback({
             </button>
             
             <button
-              onClick={() => window.location.replace(window.location.pathname)}
+              onClick={() => {
+                // NUCLEAR REMOVED: window.location.replace(window.location.pathname)
+                // Professional page refresh without session destruction
+                window.history.pushState(null, '', window.location.pathname);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
               className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Refresh Page

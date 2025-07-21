@@ -53,7 +53,6 @@ export const ChecklistItemActions = ({
     }
 
     try {
-      // REMOVED: console.log('Updating status to:', newStatus, 'for item:', itemId);
       
       // Primary database operation - RPC already handles audit trail (last_modified_by/at)
       // Add timeout to prevent indefinite hanging on mobile networks
@@ -94,7 +93,6 @@ export const ChecklistItemActions = ({
           user_name: userName
         }).catch((notesError) => {
           // Log error but don't block UI - notes are secondary
-          console.warn('Failed to save notes history:', notesError);
         });
       }
 
@@ -108,7 +106,6 @@ export const ChecklistItemActions = ({
       onComplete();
       
     } catch (error) {
-      // REMOVED: console.error('Status update error:', error);
       
       // Enhanced error messages for mobile users
       const errorMessage = error instanceof Error ? error.message : 'Failed to update status. Please try again.';

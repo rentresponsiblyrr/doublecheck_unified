@@ -1,8 +1,8 @@
 
-import { StreamlinedPropertyForm } from "@/components/StreamlinedPropertyForm";
+import { SimplePropertyForm } from "@/components/SimplePropertyForm";
 
 const AddProperty = () => {
-  return <StreamlinedPropertyForm />;
+  return <SimplePropertyForm />;
 };
 
 export default AddProperty;

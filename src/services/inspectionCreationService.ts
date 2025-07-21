@@ -23,7 +23,6 @@ export class InspectionCreationService {
       // Use the correct method from InspectionCreationOptimizer
       return await InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
     } catch (error) {
-      // REMOVED: console.error('Error checking for existing inspection:', error);
       return null;
     }
   }
@@ -38,13 +37,11 @@ export class InspectionCreationService {
         const checklistItemsCount = await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
         
         if (checklistItemsCount === 0) {
-          console.warn('No checklist items were populated for inspection:', newInspectionId);
           // This is not necessarily an error - the inspection may be valid even without items
         }
         
         return newInspectionId;
       } catch (error) {
-        // REMOVED: console.error('Error in inspection creation process:', error);
         throw error;
       }
     });

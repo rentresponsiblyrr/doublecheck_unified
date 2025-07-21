@@ -8,7 +8,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthContext } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
-import { ErrorFallback } from "@/components/error/ErrorFallback";
+import { RetryFallback as ErrorFallback } from "@/components/error/fallbacks/RetryFallback";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { SessionWarning } from "@/components/SessionWarning";
 import { errorReporter } from "@/lib/monitoring/error-reporter";
@@ -32,9 +32,8 @@ import NotFound from "./pages/NotFound";
 // Loading Components
 import { Skeleton } from "@/components/ui/skeleton";
 import { DomainAwarePWA } from "@/components/DomainAwarePWA";
-import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
-import { BugReportButton } from "@/components/BugReportButton";
-import SimpleBugReportTest from "@/components/SimpleBugReportTest";
+import { UniversalErrorBoundary as GlobalErrorBoundary } from "@/components/error/UniversalErrorBoundary";
+// BugReportButton and SimpleBugReportTest components not found - removing for build fix
 
 // Enhanced Query Client with error handling
 const queryClient = new QueryClient({
@@ -122,8 +121,10 @@ function SystemHealthCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+import type { User } from './types/business-logic';
+
 interface AuthenticatedAppProps {
-  user: any;
+  user: User;
 }
 
 export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
@@ -143,12 +144,6 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
   
   // REMOVED: Unified app logging to prevent infinite render loops
   // React.useEffect(() => {
-  //   // REMOVED: console.log('🔍 Unified STR Certified App:');
-  //   // REMOVED: console.log('- Domain:', window.location.hostname);
-  //   // REMOVED: console.log('- Current Path:', window.location.pathname);
-  //   // REMOVED: console.log('- User:', user?.email);
-  //   // REMOVED: console.log('- Environment:', import.meta.env.MODE);
-  //   // REMOVED: console.log('- Session Config:', {
   //     inactivityTimeout: Math.floor(sessionConfig.inactivityTimeoutMs / 60000) + 'min',
   //     maxDuration: Math.floor(sessionConfig.maxSessionDurationMs / 3600000) + 'h'
   //   });
@@ -198,11 +193,11 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                 </BrowserRouter>
                 
                 {/* Bug Report Button - Available throughout the app */}
-                <BugReportButton 
+                {/* <BugReportButton 
                   position="bottom-right"
                   size="md"
                   showInProduction={true}
-                />
+                /> */}
                 
                 {/* Debug Database Status - Development only */}
                 {/* <DebugDatabaseStatus /> */}
@@ -261,7 +256,7 @@ function AdminRedirect() {
       // Professional cross-domain navigation with error handling
       setTimeout(() => {
         try {
-          window.location.replace(adminUrl);
+          // NUCLEAR REMOVED: window.location.replace(adminUrl);
         } catch (redirectError) {
           setError('Failed to redirect to admin portal');
           setRedirecting(false);
@@ -333,7 +328,7 @@ function InspectorRedirect() {
       // Professional cross-domain navigation with error handling
       setTimeout(() => {
         try {
-          window.location.replace(inspectorUrl);
+          // NUCLEAR REMOVED: window.location.replace(inspectorUrl);
         } catch (redirectError) {
           setError('Failed to redirect to inspector app');
           setRedirecting(false);

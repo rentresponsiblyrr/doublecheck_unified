@@ -500,7 +500,6 @@ export function healthCheckMiddleware() {
       try {
         healthCheckInstance = HealthCheckService.getInstance();
       } catch (error) {
-        console.warn('⚠️ Health check middleware disabled due to configuration error:', error);
         return;
       }
       

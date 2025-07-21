@@ -35,6 +35,54 @@ interface ScrapingSession {
   userAgent: string;
 }
 
+// Types for scraped data structures
+interface JsonLdData {
+  '@type'?: string;
+  name?: string;
+  description?: string;
+  address?: {
+    streetAddress?: string;
+    addressLocality?: string;
+    addressRegion?: string;
+    postalCode?: string;
+    addressCountry?: string;
+  };
+  geo?: {
+    latitude?: number;
+    longitude?: number;
+  };
+  amenityFeature?: Array<{
+    name: string;
+    value?: boolean;
+  }>;
+  numberOfRooms?: number;
+  floorSize?: {
+    value?: number;
+    unitCode?: string;
+  };
+  starRating?: {
+    ratingValue?: number;
+  };
+  aggregateRating?: {
+    ratingValue?: number;
+    reviewCount?: number;
+  };
+  [key: string]: unknown;
+}
+
+interface DomScrapedData {
+  bedrooms?: number;
+  bathrooms?: number;
+  guestCapacity?: number;
+  squareFootage?: number;
+  amenities?: string[];
+  houseRules?: string[];
+  description?: string;
+  [key: string]: unknown;
+}
+
+type ScrapingErrorInput = Error | { message: string; [key: string]: unknown; };
+
 export class ProductionVRBOScraper {
   private httpClient: AxiosInstance;
   private config: ScraperConfig;
@@ -283,9 +331,9 @@ export class ProductionVRBOScraper {
   /**
    * Extracts JSON-LD structured data from HTML
    * @param html - HTML content
-   * @returns Object | null
+   * @returns JsonLdData | null
    */
-  private extractJsonLdData(html: string): any | null {
+  private extractJsonLdData(html: string): JsonLdData | null {
     try {
       const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis;
       const matches = html.match(jsonLdRegex);
@@ -346,10 +394,10 @@ export class ProductionVRBOScraper {
   /**
    * Extracts data from DOM elements using regex patterns
    * @param html - HTML content
-   * @returns Object
+   * @returns DomScrapedData
    */
-  private extractDomData(html: string): Record<string, any> {
-    const domData: Record<string, any> = {};
+  private extractDomData(html: string): DomScrapedData {
+    const domData: DomScrapedData = {};
     
     // Extract bedrooms/bathrooms from common patterns
     const bedroomMatch = html.match(/(\d+)\s*(?:bed|br|bedroom)/i);
@@ -440,7 +488,7 @@ export class ProductionVRBOScraper {
    * @param extractedData - Target data object
    * @param jsonLdData - JSON-LD data
    */
-  private mergeJsonLdData(extractedData: Partial<VRBOPropertyData>, jsonLdData: any): void {
+  private mergeJsonLdData(extractedData: Partial<VRBOPropertyData>, jsonLdData: JsonLdData): void {
     if (jsonLdData.name) {
       extractedData.title = this.cleanText(jsonLdData.name);
     }
@@ -483,7 +531,7 @@ export class ProductionVRBOScraper {
    * @param extractedData - Target data object
    * @param domData - DOM extracted data
    */
-  private mergeDomData(extractedData: Partial<VRBOPropertyData>, domData: Record<string, any>): void {
+  private mergeDomData(extractedData: Partial<VRBOPropertyData>, domData: DomScrapedData): void {
     if (domData.bedrooms || domData.bathrooms || domData.maxGuests) {
       extractedData.specifications = extractedData.specifications || {} as PropertySpecifications;
       
@@ -561,7 +609,7 @@ export class ProductionVRBOScraper {
     }
   }
 
-  private createScrapingError(error: any, code: string): ScrapingError {
+  private createScrapingError(error: ScrapingErrorInput, code: string): ScrapingError {
     return {
       code,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -636,7 +684,7 @@ export class ProductionVRBOScraper {
     return Math.round(requiredScore + optionalScore);
   }
 
-  private isFieldComplete(value: any): boolean {
+  private isFieldComplete(value: unknown): boolean {
     if (value === null || value === undefined) return false;
     if (typeof value === 'string') return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;

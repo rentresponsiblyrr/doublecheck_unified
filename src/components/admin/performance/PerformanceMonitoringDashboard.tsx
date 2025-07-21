@@ -219,7 +219,6 @@ export const PerformanceMonitoringDashboard: React.FC<PerformanceMonitoringDashb
       setLastUpdate(new Date());
       
     } catch (error) {
-      // REMOVED: console.error('Failed to refresh metrics:', error);
     } finally {
       setIsLoading(false);
     }

@@ -138,7 +138,6 @@ export class DatabaseValidationService {
         };
 
       } catch (rpcError) {
-        // REMOVED: console.log('🔧 RPC function failed, using direct insert:', rpcError);
 
         // Fallback to direct insert
         const { data, error } = await supabase

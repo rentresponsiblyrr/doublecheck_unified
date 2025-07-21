@@ -8,7 +8,7 @@ export interface PerformanceMetric {
   unit: 'ms' | 's' | 'bytes' | 'count' | 'percent';
   timestamp: string;
   tags?: Record<string, string>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PerformanceReport {
@@ -45,7 +45,7 @@ export interface AIProcessingMetrics {
   outputSize: number;
   success: boolean;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface TrackerConfig {
@@ -111,7 +111,6 @@ export class PerformanceTracker {
 
     // Check if we should track based on sample rate
     if (Math.random() > (this.config.sampleRate || 1)) {
-      // REMOVED: console.log('[PerformanceTracker] Skipping initialization due to sampling');
       return;
     }
 
@@ -134,7 +133,6 @@ export class PerformanceTracker {
     this.trackPageLoad();
 
     if (import.meta.env.DEV) {
-      // REMOVED: console.log('[PerformanceTracker] Initialized with config:', this.config);
     }
   }
 
@@ -185,7 +183,9 @@ export class PerformanceTracker {
       // Track Largest Contentful Paint (LCP)
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1] as any;
+        const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
+          element?: { tagName: string };
+        };
         this.trackMetric('lcp', lastEntry.startTime, 'ms', { 
           category: 'web_vitals',
           element: lastEntry.element?.tagName,
@@ -196,7 +196,9 @@ export class PerformanceTracker {
       // Track First Input Delay (FID)
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry & {
+          processingStart: number;
+        }) => {
           this.trackMetric('fid', entry.processingStart - entry.startTime, 'ms', {
             category: 'web_vitals',
             eventType: entry.name,
@@ -209,7 +211,10 @@ export class PerformanceTracker {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry & {
+          hadRecentInput?: boolean;
+          value: number;
+        }) => {
           if (!entry.hadRecentInput) {
             clsValue += entry.value;
           }
@@ -219,7 +224,6 @@ export class PerformanceTracker {
       clsObserver.observe({ entryTypes: ['layout-shift'] });
 
     } catch (error) {
-      // REMOVED: console.error('[PerformanceTracker] Error setting up Web Vitals:', error);
     }
   }
 
@@ -232,7 +236,7 @@ export class PerformanceTracker {
     try {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceResourceTiming) => {
           if (entry.entryType === 'resource') {
             const resource: ResourceTiming = {
               name: entry.name,
@@ -258,7 +262,6 @@ export class PerformanceTracker {
       observer.observe({ entryTypes: ['resource'] });
       this.observer = observer;
     } catch (error) {
-      // REMOVED: console.error('[PerformanceTracker] Error setting up resource timing:', error);
     }
   }
 
@@ -284,7 +287,6 @@ export class PerformanceTracker {
 
       observer.observe({ entryTypes: ['measure'] });
     } catch (error) {
-      // REMOVED: console.error('[PerformanceTracker] Error setting up user timing:', error);
     }
   }
 
@@ -295,7 +297,7 @@ export class PerformanceTracker {
     name: string,
     value: number,
     unit: PerformanceMetric['unit'] = 'ms',
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) {
     const metric: PerformanceMetric = {
       name,
@@ -318,7 +320,6 @@ export class PerformanceTracker {
 
     // Log in development
     if (import.meta.env.DEV) {
-      // REMOVED: console.log('[PerformanceTracker] Metric:', metric);
     }
   }
 
@@ -403,7 +404,6 @@ export class PerformanceTracker {
       try {
         window.performance.measure(name, startMark, endMark);
       } catch (error) {
-        // REMOVED: console.error('[PerformanceTracker] Error creating measure:', error);
       }
     }
   }
@@ -430,7 +430,7 @@ export class PerformanceTracker {
   /**
    * Report slow operations
    */
-  private reportSlowOperation(type: string, duration: number, details: any) {
+  private reportSlowOperation(type: string, duration: number, details: Record<string, unknown>) {
     errorReporter.addBreadcrumb({
       type: 'custom',
       category: 'performance',
@@ -441,7 +441,7 @@ export class PerformanceTracker {
 
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.warn(`[PerformanceTracker] Slow ${type} operation:`, {
+      console.warn(`Slow ${type} operation:`, {
         duration,
         details,
       });
@@ -479,7 +479,7 @@ export class PerformanceTracker {
     return 0;
     
     // TODO: Replace with modern performance API
-    // const longTasks = window.performance.getEntriesByType('longtask') as any[];
+    // const longTasks = window.performance.getEntriesByType('longtask') as PerformanceEntry[];
     // return longTasks.reduce((total, task) => {
     //   const blockingTime = task.duration - 50; // Tasks over 50ms are considered blocking
     //   return total + (blockingTime > 0 ? blockingTime : 0);
@@ -512,10 +512,8 @@ export class PerformanceTracker {
 
       // Log summary in development
       if (import.meta.env.DEV) {
-        // REMOVED: console.log('[PerformanceTracker] Performance Report:', report);
       }
     } catch (error) {
-      // REMOVED: console.error('[PerformanceTracker] Failed to flush metrics:', error);
     }
   }
 
@@ -593,7 +591,7 @@ export class PerformanceTracker {
 export const performanceTracker = PerformanceTracker.getInstance();
 
 // Export convenience functions
-export const trackMetric = (name: string, value: number, unit?: PerformanceMetric['unit'], metadata?: any) =>
+export const trackMetric = (name: string, value: number, unit?: PerformanceMetric['unit'], metadata?: Record<string, unknown>) =>
   performanceTracker.trackMetric(name, value, unit, metadata);
 
 export const trackApiCall = (url: string, method: string, duration: number, status: number) =>

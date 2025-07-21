@@ -154,9 +154,9 @@ export class VideoProcessor {
         };
 
         // Handle errors
-        this.mediaRecorder.onerror = (event: any) => {
+        this.mediaRecorder.onerror = (event: MediaRecorderErrorEvent) => {
           clearInterval(statsInterval);
-          reject(new Error(`Recording error: ${event.error}`));
+          reject(new Error(`Recording error: ${event.error?.message || 'Unknown recording error'}`));
         };
 
         // Start recording
@@ -446,7 +446,11 @@ export class VideoProcessor {
     };
   }
 
-  private async getVideoResolution(video: File): Promise<any> {
+  private async getVideoResolution(video: File): Promise<{
+    width: number;
+    height: number;
+    aspectRatio: string;
+  }> {
     return new Promise((resolve) => {
       const videoElement = document.createElement('video');
       videoElement.src = URL.createObjectURL(video);
@@ -479,7 +483,14 @@ export class VideoProcessor {
     return averageDiff > this.config.sceneChangeThreshold;
   }
 
-  private async analyzeFrame(frame: ImageData, canvas: HTMLCanvasElement): Promise<any> {
+  private async analyzeFrame(frame: ImageData, canvas: HTMLCanvasElement): Promise<{
+    sceneType: SceneType;
+    roomType: string;
+    features: string[];
+    description: string;
+    confidence: number;
+    isKeyFrame: boolean;
+  }> {
     // Mock frame analysis - in production, this would use AI
     await this.simulateProcessing(100);
     
@@ -584,8 +595,20 @@ export class VideoProcessor {
     return Array.from(roomMap.values());
   }
 
-  private detectVideoFeatures(timestamps: VideoTimestamp[]): any[] {
-    const featureMap = new Map<string, any>();
+  private detectVideoFeatures(timestamps: VideoTimestamp[]): Array<{
+    feature: string;
+    detected: boolean;
+    confidence: number;
+    timestamps: number[];
+    evidence: string[];
+  }> {
+    const featureMap = new Map<string, {
+      feature: string;
+      detected: boolean;
+      confidence: number;
+      timestamps: number[];
+      evidence: string[];
+    }>();
     
     timestamps.forEach((ts) => {
       ts.features.forEach((feature) => {
@@ -606,7 +629,14 @@ export class VideoProcessor {
     return Array.from(featureMap.values());
   }
 
-  private async calculateQualityMetrics(video: File, timestamps: VideoTimestamp[]): Promise<any> {
+  private async calculateQualityMetrics(video: File, timestamps: VideoTimestamp[]): Promise<{
+    averageQuality: number;
+    stabilityScore: number;
+    consistencyScore: number;
+    coverageScore: number;
+    technicalIssues: string[];
+    recommendations: string[];
+  }> {
     await this.simulateProcessing(1000);
     
     return {
@@ -626,7 +656,14 @@ export class VideoProcessor {
   private identifyVideoIssues(
     scenes: SceneAnalysis[],
     roomSequence: RoomSequence[],
-    qualityMetrics: any
+    qualityMetrics: {
+      averageQuality: number;
+      stabilityScore: number;
+      consistencyScore: number;
+      coverageScore: number;
+      technicalIssues: string[];
+      recommendations: string[];
+    }
   ): VideoIssue[] {
     const issues: VideoIssue[] = [];
     
@@ -662,9 +699,24 @@ export class VideoProcessor {
   private generateAnalysisSummary(
     scenes: SceneAnalysis[],
     roomSequence: RoomSequence[],
-    qualityMetrics: any,
+    qualityMetrics: {
+      averageQuality: number;
+      stabilityScore: number;
+      consistencyScore: number;
+      coverageScore: number;
+      technicalIssues: string[];
+      recommendations: string[];
+    },
     issues: VideoIssue[]
-  ): any {
+  ): {
+    totalDuration: number;
+    roomsCovered: string[];
+    roomsMissing: string[];
+    overallQuality: number;
+    keyFindings: string[];
+    recommendedActions: string[];
+    readyForSubmission: boolean;
+  } {
     const totalDuration = scenes[scenes.length - 1]?.endTime || 0;
     const roomsCovered = roomSequence.map(r => r.roomType);
     const expectedRooms = ['bedroom', 'bathroom', 'kitchen', 'living-room'];

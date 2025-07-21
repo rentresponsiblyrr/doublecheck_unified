@@ -412,7 +412,13 @@ Please address these issues immediately and schedule a re-inspection once resolv
    * Update delivery status
    */
   private async updateDeliveryStatus(deliveryId: string, status: string, errorMessage?: string): Promise<void> {
-    const updates: any = {
+    const updates: {
+      status: string;
+      updated_at: string;
+      sent_at?: string;
+      delivered_at?: string;
+      error_message?: string;
+    } = {
       status,
       updated_at: new Date().toISOString()
     };

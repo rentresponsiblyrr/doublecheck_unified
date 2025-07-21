@@ -49,6 +49,43 @@ export interface BugReportAnalytics {
   businessImpactScore: number; // 1-10
 }
 
+interface GitHubIssue {
+  number: number;
+  title: string;
+  html_url: string;
+  state: string;
+  labels?: Array<{ name: string; color: string }>;
+}
+
+interface PerformanceMetric {
+  name: string;
+  value: number;
+  threshold: number;
+  isSlowdown: boolean;
+}
+
+interface DatabaseError {
+  message: string;
+  code?: string;
+  isCompatibilityLayerIssue: boolean;
+  table?: string;
+}
+
+interface ErrorContext {
+  performanceMetrics: PerformanceMetric[];
+  databaseErrors: DatabaseError[];
+  userSession: {
+    duration: number;
+    errorCount: number;
+    consecutiveErrors: number;
+  };
+  systemState: {
+    memoryUsage: number;
+    networkStatus: string;
+    platformInfo: string;
+  };
+}
+
 class IntelligentBugReportService {
   private reportingInProgress = false;
   private recentReports = new Map<string, IntelligentBugReport>();
@@ -67,7 +104,7 @@ class IntelligentBugReportService {
   ): Promise<{
     report: IntelligentBugReport;
     analytics: BugReportAnalytics;
-    githubIssue?: any;
+    githubIssue?: GitHubIssue;
     success: boolean;
     error?: string;
   }> {
@@ -254,7 +291,7 @@ class IntelligentBugReportService {
    */
   private calculateUserFrustrationMetrics(
     bugReport: BugReportData,
-    errorContext: any
+    errorContext: ErrorContext
   ): IntelligentBugReport['enhancedContext']['userFrustrationMetrics'] {
     // Calculate time from first error to bug report
     const firstErrorTime = errorContext.consoleErrors.length > 0 
@@ -302,7 +339,7 @@ class IntelligentBugReportService {
    */
   private assessTechnicalComplexity(
     bugReport: BugReportData,
-    errorContext: any
+    errorContext: ErrorContext
   ): IntelligentBugReport['enhancedContext']['technicalComplexity'] {
     const affectedSystems = new Set<string>();
 
@@ -310,7 +347,7 @@ class IntelligentBugReportService {
     if (errorContext.databaseErrors.length > 0) affectedSystems.add('Database');
     if (errorContext.networkErrors.length > 0) affectedSystems.add('API/Network');
     if (errorContext.consoleErrors.length > 0) affectedSystems.add('Frontend');
-    if (errorContext.performanceMetrics.some((m: any) => 
+    if (errorContext.performanceMetrics.some((m: PerformanceMetric) => 
       m.metrics.largestContentfulPaint > 4000 || m.metrics.usedJSHeapSize > 100000000
     )) affectedSystems.add('Performance');
 
@@ -339,7 +376,7 @@ class IntelligentBugReportService {
     // Estimate effort based on complexity indicators
     let estimatedEffort = 4; // Base 4 hours
     if (affectedSystems.size > 2) estimatedEffort += 8;
-    if (errorContext.databaseErrors.some((e: any) => e.isCompatibilityLayerIssue)) estimatedEffort += 4;
+    if (errorContext.databaseErrors.some((e: DatabaseError) => e.isCompatibilityLayerIssue)) estimatedEffort += 4;
     if (errorContext.userFrustrationLevel >= 8) estimatedEffort += 2;
 
     // Determine priority
@@ -365,11 +402,11 @@ class IntelligentBugReportService {
    */
   private createFallbackAIInsights(
     bugReport: BugReportData,
-    errorContext: any
+    errorContext: ErrorContext
   ): IntelligentBugReport['enhancedContext']['aiInsights'] {
     let likelyRootCause = 'Technical issue requiring investigation';
     
-    if (errorContext.databaseErrors.some((e: any) => e.isCompatibilityLayerIssue)) {
+    if (errorContext.databaseErrors.some((e: DatabaseError) => e.isCompatibilityLayerIssue)) {
       likelyRootCause = 'Database compatibility layer configuration issue';
     } else if (errorContext.networkErrors.length > errorContext.consoleErrors.length) {
       likelyRootCause = 'Network connectivity or API service issue';

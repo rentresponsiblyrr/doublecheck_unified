@@ -13,6 +13,27 @@
 // TYPES & INTERFACES
 // ============================================================================
 
+// Type definitions for API responses and audit data
+type AuditDetails = Record<string, unknown>;
+type AuditRecord = Record<string, {
+  id: string;
+  title: string;
+  description: string;
+  score: number;
+  scoreDisplayMode?: string;
+  numericValue?: number;
+  details?: AuditDetails;
+}>;
+type MetricsData = Record<string, number>;
+type PageSpeedAPIResponse = {
+  lighthouseResult: {
+    categories: {
+      performance: { score: number };
+    };
+    audits: AuditRecord;
+  };
+};
+
 export interface PageSpeedResult {
   score: number;
   metrics: {
@@ -30,16 +51,16 @@ export interface PageSpeedResult {
     description: string;
     score: number;
     numericValue: number;
-    details: any;
+    details: AuditDetails;
   }>;
   diagnostics: Array<{
     id: string;
     title: string;
     description: string;
     score: number;
-    details: any;
+    details: AuditDetails;
   }>;
-  audits: Record<string, any>;
+  audits: AuditRecord;
 }
 
 export interface ValidationConfig {
@@ -107,7 +128,6 @@ export class PageSpeedValidator {
   public async runAudit(url?: string): Promise<PageSpeedResult> {
     const targetUrl = url || this.config.url;
     
-    // REMOVED: console.log(`🎯 BLEEDING EDGE: Running PageSpeed audit for ${targetUrl}`);
     
     try {
       // Use PageSpeed Insights API
@@ -118,7 +138,6 @@ export class PageSpeedValidator {
         return await this.runLocalAudit(targetUrl);
       }
     } catch (error) {
-      // REMOVED: console.error('PageSpeed audit failed:', error);
       throw new PageSpeedError('Failed to run PageSpeed audit', error);
     }
   }
@@ -127,7 +146,6 @@ export class PageSpeedValidator {
    * BLEEDING EDGE: Local performance audit without API
    */
   private async runLocalAudit(url: string): Promise<PageSpeedResult> {
-    // REMOVED: console.log('🔬 Running local performance audit');
 
     // Collect performance metrics using Navigation Timing API
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -198,7 +216,7 @@ export class PageSpeedValidator {
     return this.parsePageSpeedResponse(data);
   }
 
-  private parsePageSpeedResponse(data: any): PageSpeedResult {
+  private parsePageSpeedResponse(data: PageSpeedAPIResponse): PageSpeedResult {
     const lighthouseResult = data.lighthouseResult;
     const categories = lighthouseResult.categories;
     const audits = lighthouseResult.audits;
@@ -216,8 +234,8 @@ export class PageSpeedValidator {
 
     // Extract opportunities and diagnostics
     const opportunities = Object.values(audits)
-      .filter((audit: any) => audit.scoreDisplayMode === 'numeric' && audit.score < 0.9)
-      .map((audit: any) => ({
+      .filter((audit) => audit.scoreDisplayMode === 'numeric' && audit.score < 0.9)
+      .map((audit) => ({
         id: audit.id,
         title: audit.title,
         description: audit.description,
@@ -227,8 +245,8 @@ export class PageSpeedValidator {
       }));
 
     const diagnostics = Object.values(audits)
-      .filter((audit: any) => audit.scoreDisplayMode === 'informative' && audit.score !== null)
-      .map((audit: any) => ({
+      .filter((audit) => audit.scoreDisplayMode === 'informative' && audit.score !== null)
+      .map((audit) => ({
         id: audit.id,
         title: audit.title,
         description: audit.description,
@@ -274,9 +292,12 @@ export class PageSpeedValidator {
     let clsScore = 0;
 
     for (const entry of clsEntries) {
-      const layoutShift = entry as any;
+      const layoutShift = entry as PerformanceEntry & {
+        hadRecentInput?: boolean;
+        value?: number;
+      };
       if (!layoutShift.hadRecentInput) {
-        clsScore += layoutShift.value;
+        clsScore += layoutShift.value || 0;
       }
     }
 
@@ -304,7 +325,7 @@ export class PageSpeedValidator {
     }, 0);
   }
 
-  private calculateLocalScore(metrics: any): number {
+  private calculateLocalScore(metrics: MetricsData): number {
     // Weighted scoring based on Core Web Vitals
     const weights = {
       lcp: 0.25,
@@ -351,7 +372,7 @@ export class PageSpeedValidator {
     description: string;
     score: number;
     numericValue: number;
-    details: any;
+    details: AuditDetails;
   }>> {
     const opportunities = [];
 
@@ -404,7 +425,7 @@ export class PageSpeedValidator {
     title: string;
     description: string;
     score: number;
-    details: any;
+    details: AuditDetails;
   }>> {
     const diagnostics = [];
 
@@ -525,18 +546,15 @@ export class PageSpeedValidator {
     if (this.monitoring) return;
     
     this.monitoring = true;
-    // REMOVED: console.log(`🔄 Starting PageSpeed monitoring (every ${this.config.monitoringInterval} minutes)`);
     
     this.monitoringTimer = setInterval(async () => {
       try {
         const result = await this.runAudit();
-        // REMOVED: console.log(`📊 PageSpeed monitoring: Score ${result.score}/100`);
         
         if (result.score < this.config.alertThreshold) {
           this.triggerAlert(result);
         }
       } catch (error) {
-        // REMOVED: console.error('PageSpeed monitoring failed:', error);
       }
     }, this.config.monitoringInterval * 60 * 1000);
   }
@@ -547,7 +565,6 @@ export class PageSpeedValidator {
       this.monitoringTimer = undefined;
     }
     this.monitoring = false;
-    // REMOVED: console.log('🔄 PageSpeed monitoring stopped');
   }
 
   private checkForRegressions(currentResult: PageSpeedResult): void {
@@ -557,7 +574,7 @@ export class PageSpeedValidator {
 
     // Check each metric for regression
     Object.entries(currentResult.metrics).forEach(([metric, currentValue]) => {
-      const previousValue = (this.lastResult!.metrics as any)[metric];
+      const previousValue = (this.lastResult!.metrics as MetricsData)[metric];
       
       if (previousValue && currentValue > previousValue) {
         const change = currentValue - previousValue;
@@ -589,7 +606,7 @@ export class PageSpeedValidator {
       const emoji = regression.severity === 'critical' ? '🚨' : 
                    regression.severity === 'major' ? '⚠️' : '⚪';
       
-      console.warn(
+      log.warn(
         `${emoji} Performance regression detected: ${regression.metric} ` +
         `${regression.previousValue.toFixed(1)} → ${regression.currentValue.toFixed(1)} ` +
         `(+${regression.change.toFixed(1)}%)`
@@ -598,7 +615,6 @@ export class PageSpeedValidator {
   }
 
   private triggerAlert(result: PageSpeedResult): void {
-    // REMOVED: console.error(`🚨 PageSpeed Alert: Score dropped to ${result.score}/100 (threshold: ${this.config.alertThreshold})`);
     
     // In production, this would send alerts via email, Slack, etc.
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -609,7 +625,7 @@ export class PageSpeedValidator {
     }
   }
 
-  private extractMetric(audits: any, metricId: string): number {
+  private extractMetric(audits: AuditRecord, metricId: string): number {
     const audit = audits[metricId];
     return audit ? (audit.numericValue || 0) : 0;
   }
@@ -661,15 +677,12 @@ Top Optimization Opportunities:
   }
 
   public async validatePageSpeed100(): Promise<boolean> {
-    // REMOVED: console.log('🎯 BLEEDING EDGE: Validating PageSpeed 100 target');
     
     const result = await this.runAudit();
     const is100Score = result.score >= 100;
     
     if (is100Score) {
-      // REMOVED: console.log('🎉 BLEEDING EDGE: PageSpeed 100 achieved!');
     } else {
-      // REMOVED: console.log(`📊 PageSpeed score: ${result.score}/100 - ${100 - result.score} points to go`);
     }
     
     return is100Score;
@@ -681,7 +694,7 @@ Top Optimization Opportunities:
 // ============================================================================
 
 export class PageSpeedError extends Error {
-  constructor(message: string, public cause?: any) {
+  constructor(message: string, public cause?: Error) {
     super(message);
     this.name = 'PageSpeedError';
   }
@@ -729,7 +742,6 @@ export function usePageSpeedValidator(config?: Partial<ValidationConfig>) {
       setResult(auditResult);
       return auditResult;
     } catch (error) {
-      // REMOVED: console.error('PageSpeed audit failed:', error);
       throw error;
     } finally {
       setIsValidating(false);

@@ -682,7 +682,10 @@ class APMIntegration {
    * Calculate Apdex score
    */
   private calculateApdex(
-    metrics: any[],
+    metrics: Array<{
+      count: number;
+      avgDuration: number;
+    }>,
     satisfiedThreshold: number,
     toleratingThreshold: number
   ): number {
@@ -707,9 +710,35 @@ class APMIntegration {
   /**
    * Calculate performance breakdown
    */
-  private calculateBreakdown(metrics: any[]): any {
-    const byOperation: any = {};
-    const byComponent: any = {};
+  private calculateBreakdown(metrics: Array<{
+    operationName: string;
+    component: string;
+    throughput: number;
+    avgDuration: number;
+    errorRate: number;
+    count: number;
+  }>): {
+    byOperation: Record<string, {
+      throughput: number;
+      latency: number;
+      errors: number;
+    }>;
+    byComponent: Record<string, {
+      requests: number;
+      avgDuration: number;
+      errorRate: number;
+    }>;
+  } {
+    const byOperation: Record<string, {
+      throughput: number;
+      latency: number;
+      errors: number;
+    }> = {};
+    const byComponent: Record<string, {
+      requests: number;
+      avgDuration: number;
+      errorRate: number;
+    }> = {};
 
     metrics.forEach(metric => {
       // By operation
@@ -733,7 +762,7 @@ class APMIntegration {
     });
 
     // Normalize averages
-    Object.values(byComponent).forEach((comp: any) => {
+    Object.values(byComponent).forEach((comp) => {
       comp.avgDuration /= comp.requests;
       comp.errorRate /= comp.requests;
     });

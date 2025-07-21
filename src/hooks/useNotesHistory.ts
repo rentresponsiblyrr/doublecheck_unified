@@ -43,7 +43,6 @@ export const useNotesHistory = (itemId: string) => {
         }
         setNotesHistory(history);
       } catch (error) {
-        // REMOVED: console.error('Failed to load notes history:', error);
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +57,6 @@ export const useNotesHistory = (itemId: string) => {
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
     
     if (!ENABLE_REALTIME) {
-      // REMOVED: console.log('📝 Notes realtime subscription disabled to prevent WebSocket errors');
       return;
     }
     
@@ -94,11 +92,9 @@ export const useNotesHistory = (itemId: string) => {
           )
           .subscribe((status: string) => {
             if (status === 'CHANNEL_ERROR') {
-              console.warn('⚠️ Notes realtime subscription failed, falling back to manual refresh');
             }
           });
       } catch (error) {
-        console.warn('⚠️ Failed to setup notes realtime subscription:', error);
         // Continue without realtime - app will still work with manual refreshes
       }
     };
@@ -110,7 +106,6 @@ export const useNotesHistory = (itemId: string) => {
         try {
           supabase.removeChannel(channel);
         } catch (error) {
-          console.warn('⚠️ Error removing notes channel:', error);
         }
       }
     };
@@ -146,7 +141,6 @@ export const useNotesHistory = (itemId: string) => {
       });
       return true;
     } catch (error) {
-      // REMOVED: console.error('Notes save error:', error);
       toast({
         title: "Save failed",
         description: "Failed to save notes. Please try again.",

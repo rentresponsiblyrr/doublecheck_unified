@@ -8,7 +8,6 @@ let VALID_CATEGORIES: string[] = ['safety', 'accessibility', 'amenities', 'clean
 // Function to update valid categories from database
 export const updateValidCategories = (categories: string[]) => {
   VALID_CATEGORIES = categories;
-  // REMOVED: console.log('🔄 Updated valid categories:', categories);
 };
 
 // Get current valid categories
@@ -19,17 +18,14 @@ export const getValidCategories = (): readonly string[] => {
 // Enhanced validation function
 export const validateCategory = (category: string): boolean => {
   const isValid = VALID_CATEGORIES.includes(category);
-  // REMOVED: console.log(`🔍 validateCategory("${category}") = ${isValid}`);
   return isValid;
 };
 
 // Function to ensure a category is valid, with auto-correction
 export const ensureValidCategory = (category: string | null | undefined): string => {
-  // REMOVED: console.log(`🔄 ensureValidCategory called with: "${category}"`);
   
   // Handle null, undefined, or empty values
   if (!category || category.trim() === '') {
-    console.warn(`⚠️ Empty or null category found, using default: safety`);
     return 'safety';
   }
 
@@ -37,7 +33,6 @@ export const ensureValidCategory = (category: string | null | undefined): string
   
   // Check if already valid
   if (validateCategory(trimmedCategory)) {
-    // REMOVED: console.log(`✅ Category "${trimmedCategory}" is already valid`);
     return trimmedCategory;
   }
   
@@ -48,7 +43,6 @@ export const ensureValidCategory = (category: string | null | undefined): string
   );
   
   if (matchedCategory) {
-    // REMOVED: console.log(`📝 Case-insensitive mapping: "${trimmedCategory}" -> "${matchedCategory}"`);
     return matchedCategory;
   }
   
@@ -59,7 +53,6 @@ export const ensureValidCategory = (category: string | null | undefined): string
   );
   
   if (partialMatch) {
-    // REMOVED: console.log(`📝 Partial mapping: "${trimmedCategory}" -> "${partialMatch}"`);
     return partialMatch;
   }
   
@@ -83,12 +76,10 @@ export const ensureValidCategory = (category: string | null | undefined): string
   
   const mappedCategory = categoryMap[lowerCategory];
   if (mappedCategory) {
-    // REMOVED: console.log(`📝 Enhanced mapping: "${trimmedCategory}" -> "${mappedCategory}"`);
     return mappedCategory;
   }
   
   // Final fallback
-  console.warn(`⚠️ Unknown category "${trimmedCategory}", using default: safety`);
   return 'safety';
 };
 

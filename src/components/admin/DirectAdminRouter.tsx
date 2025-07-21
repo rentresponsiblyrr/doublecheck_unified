@@ -4,9 +4,8 @@ import AdminLayout from './AdminLayout';
 // Direct imports - no lazy loading
 import AdminOverview from './AdminOverview';
 // import { ComponentHealthMonitor } from './ComponentHealthMonitor';
-import { UserManagementFallback } from './fallbacks/UserManagementFallback';
-import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
-import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
+// Fallback components not found - using UnifiedAdminManagement instead
+import UnifiedAdminManagement from './UnifiedAdminManagement';
 
 /**
  * NUCLEAR OPTION: Direct routing without React Router
@@ -58,9 +57,6 @@ export default function DirectAdminRouter() {
     });
   }, [currentPath]);
 
-  // REMOVED: console.log('🔥 DIRECT ADMIN ROUTER LOADED');
-  // REMOVED: console.log('Current path:', currentPath);
-  // REMOVED: console.log('Debug info:', debugInfo);
 
   // Direct component rendering based on path
   const renderComponent = () => {
@@ -95,7 +91,7 @@ export default function DirectAdminRouter() {
               <div>Router: BYPASSED</div>
             </div>
           </div>
-          <UserManagementFallback />
+          <UnifiedAdminManagement initialTab="users" />
         </div>
       );
     }
@@ -108,7 +104,7 @@ export default function DirectAdminRouter() {
             <h1 className="text-2xl font-bold text-purple-800 mb-2">🔍 DIRECT ROUTER: AUDIT CENTER</h1>
             <p className="text-purple-700">Direct audit center component loaded without React Router.</p>
           </div>
-          <AuditCenterFallback />
+          <UnifiedAdminManagement initialTab="reports" />
         </div>
       );
     }
@@ -121,7 +117,7 @@ export default function DirectAdminRouter() {
             <h1 className="text-2xl font-bold text-yellow-800 mb-2">📋 DIRECT ROUTER: CHECKLIST MANAGEMENT</h1>
             <p className="text-yellow-700">Direct checklist management component loaded without React Router.</p>
           </div>
-          <ChecklistManagementFallback />
+          <UnifiedAdminManagement initialTab="inspections" />
         </div>
       );
     }
@@ -169,25 +165,57 @@ export default function DirectAdminRouter() {
             <h3 className="font-semibold text-red-800 mb-2">Quick Navigation</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <button 
-                onClick={() => window.location.href = '/admin/health'}
+                onClick={() => {
+                  try {
+                    window.history.pushState(null, '', '/admin/health');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  } catch (error) {
+                    // Professional navigation: update state and trigger re-render
+                    setCurrentPath('/admin/health');
+                  }
+                }}
                 className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
               >
                 Health Monitor
               </button>
               <button 
-                onClick={() => window.location.href = '/admin/users'}
+                onClick={() => {
+                  try {
+                    window.history.pushState(null, '', '/admin/users');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  } catch (error) {
+                    // Professional navigation: update state and trigger re-render
+                    setCurrentPath('/admin/users');
+                  }
+                }}
                 className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
               >
                 User Management
               </button>
               <button 
-                onClick={() => window.location.href = '/admin/audit'}
+                onClick={() => {
+                  try {
+                    window.history.pushState(null, '', '/admin/audit');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  } catch (error) {
+                    // Professional navigation: update state and trigger re-render
+                    setCurrentPath('/admin/audit');
+                  }
+                }}
                 className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
               >
                 Audit Center
               </button>
               <button 
-                onClick={() => window.location.href = '/admin'}
+                onClick={() => {
+                  try {
+                    window.history.pushState(null, '', '/admin');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  } catch (error) {
+                    // Professional navigation: update state and trigger re-render
+                    setCurrentPath('/admin');
+                  }
+                }}
                 className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
               >
                 Overview

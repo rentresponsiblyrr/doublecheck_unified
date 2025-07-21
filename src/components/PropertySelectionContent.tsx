@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { OptimizedPropertyList } from "@/components/OptimizedPropertyList";
 import { StartInspectionButton } from "@/components/StartInspectionButton";
@@ -74,9 +75,11 @@ export const PropertySelectionContent = ({
   onPropertyDeleted,
   isLoading = false
 }: PropertySelectionContentProps) => {
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [activeSortId, setActiveSortId] = useState('name-asc');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { actionState, clearError } = usePropertyActions();
   const { summary } = useInspectorDashboard();
@@ -228,9 +231,13 @@ export const PropertySelectionContent = ({
         </div>
 
         <PropertyErrorBoundary
-          onRetry={() => window.location.assign(window.location.href)}
-          onNavigateHome={() => window.location.href = '/properties'}
-          onAddProperty={() => window.location.href = '/add-property'}
+          onRetry={() => {
+            // Professional retry mechanism without nuclear reload
+            setRefreshKey(prev => prev + 1);
+            handleRetryInspection?.();
+          }}
+          onNavigateHome={() => navigate('/properties', { replace: true })}
+          onAddProperty={() => navigate('/add-property')}
         >
           <OptimizedPropertyList
             properties={filteredProperties}

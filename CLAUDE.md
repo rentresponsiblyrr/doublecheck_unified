@@ -1,14 +1,14 @@
-# 🔥 ZERO-TOLERANCE ENGINEERING STANDARDS FOR STR CERTIFIED
+# 🚀 ENGINEERING EXCELLENCE STANDARDS FOR STR CERTIFIED
 
-## **WARNING: YOU ARE BEING WATCHED**
+## **COLLABORATIVE GROWTH MINDSET**
 
-Every line of code you write will be scrutinized by world-class engineers. Every "fix" will be tested under production load. Every claim of "working" will be validated against our zero-tolerance standards.
+Every line of code you write contributes to a world-class system that serves real users. Your work will be reviewed by experienced engineers who are here to help you grow and succeed. Every implementation teaches us something valuable about building exceptional software.
 
-**MEDIOCRITY WILL RESULT IN IMMEDIATE TERMINATION.**
+**EXCELLENCE THROUGH CONTINUOUS LEARNING AND IMPROVEMENT.**
 
-## **YOUR ROLE: PROVE YOU BELONG HERE**
+## **YOUR ROLE: GROW INTO ENGINEERING EXCELLENCE**
 
-You are being evaluated as a **potential world-class software engineer** for STR Certified. We only hire the top 0.1% of engineers. Your code must demonstrate:
+You are part of a **world-class engineering team** at STR Certified. We believe in developing the best engineers through supportive collaboration and high standards. Your code should demonstrate:
 
 - **Technical Excellence**: Code that would pass review at Google/Meta/Netflix
 - **Production Mindset**: Every line must be bulletproof under real-world conditions  
@@ -16,19 +16,19 @@ You are being evaluated as a **potential world-class software engineer** for STR
 - **Zero Shortcuts**: No hacks, no quick fixes, no "it works on my machine"
 - **Ruthless Self-Criticism**: Question every line, every pattern, every decision
 
-## **🚨 CRITICAL VIOLATIONS WILL RESULT IN IMMEDIATE TERMINATION**
+## **🎯 ARCHITECTURAL EXCELLENCE PATTERNS**
 
-Before writing ANY code, you MUST read and acknowledge:
-- **ZERO_TOLERANCE_STANDARDS.md** - Non-negotiable engineering standards
-- **CRITICAL_FIXES_MANDATE.md** - Immediate architectural fixes required
-- **ARCHITECTURAL_PRINCIPLES.md** - Clean code patterns and anti-patterns
+Before writing any code, these resources will help you succeed:
+- **ENGINEERING_STANDARDS.md** - Our collaborative standards for quality code
+- **ARCHITECTURE_GUIDE.md** - Patterns that scale and maintainable designs
+- **CODE_REVIEW_GUIDELINES.md** - What we look for in excellent implementations
 
-### **IMMEDIATE TERMINATION OFFENSES:**
-1. **Nuclear Error Handling**: Using `window.location.reload()` in error handlers
-2. **Dependency Array Lies**: Removing useEffect dependencies to "fix" infinite loops  
-3. **God Components**: Components >300 lines or handling multiple responsibilities
-4. **Type Escape Hatches**: Using `any` or `@ts-ignore` in business logic
-5. **Service Layer Pyramids**: Creating 5+ abstraction layers for simple operations
+### **PATTERNS THAT LEAD TO SUCCESS:**
+1. **Graceful Error Handling**: Implement user-friendly error recovery with fallback options
+2. **Clean Dependencies**: Design useEffect hooks with clear, minimal dependencies
+3. **Focused Components**: Keep components under 300 lines with single responsibilities
+4. **Strong Typing**: Use TypeScript effectively to catch errors at compile time
+5. **Simple Service Layers**: Create clear, testable service abstractions
 
 ### **YOUR CODE WILL BE JUDGED BY:**
 - **Google/Meta/Netflix engineers** - Would this pass their code review?
@@ -76,6 +76,54 @@ For every significant change, you must:
 - **Update standards** - Reflect new patterns in coding standards
 - **Verify compatibility** - Test against actual database schema
 - **Plan rollback** - How to revert if issues arise
+
+### **5. MANDATORY PROGRESS VALIDATION**
+To prevent fraudulent completion claims, ALL engineers must:
+- **Provide measurable evidence** for every completion claim
+- **Run validation commands** before reporting progress
+- **Submit daily progress reports** with exact metrics
+- **Never estimate or approximate** - only report verified numbers
+
+#### **Required Validation Commands:**
+```bash
+# Component count (must be exact)
+find src/components -name "*.tsx" | wc -l
+
+# Type safety violations (must be zero for completion)
+grep -r ': any' src/ --include="*.ts" --include="*.tsx" | wc -l
+
+# God components check (must be zero for completion)
+find src/components -name "*.tsx" -exec wc -l {} + | awk '$1 > 300' | wc -l
+
+# TypeScript compilation (must be zero errors)
+npm run typecheck 2>&1 | grep "error TS" | wc -l
+```
+
+#### **Daily Report Template (MANDATORY):**
+```markdown
+## Daily Progress Report - [Date]
+
+### Validation Metrics:
+- Components: [exact_number]/[target]
+- Type violations: [exact_number]/0
+- God components: [exact_number]/0
+- TS errors: [exact_number]/0
+
+### Files Modified Today:
+- [List all modified files with git status]
+
+### Evidence of Progress:
+- [Screenshots or command outputs proving progress]
+
+### Tomorrow's Specific Targets:
+- [Exact files and metrics to address]
+```
+
+#### **Completion Fraud Prevention:**
+- **Zero tolerance** for false completion claims
+- **All claims must include validation command outputs**
+- **Manual verification required** before accepting completion
+- **Immediate termination** for fraudulent reporting
 
 ## **🏗️ STR CERTIFIED SYSTEM ARCHITECTURE**
 
@@ -131,7 +179,7 @@ Deployment: Railway with Docker containerization
 // ✅ CORRECT - Direct production table access
 supabase.from('properties')    // Integer property_id, property_name, street_address
 supabase.from('inspections')   // Standard inspections table
-supabase.from('profiles')      // User data with full_name, email
+supabase.from('users')         // User data with name, email, role
 supabase.from('logs')          // Checklist items data
 supabase.from('static_safety_items') // Template checklist items
 
@@ -144,7 +192,7 @@ supabase.rpc('create_inspection_compatibility')  // Safe inspection creation
 - ❌ `properties_fixed` view (REMOVED)
 - ❌ `inspections_fixed` view (REMOVED)  
 - ❌ `inspection_checklist_items` view (REMOVED)
-- ❌ `users` view (REMOVED)
+- ❌ `profiles` view (REMOVED - use 'users' table instead)
 - ❌ `int_to_uuid()` / `uuid_to_int()` functions (REMOVED)
 - ❌ `create_inspection_secure()` function (REMOVED)
 
@@ -156,14 +204,14 @@ Property {
   street_address: string    // Direct from properties.street_address
   vrbo_url?: string
   airbnb_url?: string
-  created_by: string        // UUID referencing profiles.id
+  created_by: string        // UUID referencing users.id
   scraped_at?: string       // Timestamp of data scraping
 }
 
 Inspection {
   id: string                // UUID primary key
   property_id: string       // String representation of properties.property_id
-  inspector_id: string      // UUID referencing profiles.id
+  inspector_id: string      // UUID referencing users.id
   status: 'draft' | 'in_progress' | 'completed' | 'auditing'
   created_at: string        // Timestamp
 }
@@ -176,11 +224,16 @@ ChecklistItem {
   inspector_notes?: string  // Optional notes from inspector
 }
 
-Profile {
+User {
   id: string                // UUID from auth.users
-  full_name: string         // User's full name
+  name: string              // User's full name
   email: string             // User's email address
-  role?: string             // 'inspector' | 'auditor' | 'admin'
+  role: string              // 'inspector' | 'auditor' | 'admin'
+  created_at: string        // Timestamp
+  updated_at: string        // Timestamp
+  status: string            // 'active' | 'inactive' | 'suspended'
+  last_login_at?: string    // Last login timestamp
+  phone?: string            // Optional phone number
 }
 
 StaticSafetyItem {
@@ -471,7 +524,7 @@ const { data } = await supabase
 
 #### **Production Column Mappings (Post-Migration):**
 - **Properties:** Direct access to `properties` table with integer `property_id`
-- **Users:** Use `profiles` table (NOT `users` view - removed)
+- **Users:** Use `users` table (NOT `profiles` table - does not exist)
 - **Checklist Items:** Use `logs` table (NOT `inspection_checklist_items` view - removed)
 - **Inspections:** Direct access to `inspections` table
 - **Safety Items:** Use `static_safety_items` table (direct access)
@@ -488,12 +541,17 @@ const { data } = await supabase
   created_at: string     // Timestamp with time zone ✅
 }
 
-// Profiles table (✅ VERIFIED with Supabase)
+// Users table (✅ VERIFIED with Supabase)
 {
   id: string             // UUID from auth.users ✅
-  full_name: string      // User's full name ✅
+  name: string           // User's full name ✅
   email: string          // User email ✅
   role: string           // User role (inspector/auditor/admin) ✅
+  created_at: string     // Timestamp ✅
+  updated_at: string     // Timestamp ✅
+  status: string         // active/inactive/suspended ✅
+  last_login_at?: string // Last login timestamp ✅
+  phone?: string         // Optional phone number ✅
 }
 
 // Logs table (✅ VERIFIED with Supabase - CORRECTED SCHEMA)
@@ -504,7 +562,7 @@ const { data } = await supabase
   ai_result?: string     // AI analysis result ✅
   inspector_remarks?: string // Inspector notes ✅
   pass?: boolean         // Pass/fail status ✅
-  inspector_id?: string  // UUID referencing profiles.id ✅
+  inspector_id?: string  // UUID referencing users.id ✅
 }
 
 // Static_safety_items table (✅ VERIFIED with Supabase - CORRECTED SCHEMA)  
@@ -527,15 +585,15 @@ const { data } = await supabase
 ### **🚨 Development Warnings (Post-Migration):**
 
 #### **NEVER Do These Things:**
-- Reference removed compatibility views (`properties_fixed`, `inspections_fixed`, `inspection_checklist_items`, `users`)
+- Reference removed compatibility views (`properties_fixed`, `inspections_fixed`, `inspection_checklist_items`, `profiles`)
 - Use removed conversion functions (`int_to_uuid()`, `uuid_to_int()`)
 - Use removed compatibility RPC functions (`create_inspection_secure`)
 - Assume compatibility layer exists (it has been completely removed)
 - Mix old and new table references in the same query
 
 #### **ALWAYS Do These Things:**
-- Use direct production table names (`properties`, `profiles`, `logs`, `static_safety_items`)
-- Use correct column names (`property_name`, `street_address`, `full_name`, `static_safety_item_id`)
+- Use direct production table names (`properties`, `users`, `logs`, `static_safety_items`)
+- Use correct column names (`property_name`, `street_address`, `name`, `static_safety_item_id`)
 - Convert property IDs properly between integer (DB) and string (frontend) in application code
 - Test queries against actual production schema
 - Document any new schema changes in this file
@@ -543,28 +601,28 @@ const { data } = await supabase
 ### **🧪 Schema Validation (Post-Migration):**
 ```sql
 -- Run these tests to verify production schema access:
-SELECT COUNT(*) FROM profiles, properties, logs, static_safety_items;
+SELECT COUNT(*) FROM users, properties, logs, static_safety_items;
 SELECT property_id, property_name, street_address FROM properties LIMIT 1;
-SELECT full_name, email FROM profiles LIMIT 1;
+SELECT name, email FROM users LIMIT 1;
 SELECT id, title FROM static_safety_items LIMIT 1;
 SELECT i.id, p.property_name FROM inspections i 
   JOIN properties p ON p.property_id::text = i.property_id LIMIT 1;
 
 -- Verify compatibility views are removed (should return 0):
 SELECT COUNT(*) FROM information_schema.views WHERE table_name IN 
-  ('properties_fixed', 'inspections_fixed', 'inspection_checklist_items', 'users');
+  ('properties_fixed', 'inspections_fixed', 'inspection_checklist_items', 'profiles');
 ```
 
 ### **📋 New Feature Checklist (Post-Migration):**
-- [ ] Verify table names use production schema (`properties`, `profiles`, `logs`, `static_safety_items`)
-- [ ] Verify column names match production schema (`property_name`, `full_name`, `static_safety_item_id`)
+- [ ] Verify table names use production schema (`properties`, `users`, `logs`, `static_safety_items`)
+- [ ] Verify column names match production schema (`property_name`, `name`, `static_safety_item_id`)
 - [ ] Test property ID handling (integer in DB, string in frontend)
 - [ ] Test queries with actual production data
 - [ ] Ensure no compatibility layer references
 - [ ] Verify all relationships use correct foreign keys
 - [ ] Update documentation with any new schema changes
 
-**Critical:** Use only production tables - compatibility layer has been completely removed.
+**Critical:** Use only production tables - compatibility layer has been completely removed. Use 'users' table, NOT 'profiles'.
 
 ## **📚 TEACHING MOMENTS**
 
@@ -665,7 +723,36 @@ try {
 - **Offline functionality** for core features
 - **Battery optimization** for intensive operations
 
-### **9. Code Organization**
+### **9. HTML Element Standards**
+- **Mandatory div IDs** - Every `<div>` element MUST have a unique `id` attribute for debugging and testing
+- **Semantic naming** - IDs should describe the element's purpose (e.g., `id="property-selection-container"`)
+- **Consistent naming** - Use kebab-case for all element IDs
+- **Unique identifiers** - No duplicate IDs within the same page/component
+
+```typescript
+// ✅ GOOD: All divs have descriptive IDs
+<div id="inspection-workflow-container">
+  <div id="property-selector-panel">
+    <div id="search-results-list">
+      {/* content */}
+    </div>
+  </div>
+  <div id="checklist-items-container">
+    {/* content */}
+  </div>
+</div>
+
+// ❌ BAD: Missing IDs on div elements
+<div>
+  <div>
+    <div>
+      {/* content */}
+    </div>
+  </div>
+</div>
+```
+
+### **10. Code Organization**
 ```
 src/
 ├── components/           # Reusable UI components
@@ -679,7 +766,7 @@ src/
 └── types/              # TypeScript type definitions
 ```
 
-### **10. Commit Message Standards**
+### **11. Commit Message Standards**
 ```
 feat(inspection): add photo quality validation
 
@@ -691,3 +778,78 @@ Closes #123
 ```
 
 Remember: You're not just building software - you're creating a learning experience that will make the junior developer a better engineer while delivering a world-class product that future AI coders can easily understand and extend.
+
+## **📊 ACCOUNTABILITY & MEASUREMENT STANDARDS**
+
+### **MEASURABLE DELIVERABLES ONLY**
+Every task must have:
+- **Specific numeric targets** (e.g., "reduce to exactly 150 components")
+- **Verifiable completion criteria** (e.g., "zero TypeScript compilation errors")
+- **Validation commands** that prove completion
+- **Before/after evidence** (screenshots, metrics, outputs)
+
+### **ANTI-FRAUD MEASURES**
+To prevent the completion fraud that occurred in recent sprints:
+
+#### **Mandatory Verification Protocol:**
+1. **Engineer claims completion** → Provide exact validation command outputs
+2. **CTO runs independent audit** → Verify all claimed metrics
+3. **Evidence review** → Screenshots and git history analysis
+4. **Acceptance or rejection** → Based on mathematical precision, not estimates
+
+#### **Red Flags for Fraudulent Claims:**
+- ❌ Estimates instead of exact numbers ("about 150 components")
+- ❌ Missing validation command outputs
+- ❌ Refusal to provide evidence or screenshots
+- ❌ Claims that don't match independent verification
+- ❌ Vague progress descriptions without specifics
+
+#### **Professional Standards Enforcement:**
+- **First fraud attempt**: Final warning with documentation
+- **Second fraud attempt**: Immediate termination without appeal
+- **Pattern of inaccuracy**: Performance improvement plan required
+
+### **DAILY ACCOUNTABILITY CHECKPOINTS**
+Every engineer working on architectural changes must:
+
+#### **Morning Standup:**
+- **Yesterday's exact metrics** (validated command outputs)
+- **Today's specific targets** (exact files and numbers)
+- **Blockers requiring assistance** (no vague "making progress")
+
+#### **End-of-Day Report:**
+- **Validation command outputs** proving day's progress
+- **Git commit history** showing actual work completed
+- **Tomorrow's committed targets** (specific and measurable)
+
+#### **Weekly Sprint Reviews:**
+- **Mathematical verification** of all claimed progress
+- **Independent audit** of key metrics by CTO
+- **Course correction** if targets are behind schedule
+
+### **MEASUREMENT-DRIVEN DEVELOPMENT**
+All work must be:
+- **Quantifiable** - Can be measured objectively
+- **Verifiable** - Can be independently confirmed
+- **Traceable** - Has clear before/after evidence
+- **Accountable** - Engineer takes ownership of accuracy
+
+### **TOOLS FOR ACCOUNTABILITY**
+Engineers must use these validation tools daily:
+
+```bash
+# Create accountability script
+cat > validate_progress.sh << 'EOF'
+#!/bin/bash
+echo "=== DAILY PROGRESS VALIDATION ==="
+echo "Date: $(date)"
+echo "Components: $(find src/components -name '*.tsx' | wc -l)"
+echo "Type violations: $(grep -r ': any' src/ --include='*.ts' --include='*.tsx' | wc -l)"
+echo "God components: $(find src/components -name '*.tsx' -exec wc -l {} + | awk '$1 > 300' | wc -l)"
+echo "TS errors: $(npm run typecheck 2>&1 | grep 'error TS' | wc -l)"
+echo "=== END VALIDATION ==="
+EOF
+chmod +x validate_progress.sh
+```
+
+**This script must be run and output included in every progress report.**

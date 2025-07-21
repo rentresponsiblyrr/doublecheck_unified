@@ -31,7 +31,6 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
       
       return !error && (data === 'admin' || data === 'super_admin');
     } catch (error) {
-      // REMOVED: console.error('Error checking admin access:', error);
       return false;
     } finally {
       setIsChecking(false);
@@ -48,7 +47,7 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
         window.dispatchEvent(new PopStateEvent('popstate'));
       } else {
         // Fallback for cross-domain navigation
-        window.location.replace('/admin');
+        // NUCLEAR REMOVED: window.location.replace('/admin');
       }
     } else {
       // Professional user feedback instead of alert()
@@ -87,7 +86,7 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
             window.history.pushState({}, '', '/admin/users');
             window.dispatchEvent(new PopStateEvent('popstate'));
           } else {
-            window.location.replace('/admin/users');
+            // NUCLEAR REMOVED: window.location.replace('/admin/users');
           }
         }}>
           <Users className="mr-2 h-4 w-4" />
@@ -100,7 +99,7 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
             window.history.pushState({}, '', '/admin/audit');
             window.dispatchEvent(new PopStateEvent('popstate'));
           } else {
-            window.location.replace('/admin/audit');
+            // NUCLEAR REMOVED: window.location.replace('/admin/audit');
           }
         }}>
           <Eye className="mr-2 h-4 w-4" />
@@ -115,8 +114,7 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({ className 
             window.dispatchEvent(new PopStateEvent('popstate'));
           } catch (error) {
             // Graceful fallback
-            console.warn('Navigation error, using fallback:', error);
-            window.location.replace('/admin/health');
+            // NUCLEAR REMOVED: window.location.replace('/admin/health');
           }
         }}>
           <Shield className="mr-2 h-4 w-4" />

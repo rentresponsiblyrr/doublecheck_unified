@@ -29,8 +29,6 @@
  * 
  * // Enhanced status calculation
  * const statusResult = getPropertyStatus(completed, active, draft);
- * // REMOVED: console.log(statusResult.config.textLabel); // "In Progress"
- * // REMOVED: console.log(statusResult.metadata.calculationReason); // "Has 2 active inspections"
  * ```
  */
 

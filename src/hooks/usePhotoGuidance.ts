@@ -4,6 +4,13 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import type { ChecklistItem } from '@/types/photo';
 
+// Type for cached guidance progress data
+interface CachedGuidanceProgress {
+  currentStep: number;
+  guidanceState: PhotoGuidanceState;
+  savedAt: string;
+}
+
 export interface PhotoGuidanceStep {
   id: string;
   title: string;
@@ -418,7 +425,6 @@ export const usePhotoGuidance = (options: UsePhotoGuidanceOptions): UsePhotoGuid
         setGuidanceState(progressData.guidanceState);
       }
     } catch (error) {
-      // REMOVED: console.error('Failed to load progress:', error);
     }
   }, [checklistItem.id, enableOfflineMode]);
 
@@ -452,7 +458,7 @@ export const usePhotoGuidance = (options: UsePhotoGuidanceOptions): UsePhotoGuid
 
 // Utility hook for offline guidance caching
 export const useOfflineGuidance = () => {
-  const [cachedGuidance, setCachedGuidance] = useState<Record<string, any>>({});
+  const [cachedGuidance, setCachedGuidance] = useState<Record<string, CachedGuidanceProgress>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -462,7 +468,7 @@ export const useOfflineGuidance = () => {
           key.startsWith('photo_guidance_')
         );
         
-        const cached: Record<string, any> = {};
+        const cached: Record<string, CachedGuidanceProgress> = {};
         keys.forEach(key => {
           try {
             cached[key] = JSON.parse(localStorage.getItem(key) || '{}');
@@ -473,7 +479,6 @@ export const useOfflineGuidance = () => {
         
         setCachedGuidance(cached);
       } catch (error) {
-        // REMOVED: console.error('Failed to load cached guidance:', error);
       } finally {
         setIsLoading(false);
       }

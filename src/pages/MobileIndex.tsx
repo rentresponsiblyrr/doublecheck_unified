@@ -76,7 +76,6 @@ const MobileIndex = () => {
   const { handleEdit } = useMobilePropertyActions();
 
   // Debug logging
-  // REMOVED: console.log('📱 MobileIndex Debug with Edit:', {
     userRole,
     hasUser: !!user,
     userEmail: user?.email,
@@ -95,7 +94,6 @@ const MobileIndex = () => {
    * @param propertyId - Unique identifier for the property to select/deselect
    */
   const handlePropertySelect = (propertyId: string) => {
-    // REMOVED: console.log('📱 Mobile property selected:', propertyId);
     selectProperty(propertyId === selectedProperty ? null : propertyId);
   };
 
@@ -110,7 +108,6 @@ const MobileIndex = () => {
    * @throws {Error} When inspection creation fails or network is unavailable
    */
   const handleStartInspection = async (propertyId: string) => {
-    // REMOVED: console.log('📱 Starting optimized inspection for property:', propertyId);
     
     // Ensure property is selected before starting inspection
     if (propertyId !== selectedProperty) {
@@ -139,7 +136,7 @@ const MobileIndex = () => {
       <MobileErrorRecovery
         error={new Error(error)}
         onRetry={refreshData}
-        onNavigateHome={() => window.location.replace('/')}
+        onNavigateHome={() => // NUCLEAR REMOVED: window.location.replace('/')}
         context="Property loading"
       />
     );

@@ -1,6 +1,5 @@
 
 // REMOVED: Main.tsx startup logging to prevent infinite render loops
-// // REMOVED: console.log('🚨 MAIN.TSX STARTING - Testing environment validation');
 
 import { StrictMode, Component } from "react";
 import { createRoot } from "react-dom/client";
@@ -11,17 +10,14 @@ import { log } from "@/lib/logging/enterprise-logger";
 import { enterpriseInitializer } from "@/lib/initialization/enterprise-initialization";
 import type { EnterpriseConfig } from "@/lib/initialization/enterprise-initialization";
 
+// ACTUAL Performance monitoring integration
+import { actualPerformanceMonitor } from "@/lib/monitoring/actual-performance-monitor";
+
 // REMOVED: Basic imports logging to prevent infinite render loops
-// // REMOVED: console.log('🚨 Basic imports loaded successfully');
 
 // REMOVED: Environment validation logging to prevent infinite render loops
-// // REMOVED: console.log('🚨 Testing environment validation...');
-// // REMOVED: console.log('Available env vars:', Object.keys(import.meta.env));
-// // REMOVED: console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING');
-// // REMOVED: console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 
 // REMOVED: Environment validation testing logging to prevent infinite render loops
-// // REMOVED: console.log('🔍 Testing environment validation with error handling...');
 
 // Environment validation in development only
 if (import.meta.env.DEV) {
@@ -47,61 +43,8 @@ if (import.meta.env.DEV) {
   testEnvironmentValidation();
 }
 
-// Enhanced Error Boundary for debugging
-class DebugErrorBoundary extends Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error: Error | null; errorInfo: React.ErrorInfo | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    log.error('Error Boundary caught error in main.tsx', error, {
-      component: 'DebugErrorBoundary',
-      boundary: 'main'
-    }, 'ERROR_BOUNDARY_TRIGGERED');
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    log.error('Error Boundary - Full error details', error, {
-      component: 'DebugErrorBoundary',
-      boundary: 'main',
-      componentStack: errorInfo.componentStack
-    }, 'ERROR_BOUNDARY_DETAILS');
-    this.setState({
-      error,
-      errorInfo
-    });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: '20px', color: 'red', fontFamily: 'monospace', fontSize: '14px' }}>
-          <h1>🚨 ERROR BOUNDARY CAUGHT AN ERROR</h1>
-          <h2>Error: {this.state.error?.message}</h2>
-          <details style={{ marginTop: '20px' }}>
-            <summary>Stack Trace</summary>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {this.state.error?.stack}
-            </pre>
-          </details>
-          <details style={{ marginTop: '20px' }}>
-            <summary>Component Stack</summary>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {this.state.errorInfo?.componentStack}
-            </pre>
-          </details>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
+// Import the new unified error boundary
+import { UniversalErrorBoundary as GlobalErrorBoundary } from '@/components/error/UniversalErrorBoundary';
 
 // Import the real App component
 import App from "./App.tsx";
@@ -127,8 +70,6 @@ if (import.meta.env.DEV) {
 }
 
 // REMOVED: App rendering logging to prevent infinite render loops
-// // REMOVED: console.log('🚨 About to render app with error boundary');
-// // REMOVED: console.log('🚨 Available environment variables:', Object.keys(import.meta.env));
 
 // Initialize Sentry for production error monitoring
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
@@ -213,14 +154,36 @@ async function initializeEnterpriseSystem() {
 
   try {
     await enterpriseInitializer.initialize(enterpriseConfig);
+    
+    // Start ACTUAL performance monitoring system
+    actualPerformanceMonitor.start();
+    
     log.info('Enterprise systems initialized successfully', {
       component: 'main',
       environment: enterpriseConfig.environment,
       serviceName: enterpriseConfig.serviceName,
+      performanceMonitoring: 'enabled'
     }, 'ENTERPRISE_INITIALIZATION_SUCCESS');
   } catch (error) {
     // Fall back to basic logging if enterprise init fails
-    // REMOVED: console.error('Enterprise initialization failed, continuing with basic logging:', error);
+    log.error('Enterprise initialization failed, starting basic performance monitoring', error as Error, {
+      component: 'main',
+      action: 'initializeEnterpriseSystem'
+    }, 'ENTERPRISE_INIT_FALLBACK');
+    
+    // Still start performance monitoring even if enterprise init fails
+    try {
+      actualPerformanceMonitor.start();
+      log.info('Performance monitoring started successfully', {
+        component: 'main',
+        mode: 'fallback'
+      }, 'PERFORMANCE_MONITORING_FALLBACK_SUCCESS');
+    } catch (perfError) {
+      log.error('Performance monitoring failed to start', perfError as Error, {
+        component: 'main',
+        action: 'performanceMonitoringFallback'
+      }, 'PERFORMANCE_MONITORING_FALLBACK_FAILED');
+    }
   }
 }
 
@@ -244,9 +207,19 @@ async function initializeApp() {
     
     root.render(
       <StrictMode>
-        <DebugErrorBoundary>
+        <GlobalErrorBoundary 
+          applicationName="STR Certified"
+          enableBugReport={true}
+          onError={(error, errorInfo) => {
+            log.error('Global Error Boundary caught error', error, {
+              component: 'GlobalErrorBoundary',
+              boundary: 'main',
+              componentStack: errorInfo.componentStack
+            }, 'GLOBAL_ERROR_BOUNDARY_TRIGGERED');
+          }}
+        >
           <TestComponent />
-        </DebugErrorBoundary>
+        </GlobalErrorBoundary>
       </StrictMode>
     );
     
@@ -258,11 +231,22 @@ async function initializeApp() {
       }, 'APP_INITIALIZED');
     }
     
+    // Setup cleanup for performance monitoring
+    window.addEventListener('beforeunload', () => {
+      try {
+        actualPerformanceMonitor.stop();
+        log.info('Performance monitoring stopped on app unload', {
+          component: 'main',
+          action: 'cleanup'
+        }, 'PERFORMANCE_MONITORING_CLEANUP');
+      } catch (error) {
+        // Silent cleanup - don't log errors during unload
+      }
+    });
+    
     // DISABLED: Console clearing was causing infinite reload loops
     // if (import.meta.env.DEV) {
     //   setTimeout(() => {
-    //     console.clear();
-    //     // REMOVED: console.log('🚨 Console cleared - infinite logging fixed');
     //   }, 2000);
     // }
   } catch (error) {
@@ -284,11 +268,9 @@ async function initializeApp() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initializeApp().catch(error => {
-      // REMOVED: console.error('Failed to initialize app:', error);
     });
   });
 } else {
   initializeApp().catch(error => {
-    // REMOVED: console.error('Failed to initialize app:', error);
   });
 }

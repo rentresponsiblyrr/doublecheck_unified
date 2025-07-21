@@ -25,8 +25,10 @@ interface Property {
   images?: string[];
 }
 
+import type { ChecklistItem } from '../types/business-logic';
+
 interface ChecklistData {
-  items: any[];
+  items: ChecklistItem[];
   estimatedTime: number;
   totalItems: number;
 }

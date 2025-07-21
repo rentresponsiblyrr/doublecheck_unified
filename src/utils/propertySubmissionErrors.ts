@@ -5,62 +5,63 @@ export const usePropertyErrorHandler = () => {
   const { toast } = useToast();
 
   const handleSubmissionError = (error: Error | unknown, isEditing: boolean) => {
-    // REMOVED: console.log('🔍 Analyzing submission error:', {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint
+    const errorDetails = error as any;
+    console.error('Property submission error:', {
+      code: errorDetails.code,
+      message: errorDetails.message,
+      details: errorDetails.details,
+      hint: errorDetails.hint
     });
 
     let errorMessage = "An error occurred while saving the property.";
     let isTemporary = false;
     
     // Network and timeout errors
-    if (error.code === 'PGRST301' || 
-        error.code === 'PGRST504' ||
-        error.message?.includes('timeout') ||
-        error.message?.includes('network') ||
-        error.message?.includes('connection')) {
+    if (errorDetails.code === 'PGRST301' || 
+        errorDetails.code === 'PGRST504' ||
+        errorDetails.message?.includes('timeout') ||
+        errorDetails.message?.includes('network') ||
+        errorDetails.message?.includes('connection')) {
       errorMessage = "Network connection error. Please check your internet connection and try again.";
       isTemporary = true;
     }
     // Authentication errors
-    else if (error.code === '42501' || error.message?.includes('JWT')) {
+    else if (errorDetails.code === '42501' || errorDetails.message?.includes('JWT')) {
       errorMessage = "Your session has expired. Please log in again.";
       isTemporary = true;
     }
     // Permission errors
-    else if (error.message?.includes('violates row-level security')) {
+    else if (errorDetails.message?.includes('violates row-level security')) {
       errorMessage = "You don't have permission to access this property. Please contact your administrator.";
     }
     // Unique constraint violations
-    else if (error.code === '23505') {
-      if (error.message?.includes('properties_name')) {
+    else if (errorDetails.code === '23505') {
+      if (errorDetails.message?.includes('properties_name')) {
         errorMessage = "A property with this name already exists. Please choose a different name.";
-      } else if (error.message?.includes('properties_vrbo_url')) {
+      } else if (errorDetails.message?.includes('properties_vrbo_url')) {
         errorMessage = "This Vrbo URL is already registered. Please check if the property already exists.";
-      } else if (error.message?.includes('properties_airbnb_url')) {
+      } else if (errorDetails.message?.includes('properties_airbnb_url')) {
         errorMessage = "This Airbnb URL is already registered. Please check if the property already exists.";
       } else {
         errorMessage = "This property information conflicts with an existing property.";
       }
     }
     // Not found errors
-    else if (error.code === 'PGRST116') {
+    else if (errorDetails.code === 'PGRST116') {
       errorMessage = "The property could not be found. It may have been deleted by another user.";
     }
     // Foreign key violations
-    else if (error.code === '23503') {
+    else if (errorDetails.code === '23503') {
       errorMessage = "Invalid reference data. Please refresh the page and try again.";
       isTemporary = true;
     }
     // Database constraint violations
-    else if (error.code === '23514') {
+    else if (errorDetails.code === '23514') {
       errorMessage = "Invalid property data. Please check all fields and try again.";
     }
     // NULL constraint violations
-    else if (error.code === '23502') {
-      if (error.message?.includes('added_by')) {
+    else if (errorDetails.code === '23502') {
+      if (errorDetails.message?.includes('added_by')) {
         errorMessage = "Authentication error: Please try logging out and back in.";
         isTemporary = true;
       } else {
@@ -68,8 +69,8 @@ export const usePropertyErrorHandler = () => {
       }
     }
 
-    // REMOVED: console.log('📋 Error analysis result:', {
-      originalError: error.code,
+    console.log('Error handling complete:', {
+      originalError: errorDetails.code,
       userMessage: errorMessage,
       isTemporary,
       shouldRetry: isTemporary
@@ -85,7 +86,7 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleUnexpectedError = () => {
-    // REMOVED: console.error('💥 Handling unexpected error');
+    console.error('Unexpected error occurred');
     
     toast({
       title: "Unexpected Error",
@@ -95,7 +96,7 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleSuccess = (propertyName: string, isEditing: boolean) => {
-    // REMOVED: console.log('🎉 Handling successful submission:', {
+    console.log('Property operation successful:', {
       propertyName,
       operation: isEditing ? 'update' : 'create'
     });

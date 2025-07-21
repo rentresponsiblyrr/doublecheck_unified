@@ -43,7 +43,6 @@ async function fetchPropertiesWithInspections(userId: string) {
       });
       
       // REMOVED: Property filtering logging to prevent infinite loops
-      // // REMOVED: console.log('🔧 Filtered properties:', {
       //   original: result.data?.length || 0,
       //   filtered: filteredData.length,
       //   removed: (result.data?.length || 0) - filteredData.length
@@ -52,7 +51,6 @@ async function fetchPropertiesWithInspections(userId: string) {
       return { ...result, data: filteredData };
     }
     
-    console.warn('⚠️ RPC function failed, falling back to direct query:', result.error);
     
     // Fallback to direct query using properties
     const { data: properties, error } = await supabase
@@ -98,7 +96,6 @@ async function fetchPropertiesWithInspections(userId: string) {
     
     return { data: enrichedProperties, error: null };
   } catch (error) {
-    // REMOVED: console.error('❌ Both RPC and fallback failed:', error);
     return { data: [], error };
   }
 }
@@ -110,12 +107,10 @@ export const useInspectorDashboard = () => {
     queryKey: ['inspector-dashboard', user?.id],
     queryFn: async () => {
       if (!user?.id) {
-        // REMOVED: console.log('❌ No user ID available');
         return { inspections: [], properties: [] };
       }
 
       // REMOVED: Dashboard fetching logging to prevent infinite loops
-      // // REMOVED: console.log('🔍 Fetching dashboard data for user:', user.id);
 
       try {
         // Fetch both inspections and properties in parallel
@@ -148,13 +143,11 @@ export const useInspectorDashboard = () => {
         const { data: propertiesData, error: propertiesError } = propertiesResult;
 
         if (inspectionsError) {
-          // REMOVED: console.error('❌ Inspections query failed:', inspectionsError);
           
           // Handle permission errors gracefully
           if (inspectionsError.code === 'PGRST116' || 
               inspectionsError.message?.includes('permission') ||
               inspectionsError.message?.includes('RLS')) {
-            console.warn('⚠️ No permission to access inspections, returning empty state');
             return { inspections: [], properties: propertiesData || [] };
           }
           
@@ -162,13 +155,10 @@ export const useInspectorDashboard = () => {
         }
 
         if (propertiesError) {
-          // REMOVED: console.error('❌ Properties query failed:', propertiesError);
           // Continue with inspections only if properties fail
         }
 
         // REMOVED: Success logging to prevent infinite loops
-        // // REMOVED: console.log('✅ Successfully fetched', inspectionsData?.length || 0, 'inspections');
-        // // REMOVED: console.log('✅ Successfully fetched', propertiesData?.length || 0, 'properties');
 
         // Transform inspections with progress calculation
         const inspectionsWithProgress = await Promise.all(
@@ -191,7 +181,6 @@ export const useInspectorDashboard = () => {
                 progress_percentage: progressPercentage,
               } as InspectorInspection;
             } catch (error) {
-              console.warn(`Failed to get progress for inspection ${inspection.id}:`, error);
               return {
                 ...inspection,
                 property: inspection.properties,
@@ -208,7 +197,6 @@ export const useInspectorDashboard = () => {
           properties: propertiesData || [] 
         };
       } catch (error) {
-        // REMOVED: console.error('❌ Query execution failed:', error);
         throw error;
       }
     },
@@ -260,7 +248,6 @@ export const useInspectorDashboard = () => {
   });
 
   // REMOVED: Status counts logging to prevent infinite loops
-  // // REMOVED: console.log('🔢 Status counts calculated:', statusCounts);
 
   // Calculate property-level aggregations with fallback handling
   let propertyStats = { totalInspections: 0, activeInspections: 0, completedInspections: 0 };
@@ -268,7 +255,6 @@ export const useInspectorDashboard = () => {
   try {
     propertyStats = statusCountService.calculatePropertyStats(properties);
   } catch (error) {
-    console.warn('❌ Property stats calculation failed, using fallback', error);
     // Fallback calculation
     propertyStats = properties.reduce((stats, property) => ({
       totalInspections: stats.totalInspections + (property.inspection_count || 0),
@@ -286,9 +272,6 @@ export const useInspectorDashboard = () => {
   };
 
   // REMOVED: Debug logging that was causing infinite console loops
-  // // REMOVED: console.log('📊 Dashboard Summary:', summary);
-  // // REMOVED: console.log('📋 Inspection statuses:', inspections.map((i: InspectorInspection) => ({ id: i.id, status: i.status })));
-  // // REMOVED: console.log('🏠 Properties with inspections:', properties.map((p: any) => ({ 
   //   id: p.property_id, 
   //   name: p.property_name,
   //   total: p.inspection_count,
@@ -298,15 +281,7 @@ export const useInspectorDashboard = () => {
 
   // REMOVED: Debug information logging to prevent infinite loops
   // if (inspections.length === 0 && properties.length === 0) {
-  //   // REMOVED: console.log('⚠️ No data found for this user. This could mean:');
-  //   // REMOVED: console.log('1. User has no properties or inspections yet');
-  //   // REMOVED: console.log('2. User ID mismatch in database');
-  //   // REMOVED: console.log('3. Database connection issue');
-  //   // REMOVED: console.log('4. Incorrect inspector_id relationship');
   // } else if (properties.length > 0 && inspections.length === 0) {
-  //   // REMOVED: console.log('ℹ️ Properties found but no inspections. This suggests:');
-  //   // REMOVED: console.log('1. User has properties but hasn\'t started inspecting them yet');
-  //   // REMOVED: console.log('2. Inspections may need to be created for these properties');
   // }
 
   // Get recent inspections (last 7 days)

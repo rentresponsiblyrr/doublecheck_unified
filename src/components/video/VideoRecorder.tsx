@@ -114,7 +114,6 @@ export function VideoRecorder({
         
         mediaRecorderRef.current = mediaRecorder;
       } catch (err) {
-        // REMOVED: console.error('Failed to create MediaRecorder:', err);
         setError('Video recording not supported on this device');
       }
     }
@@ -139,7 +138,6 @@ export function VideoRecorder({
       onStartRecording();
     } catch (err) {
       setError('Failed to start recording');
-      // REMOVED: console.error('Recording start error:', err);
     }
   }, [stream, onStartRecording]);
 
@@ -208,7 +206,18 @@ export function VideoRecorder({
             variant="outline" 
             size="sm" 
             className="mt-2 ml-2" 
-            onClick={() => window.location.replace(window.location.pathname)}
+            onClick={() => {
+              // Professional error recovery: reset state and reinitialize
+              setError(null);
+              setIsRecording(false);
+              setRecordedChunks([]);
+              setVideoUrl(null);
+              // Reinitialize media stream if available
+              if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                setMediaStream(null);
+              }
+            }}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry

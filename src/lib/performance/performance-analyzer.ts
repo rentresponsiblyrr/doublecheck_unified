@@ -194,7 +194,6 @@ export class PerformanceAnalyzer {
   }
 
   private recordLongTask(entry: PerformanceEntry): void {
-    console.warn(`🐌 Long task detected: ${entry.duration}ms`, {
       startTime: entry.startTime,
       duration: entry.duration,
       name: entry.name,

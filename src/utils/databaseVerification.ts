@@ -40,7 +40,6 @@ export class DatabaseVerification {
 
     for (const tableName of tablesToCheck) {
       try {
-        // REMOVED: console.log(`🔍 Checking table: ${tableName}`);
         
         // Try to query the table
         const { data, error } = await supabase
@@ -99,14 +98,12 @@ export class DatabaseVerification {
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      // REMOVED: console.error('❌ No authenticated user for status testing');
       return validStatuses;
     }
 
     // Test each status by attempting a minimal insert (then rolling back)
     for (const status of statusesToTest) {
       try {
-        // REMOVED: console.log(`🧪 Testing status: ${status}`);
         
         // Create a test inspection
         const { data, error } = await supabase
@@ -130,12 +127,9 @@ export class DatabaseVerification {
             .delete()
             .eq('id', data.id);
             
-          // REMOVED: console.log(`✅ Status '${status}' is valid`);
         } else {
-          // REMOVED: console.log(`❌ Status '${status}' failed:`, error?.message);
         }
       } catch (err) {
-        // REMOVED: console.log(`❌ Status '${status}' error:`, err);
       }
     }
 
@@ -146,7 +140,6 @@ export class DatabaseVerification {
    * Run comprehensive database verification
    */
   static async runFullVerification(): Promise<DatabaseStatus> {
-    // REMOVED: console.log('🔍 Starting comprehensive database verification...');
     
     const tables = await this.verifyTables();
     const validStatusValues = await this.testValidStatusValues();
@@ -179,7 +172,6 @@ export class DatabaseVerification {
       recommendations.push('Use alternative status values for new inspections');
     }
 
-    // REMOVED: console.log('✅ Database verification complete');
     
     return {
       tables,
@@ -205,7 +197,6 @@ export class DatabaseVerification {
           .maybeSingle();
           
         if (error) {
-          // REMOVED: console.error(`❌ Critical table ${table} not accessible:`, error);
           return false;
         }
       }
@@ -213,14 +204,11 @@ export class DatabaseVerification {
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        // REMOVED: console.error('❌ User not authenticated');
         return false;
       }
       
-      // REMOVED: console.log('✅ Quick health check passed');
       return true;
     } catch (error) {
-      // REMOVED: console.error('❌ Quick health check failed:', error);
       return false;
     }
   }

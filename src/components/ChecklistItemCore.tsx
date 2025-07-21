@@ -38,14 +38,12 @@ export const ChecklistItemCore = ({
     onUploadingChange(true);
     
     try {
-      // REMOVED: console.log('Uploading media for item:', item.id);
       
       toast({
         title: "Upload started",
         description: `Uploading ${item.evidence_type}...`,
       });
     } catch (error) {
-      // REMOVED: console.error('Upload error:', error);
       toast({
         title: "Upload failed",
         description: "Please try again.",
@@ -87,7 +85,6 @@ export const ChecklistItemCore = ({
       await refetchMedia();
       onComplete();
     } catch (error) {
-      // REMOVED: console.error('Delete error:', error);
       toast({
         title: "Delete failed",
         description: "Failed to delete evidence. Please try again.",

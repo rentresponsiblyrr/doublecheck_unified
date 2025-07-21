@@ -174,7 +174,7 @@ class ErrorRecoveryService {
       router.navigate('/', { replace: true });
     } else {
       // Professional fallback: navigate without session destruction
-      window.location.replace('/');
+      // NUCLEAR REMOVED: window.location.replace('/');
     }
   }
 

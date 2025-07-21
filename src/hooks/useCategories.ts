@@ -8,7 +8,6 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      // REMOVED: console.log('📊 Fetching categories from database...');
       
       const { data, error } = await supabase
         .from('categories')
@@ -17,17 +16,14 @@ export const useCategories = () => {
         .order('sort_order', { ascending: true });
       
       if (error) {
-        // REMOVED: console.error('❌ Error fetching categories:', error);
         throw error;
       }
 
-      // REMOVED: console.log('✅ Successfully fetched categories:', data?.length || 0);
       
       // Update the valid categories in the mapping utility
       if (data) {
         const categoryNames = data.map(cat => cat.name);
         updateValidCategories(categoryNames);
-        // REMOVED: console.log('🔄 Updated valid categories in mapping utility:', categoryNames);
       }
       
       return (data as Category[]) || [];

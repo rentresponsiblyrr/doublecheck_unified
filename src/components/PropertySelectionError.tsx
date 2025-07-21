@@ -8,7 +8,6 @@ interface PropertySelectionErrorProps {
 }
 
 export const PropertySelectionError = ({ error, onRetry }: PropertySelectionErrorProps) => {
-  // REMOVED: console.error('💥 PropertySelection error:', error);
   
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

@@ -163,6 +163,5 @@ export const normalizeStatus = (status: string | null | undefined): InspectionSt
   }
   
   // If we can't normalize it, return null
-  console.warn(`Unknown inspection status: ${status}`);
   return null;
 };

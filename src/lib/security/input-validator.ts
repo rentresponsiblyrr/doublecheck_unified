@@ -36,7 +36,7 @@ export class ValidationError extends Error {
     message: string,
     public field?: string,
     public code?: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'ValidationError';
@@ -299,7 +299,7 @@ export class InputValidator {
   /**
    * Validate JSON input
    */
-  validateJson(input: string): any {
+  validateJson(input: string): unknown {
     if (typeof input !== 'string') {
       throw new ValidationError('JSON input must be a string', 'json', 'INVALID_TYPE');
     }
@@ -376,12 +376,12 @@ export class InputValidator {
     return scriptPatterns.some(pattern => pattern.test(content));
   }
 
-  private hasPrototypePollution(obj: any): boolean {
+  private hasPrototypePollution(obj: unknown): boolean {
     if (obj === null || typeof obj !== 'object') return false;
 
     const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
     
-    function checkObject(current: any): boolean {
+    function checkObject(current: unknown): boolean {
       if (current === null || typeof current !== 'object') return false;
       
       for (const key of Object.keys(current)) {

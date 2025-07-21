@@ -2,7 +2,6 @@
  * ENTERPRISE LOGGING SYSTEM - GOOGLE/META/NETFLIX STANDARDS
  * 
  * This is how real engineers handle logging in production systems.
- * ZERO TOLERANCE for amateur console.log patterns.
  * 
  * Features:
  * - Structured logging with correlation IDs
@@ -20,6 +19,17 @@ import { v4 as uuidv4 } from 'uuid';
 // ============================================================================
 
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+
+// Extended Error interface for detailed error logging
+interface ExtendedError extends Error {
+  code?: string | number;
+  statusCode?: number;
+  details?: unknown;
+}
+
+// Type for objects that can be sanitized
+type SanitizableValue = string | number | boolean | null | undefined | Record<string, unknown> | unknown[];
+type SanitizedObject = Record<string, SanitizableValue>;
 
 export interface LogContext {
   userId?: string;
@@ -181,8 +191,8 @@ export class EnterpriseLogger {
         name: error.name,
         message: error.message,
         stack: error.stack,
-        code: (error as any).code,
-        statusCode: (error as any).statusCode
+        code: (error as ExtendedError).code,
+        statusCode: (error as ExtendedError).statusCode
       }
     } : context;
 
@@ -200,8 +210,8 @@ export class EnterpriseLogger {
         name: error.name,
         message: error.message,
         stack: error.stack,
-        code: (error as any).code,
-        statusCode: (error as any).statusCode
+        code: (error as ExtendedError).code,
+        statusCode: (error as ExtendedError).statusCode
       }
     } : context;
 
@@ -466,7 +476,7 @@ export class EnterpriseLogger {
     }
   }
 
-  private sanitizeObject(obj: any): any {
+  private sanitizeObject(obj: SanitizableValue): SanitizableValue {
     if (typeof obj !== 'object' || obj === null) {
       return obj;
     }
@@ -475,7 +485,7 @@ export class EnterpriseLogger {
       return obj.map(item => this.sanitizeObject(item));
     }
 
-    const sanitized: any = {};
+    const sanitized: SanitizedObject = {};
     for (const [key, value] of Object.entries(obj)) {
       // Check if key contains sensitive information
       const isSensitive = this.SENSITIVE_PATTERNS.some(pattern => pattern.test(key));
@@ -498,17 +508,13 @@ export class EnterpriseLogger {
     
     switch (level) {
       case 'DEBUG':
-        console.debug(prefix, message, context);
         break;
       case 'INFO':
-        console.info(prefix, message, context);
         break;
       case 'WARN':
-        console.warn(prefix, message, context);
         break;
       case 'ERROR':
       case 'FATAL':
-        // REMOVED: console.error(prefix, message, context);
         break;
     }
   }
@@ -528,7 +534,6 @@ export class EnterpriseLogger {
     
     if (entry.level === 'FATAL') {
       // Force console output for fatal errors even in production
-      // REMOVED: console.error('FATAL ERROR:', entry.message, entry.context);
     }
   }
 
@@ -547,7 +552,6 @@ export class EnterpriseLogger {
     } catch (error) {
       // If remote logging fails, fall back to console in development
       if (this.config.environment === 'development') {
-        // REMOVED: console.error('Failed to send logs to remote endpoint:', error);
         entries.forEach(entry => this.logToConsole(entry));
       }
       
@@ -674,7 +678,7 @@ export function createLogger(config?: Partial<LoggerConfig>): EnterpriseLogger {
 export function getGlobalLogger(): EnterpriseLogger {
   if (!globalLogger) {
     globalLogger = createLogger({
-      environment: process.env.NODE_ENV as any || 'development',
+      environment: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
       enableConsole: process.env.NODE_ENV === 'development',
       enableRemote: process.env.NODE_ENV === 'production',
       remoteEndpoint: process.env.VITE_LOGGING_ENDPOINT,

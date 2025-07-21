@@ -6,13 +6,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
 
+// Type definitions for database operations
+type DatabaseRecord = Record<string, unknown>;
+type BatchOperationData = DatabaseRecord | DatabaseRecord[];
+type BatchCondition = Record<string, unknown>;
+type ExecutionResult = DatabaseRecord | DatabaseRecord[] | null;
+
 export interface TransactionOptions {
   timeout?: number; // milliseconds
   retryAttempts?: number;
   retryDelay?: number; // milliseconds
 }
 
-export interface TransactionResult<T = any> {
+export interface TransactionResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -23,7 +29,7 @@ export class TransactionError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public originalError?: any
+    public originalError?: Error | PostgrestError
   ) {
     super(message);
     this.name = 'TransactionError';
@@ -66,21 +72,20 @@ class DatabaseTransactionManager {
       try {
         const result = await this.executeWithTimeout(transactionFunc, timeout);
         return { success: true, data: result };
-      } catch (error: any) {
+      } catch (error: unknown) {
         attempt++;
         
         // Check if error is retryable
         if (this.isRetryableError(error) && attempt < retryAttempts) {
-          console.warn(`Transaction attempt ${attempt} failed, retrying in ${retryDelay}ms:`, error.message);
           await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
           continue;
         }
         
-        // REMOVED: console.error('Transaction failed:', error);
+        const errorObj = error as Error & { rollbackExecuted?: boolean };
         return {
           success: false,
-          error: error.message || 'Transaction failed',
-          rollbackExecuted: error.rollbackExecuted || false,
+          error: errorObj.message || 'Transaction failed',
+          rollbackExecuted: errorObj.rollbackExecuted || false,
         };
       }
     }
@@ -96,7 +101,7 @@ class DatabaseTransactionManager {
    */
   async executeAtomicOperations<T>(
     operations: Array<{
-      execute: () => Promise<any>;
+      execute: () => Promise<ExecutionResult>;
       rollback: RollbackFunction;
       description: string;
     }>,
@@ -112,20 +117,19 @@ class DatabaseTransactionManager {
       });
 
       const executePromise = (async () => {
-        const results: any[] = [];
+        const results: ExecutionResult[] = [];
         
         for (const operation of operations) {
           try {
-            // REMOVED: console.log(`Executing operation: ${operation.description}`);
             const result = await operation.execute();
             results.push(result);
             executedOperations.push(operation);
-          } catch (error: any) {
-            // REMOVED: console.error(`Operation failed: ${operation.description}`, error);
+          } catch (error: unknown) {
+            const errorObj = error as Error;
             throw new TransactionError(
-              `Operation failed: ${operation.description} - ${error.message}`,
+              `Operation failed: ${operation.description} - ${errorObj.message}`,
               'OPERATION_FAILED',
-              error
+              errorObj
             );
           }
         }
@@ -137,26 +141,26 @@ class DatabaseTransactionManager {
       
       return { success: true, data: results };
       
-    } catch (error: any) {
-      // REMOVED: console.error('Atomic operations failed, initiating rollback:', error);
+    } catch (error: unknown) {
       
       // Execute rollback operations in reverse order
       try {
         await this.executeRollback(executedOperations.reverse());
         rollbackExecuted = true;
-      } catch (rollbackError: any) {
-        // REMOVED: console.error('Rollback failed:', rollbackError);
+      } catch (rollbackError: unknown) {
         // Log critical error - data may be in inconsistent state
+        const originalErr = error as Error;
+        const rollbackErr = rollbackError as Error;
         await this.logCriticalError('ROLLBACK_FAILED', {
-          originalError: error.message,
-          rollbackError: rollbackError.message,
+          originalError: originalErr.message,
+          rollbackError: rollbackErr.message,
           operations: executedOperations.map(op => op.description),
         });
       }
       
       return {
         success: false,
-        error: error.message || 'Atomic operations failed',
+        error: (error as Error).message || 'Atomic operations failed',
         rollbackExecuted,
       };
     }
@@ -206,18 +210,18 @@ class DatabaseTransactionManager {
         
         return { success: true, data: result };
         
-      } catch (error: any) {
+      } catch (error: unknown) {
         attempt++;
         
-        if (error.code === 'LOCK_CONFLICT' && attempt < maxAttempts) {
-          console.warn(`Optimistic lock conflict, retry ${attempt}/${maxAttempts}`);
+        const errorObj = error as TransactionError;
+        if (errorObj.code === 'LOCK_CONFLICT' && attempt < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
           continue;
         }
         
         return {
           success: false,
-          error: error.message || 'Optimistic lock failed',
+          error: (error as Error).message || 'Optimistic lock failed',
         };
       }
     }
@@ -259,11 +263,11 @@ class DatabaseTransactionManager {
         this.activeLocks.delete(lockKey);
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.activeLocks.delete(lockKey);
       return {
         success: false,
-        error: error.message || 'Distributed lock operation failed',
+        error: (error as Error).message || 'Distributed lock operation failed',
       };
     }
   }
@@ -275,11 +279,11 @@ class DatabaseTransactionManager {
     operations: Array<{
       table: string;
       operation: 'insert' | 'update' | 'delete';
-      data: any;
-      condition?: any;
+      data: BatchOperationData;
+      condition?: BatchCondition;
     }>,
     options: TransactionOptions = {}
-  ): Promise<TransactionResult<any[]>> {
+  ): Promise<TransactionResult<ExecutionResult[]>> {
     return this.executeAtomicOperations(
       operations.map(op => ({
         execute: async () => {
@@ -292,7 +296,7 @@ class DatabaseTransactionManager {
             case 'update':
               query = supabase.from(op.table).update(op.data);
               if (op.condition) {
-                Object.entries(op.condition).forEach(([key, value]) => {
+                Object.entries(op.condition).forEach(([key, value]: [string, unknown]) => {
                   query = query.eq(key, value);
                 });
               }
@@ -300,7 +304,7 @@ class DatabaseTransactionManager {
             case 'delete':
               query = supabase.from(op.table).delete();
               if (op.condition) {
-                Object.entries(op.condition).forEach(([key, value]) => {
+                Object.entries(op.condition).forEach(([key, value]: [string, unknown]) => {
                   query = query.eq(key, value);
                 });
               }
@@ -315,7 +319,6 @@ class DatabaseTransactionManager {
         },
         rollback: async () => {
           // Implement rollback logic based on operation type
-          // REMOVED: console.log(`Rolling back ${op.operation} on ${op.table}`);
         },
         description: `${op.operation} on ${op.table}`,
       })),
@@ -338,7 +341,7 @@ class DatabaseTransactionManager {
     return Promise.race([operation(), timeoutPromise]);
   }
 
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: unknown): boolean {
     // PostgreSQL error codes that are retryable
     const retryableCodes = [
       '40001', // serialization_failure
@@ -354,11 +357,12 @@ class DatabaseTransactionManager {
       'temporary failure',
     ];
 
-    if (error.code && retryableCodes.includes(error.code)) {
+    const errorObj = error as PostgrestError & { code?: string };
+    if (errorObj.code && retryableCodes.includes(errorObj.code)) {
       return true;
     }
 
-    const message = error.message?.toLowerCase() || '';
+    const message = (error as Error).message?.toLowerCase() || '';
     return retryableMessages.some(msg => message.includes(msg));
   }
 
@@ -367,11 +371,9 @@ class DatabaseTransactionManager {
     
     for (const operation of operations) {
       try {
-        // REMOVED: console.log(`Rolling back: ${operation.description}`);
         await operation.rollback();
-      } catch (error: any) {
-        // REMOVED: console.error(`Rollback failed for: ${operation.description}`, error);
-        rollbackErrors.push(error);
+      } catch (error: unknown) {
+        rollbackErrors.push(error as Error);
       }
     }
     
@@ -403,8 +405,8 @@ class DatabaseTransactionManager {
       }
       
       return lockId;
-    } catch (error: any) {
-      throw new TransactionError('Lock acquisition failed', 'LOCK_FAILED', error);
+    } catch (error: unknown) {
+      throw new TransactionError('Lock acquisition failed', 'LOCK_FAILED', error as Error);
     }
   }
 
@@ -416,11 +418,10 @@ class DatabaseTransactionManager {
         .eq('lock_key', lockKey)
         .eq('lock_id', lockId);
     } catch (error) {
-      // REMOVED: console.error('Failed to release distributed lock:', error);
     }
   }
 
-  private async logCriticalError(errorType: string, details: any): Promise<void> {
+  private async logCriticalError(errorType: string, details: Record<string, unknown>): Promise<void> {
     try {
       await supabase.from('critical_errors').insert({
         error_type: errorType,
@@ -429,7 +430,6 @@ class DatabaseTransactionManager {
         severity: 'critical',
       });
     } catch (error) {
-      // REMOVED: console.error('Failed to log critical error:', error);
     }
   }
 }
@@ -445,7 +445,7 @@ export const executeTransaction = <T>(
 
 export const executeAtomicOperations = <T>(
   operations: Array<{
-    execute: () => Promise<any>;
+    execute: () => Promise<ExecutionResult>;
     rollback: () => Promise<void>;
     description: string;
   }>,
@@ -468,8 +468,8 @@ export const executeBatch = (
   operations: Array<{
     table: string;
     operation: 'insert' | 'update' | 'delete';
-    data: any;
-    condition?: any;
+    data: BatchOperationData;
+    condition?: BatchCondition;
   }>,
   options?: TransactionOptions
 ) => transactionManager.executeBatch(operations, options);

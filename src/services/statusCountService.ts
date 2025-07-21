@@ -277,7 +277,7 @@ class StatusCountService {
       const [inspectionCounts, propertyCounts, users] = await Promise.all([
         this.getInspectionCounts(),
         this.getPropertyCounts(),
-        supabase.from('users').select('role, email').eq('status', 'active')
+        supabase.from('users').select('role, email')
       ]);
 
       // Calculate user counts

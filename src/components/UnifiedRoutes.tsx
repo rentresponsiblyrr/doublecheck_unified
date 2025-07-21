@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { Suspense, useCallback } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,8 +42,17 @@ interface UnifiedRoutesProps {
 }
 
 export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
-  // REMOVED: Route loading logging to prevent infinite render loops
-  // // REMOVED: console.log('🚀 UnifiedRoutes loaded for user:', user?.email);
+  const navigate = useNavigate();
+  
+  // PROFESSIONAL NAVIGATION HANDLER - Zero nuclear options
+  const handleAdminNavigation = useCallback(() => {
+    try {
+      navigate('/admin');
+    } catch (error) {
+      console.error('Navigation to admin failed:', error);
+      // Graceful fallback - stay on current page and show error
+    }
+  }, [navigate]);
   
   return (
     <Routes>
@@ -158,8 +167,8 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
                 <h1 className="text-xl font-semibold text-gray-900 mb-2">Redirecting to Admin Portal</h1>
                 <p className="text-gray-600 mb-4">The auditor interface is now part of the admin portal.</p>
                 <button 
-                  onClick={() => window.location.href = '/admin'}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                  onClick={handleAdminNavigation}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Go to Admin Portal
                 </button>

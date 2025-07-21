@@ -2,6 +2,19 @@
 
 import type { PhotoOptimizationConfig, OptimizationResult, DeviceCapabilities } from '@/types/photo';
 
+// Extended Navigator interface for device capabilities
+interface NavigatorWithDeviceCapabilities extends Navigator {
+  deviceMemory?: number;
+  connection?: {
+    effectiveType: string;
+    downlink: number;
+    saveData: boolean;
+  };
+}
+
+// Type for photo metadata
+type PhotoMetadata = Record<string, unknown>;
+
 export interface PhotoOptimizerOptions {
   maxWidth?: number;
   maxHeight?: number;
@@ -191,7 +204,6 @@ export class PhotoOptimizer {
       const thumbnail = await this.resizeImage(image, width, height);
       return thumbnail.toDataURL('image/jpeg', 0.8);
     } catch (error) {
-      // REMOVED: console.error('Failed to create thumbnail:', error);
       return '';
     }
   }
@@ -213,12 +225,12 @@ export class PhotoOptimizer {
     
     this.deviceCapabilities = {
       maxTextureSize: gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 4096,
-      deviceMemory: (navigator as any).deviceMemory || 4,
+      deviceMemory: (navigator as NavigatorWithDeviceCapabilities).deviceMemory || 4,
       hardwareConcurrency: navigator.hardwareConcurrency || 4,
-      connection: (navigator as any).connection ? {
-        effectiveType: (navigator as any).connection.effectiveType,
-        downlink: (navigator as any).connection.downlink,
-        saveData: (navigator as any).connection.saveData
+      connection: (navigator as NavigatorWithDeviceCapabilities).connection ? {
+        effectiveType: (navigator as NavigatorWithDeviceCapabilities).connection!.effectiveType,
+        downlink: (navigator as NavigatorWithDeviceCapabilities).connection!.downlink,
+        saveData: (navigator as NavigatorWithDeviceCapabilities).connection!.saveData
       } : null,
       userAgent: navigator.userAgent,
       platform: navigator.platform,
@@ -409,7 +421,7 @@ export interface OptimizationResult {
   processingTime: number;
   success: boolean;
   error?: string;
-  metadata?: any;
+  metadata?: PhotoMetadata;
 }
 
 export interface DeviceCapabilities {

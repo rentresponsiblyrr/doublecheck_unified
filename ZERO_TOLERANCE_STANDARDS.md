@@ -18,13 +18,13 @@ If the answer is anything but "YES," **do not write the code.**
 
 ---
 
-## **🚫 IMMEDIATE TERMINATION OFFENSES**
+## **🎯 HIGH-PRIORITY IMPROVEMENT AREAS**
 
 The following violations will result in **immediate termination** without warning:
 
 ### **1. NUCLEAR ERROR HANDLING**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 catch (error) {
   window.location.reload(); // BANNED FOREVER
   location.href = '/error'; // BANNED FOREVER
@@ -36,7 +36,7 @@ catch (error) {
 
 ### **2. LYING TO REACT ABOUT DEPENDENCIES**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 useEffect(() => {
   doSomething(prop, state, callback);
 }, []); // LYING - prop, state, callback are dependencies but not declared
@@ -46,7 +46,7 @@ useEffect(() => {
 
 ### **3. GOD COMPONENTS**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 const MegaComponent = () => {
   // 500+ lines handling:
   // - Data fetching
@@ -62,12 +62,12 @@ const MegaComponent = () => {
 
 ### **4. TYPE SYSTEM ESCAPE HATCHES**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 const processData = (data: any) => {
   return data.whatever.might.exist;
 };
 
-// ❌ IMMEDIATE TERMINATION  
+// ❌ IMPROVEMENT NEEDED  
 // @ts-ignore
 const result = dangerousOperation();
 ```
@@ -76,7 +76,7 @@ const result = dangerousOperation();
 
 ### **5. SERVICE LAYER PYRAMID SCHEMES**
 ```typescript
-// ❌ IMMEDIATE TERMINATION
+// ❌ IMPROVEMENT NEEDED
 class OverEngineeredService {
   constructor(
     private service1: AbstractServiceInterface,
