@@ -270,16 +270,8 @@ export default defineConfig(({ mode }) => {
                   return 'vendor-carousel';
                 }
                 
-                // Group small utilities together (STRICT React exclusion to prevent hook errors)
-                if (['use-', 'is-', 'has-', 'get-', 'can-', 'detect-'].some(prefix => moduleName.startsWith(prefix)) && 
-                    !moduleName.includes('react') && 
-                    !id.includes('node_modules/react') &&
-                    !id.includes('scheduler') &&
-                    !id.includes('use-sync-external-store') &&
-                    moduleName !== 'scheduler' &&
-                    moduleName !== 'use-sync-external-store') {
-                  return 'vendor-utils-small';
-                }
+                // DISABLED: vendor-utils-small chunk causing React hook separation errors
+                // Utilities will be grouped in alphabetical chunks instead to prevent React hook contamination
                 
                 // Group React ecosystem together (including utilities)
                 if (moduleName.startsWith('react-') && !moduleName.includes('router')) {
