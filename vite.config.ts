@@ -147,13 +147,12 @@ export default defineConfig(({ mode }) => {
         output: {
           // ELITE CHUNK STRATEGY - BREAK DOWN LARGE BUNDLES
           manualChunks: (id) => {
-            // React ecosystem (keep small)
-            if (id.includes('node_modules/react') && !id.includes('node_modules/react-router')) {
+            // React ecosystem (keep together - CRITICAL for hooks)
+            if (id.includes('node_modules/react/') || 
+                id.includes('node_modules/react-dom/') || 
+                id.includes('node_modules/scheduler/') ||
+                id.includes('node_modules/use-sync-external-store/')) {
               return 'react-core';
-            }
-            
-            if (id.includes('node_modules/react-dom')) {
-              return 'react-dom';
             }
             
             if (id.includes('node_modules/react-router')) {
@@ -252,12 +251,9 @@ export default defineConfig(({ mode }) => {
                   return 'vendor-types';
                 }
                 
-                if (moduleName === 'scheduler') {
-                  return 'vendor-scheduler';
-                }
-                
-                if (moduleName === 'use-sync-external-store') {
-                  return 'vendor-use-sync';
+                // scheduler and use-sync-external-store now bundled with react-core
+                if (moduleName === 'scheduler' || moduleName === 'use-sync-external-store') {
+                  return 'react-core';
                 }
                 
                 if (moduleName === 'react-remove-scroll' || moduleName === 'react-style-singleton') {
@@ -276,9 +272,14 @@ export default defineConfig(({ mode }) => {
                   return 'vendor-carousel';
                 }
                 
-                // Group small utilities together (EXCLUDE React hooks to prevent import errors)
+                // Group small utilities together (STRICT React exclusion to prevent hook errors)
                 if (['use-', 'is-', 'has-', 'get-', 'can-', 'detect-'].some(prefix => moduleName.startsWith(prefix)) && 
-                    !moduleName.includes('react') && !id.includes('node_modules/react')) {
+                    !moduleName.includes('react') && 
+                    !id.includes('node_modules/react') &&
+                    !id.includes('scheduler') &&
+                    !id.includes('use-sync-external-store') &&
+                    moduleName !== 'scheduler' &&
+                    moduleName !== 'use-sync-external-store') {
                   return 'vendor-utils-small';
                 }
                 
