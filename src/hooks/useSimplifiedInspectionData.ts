@@ -37,12 +37,15 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
 
         debugLogger.info('SimplifiedInspectionData', 'Inspection verified', inspectionCheck);
 
-        // Step 2: Fetch checklist items with minimal fields to avoid RLS issues
-        debugLogger.debug('SimplifiedInspectionData', 'Fetching checklist items');
+        // Step 2: Fetch checklist items - CORRECTED: logs table uses property_id, not inspection_id
+        debugLogger.debug('SimplifiedInspectionData', 'Fetching checklist items', {
+          propertyId: inspectionCheck.property_id,
+          inspectionId
+        });
         const { data: items, error: itemsError } = await supabase
           .from('logs')
-          .select('id, inspection_id, label, category, evidence_type, status, notes, created_at')
-          .eq('inspection_id', inspectionId)
+          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, created_at, static_safety_items(id, label, category)')
+          .eq('property_id', inspectionCheck.property_id)
           .order('created_at', { ascending: true });
 
         if (itemsError) {
@@ -57,21 +60,21 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
         debugLogger.info('SimplifiedInspectionData', 'Successfully fetched items', { 
           count: items?.length || 0,
           sampleItems: items?.slice(0, 3).map(i => ({ 
-            id: i.id, 
-            label: i.label, 
-            status: i.status 
+            id: i.log_id, 
+            label: i.static_safety_items?.label, 
+            pass: i.pass 
           })) || []
         });
 
-        // Step 3: Transform data safely
+        // Step 3: Transform data safely - CORRECTED for logs table schema
         const transformedItems: ChecklistItemType[] = (items || []).map(item => ({
-          id: item.id,
-          inspection_id: item.inspection_id,
-          label: item.label || '',
-          category: item.category || 'safety',
-          evidence_type: item.evidence_type as 'photo' | 'video',
-          status: item.status as 'completed' | 'failed' | 'not_applicable' | null,
-          notes: item.notes,
+          id: item.log_id.toString(), // Convert integer to string for compatibility
+          inspection_id: inspectionId, // Use the passed inspectionId since logs doesn't store it
+          label: item.static_safety_items?.label || '',
+          category: item.static_safety_items?.category || 'safety',
+          evidence_type: 'photo', // Default to photo for now
+          status: item.pass === true ? 'completed' : item.pass === false ? 'failed' : null,
+          notes: item.inspector_remarks || '',
           created_at: item.created_at || new Date().toISOString()
         }));
 

@@ -111,13 +111,16 @@ export class InspectionCreationService {
         };
       }
 
-      if (!inspectionData || !inspectionData.id) {
+      // CORRECTED: RPC returns array with inspection_id field, not object with id field
+      if (!inspectionData || !Array.isArray(inspectionData) || !inspectionData[0]?.inspection_id) {
         log.error('Inspection creation returned no data', undefined, {
           component: 'InspectionCreationService',
           action: 'createInspection',
           property_id,
           inspector_id,
-          returnedData: inspectionData
+          returnedData: inspectionData,
+          isArray: Array.isArray(inspectionData),
+          firstItem: inspectionData?.[0]
         }, 'INSPECTION_CREATION_NO_DATA');
 
         return {
@@ -127,7 +130,7 @@ export class InspectionCreationService {
         };
       }
 
-      createdInspectionId = inspectionData.id;
+      createdInspectionId = inspectionData[0].inspection_id;
 
       log.info('Inspection created successfully', {
         component: 'InspectionCreationService',
