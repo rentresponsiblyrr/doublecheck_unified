@@ -95,9 +95,10 @@ export class InputValidator {
     }
 
     // Remove null bytes and control characters
+    const controlCharRegex = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
     const sanitized = input
       .replace(/\0/g, '')
-      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+      .replace(controlCharRegex, '')
       .trim();
 
     // Check for SQL injection patterns

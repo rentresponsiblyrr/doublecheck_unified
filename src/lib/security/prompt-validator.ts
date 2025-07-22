@@ -346,9 +346,10 @@ export class PromptValidator {
 
   private performFinalSanitization(prompt: string): string {
     // Remove any remaining problematic patterns
+    const controlCharRegex = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
     return prompt
       .replace(/\0/g, '') // Remove null bytes
-      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
+      .replace(controlCharRegex, '') // Remove control characters
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
       .substring(0, this.MAX_PROMPT_LENGTH); // Ensure length limit

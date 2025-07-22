@@ -75,15 +75,18 @@ const AdminLoadingFallback = () => {
 // Admin Routes Component
 export default function AdminRoutes() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const routerPath = location.pathname;
   
   // EMERGENCY DEBUG: Show what AdminRoutes is receiving
+  const currentPath = window.location.pathname;
   
   // For debugging - show a simple test first
-  if (window.location.pathname === '/admin/test' || window.location.search.includes('debug=true')) {
+  if (currentPath === '/admin/test' || window.location.search.includes('debug=true')) {
     return (
       <div className="p-8 bg-green-100 border-2 border-green-500 rounded-lg m-4">
         <h1 className="text-2xl font-bold text-green-800 mb-4">✅ AdminRoutes is Working!</h1>
-        <p className="text-green-700 mb-2">Path: {window.location.pathname}</p>
+        <p className="text-green-700 mb-2">Path: {currentPath}</p>
         <p className="text-green-700 mb-2">Search: {window.location.search}</p>
         <p className="text-green-700">AdminRoutes component successfully rendered</p>
       </div>
@@ -91,8 +94,6 @@ export default function AdminRoutes() {
   }
   
   // EMERGENCY: If health route, show direct component with robust path checking
-  const currentPath = window.location.pathname;
-  const routerPath = useLocation().pathname;
   
   
   if (currentPath.includes('health') || routerPath.includes('health') || currentPath === '/admin/health') {

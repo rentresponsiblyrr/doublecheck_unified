@@ -131,7 +131,9 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         await subscribeChannel(channelName, (status: string) => {
           if (status === 'CHANNEL_ERROR') {
             // App will continue to work with manual refreshes
+            console.warn('Channel error, continuing with manual refresh capability');
           } else if (status === 'CLOSED') {
+            console.info('Channel closed');
           }
         });
 
@@ -152,6 +154,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         const channelName = `media-${checklistItemId}`;
         cleanupChannel(channelName);
       } catch (error) {
+        console.warn('Error cleaning up media channel:', error);
       }
     };
   }, [checklistItemId, createChannel, subscribeChannel, cleanupChannel]);
@@ -169,6 +172,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
+      console.warn('Error downloading media file:', error);
     }
   };
 

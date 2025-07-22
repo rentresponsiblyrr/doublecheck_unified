@@ -14,7 +14,7 @@ import UnifiedAdminManagement from './UnifiedAdminManagement';
  */
 export default function DirectAdminRouter() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<{ path?: string; timestamp?: number; userAgent?: string }>({});
 
   // Listen for navigation changes
   useEffect(() => {
