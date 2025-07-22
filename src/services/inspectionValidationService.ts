@@ -54,16 +54,43 @@ export class InspectionValidationService {
       // Wait a moment for the trigger to complete
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
+      const { data: inspectionData, error: inspectionError } = await supabase
+        .from('inspections')
+        .select('property_id')
+        .eq('id', inspectionId)
+        .single();
+
+      if (inspectionError) {
+        log.error('Error getting inspection for checklist verification', inspectionError, {
+          component: 'InspectionValidationService',
+          action: 'verifyChecklistItemsCreated',
+          inspectionId
+        }, 'INSPECTION_LOOKUP_ERROR');
+        return 0;
+      }
+
+      if (!inspectionData) {
+        log.error('Inspection not found for checklist verification', null, {
+          component: 'InspectionValidationService',
+          action: 'verifyChecklistItemsCreated',
+          inspectionId
+        }, 'INSPECTION_NOT_FOUND');
+        return 0;
+      }
+      
+      // Now get checklist items using property_id (verified schema approach)
       const { data, error } = await supabase
         .from('logs')
         .select('id')
-        .eq('inspection_id', inspectionId);
+        .eq('property_id', inspectionData.property_id);
 
       if (error) {
         log.error('Error verifying checklist items', error, {
           component: 'InspectionValidationService',
           action: 'verifyChecklistItemsCreated',
-          inspectionId
+          inspectionId,
+          propertyId: inspectionData.property_id
         }, 'CHECKLIST_VERIFICATION_ERROR');
         return 0;
       }

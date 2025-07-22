@@ -15,7 +15,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
@@ -106,7 +106,7 @@ class PropertyInspectionService {
         `)
         .eq('property_id', propertyId.toString())
         .eq('inspector_id', userId)
-        .eq('completed', false)
+        .in('status', ['draft', 'in_progress'])
         .order('created_at', { ascending: false })
         .limit(1);
 

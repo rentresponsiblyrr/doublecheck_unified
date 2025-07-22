@@ -47,13 +47,30 @@ export class ChecklistService {
     try {
       logger.info('Fetching checklist items', { inspectionId }, 'CHECKLIST_SERVICE');
 
+      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
+      const { data: inspectionData, error: inspectionError } = await supabase
+        .from('inspections')
+        .select('property_id')
+        .eq('id', inspectionId)
+        .single();
+
+      if (inspectionError) {
+        logger.error('Failed to fetch inspection for property_id', inspectionError, 'CHECKLIST_SERVICE');
+        return { success: false, error: inspectionError.message };
+      }
+
+      if (!inspectionData) {
+        return { success: false, error: 'Inspection not found' };
+      }
+
+      // Now get checklist items using property_id (verified schema approach)
       const { data, error } = await supabase
         .from('logs')
         .select(`
           *,
           media (*)
         `)
-        .eq('inspection_id', inspectionId)
+        .eq('property_id', inspectionData.property_id)
         .order('created_at', { ascending: true });
 
       if (error) {

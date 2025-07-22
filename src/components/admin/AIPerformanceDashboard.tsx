@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
 import OfflineIndicator from '@/components/ui/OfflineIndicator';
 

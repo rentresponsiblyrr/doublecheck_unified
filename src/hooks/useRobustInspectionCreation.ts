@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { InspectionCreationService } from "@/services/inspectionCreationService";
 
 export const useRobustInspectionCreation = () => {

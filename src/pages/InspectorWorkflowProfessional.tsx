@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Wifi, WifiOff, AlertTriangle, Upload } from 'lucide-react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useErrorRecovery } from '@/utils/errorRecovery';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { PhotoAnalysis } from '@/types/ai-analysis';
 
 // Professional component imports

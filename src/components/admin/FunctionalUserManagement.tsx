@@ -55,7 +55,14 @@ export interface FunctionalUserManagementProps {
 /**
  * User Statistics Cards Component - Extracted for reusability
  */
-const UserStatsCards: React.FC<{ stats: any }> = ({ stats }) => (
+interface UserStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+}
+
+const UserStatsCards: React.FC<{ stats: UserStats }> = ({ stats }) => (
   <div className="grid grid-cols-1 md:grid-cols-4 gap-4" id="user-stats-cards">
     <Card>
       <CardContent className="p-4">

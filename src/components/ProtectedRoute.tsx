@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { AuthForm } from '@/components/AuthForm';
 import { isRoleAllowed } from '@/lib/config/app-type';
 

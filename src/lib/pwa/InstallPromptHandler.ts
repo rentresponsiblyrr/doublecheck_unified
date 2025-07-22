@@ -760,7 +760,7 @@ export class InstallPromptHandler {
    */
   private setupEngagementTracking(): void {
     // Track page visibility for time spent calculation
-    const sessionStartTime = Date.now();
+    let sessionStartTime = Date.now();
     let isVisible = !document.hidden;
     
     document.addEventListener('visibilitychange', () => {

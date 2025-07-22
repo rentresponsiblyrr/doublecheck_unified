@@ -98,7 +98,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
     // Validate phone (optional but must be valid if provided)
     if (formData.phone && formData.phone.trim()) {
-      const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
+      const phoneRegex = /^[+]?[\d\s\-()]{10,}$/;
       if (!phoneRegex.test(formData.phone.trim())) {
         errors.phone = 'Please enter a valid phone number';
       }

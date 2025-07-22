@@ -8,7 +8,7 @@ import { PropertySelectionError } from "@/components/PropertySelectionError";
 import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 
 // Use proper TypeScript types from Supabase

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { log } from '@/lib/logging/enterprise-logger';
 import { SecurityEvents } from '@/lib/security/security-audit-logger';
 import { PropertySearchFilter } from './PropertySearchFilter';

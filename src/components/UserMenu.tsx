@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, Shield, CheckCircle, RefreshCw, Bug } from 'lucide-react';
 import { BugReportDialog } from '@/components/BugReportDialog';
 

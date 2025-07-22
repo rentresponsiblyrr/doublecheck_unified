@@ -94,11 +94,17 @@ export class InputValidator {
       throw new ValidationError('Input must be a string', 'text', 'INVALID_TYPE');
     }
 
-    // Remove null bytes and control characters
-    const controlCharRegex = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+    // Remove null bytes and control characters using string-based approach
+    // This avoids regex control character issues in CI environments
     const sanitized = input
-      .replace(/\0/g, '')
-      .replace(controlCharRegex, '')
+      .replace(/\0/g, '') // Remove null bytes
+      .split('')
+      .filter(char => {
+        const code = char.charCodeAt(0);
+        // Remove control characters: 0-8, 11, 12, 14-31, 127
+        return !((code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127);
+      })
+      .join('')
       .trim();
 
     // Check for SQL injection patterns

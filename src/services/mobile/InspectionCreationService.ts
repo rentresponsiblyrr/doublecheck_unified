@@ -363,11 +363,22 @@ export class InspectionCreationService {
         inspectionId
       }, 'INSPECTION_ROLLBACK_START');
 
-      // Delete associated checklist items first
-      const { error: checklistError } = await supabase
-        .from('logs')
-        .delete()
-        .eq('inspection_id', inspectionId);
+      // Delete associated checklist items first (logs table uses property_id, not inspection_id)
+      // First get the property_id from the inspection
+      const { data: inspectionData } = await supabase
+        .from('inspections')
+        .select('property_id')
+        .eq('id', inspectionId)
+        .single();
+
+      let checklistError = null;
+      if (inspectionData) {
+        const { error: deleteError } = await supabase
+          .from('logs')
+          .delete()
+          .eq('property_id', inspectionData.property_id);
+        checklistError = deleteError;
+      }
 
       if (checklistError) {
         log.warn('Failed to delete checklist items during rollback', {

@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
@@ -122,7 +122,7 @@ export const PropertyCardWithResume = ({
         `)
         .eq('property_id', property.property_id.toString())
         .eq('inspector_id', user.id)
-        .eq('completed', false)
+        .in('status', ['draft', 'in_progress'])
         .order('created_at', { ascending: false })
         .limit(1);
 

@@ -1,18 +1,10 @@
 
-import React, { useContext } from 'react';
-import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
+import React from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
 import { MobileAuthLoading } from '@/components/MobileAuthLoading';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthInitialization } from '@/hooks/useAuthInitialization';
 import { useAuthStateListener } from '@/hooks/useAuthStateListener';
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const authState = useAuthState();

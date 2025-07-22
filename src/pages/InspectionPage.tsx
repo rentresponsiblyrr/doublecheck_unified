@@ -1,7 +1,7 @@
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useCallback } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { useSimplifiedInspectionData } from "@/hooks/useSimplifiedInspectionData";
 import { InspectionLoadingState } from "@/components/InspectionLoadingState";
 import { InspectionContent } from "@/components/InspectionContent";

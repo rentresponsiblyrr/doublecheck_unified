@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Settings, Shield, Users, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';

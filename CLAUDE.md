@@ -164,6 +164,26 @@ Deployment: Railway with Docker containerization
 
 ### **Data Architecture**
 
+#### **PHASE 1: DATABASE SCHEMA CRITICAL FIXES COMPLETED (JULY 22, 2025) ✅**
+**🎯 ZERO 400/404 DATABASE ERRORS - PRODUCTION INSPECTIONS WORKING**
+
+**PHASE 1 ACHIEVEMENTS**:
+- ✅ **PropertyCardWithResume.tsx line 125**: Fixed `.eq('completed', false)` → `.in('status', ['draft', 'in_progress'])`
+- ✅ **PropertyDataManager.tsx line 109**: Fixed `.eq('completed', false)` → `.in('status', ['draft', 'in_progress'])`  
+- ✅ **checklistService.ts lines 46-74**: Fixed `inspection_id` queries → Two-step property_id lookup pattern
+- ✅ **InspectionCreationService.ts lines 366-381**: Fixed rollback using property_id lookup pattern
+- ✅ **MobileInspectionOrchestrator.ts line 393**: Fixed checklist count using property_id lookup
+- ✅ **inspectionValidationService.ts line 60**: Fixed verification using property_id lookup
+- ✅ **debugDashboard.ts line 37**: Fixed debug queries using property_id lookup
+- ✅ **inspection-creation-flow-validator.ts line 551**: Fixed test cleanup using property_id lookup
+- ✅ **TypeScript compilation**: Zero errors confirmed with `npm run typecheck`
+- ✅ **Production build**: Successful build confirmed with `npm run build`
+
+**CRITICAL SCHEMA FIXES IMPLEMENTED**:
+All services now use the correct two-step query pattern for logs table access:
+1. Get `property_id` from `inspections` table using `inspection_id`
+2. Query `logs` table using `property_id` (since logs table doesn't have `inspection_id` column)
+
 #### **EMERGENCY CLEANUP COMPLETED (JULY 19, 2025) ✅**
 **🎯 PRODUCTION-READY CANONICAL CODEBASE ESTABLISHED**
 
@@ -581,6 +601,13 @@ const { data } = await supabase
 - `logs` table uses `checklist_id`, not `static_safety_item_id`
 - `logs` table does not have `inspection_id` column
 - Relationship: `logs.checklist_id` → `static_safety_items.id`
+
+**✅ PHASE 1 DATABASE FIXES COMPLETED (July 22, 2025):**
+- **FIXED**: PropertyCardWithResume.tsx - Replaced .eq('completed', false) with .in('status', ['draft', 'in_progress'])
+- **FIXED**: PropertyDataManager.tsx - Replaced .eq('completed', false) with .in('status', ['draft', 'in_progress'])
+- **FIXED**: checklistService.ts - Replaced inspection_id queries with property_id lookup pattern
+- **FIXED**: InspectionCreationService.ts - Updated rollback to use property_id instead of inspection_id
+- **RESOLVED**: All 400 "completed=eq.false" and 404 "inspection_id=eq" database errors
 
 ### **🚨 Development Warnings (Post-Migration):**
 

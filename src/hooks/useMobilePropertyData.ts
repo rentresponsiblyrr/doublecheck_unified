@@ -34,7 +34,7 @@ export const useMobilePropertyData = (userId?: string) => {
         setTimeout(() => reject(new Error('Mobile query timeout - please check your connection')), 5000);
       });
 
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as { data: MobilePropertyData[] | null; error: Error | null };
 
       const fetchDuration = Date.now() - startTime;
       

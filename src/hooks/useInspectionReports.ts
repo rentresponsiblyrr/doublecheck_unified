@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface InspectionReport {
   id: string;
@@ -125,7 +125,7 @@ export const useInspectionReports = () => {
               const auditFeedback = auditData?.[0];
 
               // Extract property details from scraped data
-              const scrapedData = inspection.properties?.scraped_data as any;
+              const scrapedData = inspection.properties?.scraped_data as Record<string, unknown> | null;
               const specifications = scrapedData?.specifications || {};
               
               const bedrooms = specifications?.bedrooms || null;

@@ -12,7 +12,7 @@ interface HealthCheckResult {
   status: 'healthy' | 'warning' | 'error';
   message: string;
   responseTime?: number;
-  details?: Record<string, any>;
+  details?: Record<string, string | number | boolean>;
 }
 
 interface ProductionHealthCheckProps {

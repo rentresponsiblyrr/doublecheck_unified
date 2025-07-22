@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useReducer } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { PhotoAnalysis } from '@/types/ai-analysis';

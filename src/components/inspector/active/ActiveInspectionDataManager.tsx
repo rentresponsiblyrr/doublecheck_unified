@@ -17,7 +17,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
 import { logger } from '@/utils/logger';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export interface ActiveInspectionSummary {
@@ -77,6 +77,7 @@ class ActiveInspectionService {
       logger.debug('Fetching active inspections', { userId, maxItems }, 'ACTIVE_INSPECTIONS');
       
       // Query active inspections with property and checklist data
+      // Note: Using corrected schema - logs table links via checklist_id, not static_safety_item_id
       const { data: inspections, error: inspectionsError } = await supabase
         .from('inspections')
         .select(`
@@ -91,9 +92,10 @@ class ActiveInspectionService {
             street_address
           ),
           logs (
-            id,
-            status,
-            static_safety_items!inner (
+            log_id,
+            pass,
+            inspector_remarks,
+            static_safety_items!checklist_id (
               id,
               label,
               evidence_type
@@ -101,12 +103,20 @@ class ActiveInspectionService {
           )
         `)
         .eq('inspector_id', userId)
-        .eq('completed', false)
+        .eq('status', 'in_progress')
         .order('updated_at', { ascending: false })
         .limit(maxItems);
 
       if (inspectionsError) {
-        throw inspectionsError;
+        logger.error('Supabase query error for active inspections', {
+          error: inspectionsError,
+          code: inspectionsError.code,
+          message: inspectionsError.message,
+          details: inspectionsError.details,
+          hint: inspectionsError.hint,
+          userId
+        }, 'ACTIVE_INSPECTIONS');
+        throw new Error(`Database query failed: ${inspectionsError.message || 'Unknown database error'}`);
       }
 
       if (!inspections || inspections.length === 0) {
@@ -121,7 +131,7 @@ class ActiveInspectionService {
         const checklistItems = inspection.logs || [];
         
         const completedItems = checklistItems.filter((item: any) => 
-          item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
+          item.pass !== null // Item has been evaluated (pass/fail)
         ).length;
 
         const photosRequired = checklistItems.filter((item: any) => 
@@ -210,8 +220,13 @@ export const ActiveInspectionDataManager: React.FC<ActiveInspectionDataManagerPr
    * Load active inspections
    */
   const loadInspections = useCallback(async (showRefreshing = false) => {
-    if (!user) {
+    if (!user?.id) {
+      logger.warn('Cannot load active inspections: user not authenticated', { 
+        user: user ? 'exists but no id' : 'null',
+        userId: user?.id 
+      }, 'ACTIVE_INSPECTIONS');
       setLoading(false);
+      setError('Authentication required. Please log in to view your inspections.');
       return;
     }
 

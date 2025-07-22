@@ -15,7 +15,7 @@
  * @author STR Certified Engineering Team
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePWAStatus } from '@/hooks/usePWAStatus';
 import { Smartphone, Download, Wifi, Battery, Camera, Clock, X, CheckCircle } from 'lucide-react';
 
@@ -61,7 +61,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
   });
 
   // Check if user meets engagement threshold
-  const meetsEngagementThreshold = (): boolean => {
+  const meetsEngagementThreshold = useCallback((): boolean => {
     const sessionMinutes = (Date.now() - engagement.sessionStartTime) / (1000 * 60);
     
     return (
@@ -71,7 +71,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
       engagement.returnVisits >= 2 ||
       engagement.offlineUsage > 0
     );
-  };
+  }, [engagement, engagementThreshold]);
 
   // Detect if user is on iOS Safari
   const isIOSSafari = (): boolean => {
@@ -110,7 +110,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
         }
         break;
     }
-  }, [trigger, status.canShowInstallPrompt, isDismissed, engagement]);
+  }, [trigger, status.canShowInstallPrompt, isDismissed, engagement, meetsEngagementThreshold]);
 
   // Track engagement metrics
   useEffect(() => {

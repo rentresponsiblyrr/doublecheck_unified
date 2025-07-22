@@ -31,13 +31,26 @@ export const debugDashboardData = async (userId?: string) => {
     // Get checklist items for first inspection
     if (allInspections && allInspections.length > 0) {
       const firstInspection = allInspections[0];
-      const { data: checklistItems, error: checklistError } = await supabase
-        .from('logs')
-        .select('id, status, inspection_id')
-        .eq('inspection_id', firstInspection.id);
+      
+      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
+      const { data: inspectionData, error: inspectionError } = await supabase
+        .from('inspections')
+        .select('property_id')
+        .eq('id', firstInspection.id)
+        .single();
 
-      if (checklistError) {
+      if (inspectionError || !inspectionData) {
+        // Log error if needed
       } else {
+        // Now get checklist items using property_id (verified schema approach)
+        const { data: checklistItems, error: checklistError } = await supabase
+          .from('logs')
+          .select('id, status, property_id')
+          .eq('property_id', inspectionData.property_id);
+
+        if (checklistError) {
+        } else {
+        }
       }
     }
 

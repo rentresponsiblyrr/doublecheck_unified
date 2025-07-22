@@ -387,16 +387,44 @@ export class MobileInspectionOrchestrator {
    */
   private static async getChecklistItemCount(inspectionId: string): Promise<number> {
     try {
+      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
+      const { data: inspectionData, error: inspectionError } = await supabase
+        .from('inspections')
+        .select('property_id')
+        .eq('id', inspectionId)
+        .single();
+
+      if (inspectionError) {
+        log.warn('Failed to get inspection for checklist count', {
+          component: 'MobileInspectionOrchestrator',
+          action: 'getChecklistItemCount',
+          inspectionId,
+          error: inspectionError.message
+        }, 'INSPECTION_LOOKUP_FAILED');
+        return 0;
+      }
+
+      if (!inspectionData) {
+        log.warn('Inspection not found for checklist count', {
+          component: 'MobileInspectionOrchestrator',
+          action: 'getChecklistItemCount',
+          inspectionId
+        }, 'INSPECTION_NOT_FOUND');
+        return 0;
+      }
+
+      // Now get checklist items using property_id (verified schema approach)
       const { count, error } = await supabase
         .from('logs')
         .select('*', { count: 'exact', head: true })
-        .eq('inspection_id', inspectionId);
+        .eq('property_id', inspectionData.property_id);
 
       if (error) {
         log.warn('Failed to get checklist item count', {
           component: 'MobileInspectionOrchestrator',
           action: 'getChecklistItemCount',
           inspectionId,
+          propertyId: inspectionData.property_id,
           error: error.message
         }, 'CHECKLIST_COUNT_FAILED');
         return 0;

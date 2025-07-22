@@ -394,7 +394,7 @@ export class AdvancedCacheOrchestrator {
    * Warmup cache with predicted data
    */
   async warmup(keys: string[], options?: {
-    source?: (key: string) => Promise<any>;
+    source?: (key: string) => Promise<unknown>;
     priority?: 'low' | 'medium' | 'high';
     batchSize?: number;
   }): Promise<void> {
@@ -984,7 +984,7 @@ export class AdvancedCacheOrchestrator {
  */
 class CacheTier {
   public config: CacheTierConfig;
-  private cache: Map<string, any> = new Map();
+  private cache: Map<string, unknown> = new Map();
   private accessTimes: Map<string, number> = new Map();
   private accessCounts: Map<string, number> = new Map();
 

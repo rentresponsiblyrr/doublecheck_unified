@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessKPIs, TrendData, RegionalData, TimeRange, DashboardData } from './types';
 
@@ -23,7 +23,7 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
     isLoading: true
   });
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setData(prev => ({ ...prev, isLoading: true }));
 
@@ -43,7 +43,7 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
       console.error('Failed to load dashboard data:', error);
       setData(prev => ({ ...prev, isLoading: false }));
     }
-  };
+  }, [timeRange]);
 
   const loadBusinessMetrics = async (): Promise<BusinessKPIs> => {
     const { data: inspections } = await supabase
@@ -124,7 +124,7 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [timeRange]);
+  }, [loadDashboardData]);
 
   return {
     ...data,

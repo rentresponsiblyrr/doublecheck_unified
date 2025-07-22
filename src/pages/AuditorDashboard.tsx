@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useErrorHandling } from '@/hooks/useErrorHandling';
 import { useLearningAnalytics } from '@/hooks/useLearningAnalytics';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { auditorService, type InspectionForReview, type AuditorMetrics } from '@/services/auditorService';
 import { logger } from '@/utils/logger';
 

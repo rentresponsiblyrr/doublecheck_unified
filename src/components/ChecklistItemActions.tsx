@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, X, MinusCircle, Wifi, WifiOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 interface ChecklistItemActionsProps {
