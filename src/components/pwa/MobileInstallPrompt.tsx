@@ -95,13 +95,14 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
       case 'manual':
         // Controlled externally
         break;
-      case 'workflow':
+      case 'workflow': {
         // Show during specific workflow steps
         const currentPath = window.location.pathname;
         if (currentPath.includes('/inspection/') && meetsEngagementThreshold()) {
           setShowPrompt(true);
         }
         break;
+      }
       case 'engagement':
       default:
         if (meetsEngagementThreshold()) {

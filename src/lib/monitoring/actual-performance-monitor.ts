@@ -301,12 +301,14 @@ export class ActualPerformanceMonitor {
       if (entries.length > 0) {
         const navigation = entries[0];
         switch (metric) {
-          case 'first-contentful-paint':
+          case 'first-contentful-paint': {
             const fcpEntries = performance.getEntriesByName('first-contentful-paint');
             return fcpEntries.length > 0 ? fcpEntries[0].startTime : 0;
-          case 'largest-contentful-paint':
+          }
+          case 'largest-contentful-paint': {
             const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
             return lcpEntries.length > 0 ? lcpEntries[lcpEntries.length - 1].startTime : 0;
+          }
           default:
             return 0;
         }

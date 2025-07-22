@@ -20,7 +20,7 @@
  */
 
 import { execSync } from 'child_process';
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { 
   InspectionCreationFlowValidator,
@@ -476,7 +476,7 @@ class ComprehensiveTestRunner {
     try {
       const coveragePath = join(process.cwd(), 'coverage', 'coverage-summary.json');
       if (existsSync(coveragePath)) {
-        const coverage = JSON.parse(require('fs').readFileSync(coveragePath, 'utf8'));
+        const coverage = JSON.parse(readFileSync(coveragePath, 'utf8'));
         return coverage.total?.lines?.pct || 0;
       }
     } catch (error) {

@@ -123,7 +123,11 @@ export const useVideoPlayer = (videoUrl: string) => {
       switch (e.key.toLowerCase()) {
         case ' ':
           e.preventDefault();
-          state.isPlaying ? pause() : play();
+          if (state.isPlaying) {
+            pause();
+          } else {
+            play();
+          }
           break;
         case 'arrowleft':
           e.preventDefault();

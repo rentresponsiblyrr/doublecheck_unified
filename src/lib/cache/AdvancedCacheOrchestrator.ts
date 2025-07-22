@@ -1021,14 +1021,16 @@ class CacheTier {
         case 'indexeddb':
           result = await intelligentCache.get('default', key);
           break;
-        case 'localStorage':
+        case 'localStorage': {
           const stored = localStorage.getItem(key);
           result = stored ? JSON.parse(stored) : null;
           break;
-        case 'sessionStorage':
+        }
+        case 'sessionStorage': {
           const sessionStored = sessionStorage.getItem(key);
           result = sessionStored ? JSON.parse(sessionStored) : null;
           break;
+        }
       }
 
       if (result !== null) {

@@ -166,10 +166,10 @@ class ProfessionalTestRunner {
   }
 
   private calculateOverallQuality(results: {
-    unitResults: any;
-    integrationResults: any;
-    e2eResults: any;
-    performanceResults: any;
+    unitResults: { passed: number; failed: number; coverage: number };
+    integrationResults: { passed: number; failed: number; coverage: number };
+    e2eResults: { passed: number; failed: number; coverage: number };
+    performanceResults: { passed: number; failed: number; coverage: number };
   }) {
     const totalTests = 
       results.unitResults.passed + results.unitResults.failed +
