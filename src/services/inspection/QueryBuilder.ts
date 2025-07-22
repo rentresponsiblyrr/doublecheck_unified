@@ -345,7 +345,7 @@ export class QueryBuilder<T = any> {
     return new QueryBuilder('logs')
       .select(`
         *,
-        static_safety_items!inner (
+        static_safety_items!checklist_id (
           id,
           label,
           category,

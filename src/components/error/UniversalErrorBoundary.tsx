@@ -56,10 +56,12 @@ export class UniversalErrorBoundary extends Component<ErrorBoundaryProps, ErrorB
     const { level = 'component', onError } = this.props;
     
     // Log error
-    logger.logError(`Error Boundary (${level})`, error, {
+    logger.error(`Error Boundary (${level})`, {
+      error: error.message,
+      stack: error.stack,
       componentStack: errorInfo.componentStack,
       errorBoundary: this.constructor.name
-    });
+    }, 'ERROR_BOUNDARY');
     
     this.setState({ errorInfo });
     onError?.(error, errorInfo);

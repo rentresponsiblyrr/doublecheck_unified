@@ -311,7 +311,7 @@ export class InspectionDataService {
           ),
           logs!left (
             *,
-            static_safety_items!inner (
+            static_safety_items!checklist_id (
               id,
               label,
               category,
@@ -781,7 +781,7 @@ export class InspectionDataService {
       .from('logs')
       .select(`
         *,
-        static_safety_items!inner (
+        static_safety_items!checklist_id (
           required,
           evidence_type
         )

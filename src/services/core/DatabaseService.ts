@@ -461,7 +461,7 @@ export class DatabaseService {
           inspector_remarks,
           pass,
           inspector_id,
-          static_safety_items!inner (
+          static_safety_items!checklist_id (
             id,
             label,
             category,

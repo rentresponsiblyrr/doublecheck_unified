@@ -520,7 +520,7 @@ export class PropertyDataService {
             inspector_id,
             logs!left (
               *,
-              static_safety_items!inner (
+              static_safety_items!checklist_id (
                 id,
                 label,
                 category,

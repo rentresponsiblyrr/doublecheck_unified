@@ -678,11 +678,11 @@ export function createLogger(config?: Partial<LoggerConfig>): EnterpriseLogger {
 export function getGlobalLogger(): EnterpriseLogger {
   if (!globalLogger) {
     globalLogger = createLogger({
-      environment: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
-      enableConsole: process.env.NODE_ENV === 'development',
-      enableRemote: process.env.NODE_ENV === 'production',
-      remoteEndpoint: process.env.VITE_LOGGING_ENDPOINT,
-      apiKey: process.env.VITE_LOGGING_API_KEY
+      environment: (import.meta.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+      enableConsole: import.meta.env.NODE_ENV === 'development' || import.meta.env.DEV,
+      enableRemote: import.meta.env.NODE_ENV === 'production' || import.meta.env.PROD,
+      remoteEndpoint: import.meta.env.VITE_LOGGING_ENDPOINT,
+      apiKey: import.meta.env.VITE_LOGGING_API_KEY
     });
   }
   return globalLogger;

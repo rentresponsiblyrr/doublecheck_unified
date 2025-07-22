@@ -537,7 +537,7 @@ export class UnifiedDatabaseService {
           users!inner (id, name, email, role),
           logs!inner (
             *,
-            static_safety_items!inner (id, label, category),
+            static_safety_items!checklist_id (id, label, category),
             media (*)
           )
         `)

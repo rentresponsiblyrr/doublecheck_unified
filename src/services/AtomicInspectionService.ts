@@ -457,7 +457,7 @@ export class AtomicInspectionService {
             log_id,
             property_id,
             checklist_id,
-            static_safety_items!inner (
+            static_safety_items!checklist_id (
               id,
               label,
               category,

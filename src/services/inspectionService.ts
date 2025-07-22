@@ -163,7 +163,7 @@ export class InspectionService {
           ),
           logs!inner (
             *,
-            static_safety_items!inner (
+            static_safety_items!checklist_id (
               label,
               category
             ),
@@ -322,7 +322,7 @@ export class InspectionService {
           ),
           logs!inner (
             *,
-            static_safety_items!inner (
+            static_safety_items!checklist_id (
               label,
               category
             ),
@@ -364,7 +364,7 @@ export class InspectionService {
           ),
           logs!inner (
             *,
-            static_safety_items!inner (
+            static_safety_items!checklist_id (
               label,
               category
             ),

@@ -178,7 +178,7 @@ export class ChecklistDataService {
         .from('logs')
         .select(`
           *,
-          static_safety_items!inner (
+          static_safety_items!checklist_id (
             id,
             label,
             category,
