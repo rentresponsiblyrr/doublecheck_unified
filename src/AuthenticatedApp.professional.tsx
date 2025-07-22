@@ -161,7 +161,7 @@ const ProfessionalChunkErrorFallback: React.FC<{
 
 // Route wrapper with professional error handling
 const ProfessionalRoute: React.FC<{ 
-  component: React.LazyExoticComponent<React.ComponentType<any>>;
+  component: React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>>;
   name: string;
   fallback?: React.ComponentType;
 }> = ({ 

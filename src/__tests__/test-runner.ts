@@ -247,11 +247,14 @@ class ProfessionalTestRunner {
 
     const profileReport = this.profiler.getReport();
     profileReport.slice(0, 5).forEach(profile => {
+      console.debug(`Profile: ${profile.name} - ${profile.executionTime}ms`);
     });
 
     
     if (results.overallQuality.productionReady) {
+      console.log('✅ System is production ready');
     } else {
+      console.warn('⚠️ System has quality issues that need attention');
     }
     
   }

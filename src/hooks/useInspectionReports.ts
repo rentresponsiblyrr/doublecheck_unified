@@ -51,9 +51,8 @@ export const useInspectionReports = () => {
       }
 
 
-      try {
-        // Fetch inspections with property data and basic counts
-        const { data: inspectionsData, error: inspectionsError } = await supabase
+      // Fetch inspections with property data and basic counts
+      const { data: inspectionsData, error: inspectionsError } = await supabase
           .from('inspections')
           .select(`
             id,
@@ -186,10 +185,7 @@ export const useInspectionReports = () => {
           })
         );
 
-        return enrichedInspections;
-      } catch (error) {
-        throw error;
-      }
+      return enrichedInspections;
     },
     enabled: !!user?.id,
     retry: (failureCount, error) => {

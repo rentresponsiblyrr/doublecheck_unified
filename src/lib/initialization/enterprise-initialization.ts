@@ -337,7 +337,7 @@ class EnterpriseInitializer {
    */
   private async initializeServiceTracer(): Promise<void> {
     // Service tracer automatically connects to initialized systems
-    enterpriseServiceTracer;
+    await enterpriseServiceTracer.initialize();
   }
 
   /**

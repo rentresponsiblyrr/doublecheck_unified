@@ -574,9 +574,10 @@ export class PerformanceMonitor {
       case 'LCP': return this.coreWebVitals.LCP || 0;
       case 'FID': return this.coreWebVitals.FID || 0;
       case 'CLS': return this.coreWebVitals.CLS || 0;
-      case 'componentRender': 
+      case 'componentRender': {
         const components = this.getComponentPerformance();
         return Math.max(...components.map(c => c.maxRenderTime), 0);
+      }
       default: return 0;
     }
   }

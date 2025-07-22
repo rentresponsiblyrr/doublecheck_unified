@@ -112,9 +112,8 @@ export const useInspectorDashboard = () => {
 
       // REMOVED: Dashboard fetching logging to prevent infinite loops
 
-      try {
-        // Fetch both inspections and properties in parallel
-        const [inspectionsResult, propertiesResult] = await Promise.all([
+      // Fetch both inspections and properties in parallel
+      const [inspectionsResult, propertiesResult] = await Promise.all([
           // Fetch inspections
           supabase
             .from('inspections')
@@ -192,13 +191,10 @@ export const useInspectorDashboard = () => {
           })
         );
 
-        return { 
-          inspections: inspectionsWithProgress, 
-          properties: propertiesData || [] 
-        };
-      } catch (error) {
-        throw error;
-      }
+      return { 
+        inspections: inspectionsWithProgress, 
+        properties: propertiesData || [] 
+      };
     },
     enabled: !!user?.id,
     retry: (failureCount, error) => {

@@ -291,7 +291,7 @@ export const TestDataUtils = {
    * Create API response mocks
    */
   createApiMocks: {
-    success: (data?: any) => ApiResponseFactory.build({ 
+    success: (data?: unknown) => ApiResponseFactory.build({ 
       data, 
       error: null, 
       status: 200, 

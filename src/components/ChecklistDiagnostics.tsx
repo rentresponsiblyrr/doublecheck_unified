@@ -95,7 +95,7 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
           <div key={entry.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2">
               {getIcon(entry.operation_type)}
-              <Badge variant={getVariant(entry.operation_type) as any}>
+              <Badge variant={getVariant(entry.operation_type) as "default" | "destructive" | "outline" | "secondary"}>
                 {entry.operation_type}
               </Badge>
               <span className="text-sm text-gray-600">

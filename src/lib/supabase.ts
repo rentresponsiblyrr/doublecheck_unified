@@ -48,28 +48,23 @@ export const saveMediaRecord = async (
   url: string,
   filePath?: string
 ) => {
-  try {
-    
-    const { data, error } = await supabase
-      .from('media')
-      .insert({
-        checklist_item_id: checklistItemId,
-        type,
-        url,
-        file_path: filePath,
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+  const { data, error } = await supabase
+    .from('media')
+    .insert({
+      checklist_item_id: checklistItemId,
+      type,
+      url,
+      file_path: filePath,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single();
 
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
+  if (error) {
     throw error;
   }
+
+  return data;
 };
 
 // Helper function to update checklist item status
@@ -77,50 +72,40 @@ export const updateChecklistItemStatus = async (
   checklistItemId: string,
   status: 'completed' | null
 ) => {
-  try {
-    
-    // Phase 4 Fix: Use logs (compatibility view)
-    // Maps to production logs table with proper field transformations
-    const { data, error } = await supabase
-      .from('logs')
-      .update({ status })
-      .eq('id', checklistItemId)
-      .select()
-      .single();
+  // Phase 4 Fix: Use logs (compatibility view)
+  // Maps to production logs table with proper field transformations
+  const { data, error } = await supabase
+    .from('logs')
+    .update({ status })
+    .eq('id', checklistItemId)
+    .select()
+    .single();
 
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
+  if (error) {
     throw error;
   }
+
+  return data;
 };
 
 // Helper function to get inspection details
 export const getInspectionDetails = async (inspectionId: string) => {
-  try {
-    
-    const { data, error } = await supabase
-      .from('inspections')
-      .select(`
-        *,
-        properties (
-          name,
-          address,
-          vrbo_url
-        )
-      `)
-      .eq('id', inspectionId)
-      .single();
+  const { data, error } = await supabase
+    .from('inspections')
+    .select(`
+      *,
+      properties (
+        name,
+        address,
+        vrbo_url
+      )
+    `)
+    .eq('id', inspectionId)
+    .single();
 
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
+  if (error) {
     throw error;
   }
+
+  return data;
 };

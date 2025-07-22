@@ -15,7 +15,7 @@
  * @author STR Certified Engineering Team
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -91,12 +91,12 @@ export const PropertyCardWithResume = ({
   useEffect(() => {
     checkForActiveInspection();
     checkForOfflineChanges();
-  }, [property.property_id, user]);
+  }, [property.property_id, user, checkForActiveInspection, checkForOfflineChanges]);
 
   /**
    * Check for active inspection on this property
    */
-  const checkForActiveInspection = async () => {
+  const checkForActiveInspection = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -136,11 +136,11 @@ export const PropertyCardWithResume = ({
         const inspectionData = inspection[0];
         const checklistItems = inspectionData.logs || [];
         
-        const completedItems = checklistItems.filter((item: any) => 
+        const completedItems = checklistItems.filter((item: { status: string }) => 
           item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
         ).length;
 
-        const photosRequired = checklistItems.filter((item: any) => 
+        const photosRequired = checklistItems.filter((item: { static_safety_items?: { evidence_type: string } }) => 
           item.static_safety_items?.evidence_type === 'photo'
         ).length;
 
@@ -173,12 +173,12 @@ export const PropertyCardWithResume = ({
       logger.error('Unexpected error checking for active inspection', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
       setLoading(false);
     }
-  };
+  }, [user, property.property_id]);
 
   /**
    * Check for offline changes
    */
-  const checkForOfflineChanges = async () => {
+  const checkForOfflineChanges = useCallback(async () => {
     try {
       const recoveryResult = await workflowStatePersistence.recoverState(`property_${property.property_id}`);
       if (recoveryResult.recovered) {
@@ -188,7 +188,7 @@ export const PropertyCardWithResume = ({
     } catch (error) {
       logger.warn('Error checking for offline changes', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
     }
-  };
+  }, [property.property_id]);
 
   /**
    * Handle starting new or resuming inspection

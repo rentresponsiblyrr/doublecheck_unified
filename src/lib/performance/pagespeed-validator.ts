@@ -741,8 +741,6 @@ export function usePageSpeedValidator(config?: Partial<ValidationConfig>) {
       const auditResult = await validator.runAudit(url);
       setResult(auditResult);
       return auditResult;
-    } catch (error) {
-      throw error;
     } finally {
       setIsValidating(false);
     }

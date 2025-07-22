@@ -24,35 +24,31 @@ export const useMobilePropertyData = (userId?: string) => {
     queryFn: async () => {
       const startTime = Date.now();
 
-      try {
-        // Mobile-optimized query with timeout
-        const queryPromise = supabase.rpc('get_properties_with_inspections', {
-          _user_id: userId || null
-        });
+      // Mobile-optimized query with timeout
+      const queryPromise = supabase.rpc('get_properties_with_inspections', {
+        _user_id: userId || null
+      });
 
-        // Mobile timeout (5 seconds)
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Mobile query timeout - please check your connection')), 5000);
-        });
+      // Mobile timeout (5 seconds)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Mobile query timeout - please check your connection')), 5000);
+      });
 
-        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-        const fetchDuration = Date.now() - startTime;
-        
-        if (error) {
-          throw new Error(`Failed to load properties: ${error.message}`);
-        }
-
-        console.debug('Mobile property fetch completed', {
-          count: data?.length || 0,
-          fetchDuration,
-          timestamp: new Date().toISOString()
-        });
-
-        return (data || []) as MobilePropertyData[];
-      } catch (error) {
-        throw error;
+      const fetchDuration = Date.now() - startTime;
+      
+      if (error) {
+        throw new Error(`Failed to load properties: ${error.message}`);
       }
+
+      console.debug('Mobile property fetch completed', {
+        count: data?.length || 0,
+        fetchDuration,
+        timestamp: new Date().toISOString()
+      });
+
+      return (data || []) as MobilePropertyData[];
     },
     staleTime: 30000, // 30 seconds stale time for mobile
     gcTime: 300000, // 5 minutes cache for mobile
