@@ -818,10 +818,10 @@ export class BatteryOptimizationManager {
     return () => this.batteryListeners.delete(listener);
   }
 
-  forceBatteryTier(tier: 'green' | 'yellow' | 'orange' | 'red'): void {
+  async forceBatteryTier(tier: 'green' | 'yellow' | 'orange' | 'red'): Promise<void> {
     if (this.batteryState) {
       this.batteryState.powerTier = tier;
-      this.applyBatteryProfile();
+      await this.applyBatteryProfile();
     }
   }
 

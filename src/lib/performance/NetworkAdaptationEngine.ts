@@ -710,7 +710,7 @@ export class NetworkAdaptationEngine {
     return () => this.adaptationListeners.delete(listener);
   }
 
-  forceAdaptationLevel(level: AdaptationStrategy['level']): void {
+  async forceAdaptationLevel(level: AdaptationStrategy['level']): Promise<void> {
     const mockCondition: NetworkCondition = {
       type: level === 'emergency' ? '2g' : '4g',
       quality: level === 'emergency' ? 'critical' : 'excellent',
@@ -722,7 +722,7 @@ export class NetworkAdaptationEngine {
     };
     
     this.currentNetworkCondition = mockCondition;
-    this.applyAdaptationStrategy();
+    await this.applyAdaptationStrategy();
   }
 
   stop(): void {

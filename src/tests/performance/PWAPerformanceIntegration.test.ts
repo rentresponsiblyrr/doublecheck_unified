@@ -331,7 +331,7 @@ describe('PWA Performance Integration Tests', () => {
       await networkAdaptationEngine.initialize();
       
       // Force 2G conditions
-      networkAdaptationEngine.forceAdaptationLevel('emergency');
+      await networkAdaptationEngine.forceAdaptationLevel('emergency');
       
       const adaptationState = networkAdaptationEngine.getCurrentAdaptationState();
       
@@ -393,7 +393,7 @@ describe('PWA Performance Integration Tests', () => {
       await batteryOptimizationManager.initialize();
       
       // Force low battery scenario
-      batteryOptimizationManager.forceBatteryTier('orange');
+      await batteryOptimizationManager.forceBatteryTier('orange');
       
       const batteryExtension = batteryOptimizationManager.getEstimatedBatteryExtension();
       const powerSavings = batteryOptimizationManager.getTotalPowerSavings();
@@ -406,7 +406,7 @@ describe('PWA Performance Integration Tests', () => {
       await batteryOptimizationManager.initialize();
       
       // Force emergency battery scenario
-      batteryOptimizationManager.forceBatteryTier('red');
+      await batteryOptimizationManager.forceBatteryTier('red');
       
       const profile = batteryOptimizationManager.getCurrentProfile();
       const activeOptimizations = batteryOptimizationManager.getActiveOptimizations();
@@ -517,8 +517,8 @@ describe('PWA Performance Integration Tests', () => {
       expect(batteryInit).toBe(true);
 
       // Simulate poor construction site conditions
-      networkAdaptationEngine.forceAdaptationLevel('emergency'); // 2G network
-      batteryOptimizationManager.forceBatteryTier('orange'); // Low battery
+      await networkAdaptationEngine.forceAdaptationLevel('emergency'); // 2G network
+      await batteryOptimizationManager.forceBatteryTier('orange'); // Low battery
 
       // Verify systems adapt appropriately
       const networkState = networkAdaptationEngine.getCurrentAdaptationState();
@@ -542,7 +542,7 @@ describe('PWA Performance Integration Tests', () => {
       await batteryOptimizationManager.initialize();
       
       // Simulate full day scenario
-      batteryOptimizationManager.forceBatteryTier('yellow'); // Normal operation
+      await batteryOptimizationManager.forceBatteryTier('yellow'); // Normal operation
       
       const batteryState = batteryOptimizationManager.getCurrentBatteryState();
       const profile = batteryOptimizationManager.getCurrentProfile();
@@ -610,8 +610,8 @@ describe('PWA Performance Integration Tests', () => {
 
     it('should maintain standards under stress conditions', async () => {
       // Apply maximum stress conditions
-      networkAdaptationEngine.forceAdaptationLevel('emergency');
-      batteryOptimizationManager.forceBatteryTier('red');
+      await networkAdaptationEngine.forceAdaptationLevel('emergency');
+      await batteryOptimizationManager.forceBatteryTier('red');
       
       const auditReport = await lighthousePWAAuditor.runComprehensiveAudit();
       
