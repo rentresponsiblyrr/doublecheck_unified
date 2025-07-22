@@ -137,16 +137,16 @@ STR Certified Team`);
       // Simulate delivery process
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Log delivery to database
+      // Log delivery to database - using report_deliveries table for proper schema
       const { error: logError } = await supabase
-        .from('logs')
+        .from('report_deliveries')
         .insert({
-          property_id: parseInt(propertyId),
-          checklist_id: `${inspectionId}-delivery`,
-          inspector_id: 'system',
-          inspector_remarks: `Report delivered to ${managerInfo.name} (${managerInfo.email})`,
-          ai_result: JSON.stringify(deliveryData),
-          pass: true,
+          inspection_id: inspectionId,
+          delivery_method: 'email',
+          recipient_email: managerInfo.email,
+          recipient_name: managerInfo.name,
+          delivery_status: 'completed',
+          delivery_data: JSON.stringify(deliveryData),
           created_at: new Date().toISOString()
         });
 

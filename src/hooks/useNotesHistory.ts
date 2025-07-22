@@ -22,7 +22,7 @@ export const useNotesHistory = (itemId: string) => {
     const loadNotesHistory = async () => {
       try {
         const { data, error } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .select('notes_history')
           .eq('id', itemId)
           .single();

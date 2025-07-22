@@ -127,10 +127,10 @@ export interface PWAActions {
 }
 
 export interface PWADebugInfo {
-  serviceWorkerState: any;
-  offlineManagerState: any;
-  installHandlerState: any;
-  performanceMetrics: any;
+  serviceWorkerState: ServiceWorkerState;
+  offlineManagerState: OfflineManagerState;
+  installHandlerState: InstallHandlerState;
+  performanceMetrics: PerformanceMetrics;
   lastSyncTime: Date | null;
   errorHistory: PWAError[];
 }
@@ -140,7 +140,7 @@ export interface PWAError {
   component: string;
   message: string;
   stack?: string;
-  context: any;
+  context: Record<string, any>;
 }
 
 export interface InstallPromptResult {
@@ -157,10 +157,32 @@ export interface SyncResult {
 }
 
 export interface PerformanceReport {
-  coreWebVitals: any;
-  bundleAnalysis: any;
-  networkMetrics: any;
+  coreWebVitals: CoreWebVitalsData;
+  bundleAnalysis: BundleAnalysisData;
+  networkMetrics: NetworkMetricsData;
   recommendations: string[];
+}
+
+export interface CoreWebVitalsData {
+  lcp: number;
+  fid: number;
+  cls: number;
+  fcp: number;
+  ttfb: number;
+}
+
+export interface BundleAnalysisData {
+  totalSize: number;
+  compressedSize: number;
+  loadTime: number;
+  cacheHitRate: number;
+}
+
+export interface NetworkMetricsData {
+  connectionType: string;
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
 }
 
 export interface OptimizationResult {
@@ -172,7 +194,7 @@ export interface OptimizationResult {
 
 export interface RetryQueueItem {
   type: string;
-  data: any;
+  data: Record<string, any>;
   priority: 'critical' | 'high' | 'medium' | 'low';
   url: string;
   method: string;
@@ -912,9 +934,27 @@ export function useOfflineInspection(): [
     saveInspection: (inspection: OfflineInspection) => Promise<void>;
     getInspection: (id: string) => Promise<OfflineInspection | null>;
     deleteInspection: (id: string) => Promise<void>;
-    saveMedia: (mediaId: string, file: File, metadata: any) => Promise<boolean>;
+    saveMedia: (mediaId: string, file: File, metadata: MediaMetadata) => Promise<boolean>;
     syncInspections: () => Promise<void>;
   }
+}
+
+export interface MediaMetadata {
+  checklistItemId?: string;
+  inspectionId?: string;
+  type: 'photo' | 'video' | 'audio';
+  quality?: 'low' | 'medium' | 'high';
+  fileSize?: number;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  timestamp?: Date;
+  [key: string]: any;
 ] {
   const [inspections, setInspections] = useState<OfflineInspection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -954,7 +994,7 @@ export function useOfflineInspection(): [
     setInspections(prev => prev.filter(i => i.id !== id));
   }, []);
 
-  const saveMedia = useCallback(async (mediaId: string, file: File, metadata: any): Promise<boolean> => {
+  const saveMedia = useCallback(async (mediaId: string, file: File, metadata: MediaMetadata): Promise<boolean> => {
     try {
       // Simulate media save operation
       logger.info('Saving media', { mediaId, fileSize: file.size }, 'OFFLINE_INSPECTION');

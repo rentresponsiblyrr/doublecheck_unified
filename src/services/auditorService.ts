@@ -6,10 +6,10 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
 type InspectionRecord = Tables['inspections']['Row'];
-type ChecklistItemRecord = Tables['logs']['Row'];
+type ChecklistItemRecord = Tables['checklist_items']['Row'];
 type MediaFileRecord = Tables['media']['Row'];
 type PropertyRecord = Tables['properties']['Row'];
-type UserRecord = Tables['profiles']['Row'];
+type UserRecord = Tables['users']['Row'];
 
 export interface InspectionForReview {
   id: string;
@@ -20,18 +20,18 @@ export interface InspectionForReview {
   end_time: string | null;
   created_at: string;
   properties: {
-    property_id: number;
+    id: string;
     name: string;
     address: string;
     vrbo_url?: string;
     airbnb_url?: string;
   };
-  profiles: {
+  users: {
     id: string;
-    full_name: string;
+    name: string;
     email: string;
   };
-  logs: Array<{
+  checklist_items: Array<{
     id: string;
     title: string;
     status: string;
@@ -106,18 +106,18 @@ export class AuditorService {
           end_time,
           created_at,
           properties!inner (
-            property_id,
+            id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          profiles!inner (
+          users!inner (
             id,
-            full_name,
+            name,
             email
           ),
-          logs (
+          checklist_items (
             id,
             title,
             status,
@@ -159,7 +159,7 @@ export class AuditorService {
       // Process and enhance the data
       const enhancedInspections: InspectionForReview[] = (data || []).map(inspection => ({
         ...inspection,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.logs || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(inspection.checklist_items || [])
       }));
 
       logger.info('Successfully fetched inspections for review', {
@@ -193,18 +193,18 @@ export class AuditorService {
           end_time,
           created_at,
           properties!inner (
-            property_id,
+            id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          profiles!inner (
+          users!inner (
             id,
-            full_name,
+            name,
             email
           ),
-          logs (
+          checklist_items (
             id,
             title,
             description,
@@ -239,7 +239,7 @@ export class AuditorService {
       // Enhance with AI analysis summary
       const enhancedInspection: InspectionForReview = {
         ...data,
-        ai_analysis_summary: this.calculateAIAnalysisSummary(data.logs || [])
+        ai_analysis_summary: this.calculateAIAnalysisSummary(data.checklist_items || [])
       };
 
       return { success: true, data: enhancedInspection };

@@ -126,8 +126,8 @@ export const useInspectionStore = create<InspectionStore>()(
               
               logger.info('Property selected for inspection', {
                 propertyId: property.id,
-                propertyName: property.property_name,
-                address: property.street_address,
+                propertyName: property.name,
+                address: property.address,
               }, 'INSPECTION_STORE');
             });
           },
@@ -245,7 +245,7 @@ export const useInspectionStore = create<InspectionStore>()(
               const { data: inspection, error } = await supabase
                 .from('inspections')
                 .insert({
-                  property_id: propertyId,
+                  property_id: propertyId, // Note: Inspections table still uses property_id as foreign key
                   inspector_id: user.id,
                   status: 'in_progress',
                 })
@@ -388,12 +388,12 @@ export const useInspectionStore = create<InspectionStore>()(
                   
                   // Update checklist item in database
                   const { error } = await supabase
-                    .from('logs')
+                    .from('checklist_items')
                     .upsert({
                       inspection_id: state.inspectionId,
-                      checklist_id: item.checklist_id,
-                      pass: item.status === 'completed',
-                      inspector_remarks: item.inspector_notes,
+                      static_item_id: item.checklist_id,
+                      status: item.status,
+                      notes: item.inspector_notes,
                       ai_result: item.ai_result,
                     });
 

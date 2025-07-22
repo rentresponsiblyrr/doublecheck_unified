@@ -94,7 +94,7 @@ export class PropertyLookupService {
 
       // Find property with exact ID match (handle both string and numeric IDs)
       const property = propertiesData.find(p => 
-        p.property_id?.toString() === cleanPropertyId.toString()
+        p.id?.toString() === cleanPropertyId.toString()
       );
 
       if (!property) {
@@ -104,9 +104,9 @@ export class PropertyLookupService {
           propertyId: cleanPropertyId,
           availablePropertyCount: propertiesData.length,
           samplePropertyIds: propertiesData.slice(0, 3).map(p => ({
-            id: p.property_id,
+            id: p.id,
             name: p.name,
-            type: typeof p.property_id
+            type: typeof p.id
           }))
         }, 'PROPERTY_NOT_FOUND');
         
@@ -119,7 +119,7 @@ export class PropertyLookupService {
 
       // Construct properly typed property info
       const propertyInfo: PropertyInfo = {
-        id: property.property_id?.toString() || cleanPropertyId,
+        id: property.id?.toString() || cleanPropertyId,
         name: property.name || 'Property',
         address: property.address,
         created_by: property.created_by
@@ -218,9 +218,9 @@ export class PropertyLookupService {
 
       // Filter and map to PropertyInfo objects
       const results = propertiesData
-        .filter(p => validIds.includes(p.property_id?.toString()))
+        .filter(p => validIds.includes(p.id?.toString()))
         .map(p => ({
-          id: p.property_id?.toString() || '',
+          id: p.id?.toString() || '',
           name: p.name || 'Property',
           address: p.address,
           created_by: p.created_by

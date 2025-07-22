@@ -164,7 +164,7 @@ export const deletePropertyData = async (propertyId: string): Promise<void> => {
       
       // Step 2: Get all checklist items for these inspections
       const { data: checklistItems, error: checklistQueryError } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('id')
         .in('inspection_id', inspectionIds);
 

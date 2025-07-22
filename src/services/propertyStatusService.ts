@@ -92,7 +92,7 @@ class PropertyStatusService {
     
     try {
       logger.debug('Calculating property status', { 
-        propertyId: property.property_id,
+        propertyId: property.id,
         propertyName: property.name 
       }, 'PROPERTY_STATUS_SERVICE');
 
@@ -116,7 +116,7 @@ class PropertyStatusService {
 
       const calculationTime = performance.now() - startTime;
       logger.debug('Property status calculated', { 
-        propertyId: property.property_id,
+        propertyId: property.id,
         status,
         reason,
         calculationTimeMs: calculationTime.toFixed(2)
@@ -126,7 +126,7 @@ class PropertyStatusService {
 
     } catch (error) {
       logger.error('Property status calculation failed', error, 'PROPERTY_STATUS_SERVICE', {
-        propertyId: property.property_id,
+        propertyId: property.id,
         propertyData: property
       });
 

@@ -43,8 +43,8 @@ export const useDataIntegrity = (inspectionId?: string) => {
 
       // Check for checklist items without required evidence
       const { data: itemsWithoutEvidence } = await supabase
-        .from('logs')
-        .select('id, label, status')
+        .from('checklist_items')
+        .select('id, title, status')
         .eq('inspection_id', inspectionId)
         .in('status', ['completed', 'failed'])
         .not('id', 'in', 

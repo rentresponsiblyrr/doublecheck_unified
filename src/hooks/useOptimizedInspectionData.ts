@@ -44,18 +44,20 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
           throw new Error('Inspection not found');
         }
 
-        const logsResult = await supabase
-          .from('logs')
-          .select('id, property_id, label, category, evidence_type, status, created_at')
-          .eq('property_id', inspection.property_id)
+        // Use checklist_items table (correct schema)
+        const checklistResult = await supabase
+          .from('checklist_items')
+          .select('id, inspection_id, title, category, evidence_type, status, created_at')
+          .eq('inspection_id', inspection.id)
           .order('created_at', { ascending: true});
         
-        data = logsResult.data;
-        error = logsResult.error;
+        data = checklistResult.data;
+        error = checklistResult.error;
 
-        // If logs table doesn't exist, try checklist_items table
-        if (error && (error.code === 'PGRST116' || error.message?.includes('does not exist'))) {
-          log.info('logs table not found, trying checklist_items table', {
+        // Log if there's an error
+        if (error) {
+          log.error('Error fetching checklist items', {
+            error,
             component: 'useOptimizedInspectionData',
             action: 'queryFn',
             inspectionId,

@@ -95,7 +95,7 @@ export const useInspectionReports = () => {
 
               // Get checklist items and their status
               const { data: checklistItems } = await supabase
-                .from('logs')
+                .from('checklist_items')
                 .select('id, status')
                 .eq('inspection_id', inspection.id);
 

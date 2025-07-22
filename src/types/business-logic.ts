@@ -6,7 +6,7 @@
 export interface User {
   id: string;
   email: string;
-  full_name: string;
+  name: string; // FIXED: Changed from full_name to name to match database schema
   role: 'inspector' | 'auditor' | 'admin';
   created_at?: string;
   updated_at?: string;
@@ -14,7 +14,7 @@ export interface User {
 
 export interface ChecklistItem {
   id: string;
-  checklist_id: string; // CORRECTED: logs.checklist_id -> static_safety_items.id
+  static_item_id: string; // CORRECTED: checklist_items.static_item_id -> static_safety_items.id
   title: string;
   category: string;
   status: 'pending' | 'completed' | 'failed' | 'not_applicable';

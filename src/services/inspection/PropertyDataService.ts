@@ -19,13 +19,11 @@ import { supabase } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 import { queryCache } from './QueryCache';
 
-// Database entity interfaces
+// Database entity interfaces - CORRECTED SCHEMA
 interface DatabaseProperty {
-  property_id: number;
-  property_name?: string;
-  name?: string;
-  street_address?: string;
-  address?: string;
+  id: string; // FIXED: UUID primary key, not integer property_id
+  name: string; // FIXED: Unified property name field
+  address: string; // FIXED: Unified address field
   city?: string;
   state?: string;
   zipcode?: number;
@@ -34,7 +32,7 @@ interface DatabaseProperty {
   listing_url?: string;
   created_at: string;
   updated_at?: string;
-  created_by?: string;
+  added_by?: string; // FIXED: Correct foreign key field name
   audit_status?: string;
   audit_priority?: string;
   last_inspection_date?: string;

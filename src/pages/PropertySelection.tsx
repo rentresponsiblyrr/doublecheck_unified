@@ -84,7 +84,7 @@ const PropertySelection = () => {
       .filter(property => property.latest_inspection_id)
       .map(property => ({
         id: property.latest_inspection_id!,
-        property_id: property.property_id,
+        property_id: property.id,
         completed: property.latest_inspection_completed || false,
         start_time: null,
         status: property.latest_inspection_completed ? 'completed' : 'in_progress'

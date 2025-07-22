@@ -42,11 +42,11 @@ export const debugDashboardData = async (userId?: string) => {
       if (inspectionError || !inspectionData) {
         // Log error if needed
       } else {
-        // Now get checklist items using property_id (verified schema approach)
+        // Now get checklist items using inspection_id (corrected schema approach)
         const { data: checklistItems, error: checklistError } = await supabase
-          .from('logs')
-          .select('id, status, property_id')
-          .eq('property_id', inspectionData.property_id);
+          .from('checklist_items')
+          .select('id, status, inspection_id')
+          .eq('inspection_id', inspectionData.id);
 
         if (checklistError) {
         } else {

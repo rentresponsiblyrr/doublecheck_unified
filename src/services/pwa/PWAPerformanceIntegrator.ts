@@ -39,6 +39,68 @@
 
 import { logger } from '@/utils/logger';
 
+// Service Worker Manager interface
+export interface ServiceWorkerManager {
+  getMetrics(): ServiceWorkerMetrics;
+  getStatus(): ServiceWorkerStatus;
+}
+
+export interface ServiceWorkerMetrics {
+  hitRate: number;
+  missRate: number;
+  activationTime: number;
+  backgroundSyncSuccess: number;
+}
+
+export interface ServiceWorkerStatus {
+  isControlling: boolean;
+  activationTime?: number;
+  cacheStrategy?: string;
+  updateAvailable?: boolean;
+  cacheHitRate?: number;
+}
+
+// Cache Manager interface
+export interface CacheManager {
+  getMetrics(): CacheMetrics;
+}
+
+export interface CacheMetrics {
+  hitRate: number;
+  missRate: number;
+  totalRequests: number;
+}
+
+// Web Vitals interfaces
+export interface WebVitalsMetric {
+  value: number;
+  entries?: PerformanceEntry[];
+}
+
+export interface WebVitalsCallback {
+  (metric: WebVitalsMetric): void;
+}
+
+// Performance Entry interfaces
+export interface FIDEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
+export interface CLSEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+}
+
+// Performance Report interface
+export interface PerformanceReport {
+  timestamp: number;
+  metrics: CoreWebVitalsMetrics | null;
+  correlationData: PWAPerformanceCorrelation | null;
+  alerts: PerformanceAlert[];
+  suggestions: PerformanceOptimizationSuggestion[];
+  config: PerformanceIntegratorConfig;
+}
+
 // Core Web Vitals interfaces
 export interface CoreWebVitalsMetrics {
   lcp: {
@@ -156,8 +218,8 @@ export class PWAPerformanceIntegrator {
   private isInitialized = false;
   
   // Dependencies
-  private serviceWorkerManager: any = null;
-  private cacheManager: any = null;
+  private serviceWorkerManager: ServiceWorkerManager | null = null;
+  private cacheManager: CacheManager | null = null;
   
   // Performance data collection
   private performanceEntries: PerformanceEntry[] = [];
@@ -187,8 +249,8 @@ export class PWAPerformanceIntegrator {
    * Sets up Core Web Vitals monitoring with PWA correlation
    */
   async initialize(dependencies: {
-    serviceWorkerManager: any;
-    cacheManager: any;
+    serviceWorkerManager: ServiceWorkerManager;
+    cacheManager: CacheManager;
     enableRealTimeMonitoring?: boolean;
   }): Promise<void> {
     if (this.isInitialized) {
@@ -301,27 +363,27 @@ export class PWAPerformanceIntegrator {
         const webVitals = (window as any).webVitals;
         
         // Setup LCP tracking
-        webVitals.getLCP((metric: any) => {
+        webVitals.getLCP((metric: WebVitalsMetric) => {
           this.updateCoreWebVital('lcp', metric.value);
         });
 
         // Setup FID tracking
-        webVitals.getFID((metric: any) => {
+        webVitals.getFID((metric: WebVitalsMetric) => {
           this.updateCoreWebVital('fid', metric.value);
         });
 
         // Setup CLS tracking
-        webVitals.getCLS((metric: any) => {
+        webVitals.getCLS((metric: WebVitalsMetric) => {
           this.updateCoreWebVital('cls', metric.value);
         });
 
         // Setup TTFB tracking
-        webVitals.getTTFB((metric: any) => {
+        webVitals.getTTFB((metric: WebVitalsMetric) => {
           this.updateCoreWebVital('ttfb', metric.value);
         });
 
         // Setup FCP tracking
-        webVitals.getFCP((metric: any) => {
+        webVitals.getFCP((metric: WebVitalsMetric) => {
           this.updateCoreWebVital('fcp', metric.value);
         });
 
@@ -879,11 +941,11 @@ export class PWAPerformanceIntegrator {
     this.updateCoreWebVital('lcp', entry.startTime);
   }
 
-  private processFIDEntry(entry: any): void {
+  private processFIDEntry(entry: FIDEntry): void {
     this.updateCoreWebVital('fid', entry.processingStart - entry.startTime);
   }
 
-  private processCLSEntry(entry: any): void {
+  private processCLSEntry(entry: CLSEntry): void {
     if (!entry.hadRecentInput) {
       this.updateCoreWebVital('cls', (this.metrics?.cls.value || 0) + entry.value);
     }
@@ -988,7 +1050,7 @@ export class PWAPerformanceIntegrator {
     await this.updateOptimizationSuggestions();
   }
 
-  exportPerformanceReport(): any {
+  exportPerformanceReport(): PerformanceReport {
     return {
       timestamp: Date.now(),
       metrics: this.metrics,

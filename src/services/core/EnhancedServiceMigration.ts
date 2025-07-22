@@ -65,7 +65,7 @@ import { enhancedPropertyService, enhancedChecklistService } from './EnhancedUni
 interface SchemaValidation {
   isValidated: boolean;
   staticSafetyItemsUseUUID: boolean;
-  logsHasChecklistId: boolean;
+  logsHasChecklistId: boolean; // Note: Now refers to checklist_items.static_item_id
   foreignKeysExist: boolean;
   errors: string[];
 }
@@ -109,30 +109,30 @@ class SchemaValidator {
         }
       }
 
-      // Test 2: Check if logs table has checklist_id column
-      const { data: logItem, error: logError } = await supabase
-        .from('logs')
-        .select('checklist_id')
+      // Test 2: Check if checklist_items table has static_item_id column
+      const { data: checklistItem, error: checklistError } = await supabase
+        .from('checklist_items')
+        .select('static_item_id')
         .limit(1)
         .single();
 
-      if (logError && logError.code === 'PGRST116') {
+      if (checklistError && checklistError.code === 'PGRST116') {
         // No data is OK, but column should exist
         validation.logsHasChecklistId = true;
-      } else if (logError && logError.message?.includes('checklist_id')) {
+      } else if (checklistError && checklistError.message?.includes('static_item_id')) {
         validation.logsHasChecklistId = false;
-        validation.errors.push('logs.checklist_id column does not exist');
+        validation.errors.push('checklist_items.static_item_id column does not exist');
       }
 
       // Test 3: Try a join to test foreign key relationships
       const { error: joinError } = await supabase
-        .from('logs')
-        .select('checklist_id, static_safety_items!checklist_id(id)')
+        .from('checklist_items')
+        .select('static_item_id, static_safety_items!static_item_id(id)')
         .limit(1);
 
       if (joinError) {
         validation.foreignKeysExist = false;
-        validation.errors.push('Foreign key relationship logs.checklist_id -> static_safety_items.id may not exist');
+        validation.errors.push('Foreign key relationship checklist_items.static_item_id -> static_safety_items.id may not exist');
       }
 
     } catch (error) {

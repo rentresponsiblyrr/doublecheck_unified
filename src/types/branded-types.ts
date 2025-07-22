@@ -51,13 +51,13 @@ export const createUserId = (value: string): UserId => {
 
 // Core database entity interfaces with branded types
 export interface Property {
-  property_id: PropertyId;
-  property_name: string;
-  street_address: string;
+  id: PropertyId;
+  name: string;
+  address: string;
   vrbo_url?: string;
   airbnb_url?: string;
-  created_by: UserId;
-  scraped_at?: string;
+  added_by: UserId;
+  created_at?: string;
 }
 
 export interface Inspection {
@@ -71,14 +71,14 @@ export interface Inspection {
 export interface ChecklistItem {
   id: ChecklistItemId;
   inspection_id: InspectionId;
-  checklist_id: string; // CORRECTED: logs.checklist_id -> static_safety_items.id
+  static_item_id: string; // CORRECTED: checklist_items.static_item_id -> static_safety_items.id
   status: 'pending' | 'completed' | 'failed' | 'not_applicable';
   inspector_notes?: string;
 }
 
-export interface Profile {
+export interface User {
   id: UserId;
-  full_name: string;
+  name: string;
   email: string;
   role?: 'inspector' | 'auditor' | 'admin';
 }

@@ -155,17 +155,18 @@ export class InspectionService {
         .select(`
           *,
           properties!inner (
-            property_id,
+            id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          logs!inner (
+          checklist_items!inner (
             *,
             static_safety_items!static_item_id (
               label,
-              category
+              category,
+              evidence_type
             ),
             media (*)
           )
@@ -314,17 +315,18 @@ export class InspectionService {
         .select(`
           *,
           properties!inner (
-            property_id,
+            id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          logs!inner (
+          checklist_items!inner (
             *,
             static_safety_items!static_item_id (
               label,
-              category
+              category,
+              evidence_type
             ),
             media (*)
           )
@@ -356,17 +358,18 @@ export class InspectionService {
         .select(`
           *,
           properties!inner (
-            property_id,
+            id,
             name,
             address,
             vrbo_url,
             airbnb_url
           ),
-          logs!inner (
+          checklist_items!inner (
             *,
             static_safety_items!static_item_id (
               label,
-              category
+              category,
+              evidence_type
             ),
             media (*)
           )

@@ -608,8 +608,8 @@ export const useMobileDataManager = (userId?: string) => {
       }
 
       const { data, error } = await supabase
-        .from('logs')
-        .select('id, inspection_id, label, category, evidence_type, status, created_at')
+        .from('checklist_items')
+        .select('id, inspection_id, title, category, evidence_type, status, created_at')
         .eq('inspection_id', inspectionId)
         .order('created_at', { ascending: true });
 

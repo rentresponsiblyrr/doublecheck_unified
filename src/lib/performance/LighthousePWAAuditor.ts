@@ -35,6 +35,78 @@ import { offlineStatusManager } from '@/lib/pwa/OfflineStatusManager';
 import { installPromptHandler } from '@/lib/pwa/InstallPromptHandler';
 import { CoreWebVitalsMonitor } from './CoreWebVitalsMonitor';
 
+// Audit result interfaces
+export interface AuditResults {
+  manifestAudit: ManifestAuditResult;
+  serviceWorkerAudit: ServiceWorkerAuditResult;
+  coreWebVitalsAudit: CoreWebVitalsAuditResult;
+  constructionSiteAudit: ConstructionSiteAuditResult;
+}
+
+export interface CoreWebVitalsAuditResult {
+  lcp: { value: number; target: number; status: 'pass' | 'fail' };
+  fid: { value: number; target: number; status: 'pass' | 'fail' };
+  cls: { value: number; target: number; status: 'pass' | 'fail' };
+  overall: { value: number; target: number; status: 'pass' | 'fail' };
+}
+
+export interface ConstructionSiteAuditResult {
+  loadTime2G: number;
+  offlineCapability: boolean;
+  batteryUsage: 'low' | 'medium' | 'high';
+  cacheEfficiency: number;
+  score: number;
+}
+
+export interface ManifestData {
+  theme_color?: string;
+  background_color?: string;
+  icons?: IconData[];
+  display?: string;
+  start_url?: string;
+  scope?: string;
+  short_name?: string;
+  name?: string;
+  [key: string]: any;
+}
+
+export interface IconData {
+  src: string;
+  sizes: string;
+  type?: string;
+  purpose?: string;
+}
+
+export interface ServiceWorkerData {
+  controller: ServiceWorker | null;
+  registration: ServiceWorkerRegistration | null;
+  state: string;
+  scriptURL?: string;
+}
+
+export interface ServiceWorkerMetricsData {
+  activationTime: number;
+  fetchEventTime: number;
+  cacheResponseTime: number;
+  cacheHitRate: number;
+  backgroundSyncSuccess: number;
+}
+
+export interface CoreVitalsMetrics {
+  lcp: number;
+  fid: number;
+  cls: number;
+  fcp: number;
+  ttfb: number;
+}
+
+export interface OptimizationResults {
+  loadTime2G: number[];
+  cacheHitRates: number[];
+  batteryUsage: ('low' | 'medium' | 'high')[];
+  offlineCapabilities: boolean[];
+}
+
 // Core Lighthouse PWA interfaces
 export interface LighthousePWAReport {
   score: number; // 0-100
@@ -441,7 +513,7 @@ export class LighthousePWAAuditor {
   /**
    * Calculate PWA score using Google's algorithm
    */
-  private calculatePWAScore(auditResults: any): number {
+  private calculatePWAScore(auditResults: AuditResults): number {
     let score = 0;
 
     // Manifest (20 points)
@@ -514,7 +586,7 @@ export class LighthousePWAAuditor {
   }
 
   // Helper methods for comprehensive functionality
-  private validateIcons(icons: any[]): IconValidationResult {
+  private validateIcons(icons: IconData[]): IconValidationResult {
     const requiredSizes = ['192x192', '512x512'];
     const hasRequiredSizes = requiredSizes.every(size =>
       icons.some(icon => icon.sizes.includes(size))
@@ -535,7 +607,7 @@ export class LighthousePWAAuditor {
     };
   }
 
-  private validateManifestInstallability(manifest: any): boolean {
+  private validateManifestInstallability(manifest: ManifestData): boolean {
     return !!(
       (manifest.name || manifest.short_name) &&
       manifest.start_url &&
@@ -546,7 +618,7 @@ export class LighthousePWAAuditor {
     );
   }
 
-  private calculateManifestScore(manifest: any, icons: IconValidationResult, issues: string[]): number {
+  private calculateManifestScore(manifest: ManifestData, icons: IconValidationResult, issues: string[]): number {
     let score = 100;
     score -= issues.length * 10; // 10 points per issue
     score += icons.score * 0.3; // 30% weight for icons
@@ -568,7 +640,7 @@ export class LighthousePWAAuditor {
     };
   }
 
-  private calculateServiceWorkerScore(swStatus: any, swMetrics: any, performance: any): number {
+  private calculateServiceWorkerScore(swStatus: ServiceWorkerData, swMetrics: ServiceWorkerMetricsData, performance: ServiceWorkerMetricsData): number {
     let score = 0;
     
     if (swStatus.isControlling) score += 40;
@@ -589,7 +661,7 @@ export class LighthousePWAAuditor {
     return document.querySelector('meta[name="viewport"]') !== null;
   }
 
-  private calculateCoreWebVitalsPWAImpact(metrics: any): number {
+  private calculateCoreWebVitalsPWAImpact(metrics: CoreVitalsMetrics): number {
     // Calculate how Core Web Vitals impact PWA score
     const lcpImpact = metrics.lcp < 2500 ? 10 : 0;
     const fidImpact = metrics.fid < 100 ? 10 : 0;
@@ -598,7 +670,7 @@ export class LighthousePWAAuditor {
     return lcpImpact + fidImpact + clsImpact;
   }
 
-  private calculateUserExperienceScore(metrics: any): number {
+  private calculateUserExperienceScore(metrics: CoreVitalsMetrics): number {
     // Simplified UX score calculation
     let score = 100;
     if (metrics.lcp > 2500) score -= 30;
@@ -643,19 +715,19 @@ export class LighthousePWAAuditor {
     };
   }
 
-  private async generateOptimizationOpportunities(score: number, vitals: any): Promise<LighthouseOpportunity[]> {
+  private async generateOptimizationOpportunities(score: number, vitals: CoreVitalsMetrics): Promise<LighthouseOpportunity[]> {
     return [];
   }
-  private async runDiagnostics(manifest: any, sw: any): Promise<LighthouseDiagnostic[]> {
+  private async runDiagnostics(manifest: ManifestData, sw: ServiceWorkerData): Promise<LighthouseDiagnostic[]> {
     return [];
   }
   private async processAuditAlerts(report: LighthousePWAReport): Promise<void> {}
-  private calculateVitalsContribution(vitals: any): number { return 25; }
-  private calculateConstructionSiteScore(constructionSite: any): number { return 15; }
+  private calculateVitalsContribution(vitals: CoreVitalsMetrics): number { return 25; }
+  private calculateConstructionSiteScore(constructionSite: ConstructionSiteAuditResult): number { return 15; }
   private async simulateNetworkCondition(condition: string): Promise<void> {}
   private async testFunctionalityUnderCondition(condition: string): Promise<number> { return 100; }
   private estimateBatteryImpact(condition: string, loadTime: number): 'low' | 'medium' | 'high' { return 'low'; }
-  private generate2GOptimizationRecommendations(results: any[]): string[] { return []; }
+  private generate2GOptimizationRecommendations(results: OptimizationResults): string[] { return []; }
   private calculateBudgetImpact(budget: PerformanceBudget): string { return 'Low impact'; }
   private getBudgetRecommendation(budget: PerformanceBudget): string { return 'Optimize performance'; }
   private async measureServiceWorkerActivation(): Promise<number> { return 50; }

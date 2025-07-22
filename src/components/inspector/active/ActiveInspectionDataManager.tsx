@@ -77,7 +77,7 @@ class ActiveInspectionService {
       logger.debug('Fetching active inspections', { userId, maxItems }, 'ACTIVE_INSPECTIONS');
       
       // Query active inspections with property and checklist data
-      // Note: Using corrected schema - logs table links via checklist_id, not static_safety_item_id
+      // CORRECTED: Using actual production database schema
       const { data: inspections, error: inspectionsError } = await supabase
         .from('inspections')
         .select(`
@@ -87,15 +87,15 @@ class ActiveInspectionService {
           created_at,
           updated_at,
           properties!inner (
-            property_id,
-            property_name,
-            street_address
+            id,
+            name,
+            address
           ),
-          logs (
-            log_id,
-            pass,
-            inspector_remarks,
-            static_safety_items!checklist_id (
+          checklist_items (
+            id,
+            status,
+            notes,
+            static_safety_items!static_item_id (
               id,
               label,
               evidence_type
@@ -128,10 +128,10 @@ class ActiveInspectionService {
       
       for (const inspection of inspections) {
         const property = inspection.properties;
-        const checklistItems = inspection.logs || [];
+        const checklistItems = inspection.checklist_items || [];
         
         const completedItems = checklistItems.filter((item: any) => 
-          item.pass !== null // Item has been evaluated (pass/fail)
+          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
         ).length;
 
         const photosRequired = checklistItems.filter((item: any) => 
@@ -139,7 +139,7 @@ class ActiveInspectionService {
         ).length;
 
         // Check for offline changes
-        const hasOfflineChanges = await this.checkOfflineChanges(property.property_id, inspection.id);
+        const hasOfflineChanges = await this.checkOfflineChanges(property.id, inspection.id);
         
         const progressPercentage = checklistItems.length > 0 
           ? Math.round((completedItems / checklistItems.length) * 100) 
@@ -147,9 +147,9 @@ class ActiveInspectionService {
 
         inspectionSummaries.push({
           inspectionId: inspection.id,
-          propertyId: property.property_id.toString(),
-          propertyName: property.property_name,
-          propertyAddress: property.street_address,
+          propertyId: property.id,
+          propertyName: property.name,
+          propertyAddress: property.address,
           status: inspection.status as 'draft' | 'in_progress' | 'completed',
           completedItems,
           totalItems: checklistItems.length,

@@ -56,15 +56,14 @@ async function fetchPropertiesWithInspections(userId: string) {
     const { data: properties, error } = await supabase
       .from('properties')
       .select(`
-        property_id,
-        property_name,
-        street_address as property_address,
-        vrbo_url as property_vrbo_url,
-        airbnb_url as property_airbnb_url,
-        scraped_at as property_scraped_at,
-        created_at as property_created_at
+        id,
+        name,
+        address,
+        vrbo_url,
+        airbnb_url,
+        created_at
       `)
-      .eq('created_by', userId);
+      .eq('added_by', userId);
       // Removed status filter - properties table doesn't have status column
     
     if (error) throw error;
@@ -75,7 +74,7 @@ async function fetchPropertiesWithInspections(userId: string) {
         const { data: inspections } = await supabase
           .from('inspections')
           .select('id, status, completed')
-          .eq('property_id', property.property_id);
+          .eq('property_id', property.id);
         
         const inspection_count = inspections?.length || 0;
         const completed_inspection_count = inspections?.filter(i => i.status === 'completed').length || 0;
@@ -164,7 +163,7 @@ export const useInspectorDashboard = () => {
           inspectionsData.map(async (inspection) => {
             try {
               const { data: checklistItems } = await supabase
-                .from('logs')
+                .from('checklist_items')
                 .select('id, status')
                 .eq('inspection_id', inspection.id);
 

@@ -547,17 +547,12 @@ export class InspectionCreationFlowValidator {
 
   private async cleanupTestInspection(inspectionId: string): Promise<void> {
     try {
-      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
-      const { data: inspectionData } = await supabase
-        .from('inspections')
-        .select('property_id')
-        .eq('id', inspectionId)
-        .single();
-
-      // Delete test inspection and related data using proper schema approach
-      if (inspectionData) {
-        await supabase.from('logs').delete().eq('property_id', inspectionData.property_id);
-      }
+      // Delete test checklist items for the inspection (corrected table name)
+      await supabase
+        .from('checklist_items')
+        .delete()
+        .eq('inspection_id', inspectionId);
+      // Delete the test inspection
       await supabase.from('inspections').delete().eq('id', inspectionId);
     } catch (error) {
       logger.warn('Failed to cleanup test inspection', { inspectionId, error }, 'FLOW_VALIDATOR');

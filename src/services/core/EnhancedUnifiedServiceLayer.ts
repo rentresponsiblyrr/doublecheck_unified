@@ -775,13 +775,13 @@ export class EnhancedChecklistService extends EnhancedBaseService {
   async getChecklistItem(id: ChecklistItemId): Promise<EnhancedServiceResult<EnhancedChecklistItem>> {
     return this.executeEnhanced(
       () => supabase
-        .from('logs') // Using correct table name
+        .from('checklist_items') // CORRECTED: Using actual table name
         .select(`
-          log_id,
-          property_id,
-          checklist_id,
-          ai_result,
-          inspector_remarks,
+          id,
+          inspection_id,
+          static_item_id,
+          ai_status,
+          notes,
           pass,
           inspector_id
         `)
@@ -811,11 +811,11 @@ export class EnhancedChecklistService extends EnhancedBaseService {
 
     return this.executeEnhanced(
       () => supabase
-        .from('logs')
+        .from('checklist_items')
         .update({
-          ai_result: updates.aiResult,
-          inspector_remarks: updates.inspectorRemarks,
-          pass: updates.pass,
+          ai_status: updates.aiResult,
+          notes: updates.inspectorRemarks,
+          status: updates.pass ? 'completed' : 'failed',
           inspector_id: updates.inspectorId,
         })
         .eq('log_id', this.extractNumericId(id))

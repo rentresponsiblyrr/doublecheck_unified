@@ -43,15 +43,14 @@ export const useInspectionData = (inspectionId: string) => {
 
         debugLogger.info('InspectionData', 'Inspection verified', inspection);
 
-        // Fetch checklist items with error handling - CORRECTED: logs table uses property_id, not inspection_id
+        // Fetch checklist items with error handling - CORRECTED: checklist_items table uses inspection_id
         debugLogger.debug('InspectionData', 'Fetching checklist items', { 
-          propertyId: inspection.property_id,
           inspectionId 
         });
         const { data: items, error: itemsError } = await supabase
-          .from('logs')
-          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, inspector_id, created_at, static_safety_items(id, label, category)')
-          .eq('property_id', inspection.property_id)
+          .from('checklist_items')
+          .select('id, inspection_id, static_item_id, ai_status, notes, status, created_at, static_safety_items!static_item_id(id, title, category)')
+          .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });
         
         if (itemsError) {

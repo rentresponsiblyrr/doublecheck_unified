@@ -51,20 +51,20 @@ export const useSimplifiedInspectionData = (inspectionId: string | undefined) =>
           inspectionId
         });
         
-        // First try to get logs for this specific property
+        // First try to get checklist items for this inspection
         const { data: items, error: itemsError } = await supabase
-          .from('logs')
-          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, inspector_id, created_at, static_safety_items(id, label, category, evidence_type)')
-          .eq('property_id', parseInt(inspectionCheck.property_id)) // Convert string to int for logs table
+          .from('checklist_items')
+          .select('id, inspection_id, static_item_id, ai_status, notes, status, assigned_inspector_id, created_at, static_safety_items!static_item_id(id, label, category, evidence_type)')
+          .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true });
 
         if (itemsError) {
-          debugLogger.warn('SimplifiedInspectionData', 'No existing logs found, will create from static items', {
+          debugLogger.warn('SimplifiedInspectionData', 'No existing checklist items found, will create from static items', {
             error: itemsError,
-            propertyId: inspectionCheck.property_id
+            inspectionId
           });
           
-          // If no logs exist, create checklist from static_safety_items
+          // If no checklist items exist, create checklist from static_safety_items
           const { data: staticItems, error: staticError } = await supabase
             .from('static_safety_items')
             .select('id, label, category, evidence_type')
@@ -99,24 +99,24 @@ export const useSimplifiedInspectionData = (inspectionId: string | undefined) =>
           return transformedItems;
         }
 
-        debugLogger.info('SimplifiedInspectionData', 'Successfully fetched existing logs', { 
+        debugLogger.info('SimplifiedInspectionData', 'Successfully fetched existing checklist items', { 
           count: items?.length || 0,
           sampleItems: items?.slice(0, 3).map(i => ({ 
-            id: i.log_id, 
+            id: i.id, 
             label: i.static_safety_items?.label, 
-            pass: i.pass 
+            status: i.status 
           })) || []
         });
 
-        // Step 3: Transform data safely - CORRECTED for logs table schema
+        // Step 3: Transform data safely - CORRECTED for checklist_items table schema
         const transformedItems: ChecklistItemType[] = (items || []).map(item => ({
-          id: item.log_id.toString(), // Convert integer to string for compatibility
-          inspection_id: inspectionId, // Use the passed inspectionId since logs doesn't store it
-          label: item.static_safety_items?.label || '',
-          category: item.static_safety_items?.category || 'safety',
-          evidence_type: 'photo', // Default to photo for now
-          status: item.pass === true ? 'completed' : item.pass === false ? 'failed' : null,
-          notes: item.inspector_remarks || '',
+          id: item.id, // Already a UUID string
+          inspection_id: item.inspection_id,
+          label: item.static_safety_items?.label || item.label || '',
+          category: item.static_safety_items?.category || item.category || 'safety',
+          evidence_type: item.static_safety_items?.evidence_type || item.evidence_type || 'photo',
+          status: item.status, // Use status directly from checklist_items
+          notes: item.notes || '',
           created_at: item.created_at || new Date().toISOString()
         }));
 

@@ -6,7 +6,7 @@
 export interface User {
   id: string;
   email: string;
-  full_name: string;
+  name: string; // FIXED: Changed from full_name to name to match database schema
   role: 'inspector' | 'auditor' | 'admin';
   phone?: string;
   created_at: string;

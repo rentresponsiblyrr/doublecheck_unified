@@ -83,6 +83,80 @@ export interface PWAPerformanceMetrics {
   };
 }
 
+// Network status and connection interfaces
+export interface NetworkStatus {
+  quality?: {
+    category: string;
+  };
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+}
+
+export interface ConnectionInfo {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  addEventListener(event: string, callback: () => void): void;
+}
+
+export interface BatteryInfo {
+  level: number;
+  charging: boolean;
+  dischargingTime: number;
+  addEventListener(event: string, callback: () => void): void;
+}
+
+// PWA and performance metric interfaces
+export interface PWAMetrics {
+  serviceWorkerActivation: number;
+  cacheHitRate: number;
+  offlineCapability: boolean;
+  installPromptConversion: number;
+  backgroundSyncEfficiency: number;
+  updateAvailable: boolean;
+  [key: string]: any;
+}
+
+export interface ConstructionSiteMetrics {
+  networkQuality: string;
+  loadTimeUnder2G: number;
+  batteryImpact: 'low' | 'medium' | 'high';
+  offlineUsageTime: number;
+  signalStrength: number;
+  [key: string]: any;
+}
+
+export interface UserExperienceMetrics {
+  taskCompletionRate: number;
+  inspectionWorkflowTime: number;
+  photoUploadSuccess: number;
+  errorRecoveryRate: number;
+  userSatisfactionScore: number;
+  [key: string]: any;
+}
+
+export interface BusinessImpactMetrics {
+  conversionRate: number;
+  retentionRate: number;
+  engagementScore: number;
+  revenueImpact: number;
+  [key: string]: any;
+}
+
+export interface MetricContext {
+  [key: string]: any;
+}
+
+export interface PerformanceBudgetViolation {
+  budget: {
+    metric: string;
+    [key: string]: any;
+  };
+  severity: 'warning' | 'error' | 'critical';
+  [key: string]: any;
+}
+
 export interface PWAPerformanceReport {
   timestamp: Date;
   metrics: PWAPerformanceMetrics;
@@ -644,7 +718,7 @@ export class PWAPerformanceMonitor {
   }
 
   // Core metric recording implementations
-  private recordMetric(metric: string, value: number, context?: any): void {
+  private recordMetric(metric: string, value: number, context?: MetricContext): void {
     const timestamp = new Date();
     const metricRecord = {
       metric,
@@ -657,11 +731,35 @@ export class PWAPerformanceMonitor {
     this.metricsBuffer.push({
       timestamp,
       coreWebVitals: { lcp: 0, fid: 0, cls: 0, fcp: 0, ttfb: 0 },
-      pwaSpecific: {},
-      constructionSiteMetrics: {},
-      userExperience: {},
-      businessImpact: {}
-    } as any);
+      pwaSpecific: {
+        serviceWorkerActivation: 0,
+        cacheHitRate: 0,
+        offlineCapability: false,
+        installPromptConversion: 0,
+        backgroundSyncEfficiency: 0,
+        updateAvailable: false
+      },
+      constructionSiteMetrics: {
+        networkQuality: 'unknown',
+        loadTimeUnder2G: 0,
+        batteryImpact: 'low' as const,
+        offlineUsageTime: 0,
+        signalStrength: 0
+      },
+      userExperience: {
+        taskCompletionRate: 0,
+        inspectionWorkflowTime: 0,
+        photoUploadSuccess: 0,
+        errorRecoveryRate: 0,
+        userSatisfactionScore: 0
+      },
+      businessImpact: {
+        conversionRate: 0,
+        retentionRate: 0,
+        engagementScore: 0,
+        revenueImpact: 0
+      }
+    });
 
     // Keep buffer size manageable (last 1000 records)
     if (this.metricsBuffer.length > 1000) {
@@ -671,7 +769,7 @@ export class PWAPerformanceMonitor {
     logger.debug(`Recording ${metric}: ${value}`, { context }, 'PWA_PERFORMANCE');
   }
 
-  private recordPWAMetric(metric: string, value: any): void {
+  private recordPWAMetric(metric: string, value: string | number | boolean | object): void {
     const timestamp = new Date();
     
     // Update current metrics state
@@ -681,7 +779,7 @@ export class PWAPerformanceMonitor {
     logger.debug(`Recording PWA metric ${metric}`, { value }, 'PWA_PERFORMANCE');
   }
 
-  private recordConstructionSiteMetric(metric: string, value: any): void {
+  private recordConstructionSiteMetric(metric: string, value: string | number | boolean | object): void {
     const timestamp = new Date();
     
     // Store construction site specific metrics
@@ -730,7 +828,7 @@ export class PWAPerformanceMonitor {
     }
   }
 
-  private wasCacheHit(entry: any): boolean {
+  private wasCacheHit(entry: PerformanceResourceTiming): boolean {
     return entry && entry.transferSize !== undefined && entry.transferSize < entry.encodedBodySize;
   }
   
@@ -812,7 +910,7 @@ export class PWAPerformanceMonitor {
     }
   }
   
-  private adaptToNetworkConditions(networkStatus: any): void {
+  private adaptToNetworkConditions(networkStatus: NetworkStatus): void {
     const quality = networkStatus.quality?.category;
     logger.info(`Adapting to network conditions: ${quality}`, { networkStatus }, 'PWA_PERFORMANCE');
     
@@ -860,7 +958,7 @@ export class PWAPerformanceMonitor {
     this.recordConstructionSiteMetric('2gOptimizationsActivated', true);
   }
   
-  private setupBatteryMonitoring(battery: any): void {
+  private setupBatteryMonitoring(battery: BatteryInfo): void {
     const updateBatteryInfo = () => {
       const batteryLevel = Math.round(battery.level * 100);
       const isCharging = battery.charging;
@@ -1273,7 +1371,7 @@ export class PWAPerformanceMonitor {
     }
   }
   
-  private getCurrentPWAMetrics(): any {
+  private getCurrentPWAMetrics(): PWAMetrics {
     const swStatus = serviceWorkerManager.getStatus();
     const swMetrics = serviceWorkerManager.getPerformanceMetrics();
     
@@ -1287,7 +1385,7 @@ export class PWAPerformanceMonitor {
     };
   }
   
-  private getCurrentConstructionSiteMetrics(): any {
+  private getCurrentConstructionSiteMetrics(): ConstructionSiteMetrics {
     const networkStatus = offlineStatusManager.getNetworkStatus();
     
     return {
@@ -1299,7 +1397,7 @@ export class PWAPerformanceMonitor {
     };
   }
   
-  private getCurrentUserExperienceMetrics(): any {
+  private getCurrentUserExperienceMetrics(): UserExperienceMetrics {
     return {
       taskCompletionRate: this.calculateTaskCompletionRate() || 93,
       inspectionWorkflowTime: this.getAverageInspectionTime() || 180000,
@@ -1309,7 +1407,7 @@ export class PWAPerformanceMonitor {
     };
   }
   
-  private getCurrentBusinessImpactMetrics(): any {
+  private getCurrentBusinessImpactMetrics(): BusinessImpactMetrics {
     return {
       conversionRate: this.calculateConversionRate() || 8.5,
       retentionRate: this.calculateRetentionRate() || 78,
@@ -1455,7 +1553,7 @@ export class PWAPerformanceMonitor {
     }));
   }
 
-  private estimateSignalStrength(connection: any): number {
+  private estimateSignalStrength(connection: ConnectionInfo): number {
     const downlink = connection.downlink || 1;
     const rtt = connection.rtt || 100;
     
@@ -1472,7 +1570,7 @@ export class PWAPerformanceMonitor {
     this.activate2GOptimizations(); // Use 2G optimizations for weak signals
   }
 
-  private getSessionData(): any {
+  private getSessionData(): { startTime: string | number; lastVisit: string | null; visitCount: number } {
     return {
       startTime: sessionStorage.getItem('session-start') || Date.now(),
       lastVisit: localStorage.getItem('last-visit'),

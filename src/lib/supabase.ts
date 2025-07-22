@@ -72,10 +72,9 @@ export const updateChecklistItemStatus = async (
   checklistItemId: string,
   status: 'completed' | null
 ) => {
-  // Phase 4 Fix: Use logs (compatibility view)
-  // Maps to production logs table with proper field transformations
+  // CORRECTED: Use checklist_items table directly
   const { data, error } = await supabase
-    .from('logs')
+    .from('checklist_items')
     .update({ status })
     .eq('id', checklistItemId)
     .select()
