@@ -83,14 +83,14 @@ interface TestResults {
     totalFlows: number;
     passedFlows: number;
     failedFlows: number;
-    details: any;
+    details: Record<string, unknown>;
   };
   performanceBenchmarks: {
     passed: boolean;
     averageResponseTime: number;
     p95ResponseTime: number;
     throughput: number;
-    details: any;
+    details: Record<string, unknown>;
   };
   overall: {
     passed: boolean;
@@ -518,7 +518,7 @@ class ComprehensiveTestRunner {
     };
   }
 
-  private generateHtmlReport(reportData: any): string {
+  private generateHtmlReport(reportData: ComprehensiveTestResults): string {
     const { results } = reportData;
     const timestamp = new Date().toLocaleString();
     

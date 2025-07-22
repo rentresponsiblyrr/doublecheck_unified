@@ -178,7 +178,7 @@ export class PerformanceMonitor {
         this.coreWebVitals.FID = metric.value;
         break;
       
-      case 'layout-shift':
+      case 'layout-shift': {
         const layoutShift = entry as PerformanceEntry & {
           hadRecentInput?: boolean;
           value: number;
@@ -187,11 +187,13 @@ export class PerformanceMonitor {
           this.coreWebVitals.CLS = (this.coreWebVitals.CLS || 0) + layoutShift.value;
         }
         break;
+      }
 
-      case 'navigation':
+      case 'navigation': {
         const navEntry = entry as PerformanceNavigationTiming;
         this.coreWebVitals.TTFB = navEntry.responseStart - navEntry.requestStart;
         break;
+      }
     }
   }
 

@@ -31,7 +31,7 @@ interface ValidationCheck {
   name: string;
   status: 'PASS' | 'FAIL' | 'WARN';
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 class Phase1Validator {
@@ -272,7 +272,7 @@ class Phase1Validator {
   // HELPER METHODS
   // ================================================================
 
-  private addCheck(name: string, status: 'PASS' | 'FAIL' | 'WARN', message: string, details?: any): void {
+  private addCheck(name: string, status: 'PASS' | 'FAIL' | 'WARN', message: string, details?: Record<string, unknown>): void {
     this.checks.push({ name, status, message, details });
   }
 

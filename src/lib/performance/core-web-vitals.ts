@@ -140,6 +140,7 @@ export class CoreWebVitalsOptimizer {
           entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'paint', 'navigation'] 
         });
       } catch (error) {
+        console.warn('Failed to observe performance entries:', error);
       }
     }
 
@@ -163,32 +164,36 @@ export class CoreWebVitalsOptimizer {
         this.checkAndOptimize('lcp', entry.startTime);
         break;
 
-      case 'first-input':
+      case 'first-input': {
         const fidEntry = entry as PerformanceEventTiming;
         this.vitals.fid = fidEntry.processingStart - fidEntry.startTime;
         this.checkAndOptimize('fid', this.vitals.fid);
         break;
+      }
 
-      case 'layout-shift':
+      case 'layout-shift': {
         if (!(entry as any).hadRecentInput) {
           const clsEntry = entry as any;
           this.vitals.cls = (this.vitals.cls || 0) + clsEntry.value;
           this.checkAndOptimize('cls', this.vitals.cls);
         }
         break;
+      }
 
-      case 'paint':
+      case 'paint': {
         if (entry.name === 'first-contentful-paint') {
           this.vitals.fcp = entry.startTime;
           this.checkAndOptimize('fcp', entry.startTime);
         }
         break;
+      }
 
-      case 'navigation':
+      case 'navigation': {
         const navEntry = entry as PerformanceNavigationTiming;
         this.vitals.ttfb = navEntry.responseStart - navEntry.requestStart;
         this.checkAndOptimize('ttfb', this.vitals.ttfb);
         break;
+      }
     }
 
     // Log improvements
@@ -229,6 +234,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'largest-contentful-paint', buffered: true });
     } catch (error) {
+      console.warn('Failed to observe LCP:', error);
     }
   }
 
@@ -247,6 +253,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'first-input', buffered: true });
     } catch (error) {
+      console.warn('Failed to observe FID:', error);
     }
   }
 
@@ -270,6 +277,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'layout-shift', buffered: true });
     } catch (error) {
+      console.warn('Failed to observe CLS:', error);
     }
   }
 
@@ -292,6 +300,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: 'event', buffered: true });
     } catch (error) {
+      console.warn('Failed to observe INP:', error);
     }
   }
 
@@ -435,6 +444,7 @@ export class CoreWebVitalsOptimizer {
             break;
           }
         } catch (error) {
+          console.warn('Optimization failed, rolling back:', error);
           await optimization.rollback();
         }
       }
@@ -857,6 +867,7 @@ export class CoreWebVitalsOptimizer {
       try {
         await optimization.implementation();
       } catch (error) {
+        console.warn('Force optimization failed:', error);
       }
     }
   }

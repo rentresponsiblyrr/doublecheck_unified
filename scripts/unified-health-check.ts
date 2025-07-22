@@ -46,7 +46,7 @@ interface HealthCheckResult {
   name: string;
   status: 'healthy' | 'warning' | 'critical' | 'unknown';
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   suggestions?: string[];
 }
 

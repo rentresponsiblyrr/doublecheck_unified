@@ -1100,7 +1100,7 @@ export class PWAPerformanceMonitor {
   }
   
   private trackEngagementCorrelation(): void {
-    let sessionStartTime = performance.now();
+    const sessionStartTime = performance.now();
     let pageViews = 0;
     let interactions = 0;
     
