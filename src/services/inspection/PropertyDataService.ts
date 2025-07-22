@@ -217,7 +217,7 @@ export class PropertyDataService {
 
           const transformedProperty: PropertyWithStatus = {
             propertyId: property.property_id.toString(),
-            name: property.property_name,
+            name: property.name,
             address: this.transformPropertyAddress(property),
             urls: this.transformPropertyUrls(property),
             inspectionStatus: this.determineInspectionStatus(property, inspections),
@@ -321,7 +321,7 @@ export class PropertyDataService {
         .filter(property => this.isPropertyAvailable(property))
         .map(property => ({
           propertyId: property.property_id.toString(),
-          name: property.property_name,
+          name: property.name,
           address: this.formatAddress(property),
           type: this.inferPropertyType(property),
           estimatedDuration: this.estimateInspectionDuration(property),
@@ -412,7 +412,7 @@ export class PropertyDataService {
 
       // Apply text search across relevant fields
       const searchConditions = searchTerms.map(term => 
-        `property_name.ilike.%${term}%,street_address.ilike.%${term}%,city.ilike.%${term}%`
+        `name.ilike.%${term}%,address.ilike.%${term}%,city.ilike.%${term}%`
       ).join(',');
       
       query = query.or(searchConditions);
@@ -427,7 +427,7 @@ export class PropertyDataService {
       query = query.limit(options.limit || PROPERTY_SERVICE_CONFIG.performance.maxSearchResults);
 
       const { data, error } = await query;
-      const queryCount = 1;
+      let queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {
@@ -520,7 +520,7 @@ export class PropertyDataService {
             inspector_id,
             logs!left (
               *,
-              static_safety_items!checklist_id (
+              static_safety_items!static_item_id (
                 id,
                 label,
                 category,
@@ -554,7 +554,7 @@ export class PropertyDataService {
       // Transform to comprehensive property details
       const propertyDetails: PropertyDetails = {
         propertyId: property.property_id.toString(),
-        name: property.property_name,
+        name: property.name,
         address: this.transformPropertyAddress(property),
         urls: this.transformPropertyUrls(property),
         metadata: {
@@ -676,8 +676,8 @@ export class PropertyDataService {
   async updateProperty(
     propertyId: string | number,
     updates: Partial<{
-      property_name: string;
-      street_address: string;
+      name: string;
+      address: string;
       city: string;
       state: string;
       zipcode: number;
@@ -700,7 +700,7 @@ export class PropertyDataService {
         })
         .eq('property_id', typeof propertyId === 'string' ? parseInt(propertyId) : propertyId);
 
-      const queryCount = 1;
+      let queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {
@@ -746,7 +746,7 @@ export class PropertyDataService {
 
   private transformPropertyAddress(property: any): PropertyAddress {
     return {
-      street: property.street_address || '',
+      street: property.address || '',
       city: property.city || '',
       state: property.state || '',
       zipCode: property.zipcode?.toString() || '',
@@ -768,7 +768,7 @@ export class PropertyDataService {
 
   private formatAddress(property: any): string {
     const parts = [
-      property.street_address,
+      property.address,
       property.city,
       property.state,
       property.zipcode
@@ -779,13 +779,13 @@ export class PropertyDataService {
 
   private mapSortColumn(sortBy: string): string {
     const mapping: Record<string, string> = {
-      'name': 'property_name',
+      'name': 'name',
       'last_inspection': 'last_inspection_date',
       'status': 'audit_status',
       'priority': 'audit_priority',
     };
     
-    return mapping[sortBy] || 'property_name';
+    return mapping[sortBy] || 'name';
   }
 
   private determineInspectionStatus(property: any, inspections: any[]): any {
@@ -866,7 +866,7 @@ export class PropertyDataService {
   private transformInspectionSummary(inspection: any, property: any): InspectionSummary {
     return {
       inspectionId: inspection.id,
-      propertyName: property.property_name,
+      propertyName: property.name,
       propertyAddress: this.formatAddress(property),
       status: inspection.status,
       progressPercentage: inspection.completed ? 100 : 0,
@@ -889,7 +889,7 @@ export class PropertyDataService {
 
   private inferPropertyType(property: any): PropertyType {
     // Simple inference logic - would be enhanced with ML
-    const name = (property.property_name || '').toLowerCase();
+    const name = (property.name || '').toLowerCase();
     
     if (name.includes('apartment') || name.includes('apt')) return 'apartment';
     if (name.includes('condo')) return 'condo';
@@ -961,7 +961,7 @@ export class PropertyDataService {
     
     return {
       propertyId: property.property_id.toString(),
-      name: property.property_name,
+      name: property.name,
       address: this.transformPropertyAddress(property),
       urls: this.transformPropertyUrls(property),
       inspectionStatus: this.determineInspectionStatus(property, inspections),

@@ -43,9 +43,9 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
       console.error('Failed to load dashboard data:', error);
       setData(prev => ({ ...prev, isLoading: false }));
     }
-  }, [timeRange]);
+  }, [timeRange, loadBusinessMetrics, loadTrendData, loadRegionalData]);
 
-  const loadBusinessMetrics = async (): Promise<BusinessKPIs> => {
+  const loadBusinessMetrics = useCallback(async (): Promise<BusinessKPIs> => {
     const { data: inspections } = await supabase
       .from('inspections')
       .select('*')
@@ -84,9 +84,9 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
       avgPhotosPerInspection: 25, // Mock data
       aiAccuracy: 92.3 // Mock data - 92.3% AI accuracy
     };
-  };
+  }, [timeRange]);
 
-  const loadTrendData = async (): Promise<TrendData[]> => {
+  const loadTrendData = useCallback(async (): Promise<TrendData[]> => {
     // Mock trend data - in real app, would fetch from database
     return [
       { name: 'Jan', inspections: 65, revenue: 9750, satisfaction: 4.5 },
@@ -96,9 +96,9 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
       { name: 'May', inspections: 95, revenue: 14250, satisfaction: 4.8 },
       { name: 'Jun', inspections: 88, revenue: 13200, satisfaction: 4.6 }
     ];
-  };
+  }, []);
 
-  const loadRegionalData = async (): Promise<RegionalData[]> => {
+  const loadRegionalData = useCallback(async (): Promise<RegionalData[]> => {
     // Mock regional data - in real app, would analyze inspections by region
     return [
       { region: 'North California', inspections: 150, revenue: 22500, growth: 15.2 },
@@ -107,7 +107,7 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
       { region: 'Arizona', inspections: 67, revenue: 10050, growth: 5.3 },
       { region: 'Oregon', inspections: 52, revenue: 7800, growth: 18.9 }
     ];
-  };
+  }, []);
 
   const getDateRange = (range: TimeRange): string => {
     const now = new Date();
@@ -124,7 +124,7 @@ export const useAdminDashboard = (timeRange: TimeRange = '30d') => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+  }, [loadDashboardData, timeRange]);
 
   return {
     ...data,

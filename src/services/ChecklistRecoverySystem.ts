@@ -526,7 +526,7 @@ export class ChecklistRecoverySystem {
 
       // Try direct database update instead of RPC
       const { error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .update({
           status: pendingState.status,
           notes: pendingState.notes,

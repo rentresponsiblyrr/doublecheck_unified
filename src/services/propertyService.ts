@@ -90,13 +90,13 @@ export class PropertyService {
       const { data: insertedProperty, error: insertError } = await supabase
         .from('properties')
         .insert({
-          property_name: propertyToInsert.name,
-          street_address: propertyToInsert.address,
+          name: propertyToInsert.name,
+          address: propertyToInsert.address,
           vrbo_url: propertyToInsert.vrbo_url,
           airbnb_url: propertyToInsert.airbnb_url,
           added_by: propertyToInsert.added_by
         })
-        .select('property_id, property_name, street_address, vrbo_url, airbnb_url, created_at')
+        .select('property_id, name, address, vrbo_url, airbnb_url, created_at')
         .single();
 
       if (insertError) {
@@ -117,7 +117,7 @@ export class PropertyService {
         component: 'PropertyService',
         action: 'addProperty',
         propertyId: insertedProperty.property_id,
-        propertyName: insertedProperty.property_name,
+        propertyName: insertedProperty.name,
         hasVrboUrl: !!insertedProperty.vrbo_url,
         hasAirbnbUrl: !!insertedProperty.airbnb_url
       }, 'PROPERTY_ADDED_SUCCESS');
@@ -251,13 +251,13 @@ export class PropertyService {
     try {
       // Map app fields to database fields
       const updateData: {
-        property_name?: string;
-        street_address?: string;
+        name?: string;
+        address?: string;
         vrbo_url?: string;
         airbnb_url?: string;
       } = {};
-      if (propertyData.name) updateData.property_name = propertyData.name;
-      if (propertyData.address) updateData.street_address = propertyData.address;
+      if (propertyData.name) updateData.name = propertyData.name;
+      if (propertyData.address) updateData.address = propertyData.address;
       if (propertyData.vrbo_url) updateData.vrbo_url = propertyData.vrbo_url;
       if (propertyData.airbnb_url) updateData.airbnb_url = propertyData.airbnb_url;
 
@@ -265,7 +265,7 @@ export class PropertyService {
         .from('properties')
         .update(updateData)
         .eq('property_id', id)
-        .select('property_id, property_name, street_address, vrbo_url, airbnb_url, created_at')
+        .select('property_id, name, address, vrbo_url, airbnb_url, created_at')
         .single();
 
       if (error) {

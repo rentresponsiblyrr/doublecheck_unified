@@ -54,7 +54,7 @@ interface QueryBuilderOptions {
 type TableName = 
   | 'properties' 
   | 'inspections' 
-  | 'logs' 
+  | 'checklist_items' 
   | 'users'
   | 'static_safety_items'
   | 'media'
@@ -296,8 +296,8 @@ export class QueryBuilder<T = any> {
         *,
         properties!inner (
           property_id,
-          property_name,
-          street_address,
+          name,
+          address,
           city,
           state
         )
@@ -331,7 +331,7 @@ export class QueryBuilder<T = any> {
           inspector_id
         )
       `)
-      .orderBy('property_name');
+      .orderBy('name');
   }
 
   /**
@@ -342,10 +342,10 @@ export class QueryBuilder<T = any> {
    * @returns Configured QueryBuilder
    */
   static inspectionChecklist(propertyId: number): QueryBuilder<DatabaseLog> {
-    return new QueryBuilder('logs')
+    return new QueryBuilder('checklist_items')
       .select(`
         *,
-        static_safety_items!checklist_id (
+        static_safety_items!static_item_id (
           id,
           label,
           category,
@@ -371,8 +371,8 @@ export class QueryBuilder<T = any> {
     return new QueryBuilder('properties')
       .select('*')
       // Note: Supabase uses 'or' for multiple conditions
-      .filter('property_name', 'ilike', `%${escapedTerm}%`)
-      .orderBy('property_name');
+      .filter('name', 'ilike', `%${escapedTerm}%`)
+      .orderBy('name');
   }
 
   // ========================================
@@ -799,7 +799,7 @@ export function queryInspections(options?: QueryBuilderOptions): QueryBuilder<Da
 }
 
 /**
- * Create QueryBuilder for logs table
+ * Create QueryBuilder for checklist_items table
  * 
  * @param options - Query builder options
  * @returns Configured QueryBuilder

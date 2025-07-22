@@ -65,7 +65,7 @@ export class ChecklistService {
 
       // Now get checklist items using property_id (verified schema approach)
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select(`
           *,
           media (*)
@@ -104,7 +104,7 @@ export class ChecklistService {
       };
 
       const { error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .update(updateData)
         .eq('id', update.id);
 
@@ -438,7 +438,7 @@ export class ChecklistService {
       logger.info('Deleting checklist item', { itemId }, 'CHECKLIST_SERVICE');
 
       const { error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .update({
           status: 'deleted',
           updated_at: new Date().toISOString()
@@ -466,7 +466,7 @@ export class ChecklistService {
       logger.info('Restoring checklist item', { itemId }, 'CHECKLIST_SERVICE');
 
       const { error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .update({
           status: 'pending',
           updated_at: new Date().toISOString()

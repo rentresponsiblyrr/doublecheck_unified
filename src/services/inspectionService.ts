@@ -26,8 +26,8 @@ type MediaRecord = Tables['media']['Row'];
 export interface InspectionWithDetails extends InspectionRecord {
   properties: {
     property_id: number;
-    property_name: string | null;
-    street_address: string | null;
+    name: string | null;
+    address: string | null;
     vrbo_url: string | null;
     airbnb_url: string | null;
   } | null;
@@ -156,14 +156,14 @@ export class InspectionService {
           *,
           properties!inner (
             property_id,
-            property_name,
-            street_address,
+            name,
+            address,
             vrbo_url,
             airbnb_url
           ),
           logs!inner (
             *,
-            static_safety_items!checklist_id (
+            static_safety_items!static_item_id (
               label,
               category
             ),
@@ -219,7 +219,7 @@ export class InspectionService {
       if (update.checklistItemUpdates) {
         for (const itemUpdate of update.checklistItemUpdates) {
           const { error: itemError } = await supabase
-            .from('logs')
+            .from('checklist_items')
             .update({
               status: itemUpdate.status,
               notes: itemUpdate.notes,
@@ -315,14 +315,14 @@ export class InspectionService {
           *,
           properties!inner (
             property_id,
-            property_name,
-            street_address,
+            name,
+            address,
             vrbo_url,
             airbnb_url
           ),
           logs!inner (
             *,
-            static_safety_items!checklist_id (
+            static_safety_items!static_item_id (
               label,
               category
             ),
@@ -357,14 +357,14 @@ export class InspectionService {
           *,
           properties!inner (
             property_id,
-            property_name,
-            street_address,
+            name,
+            address,
             vrbo_url,
             airbnb_url
           ),
           logs!inner (
             *,
-            static_safety_items!checklist_id (
+            static_safety_items!static_item_id (
               label,
               category
             ),

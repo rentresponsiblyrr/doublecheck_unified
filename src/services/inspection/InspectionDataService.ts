@@ -157,9 +157,9 @@ export class InspectionDataService {
         .select(`
           *,
           properties!inner (
-            property_id,
-            property_name, 
-            street_address,
+            id,
+            name, 
+            address,
             city,
             state
           )
@@ -210,8 +210,8 @@ export class InspectionDataService {
 
           const transformedInspection: ActiveInspection = {
             inspectionId: inspection.id,
-            propertyId: inspection.property_id.toString(),
-            propertyName: (inspection as any).properties?.property_name || 'Unknown Property',
+            propertyId: inspection.property_id,
+            propertyName: (inspection as any).properties?.name || 'Unknown Property',
             propertyAddress: this.formatAddress((inspection as any).properties),
             status: inspection.status as InspectionStatus,
             progress,
@@ -300,18 +300,18 @@ export class InspectionDataService {
         .select(`
           *,
           properties!inner (
-            property_id,
-            property_name,
-            street_address,
+            id,
+            name,
+            address,
             city,
             state,
             zipcode,
             airbnb_url,
             vrbo_url
           ),
-          logs!left (
+          checklist_items!left (
             *,
-            static_safety_items!checklist_id (
+            static_safety_items!static_item_id (
               id,
               label,
               category,
@@ -350,8 +350,8 @@ export class InspectionDataService {
       const detailedInspection: DetailedInspection = {
         inspectionId: data.id,
         property: {
-          propertyId: data.property_id.toString(),
-          name: (data as any).properties.property_name,
+          propertyId: data.property_id,
+          name: (data as any).properties.name,
           address: this.transformPropertyAddress((data as any).properties),
           urls: this.transformPropertyUrls((data as any).properties),
           metadata: {}, // Would be populated from additional property data
@@ -369,8 +369,8 @@ export class InspectionDataService {
           approved: null, // Would need audit completion tracking
           milestones: [], // Would be populated from audit logs
         },
-        checklist: await this.transformChecklistProgress((data as any).logs || []),
-        media: this.transformMediaCollection((data as any).logs || []),
+        checklist: await this.transformChecklistProgress((data as any).checklist_items || []),
+        media: this.transformMediaCollection((data as any).checklist_items || []),
         notes: { inspector: '', auditor: '', system: [] },
         audit: { entries: [], summary: { totalChecks: 0, passedChecks: 0, failedChecks: 0 } },
         compliance: { overall: 'pending', score: 0, requirements: [], violations: [], recommendations: [], nextReviewDate: new Date() }
@@ -765,47 +765,36 @@ export class InspectionDataService {
   // ========================================
 
   private async calculateInspectionProgress(inspectionId: string): Promise<ProgressMetrics> {
-    // First get the inspection to find the property_id
-    const { data: inspection } = await supabase
-      .from('inspections')
-      .select('property_id')
-      .eq('id', inspectionId)
-      .single();
-
-    if (!inspection) {
-      return this.createDefaultProgress();
-    }
-
-    // Get checklist items for this property (logs table uses property_id, not inspection_id)
-    const { data: logs } = await supabase
-      .from('logs')
+    // Get checklist items directly by inspection_id (correct schema)
+    const { data: checklistItems } = await supabase
+      .from('checklist_items')
       .select(`
         *,
-        static_safety_items!checklist_id (
+        static_safety_items!static_item_id (
           required,
           evidence_type
         )
       `)
-      .eq('property_id', inspection.property_id);
+      .eq('inspection_id', inspectionId);
 
-    if (!logs || logs.length === 0) {
+    if (!checklistItems || checklistItems.length === 0) {
       return this.createDefaultProgress();
     }
 
     // Calculate actual progress metrics
-    const totalItems = logs.length;
-    const completedItems = logs.filter(log => log.pass === true).length;
-    const requiredItems = logs.filter(log => (log as any).static_safety_items?.required === true);
-    const requiredCompleted = requiredItems.filter(log => log.pass === true).length;
+    const totalItems = checklistItems.length;
+    const completedItems = checklistItems.filter(item => item.ai_status === 'pass').length;
+    const requiredItems = checklistItems.filter(item => (item as any).static_safety_items?.required === true);
+    const requiredCompleted = requiredItems.filter(item => item.ai_status === 'pass').length;
     
     const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
     
     // Count media requirements
-    const photosRequired = logs.filter(log => 
-      (log as any).static_safety_items?.evidence_type?.includes('photo')
+    const photosRequired = checklistItems.filter(item => 
+      (item as any).static_safety_items?.evidence_type?.includes('photo')
     ).length;
-    const videosRequired = logs.filter(log => 
-      (log as any).static_safety_items?.evidence_type?.includes('video')
+    const videosRequired = checklistItems.filter(item => 
+      (item as any).static_safety_items?.evidence_type?.includes('video')
     ).length;
     
     // TODO: Count actual captured media from media table
@@ -872,7 +861,7 @@ export class InspectionDataService {
     if (!property) return 'Unknown Address';
     
     const parts = [
-      property.street_address,
+      property.address,
       property.city,
       property.state
     ].filter(Boolean);
@@ -919,16 +908,16 @@ export class InspectionDataService {
     return !!data;
   }
 
-  private async initializeInspectionChecklist(inspectionId: string, propertyId: number): Promise<void> {
-    // Check if checklist items already exist for this property
-    const { data: existingLogs } = await supabase
-      .from('logs')
-      .select('log_id')
-      .eq('property_id', propertyId)
+  private async initializeInspectionChecklist(inspectionId: string, propertyId: string): Promise<void> {
+    // Check if checklist items already exist for this inspection
+    const { data: existingItems } = await supabase
+      .from('checklist_items')
+      .select('id')
+      .eq('inspection_id', inspectionId)
       .limit(1);
 
-    if (existingLogs && existingLogs.length > 0) {
-      logger.info('Checklist items already exist for property', { inspectionId, propertyId });
+    if (existingItems && existingItems.length > 0) {
+      logger.info('Checklist items already exist for inspection', { inspectionId, propertyId });
       return;
     }
 
@@ -943,19 +932,19 @@ export class InspectionDataService {
       return;
     }
 
-    // Create log entries for each safety item (linked to property, not inspection)
-    const logEntries = safetyItems.map(item => ({
-      property_id: propertyId,
-      checklist_id: item.id, // References static_safety_items.id
-      pass: null, // Not completed yet
-      inspector_remarks: null,
-      ai_result: null,
-      inspector_id: null, // Could be set from inspection.inspector_id
+    // Create checklist item entries for each safety item (linked to inspection)
+    const checklistEntries = safetyItems.map(item => ({
+      inspection_id: inspectionId,
+      static_item_id: item.id, // References static_safety_items.id
+      label: item.label,
+      status: null, // Not completed yet
+      notes: null,
+      ai_status: null,
     }));
 
     const { error } = await supabase
-      .from('logs')
-      .insert(logEntries);
+      .from('checklist_items')
+      .insert(checklistEntries);
 
     if (error) {
       logger.error('Failed to initialize inspection checklist', { error, inspectionId, propertyId });
@@ -971,7 +960,7 @@ export class InspectionDataService {
 
   private transformPropertyAddress(property: any): any {
     return {
-      street: property.street_address || '',
+      street: property.address || '',
       city: property.city || '',
       state: property.state || '',
       zipCode: property.zipcode?.toString() || '',
@@ -991,10 +980,10 @@ export class InspectionDataService {
     };
   }
 
-  private async transformChecklistProgress(logs: any[]): Promise<any> {
+  private async transformChecklistProgress(checklistItems: any[]): Promise<any> {
     return {
-      totalItems: logs.length,
-      completedItems: logs.filter(log => log.pass === true).length,
+      totalItems: checklistItems.length,
+      completedItems: checklistItems.filter(item => item.ai_status === 'pass').length,
       categories: [],
       criticalIssues: [],
       recommendations: [],
@@ -1003,7 +992,7 @@ export class InspectionDataService {
     };
   }
 
-  private transformMediaCollection(logs: any[]): any {
+  private transformMediaCollection(checklistItems: any[]): any {
     return {
       totalCount: 0,
       totalSize: 0,

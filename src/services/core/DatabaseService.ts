@@ -68,8 +68,8 @@ export interface DatabaseHealthStatus {
  */
 export interface PropertyWithInspections {
   property_id: number;
-  property_name: string;
-  street_address: string;
+  name: string;
+  address: string;
   vrbo_url?: string;
   airbnb_url?: string;
   created_at: string;
@@ -98,8 +98,8 @@ export interface InspectionWithItems {
   updated_at: string;
   properties: {
     property_id: number;
-    property_name: string;
-    street_address: string;
+    name: string;
+    address: string;
   };
   users: {
     id: string;
@@ -224,8 +224,8 @@ export class DatabaseService {
         .from('properties')
         .select(`
           property_id,
-          property_name,
-          street_address,
+          name,
+          address,
           vrbo_url,
           airbnb_url,
           created_at,
@@ -248,7 +248,7 @@ export class DatabaseService {
       const sanitizedFilters = this.sanitizeFilters(filters);
       
       if (sanitizedFilters.search) {
-        query.or(`property_name.ilike.%${sanitizedFilters.search}%,street_address.ilike.%${sanitizedFilters.search}%`);
+        query.or(`name.ilike.%${sanitizedFilters.search}%,address.ilike.%${sanitizedFilters.search}%`);
       }
 
       // Execute with timeout protection
@@ -361,8 +361,8 @@ export class DatabaseService {
           created_at,
           properties!inner (
             property_id,
-            property_name,
-            street_address
+            name,
+            address
           )
         `)
         .single();
@@ -452,7 +452,7 @@ export class DatabaseService {
       // Execute query with corrected production schema
       // NOTE: Based on CLAUDE.md schema corrections
       const { data, error } = await this.supabase
-        .from('logs')
+        .from('checklist_items')
         .select(`
           log_id,
           property_id,
@@ -461,7 +461,7 @@ export class DatabaseService {
           inspector_remarks,
           pass,
           inspector_id,
-          static_safety_items!checklist_id (
+          static_safety_items!static_item_id (
             id,
             label,
             category,
@@ -654,8 +654,8 @@ export class DatabaseService {
           updated_at,
           properties!inner (
             property_id,
-            property_name,
-            street_address
+            name,
+            address
           ),
           users!inner (
             id,

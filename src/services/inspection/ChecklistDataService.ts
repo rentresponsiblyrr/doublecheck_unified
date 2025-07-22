@@ -17,7 +17,9 @@
 
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
-import { queryCache } from './QueryCache';
+import { queryCache } from '../core/QueryCache';
+import { performanceMonitor } from '../core/PerformanceMonitor';
+import { realTimeSync } from '../core/RealTimeSync';
 
 // Type imports
 import type {
@@ -153,32 +155,14 @@ export class ChecklistDataService {
         }
       }
 
-      // NOTE: Current schema limitation - logs table doesn't have inspection_id
-      // For now, we'll work with the property_id relationship
+      // ✅ CORRECTED: Using actual checklist_items table with inspection_id relationship
       
-      // Get inspection to find property_id
-      const { data: inspection, error: inspectionError } = await supabase
-        .from('inspections')
-        .select('property_id')
-        .eq('id', inspectionId)
-        .single();
-
-      let queryCount = 1;
-
-      if (inspectionError) {
-        throw this.createServiceError('INSPECTION_NOT_FOUND', 
-          inspectionError.message, {
-          operation: 'getInspectionChecklist',
-          inspectionId
-        });
-      }
-
-      // Get checklist items through property_id relationship
+      // Get checklist items directly by inspection_id (correct schema)
       let query = supabase
-        .from('logs')
+        .from('checklist_items')
         .select(`
           *,
-          static_safety_items!checklist_id (
+          static_safety_items!static_item_id (
             id,
             label,
             category,
@@ -187,9 +171,11 @@ export class ChecklistDataService {
           )
           ${options.includeMedia ? ',media (*)' : ''}
         `)
-        .eq('property_id', inspection.property_id);
+        .eq('inspection_id', inspectionId);
 
-      const { data: logs, error } = await query;
+      let queryCount = 0;
+
+      const { data: checklistItemsRaw, error } = await query;
       queryCount += 1;
 
       if (error) {
@@ -199,36 +185,36 @@ export class ChecklistDataService {
         });
       }
 
-      if (!logs) {
+      if (!checklistItemsRaw) {
         return this.createSuccessResult([], startTime, false, queryCount);
       }
 
       // Transform to business objects
       const checklistItems = await Promise.all(
-        logs.map(async (log) => {
-          const staticItem = (log as any).static_safety_items;
-          const media = options.includeMedia ? (log as any).media || [] : [];
+        checklistItemsRaw.map(async (item) => {
+          const staticItem = (item as any).static_safety_items;
+          const media = options.includeMedia ? (item as any).media || [] : [];
 
           // Get AI guidance if requested
           let aiGuidance: AIGuidance | null = null;
-          if (options.includeAIGuidance) {
+          if (options.includeAIGuidance && staticItem?.id) {
             aiGuidance = await this.getAIGuidance(staticItem.id);
             queryCount += 1;
           }
 
           const checklistItem: ChecklistItem = {
-            itemId: log.log_id.toString(),
+            itemId: item.id,
             inspectionId,
-            title: staticItem.label,
-            description: staticItem.label, // Would be enhanced with detailed descriptions
-            category: staticItem.category as ChecklistCategory,
-            required: staticItem.required,
-            evidenceType: staticItem.evidence_type as any,
-            status: this.mapLogStatusToItemStatus(log),
-            result: this.createItemResult(log),
+            title: staticItem?.label || item.label,
+            description: staticItem?.label || item.label, // Would be enhanced with detailed descriptions
+            category: (staticItem?.category || item.category) as ChecklistCategory,
+            required: staticItem?.required ?? true,
+            evidenceType: (staticItem?.evidence_type || item.evidence_type) as any,
+            status: this.mapItemStatusToItemStatus(item),
+            result: this.createItemResult(item),
             media: media.map((m: any) => this.transformMediaItem(m)),
-            notes: log.inspector_remarks || '',
-            estimatedTime: this.estimateItemTime(staticItem),
+            notes: item.notes || '',
+            estimatedTime: this.estimateItemTime(staticItem || item),
             dependencies: [], // Would be populated from dependencies table
             aiGuidance,
           };
@@ -415,17 +401,30 @@ export class ChecklistDataService {
       // Optimistic cache update for immediate UI feedback
       this.optimisticallyUpdateItem(itemId, status, result, notes);
 
-      // Update database
+      // Update database using correct checklist_items table
       const updates: any = {
-        pass: status === 'completed' ? (result?.passed ?? null) : null,
-        inspector_remarks: notes || null,
-        // Note: logs table doesn't have a direct status field
+        status: status,
+        ai_status: status === 'completed' ? (result?.passed ? 'pass' : 'fail') : null,
+        notes: notes || null,
       };
 
+      const queryStart = performance.now();
       const { error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .update(updates)
-        .eq('log_id', parseInt(itemId));
+        .eq('id', itemId);
+      
+      // Track performance
+      performanceMonitor.trackQuery({
+        service: 'ChecklistDataService',
+        operation: 'updateChecklistItem',
+        startTime: queryStart,
+        endTime: performance.now(),
+        fromCache: false,
+        queryCount: 1,
+        success: !error,
+        errorCode: error?.code,
+      });
 
       const queryCount = 1;
 
@@ -442,6 +441,9 @@ export class ChecklistDataService {
 
       // Smart cache invalidation
       await this.invalidateItemCaches(itemId);
+      
+      // Publish real-time update
+      await realTimeSync.publishChecklistUpdate(itemId, updates);
 
       logger.debug('Checklist item updated', { 
         itemId, 
@@ -606,12 +608,11 @@ export class ChecklistDataService {
         const { data: mediaRecord, error: dbError } = await supabase
           .from('media')
           .insert({
-            log_id: parseInt(itemId),
+            checklist_item_id: itemId,
             type: mediaFile.type,
             url: publicUrl,
             filename,
             size: mediaFile.file.size,
-            created_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -914,31 +915,33 @@ export class ChecklistDataService {
     return filtered;
   }
 
-  private mapLogStatusToItemStatus(log: any): ChecklistItemStatus {
-    if (log.pass === true) return 'completed';
-    if (log.pass === false) return 'flagged';
-    if (log.inspector_remarks) return 'in_progress';
+  private mapItemStatusToItemStatus(item: any): ChecklistItemStatus {
+    if (item.status) return item.status as ChecklistItemStatus;
+    if (item.ai_status === 'pass') return 'completed';
+    if (item.ai_status === 'fail') return 'flagged';
+    if (item.notes) return 'in_progress';
     return 'pending';
   }
 
-  private createItemResult(log: any): ChecklistItemResult | null {
-    if (log.pass === null) return null;
+  private createItemResult(item: any): ChecklistItemResult | null {
+    if (!item.ai_status) return null;
 
+    const passed = item.ai_status === 'pass';
     return {
-      passed: log.pass,
+      passed,
       score: null, // Would be calculated from detailed scoring
-      issues: log.pass ? [] : ['Item failed inspection'],
-      recommendations: log.pass ? [] : ['Review and correct identified issues'],
+      issues: passed ? [] : ['Item failed inspection'],
+      recommendations: passed ? [] : ['Review and correct identified issues'],
       confidence: 100, // Would be from AI analysis
-      reviewRequired: !log.pass,
-      riskLevel: log.pass ? 'low' : 'medium',
+      reviewRequired: !passed,
+      riskLevel: passed ? 'low' : 'medium',
     };
   }
 
   private transformMediaItem(media: any): MediaItem {
     return {
       mediaId: media.id,
-      checklistItemId: media.log_id.toString(),
+      checklistItemId: media.checklist_item_id,
       type: media.type,
       url: media.url,
       thumbnailUrl: null, // Would be generated
@@ -946,7 +949,7 @@ export class ChecklistDataService {
       size: media.size,
       dimensions: null, // Would be extracted
       duration: null, // For video files
-      capturedAt: new Date(media.created_at),
+      capturedAt: new Date(media.created_at || Date.now()),
       location: null, // Would be from EXIF data
       aiAnalysis: null, // Would be populated from AI service
       quality: {

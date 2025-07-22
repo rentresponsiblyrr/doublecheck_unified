@@ -21,8 +21,8 @@ export interface InspectionForReview {
   created_at: string;
   properties: {
     property_id: number;
-    property_name: string;
-    street_address: string;
+    name: string;
+    address: string;
     vrbo_url?: string;
     airbnb_url?: string;
   };
@@ -107,8 +107,8 @@ export class AuditorService {
           created_at,
           properties!inner (
             property_id,
-            property_name,
-            street_address,
+            name,
+            address,
             vrbo_url,
             airbnb_url
           ),
@@ -145,7 +145,7 @@ export class AuditorService {
       if (filters.searchQuery) {
         // Search in property address or name
         query = query.or(
-          `properties.street_address.ilike.%${filters.searchQuery}%,properties.property_name.ilike.%${filters.searchQuery}%`
+          `properties.address.ilike.%${filters.searchQuery}%,properties.name.ilike.%${filters.searchQuery}%`
         );
       }
 
@@ -194,8 +194,8 @@ export class AuditorService {
           created_at,
           properties!inner (
             property_id,
-            property_name,
-            street_address,
+            name,
+            address,
             vrbo_url,
             airbnb_url
           ),
@@ -280,7 +280,7 @@ export class AuditorService {
       // Apply auditor overrides to checklist items
       for (const override of reviewDecision.overrides) {
         const { error: itemError } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .update({
             ai_status: override.auditorStatus,
             user_override: true,

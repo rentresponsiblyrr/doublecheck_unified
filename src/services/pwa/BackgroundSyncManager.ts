@@ -1270,7 +1270,7 @@ export class BackgroundSyncManager {
     const conflicts: string[] = [];
     
     Object.keys(localData).forEach(key => {
-      if (serverData.hasOwnProperty(key) && localData[key] !== serverData[key]) {
+      if (Object.prototype.hasOwnProperty.call(serverData, key) && localData[key] !== serverData[key]) {
         conflicts.push(key);
       }
     });

@@ -16,7 +16,7 @@ import { log } from "@/lib/logging/enterprise-logger";
 export interface PropertyInfo {
   id: string;
   name: string;
-  street_address?: string;
+  address?: string;
   created_by?: string;
 }
 
@@ -105,7 +105,7 @@ export class PropertyLookupService {
           availablePropertyCount: propertiesData.length,
           samplePropertyIds: propertiesData.slice(0, 3).map(p => ({
             id: p.property_id,
-            name: p.property_name,
+            name: p.name,
             type: typeof p.property_id
           }))
         }, 'PROPERTY_NOT_FOUND');
@@ -120,8 +120,8 @@ export class PropertyLookupService {
       // Construct properly typed property info
       const propertyInfo: PropertyInfo = {
         id: property.property_id?.toString() || cleanPropertyId,
-        name: property.property_name || 'Property',
-        street_address: property.street_address,
+        name: property.name || 'Property',
+        address: property.address,
         created_by: property.created_by
       };
 
@@ -130,7 +130,7 @@ export class PropertyLookupService {
         action: 'getPropertyInfo',
         propertyId: cleanPropertyId,
         propertyName: propertyInfo.name,
-        hasAddress: !!propertyInfo.street_address
+        hasAddress: !!propertyInfo.address
       }, 'PROPERTY_LOOKUP_SUCCESS');
 
       return {
@@ -221,8 +221,8 @@ export class PropertyLookupService {
         .filter(p => validIds.includes(p.property_id?.toString()))
         .map(p => ({
           id: p.property_id?.toString() || '',
-          name: p.property_name || 'Property',
-          street_address: p.street_address,
+          name: p.name || 'Property',
+          address: p.address,
           created_by: p.created_by
         }));
 

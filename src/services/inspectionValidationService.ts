@@ -81,7 +81,7 @@ export class InspectionValidationService {
       
       // Now get checklist items using property_id (verified schema approach)
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('id')
         .eq('property_id', inspectionData.property_id);
 

@@ -40,7 +40,7 @@ export interface ProductionUser {
 // Property data from working RPC function
 export interface ProductionProperty {
   property_id: string;
-  property_name: string;
+  name: string;
   property_address: string;
   property_vrbo_url?: string;
   property_airbnb_url?: string;

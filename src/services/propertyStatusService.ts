@@ -28,7 +28,7 @@ import { logger } from '@/utils/logger';
  */
 export interface PropertyWithInspections {
   property_id: string;
-  property_name: string;
+  name: string;
   property_address?: string;
   property_status?: string;
   
@@ -93,7 +93,7 @@ class PropertyStatusService {
     try {
       logger.debug('Calculating property status', { 
         propertyId: property.property_id,
-        propertyName: property.property_name 
+        propertyName: property.name 
       }, 'PROPERTY_STATUS_SERVICE');
 
       // Extract inspection counts with defensive defaults

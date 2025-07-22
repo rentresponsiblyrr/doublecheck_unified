@@ -18,9 +18,9 @@
  * Source: DATABASE_SCHEMA_REFERENCE.md verified schema
  */
 export interface DatabaseProperty {
-  property_id: number;              // INTEGER PRIMARY KEY
-  property_name: string;            // TEXT NOT NULL
-  street_address: string | null;    // TEXT
+  id: string;                       // UUID PRIMARY KEY
+  name: string;                     // TEXT NOT NULL
+  address: string | null;           // TEXT
   city: string | null;              // TEXT
   state: string | null;             // TEXT
   zipcode: number | null;           // INTEGER
@@ -90,17 +90,21 @@ export interface DatabaseUser {
 }
 
 /**
- * Logs table - Checklist item records (from Phase 1 verification)
- * Source: CLAUDE.md schema corrections
+ * Checklist_items table - Individual checklist item records (CORRECTED)
+ * Source: Actual verified database schema
  */
-export interface DatabaseLog {
-  log_id: number;                   // INTEGER PRIMARY KEY
-  property_id: number;              // INTEGER FK → properties.property_id
-  checklist_id: string;             // UUID FK → static_safety_items.id
-  pass: boolean | null;             // BOOLEAN
-  inspector_remarks: string | null; // TEXT
-  inspector_id: string | null;      // UUID FK → auth.users.id
-  // NOTE: No inspection_id column (confirmed missing in Phase 1)
+export interface DatabaseChecklistItem {
+  id: string;                       // UUID PRIMARY KEY
+  inspection_id: string;            // UUID FK → inspections.id
+  static_item_id: string;           // UUID FK → static_safety_items.id
+  label: string;                    // TEXT - Item description
+  category: string | null;          // TEXT - Item category
+  status: 'completed' | 'failed' | 'not_applicable' | null; // Item status
+  notes: string | null;             // TEXT - Inspector notes
+  ai_status: 'pass' | 'fail' | 'conflict' | null; // AI analysis status
+  evidence_type: string;            // TEXT - Required evidence type
+  source_photo_url: string | null;  // TEXT - Reference photo URL
+  created_at: string;               // TIMESTAMP
 }
 
 /**
@@ -141,7 +145,7 @@ export interface DatabaseMedia {
 export interface DatabasePropertyFixed {
   id: string;                       // UUID from int_to_uuid(property_id)
   original_property_id: number;     // INTEGER original property_id
-  name: string;                     // TEXT from property_name
+  name: string;                     // TEXT - Property name
   address: string;                  // TEXT concatenated address
   // All other properties same as DatabaseProperty but with UUID id
 }

@@ -374,7 +374,7 @@ export class InspectionCreationService {
       let checklistError = null;
       if (inspectionData) {
         const { error: deleteError } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .delete()
           .eq('property_id', inspectionData.property_id);
         checklistError = deleteError;

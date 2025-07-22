@@ -44,7 +44,7 @@ interface ValidationResult {
   passed: boolean;
   score: number;
   evidence: string[];
-  details: any;
+  details: Record<string, unknown>;
   recommendation?: string;
 }
 
@@ -67,8 +67,8 @@ interface PWAValidationReport {
   };
   evidence: {
     componentFiles: string[];
-    testResults: any;
-    performanceMetrics: any;
+    testResults: Record<string, unknown> | null;
+    performanceMetrics: Record<string, unknown> | null;
   };
 }
 
@@ -848,7 +848,7 @@ class PWAPhase3Validator {
     criterion: string,
     category: string,
     description: string,
-    validator: () => Promise<{ passed: boolean; score: number; details: any; }>
+    validator: () => Promise<{ passed: boolean; score: number; details: Record<string, unknown>; }>
   ): Promise<void> {
     try {
       const result = await validator();
@@ -906,7 +906,12 @@ class PWAPhase3Validator {
   }
 
   private async generateValidationReport(): Promise<PWAValidationReport> {
-    const categories: { [key: string]: any } = {};
+    const categories: { [key: string]: {
+      score: number;
+      passed: number;
+      total: number;
+      results: ValidationResult[];
+    } } = {};
     
     // Group results by category
     for (const result of this.validationResults) {
@@ -935,7 +940,7 @@ class PWAPhase3Validator {
     }
     
     const overallScore = Math.round(
-      Object.values(categories).reduce((sum: number, cat: any) => sum + cat.score, 0) / 
+      Object.values(categories).reduce((sum: number, cat) => sum + cat.score, 0) / 
       Object.keys(categories).length
     );
     

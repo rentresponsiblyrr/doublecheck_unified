@@ -300,7 +300,7 @@ export class AtomicChecklistService {
   }> {
     try {
       const { data: serverState, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('id, status, notes, version, last_modified_by, last_modified_at')
         .eq('id', request.itemId)
         .single();

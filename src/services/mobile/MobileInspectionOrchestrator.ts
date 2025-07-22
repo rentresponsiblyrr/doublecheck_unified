@@ -415,7 +415,7 @@ export class MobileInspectionOrchestrator {
 
       // Now get checklist items using property_id (verified schema approach)
       const { count, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('*', { count: 'exact', head: true })
         .eq('property_id', inspectionData.property_id);
 

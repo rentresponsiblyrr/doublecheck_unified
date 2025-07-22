@@ -4,7 +4,7 @@ import { INSPECTION_STATUS, STATUS_GROUPS } from '@/types/inspection-status';
 interface DuplicateInspection {
   id: string;
   property_id: string;
-  property_name: string;
+  name: string;
   status: string;
   start_time: string;
   inspector_id: string | null;
@@ -60,7 +60,7 @@ export class InspectionCleanupService {
         const duplicate: DuplicateInspection = {
           id: inspection.id,
           property_id: propertyId,
-          property_name: propertyName,
+          name: propertyName,
           status: inspection.status,
           start_time: inspection.start_time,
           inspector_id: inspection.inspector_id,
@@ -205,7 +205,7 @@ export class InspectionCleanupService {
 
     // Delete inspection checklist items first (foreign key constraint)
     const { error: checklistError } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .delete()
         .in('inspection_id', inspectionsToDelete);
 
@@ -251,7 +251,7 @@ export class InspectionCleanupService {
 ## Inspections Recommended for Deletion
 
 ${summary.safeToDelete.map(inspection => `
-### ${inspection.property_name}
+### ${inspection.name}
 - **Inspection ID**: ${inspection.id}
 - **Status**: ${inspection.status}
 - **Progress**: ${inspection.completed_checklist_items}/${inspection.total_checklist_items} items

@@ -107,7 +107,7 @@ export class RobustMobileInspectionService {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('id')
         .eq('inspection_id', inspectionId);
 

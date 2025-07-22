@@ -46,8 +46,8 @@ export interface DatabaseUser {
 
 export interface DatabaseProperty {
   property_id: number; // Integer in database
-  property_name: string;
-  street_address: string;
+  name: string;
+  address: string;
   vrbo_url?: string;
   airbnb_url?: string;
   created_at: string;
@@ -533,11 +533,11 @@ export class UnifiedDatabaseService {
         .from('inspections')
         .select(`
           *,
-          properties!inner (property_id, property_name, street_address),
+          properties!inner (property_id, name, address),
           users!inner (id, name, email, role),
           logs!inner (
             *,
-            static_safety_items!checklist_id (id, label, category),
+            static_safety_items!static_item_id (id, label, category),
             media (*)
           )
         `)

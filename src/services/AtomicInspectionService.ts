@@ -240,7 +240,7 @@ export class AtomicInspectionService {
       async () => {
         const { data, error } = await supabase
           .from('properties')
-          .select('property_id, property_name')
+          .select('property_id, name')
           .eq('property_id', propertyId)
           .single();
 
@@ -452,12 +452,12 @@ export class AtomicInspectionService {
     const result = await executeWithResilience(
       async () => {
         const { data, error } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .select(`
             log_id,
             property_id,
             checklist_id,
-            static_safety_items!checklist_id (
+            static_safety_items!static_item_id (
               id,
               label,
               category,
@@ -539,7 +539,7 @@ export class AtomicInspectionService {
       // Remove created checklist items
       if (context.checklistItemIds.length > 0) {
         await supabase
-          .from('logs')
+          .from('checklist_items')
           .delete()
           .in('log_id', context.checklistItemIds.map(id => parseInt(id)));
       }

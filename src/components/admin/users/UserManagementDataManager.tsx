@@ -28,7 +28,7 @@
  * ```
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User, UserFormData, UserFilters, SystemDiagnostic, UserStats } from './types';
 
@@ -87,11 +87,11 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
   const { toast } = useToast();
   const mountedRef = useRef(true);
 
-  // Initialize services
-  const userDataService = new UserDataService(toast, mountedRef);
-  const userStatisticsService = new UserStatisticsService();
-  const userFilterService = new UserFilterService();
-  const systemDiagnosticService = new SystemDiagnosticService(mountedRef);
+  // Initialize services with useMemo to prevent recreation on re-render
+  const userDataService = useMemo(() => new UserDataService(toast, mountedRef), [toast]);
+  const userStatisticsService = useMemo(() => new UserStatisticsService(), []);
+  const userFilterService = useMemo(() => new UserFilterService(), []);
+  const systemDiagnosticService = useMemo(() => new SystemDiagnosticService(mountedRef), []);
 
   // Lifecycle cleanup
   useEffect(() => {
@@ -101,7 +101,7 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
   }, []);
 
   // Data loading orchestration
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -119,10 +119,10 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
         setIsLoading(false);
       }
     }
-  };
+  }, [userDataService]);
 
   // Diagnostics orchestration
-  const runDiagnostics = async () => {
+  const runDiagnostics = useCallback(async () => {
     try {
       const diagnosticResults = await systemDiagnosticService.runDiagnostics();
       if (mountedRef.current) {
@@ -131,13 +131,13 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
     } catch (error) {
       console.warn('Diagnostics failed:', error);
     }
-  };
+  }, [systemDiagnosticService]);
 
   // Initialize data on mount
   useEffect(() => {
     loadUsers();
     runDiagnostics();
-  }, []);
+  }, [loadUsers, runDiagnostics]);
 
   // Computed values using service modules
   const stats = userStatisticsService.calculateStats(users);
