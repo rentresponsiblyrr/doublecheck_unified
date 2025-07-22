@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1f2937">
+    <title>STR Certified - Working Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 500px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status.online {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.offline {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progress 3s ease-out infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .icon {
+                font-size: 60px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            }
+        }
+
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .container {
+                background: rgba(0, 0, 0, 0.8);
+                border: 2px solid white;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .icon, .progress-fill {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon" role="img" aria-label="Offline indicator">📱</div>
+        
+        <h1>Working Offline</h1>
+        <p class="subtitle">STR Certified continues to work while you're offline</p>
+        
+        <ul class="feature-list">
+            <li>Your inspection data is safe and stored locally</li>
+            <li>Continue reviewing property checklists</li>
+            <li>Take photos and add notes offline</li>
+            <li>Everything syncs when you're back online</li>
+        </ul>
+
+        <div class="progress-bar" aria-label="Sync progress">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="status offline" id="connectionStatus">
+            🔴 No internet connection
+        </div>
+
+        <div class="actions">
+            <a href="/" class="btn btn-primary" id="retryBtn">Try Again</a>
+            <button class="btn" onclick="refreshPage()">Refresh Page</button>
+            <button class="btn" onclick="viewCachedData()">View Cached Data</button>
+        </div>
+
+        <div class="footer">
+            <p>STR Certified PWA • Version 1.0.0</p>
+            <p>Designed for reliable construction site inspections</p>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced offline page with real-time functionality
+        let retryCount = 0;
+        let maxRetries = 10;
+        let retryInterval;
+
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connectionStatus');
+            const progressEl = document.getElementById('progressFill');
+            
+            if (navigator.onLine) {
+                statusEl.className = 'status online';
+                statusEl.innerHTML = '🟢 Connection restored - syncing data...';
+                progressEl.style.width = '100%';
+                
+                // Redirect to main app after successful connection
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                statusEl.className = 'status offline';
+                statusEl.innerHTML = '🔴 No internet connection';
+                progressEl.style.width = '0%';
+            }
+        }
+
+        // Automatic retry mechanism
+        function startAutoRetry() {
+            retryInterval = setInterval(() => {
+                if (retryCount >= maxRetries) {
+                    clearInterval(retryInterval);
+                    return;
+                }
+
+                retryCount++;
+                
+                // Simulate connection check
+                if (navigator.onLine) {
+                    clearInterval(retryInterval);
+                    updateConnectionStatus();
+                } else {
+                    console.log(`Retry attempt ${retryCount}/${maxRetries}`);
+                }
+            }, 5000); // Check every 5 seconds
+        }
+
+        // Manual refresh
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        // View cached data
+        function viewCachedData() {
+            // Check if there's cached inspection data
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    if (cacheNames.length > 0) {
+                        alert(`Found ${cacheNames.length} cached data stores. Your inspection data is safely stored offline.`);
+                    } else {
+                        alert('No cached data found. Your data will be saved as you use the app.');
+                    }
+                });
+            } else {
+                alert('Caching not supported in this browser.');
+            }
+        }
+
+        // Service Worker messaging
+        function setupServiceWorkerCommunication() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.addEventListener('message', function(event) {
+                    const message = event.data;
+                    
+                    if (message.type === 'SYNC_PROGRESS') {
+                        const progress = (message.completed / message.total) * 100;
+                        document.getElementById('progressFill').style.width = progress + '%';
+                        
+                        if (progress === 100) {
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1000);
+                        }
+                    } else if (message.type === 'CACHE_UPDATE') {
+                        updateConnectionStatus();
+                    }
+                });
+
+                // Request sync status from Service Worker
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'GET_SYNC_STATUS',
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateConnectionStatus();
+            startAutoRetry();
+            setupServiceWorkerCommunication();
+
+            // Listen for online/offline events
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+
+            // Update retry button with count
+            const retryBtn = document.getElementById('retryBtn');
+            setInterval(() => {
+                if (retryCount > 0 && retryCount < maxRetries) {
+                    retryBtn.textContent = `Try Again (${retryCount}/${maxRetries})`;
+                }
+            }, 1000);
+        });
+
+        // Keyboard accessibility
+        document.addEventListener('keydown', function(event) {
+            // Press 'R' to refresh
+            if (event.key.toLowerCase() === 'r' && !event.ctrlKey && !event.metaKey) {
+                refreshPage();
+            }
+            
+            // Press 'C' to check cached data
+            if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.metaKey) {
+                viewCachedData();
+            }
+            
+            // Press Enter or Space on focused buttons
+            if ((event.key === 'Enter' || event.key === ' ') && event.target.tagName === 'BUTTON') {
+                event.preventDefault();
+                event.target.click();
+            }
+        });
+
+        // Analytics for offline usage (stored locally and sent when online)
+        function trackOfflineUsage() {
+            const offlineData = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                referrer: document.referrer,
+                duration: Date.now() - performance.timing.navigationStart
+            };
+
+            // Store in localStorage for later sending
+            try {
+                const stored = localStorage.getItem('offline_analytics') || '[]';
+                const analytics = JSON.parse(stored);
+                analytics.push(offlineData);
+                
+                // Keep only last 50 entries
+                if (analytics.length > 50) {
+                    analytics.splice(0, analytics.length - 50);
+                }
+                
+                localStorage.setItem('offline_analytics', JSON.stringify(analytics));
+            } catch (error) {
+                console.warn('Could not store offline analytics:', error);
+            }
+        }
+
+        // Track this offline page visit
+        trackOfflineUsage();
+
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', function() {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                console.log(`Offline page loaded in ${loadTime}ms`);
+            });
+        }
+    </script>
+</body>
+</html>
