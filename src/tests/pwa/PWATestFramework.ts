@@ -39,23 +39,66 @@ import { logger } from '@/utils/logger';
 import type { ElitePWAIntegrator, UnifiedSystemStatus } from '@/lib/pwa/pwa-integration';
 import type { CoreWebVitalsMetrics, PerformanceAlert } from '@/services/pwa/PWAPerformanceIntegrator';
 
+// Test interfaces
+export interface TestDetails {
+  expected: unknown;
+  actual: unknown;
+  message: string;
+}
+
+export interface TestMetrics {
+  duration?: number;
+  memoryUsage?: number;
+  cacheHits?: number;
+  networkCalls?: number;
+  errorCounts?: number;
+  [key: string]: any;
+}
+
+export interface NetworkTrace {
+  method: string;
+  url: string;
+  status: number;
+  responseTime: number;
+  cacheStatus: 'hit' | 'miss' | 'revalidated';
+}
+
+export interface TestEvidence {
+  screenshots?: string[];
+  logs?: string[];
+  networkTraces?: NetworkTrace[];
+}
+
+export interface PerformanceMetricsData {
+  coreWebVitals: CoreWebVitalsMetrics;
+  loadTimes: number[];
+  cacheEfficiency: number;
+  memoryUsage: number;
+}
+
+export interface NetworkSimulationData {
+  connectionType: '2g' | '3g' | '4g' | 'wifi';
+  latency: number;
+  throughput: number;
+  packetLoss: number;
+}
+
+export interface DeviceTestingData {
+  userAgent: string;
+  screenSize: { width: number; height: number; };
+  deviceType: 'mobile' | 'tablet' | 'desktop';
+  batteryLevel?: number;
+}
+
 export interface PWATestResult {
   testName: string;
   category: 'unit' | 'integration' | 'performance' | 'resilience' | 'environment' | 'e2e';
   passed: boolean;
   score?: number;
   duration: number;
-  details: {
-    expected: any;
-    actual: any;
-    message: string;
-  };
-  metrics?: any;
-  evidence?: {
-    screenshots?: string[];
-    logs?: string[];
-    networkTraces?: any[];
-  };
+  details: TestDetails;
+  metrics?: TestMetrics;
+  evidence?: TestEvidence;
 }
 
 export interface PWATestSuite {
@@ -95,9 +138,9 @@ export interface PWAValidationReport {
   };
   evidence: {
     systemStatus: UnifiedSystemStatus;
-    performanceMetrics: any;
-    networkSimulation: any;
-    deviceTesting: any;
+    performanceMetrics: PerformanceMetricsData;
+    networkSimulation: NetworkSimulationData;
+    deviceTesting: DeviceTestingData;
   };
 }
 
@@ -793,7 +836,7 @@ export class PWATestFramework {
     };
   }
 
-  private createFailedTest(testName: string, category: any, startTime: number, error: any): PWATestResult {
+  private createFailedTest(testName: string, category: PWATestResult['category'], startTime: number, error: Error): PWATestResult {
     return {
       testName,
       category,
@@ -808,7 +851,7 @@ export class PWATestFramework {
     };
   }
 
-  private createPlaceholderTest(testName: string, category: any): PWATestResult {
+  private createPlaceholderTest(testName: string, category: PWATestResult['category']): PWATestResult {
     return {
       testName,
       category,
@@ -865,7 +908,7 @@ export class PWATestFramework {
     };
   }
 
-  private generateRecommendations(testSuites: PWATestSuite[], successCriteria: any): any {
+  private generateRecommendations(testSuites: PWATestSuite[], successCriteria: PWAValidationReport['successCriteria']): PWAValidationReport['recommendations'] {
     const recommendations = {
       critical: [] as string[],
       high: [] as string[],
