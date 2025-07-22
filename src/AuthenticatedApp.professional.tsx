@@ -23,12 +23,18 @@ import { AuthProvider } from '@/components/AuthProvider';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ErrorBoundary } from '@/lib/error/error-boundary';
 
+// Accessibility system (WCAG 2.1 AA compliance)
+import { AccessibilityProvider } from '@/lib/accessibility/AccessibilityProvider';
+
 // Professional loading components
 import { ProfessionalLoadingSpinner } from '@/components/loading/ProfessionalLoadingSpinner';
 import { ProfessionalErrorFallback } from '@/components/error/ProfessionalErrorFallback';
 
 // Optimized notifications (lightweight)
 import { OptimizedToaster } from '@/components/ui/optimized-toaster';
+
+// Import accessibility styles
+import '@/styles/accessibility.css';
 
 // PROFESSIONAL LAZY LOADING - Route-based code splitting
 const InspectorDashboard = lazy(() => 
@@ -192,20 +198,21 @@ export const ProfessionalAuthenticatedApp: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <TooltipProvider>
-          <AuthProvider>
-            <ErrorBoundary
-              fallback={(error, retry) => (
-                <ProfessionalErrorFallback
-                  error={error}
-                  onRetry={retry}
-                  title="Application Error"
-                  description="The application encountered an unexpected error."
-                  showDetails={process.env.NODE_ENV === 'development'}
-                />
-              )}
-              level="app"
-            >
+        <AccessibilityProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <ErrorBoundary
+                fallback={(error, retry) => (
+                  <ProfessionalErrorFallback
+                    error={error}
+                    onRetry={retry}
+                    title="Application Error"
+                    description="The application encountered an unexpected error."
+                    showDetails={process.env.NODE_ENV === 'development'}
+                  />
+                )}
+                level="app"
+              >
               <Routes>
                 {/* Inspector Routes */}
                 <Route 
@@ -322,6 +329,7 @@ export const ProfessionalAuthenticatedApp: React.FC = () => {
             </ErrorBoundary>
           </AuthProvider>
         </TooltipProvider>
+      </AccessibilityProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

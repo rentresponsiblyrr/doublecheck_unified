@@ -19,6 +19,79 @@ import { supabase } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 import { queryCache } from './QueryCache';
 
+// Database entity interfaces
+interface DatabaseProperty {
+  property_id: number;
+  property_name?: string;
+  name?: string;
+  street_address?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipcode?: number;
+  vrbo_url?: string;
+  airbnb_url?: string;
+  listing_url?: string;
+  created_at: string;
+  updated_at?: string;
+  created_by?: string;
+  audit_status?: string;
+  audit_priority?: string;
+  last_inspection_date?: string;
+  quality_score?: number;
+}
+
+interface DatabaseInspection {
+  id: string;
+  property_id: string;
+  status: 'draft' | 'in_progress' | 'completed' | 'auditing' | 'cancelled';
+  created_at: string;
+  updated_at?: string;
+  inspector_id?: string;
+  completed?: boolean;
+  start_time?: string;
+  end_time?: string;
+}
+
+interface CacheStatistics {
+  hitRate: number;
+  missCount: number;
+  totalQueries: number;
+  averageResponseTime: number;
+}
+
+interface InspectionStatusResult {
+  current: 'never_inspected' | 'scheduled' | 'in_progress' | 'completed' | 'overdue';
+  lastInspection: Date | null;
+  nextDue: Date | null;
+  isOverdue: boolean;
+}
+
+interface InspectionHistoryResult {
+  inspections: Array<{
+    id: string;
+    date: Date;
+    status: string;
+    score: number;
+    inspector: string;
+    summary: string;
+  }>;
+  summary: {
+    total: number;
+    averageScore: number;
+    lastScore: number;
+  };
+}
+
+interface ComplianceResult {
+  overall: 'pending' | 'compliant' | 'non_compliant';
+  score: number;
+  requirements: string[];
+  violations: string[];
+  recommendations: string[];
+  nextReviewDate: Date;
+}
+
 // Type imports
 import type {
   PropertyWithStatus,
@@ -201,9 +274,9 @@ export class PropertyDataService {
       const propertiesWithStatus = await Promise.all(
         data.map(async (property) => {
           // Get latest inspection
-          const inspections = (property as any).inspections || [];
+          const inspections = (property as DatabaseProperty & { inspections?: DatabaseInspection[] }).inspections || [];
           const latestInspection = inspections.length > 0 
-            ? inspections.sort((a: any, b: any) => 
+            ? inspections.sort((a: DatabaseInspection, b: DatabaseInspection) => 
                 new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
               )[0]
             : null;
@@ -565,8 +638,8 @@ export class PropertyDataService {
           tags: [], // Would be populated from tags table
           customFields: {}, // Would be populated from custom fields
         },
-        inspectionHistory: this.transformInspectionHistory((property as any).inspections || []),
-        compliance: await this.calculatePropertyCompliance(property, (property as any).inspections || []),
+        inspectionHistory: this.transformInspectionHistory((property as DatabaseProperty & { inspections?: DatabaseInspection[] }).inspections || []),
+        compliance: await this.calculatePropertyCompliance(property, (property as DatabaseProperty & { inspections?: DatabaseInspection[] }).inspections || []),
         access: {
           instructions: null, // Would be populated from access_instructions field
           contacts: [], // Would be populated from contacts table
@@ -744,7 +817,7 @@ export class PropertyDataService {
   // HELPER METHODS
   // ========================================
 
-  private transformPropertyAddress(property: any): PropertyAddress {
+  private transformPropertyAddress(property: DatabaseProperty): PropertyAddress {
     return {
       street: property.address || '',
       city: property.city || '',
@@ -756,7 +829,7 @@ export class PropertyDataService {
     };
   }
 
-  private transformPropertyUrls(property: any): PropertyUrls {
+  private transformPropertyUrls(property: DatabaseProperty): PropertyUrls {
     return {
       primary: property.listing_url,
       airbnb: property.airbnb_url,
@@ -766,7 +839,7 @@ export class PropertyDataService {
     };
   }
 
-  private formatAddress(property: any): string {
+  private formatAddress(property: DatabaseProperty): string {
     const parts = [
       property.address,
       property.city,
@@ -788,7 +861,7 @@ export class PropertyDataService {
     return mapping[sortBy] || 'name';
   }
 
-  private determineInspectionStatus(property: any, inspections: any[]): any {
+  private determineInspectionStatus(property: DatabaseProperty, inspections: DatabaseInspection[]): InspectionStatusResult {
     if (inspections.length === 0) {
       return {
         current: 'never_inspected',
@@ -807,7 +880,7 @@ export class PropertyDataService {
     };
   }
 
-  private calculateNextInspectionDue(lastInspection: any): Date | null {
+  private calculateNextInspectionDue(lastInspection: DatabaseInspection | null): Date | null {
     if (!lastInspection) return new Date(); // Due now if never inspected
     
     // Simple logic - due every 6 months
@@ -815,12 +888,12 @@ export class PropertyDataService {
     return new Date(lastDate.getTime() + (6 * 30 * 24 * 60 * 60 * 1000));
   }
 
-  private isInspectionOverdue(lastInspection: any): boolean {
+  private isInspectionOverdue(lastInspection: DatabaseInspection): boolean {
     const nextDue = this.calculateNextInspectionDue(lastInspection);
     return nextDue ? new Date() > nextDue : true;
   }
 
-  private identifyRiskFactors(property: any, inspections: any[]): string[] {
+  private identifyRiskFactors(property: DatabaseProperty, inspections: DatabaseInspection[]): string[] {
     const risks: string[] = [];
     
     if (!inspections.length) {
@@ -863,7 +936,7 @@ export class PropertyDataService {
     return this.getDefaultStats();
   }
 
-  private transformInspectionSummary(inspection: any, property: any): InspectionSummary {
+  private transformInspectionSummary(inspection: DatabaseInspection, property: DatabaseProperty): InspectionSummary {
     return {
       inspectionId: inspection.id,
       propertyName: property.name,
@@ -878,16 +951,16 @@ export class PropertyDataService {
     };
   }
 
-  private isPropertyAvailable(property: any): boolean {
-    const inspections = (property as any).inspections || [];
+  private isPropertyAvailable(property: DatabaseProperty & { inspections?: DatabaseInspection[] }): boolean {
+    const inspections = property.inspections || [];
     
     // Property is available if no active inspections
-    return !inspections.some((inspection: any) => 
+    return !inspections.some((inspection: DatabaseInspection) => 
       ['draft', 'in_progress', 'under_review'].includes(inspection.status)
     );
   }
 
-  private inferPropertyType(property: any): PropertyType {
+  private inferPropertyType(property: DatabaseProperty): PropertyType {
     // Simple inference logic - would be enhanced with ML
     const name = (property.name || '').toLowerCase();
     
@@ -900,7 +973,7 @@ export class PropertyDataService {
     return 'house'; // Default
   }
 
-  private estimateInspectionDuration(property: any): number {
+  private estimateInspectionDuration(property: DatabaseProperty): number {
     // Estimate inspection duration in minutes based on property characteristics
     const baseTime = 120; // 2 hours base
     
@@ -908,16 +981,16 @@ export class PropertyDataService {
     return baseTime;
   }
 
-  private extractSpecialRequirements(property: any): string[] {
+  private extractSpecialRequirements(property: DatabaseProperty): string[] {
     // Extract special requirements from property data
     return []; // Would be populated from property metadata
   }
 
-  private getLastInspectionDate(property: any): Date | null {
+  private getLastInspectionDate(property: DatabaseProperty): Date | null {
     return property.last_inspection_date ? new Date(property.last_inspection_date) : null;
   }
 
-  private calculatePropertyUrgency(property: any): 'low' | 'medium' | 'high' | 'critical' {
+  private calculatePropertyUrgency(property: DatabaseProperty): 'low' | 'medium' | 'high' | 'critical' {
     const lastInspection = this.getLastInspectionDate(property);
     
     if (!lastInspection) return 'high'; // Never inspected
@@ -956,8 +1029,8 @@ export class PropertyDataService {
     });
   }
 
-  private transformToPropertyWithStatus(property: any): PropertyWithStatus {
-    const inspections = (property as any).inspections || [];
+  private transformToPropertyWithStatus(property: DatabaseProperty & { inspections?: DatabaseInspection[] }): PropertyWithStatus {
+    const inspections = property.inspections || [];
     
     return {
       propertyId: property.property_id.toString(),
@@ -1020,7 +1093,7 @@ export class PropertyDataService {
     return score;
   }
 
-  private transformInspectionHistory(inspections: any[]): any {
+  private transformInspectionHistory(inspections: DatabaseInspection[]): InspectionHistoryResult {
     return {
       inspections: inspections.map(inspection => ({
         id: inspection.id,
@@ -1038,7 +1111,7 @@ export class PropertyDataService {
     };
   }
 
-  private async calculatePropertyCompliance(property: any, inspections: any[]): Promise<any> {
+  private async calculatePropertyCompliance(property: DatabaseProperty, inspections: DatabaseInspection[]): Promise<ComplianceResult> {
     // This would implement comprehensive compliance calculations
     return {
       overall: 'pending' as const,
@@ -1083,7 +1156,7 @@ export class PropertyDataService {
   private createServiceError(
     code: InspectionErrorCode,
     message: string,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): InspectionServiceError {
     const error = new Error(message) as InspectionServiceError;
     error.code = code;
@@ -1131,7 +1204,7 @@ export class PropertyDataService {
    * Get property service performance metrics
    */
   getPerformanceMetrics(): {
-    cacheStats: any;
+    cacheStats: CacheStatistics;
     queryMetrics: QueryMetrics[];
   } {
     return {

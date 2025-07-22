@@ -78,32 +78,49 @@ export const createStaticSafetyItemId = (id: string): StaticSafetyItemId => {
 };
 
 // ========================================
+// Error details interfaces
+interface ErrorDetails {
+  code?: string;
+  message: string;
+  context?: Record<string, unknown>;
+  stack?: string;
+  timestamp: Date;
+}
+
+interface ConflictData {
+  localVersion: Record<string, unknown>;
+  remoteVersion: Record<string, unknown>;
+  conflictFields: string[];
+  entityId: string;
+  entityType: string;
+}
+
 // HARDENED ERROR SYSTEM
 // ========================================
 
 export class ValidationError extends Error {
-  constructor(message: string, public details: any) {
+  constructor(message: string, public details: ErrorDetails) {
     super(message);
     this.name = 'ValidationError';
   }
 }
 
 export class DatabaseError extends Error {
-  constructor(message: string, public code: string, public details: any) {
+  constructor(message: string, public code: string, public details: ErrorDetails) {
     super(message);
     this.name = 'DatabaseError';
   }
 }
 
 export class BusinessLogicError extends Error {
-  constructor(message: string, public userMessage: string, public details: any) {
+  constructor(message: string, public userMessage: string, public details: ErrorDetails) {
     super(message);
     this.name = 'BusinessLogicError';
   }
 }
 
 export class ConcurrencyError extends Error {
-  constructor(message: string, public conflictData: any) {
+  constructor(message: string, public conflictData: ConflictData) {
     super(message);
     this.name = 'ConcurrencyError';
   }
@@ -131,7 +148,7 @@ export interface EnhancedServiceError {
   code: string;
   message: string;
   userMessage: string;
-  details: any;
+  details: ErrorDetails;
   recoverable: boolean;
   retryAfter?: number;
   suggestedActions: string[];
@@ -215,7 +232,7 @@ abstract class EnhancedBaseService {
    * Execute operation with comprehensive error handling, validation, and rollback
    */
   protected async executeEnhanced<T>(
-    operation: () => Promise<any>,
+    operation: () => Promise<unknown>,
     options: {
       operationName: string;
       entityId?: string;
@@ -223,7 +240,7 @@ abstract class EnhancedBaseService {
       cacheTimeout?: number;
       cacheTags?: string[];
       useCache?: boolean;
-      validateResult?: (result: any) => boolean;
+      validateResult?: (result: unknown) => boolean;
       rollback?: () => Promise<void>;
       maxRetries?: number;
       requiresAuth?: boolean;
@@ -384,7 +401,7 @@ abstract class EnhancedBaseService {
     });
   }
 
-  private extractSupabaseData<T>(result: any): T {
+  private extractSupabaseData<T>(result: { data?: T; error?: { message: string } }): T {
     if (result?.error) {
       throw new DatabaseError(
         result.error.message,
@@ -396,7 +413,7 @@ abstract class EnhancedBaseService {
     return result?.data ?? result;
   }
 
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: Error & { code?: string; details?: unknown }): boolean {
     const retryableCodes = [
       'PGRST301', // Connection error
       'PGRST302', // Request timeout
@@ -515,10 +532,10 @@ abstract class EnhancedBaseService {
 
     return {
       type,
-      code: (error as any).code || error.name || 'UNKNOWN_ERROR',
+      code: (error as Error & { code?: string }).code || error.name || 'UNKNOWN_ERROR',
       message: error.message,
       userMessage: this.getUserFriendlyMessage(error),
-      details: (error as any).details || {},
+      details: (error as Error & { details?: ErrorDetails }).details || { message: error.message, timestamp: new Date() },
       recoverable,
       retryAfter,
       suggestedActions,
@@ -541,7 +558,7 @@ abstract class EnhancedBaseService {
       '23505': 'This item already exists.',
     };
 
-    const errorKey = error.name || (error as any).code || error.message;
+    const errorKey = error.name || (error as Error & { code?: string }).code || error.message;
     return friendlyMessages[errorKey] || 'An unexpected error occurred. Please try again or contact support.';
   }
 
@@ -687,7 +704,7 @@ export class EnhancedPropertyService extends EnhancedBaseService {
     return parseInt(id.replace(/\D/g, ''), 10);
   }
 
-  private validatePropertyResult(result: any): boolean {
+  private validatePropertyResult(result: unknown): boolean {
     if (!result?.data) return false;
     
     try {
@@ -709,7 +726,7 @@ export class EnhancedPropertyService extends EnhancedBaseService {
 
   private validatePropertyInput(data: Omit<EnhancedProperty, 'id'>): {
     valid: boolean;
-    errors?: any[];
+    errors?: ValidationError[];
   } {
     try {
       z.object({
@@ -823,7 +840,7 @@ export class EnhancedChecklistService extends EnhancedBaseService {
     return parseInt(id.replace(/\D/g, ''), 10);
   }
 
-  private validateChecklistItemResult(result: any): boolean {
+  private validateChecklistItemResult(result: unknown): boolean {
     if (!result?.data) return false;
     
     try {
@@ -835,9 +852,9 @@ export class EnhancedChecklistService extends EnhancedBaseService {
     }
   }
 
-  private validateChecklistItemUpdates(updates: any): {
+  private validateChecklistItemUpdates(updates: Record<string, unknown>): {
     valid: boolean;
-    errors?: any[];
+    errors?: ValidationError[];
   } {
     try {
       z.object({
@@ -859,7 +876,7 @@ export class EnhancedChecklistService extends EnhancedBaseService {
 // ========================================
 
 export class EnhancedServiceFactory {
-  private static instances = new Map<string, any>();
+  private static instances = new Map<string, EnhancedUnifiedServiceLayer>();
 
   static getPropertyService(): EnhancedPropertyService {
     if (!this.instances.has('property')) {

@@ -10,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, UserCheck } from 'lucide-react';
+import { LogOut, UserCheck, Menu } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SystemStatusPanel } from '../SystemStatusPanel';
+import { cn } from '@/lib/utils';
 
 interface AdminHeaderProps {
   userProfile: {
@@ -21,11 +22,15 @@ interface AdminHeaderProps {
     avatar_url?: string;
   } | null;
   className?: string;
+  onMobileMenuClick?: () => void;
+  isMobile?: boolean;
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ 
   userProfile, 
-  className = '' 
+  className = '',
+  onMobileMenuClick,
+  isMobile = false 
 }) => {
   const navigate = useNavigate();
 
@@ -49,45 +54,108 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   };
 
   return (
-    <header id="admin-header" className={`bg-white shadow-sm border-b ${className}`}>
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex-1">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Admin Dashboard
-          </h2>
-          <p className="text-sm text-gray-500">
-            Manage properties, users, and system configuration
-          </p>
+    <header id="admin-header" className={cn(
+      "bg-white shadow-sm border-b sticky top-0 z-30 transition-all duration-300",
+      className
+    )}>
+      <div className={cn(
+        "flex items-center justify-between transition-all duration-300",
+        isMobile ? "px-3 py-3" : "px-6 py-4"
+      )}>
+        {/* Left Section: Mobile Menu + Title */}
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMobileMenuClick}
+              className="p-2 -ml-2"
+              id="mobile-menu-button"
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {/* Header Content */}
+          <div className="flex-1 min-w-0">
+            <h2 className={cn(
+              "font-semibold text-gray-900 truncate transition-all duration-300",
+              isMobile ? "text-lg" : "text-xl"
+            )}>
+              Admin Dashboard
+            </h2>
+            {!isMobile && (
+              <p className="text-sm text-gray-500 truncate">
+                Manage properties, users, and system configuration
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <SystemStatusPanel />
+        {/* Right Section: Status + User Menu */}
+        <div className={cn(
+          "flex items-center flex-shrink-0",
+          isMobile ? "space-x-2" : "space-x-4"
+        )}>
+          {/* System Status - Hidden on mobile to save space */}
+          {!isMobile && <SystemStatusPanel />}
           
+          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full" id="user-menu-button">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={userProfile?.avatar_url} alt={userProfile?.full_name || 'Admin'} />
-                  <AvatarFallback>
+              <Button 
+                variant="ghost" 
+                className={cn(
+                  "relative rounded-full p-1",
+                  isMobile ? "h-9 w-9" : "h-10 w-10"
+                )} 
+                id="user-menu-button"
+                aria-label="User menu"
+              >
+                <Avatar className={cn(
+                  isMobile ? "h-7 w-7" : "h-8 w-8"
+                )}>
+                  <AvatarImage 
+                    src={userProfile?.avatar_url} 
+                    alt={userProfile?.full_name || 'Admin'} 
+                  />
+                  <AvatarFallback className="text-xs">
                     {getInitials(userProfile?.full_name)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             
-            <DropdownMenuContent className="w-56" align="end" id="user-menu-content">
+            <DropdownMenuContent 
+              className="w-56" 
+              align="end" 
+              id="user-menu-content"
+              sideOffset={5}
+            >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="text-sm font-medium leading-none truncate">
                     {userProfile?.full_name || 'Admin User'}
                   </p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-xs leading-none text-muted-foreground truncate">
                     {userProfile?.email || 'admin@strbook.com'}
                   </p>
                 </div>
               </DropdownMenuLabel>
               
               <DropdownMenuSeparator />
+              
+              {/* Mobile-only: System Status */}
+              {isMobile && (
+                <>
+                  <DropdownMenuItem id="system-status-mobile" className="p-2">
+                    <SystemStatusPanel />
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               
               <DropdownMenuItem id="profile-menu-item">
                 <UserCheck className="mr-2 h-4 w-4" />
@@ -98,7 +166,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               
               <DropdownMenuItem 
                 onClick={handleSignOut}
-                className="text-red-600 focus:text-red-600"
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
                 id="signout-menu-item"
               >
                 <LogOut className="mr-2 h-4 w-4" />

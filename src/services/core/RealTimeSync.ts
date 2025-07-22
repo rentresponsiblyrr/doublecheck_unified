@@ -25,7 +25,7 @@ import { performanceMonitor } from './PerformanceMonitor';
 // REAL-TIME EVENT TYPES
 // ========================================
 
-export interface RealTimeEvent<T = any> {
+export interface RealTimeEvent<T = Record<string, unknown>> {
   id: string;
   type: RealTimeEventType;
   entityType: 'property' | 'inspection' | 'checklist_item' | 'user';
@@ -52,14 +52,14 @@ export type RealTimeEventType =
   | 'conflict_detected'
   | 'sync_complete';
 
-export interface ConflictResolution {
+export interface ConflictResolution<T = Record<string, unknown>> {
   conflictId: string;
   entityType: string;
   entityId: string;
-  localVersion: any;
-  remoteVersion: any;
+  localVersion: T;
+  remoteVersion: T;
   resolution: 'local' | 'remote' | 'merged' | 'manual';
-  mergedData?: any;
+  mergedData?: T;
   resolvedBy?: string;
   resolvedAt: Date;
 }
@@ -84,7 +84,7 @@ export interface SyncStatus {
  * across the STR Certified platform with enterprise-grade reliability.
  */
 export class RealTimeSync {
-  private subscriptions = new Map<string, any>();
+  private subscriptions = new Map<string, () => void>();
   private eventHandlers = new Map<string, Set<Function>>();
   private pendingChanges: RealTimeEvent[] = [];
   private conflicts: ConflictResolution[] = [];
@@ -266,7 +266,7 @@ export class RealTimeSync {
    */
   async publishChecklistUpdate(
     itemId: string,
-    updates: any
+    updates: Record<string, unknown>
   ): Promise<void> {
     await this.publishEvent({
       type: 'updated',
@@ -289,8 +289,8 @@ export class RealTimeSync {
   private async handleConflict(
     entityType: string,
     entityId: string,
-    localData: any,
-    remoteData: any
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>
   ): Promise<ConflictResolution> {
     const conflictId = this.generateConflictId();
     
@@ -335,9 +335,9 @@ export class RealTimeSync {
   }
 
   private async autoResolveConflict(
-    localData: any, 
-    remoteData: any
-  ): Promise<{ type: ConflictResolution['resolution']; data?: any }> {
+    localData: Record<string, unknown>, 
+    remoteData: Record<string, unknown>
+  ): Promise<{ type: ConflictResolution['resolution']; data?: Record<string, unknown> }> {
     // Simple timestamp-based resolution for now
     // In production, this would be more sophisticated based on data type
     
@@ -355,7 +355,7 @@ export class RealTimeSync {
     }
   }
 
-  private mergeData(localData: any, remoteData: any): any {
+  private mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
     // Simple merge strategy - in production would be more sophisticated
     return {
       ...remoteData,
@@ -433,7 +433,7 @@ export class RealTimeSync {
   async resolveConflict(
     conflictId: string, 
     resolution: 'local' | 'remote' | 'custom',
-    customData?: any
+    customData?: Record<string, unknown>
   ): Promise<void> {
     const conflict = this.conflicts.find(c => c.conflictId === conflictId);
     if (!conflict) {
@@ -512,11 +512,11 @@ export class RealTimeSync {
     }
   }
 
-  private handleSupabaseEvent(entityType: string, payload: any): void {
+  private handleSupabaseEvent(entityType: string, payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }): void {
     const event: RealTimeEvent = {
       id: this.generateEventId(),
       type: this.mapSupabaseEventType(payload.eventType),
-      entityType: entityType as any,
+      entityType: entityType as RealTimeEvent['entityType'],
       entityId: payload.new?.id || payload.old?.id,
       data: payload.new || payload.old,
       userId: payload.new?.updated_by || 'system',
@@ -645,7 +645,7 @@ export class RealTimeSync {
     return user?.id || 'anonymous';
   }
 
-  private async applyResolvedData(entityType: string, entityId: string, data: any): Promise<void> {
+  private async applyResolvedData(entityType: string, entityId: string, data: Record<string, unknown>): Promise<void> {
     // Apply resolved conflict data to the database
     const tableMap: Record<string, string> = {
       'property': 'properties',
@@ -683,7 +683,7 @@ export class RealTimeSync {
 
   private getConnectionType(): string {
     if (typeof navigator !== 'undefined' && 'connection' in navigator) {
-      return (navigator as any).connection?.effectiveType || 'unknown';
+      return (navigator as { connection?: { effectiveType?: string } }).connection?.effectiveType || 'unknown';
     }
     return 'unknown';
   }

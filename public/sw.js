@@ -522,25 +522,41 @@ async function networkFirstStrategy(request) {
     throw new Error(`Network response failed with status: ${networkResponse.status}`);
     
   } catch (error) {
-    log('info', 'Network failed, trying cache', { url: url.toString(), error: error.message });
+    log('info', 'Network request failed', { 
+      url: url.toString(), 
+      error: error.message,
+      status: networkResponse?.status 
+    });
     
-    // Fall back to cache
-    const cachedResponse = await runtimeCache.match(request);
-    
-    if (cachedResponse) {
-      // Add stale indicator header
-      const headers = new Headers(cachedResponse.headers);
-      headers.set('sw-from-cache', 'true');
-      headers.set('sw-cache-stale', 'true');
-      
-      return new Response(cachedResponse.body, {
-        status: cachedResponse.status,
-        statusText: cachedResponse.statusText,
-        headers: headers,
+    // CRITICAL FIX: Don't mask authentication/authorization errors
+    if (networkResponse?.status === 401 || networkResponse?.status === 403) {
+      // Let auth errors pass through for proper handling by the app
+      log('warn', 'Authentication/authorization error - passing through', {
+        url: url.toString(),
+        status: networkResponse.status
       });
+      return networkResponse;
     }
     
-    throw new Error('Network failed and no cache available');
+    // Only try cache for actual network/server errors
+    if (networkResponse?.status >= 500 || !networkResponse) {
+      const cachedResponse = await runtimeCache.match(request);
+      
+      if (cachedResponse) {
+        // Add stale indicator header
+        const headers = new Headers(cachedResponse.headers);
+        headers.set('sw-from-cache', 'true');
+        headers.set('sw-cache-stale', 'true');
+        
+        return new Response(cachedResponse.body, {
+          status: cachedResponse.status,
+          statusText: cachedResponse.statusText,
+          headers: headers,
+        });
+      }
+    }
+    
+    throw new Error(`Request failed: ${networkResponse?.status || 'Network Error'}`);
   }
 }
 

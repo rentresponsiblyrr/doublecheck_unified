@@ -55,9 +55,8 @@ export const ChecklistItemContainer = ({ item, onComplete }: ChecklistItemContai
     }
 
     return () => {
-      if (element) {
-        observer.unobserve(element);
-      }
+      // ✅ MEMORY LEAK FIX: Always disconnect the observer
+      observer.disconnect();
     };
   }, [item.id]);
 
