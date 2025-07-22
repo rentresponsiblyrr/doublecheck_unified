@@ -41,6 +41,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { logger } from '@/utils/logger';
 
+// PHASE 4C: Enhanced PWA Context Integration
+import { usePWAContext } from '@/contexts/PWAContext';
+import { PWAErrorBoundary } from './PWAErrorBoundary';
+
 // PWA Install Prompt interfaces
 export interface PWAInstallEvent extends Event {
   readonly platforms: string[];
@@ -102,7 +106,10 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   onPromptDismissed,
   className = '',
   enableFloatingButton = true
-}) => {
+) => {
+  // PHASE 4C: PWA Context Integration
+  const { state, actions } = usePWAContext();
+
   // Configuration with defaults
   const promptConfig: InstallPromptConfig = useMemo(() => ({
     enableIntelligentTiming: true,
@@ -496,43 +503,21 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
    * Handles native PWA installation for supported browsers
    */
   const handleNativeInstallation = useCallback(async (): Promise<void> => {
-    if (!deferredPrompt) {
-      logger.warn('No deferred prompt available for native installation', {}, 'PWA_INSTALL');
-      return;
-    }
-
     try {
       installAnalyticsRef.current.installAttempts++;
       
-      // Show the native install prompt
-      await deferredPrompt.prompt();
-      
-      // Wait for user choice
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        logger.info('User accepted native install prompt', {}, 'PWA_INSTALL');
-        
-        setPromptState(prev => ({
-          ...prev,
-          showPrompt: false,
-          isInstalled: true
-        }));
-        
+      // PHASE 4C: Use context actions for installation
+      const success = await actions.showInstallPrompt();
+      if (success) {
         onInstallSuccess?.();
       } else {
-        logger.info('User dismissed native install prompt', {}, 'PWA_INSTALL');
         handleInstallDeclined('native_dismissed');
       }
-      
-      // Clear the deferred prompt
-      setDeferredPrompt(null);
-      
     } catch (error) {
       logger.error('Native installation failed', { error }, 'PWA_INSTALL');
       handleInstallDeclined('native_error');
     }
-  }, [deferredPrompt, onInstallSuccess]);
+  }, [actions, onInstallSuccess]);
 
   /**
    * HANDLE MANUAL INSTALLATION
@@ -895,7 +880,8 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
   );
 
   return (
-    <div id="pwa-install-prompt-container" className={className}>
+    <PWAErrorBoundary>
+      <div id="pwa-install-prompt-enhanced" className={className}>
       {/* Floating install button */}
       {enableFloatingButton && <FloatingInstallButton />}
       
@@ -904,7 +890,8 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
       
       {/* Manual installation instructions modal */}
       <InstallInstructionsModal />
-    </div>
+      </div>
+    </PWAErrorBoundary>
   );
 };
 

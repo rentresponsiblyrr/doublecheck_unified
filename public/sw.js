@@ -40,6 +40,21 @@ const CACHE_TTL = {
   html: 60 * 60 * 1000,                // 1 hour
 };
 
+// PHASE 4D: Security Headers Function
+const addSecurityHeaders = (response) => {
+  const newHeaders = new Headers(response.headers);
+  newHeaders.set('X-Content-Type-Options', 'nosniff');
+  newHeaders.set('X-Frame-Options', 'DENY');
+  newHeaders.set('X-XSS-Protection', '1; mode=block');
+  newHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders
+  });
+};
+
 // Critical static assets to cache immediately
 const STATIC_CACHE_URLS = [
   '/',
@@ -47,7 +62,7 @@ const STATIC_CACHE_URLS = [
   '/manifest.json',
   '/offline.html',
   '/favicon.ico',
-  '/icon-192x192.png',
+  '/icons/icon-192x192.png',
   '/icon-512x512.png',
   '/static/js/main.js',
   '/static/css/main.css',
@@ -403,7 +418,8 @@ async function handleFetchRequest(request) {
       });
     }
     
-    return response;
+    // PHASE 4D: Add security headers to all responses
+    return addSecurityHeaders(response);
     
   } catch (error) {
     log('error', 'Fetch request failed', { 
@@ -428,7 +444,7 @@ async function cacheFirstStrategy(request) {
     let response = await staticCache.match(request);
     
     if (response && isCacheValid(response)) {
-      return response;
+      return addSecurityHeaders(response);
     }
     
     // Check media cache for images
@@ -437,7 +453,7 @@ async function cacheFirstStrategy(request) {
       response = await mediaCache.match(request);
       
       if (response && isCacheValid(response)) {
-        return response;
+        return addSecurityHeaders(response);
       }
     }
     
@@ -467,7 +483,7 @@ async function cacheFirstStrategy(request) {
     // Return stale cache if network fails
     if (response) {
       log('info', 'Returning stale cache due to network failure', { url: url.toString() });
-      return response;
+      return addSecurityHeaders(response);
     }
     
     throw new Error('Network request failed and no cache available');

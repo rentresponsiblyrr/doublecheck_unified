@@ -18,6 +18,9 @@ import { logger } from '@/utils/logger';
 import { BackgroundSyncManager } from '@/services/pwa/BackgroundSyncManager';
 import { PushNotificationManager } from '@/services/pwa/PushNotificationManager';
 
+// PHASE 4C: Import PWA-Enhanced Services Integration Bridge
+import { pwaEnhancedBridge } from '@/integrations/PWAEnhancedServicesBridge';
+
 // NEW: Import Core Web Vitals monitoring for unified integration
 import { coreWebVitalsMonitor } from '@/lib/performance/CoreWebVitalsMonitor';
 
@@ -92,6 +95,30 @@ async function initializeUnifiedPerformanceSystem() {
         // Store managers globally for component access
         (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
         (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
+
+        // PHASE 4C: Bridge for context updates
+        (window as any).__PWA_CONTEXT_UPDATE__ = (component: string, status: any) => {
+          const event = new CustomEvent('pwa-context-update', {
+            detail: { component, status }
+          });
+          window.dispatchEvent(event);
+        };
+
+        logger.info('✅ PWA Context bridge established', {
+          backgroundSync: !!backgroundSyncManager,
+          pushNotifications: !!pushNotificationManager,
+          integrationBridge: true
+        }, 'PWA_BRIDGE');
+
+        // PHASE 4C: Initialize PWA-Enhanced Services Integration Bridge
+        if (backgroundSyncManager && pushNotificationManager) {
+          try {
+            await pwaEnhancedBridge.initialize();
+            logger.info('✅ PWA-Enhanced Services integration bridge active', {}, 'MAIN_INTEGRATION');
+          } catch (error) {
+            logger.error('❌ Integration bridge failed to initialize', { error }, 'MAIN_INTEGRATION');
+          }
+        }
 
       } catch (error) {
         logger.error('❌ Phase 4B PWA component initialization failed', { error }, 'UNIFIED_SYSTEM');

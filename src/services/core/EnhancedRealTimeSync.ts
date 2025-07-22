@@ -16,6 +16,34 @@ import { supabase } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 import { queryCache } from './QueryCache';
 import { performanceMonitor } from './PerformanceMonitor';
+import { z } from 'zod';
+
+// Real-time Event Validation Schema
+const SyncEventSchema = z.object({
+  type: z.enum(['create', 'update', 'delete', 'batch']),
+  entityType: z.string().min(1),
+  entityId: z.string().min(1),
+  data: z.any(),
+  timestamp: z.number(),
+  userId: z.string().uuid().optional(),
+  metadata: z.record(z.any()).optional()
+});
+
+// Subscription Configuration Schema
+const SubscriptionConfigSchema = z.object({
+  entityType: z.string().min(1),
+  entityId: z.string().min(1),
+  filters: z.record(z.any()).optional(),
+  debounceMs: z.number().positive().optional()
+});
+
+// Conflict Resolution Schema
+const ConflictResolutionSchema = z.object({
+  strategy: z.enum(['client-wins', 'server-wins', 'merge', 'manual']),
+  localVersion: z.any(),
+  remoteVersion: z.any(),
+  resolvedAt: z.number()
+});
 
 // ========================================
 // HARDENED EVENT TYPES

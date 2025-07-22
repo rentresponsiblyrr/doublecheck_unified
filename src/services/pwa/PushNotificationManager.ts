@@ -130,6 +130,19 @@ export interface PushMetrics {
   emergencyNotifications: number;
 }
 
+// PHASE 4C: PWA Context Integration Interface  
+export interface PushNotificationStatus {
+  isSupported: boolean;
+  permission: NotificationPermission;
+  isSubscribed: boolean;
+  hasVapidKey: boolean;
+  subscriptionEndpoint?: string;
+  lastNotificationAt?: number;
+  notificationCount: number;
+  clickRate: number;
+  dismissalRate: number;
+}
+
 /**
  * ELITE PUSH NOTIFICATION MANAGER
  * Comprehensive push notification system with construction site optimizations
@@ -155,6 +168,7 @@ export class PushNotificationManager {
   // Emergency mode
   private emergencyMode = false;
   private emergencyQueue: PushNotification[] = [];
+  private lastNotificationTime?: number;
   
   // Event handling
   private eventListeners: Map<string, Function[]> = new Map();
@@ -288,6 +302,9 @@ export class PushNotificationManager {
     }
 
     try {
+      // PWA Context Integration - Notify subscription started
+      this.notifyPWAContext('subscribe', 'started');
+
       // Check for existing subscription
       let subscription = await this.registration.pushManager.getSubscription();
 
@@ -319,6 +336,9 @@ export class PushNotificationManager {
           endpoint: this.subscription.endpoint,
           expirationTime: this.subscription.expirationTime
         }, 'PUSH_NOTIFICATIONS');
+
+        // PWA Context Integration - Notify subscription success
+        this.notifyPWAContext('subscribe', 'completed', { endpoint: subscription.endpoint });
       }
 
     } catch (error) {
@@ -397,6 +417,9 @@ export class PushNotificationManager {
 
       this.metrics.delivered++;
       this.emit('notificationSent', { notification });
+
+      // PWA Context Integration - Notify notification sent
+      this.notifyPWAContext('sendNotification', 'completed', { title: notification.title, type: notification.type });
 
     } catch (error) {
       logger.error('Failed to send immediate notification', { 
@@ -1111,6 +1134,58 @@ export class PushNotificationManager {
       icon: '/icon-192x192.png',
       data: { test: true }
     });
+  }
+
+  // PHASE 4C: PWA Context Integration Methods
+  public getContextStatus(): PushNotificationStatus {
+    return {
+      isSupported: 'Notification' in window && 'PushManager' in window,
+      permission: this.permissionState,
+      isSubscribed: !!this.subscription,
+      hasVapidKey: !!this.config.vapidPublicKey,
+      subscriptionEndpoint: this.subscription?.endpoint,
+      lastNotificationAt: this.lastNotificationTime,
+      notificationCount: this.metrics.totalSent,
+      clickRate: this.metrics.clickRate,
+      dismissalRate: this.metrics.dismissed > 0 ? (this.metrics.dismissed / this.metrics.totalSent) * 100 : 0
+    };
+  }
+
+  // ADD context update notifications
+  private notifyContextUpdate(): void {
+    if (typeof window !== 'undefined' && (window as any).__PWA_CONTEXT_UPDATE__) {
+      (window as any).__PWA_CONTEXT_UPDATE__('notifications', this.getContextStatus());
+    }
+  }
+
+  // PWA Context Integration - Add after notification operations
+  private notifyPWAContext(operation: string, status: 'started' | 'completed' | 'failed', data?: any): void {
+    try {
+      // Dispatch PWA context update event
+      window.dispatchEvent(new CustomEvent('pwa-context-update', {
+        detail: {
+          component: 'PushNotificationManager',
+          operation,
+          status,
+          data,
+          timestamp: Date.now()
+        }
+      }));
+
+      // Update global PWA status
+      if (typeof window !== 'undefined') {
+        const pwaStatus = (window as any).__PWA_STATUS__ || {};
+        pwaStatus.pushNotificationsEnabled = this.isSupported() && this.hasPermission();
+        pwaStatus.lastNotificationOperation = {
+          operation,
+          status,
+          timestamp: Date.now()
+        };
+        (window as any).__PWA_STATUS__ = pwaStatus;
+      }
+    } catch (error) {
+      console.warn('PWA context notification failed:', error);
+    }
   }
 
   async destroy(): Promise<void> {

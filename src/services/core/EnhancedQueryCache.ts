@@ -12,6 +12,29 @@
  */
 
 import { logger } from '@/utils/logger';
+import { z } from 'zod';
+
+// Enhanced Cache Entry Validation Schema
+const CacheEntrySchema = z.object({
+  data: z.any(),
+  timestamp: z.number(),
+  ttl: z.number().positive(),
+  tags: z.array(z.string()),
+  accessCount: z.number().nonnegative(),
+  lastAccess: z.number(),
+  size: z.number().positive(),
+  checksum: z.string().min(1)
+});
+
+// Cache Key Validation
+const CacheKeySchema = z.string().min(1).max(500).regex(/^[a-zA-Z0-9:_-]+$/);
+
+// Cache Options Validation
+const CacheOptionsSchema = z.object({
+  ttl: z.number().positive().optional(),
+  tags: z.array(z.string()).optional(),
+  priority: z.enum(['high', 'normal', 'low']).optional()
+}).optional();
 
 // ========================================
 // HARDENED CACHE CONFIGURATION

@@ -1,0 +1,40 @@
+# SECURITY HEADERS FOR STR CERTIFIED PWA
+# Production-ready security configuration for Progressive Web App
+
+/*
+  # Content Security Policy - Secure but functional for PWA
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; connect-src 'self' https: wss: ws:; font-src 'self' data: https:; media-src 'self' blob: data: https:; worker-src 'self' blob:; frame-src 'self' https:; object-src 'none'; base-uri 'self';
+  
+  # Security Headers
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), camera=(self), cross-origin-isolated=(), display-capture=(self), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(self), geolocation=(self), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(self), midi=(), navigation-override=(), payment=(self), picture-in-picture=(self), publickey-credentials-get=(self), screen-wake-lock=(self), sync-xhr=(), usb=(), web-share=(self), xr-spatial-tracking=()
+  
+  # HTTPS Enforcement (for production deployment)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # PWA Specific Headers
+  Cache-Control: public, max-age=31536000
+  Service-Worker-Allowed: /
+
+# Manifest file with special caching
+/manifest.json
+  Cache-Control: public, max-age=86400
+  Content-Type: application/manifest+json
+
+# Service Worker files
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+  Content-Type: application/javascript
+
+# Icon files with long-term caching
+/icon-*.png
+  Cache-Control: public, max-age=31536000
+  Content-Type: image/png
+
+# Favicon
+/favicon.ico
+  Cache-Control: public, max-age=31536000
