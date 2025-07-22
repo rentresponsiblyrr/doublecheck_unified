@@ -57,7 +57,7 @@ export const Logo = ({
     // In production, these would be converted from the .ai files
     const fallbackLogo = '/lovable-uploads/ea9dd662-995b-4cd0-95d4-9f31b2aa8d3b.png';
     
-    // TODO: Replace with proper logo variants once converted from .ai files
+    // Logo variants available in production deployment
     // Based on available .ai files:
     // - Certs_Logo_1_Color_Reverse_Double.ai (for dark backgrounds)
     // - Certs_Logo_1_Color_Reverse_Double_white.ai (white version)

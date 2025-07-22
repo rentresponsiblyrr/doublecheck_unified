@@ -132,7 +132,7 @@ export const AIPerformanceOverview: React.FC<AIPerformanceOverviewProps> = ({
             <div className="text-2xl font-bold">{overview.avgAccuracy.toFixed(1)}%</div>
             <Progress value={overview.avgAccuracy} className="mt-2" />
             <span className="text-xs text-muted-foreground">
-              Target: >90%
+              Target: {'>'}90%
             </span>
           </CardContent>
         </Card>

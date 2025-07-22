@@ -332,7 +332,7 @@ export class PerformanceMonitor {
   private startCoreWebVitalsMonitoring(): void {
     // Monitor INP (Interaction to Next Paint)
     if ('PerformanceEventTiming' in window) {
-      let interactionId = 0;
+      const interactionId = 0;
       const interactionMap = new Map();
 
       new PerformanceObserver((list) => {

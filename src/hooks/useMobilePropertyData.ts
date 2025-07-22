@@ -43,6 +43,7 @@ export const useMobilePropertyData = (userId?: string) => {
           throw new Error(`Failed to load properties: ${error.message}`);
         }
 
+        console.debug('Mobile property fetch completed', {
           count: data?.length || 0,
           fetchDuration,
           timestamp: new Date().toISOString()

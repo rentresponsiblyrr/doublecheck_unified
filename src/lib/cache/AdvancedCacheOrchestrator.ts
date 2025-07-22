@@ -609,7 +609,7 @@ export class AdvancedCacheOrchestrator {
     preferredTier?: string;
     timeout?: number;
   }): CacheTier[] {
-    let tiers = Array.from(this.tiers.values());
+    const tiers = Array.from(this.tiers.values());
     
     // Sort by priority (lower number = higher priority)
     tiers.sort((a, b) => a.config.priority - b.config.priority);

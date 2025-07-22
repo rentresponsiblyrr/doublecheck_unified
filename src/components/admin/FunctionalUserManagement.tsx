@@ -111,7 +111,7 @@ const UserStatsCards: React.FC<{ stats: any }> = ({ stats }) => (
  * Main Functional User Management Component - Pure Orchestration Only
  * Reduced from 348 lines to <100 lines through data manager pattern
  */
-const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> = ({
+export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> = ({
   showAdvancedOptions = false,
   enableBulkActions = false
 }) => {

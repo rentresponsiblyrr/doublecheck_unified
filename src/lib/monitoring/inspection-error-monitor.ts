@@ -436,15 +436,15 @@ export class InspectionErrorMonitor {
   }
 
   private calculateErrorRateChange(timeWindowHours: number): number {
-    const currentPeriod = this.getErrorMetrics(timeWindowHours);
-    const previousPeriod = this.getErrorMetrics(timeWindowHours, true);
+    const currentPeriod = this.getErrorMetricsForPeriod(timeWindowHours);
+    const previousPeriod = this.getErrorMetricsForPeriod(timeWindowHours, true);
     
     if (previousPeriod.errorRate === 0) return 0;
     
     return ((currentPeriod.errorRate - previousPeriod.errorRate) / previousPeriod.errorRate) * 100;
   }
 
-  private getErrorMetrics(timeWindowHours: number, previousPeriod = false): ErrorMetrics {
+  private getErrorMetricsForPeriod(timeWindowHours: number, previousPeriod = false): ErrorMetrics {
     const now = Date.now();
     const windowMs = timeWindowHours * 60 * 60 * 1000;
     

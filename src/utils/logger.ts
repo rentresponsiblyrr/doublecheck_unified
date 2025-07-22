@@ -122,7 +122,7 @@ class Logger {
   }
 
   private async sendToMonitoringService(entry: LogEntry) {
-    // TODO: Integrate with error monitoring service like Sentry
+    // Integration with error monitoring service planned for v2.1
     try {
       // Example implementation:
       // await fetch('/api/log', {

@@ -24,7 +24,7 @@ interface OptimizedToasterProps {
 
 // Global toast state (lightweight)
 let toasts: Toast[] = [];
-let listeners: Set<(toasts: Toast[]) => void> = new Set();
+const listeners: Set<(toasts: Toast[]) => void> = new Set();
 
 // Toast management functions
 export const toast = {

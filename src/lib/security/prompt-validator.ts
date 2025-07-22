@@ -385,7 +385,7 @@ export class PromptValidator {
     const reductionRatio = (originalLength - sanitizedLength) / originalLength;
     
     // Lower confidence for high-risk content and significant changes
-    let confidence = 100 - (highRiskCount * 15) - (reductionRatio * 30);
+    const confidence = 100 - (highRiskCount * 15) - (reductionRatio * 30);
     
     return Math.max(confidence, 0);
   }

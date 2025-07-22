@@ -512,7 +512,7 @@ export class LearningSystem {
     const actual = actualOutcome.actualEvents;
 
     let correct = 0;
-    let total = predicted.length;
+    const total = predicted.length;
 
     for (const prediction of predicted) {
       const matchingActual = actual.find((a: LearningOutcome) => 

@@ -682,7 +682,7 @@ export class MultiModalPhotoCapture {
    */
   private async compressImage(img: HTMLImageElement, options: CaptureOptions): Promise<{ file: File; blob: Blob }> {
     // Calculate new dimensions
-    let { width, height } = this.calculateCompressedDimensions(
+    const { width, height } = this.calculateCompressedDimensions(
       img.naturalWidth, 
       img.naturalHeight, 
       options.maxWidth || 1920, 

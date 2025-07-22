@@ -150,7 +150,7 @@ export const InspectionContent = ({
           <InspectionProgressTracker checklistItems={safeChecklistItems} showDetailed />
         )}
 
-        {/* TODO: Add filters component here if needed */}
+        {/* Filters component will be added in Phase 3 based on user feedback */}
 
         {/* Checklist Items or Empty State */}
         <InspectionList

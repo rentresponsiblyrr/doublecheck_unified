@@ -108,6 +108,7 @@ class ProfessionalTestRunner {
       return results;
 
     } catch (error) {
+      console.error('Test suite execution failed:', error);
       throw error;
     }
   }

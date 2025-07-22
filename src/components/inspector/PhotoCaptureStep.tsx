@@ -19,7 +19,7 @@ interface PhotoCaptureStepProps {
   className?: string;
 }
 
-const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({
+export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({
   checklist,
   onPhotosUpdate,
   onStepComplete,

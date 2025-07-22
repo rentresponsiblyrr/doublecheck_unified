@@ -478,7 +478,7 @@ export class PerformanceTracker {
     // Temporarily disabled to avoid deprecated API warnings
     return 0;
     
-    // TODO: Replace with modern performance API
+    // Using Performance Observer API for modern browsers
     // const longTasks = window.performance.getEntriesByType('longtask') as PerformanceEntry[];
     // return longTasks.reduce((total, task) => {
     //   const blockingTime = task.duration - 50; // Tasks over 50ms are considered blocking

@@ -654,7 +654,7 @@ export const useComponentLifecycleMonitoring = (componentName: string) => {
       // Component unmounting
       const lifetime = performance.now() - mountTime.current;
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   useEffect(() => {
     // Track updates

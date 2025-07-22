@@ -761,6 +761,9 @@ export const createInspectorId = (value: string): InspectorId => {
   return value as InspectorId;
 };
 
+// Re-export property ID functions for external usage compatibility
+export { createFrontendPropertyId } from './property-id-converter';
+
 // ================================================================
 // SINGLETON EXPORT
 // ================================================================

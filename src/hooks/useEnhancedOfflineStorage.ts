@@ -54,14 +54,12 @@ export const useEnhancedOfflineStorage = () => {
           setStorageState(prev => ({
             ...prev,
             photos,
-            totalPendingSize: metrics.totalPendingSize
-          }));
-          
+            totalPendingSize: metrics.totalPendingSize,
             total: photos.length,
             pending: metrics.pendingCount,
             failed: metrics.failedCount,
             totalSize: `${(metrics.totalPendingSize / 1024 / 1024).toFixed(2)}MB`
-          });
+          }));
         }
       } catch (error) {
         toast({

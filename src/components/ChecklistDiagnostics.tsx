@@ -37,6 +37,7 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
 
         setAuditEntries(data || []);
       } catch (error) {
+        console.error('Failed to load audit entries:', error);
       } finally {
         setIsLoading(false);
       }

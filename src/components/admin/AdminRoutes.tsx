@@ -24,6 +24,9 @@ import { UserManagementFallback } from './fallbacks/UserManagementFallback';
 import { ChecklistManagementFallback } from './fallbacks/ChecklistManagementFallback';
 import { AuditCenterFallback } from './fallbacks/AuditCenterFallback';
 
+// Import Unified Performance Page
+import { UnifiedPerformancePage } from '@/pages/admin/UnifiedPerformancePage';
+
 // Removed: ComponentHealthMonitor (redundant test component)
 
 // Import remaining components directly
@@ -186,20 +189,8 @@ export default function AdminRoutes() {
               <ChecklistManagement />
             </AdminErrorBoundary>
           } />
-          <Route path="performance" element={
-            <ComingSoonPage 
-              title="AI Performance Dashboard" 
-              description="Real-time AI monitoring and performance analytics"
-              features={[
-                'Real-time accuracy metrics',
-                'Response time monitoring', 
-                'Cost optimization insights',
-                'Model performance comparison',
-                'Automated alerting system'
-              ]}
-              estimatedDate="Q2 2024"
-            />
-          } />
+          <Route path="performance" element={<UnifiedPerformancePage />} />
+          <Route path="unified-performance" element={<UnifiedPerformancePage />} />
           <Route path="ai-learning" element={
             <ComingSoonPage 
               title="AI Learning Dashboard" 

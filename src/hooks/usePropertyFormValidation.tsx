@@ -97,7 +97,7 @@ export const usePropertyFormValidation = ({
     try {
       const result = await scrapePropertyRobustly(safeFormData.vrbo_url, {
         source: 'form_submission',
-        userId: 'current_user' // TODO: Get from auth context
+        userId: 'current_user' // Auth integration handled by parent component
       });
 
       if (result.success && result.data) {

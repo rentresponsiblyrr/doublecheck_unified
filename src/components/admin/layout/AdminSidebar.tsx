@@ -57,7 +57,7 @@ const navigation = [
     href: '/admin/performance',
     icon: BarChart3,
     current: false,
-    badge: 'beta'
+    badge: 'pro'
   },
   {
     name: 'AI Learning',

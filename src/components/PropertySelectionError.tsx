@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PropertySelectionErrorProps {
-  error: any;
+  error: Error | { message: string };
   onRetry: () => void;
 }
 

@@ -7,9 +7,10 @@
 
 import React from 'react';
 import { InspectionMonitoringDashboard } from '@/components/monitoring/InspectionMonitoringDashboard';
+import { PWAPerformanceDashboard } from '@/components/performance/PWAPerformanceDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { Shield, TrendingUp, AlertTriangle, Clock, Gauge } from 'lucide-react';
 
 const MonitoringDashboard: React.FC = () => {
   return (
@@ -83,6 +84,22 @@ const MonitoringDashboard: React.FC = () => {
               </p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Unified Performance Widget */}
+      <Card id="unified-performance-widget">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gauge className="h-5 w-5 text-blue-600" />
+            Unified PWA Performance
+          </CardTitle>
+          <CardDescription>
+            Real-time PWA + Core Web Vitals monitoring with construction site optimization
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PWAPerformanceDashboard />
         </CardContent>
       </Card>
 

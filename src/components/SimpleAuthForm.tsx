@@ -114,7 +114,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
           throw new Error('Authentication succeeded but no user data received');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       logError('Authentication error caught', error, {
         component: 'SimpleAuthForm',
         action: 'handleSubmit',
