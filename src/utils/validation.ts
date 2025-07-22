@@ -13,7 +13,7 @@ import { sanitizeText, sanitizeSearchQuery, sanitizeURL } from './sanitization';
 
 // Basic string validation
 export const stringSchema = z.string().min(1, 'This field is required');
-export const optionalStringSchema = z.string().optional();
+export const optionalStringSchema = z.string();
 
 // Email validation
 export const emailSchema = z.string()
@@ -121,7 +121,7 @@ export const propertySchema = z.object({
   ]),
   vrboUrl: urlSchema.optional(),
   airbnbUrl: urlSchema.optional(),
-  description: optionalStringSchema,
+  description: optionalStringSchema.optional(),
   amenities: z.array(stringSchema).max(50, 'Too many amenities'),
   maxGuests: z.number().min(1, 'Must accommodate at least 1 guest').max(50, 'Maximum 50 guests'),
   bedrooms: z.number().min(0, 'Cannot have negative bedrooms').max(20, 'Maximum 20 bedrooms'),
@@ -133,7 +133,7 @@ export const inspectionCreationSchema = z.object({
   propertyId: propertyIdSchema,
   inspectorId: stringSchema,
   scheduledDate: z.string().datetime('Invalid date format'),
-  notes: optionalStringSchema.max(1000, 'Notes are too long'),
+  notes: optionalStringSchema.max(1000, 'Notes are too long').optional(),
   priorityAreas: z.array(stringSchema).max(20, 'Too many priority areas').optional()
 });
 
@@ -141,10 +141,10 @@ export const inspectionCreationSchema = z.object({
 export const checklistItemSchema = z.object({
   id: stringSchema,
   title: stringSchema.max(200, 'Title is too long'),
-  description: optionalStringSchema.max(1000, 'Description is too long'),
+  description: optionalStringSchema.max(1000, 'Description is too long').optional(),
   category: stringSchema.max(100, 'Category is too long'),
   required: z.boolean(),
-  gptPrompt: optionalStringSchema.max(2000, 'GPT prompt is too long'),
+  gptPrompt: optionalStringSchema.max(2000, 'GPT prompt is too long').optional(),
   weight: z.number().min(0).max(10).optional()
 });
 
@@ -155,7 +155,7 @@ export const aiFeedbackSchema = z.object({
   auditorCorrection: stringSchema.max(50, 'Auditor correction is too long'),
   feedbackCategory: z.enum(['accuracy', 'relevance', 'completeness']),
   confidenceScore: z.number().min(0).max(1),
-  comments: optionalStringSchema.max(1000, 'Comments are too long')
+  comments: optionalStringSchema.max(1000, 'Comments are too long').optional()
 });
 
 // Search query
@@ -163,7 +163,7 @@ export const searchQuerySchema = z.object({
   query: stringSchema
     .max(500, 'Search query is too long')
     .transform((val) => sanitizeSearchQuery(val)),
-  category: optionalStringSchema,
+  category: optionalStringSchema.optional(),
   filters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional()
 });
 
