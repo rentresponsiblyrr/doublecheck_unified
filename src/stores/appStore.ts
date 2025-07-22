@@ -85,8 +85,8 @@ export const useAppStore = create<AppStore>()(
 
               // Fetch user role from database
               const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role, full_name')
+                .from('users')
+                .select('role, name')
                 .eq('id', user.id)
                 .single();
 
@@ -103,7 +103,7 @@ export const useAppStore = create<AppStore>()(
                 state.isAuthenticated = true;
                 state.isLoading = false;
                 state.user = user;
-                state.role = profile?.role || null;
+                state.role = (profile?.role as 'inspector' | 'auditor' | 'admin') || null;
                 state.sessionExpiresAt = expiresAt;
                 state.error = null;
               });

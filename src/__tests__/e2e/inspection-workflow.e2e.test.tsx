@@ -56,7 +56,7 @@ const createMockProperty = (overrides = {}) => ({
 const createMockChecklist = () => [
   {
     id: 'item-1',
-    static_safety_item_id: 'safety-1',
+    checklist_id: 'safety-1',
     title: 'Check Kitchen Faucet',
     description: 'Verify kitchen faucet is working properly and not leaking',
     category: 'plumbing',
@@ -67,7 +67,7 @@ const createMockChecklist = () => [
   },
   {
     id: 'item-2',
-    static_safety_item_id: 'safety-2',
+    checklist_id: 'safety-2',
     title: 'Test Bathroom Lighting',
     description: 'Ensure all bathroom lights function correctly',
     category: 'electrical',
@@ -78,7 +78,7 @@ const createMockChecklist = () => [
   },
   {
     id: 'item-3',
-    static_safety_item_id: 'safety-3',
+    checklist_id: 'safety-3',
     title: 'Inspect Smoke Detectors',
     description: 'Verify smoke detectors are present and functional',
     category: 'safety',

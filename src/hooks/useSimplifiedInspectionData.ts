@@ -4,17 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChecklistItemType } from "@/types/inspection";
 import { debugLogger } from "@/utils/debugLogger";
 
-export const useSimplifiedInspectionData = (inspectionId: string) => {
-  debugLogger.info('SimplifiedInspectionData', 'Hook initialized', { inspectionId });
+export const useSimplifiedInspectionData = (inspectionId: string | undefined) => {
+  debugLogger.info('SimplifiedInspectionData', 'Hook initialized', { 
+    inspectionId, 
+    inspectionIdType: typeof inspectionId,
+    inspectionIdLength: inspectionId?.length
+  });
 
   const { data: checklistItems = [], isLoading, refetch, error } = useQuery({
     queryKey: ['simplified-checklist-items', inspectionId],
     queryFn: async () => {
       debugLogger.info('SimplifiedInspectionData', 'Starting fetch', { inspectionId });
       
-      if (!inspectionId) {
-        debugLogger.error('SimplifiedInspectionData', 'No inspection ID provided');
-        throw new Error('Inspection ID is required');
+      if (!inspectionId || inspectionId === 'undefined' || inspectionId.trim() === '') {
+        debugLogger.error('SimplifiedInspectionData', 'Invalid inspection ID provided', {
+          inspectionId,
+          type: typeof inspectionId,
+          length: inspectionId?.length
+        });
+        throw new Error(`Invalid inspection ID provided: "${inspectionId}"`);
       }
 
       try {
@@ -37,27 +45,61 @@ export const useSimplifiedInspectionData = (inspectionId: string) => {
 
         debugLogger.info('SimplifiedInspectionData', 'Inspection verified', inspectionCheck);
 
-        // Step 2: Fetch checklist items - CORRECTED: logs table uses property_id, not inspection_id
+        // Step 2: Check if inspection has specific checklist items in logs table
         debugLogger.debug('SimplifiedInspectionData', 'Fetching checklist items', {
           propertyId: inspectionCheck.property_id,
           inspectionId
         });
+        
+        // First try to get logs for this specific property
         const { data: items, error: itemsError } = await supabase
           .from('logs')
-          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, created_at, static_safety_items(id, label, category)')
-          .eq('property_id', inspectionCheck.property_id)
+          .select('log_id, property_id, checklist_id, ai_result, inspector_remarks, pass, inspector_id, created_at, static_safety_items(id, label, category, evidence_type)')
+          .eq('property_id', parseInt(inspectionCheck.property_id)) // Convert string to int for logs table
           .order('created_at', { ascending: true });
 
         if (itemsError) {
-          debugLogger.error('SimplifiedInspectionData', 'Failed to fetch checklist items', {
+          debugLogger.warn('SimplifiedInspectionData', 'No existing logs found, will create from static items', {
             error: itemsError,
-            code: itemsError.code,
-            message: itemsError.message
+            propertyId: inspectionCheck.property_id
           });
-          throw new Error(`Failed to load checklist: ${itemsError.message}`);
+          
+          // If no logs exist, create checklist from static_safety_items
+          const { data: staticItems, error: staticError } = await supabase
+            .from('static_safety_items')
+            .select('id, label, category, evidence_type')
+            .eq('deleted', false)
+            .order('category', { ascending: true });
+            
+          if (staticError) {
+            debugLogger.error('SimplifiedInspectionData', 'Failed to fetch static checklist items', {
+              error: staticError,
+              code: staticError.code,
+              message: staticError.message
+            });
+            throw new Error(`Failed to load checklist: ${staticError.message}`);
+          }
+          
+          // Transform static items to checklist format
+          const transformedItems: ChecklistItemType[] = (staticItems || []).map(item => ({
+            id: `static_${item.id}`, // Prefix to avoid conflicts
+            inspection_id: inspectionId,
+            label: item.label || '',
+            category: item.category || 'safety',
+            evidence_type: item.evidence_type || 'photo',
+            status: null, // Not started
+            notes: '',
+            created_at: new Date().toISOString()
+          }));
+          
+          debugLogger.info('SimplifiedInspectionData', 'Created checklist from static items', {
+            itemCount: transformedItems.length
+          });
+          
+          return transformedItems;
         }
 
-        debugLogger.info('SimplifiedInspectionData', 'Successfully fetched items', { 
+        debugLogger.info('SimplifiedInspectionData', 'Successfully fetched existing logs', { 
           count: items?.length || 0,
           sampleItems: items?.slice(0, 3).map(i => ({ 
             id: i.log_id, 

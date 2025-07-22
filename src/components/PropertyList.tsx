@@ -35,6 +35,8 @@ interface PropertyListProps {
     text: string;
   };
   isLoading?: boolean;
+  showInspectionActions?: boolean;
+  onInspectionStart?: (propertyId: string, isResume: boolean) => void;
 }
 
 export const PropertyList = ({ 
@@ -43,7 +45,9 @@ export const PropertyList = ({
   selectedProperty, 
   onPropertySelect, 
   onPropertyDeleted,
-  getPropertyStatus 
+  getPropertyStatus,
+  showInspectionActions = false,
+  onInspectionStart
 }: PropertyListProps) => {
   if (properties.length === 0) {
     return <EmptyPropertiesState />;
@@ -80,6 +84,8 @@ export const PropertyList = ({
             isSelected={isSelected}
             onSelect={onPropertySelect}
             onPropertyDeleted={onPropertyDeleted}
+            showInspectionActions={showInspectionActions}
+            onInspectionStart={onInspectionStart}
           />
         );
       })}

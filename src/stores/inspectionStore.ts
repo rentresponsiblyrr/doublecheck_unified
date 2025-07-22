@@ -391,7 +391,7 @@ export const useInspectionStore = create<InspectionStore>()(
                     .from('logs')
                     .upsert({
                       inspection_id: state.inspectionId,
-                      checklist_id: item.static_safety_item_id,
+                      checklist_id: item.checklist_id,
                       pass: item.status === 'completed',
                       inspector_remarks: item.inspector_notes,
                       ai_result: item.ai_result,

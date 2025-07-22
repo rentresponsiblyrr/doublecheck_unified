@@ -12,12 +12,16 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { RecoveryAction } from '@/hooks/useMobileErrorRecovery';
 
 interface ManualRecoveryCardProps {
-  recoveryActions: RecoveryAction[];
+  recoveryActions?: RecoveryAction[];
 }
 
 export const ManualRecoveryCard: React.FC<ManualRecoveryCardProps> = ({
-  recoveryActions
+  recoveryActions = [] // Provide default empty array to prevent map errors
 }) => {
+  // Don't render if no recovery actions available
+  if (!recoveryActions || recoveryActions.length === 0) {
+    return null;
+  }
   const getIcon = (actionId: string) => {
     switch (actionId) {
       case 'refresh-page':

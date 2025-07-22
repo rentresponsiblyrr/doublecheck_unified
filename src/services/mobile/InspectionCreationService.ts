@@ -12,6 +12,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { log } from "@/lib/logging/enterprise-logger";
+import { 
+  inspectionCreationService,
+  InspectionCreationRequest as EnterpriseRequest,
+  createFrontendPropertyId,
+  createInspectorId
+} from '@/lib/database/inspection-creation-service';
 
 export interface InspectionCreationRequest {
   property_id: string;
@@ -80,57 +86,41 @@ export class InspectionCreationService {
         };
       }
 
-      // Create inspection using RPC for better security and validation
-      const { data: inspectionData, error: creationError } = await Promise.race([
-        supabase.rpc('create_inspection_compatibility', {
-          _property_id: property_id,
-          _inspector_id: inspector_id,
-          _status: status,
-          _start_time: start_time
-        }),
+      // Use enterprise-grade inspection creation service
+      const enterpriseRequest: EnterpriseRequest = {
+        propertyId: createFrontendPropertyId(property_id),
+        inspectorId: createInspectorId(inspector_id),
+        status: status as 'draft' | 'in_progress' | 'completed' | 'auditing'
+      };
+
+      const result = await Promise.race([
+        inspectionCreationService.createInspection(enterpriseRequest),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Inspection creation timeout')), this.TIMEOUT_MS)
         )
       ]);
 
-      if (creationError) {
-        log.error('Inspection creation failed', creationError, {
+      if (!result.success || !result.data) {
+        const errorMessage = result.error?.userMessage || result.error?.message || 'Enterprise inspection creation failed';
+        
+        log.error('Enterprise inspection creation failed', result.error, {
           component: 'InspectionCreationService',
           action: 'createInspection',
           property_id,
           inspector_id,
           status,
-          errorCode: creationError.code,
-          errorMessage: creationError.message
+          errorCode: result.error?.code,
+          errorMessage
         }, 'INSPECTION_CREATION_ERROR');
 
         return {
           inspectionId: '',
           success: false,
-          error: `Creation failed: ${creationError.message}`
+          error: errorMessage
         };
       }
 
-      // CORRECTED: RPC returns array with inspection_id field, not object with id field
-      if (!inspectionData || !Array.isArray(inspectionData) || !inspectionData[0]?.inspection_id) {
-        log.error('Inspection creation returned no data', undefined, {
-          component: 'InspectionCreationService',
-          action: 'createInspection',
-          property_id,
-          inspector_id,
-          returnedData: inspectionData,
-          isArray: Array.isArray(inspectionData),
-          firstItem: inspectionData?.[0]
-        }, 'INSPECTION_CREATION_NO_DATA');
-
-        return {
-          inspectionId: '',
-          success: false,
-          error: 'Creation failed: No inspection ID returned'
-        };
-      }
-
-      createdInspectionId = inspectionData[0].inspection_id;
+      createdInspectionId = result.data.inspectionId;
 
       log.info('Inspection created successfully', {
         component: 'InspectionCreationService',

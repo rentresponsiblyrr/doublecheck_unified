@@ -6,6 +6,12 @@ import {
   updateChecklistItemWithMediaAtomic,
   deleteInspectionAtomic
 } from '@/lib/database/atomic-operations';
+import { 
+  inspectionCreationService,
+  InspectionCreationRequest,
+  createFrontendPropertyId,
+  createInspectorId
+} from '@/lib/database/inspection-creation-service';
 import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
@@ -63,91 +69,77 @@ export interface UpdateInspectionProgress {
 
 export class InspectionService {
   /**
-   * Create a new inspection with checklist items
+   * Create a new inspection using enterprise-grade inspection creation service
+   * PHASE 1 CRITICAL FIX: Uses EnterpriseInspectionCreationService to eliminate "Unknown error" failures
    */
   async createInspection(data: CreateInspectionData): Promise<{ success: boolean; data?: InspectionWithDetails; error?: string }> {
     try {
-      logger.info('Creating new inspection', { propertyId: data.propertyId, itemCount: data.checklistItems.length }, 'INSPECTION_SERVICE');
+      logger.info('Creating inspection with enterprise service', { 
+        propertyId: data.propertyId, 
+        itemCount: data.checklistItems.length 
+      }, 'INSPECTION_SERVICE');
 
-      // Use compatibility function to create inspection session
-      const { data: inspectionResult, error: inspectionError } = await supabase
-        .rpc('create_inspection_compatibility', {
-          p_property_uuid: data.propertyId,
-          p_inspector_id: data.inspectorId,
-          p_status: 'draft'
-        });
+      // Convert to enterprise service request format
+      const request: InspectionCreationRequest = {
+        propertyId: createFrontendPropertyId(data.propertyId),
+        inspectorId: data.inspectorId ? createInspectorId(data.inspectorId) : undefined,
+        status: 'draft'
+      };
 
-      if (inspectionError) {
-        logger.error('Failed to create inspection session', inspectionError, 'INSPECTION_SERVICE');
-        return { success: false, error: inspectionError.message };
+      // Use enterprise-grade inspection creation service
+      const result = await inspectionCreationService.createInspection(request);
+
+      if (!result.success || !result.data) {
+        const errorMessage = result.error?.userMessage || result.error?.message || 'Inspection creation failed';
+        logger.error('Enterprise inspection creation failed', {
+          error: result.error,
+          propertyId: data.propertyId
+        }, 'INSPECTION_SERVICE');
+        return { success: false, error: errorMessage };
       }
 
-      const inspectionId = inspectionResult[0]?.inspection_id;
-      if (!inspectionId) {
-        return { success: false, error: 'Failed to get inspection ID from creation' };
-      }
+      const { inspectionId } = result.data;
+      
+      logger.info('Enterprise inspection created successfully', {
+        inspectionId,
+        propertyId: data.propertyId,
+        processingTime: result.performance?.processingTime
+      }, 'INSPECTION_SERVICE');
 
-      // Create log entries (checklist items) for each safety item
-      for (const item of data.checklistItems) {
-        // First, ensure the checklist item exists
-        const { data: checklistItem, error: checklistError } = await supabase
-          .from('checklist')
-          .select('checklist_id')
-          .eq('label', item.title)
-          .eq('category', item.category)
-          .single();
-
-        let checklistId = checklistItem?.checklist_id;
-
-        // If checklist item doesn't exist, create it
-        if (!checklistId) {
-          const { data: newChecklistItem, error: createChecklistError } = await supabase
-            .from('checklist')
-            .insert({
-              label: item.title,
-              category: item.category,
-              evidence_type: 'photo',
-              required: item.required || false
-            })
-            .select('checklist_id')
-            .single();
-
-          if (createChecklistError) {
-            logger.error('Failed to create checklist item', createChecklistError, 'INSPECTION_SERVICE');
-            continue;
-          }
-          checklistId = newChecklistItem?.checklist_id;
-        }
-
-        // Create log entry
-        if (checklistId) {
-          await supabase
-            .from('logs')
-            .insert({
-              property_id: inspectionResult[0]?.property_id,
-              checklist_id: checklistId,
-              inspection_session_id: inspectionId,
-              audit_status: 'pending',
-              photo_evidence_required: true
-            });
-        }
-      }
-
+      // Note: Checklist items are automatically populated by the RPC function's trigger
+      // No need to manually create checklist items - the database handles this
+      
       // Fetch the complete inspection with relations
       const fullInspection = await this.getInspectionById(inspectionId);
       if (!fullInspection.success) {
-        return { success: false, error: 'Failed to fetch created inspection' };
+        logger.warn('Inspection created but failed to fetch details', { inspectionId }, 'INSPECTION_SERVICE');
+        // Return partial success - inspection was created but we can't fetch details
+        return { 
+          success: true, 
+          data: {
+            id: inspectionId,
+            property_id: result.data.propertyId,
+            inspector_id: data.inspectorId,
+            status: result.data.status,
+            created_at: result.data.createdAt,
+            properties: null,
+            logs: []
+          } as InspectionWithDetails
+        };
       }
 
-      logger.info('Successfully created inspection', { 
-        inspectionId, 
-        checklistItemCount: data.checklistItems.length 
+      logger.info('Successfully created and fetched inspection', { 
+        inspectionId,
+        checklistItemCount: fullInspection.data?.logs.length || 0
       }, 'INSPECTION_SERVICE');
 
       return { success: true, data: fullInspection.data };
     } catch (error) {
-      logger.error('Unexpected error creating inspection', error, 'INSPECTION_SERVICE');
-      return { success: false, error: 'Unexpected error occurred' };
+      logger.error('Unexpected error in inspection creation', error, 'INSPECTION_SERVICE');
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unexpected error occurred' 
+      };
     }
   }
 

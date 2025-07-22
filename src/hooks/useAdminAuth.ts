@@ -25,7 +25,7 @@ export const useAdminAuth = (): AdminAuthState & {
   const loadUserRole = useCallback(async (userId: string) => {
     try {
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('role')
         .eq('id', userId)
         .single();

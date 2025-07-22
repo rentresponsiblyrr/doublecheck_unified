@@ -17,6 +17,12 @@
 
 import { supabase } from '@/lib/supabase';
 import { logger as log } from '@/lib/utils/logger';
+import { 
+  inspectionCreationService,
+  InspectionCreationRequest,
+  createFrontendPropertyId,
+  createInspectorId
+} from '@/lib/database/inspection-creation-service';
 
 // User management using actual 'users' table
 export interface ProductionUser {
@@ -251,34 +257,40 @@ export class ProductionDatabaseService {
     const actualInspectorId = inspectorId || currentUserId;
     
     try {
-      // Since create_inspection_compatibility RPC doesn't exist, 
-      // we'll simulate the inspection creation with available data
-      
-      // For now, return a simulated inspection ID until proper table access is restored
-      const simulatedInspectionId = `sim_${Date.now()}_${propertyId.slice(-8)}`;
-      
-      log.info('Simulated inspection creation', {
+      log.info('Creating inspection with enterprise service', {
         propertyId,
-        inspectorId: actualInspectorId,
-        simulatedId: simulatedInspectionId
+        inspectorId: actualInspectorId
       });
-      
-      // Store in localStorage for development/testing purposes
-      const inspectionData = {
-        id: simulatedInspectionId,
-        property_id: propertyId,
-        inspector_id: actualInspectorId,
-        status: 'draft',
-        start_time: new Date().toISOString(),
-        completed: false,
-        created_at: new Date().toISOString()
+
+      // Convert to enterprise service request format
+      const request: InspectionCreationRequest = {
+        propertyId: createFrontendPropertyId(propertyId),
+        inspectorId: createInspectorId(actualInspectorId),
+        status: 'draft'
       };
+
+      // Use enterprise-grade inspection creation service
+      const result = await inspectionCreationService.createInspection(request);
+
+      if (!result.success || !result.data) {
+        const errorMessage = result.error?.userMessage || result.error?.message || 'Inspection creation failed';
+        log.error('Enterprise inspection creation failed', {
+          error: result.error,
+          propertyId,
+          inspectorId: actualInspectorId
+        });
+        throw new Error(errorMessage);
+      }
+
+      const { inspectionId } = result.data;
       
-      const existingInspections = JSON.parse(localStorage.getItem('simulated_inspections') || '[]');
-      existingInspections.push(inspectionData);
-      localStorage.setItem('simulated_inspections', JSON.stringify(existingInspections));
-      
-      return simulatedInspectionId;
+      log.info('Enterprise inspection created successfully', {
+        inspectionId,
+        propertyId,
+        processingTime: result.performance?.processingTime
+      });
+
+      return inspectionId;
     } catch (error) {
       log.error('Inspection creation error', error);
       throw new Error(`Failed to create inspection: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -290,7 +302,7 @@ export class ProductionDatabaseService {
     
     // Check simulated inspections first
     const existingInspections = JSON.parse(localStorage.getItem('simulated_inspections') || '[]');
-    const simulated = existingInspections.find((i: any) => i.id === inspectionId);
+    const simulated = existingInspections.find((i: InspectionCreationData & { id: string }) => i.id === inspectionId);
     
     if (simulated) {
       return simulated;

@@ -24,7 +24,21 @@ interface RecoveryStrategy {
   priority: number;
 }
 
-export const useMobileErrorRecovery = () => {
+export interface RecoveryAction {
+  id: string;
+  title: string;
+  description: string;
+  action: () => void;
+  status: 'pending' | 'loading' | 'success' | 'error';
+}
+
+export const useMobileErrorRecovery = (
+  error?: Error | null,
+  onRetry?: () => void,
+  onReset?: () => void,
+  onNavigateHome?: () => void,
+  onContactSupport?: () => void
+) => {
   const [recoveryState, setRecoveryState] = useState<ErrorRecoveryState>({
     errorCount: 0,
     lastErrorTime: null,
@@ -230,11 +244,71 @@ export const useMobileErrorRecovery = () => {
     }));
   }, []);
 
+  // Create recovery actions for the UI
+  const recoveryActions: RecoveryAction[] = [
+    {
+      id: 'refresh-page',
+      title: 'Refresh Page',
+      description: 'Reload the current page to clear temporary issues',
+      action: () => {
+        if (onRetry) {
+          onRetry();
+        } else {
+          window.location.reload();
+        }
+      },
+      status: 'pending'
+    },
+    {
+      id: 'check-connection',
+      title: 'Check Connection',
+      description: 'Verify your internet connection is working',
+      action: () => {
+        // Simple connection test
+        fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+          .then(() => {
+            toast({
+              title: "Connection OK",
+              description: "Your internet connection is working."
+            });
+          })
+          .catch(() => {
+            toast({
+              title: "Connection Issue",
+              description: "Please check your internet connection.",
+              variant: "destructive"
+            });
+          });
+      },
+      status: 'pending'
+    },
+    {
+      id: 'clear-cache',
+      title: 'Clear Cache',
+      description: 'Clear browser cache and restart session',
+      action: () => {
+        if (onReset) {
+          onReset();
+        } else {
+          clearSession();
+        }
+      },
+      status: 'pending'
+    }
+  ];
+
+  const handleAutoRecovery = useCallback(() => {
+    attemptRecovery();
+  }, [attemptRecovery]);
+
   return {
     recordError,
     attemptRecovery,
     getRecoveryStats,
     resetErrorCount,
-    isRecovering: recoveryState.recoveryInProgress
+    isRecovering: recoveryState.recoveryInProgress,
+    recoveryActions,
+    connectionStatus: isOnline ? 'connected' : 'disconnected',
+    handleAutoRecovery
   };
 };

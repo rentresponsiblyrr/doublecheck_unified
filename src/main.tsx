@@ -31,7 +31,31 @@ async function initializeApp() {
     );
     
   } catch (error) {
-    console.error('App initialization failed:', error);
+    // Production-grade error handling for app initialization
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Send to error tracking service (production only)
+    if (import.meta.env.PROD) {
+      // Would integrate with Sentry, DataDog, etc.
+      fetch('/api/errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level: 'critical',
+          message: 'App initialization failed',
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        })
+      }).catch(() => {
+        // Fail silently if error tracking is down
+      });
+    }
+    
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.error('App initialization failed:', error);
+    }
     document.body.innerHTML = `
       <div style="padding: 20px; color: red; font-family: Arial;">
         <h1>🚨 Application Error</h1>

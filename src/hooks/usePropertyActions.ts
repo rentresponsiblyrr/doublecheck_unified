@@ -5,7 +5,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
-// Removed IdConverter import - database now uses UUID strings directly
+import { 
+  inspectionCreationService,
+  InspectionCreationRequest,
+  createFrontendPropertyId,
+  createInspectorId
+} from '@/lib/database/inspection-creation-service';
+// Enterprise-grade inspection creation service integrated
 
 interface PropertyActionError {
   type: 'network' | 'validation' | 'auth' | 'system';
@@ -176,56 +182,27 @@ export const usePropertyActions = () => {
         throw new Error('User must be authenticated to create inspections');
       }
 
-      let inspectionId: string;
-      
-      try {
-        // Use available compatibility RPC function
-        const { data: rpcData, error: rpcError } = await supabase.rpc('create_inspection_compatibility', {
-          property_id: propertyIdForQuery, // Pass as UUID string
-          inspector_id: user.id
-        });
-        
-        if (rpcError) {
-          throw new Error(`RPC failed: ${rpcError.message}`);
-        }
-        
-        if (!rpcData) {
-          throw new Error('RPC function returned no data');
-        }
-        
-        inspectionId = rpcData;
-        
-      } catch (rpcError) {
-        
-        // Fallback to direct insert with proper RLS context
-        const { data: newInspection, error: createError } = await supabase
-          .from('inspections')
-          .insert({
-            property_id: propertyIdForQuery,
-            inspector_id: user.id, // Always include inspector_id for RLS
-            start_time: new Date().toISOString(),
-            completed: false,
-            status: 'draft'
-          })
-          .select('id')
-          .single();
-        
-        if (createError) {
-          throw new Error(`Direct insert failed: ${createError.message}`);
-        }
-        
-        if (!newInspection?.id) {
-          throw new Error('Direct insert returned no inspection ID');
-        }
-        
-        inspectionId = newInspection.id;
+      // Use enterprise-grade inspection creation service
+      const request: InspectionCreationRequest = {
+        propertyId: createFrontendPropertyId(propertyIdForQuery),
+        inspectorId: createInspectorId(user.id),
+        status: 'draft'
+      };
+
+      const result = await inspectionCreationService.createInspection(request);
+
+      if (!result.success || !result.data) {
+        const errorMessage = result.error?.userMessage || result.error?.message || 'Enterprise inspection creation failed';
+        throw new Error(errorMessage);
       }
+
+      const inspectionId = result.data.inspectionId;
       
       navigate(`/inspection/${inspectionId}`);
       
       toast({
         title: "Inspection Started",
-        description: "A new inspection has been created successfully.",
+        description: "A new inspection has been created successfully with enterprise-grade reliability.",
       });
       
       return inspectionId;

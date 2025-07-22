@@ -67,8 +67,8 @@ export default function DatabaseConnectivityTest() {
       result += '👥 Users Table Detailed Test:\n';
       try {
         const { data: users, error: usersError } = await supabase
-          .from('profiles')
-          .select('id, email, full_name, role, created_at')
+          .from('users')
+          .select('id, email, name, role, created_at')
           .limit(5);
         
         if (usersError) {
@@ -97,7 +97,7 @@ export default function DatabaseConnectivityTest() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: userRecord, error: userError } = await supabase
-            .from('profiles')
+            .from('users')
             .select('role')
             .eq('id', user.id)
             .single();

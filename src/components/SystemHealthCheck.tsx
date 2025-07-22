@@ -69,8 +69,8 @@ export const SystemHealthCheck: React.FC<{
         
         // Check user profile
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, email')
+          .from('users')
+          .select('name, email')
           .eq('id', user.id)
           .single();
           
@@ -83,7 +83,7 @@ export const SystemHealthCheck: React.FC<{
           status.details.push('User profile not found');
           status.suggestions.push('Complete user profile setup');
         } else {
-          status.details.push(`User profile: ${profile.full_name || profile.email}`);
+          status.details.push(`User profile: ${profile.name || profile.email}`);
         }
       }
 

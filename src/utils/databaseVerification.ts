@@ -30,9 +30,8 @@ export class DatabaseVerification {
       'properties',
       'inspections', 
       'logs',
-      'checklist_items',
       'static_safety_items',
-      'profiles',
+      'users',
       'media'
     ];
 
@@ -187,7 +186,7 @@ export class DatabaseVerification {
   static async quickHealthCheck(): Promise<boolean> {
     try {
       // Check if we can access core tables
-      const criticalTables = ['properties', 'inspections', 'profiles'];
+      const criticalTables = ['properties', 'inspections', 'users'];
       
       for (const table of criticalTables) {
         const { error } = await supabase

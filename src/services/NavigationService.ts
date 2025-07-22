@@ -6,9 +6,18 @@
 import { NavigateFunction } from 'react-router-dom';
 import { logger } from '../utils/logger';
 
+interface NavigationState {
+  from?: string;
+  inspectionId?: string;
+  propertyId?: string;
+  userId?: string;
+  context?: 'inspection' | 'audit' | 'admin' | 'report';
+  data?: Record<string, unknown>;
+}
+
 export interface NavigationOptions {
   replace?: boolean;
-  state?: any;
+  state?: NavigationState;
   preserveQuery?: boolean;
   fallbackUrl?: string;
 }

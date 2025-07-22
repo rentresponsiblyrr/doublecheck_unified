@@ -60,8 +60,8 @@ export const debugDashboardData = async (userId?: string) => {
     // Check if user exists in users table
     if (userId) {
       const { data: userRecord, error: userRecordError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, role')
+        .from('users')
+        .select('id, email, name, role')
         .eq('id', userId)
         .single();
 

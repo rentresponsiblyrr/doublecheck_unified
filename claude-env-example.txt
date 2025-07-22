@@ -1,0 +1,11 @@
+# Claude AI Configuration
+# Copy these lines to your .env.local file and add your actual API key
+
+# Your Anthropic API key (get one from https://console.anthropic.com/)
+VITE_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# For production deployment (Railway/Railway)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Optional: Enable debug logging
+VITE_DEBUG_CLAUDE=true 

@@ -27,7 +27,7 @@ export class ConsoleDebugger {
 
 
     // Check critical tables
-    const tablesToCheck = ['properties', 'inspections', 'logs', 'checklist_items', 'static_safety_items', 'profiles'];
+    const tablesToCheck = ['properties', 'inspections', 'logs', 'static_safety_items', 'users'];
     
     for (const table of tablesToCheck) {
       try {

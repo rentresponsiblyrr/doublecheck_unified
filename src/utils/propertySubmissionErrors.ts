@@ -1,16 +1,21 @@
 
 import { useToast } from "@/hooks/use-toast";
+import { logger } from './logger';
 
 export const usePropertyErrorHandler = () => {
   const { toast } = useToast();
 
   const handleSubmissionError = (error: Error | unknown, isEditing: boolean) => {
-    const errorDetails = error as any;
-    console.error('Property submission error:', {
+    const errorDetails = error as { code?: string; message?: string; details?: string; hint?: string };
+    
+    logger.error('Property submission error', {
+      component: 'PropertyErrorHandler',
       code: errorDetails.code,
       message: errorDetails.message,
       details: errorDetails.details,
-      hint: errorDetails.hint
+      hint: errorDetails.hint,
+      isEditing,
+      action: 'property_submission'
     });
 
     let errorMessage = "An error occurred while saving the property.";
@@ -69,11 +74,13 @@ export const usePropertyErrorHandler = () => {
       }
     }
 
-    console.log('Error handling complete:', {
+    logger.info('Error handling complete', {
+      component: 'PropertyErrorHandler',
       originalError: errorDetails.code,
       userMessage: errorMessage,
       isTemporary,
-      shouldRetry: isTemporary
+      shouldRetry: isTemporary,
+      action: 'error_toast_display'
     });
 
     toast({
@@ -86,7 +93,11 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleUnexpectedError = () => {
-    console.error('Unexpected error occurred');
+    logger.error('Unexpected error occurred', {
+      component: 'PropertyErrorHandler',
+      error: 'Unhandled error type',
+      action: 'error_handling'
+    });
     
     toast({
       title: "Unexpected Error",
@@ -96,7 +107,8 @@ export const usePropertyErrorHandler = () => {
   };
 
   const handleSuccess = (propertyName: string, isEditing: boolean) => {
-    console.log('Property operation successful:', {
+    logger.info('Property operation successful', {
+      component: 'PropertyErrorHandler',
       propertyName,
       operation: isEditing ? 'update' : 'create'
     });

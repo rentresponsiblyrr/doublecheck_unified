@@ -100,6 +100,13 @@ const NotFound = lazy(() =>
   }))
 );
 
+// Claude AI Demo (accessible to all authenticated users)
+const ClaudeDemo = lazy(() => 
+  import('@/pages/ClaudeDemo').then(module => ({ 
+    default: module.default 
+  }))
+);
+
 // Professional Query Client Configuration
 const createQueryClient = () => new QueryClient({
   defaultOptions: {
@@ -289,6 +296,16 @@ export const ProfessionalAuthenticatedApp: React.FC = () => {
                   element={
                     <ProtectedRoute roles={['auditor', 'admin']}>
                       <ProfessionalRoute component={InspectionQueue} name="Inspection Queue" />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                {/* Claude AI Demo Route */}
+                <Route 
+                  path="/claude-demo" 
+                  element={
+                    <ProtectedRoute roles={['inspector', 'admin', 'auditor']}>
+                      <ProfessionalRoute component={ClaudeDemo} name="Claude AI Demo" />
                     </ProtectedRoute>
                   } 
                 />

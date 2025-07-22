@@ -71,7 +71,7 @@ export interface Inspection {
 export interface ChecklistItem {
   id: ChecklistItemId;
   inspection_id: InspectionId;
-  static_safety_item_id: string;
+  checklist_id: string; // CORRECTED: logs.checklist_id -> static_safety_items.id
   status: 'pending' | 'completed' | 'failed' | 'not_applicable';
   inspector_notes?: string;
 }

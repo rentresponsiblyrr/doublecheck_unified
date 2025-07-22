@@ -46,8 +46,14 @@ vi.mock('@/components/InspectionErrorBoundary', () => ({
   InspectionErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
+interface MobileErrorRecoveryProps {
+  error: Error;
+  onRetry: () => void;
+  onNavigateHome: () => void;
+}
+
 vi.mock('@/components/MobileErrorRecovery', () => ({
-  MobileErrorRecovery: ({ error, onRetry, onNavigateHome }: any) => (
+  MobileErrorRecovery: ({ error, onRetry, onNavigateHome }: MobileErrorRecoveryProps) => (
     <div data-testid="mobile-error-recovery">
       <p>{error.message}</p>
       <button onClick={onRetry}>Retry</button>

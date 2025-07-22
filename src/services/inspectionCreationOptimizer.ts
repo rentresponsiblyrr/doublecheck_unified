@@ -2,9 +2,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { InspectionValidationService } from "./inspectionValidationService";
 import { STATUS_GROUPS, INSPECTION_STATUS } from "@/types/inspection-status";
-// Removed IdConverter import - database now uses UUID strings directly
 import { log } from '@/lib/logging/enterprise-logger';
 import { extractErrorInfo, formatSupabaseError } from '@/types/supabase-errors';
+import { 
+  inspectionCreationService,
+  InspectionCreationRequest,
+  createFrontendPropertyId,
+  createInspectorId
+} from '@/lib/database/inspection-creation-service';
+// Enterprise-grade inspection creation service integrated
 
 export class InspectionCreationOptimizer {
   private static readonly MAX_RETRIES = 3;
@@ -97,119 +103,44 @@ export class InspectionCreationOptimizer {
           inspectorId
         }, 'INSPECTION_CREATION_ATTEMPT');
 
-        // Try RPC function first, fallback to direct insert
-        let data, error;
-        
-        // Use propertyId directly - it's already in the correct format from get_properties_with_inspections
-        // The database function returns property_id as UUID strings, so no conversion needed
+        // Use enterprise-grade inspection creation service
+        log.debug('Using enterprise inspection creation service', {
+          component: 'InspectionCreationOptimizer',
+          action: 'createInspectionWithRetry',
+          attempt,
+          propertyId,
+          inspectorId
+        }, 'ENTERPRISE_INSPECTION_CREATE_ATTEMPT');
 
-        try {
-          log.debug('Attempting RPC create_inspection_compatibility', {
+        const request: InspectionCreationRequest = {
+          propertyId: createFrontendPropertyId(propertyId),
+          inspectorId: createInspectorId(inspectorId),
+          status: 'draft'
+        };
+
+        const result = await inspectionCreationService.createInspection(request);
+
+        if (!result.success || !result.data) {
+          const errorMessage = result.error?.userMessage || result.error?.message || 'Enterprise inspection creation failed';
+          log.error('Enterprise inspection creation failed', result.error, {
             component: 'InspectionCreationOptimizer',
             action: 'createInspectionWithRetry',
             attempt,
             propertyId,
             inspectorId,
-            rpcFunction: 'create_inspection_compatibility'
-          }, 'RPC_INSPECTION_CREATE_ATTEMPT');
-          
-          // Use available compatibility RPC function
-          const rpcResult = await supabase.rpc('create_inspection_compatibility', {
-            property_id: propertyId, // Pass as string
-            inspector_id: inspectorId
-          });
-          
-          log.debug('RPC result received', {
-            component: 'InspectionCreationOptimizer',
-            action: 'createInspectionWithRetry',
-            attempt,
-            hasData: !!rpcResult.data,
-            hasError: !!rpcResult.error,
-            errorCode: rpcResult.error?.code
-          }, 'RPC_INSPECTION_CREATE_RESULT');
-          
-          if (rpcResult.error) {
-            log.warn('RPC function failed, will use fallback', {
-              component: 'InspectionCreationOptimizer',
-              action: 'createInspectionWithRetry',
-              attempt,
-              errorCode: rpcResult.error.code,
-              errorMessage: rpcResult.error.message
-            }, 'RPC_INSPECTION_CREATE_FAILED');
-            // Provide specific error messages for common constraint violations  
-            if (rpcResult.error.code === '23514') {
-              throw new Error('Database constraint violation: The inspection status value is not allowed. Please contact support.');
-            } else if (rpcResult.error.code === '23503') {
-              throw new Error('Invalid property or inspector ID. Please refresh the page and try again.');
-            } else if (rpcResult.error.code === '23505') {
-              throw new Error('An inspection already exists for this property. Please check existing inspections.');
-            } else {
-              throw new Error(`RPC function failed (${rpcResult.error.code}): ${rpcResult.error.message}`);
-            }
-          }
-          
-          if (!rpcResult.data) {
-            throw new Error('RPC function returned no data');
-          }
-          
-          data = rpcResult.data;
-          error = null;
-          
-        } catch (rpcError) {
-          log.info('RPC function not available, using direct insert fallback', {
-            component: 'InspectionCreationOptimizer',
-            action: 'createInspectionWithRetry',
-            attempt,
-            rpcError: rpcError instanceof Error ? rpcError.message : String(rpcError)
-          }, 'RPC_FALLBACK_TO_DIRECT_INSERT');
-          
-          // Fallback to direct insert with proper RLS context
-          const insertResult = await supabase
-            .from('inspections')
-            .insert({
-              property_id: propertyId, // Use propertyId directly - already in correct format
-              inspector_id: inspectorId, // Always include inspector_id for RLS
-              start_time: new Date().toISOString(),
-              completed: false,
-              status: 'draft'
-            })
-            .select('id')
-            .single();
-            
-          log.debug('Direct insert result', {
-            component: 'InspectionCreationOptimizer',
-            action: 'createInspectionWithRetry',
-            attempt,
-            hasData: !!insertResult.data,
-            hasError: !!insertResult.error,
-            errorCode: insertResult.error?.code,
-            inspectionId: insertResult.data?.id
-          }, 'DIRECT_INSERT_RESULT');
-          
-          if (insertResult.error) {
-            // Provide specific error messages for common constraint violations
-            if (insertResult.error.code === '23514') {
-              throw new Error('Database constraint violation: The inspection status value is not allowed. Please contact support.');
-            } else if (insertResult.error.code === '23503') {
-              throw new Error('Invalid property or inspector ID. Please refresh the page and try again.');
-            } else if (insertResult.error.code === '23505') {
-              throw new Error('An inspection already exists for this property. Please check existing inspections.');
-            } else {
-              throw new Error(`Database error (${insertResult.error.code}): ${insertResult.error.message}`);
-            }
-          }
-          
-          if (!insertResult.data?.id) {
-            throw new Error('Database returned no inspection ID - please try again');
-          }
-          
-          data = insertResult.data.id;
-          error = null;
+            errorCode: result.error?.code
+          }, 'ENTERPRISE_INSPECTION_CREATE_FAILED');
+          throw new Error(errorMessage);
         }
 
-        if (!data) {
-          throw new Error('No inspection ID returned from database operation');
-        }
+        const data = result.data.inspectionId;
+        log.debug('Enterprise inspection creation successful', {
+          component: 'InspectionCreationOptimizer', 
+          action: 'createInspectionWithRetry',
+          attempt,
+          inspectionId: data,
+          processingTime: result.performance?.processingTime
+        }, 'ENTERPRISE_INSPECTION_CREATE_SUCCESS');
 
         log.info('Inspection created successfully', {
           component: 'InspectionCreationOptimizer',

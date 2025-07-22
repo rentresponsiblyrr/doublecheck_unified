@@ -27,6 +27,13 @@
     "preview:prod": "npm run build && npm run preview",
     "preview:unified": "npm run build:unified && vite preview",
     "preview:railway": "npm run preview:unified",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testMatch=\"**/*.test.ts\"",
+    "test:integration": "jest --testMatch=\"**/integration/*.test.ts\"",
+    "test:comprehensive": "npx tsx scripts/run-comprehensive-tests.ts",
+    "test:validate": "npx tsx -e \"import('./src/tests/validation/inspection-creation-flow-validator.ts').then(m => m.runQuickValidation())\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 500",
     "lint:fix": "eslint . --fix",
@@ -92,6 +99,7 @@
     "production-ready": "npm run eliminate-console && npm run quality-gates:strict"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.18.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",

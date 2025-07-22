@@ -72,7 +72,7 @@ describe('InspectionStore - Professional Workflow Testing', () => {
 
   const createMockChecklistItem = (overrides: Partial<ChecklistItem> = {}): ChecklistItem => ({
     id: 'test-item-1',
-    static_safety_item_id: 'safety-item-1',
+    checklist_id: 'safety-item-1',
     title: 'Check Kitchen Faucet',
     description: 'Verify kitchen faucet is working properly',
     category: 'plumbing',

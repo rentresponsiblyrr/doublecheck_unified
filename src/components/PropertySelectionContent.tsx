@@ -3,12 +3,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { PropertyList } from "@/components/PropertyList";
-// StartInspectionButton removed - using Button directly
 import { AddPropertyButton } from "@/components/AddPropertyButton";
 import { Button } from "@/components/ui/button";
-// QuickActions component removed
-// SearchAndFilter component removed
-// PropertyErrorBoundary component removed
+import { MyActiveInspections } from "@/components/MyActiveInspections";
 import { usePropertyActions } from "@/hooks/usePropertyActions";
 import { useInspectorDashboard } from "@/hooks/useInspectorDashboard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -158,6 +155,12 @@ export const PropertySelectionContent = ({
       />
 
       <div className="px-4 py-6 space-y-6">
+        {/* Active Inspections - Priority Section */}
+        <MyActiveInspections 
+          maxItems={5} 
+          onInspectionResume={(inspectionId) => navigate(`/inspection/${inspectionId}`)}
+        />
+
         {/* Inspection Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>

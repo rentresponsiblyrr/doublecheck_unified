@@ -14,7 +14,7 @@ export interface User {
 
 export interface ChecklistItem {
   id: string;
-  static_safety_item_id: string;
+  checklist_id: string; // CORRECTED: logs.checklist_id -> static_safety_items.id
   title: string;
   category: string;
   status: 'pending' | 'completed' | 'failed' | 'not_applicable';
