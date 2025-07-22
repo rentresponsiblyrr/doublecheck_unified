@@ -28,10 +28,8 @@ export class InspectionCleanupService {
    * Analyzes all inspections and identifies duplicates per property
    */
   static async analyzeDuplicateInspections(): Promise<CleanupSummary> {
-    try {
-
-      // Get all inspections with property and progress information
-      const { data: inspections, error } = await supabase
+    // Get all inspections with property and progress information
+    const { data: inspections, error } = await supabase
         .from('inspections')
         .select(`
           id,
@@ -109,11 +107,7 @@ export class InspectionCleanupService {
         safeToDelete
       };
 
-      return summary;
-
-    } catch (error) {
-      throw error;
-    }
+    return summary;
   }
 
   /**
@@ -209,10 +203,8 @@ export class InspectionCleanupService {
       return;
     }
 
-
-    try {
-      // Delete inspection checklist items first (foreign key constraint)
-      const { error: checklistError } = await supabase
+    // Delete inspection checklist items first (foreign key constraint)
+    const { error: checklistError } = await supabase
         .from('logs')
         .delete()
         .in('inspection_id', inspectionsToDelete);
@@ -241,11 +233,6 @@ export class InspectionCleanupService {
       if (inspectionError) {
         throw new Error(`Failed to delete inspections: ${inspectionError.message}`);
       }
-
-
-    } catch (error) {
-      throw error;
-    }
   }
 
   /**

@@ -26,7 +26,7 @@ export const SimplePropertyForm = () => {
   
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoadingProperty, setIsLoadingProperty] = useState(false);
-  const [scrapedVRBOData, setScrapedVRBOData] = useState<any>(null);
+  const [scrapedVRBOData, setScrapedVRBOData] = useState<{ name?: string; address?: string; amenities?: string[] } | null>(null);
 
   // Load property data for editing
   useEffect(() => {
@@ -60,6 +60,7 @@ export const SimplePropertyForm = () => {
           });
         }
       } catch (error) {
+        console.warn('Failed to load property for editing:', error);
       } finally {
         setIsLoadingProperty(false);
       }
@@ -94,6 +95,7 @@ export const SimplePropertyForm = () => {
     
     const success = await submitProperty(submissionData);
     if (!success) {
+      console.warn('Property submission failed');
     }
   };
 

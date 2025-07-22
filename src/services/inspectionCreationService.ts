@@ -29,21 +29,17 @@ export class InspectionCreationService {
 
   async createNewInspection(propertyId: string, inspectorId: string): Promise<string> {
     const inspectionId = await this.retryService.executeWithRetry(async () => {
-      try {
-        // Create the inspection record using the optimizer with inspector ID
-        const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId, inspectorId);
-        
-        // Verify checklist items were created (with improved error handling)
-        const checklistItemsCount = await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
-        
-        if (checklistItemsCount === 0) {
-          // This is not necessarily an error - the inspection may be valid even without items
-        }
-        
-        return newInspectionId;
-      } catch (error) {
-        throw error;
+      // Create the inspection record using the optimizer with inspector ID
+      const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId, inspectorId);
+      
+      // Verify checklist items were created (with improved error handling)
+      const checklistItemsCount = await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
+      
+      if (checklistItemsCount === 0) {
+        // This is not necessarily an error - the inspection may be valid even without items
       }
+      
+      return newInspectionId;
     });
 
     return inspectionId;

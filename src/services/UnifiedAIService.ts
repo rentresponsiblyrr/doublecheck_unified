@@ -312,7 +312,7 @@ abstract class BaseAIProvider implements AIProvider {
  * OpenAI Provider Implementation
  */
 class OpenAIProvider extends BaseAIProvider {
-  name: 'openai' = 'openai';
+  name = 'openai' as const;
   capabilities: AICapability[] = [
     'photo_analysis',
     'text_generation', 
@@ -653,7 +653,7 @@ class OpenAIProvider extends BaseAIProvider {
  * Claude Provider Implementation (Placeholder)
  */
 class ClaudeProvider extends BaseAIProvider {
-  name: 'claude' = 'claude';
+  name = 'claude' as const;
   capabilities: AICapability[] = [
     'photo_analysis',
     'text_generation',

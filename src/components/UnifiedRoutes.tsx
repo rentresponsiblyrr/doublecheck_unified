@@ -38,7 +38,7 @@ function ProfessionalLoadingFallback({ message = "Loading..." }: { message?: str
 }
 
 interface UnifiedRoutesProps {
-  user: any;
+  user: { id: string; email: string; role: string } | null;
 }
 
 export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {

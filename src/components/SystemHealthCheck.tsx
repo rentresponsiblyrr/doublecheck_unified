@@ -3,7 +3,7 @@
  * Validates system integrity and provides recovery options
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, Database, Wifi, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -140,7 +140,7 @@ export const SystemHealthCheck: React.FC<{
     return status;
   };
 
-  const performHealthCheck = async () => {
+  const performHealthCheck = useCallback(async () => {
     setIsChecking(true);
     try {
       const status = await runHealthCheck();
@@ -165,13 +165,13 @@ export const SystemHealthCheck: React.FC<{
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [onHealthy, onError]);
 
   useEffect(() => {
     if (autoRun) {
       performHealthCheck();
     }
-  }, [autoRun]);
+  }, [autoRun, performHealthCheck]);
 
   const getStatusIcon = (status: 'healthy' | 'warning' | 'error') => {
     switch (status) {
