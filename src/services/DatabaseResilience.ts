@@ -136,7 +136,7 @@ export class DatabaseResilience {
   private async executeWithRetry<T>(operation: DatabaseOperation<T>): Promise<T> {
     const maxRetries = operation.retries || 3;
     const timeout = operation.timeout || 10000;
-    let lastError: any;
+    let lastError: Error;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -207,7 +207,7 @@ export class DatabaseResilience {
   /**
    * Classify database errors for intelligent handling
    */
-  private classifyError(error: any): DatabaseError {
+  private classifyError(error: Error | { message?: string; code?: string | number; status?: string | number }): DatabaseError {
     const message = error?.message || 'Unknown database error';
     const code = error?.code || error?.status;
 
@@ -318,7 +318,7 @@ export class DatabaseResilience {
   /**
    * Record failed operation
    */
-  private recordFailure(error: any, responseTime: number): void {
+  private recordFailure(error: Error, responseTime: number): void {
     this.metrics.totalOperations++;
     this.metrics.failedOperations++;
     
@@ -377,7 +377,7 @@ export class DatabaseResilience {
   /**
    * Enhance error with additional context
    */
-  private enhanceError(error: any, operationName: string): Error {
+  private enhanceError(error: Error, operationName: string): Error {
     const dbError = this.classifyError(error);
     const enhancedError = new Error(
       `Database operation '${operationName}' failed: ${dbError.message}. ` +

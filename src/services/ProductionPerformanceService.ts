@@ -84,14 +84,14 @@ export interface BusinessCorrelationData {
   userFlow: string;
   outcome: string;
   timestamp: number;
-  context?: any;
+  context?: Record<string, unknown>;
 }
 
 export interface SystemAlert {
   type: 'budget_violation' | 'system_degradation' | 'correlation_anomaly' | 'business_impact';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  context: any;
+  context: Record<string, unknown>;
   timestamp: number;
   resolved?: boolean;
 }
@@ -751,14 +751,14 @@ export class ProductionPerformanceService {
     }
   }
 
-  private recordNetworkTransition(event: any): void {
+  private recordNetworkTransition(event: NetworkInformation): void {
     logger.info('Network transition recorded', {
       isOnline: event.isOnline,
       timestamp: Date.now()
     }, 'PRODUCTION_PERF');
   }
 
-  private recordConstructionSiteMetrics(networkInfo: any): void {
+  private recordConstructionSiteMetrics(networkInfo: NetworkInformation): void {
     logger.info('Construction site network metrics recorded', networkInfo, 'PRODUCTION_PERF');
   }
 

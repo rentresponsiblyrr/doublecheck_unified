@@ -232,15 +232,17 @@ export const PWAPerformanceMonitor: React.FC = () => {
     const resources = performance.getEntriesByType('resource');
 
     switch (metric) {
-      case 'bundleSize':
+      case 'bundleSize': {
         return resources.reduce((total, resource: any) =>
           total + (resource.transferSize || 0), 0
         );
-      case 'imageOptimization':
+      }
+      case 'imageOptimization': {
         const images = resources.filter((r: any) => r.initiatorType === 'img');
         return images.length > 0 ? images.reduce((acc: number, img: any) =>
           acc + ((img.decodedBodySize || 0) / (img.transferSize || 1)), 0
         ) / images.length * 100 : 100;
+      }
       default:
         return 0;
     }

@@ -110,7 +110,7 @@ function pwaReducer(state: UnifiedPWAState, action: PWAAction): UnifiedPWAState 
         errors: state.errors.filter(e => e.component !== 'initialization')
       };
 
-    case 'PWA_INIT_SUCCESS':
+    case 'PWA_INIT_SUCCESS': {
       return {
         ...state,
         isInitialized: true,
@@ -119,8 +119,9 @@ function pwaReducer(state: UnifiedPWAState, action: PWAAction): UnifiedPWAState 
         sync: action.payload.syncStatus,
         notifications: action.payload.notificationStatus
       };
+    }
 
-    case 'PWA_INIT_ERROR':
+    case 'PWA_INIT_ERROR': {
       const initError: PWAError = {
         id: `init_error_${Date.now()}`,
         timestamp: Date.now(),
@@ -136,6 +137,7 @@ function pwaReducer(state: UnifiedPWAState, action: PWAAction): UnifiedPWAState 
         isInitializing: false,
         errors: [...state.errors, initError]
       };
+    }
 
     case 'UPDATE_PERFORMANCE':
       return {

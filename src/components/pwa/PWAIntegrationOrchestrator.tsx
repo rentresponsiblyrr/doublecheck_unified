@@ -138,7 +138,7 @@ export const PWAIntegrationOrchestrator: React.FC<{
       manifest: 'manifest' in document.querySelector('link[rel="manifest"]') || false,
       notifications: 'Notification' in window,
       pushManager: 'PushManager' in window,
-      backgroundSync: 'sync' in window.ServiceWorkerRegistration?.prototype || false
+      backgroundSync: !!(window.ServiceWorkerRegistration && 'sync' in window.ServiceWorkerRegistration.prototype)
     };
 
     logger.info('PWA support assessment', pwaSupport, 'PWA_ORCHESTRATOR');

@@ -45,7 +45,7 @@ import { EnhancedServiceMigration, SchemaValidator } from './src/services/core/E
 interface VerificationResult {
   testName: string;
   passed: boolean;
-  details: any;
+  details: Record<string, unknown>;
   duration: number;
   errors?: string[];
   warnings?: string[];
@@ -302,7 +302,7 @@ export class FullSystemVerification {
     // Test 2: Real-Time Sync integration
     results.push(await this.runTest('Real-Time Sync Integration', async () => {
       let eventReceived = false;
-      let receivedData: any = null;
+      let receivedData: unknown = null;
 
       // Test subscription
       const unsubscribe = realTimeSync.subscribe(
@@ -579,8 +579,8 @@ export class FullSystemVerification {
         'null; DELETE FROM properties; --',
       ];
 
-      let allInputsHandled = true;
-      const results: any[] = [];
+      const allInputsHandled = true;
+      const results: Array<{ input: string; handled: boolean; error?: string }> = [];
 
       for (const maliciousInput of maliciousInputs) {
         try {

@@ -40,13 +40,47 @@
 import { logger } from '@/utils/logger';
 import { EventEmitter } from 'events';
 
+// Sync data type definitions
+export interface InspectionSyncData {
+  inspection_id: string;
+  property_id: string;
+  status: string;
+  checklist_items?: ChecklistItemSyncData[];
+  media_files?: MediaSyncData[];
+  timestamp: number;
+}
+
+export interface ChecklistItemSyncData {
+  id: string;
+  inspection_id: string;
+  status: string;
+  notes?: string;
+  media_references?: string[];
+}
+
+export interface MediaSyncData {
+  id: string;
+  type: 'photo' | 'video' | 'document';
+  file_path: string;
+  size: number;
+  metadata: Record<string, unknown>;
+}
+
+export interface UserActionSyncData {
+  action_type: string;
+  timestamp: number;
+  data: Record<string, unknown>;
+}
+
+export type SyncDataPayload = InspectionSyncData | ChecklistItemSyncData | MediaSyncData | UserActionSyncData | Record<string, unknown>;
+
 // PHASE 4B: Add missing type exports for verification
 export interface SyncTask {
   id: string;
   queueName: string;
   type: 'inspection' | 'media' | 'checklist' | 'user_data';
   priority: 'immediate' | 'high' | 'normal' | 'low';
-  data: any;
+  data: SyncDataPayload;
   retryCount: number;
   maxRetries: number;
   createdAt: number;
@@ -77,7 +111,7 @@ export interface BackgroundSyncTask {
   id: string;
   type: 'inspection_data' | 'photo_upload' | 'checklist_update' | 'user_action' | 'analytics' | 'batch_operation';
   priority: 'immediate' | 'high' | 'normal' | 'low' | 'batch';
-  data: any;
+  data: SyncDataPayload;
   metadata: {
     timestamp: number;
     retryCount: number;
@@ -99,11 +133,11 @@ export interface BackgroundSyncTask {
 export interface ConflictResolutionResult {
   resolved: boolean;
   strategy: string;
-  mergedData?: any;
+  mergedData?: SyncDataPayload;
   requiresUserIntervention: boolean;
   conflictDetails?: {
-    localVersion: any;
-    serverVersion: any;
+    localVersion: SyncDataPayload;
+    serverVersion: SyncDataPayload;
     conflictFields: string[];
   };
 }
@@ -436,7 +470,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async executeSyncOperation(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     try {
@@ -477,7 +511,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncInspectionData(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     const { data } = task;
@@ -554,7 +588,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncPhotoUpload(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     const { photoData, metadata } = task.data;
@@ -599,7 +633,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncChecklistUpdate(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     const { checklistId, updates } = task.data;
@@ -654,7 +688,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncUserAction(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     try {
@@ -692,7 +726,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncAnalytics(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     try {
@@ -729,7 +763,7 @@ export class BackgroundSyncManager extends EventEmitter {
   private async syncBatchOperation(task: BackgroundSyncTask): Promise<{
     success: boolean;
     hasConflict?: boolean;
-    conflictData?: any;
+    conflictData?: SyncDataPayload;
     error?: Error;
   }> {
     const { operations } = task.data;

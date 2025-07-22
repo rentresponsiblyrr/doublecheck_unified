@@ -37,6 +37,39 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { aiConfidenceValidator } from './AIConfidenceValidator';
 
+// Supporting type definitions for explainability system
+interface ProcessingStep {
+  step_name: string;
+  description: string;
+  input_data: Record<string, unknown>;
+  output_data: Record<string, unknown>;
+  duration_ms: number;
+  status: 'success' | 'warning' | 'error';
+}
+
+interface ModelPrediction {
+  model_name: string;
+  prediction: string;
+  confidence: number;
+  metadata: Record<string, unknown>;
+}
+
+interface PreprocessingStep {
+  step_type: string;
+  description: string;
+  parameters: Record<string, unknown>;
+  execution_time_ms: number;
+}
+
+interface AuditTrailEntry {
+  timestamp: string;
+  action: string;
+  actor: string;
+  input_data: Record<string, unknown>;
+  output_data: Record<string, unknown>;
+  immutable_hash: string;
+}
+
 // Core interfaces for explainability system
 export interface ExplainabilityResult {
   decision_id: string;
@@ -762,7 +795,7 @@ export class AIExplainabilityEngine {
     };
   }
 
-  private async generateImmutableHash(auditTrail: any): Promise<string> {
+  private async generateImmutableHash(auditTrail: AuditTrailEntry[]): Promise<string> {
     // Implementation would generate cryptographic hash of audit trail
     return 'immutable_hash_placeholder';
   }
@@ -772,7 +805,6 @@ export class AIExplainabilityEngine {
   }
 
   // Additional placeholder methods and interfaces...
-  [key: string]: any; // Placeholder for additional methods
 }
 
 // Supporting interfaces and classes
@@ -784,16 +816,26 @@ export interface AIDecisionData {
   inspector_id?: string;
   property_id?: string;
   checklist_item_id?: string;
-  checklist_item?: any;
+  checklist_item?: ChecklistItemData;
   model_name?: string;
   model_version?: string;
-  preprocessing_steps?: any[];
-  processing_steps?: any[];
-  model_predictions?: any[];
+  preprocessing_steps?: PreprocessingStep[];
+  processing_steps?: ProcessingStep[];
+  model_predictions?: ModelPrediction[];
   detected_features?: string[];
   safety_concerns?: string[];
   compliance_status?: Record<string, boolean>;
-  [key: string]: any;
+  additional_metadata?: Record<string, unknown>;
+}
+
+export interface ChecklistItemData {
+  id: string;
+  title: string;
+  category: string;
+  required: boolean;
+  evidence_type: 'photo' | 'video' | 'none';
+  description?: string;
+  instructions?: string;
 }
 
 interface ContactInformation {
@@ -815,7 +857,7 @@ interface AlgorithmDetails {
   algorithm_type: string;
   training_data_version: string;
   inference_method: string;
-  preprocessing_steps: any[];
+  preprocessing_steps: PreprocessingStep[];
 }
 
 interface FeatureImportance {
@@ -826,7 +868,6 @@ interface FeatureImportance {
 }
 
 // Additional interfaces would be defined here...
-[key: string]: any;
 
 class VisualAnnotationEngine {
   async generateEvidence(decisionData: AIDecisionData): Promise<VisualEvidence> {

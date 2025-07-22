@@ -389,10 +389,10 @@ class CompleteIntegrationVerifier {
     console.log('\n📊 INTEGRATION VERIFICATION RESULTS');
     console.log('=' .repeat(40));
 
-    let totalTests = this.results.length;
-    let passedTests = this.results.filter(r => r.status === 'PASS').length;
-    let warnTests = this.results.filter(r => r.status === 'WARN').length;
-    let criticalFailures = this.results.filter(r => r.status === 'FAIL' && r.critical).length;
+    const totalTests = this.results.length;
+    const passedTests = this.results.filter(r => r.status === 'PASS').length;
+    const warnTests = this.results.filter(r => r.status === 'WARN').length;
+    const criticalFailures = this.results.filter(r => r.status === 'FAIL' && r.critical).length;
 
     // Group results by category
     const categories = [...new Set(this.results.map(r => r.category))];

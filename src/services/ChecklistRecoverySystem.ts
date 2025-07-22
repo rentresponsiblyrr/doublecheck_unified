@@ -74,7 +74,7 @@ export interface RecoveryResult {
   timeTaken: number;
   userMessage: string;
   nextAction?: 'retry' | 'manual' | 'escalate';
-  recoveredData?: any;
+  recoveredData?: Record<string, unknown>;
   error?: string;
 }
 

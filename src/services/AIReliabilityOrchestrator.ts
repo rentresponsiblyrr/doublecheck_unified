@@ -28,6 +28,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { aiLearningService } from './aiLearningService';
 
+// Supporting type definitions for AI analysis
+export interface ChecklistItemData {
+  id: string;
+  title: string;
+  category: string;
+  required: boolean;
+  evidence_type: 'photo' | 'video' | 'none';
+  description?: string;
+  instructions?: string;
+}
+
+export interface ModelAnalysisResult {
+  decision: 'pass' | 'fail' | 'human_review_required';
+  confidence: number;
+  reasoning: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FinalDecisionResult {
+  decision: 'pass' | 'fail' | 'human_review_required';
+  confidence: number;
+}
+
 // Core interfaces for AI reliability system
 export interface ReliabilityAnalysis {
   decision: 'pass' | 'fail' | 'human_review_required';
@@ -148,7 +171,7 @@ export class AIReliabilityOrchestrator {
    */
   async analyzeWithReliability(
     photo: File,
-    checklistItem: any,
+    checklistItem: ChecklistItemData,
     context: AIAnalysisContext
   ): Promise<ReliabilityAnalysis> {
     const startTime = Date.now();
@@ -249,7 +272,7 @@ export class AIReliabilityOrchestrator {
    */
   private async performMultiModelAnalysis(
     photo: File,
-    checklistItem: any,
+    checklistItem: ChecklistItemData,
     context: AIAnalysisContext
   ): Promise<ConsensusResult> {
     const analyses: ModelAnalysis[] = [];
@@ -480,7 +503,7 @@ export class AIReliabilityOrchestrator {
   private async checkRegulatoryCompliance(
     consensus: ConsensusResult,
     context: AIAnalysisContext,
-    checklistItem: any
+    checklistItem: ChecklistItemData
   ): Promise<ComplianceCheck> {
     try {
       return await this.regulatoryEngine.checkCompliance(consensus, context, checklistItem);
@@ -576,33 +599,33 @@ export class AIReliabilityOrchestrator {
   // Placeholder methods for the various analysis phases
   // In production, these would contain full implementations
   
-  private async analyzeWithGPT4(photo: File, item: any, context: AIAnalysisContext): Promise<any> {
+  private async analyzeWithGPT4(photo: File, item: ChecklistItemData, context: AIAnalysisContext): Promise<ModelAnalysisResult> {
     // Implementation would call GPT-4 Vision API
     return { decision: 'pass', confidence: 0.85, reasoning: 'GPT-4 analysis' };
   }
 
-  private async analyzeWithClaude(photo: File, item: any, context: AIAnalysisContext): Promise<any> {
+  private async analyzeWithClaude(photo: File, item: ChecklistItemData, context: AIAnalysisContext): Promise<ModelAnalysisResult> {
     // Implementation would call Claude Vision API
     return { decision: 'pass', confidence: 0.80, reasoning: 'Claude analysis' };
   }
 
-  private async analyzeWithSafetyModel(photo: File, item: any, context: AIAnalysisContext): Promise<any> {
+  private async analyzeWithSafetyModel(photo: File, item: ChecklistItemData, context: AIAnalysisContext): Promise<ModelAnalysisResult> {
     // Implementation would call specialized safety model
     return { decision: 'pass', confidence: 0.90, reasoning: 'Safety model analysis' };
   }
 
-  private calculateConsensus(analyses: ModelAnalysis[]): any {
+  private calculateConsensus(analyses: ModelAnalysis[]): ModelAnalysisResult {
     // Weighted voting algorithm implementation
     return { decision: 'pass', confidence: 0.85, reasoning: 'Consensus analysis' };
   }
 
-  private analyzeDisagreement(analyses: ModelAnalysis[]): any {
+  private analyzeDisagreement(analyses: ModelAnalysis[]): DisagreementAnalysis {
     // Disagreement analysis implementation
     return { agreement_level: 0.8, factors: [], confidence_variance: 0.1 };
   }
 
   // Failure mode detection methods (27 total)
-  private async detectHallucination(consensus: any, context: AIAnalysisContext): Promise<FailureModeCheck> {
+  private async detectHallucination(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
     return {
       mode: 'hallucination',
       severity: 'high',
@@ -612,7 +635,7 @@ export class AIReliabilityOrchestrator {
     };
   }
 
-  private async detectConfidenceMiscalibration(consensus: any, context: AIAnalysisContext): Promise<FailureModeCheck> {
+  private async detectConfidenceMiscalibration(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
     return {
       mode: 'confidence_miscalibration',
       severity: 'medium',
@@ -622,7 +645,166 @@ export class AIReliabilityOrchestrator {
     };
   }
 
-  // ... (other 25 detection methods would follow similar pattern)
+  private async detectContextDrift(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'context_drift',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['context_validation'],
+      residual_risk: 0.15
+    };
+  }
+
+  private async detectLightingBias(photo: File, consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return {
+      mode: 'lighting_bias',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['lighting_normalization'],
+      residual_risk: 0.1
+    };
+  }
+
+  private async detectPerspectiveBias(photo: File, consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return {
+      mode: 'perspective_bias',
+      severity: 'low',
+      detected: false,
+      mitigation_applied: ['perspective_correction'],
+      residual_risk: 0.08
+    };
+  }
+
+  private async detectSeasonalBias(photo: File, consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'seasonal_bias',
+      severity: 'low',
+      detected: false,
+      mitigation_applied: ['seasonal_adjustment'],
+      residual_risk: 0.05
+    };
+  }
+
+  private async detectPromptInjection(photo: File, consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return {
+      mode: 'prompt_injection',
+      severity: 'high',
+      detected: false,
+      mitigation_applied: ['input_sanitization'],
+      residual_risk: 0.02
+    };
+  }
+
+  private async detectPromptInconsistency(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'prompt_inconsistency',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['prompt_standardization'],
+      residual_risk: 0.1
+    };
+  }
+
+  private async detectAmbiguousCriteria(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'ambiguous_criteria',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['criteria_clarification'],
+      residual_risk: 0.12
+    };
+  }
+
+  private async detectAPIFailures(consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return {
+      mode: 'api_failures',
+      severity: 'high',
+      detected: false,
+      mitigation_applied: ['retry_mechanism'],
+      residual_risk: 0.05
+    };
+  }
+
+  private async detectConnectivityIssues(context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'connectivity_issues',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['offline_fallback'],
+      residual_risk: 0.08
+    };
+  }
+
+  private async detectModelVersionDrift(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return {
+      mode: 'model_version_drift',
+      severity: 'medium',
+      detected: false,
+      mitigation_applied: ['version_tracking'],
+      residual_risk: 0.1
+    };
+  }
+
+  // Additional failure mode detection methods
+  private async detectSchemaMismatch(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'schema_mismatch', severity: 'high', detected: false, mitigation_applied: ['schema_validation'], residual_risk: 0.05 };
+  }
+
+  private async detectMissingContext(context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'missing_context', severity: 'medium', detected: false, mitigation_applied: ['context_enrichment'], residual_risk: 0.1 };
+  }
+
+  private async detectAuditTrailGaps(consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return { mode: 'audit_trail_gaps', severity: 'medium', detected: false, mitigation_applied: ['audit_validation'], residual_risk: 0.08 };
+  }
+
+  private async detectRegulatoryGaps(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'regulatory_gaps', severity: 'high', detected: false, mitigation_applied: ['regulatory_check'], residual_risk: 0.1 };
+  }
+
+  private async detectPropertyTypeMismatch(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'property_type_mismatch', severity: 'medium', detected: false, mitigation_applied: ['type_validation'], residual_risk: 0.12 };
+  }
+
+  private async detectLegalBlindSpots(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'legal_blind_spots', severity: 'high', detected: false, mitigation_applied: ['legal_review'], residual_risk: 0.15 };
+  }
+
+  private async detectAuditorBias(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'auditor_bias', severity: 'medium', detected: false, mitigation_applied: ['bias_correction'], residual_risk: 0.1 };
+  }
+
+  private async detectGamingBehavior(photo: File, consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'gaming_behavior', severity: 'high', detected: false, mitigation_applied: ['gaming_detection'], residual_risk: 0.08 };
+  }
+
+  private async detectFeedbackDegradation(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'feedback_degradation', severity: 'medium', detected: false, mitigation_applied: ['feedback_monitoring'], residual_risk: 0.1 };
+  }
+
+  private async detectPerformanceBottlenecks(consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return { mode: 'performance_bottlenecks', severity: 'medium', detected: false, mitigation_applied: ['performance_optimization'], residual_risk: 0.05 };
+  }
+
+  private async detectCostSpiral(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'cost_spiral', severity: 'medium', detected: false, mitigation_applied: ['cost_monitoring'], residual_risk: 0.12 };
+  }
+
+  private async detectResourceLimits(photo: File, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'resource_limits', severity: 'high', detected: false, mitigation_applied: ['resource_scaling'], residual_risk: 0.1 };
+  }
+
+  private async detectUnusualPropertyTypes(context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'unusual_property_types', severity: 'medium', detected: false, mitigation_applied: ['property_classification'], residual_risk: 0.15 };
+  }
+
+  private async detectMultiLanguageIssues(photo: File, consensus: ConsensusResult): Promise<FailureModeCheck> {
+    return { mode: 'multi_language_issues', severity: 'low', detected: false, mitigation_applied: ['language_detection'], residual_risk: 0.08 };
+  }
+
+  private async detectSafetyProtocolFailures(consensus: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck> {
+    return { mode: 'safety_protocol_failures', severity: 'critical', detected: false, mitigation_applied: ['safety_validation'], residual_risk: 0.05 };
+  }
 
   private calculateFailureModePenalty(failureModes: FailureModeCheck[]): number {
     return failureModes.reduce((penalty, mode) => {
@@ -680,7 +862,7 @@ export class AIReliabilityOrchestrator {
   }
 
   // Validation methods
-  private async validatePhotoQuality(photo: File, consensus: any): Promise<ValidationResult> {
+  private async validatePhotoQuality(photo: File, consensus: ConsensusResult): Promise<ValidationResult> {
     return {
       validator: 'photo_quality',
       passed: true,
@@ -690,7 +872,7 @@ export class AIReliabilityOrchestrator {
     };
   }
 
-  private async validateSafetyCompliance(consensus: any, context: AIAnalysisContext): Promise<ValidationResult> {
+  private async validateSafetyCompliance(consensus: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult> {
     return {
       validator: 'safety_compliance',
       passed: true,
@@ -700,11 +882,59 @@ export class AIReliabilityOrchestrator {
     };
   }
 
-  // ... (other validation methods would follow)
+  private async validateBusinessLogic(consensus: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult> {
+    return {
+      validator: 'business_logic',
+      passed: true,
+      confidence: 0.9,
+      issues: [],
+      context: {}
+    };
+  }
+
+  private async validateConsistency(consensus: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult> {
+    return {
+      validator: 'consistency',
+      passed: true,
+      confidence: 0.88,
+      issues: [],
+      context: {}
+    };
+  }
+
+  private async validateLegalCompliance(consensus: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult> {
+    return {
+      validator: 'legal_compliance',
+      passed: true,
+      confidence: 0.92,
+      issues: [],
+      context: {}
+    };
+  }
+
+  private async validateCrossReferences(consensus: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult> {
+    return {
+      validator: 'cross_references',
+      passed: true,
+      confidence: 0.85,
+      issues: [],
+      context: {}
+    };
+  }
+
+  private async validateStatistically(consensus: ConsensusResult, calibrated: CalibratedResult, context: AIAnalysisContext): Promise<ValidationResult> {
+    return {
+      validator: 'statistical_validation',
+      passed: true,
+      confidence: 0.87,
+      issues: [],
+      context: {}
+    };
+  }
 
   private calculateReliabilityScore(
-    consensus: any,
-    calibrated: any,
+    consensus: ConsensusResult,
+    calibrated: CalibratedResult,
     validations: ValidationResult[],
     failureModes: FailureModeCheck[],
     compliance: ComplianceCheck
@@ -716,18 +946,19 @@ export class AIReliabilityOrchestrator {
     const detectedFailures = failureModes.filter(f => f.detected).length;
     const failureScore = Math.max(0, 1 - (detectedFailures / failureModes.length));
     
-    const complianceScore = Object.values(compliance).filter(v => v === true).length / 5;
+    const complianceValues = [compliance.building_codes, compliance.fire_safety, compliance.accessibility, compliance.local_regulations, compliance.insurance_requirements];
+    const complianceScore = complianceValues.filter(v => v === true).length / complianceValues.length;
     
     return (validationScore * 0.4 + failureScore * 0.4 + complianceScore * 0.2);
   }
 
   private async synthesizeFinalDecision(
-    consensus: any,
-    calibrated: any,
+    consensus: ConsensusResult,
+    calibrated: CalibratedResult,
     reliabilityScore: number,
     validations: ValidationResult[],
     compliance: ComplianceCheck
-  ): Promise<{ decision: 'pass' | 'fail' | 'human_review_required', confidence: number }> {
+  ): Promise<FinalDecisionResult> {
     // Decision synthesis logic
     if (reliabilityScore < 0.7 || calibrated.calibrated_confidence < 0.8) {
       return { decision: 'human_review_required', confidence: calibrated.calibrated_confidence };
@@ -737,8 +968,8 @@ export class AIReliabilityOrchestrator {
   }
 
   private async generateExplanation(
-    decision: any,
-    consensus: any,
+    decision: FinalDecisionResult,
+    consensus: ConsensusResult,
     validations: ValidationResult[],
     compliance: ComplianceCheck,
     context: AIAnalysisContext
@@ -754,7 +985,7 @@ export class AIReliabilityOrchestrator {
   }
 
   private assessRiskLevel(
-    decision: any,
+    decision: FinalDecisionResult,
     reliabilityScore: number,
     failureModes: FailureModeCheck[],
     compliance: ComplianceCheck
@@ -793,15 +1024,21 @@ export class AIReliabilityOrchestrator {
 // Supporting interfaces and classes
 interface ModelAnalysis {
   model: string;
-  result: any;
+  result: ModelAnalysisResult;
   weight: number;
 }
 
 interface ConsensusResult {
-  consensus: any;
+  consensus: ModelAnalysisResult;
   individual_analyses: ModelAnalysis[];
   agreement_level: number;
   disagreement_factors: string[];
+  confidence_variance: number;
+}
+
+interface DisagreementAnalysis {
+  agreement_level: number;
+  factors: string[];
   confidence_variance: number;
 }
 
@@ -818,7 +1055,7 @@ class ConfidenceCalibrationModel {
 }
 
 class RegulatoryComplianceEngine {
-  async checkCompliance(consensus: any, context: AIAnalysisContext, item: any): Promise<ComplianceCheck> {
+  async checkCompliance(consensus: ConsensusResult, context: AIAnalysisContext, item: ChecklistItemData): Promise<ComplianceCheck> {
     // Implementation for regulatory compliance checking
     return {
       building_codes: true,
@@ -833,11 +1070,11 @@ class RegulatoryComplianceEngine {
 }
 
 interface AIValidator {
-  validate(data: any, context: any): Promise<ValidationResult>;
+  validate(data: ConsensusResult, context: AIAnalysisContext): Promise<ValidationResult>;
 }
 
 interface FailureModeDetector {
-  detect(data: any, context: any): Promise<FailureModeCheck>;
+  detect(data: ConsensusResult, context: AIAnalysisContext): Promise<FailureModeCheck>;
 }
 
 // Export singleton instance

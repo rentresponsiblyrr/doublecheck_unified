@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 export interface AdminAuthState {
   user: User | null;
@@ -21,23 +22,52 @@ export const useAdminAuth = (): AdminAuthState & {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load user role from users table
+  // SECURE: Load user role with server-side validation - NEVER default to admin
   const loadUserRole = useCallback(async (userId: string) => {
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single();
+      // SECURE: Use server-side RPC function for role validation
+      const { data: roleResult, error: roleError } = await supabase
+        .rpc('get_user_role_secure', { user_id: userId });
 
-      if (profileError) {
-        setUserRole('admin');
+      if (roleError) {
+        logger.error('Failed to get user role - SECURITY VIOLATION', {
+          userId: userId,
+          error: roleError.message,
+          timestamp: new Date().toISOString()
+        });
+
+        // SECURE: Never default to admin - set as null for proper auth flow
+        setUserRole(null);
+        setError('Unable to verify user permissions');
         return;
       }
 
-      setUserRole(profile?.role || 'admin');
+      // SECURE: Only proceed if we have explicit role confirmation
+      if (!roleResult?.role || !['admin', 'super_admin'].includes(roleResult.role)) {
+        logger.warn('User attempted admin access without privileges', {
+          userId: userId,
+          providedRole: roleResult?.role || 'none',
+          timestamp: new Date().toISOString()
+        });
+
+        setUserRole(roleResult?.role || 'none');
+        setError('Insufficient admin privileges');
+        return;
+      }
+
+      // SUCCESS: User has verified admin role
+      setUserRole(roleResult.role);
+      setError(null);
     } catch (err) {
-      setUserRole('admin');
+      logger.error('Admin role verification failed - SECURITY EVENT', {
+        userId: userId,
+        error: (err as Error).message,
+        timestamp: new Date().toISOString()
+      });
+
+      // SECURE: Never default to admin on errors
+      setUserRole(null);
+      setError('Authentication system error');
     }
   }, []);
 
@@ -78,7 +108,14 @@ export const useAdminAuth = (): AdminAuthState & {
               )
             ]);
           } catch (roleError) {
-            setUserRole('admin'); // Default fallback
+            // SECURE: Never default to admin on timeout or errors
+            logger.error('Role loading failed during auth initialization', {
+              userId: currentSession.user.id,
+              error: (roleError as Error).message,
+              timestamp: new Date().toISOString()
+            });
+            setUserRole(null);
+            setError('Failed to verify admin permissions');
           }
         } else {
           setSession(null);
@@ -166,7 +203,8 @@ export const useAdminAuth = (): AdminAuthState & {
     }
   }, [loadUserRole]);
 
-  const isAuthenticated = !!(user && session);
+  // SECURE: Only consider authenticated if user has verified admin role
+  const isAuthenticated = !!(user && session && userRole && ['admin', 'super_admin'].includes(userRole));
 
   return {
     user,

@@ -113,7 +113,7 @@ interface TransactionContext {
   operations: Array<{
     table: string;
     operation: 'insert' | 'update' | 'delete';
-    data: any;
+    data: Record<string, unknown>;
     rollback: () => Promise<void>;
   }>;
 }
@@ -133,7 +133,7 @@ export class DatabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'DatabaseError';
