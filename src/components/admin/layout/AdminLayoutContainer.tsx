@@ -15,7 +15,11 @@ interface UserProfile {
   avatar_url?: string;
 }
 
-export const AdminLayoutContainer: React.FC = () => {
+interface AdminLayoutContainerProps {
+  children?: React.ReactNode;
+}
+
+export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,30 +74,71 @@ export const AdminLayoutContainer: React.FC = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Try to get profile data from profiles table
-          const { data: profile } = await supabase
-            .from('users')
-            .select('name, email')
-            .eq('id', user.id)
-            .single();
+          // Try to get profile data from users table with better error handling and timeout
+          try {
+            const profilePromise = supabase
+              .from('users')
+              .select('name, email')
+              .eq('id', user.id)
+              .single();
 
-          setUserProfile({
-            full_name: profile?.name || user.user_metadata?.full_name || user.email?.split('@')[0],
-            email: profile?.email || user.email,
-            avatar_url: user.user_metadata?.avatar_url
-          });
+            // Add timeout to prevent hanging requests
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile query timeout')), 5000)
+            );
 
-          logger.info('User profile loaded in admin', {
-            component: 'AdminLayoutContainer',
-            userId: user.id,
-            action: 'profile_load'
-          });
+            const { data: profile, error: profileError } = await Promise.race([
+              profilePromise,
+              timeoutPromise
+            ]) as any;
+
+            if (profileError) {
+              logger.warn('User profile query failed, using fallback data', {
+                component: 'AdminLayoutContainer',
+                error: profileError.message,
+                userId: user.id,
+                action: 'profile_load_fallback'
+              });
+            }
+
+            setUserProfile({
+              full_name: profile?.name || user.user_metadata?.full_name || user.email?.split('@')[0],
+              email: profile?.email || user.email,
+              avatar_url: user.user_metadata?.avatar_url
+            });
+
+            logger.info('User profile loaded in admin', {
+              component: 'AdminLayoutContainer',
+              userId: user.id,
+              hasProfile: !!profile,
+              action: 'profile_load'
+            });
+          } catch (profileError) {
+            // Graceful fallback - use auth user data
+            logger.warn('Profile lookup failed, using auth data', {
+              component: 'AdminLayoutContainer',
+              error: (profileError as Error).message,
+              action: 'profile_fallback'
+            });
+
+            setUserProfile({
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+              email: user.email,
+              avatar_url: user.user_metadata?.avatar_url
+            });
+          }
         }
       } catch (error) {
-        logger.error('Failed to load user profile', {
+        logger.error('Failed to load user profile - critical error', {
           component: 'AdminLayoutContainer',
           error: (error as Error).message,
           action: 'profile_load'
+        });
+        
+        // Even if everything fails, we set some basic data to prevent crashes
+        setUserProfile({
+          full_name: 'Unknown User',
+          email: 'unknown@example.com'
         });
       } finally {
         setIsLoading(false);
@@ -159,7 +204,7 @@ export const AdminLayoutContainer: React.FC = () => {
             isTablet ? "max-w-4xl" : 
             "max-w-7xl"
           )}>
-            <Outlet />
+{children || <Outlet />}
           </div>
         </main>
       </div>

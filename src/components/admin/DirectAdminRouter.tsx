@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import AdminLayout from './AdminLayout';
+import { AdminLayoutContainer } from './layout/AdminLayoutContainer';
+import { AccessibilityProvider } from '@/lib/accessibility/AccessibilityProvider';
 
 // Direct imports - no lazy loading
 import AdminOverview from './AdminOverview';
@@ -228,8 +229,10 @@ export default function DirectAdminRouter() {
   };
 
   return (
-    <AdminLayout>
-      {renderComponent()}
-    </AdminLayout>
+    <AccessibilityProvider>
+      <AdminLayoutContainer>
+        {renderComponent()}
+      </AdminLayoutContainer>
+    </AccessibilityProvider>
   );
 }

@@ -193,16 +193,24 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
         window.dispatchEvent(event);
       };
 
-      // Initialize integration bridge with timeout
+      // Initialize integration bridge with timeout (OPTIONAL - app works without it)
       if (backgroundSyncManager && pushNotificationManager) {
         try {
+          // Reduced timeout and added more robust error handling
           await Promise.race([
             pwaEnhancedBridge.initialize(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Bridge timeout')), 3000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Bridge timeout')), 1000))
           ]);
           logger.info('✅ PWA-Enhanced Services integration bridge active', {}, 'MAIN_INTEGRATION');
         } catch (error) {
-          logger.warn('⚠️ Integration bridge failed - app still functional', { error }, 'MAIN_INTEGRATION');
+          // CRITICAL: Don't let bridge failures break the app
+          logger.warn('⚠️ Integration bridge failed - app continues normally', { error }, 'MAIN_INTEGRATION');
+          // Clear any partially initialized state
+          try {
+            pwaEnhancedBridge.destroy();
+          } catch (cleanupError) {
+            // Ignore cleanup errors
+          }
         }
       }
 
