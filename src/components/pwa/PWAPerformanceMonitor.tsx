@@ -142,8 +142,8 @@ export const PWAPerformanceMonitor: React.FC = () => {
   const trackCachePerformance = async () => {
     try {
       const cacheNames = await caches.keys();
-      let totalHits = 0;
-      let totalRequests = 0;
+      const totalHits = 0;
+      const totalRequests = 0;
 
       // This would typically track actual cache performance
       // For now, we'll simulate based on available data

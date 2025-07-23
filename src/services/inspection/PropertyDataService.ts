@@ -255,7 +255,7 @@ export class PropertyDataService {
       }
 
       const { data, error, count } = await query;
-      let queryCount = 1;
+      const queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {
@@ -373,7 +373,7 @@ export class PropertyDataService {
         .or('inspections.status.is.null,inspections.status.in.(completed,cancelled)')
         .limit(filters.limit || PROPERTY_SERVICE_CONFIG.performance.maxSearchResults);
 
-      let queryCount = 1;
+      const queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {
@@ -498,7 +498,7 @@ export class PropertyDataService {
       query = query.limit(options.limit || PROPERTY_SERVICE_CONFIG.performance.maxSearchResults);
 
       const { data, error } = await query;
-      let queryCount = 1;
+      const queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {
@@ -604,7 +604,7 @@ export class PropertyDataService {
         .eq('property_id', typeof propertyId === 'string' ? parseInt(propertyId) : propertyId)
         .single();
 
-      let queryCount = 1;
+      const queryCount = 1;
 
       if (error) {
         throw this.createServiceError(
@@ -771,7 +771,7 @@ export class PropertyDataService {
         })
         .eq('property_id', typeof propertyId === 'string' ? parseInt(propertyId) : propertyId);
 
-      let queryCount = 1;
+      const queryCount = 1;
 
       if (error) {
         throw this.createServiceError('VALIDATION_FAILED', error.message, {

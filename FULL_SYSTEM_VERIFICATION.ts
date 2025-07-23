@@ -629,7 +629,7 @@ export class FullSystemVerification {
 
   private async runTest(
     testName: string, 
-    testFunction: () => Promise<any>
+    testFunction: () => Promise<unknown>
   ): Promise<VerificationResult> {
     const startTime = performance.now();
     
@@ -807,8 +807,9 @@ export class FullSystemVerification {
     if (typeof process !== 'undefined' && process.memoryUsage) {
       return process.memoryUsage().heapUsed;
     }
-    if (typeof performance !== 'undefined' && (performance as any).memory) {
-      return (performance as any).memory.usedJSHeapSize;
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
+      const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
+      return memory?.usedJSHeapSize || 0;
     }
     return 0;
   }

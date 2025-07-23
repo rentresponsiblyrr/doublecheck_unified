@@ -231,7 +231,7 @@ export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     return {
-      isSupported: 'sync' in window.ServiceWorkerRegistration?.prototype || false,
+      isSupported: typeof window !== 'undefined' && window.ServiceWorkerRegistration && 'sync' in window.ServiceWorkerRegistration.prototype,
       isRegistered: false,
       registeredTags: [],
       pendingSyncs: 0,

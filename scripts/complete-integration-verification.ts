@@ -91,12 +91,12 @@ class CompleteIntegrationVerifier {
           critical: false
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'Integration Bridge',
         test: 'Bridge Verification',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: true
       });
     }
@@ -144,12 +144,12 @@ class CompleteIntegrationVerifier {
         critical: true
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'Database Schema',
         test: 'Schema Validation',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: true
       });
     }
@@ -193,12 +193,12 @@ class CompleteIntegrationVerifier {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'Dependencies',
         test: 'Dependency Check',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: false
       });
     }
@@ -250,12 +250,12 @@ class CompleteIntegrationVerifier {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'PWA Integration',
         test: 'PWA Component Check',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: true
       });
     }
@@ -314,12 +314,12 @@ class CompleteIntegrationVerifier {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'Enhanced Services',
         test: 'Services Compatibility',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: true
       });
     }
@@ -365,12 +365,12 @@ class CompleteIntegrationVerifier {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.results.push({
         category: 'File Structure',
         test: 'Structure Integrity',
         status: 'FAIL',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         critical: false
       });
     }

@@ -158,7 +158,7 @@ export class ChecklistDataService {
       // ✅ CORRECTED: Using actual checklist_items table with inspection_id relationship
       
       // Get checklist items directly by inspection_id (correct schema)
-      let query = supabase
+      const query = supabase
         .from('checklist_items')
         .select(`
           *,

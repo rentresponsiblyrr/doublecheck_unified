@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
 
   try {
     // Check Integration Bridge
-    const bridgeHealth = (global as any).__INTEGRATION_BRIDGE_HEALTH__;
-    const bridgeInstance = (global as any).__PWA_ENHANCED_BRIDGE__;
+    const bridgeHealth = (global as Record<string, unknown>).__INTEGRATION_BRIDGE_HEALTH__;
+    const bridgeInstance = (global as Record<string, unknown>).__PWA_ENHANCED_BRIDGE__;
 
     healthData.integration = {
       bridgeActive: bridgeHealth?.bridgeActive || false,
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Check Enhanced Services
-    const enhancedServices = (global as any).__ENHANCED_SERVICES__;
+    const enhancedServices = (global as Record<string, unknown>).__ENHANCED_SERVICES__;
     healthData.services.enhanced = {
       initialized: enhancedServices?.initialized || false,
       healthy: enhancedServices?.healthy || false,
@@ -33,12 +33,15 @@ export async function GET(request: NextRequest) {
     };
 
     // Check PWA Components
-    const pwaStatus = (global as any).__PWA_STATUS__;
+    const pwaStatus = (global as Record<string, unknown>).__PWA_STATUS__;
+    const backgroundSyncManager = (global as Record<string, unknown>).__BACKGROUND_SYNC_MANAGER__ as { isActive?: () => boolean } | undefined;
+    const pushNotificationManager = (global as Record<string, unknown>).__PUSH_NOTIFICATION_MANAGER__ as { isActive?: () => boolean } | undefined;
+    
     healthData.services.pwa = {
-      allSystemsReady: pwaStatus?.allSystemsReady || false,
-      serviceWorkerActive: pwaStatus?.serviceWorkerActive || false,
-      backgroundSyncActive: (global as any).__BACKGROUND_SYNC_MANAGER__?.isActive() || false,
-      pushNotificationsActive: (global as any).__PUSH_NOTIFICATION_MANAGER__?.isActive() || false
+      allSystemsReady: (pwaStatus as { allSystemsReady?: boolean })?.allSystemsReady || false,
+      serviceWorkerActive: (pwaStatus as { serviceWorkerActive?: boolean })?.serviceWorkerActive || false,
+      backgroundSyncActive: backgroundSyncManager?.isActive?.() || false,
+      pushNotificationsActive: pushNotificationManager?.isActive?.() || false
     };
 
     // Overall health assessment
@@ -58,11 +61,11 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       timestamp: Date.now(),
       status: 'error',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       services: healthData.services,
       integration: healthData.integration
     }, { status: 500 });
