@@ -164,14 +164,14 @@ export const UserTable: React.FC<UserTableProps> = ({
               <TableCell>
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">
-                    {getInitials(user.full_name)}
+                    {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
               </TableCell>
 
               <TableCell>
                 <div className="space-y-1">
-                  <div className="font-medium text-sm">{user.full_name}</div>
+                  <div className="font-medium text-sm">{user.name}</div>
                   <div className="flex items-center space-x-1 text-xs text-gray-600">
                     <Mail className="h-3 w-3" />
                     <span>{user.email}</span>

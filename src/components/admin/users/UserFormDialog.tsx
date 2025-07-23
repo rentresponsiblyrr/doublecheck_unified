@@ -28,10 +28,10 @@ import { User, UserFormData, USER_ROLES } from "./types";
 import { sanitizeFormInput, validateEmail } from "@/utils/validation";
 
 interface UserFormDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: UserFormData) => Promise<void>;
-  editingUser: User | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: User | null;
+  onSubmit: (data: UserFormData) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -43,10 +43,10 @@ const defaultFormData: UserFormData = {
 };
 
 export const UserFormDialog: React.FC<UserFormDialogProps> = ({
-  isOpen,
-  onClose,
-  onSave,
-  editingUser,
+  open,
+  onOpenChange,
+  user: editingUser,
+  onSubmit: onSave,
   isLoading = false,
 }) => {
   const [formData, setFormData] = useState<UserFormData>(defaultFormData);
@@ -57,11 +57,11 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
   // Reset form when dialog opens/closes or editing user changes
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       if (editingUser) {
         setFormData({
           email: editingUser.email,
-          name: editingUser.full_name,
+          name: editingUser.name,
           role: editingUser.role,
           phone: editingUser.phone || "",
         });
@@ -70,7 +70,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
       }
       setValidationErrors({});
     }
-  }, [isOpen, editingUser]);
+  }, [open, editingUser]);
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -127,7 +127,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
       };
 
       await onSave(sanitizedData);
-      onClose();
+      onOpenChange(false);
     } catch (error) {
       setValidationErrors({
         form: error instanceof Error ? error.message : "Failed to save user",
@@ -157,7 +157,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
@@ -307,7 +307,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={() => onOpenChange(false)}
             disabled={isSaving}
           >
             Cancel

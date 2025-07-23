@@ -48,7 +48,7 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
       .select("*")
       .gte("created_at", getDateRange(timeRange));
 
-    const { data: properties } = await supabase.from("properties").select("*");
+    const { data: properties } = await supabase.rpc("get_properties_with_inspections", { user_id: null });
 
     const { data: users } = await supabase
       .from("users")

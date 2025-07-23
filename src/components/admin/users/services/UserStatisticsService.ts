@@ -24,7 +24,7 @@ export class UserStatisticsService {
 
     users.forEach((user) => {
       // Active/inactive status
-      if (user.status === "active") {
+      if (user.is_active) {
         stats.active++;
       } else {
         stats.inactive++;
@@ -34,7 +34,7 @@ export class UserStatisticsService {
       stats.byRole[user.role] = (stats.byRole[user.role] || 0) + 1;
 
       // Recent sign-ins
-      if (user.last_login_at && new Date(user.last_login_at) >= oneWeekAgo) {
+      if (user.last_sign_in_at && new Date(user.last_sign_in_at) >= oneWeekAgo) {
         stats.recentSignIns++;
       }
     });

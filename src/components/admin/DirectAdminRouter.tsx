@@ -5,7 +5,7 @@ import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider
 // Direct imports - no lazy loading
 import AdminOverview from "./AdminOverview";
 import { SystemHealthCheck } from "../SystemHealthCheck";
-// Fallback components not found - using UnifiedAdminManagement instead
+import UserManagementRedesigned from "./users/UserManagementRedesigned";
 import UnifiedAdminManagement from "./UnifiedAdminManagement";
 
 /**
@@ -95,7 +95,7 @@ export default function DirectAdminRouter() {
               Manage user accounts, roles, and permissions
             </p>
           </div>
-          <UnifiedAdminManagement initialTab="users" />
+          <UserManagementRedesigned />
         </div>
       );
     }

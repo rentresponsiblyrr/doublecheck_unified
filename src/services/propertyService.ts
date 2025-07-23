@@ -111,7 +111,7 @@ export class PropertyService {
           airbnb_url: propertyToInsert.airbnb_url,
           added_by: propertyToInsert.added_by,
         })
-        .select("property_id, name, address, vrbo_url, airbnb_url, created_at")
+        .select("id, name, address, vrbo_url, airbnb_url, created_at")
         .single();
 
       if (insertError) {
@@ -138,7 +138,7 @@ export class PropertyService {
         {
           component: "PropertyService",
           action: "addProperty",
-          propertyId: insertedProperty.property_id,
+          propertyId: insertedProperty.id,
           propertyName: insertedProperty.name,
           hasVrboUrl: !!insertedProperty.vrbo_url,
           hasAirbnbUrl: !!insertedProperty.airbnb_url,
@@ -160,7 +160,7 @@ export class PropertyService {
               {
                 component: "PropertyService",
                 action: "addProperty",
-                propertyId: insertedProperty.property_id,
+                propertyId: insertedProperty.id,
                 hasScrapedData: !!scrapedData,
                 listingId: scrapedData?.listingId,
               },
@@ -173,7 +173,7 @@ export class PropertyService {
             {
               component: "PropertyService",
               action: "addProperty",
-              propertyId: insertedProperty.property_id,
+              propertyId: insertedProperty.id,
               vrboUrl: propertyData.vrbo_url,
               error: error instanceof Error ? error.message : String(error),
             },
@@ -308,8 +308,8 @@ export class PropertyService {
       const { data, error } = await supabase
         .from("properties")
         .update(updateData)
-        .eq("property_id", id)
-        .select("property_id, name, address, vrbo_url, airbnb_url, created_at")
+        .eq("id", id)
+        .select("id, name, address, vrbo_url, airbnb_url, created_at")
         .single();
 
       if (error) {
@@ -340,7 +340,7 @@ export class PropertyService {
       }
 
       const data = allProperties?.find(
-        (prop: { property_id: string }) => prop.property_id === id,
+        (prop: { id: string }) => prop.id === id,
       );
       if (!data) {
         return { success: false, error: "Property not found" };
