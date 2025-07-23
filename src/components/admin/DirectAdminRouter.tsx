@@ -3,12 +3,14 @@ import { AdminLayoutContainer } from "./layout/AdminLayoutContainer";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
 import { ADMIN_ROUTES, AdminRouteUtils } from "./config/adminRoutes";
 import { logger } from "@/utils/logger";
+import AdminErrorBoundary from "./AdminErrorBoundary";
 
 // Direct imports - no lazy loading
 import AdminOverview from "./AdminOverview";
 import { SystemHealthCheck } from "../SystemHealthCheck";
 import UserManagementRedesigned from "./users/UserManagementRedesigned";
 import UnifiedAdminManagement from "./UnifiedAdminManagement";
+import ChecklistManagementRedesigned from "./checklist/ChecklistManagementRedesigned";
 
 /**
  * NUCLEAR OPTION: Direct routing without React Router
@@ -101,7 +103,18 @@ export default function DirectAdminRouter() {
                 </h1>
                 <p className="text-gray-600">{currentRoute.description}</p>
               </div>
-              <UserManagementRedesigned />
+              <AdminErrorBoundary
+                onError={(error, errorInfo) => {
+                  logger.error("User management section error", {
+                    component: "UserManagementRedesigned",
+                    error: error.message,
+                    componentStack: errorInfo.componentStack,
+                    path: currentPath,
+                  });
+                }}
+              >
+                <UserManagementRedesigned />
+              </AdminErrorBoundary>
             </div>
           );
 
@@ -119,15 +132,13 @@ export default function DirectAdminRouter() {
           );
 
         case "checklist":
+        case "checklists":
           return (
             <div className="p-6">
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  📋 Checklist Management
-                </h1>
-                <p className="text-gray-600">{currentRoute.description}</p>
-              </div>
-              <UnifiedAdminManagement initialTab="inspections" />
+              <ChecklistManagementRedesigned 
+                showAdvancedOptions={true}
+                enableBulkActions={true}
+              />
             </div>
           );
 

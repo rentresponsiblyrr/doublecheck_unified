@@ -65,6 +65,13 @@ export const ADMIN_ROUTES: AdminRoute[] = [
     description: "Manage inspection templates",
   },
   {
+    id: "checklists",
+    label: "Checklists",
+    icon: CheckSquare,
+    path: "/admin/checklists",
+    description: "Manage inspection templates",
+  },
+  {
     id: "reports",
     label: "Reports",
     icon: BarChart3,

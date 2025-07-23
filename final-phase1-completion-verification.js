@@ -143,17 +143,17 @@ const executeFinalVerification = async () => {
   const relationshipTests = [
     {
       name: 'default_relationship',
-      query: () => supabase.from('logs').select('*, static_safety_items(*)').limit(1),
+      query: () => supabase.from('checklist_items').select('*, static_safety_items(*)').limit(1),
       description: 'Default foreign key relationship'
     },
     {
       name: 'checklist_id_relationship',
-      query: () => supabase.from('logs').select('*, static_safety_items!checklist_id(*)').limit(1),
+      query: () => supabase.from('checklist_items').select('*, static_safety_items!checklist_id(*)').limit(1),
       description: 'Explicit checklist_id foreign key'
     },
     {
       name: 'inner_join_relationship',
-      query: () => supabase.from('logs').select('*, static_safety_items!inner(*)').limit(1),
+      query: () => supabase.from('checklist_items').select('*, static_safety_items!inner(*)').limit(1),
       description: 'Inner join relationship'
     }
   ];

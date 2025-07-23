@@ -104,7 +104,7 @@ const finalCheck = async () => {
     const startTime = performance.now();
     
     const { data, error } = await supabase
-      .from('logs')
+      .from('checklist_items')
       .select('id, static_safety_items(id, label)')
       .limit(1);
 

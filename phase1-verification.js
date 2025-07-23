@@ -91,7 +91,7 @@ await runTest('Users Table Access', async () => {
 // Test 5: Logs table with correct relationship
 await runTest('Logs Table (Fixed Relationship)', async () => {
   const { data, error } = await supabase
-    .from('logs')
+    .from('checklist_items')
     .select(`
       log_id,
       property_id, 

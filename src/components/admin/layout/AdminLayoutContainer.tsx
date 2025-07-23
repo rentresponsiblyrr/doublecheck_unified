@@ -42,11 +42,13 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
         } = await supabase.auth.getUser();
 
         if (user) {
-          // Try to get profile data using RPC function to avoid RLS recursion
+          // Get profile data directly from users table (post-migration schema)
           try {
-            const profilePromise = supabase.rpc("get_user_profile", {
-              _user_id: user.id,
-            });
+            const profilePromise = supabase
+              .from("users")
+              .select("name, email, role")
+              .eq("id", user.id)
+              .single();
 
             // Add timeout to prevent hanging requests
             const timeoutPromise = new Promise((_, reject) =>
@@ -72,10 +74,10 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
 
             setUserProfile({
               full_name:
-                profile?.[0]?.name ||
+                profile?.name ||
                 user.user_metadata?.full_name ||
                 user.email?.split("@")[0],
-              email: profile?.[0]?.email || user.email,
+              email: profile?.email || user.email,
               avatar_url: user.user_metadata?.avatar_url,
             });
 

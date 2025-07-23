@@ -257,11 +257,11 @@ export interface Property {
   city?: string;
   state?: string;
   zipcode?: string;
-  vrboUrl?: string;
-  airbnbUrl?: string;
+  vrbo_url?: string;  // Fixed: Use snake_case to match database schema
+  airbnb_url?: string; // Fixed: Use snake_case to match database schema
   status: "active" | "inactive";
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;  // Fixed: Use snake_case to match database schema
+  updated_at: string;  // Fixed: Use snake_case to match database schema
 }
 
 export interface PropertyWithStats extends Property {

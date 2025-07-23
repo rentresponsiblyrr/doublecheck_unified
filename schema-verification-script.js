@@ -112,7 +112,7 @@ const verifyLogsSchema = async () => {
 
   try {
     const { data: sample, error } = await supabase
-      .from('logs')
+      .from('checklist_items')
       .select('*')
       .limit(1);
     
@@ -233,7 +233,7 @@ const verifyRelationships = async (logsSchema, staticSafetyItemsSchema) => {
     console.log("   🧪 Testing logs -> static_safety_items via checklist_id...");
     try {
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('log_id, checklist_id, static_safety_items!checklist_id(id, label)')
         .limit(1);
 
@@ -260,7 +260,7 @@ const verifyRelationships = async (logsSchema, staticSafetyItemsSchema) => {
     console.log("   🧪 Testing logs -> static_safety_items via static_safety_item_id...");
     try {
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('log_id, static_safety_item_id, static_safety_items!static_safety_item_id(id, label)')
         .limit(1);
 
@@ -287,7 +287,7 @@ const verifyRelationships = async (logsSchema, staticSafetyItemsSchema) => {
     console.log("   🧪 Testing logs -> inspections via inspection_id...");
     try {
       const { data, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('log_id, inspection_id, inspections!inspection_id(id, property_id)')
         .limit(1);
 

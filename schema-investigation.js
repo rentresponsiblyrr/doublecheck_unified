@@ -92,7 +92,7 @@ try {
 try {
   console.log('\n🔍 Testing logs -> static_safety_items relationship...');
   const { data, error } = await supabase
-    .from('logs')
+    .from('checklist_items')
     .select(`
       *,
       static_safety_items(*)

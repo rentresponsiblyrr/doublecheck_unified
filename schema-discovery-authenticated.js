@@ -167,7 +167,7 @@ const executeSchemaDiscovery = async () => {
   try {
     const startTime = performance.now();
     const { data: logsData, error: logsError } = await supabase
-      .from('logs')
+      .from('checklist_items')
       .select('*')
       .limit(1);
 
@@ -274,17 +274,17 @@ const executeSchemaDiscovery = async () => {
     {
       name: "logs_to_static_safety_items_default",
       description: "Default relationship syntax",
-      query: () => supabase.from('logs').select('*, static_safety_items(*)').limit(1)
+      query: () => supabase.from('checklist_items').select('*, static_safety_items(*)').limit(1)
     },
     {
       name: "logs_to_static_safety_items_checklist_id",
       description: "Explicit checklist_id foreign key",
-      query: () => supabase.from('logs').select('*, static_safety_items!checklist_id(*)').limit(1)
+      query: () => supabase.from('checklist_items').select('*, static_safety_items!checklist_id(*)').limit(1)
     },
     {
       name: "logs_to_static_safety_items_inner_join",
       description: "Inner join with static safety items",
-      query: () => supabase.from('logs').select('*, static_safety_items!inner(*)').limit(1)
+      query: () => supabase.from('checklist_items').select('*, static_safety_items!inner(*)').limit(1)
     }
   ];
 

@@ -121,7 +121,7 @@ async function cleanDataReset() {
       const inspectionIdsToDelete = inspectionsToDelete.map(i => i.id);
       
       const { data: checklistItemsToDelete, error: checklistError } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select('id')
         .in('inspection_id', inspectionIdsToDelete);
       
@@ -161,7 +161,7 @@ async function cleanDataReset() {
 
         // Step 7: Delete checklist items
         const { error: checklistDeleteError } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .delete()
           .in('id', checklistItemIds);
         

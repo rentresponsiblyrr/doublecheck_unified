@@ -74,7 +74,6 @@ import {
 import {
   POLLING_CONFIG,
   ELEMENT_IDS,
-  STATUS_COLORS,
   PERFORMANCE_THRESHOLDS,
   CACHE_CONFIG,
   UI_CONFIG,
@@ -186,7 +185,7 @@ interface PerformanceMetrics {
  * @since 2.0.0
  */
 export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
-  refreshInterval = POLLING_CONFIG.systemMetrics.interval,
+  refreshInterval = POLLING_CONFIG.active,
   onNavigateToHealth,
   enableRealTimeUpdates = true,
   className = "",
@@ -718,8 +717,8 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         "percentage",
       ),
       healthColorClass: getStatusColorClass(state.metrics.performanceScore, {
-        good: PERFORMANCE_THRESHOLDS.performanceScore.good,
-        warning: PERFORMANCE_THRESHOLDS.performanceScore.warning,
+        good: PERFORMANCE_THRESHOLDS.inspectorEfficiency.good,
+        warning: PERFORMANCE_THRESHOLDS.inspectorEfficiency.warning,
       }),
     };
   }, [state.metrics]);
@@ -754,7 +753,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   // Render loading state with accessibility
   if (state.isLoading && !processedMetrics) {
     return (
-      <Card id={ELEMENT_IDS.systemStatusLoadingCard} className={`${className}`}>
+      <Card id={ELEMENT_IDS.systemStatusLoadingContainer} className={`${className}`}>
         <CardContent className={variantConfig.cardPadding}>
           <div
             id="system-status-loading-state"
@@ -794,7 +793,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       className={className}
     >
       <Card
-        id={ELEMENT_IDS.systemStatusMainCard}
+        id={ELEMENT_IDS.systemStatusPanelCard}
         className={`${className} transition-all duration-200 hover:shadow-md`}
       >
         <CardHeader

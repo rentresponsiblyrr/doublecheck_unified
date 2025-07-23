@@ -136,7 +136,7 @@ await runTest('Table Relationships - Static Safety Items', async () => {
 await runTest('Logs-StaticSafetyItems Relationship', async () => {
   // Test the relationship that was problematic
   const result = await supabase
-    .from('logs')
+    .from('checklist_items')
     .select(`
       *,
       static_safety_items(id, label)

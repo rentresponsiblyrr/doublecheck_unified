@@ -78,23 +78,24 @@ export const SystemHealthCheck: React.FC<{
       } else {
         status.details.push("Authentication: OK");
 
-        // Check user profile using RPC to avoid RLS recursion
-        const { data: profile, error: profileError } = await supabase.rpc(
-          "get_user_profile",
-          { _user_id: user.id },
-        );
+        // Check user profile directly from users table (post-migration schema)
+        const { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("name, email, role")
+          .eq("id", user.id)
+          .single();
 
         if (profileError) {
           status.authentication = "warning";
           status.details.push("User profile access warning");
           status.details.push(profileError.message);
-        } else if (!profile?.[0]) {
+        } else if (!profile) {
           status.authentication = "warning";
           status.details.push("User profile not found");
           status.suggestions.push("Complete user profile setup");
         } else {
           status.details.push(
-            `User profile: ${profile[0]?.name || profile[0]?.email}`,
+            `User profile: ${profile?.name || profile?.email}`,
           );
         }
       }
@@ -104,7 +105,7 @@ export const SystemHealthCheck: React.FC<{
         const networkStart = Date.now();
         const { error: networkError } = await supabase
           .from("properties")
-          .select("property_id")
+          .select("id")
           .limit(1)
           .maybeSingle();
 

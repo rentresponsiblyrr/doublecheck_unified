@@ -3,6 +3,7 @@ import { ChecklistItemType } from "@/types/inspection";
 import { ChecklistItemContainer } from "@/components/ChecklistItemContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { ClipboardList } from "lucide-react";
+import { BatchedMediaProvider } from "@/contexts/BatchedMediaContext";
 
 interface InspectionListProps {
   items: ChecklistItemType[];
@@ -51,15 +52,20 @@ export const InspectionList: React.FC<InspectionListProps> = ({
     );
   }
 
+  // Extract all checklist item IDs for batched media fetching
+  const checklistItemIds = items.map(item => item.id);
+
   return (
-    <div id="inspection-list-container" className="space-y-4">
-      {items.map((item) => (
-        <ChecklistItemContainer
-          key={item.id}
-          item={item}
-          onComplete={onComplete}
-        />
-      ))}
-    </div>
+    <BatchedMediaProvider checklistItemIds={checklistItemIds}>
+      <div id="inspection-list-container" className="space-y-4">
+        {items.map((item) => (
+          <ChecklistItemContainer
+            key={item.id}
+            item={item}
+            onComplete={onComplete}
+          />
+        ))}
+      </div>
+    </BatchedMediaProvider>
   );
 };

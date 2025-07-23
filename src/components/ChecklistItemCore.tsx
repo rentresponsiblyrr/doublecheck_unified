@@ -5,7 +5,7 @@ import { ChecklistItemHeader } from "@/components/ChecklistItemHeader";
 import { ChecklistItemNotes } from "@/components/ChecklistItemNotes";
 import { ChecklistItemActions } from "@/components/ChecklistItemActions";
 import { useToast } from "@/hooks/use-toast";
-import { useChecklistItemMedia } from "@/hooks/useChecklistItemMedia";
+import { useOptimizedChecklistItemMedia } from "@/contexts/BatchedMediaContext";
 import { useNotesHistory } from "@/hooks/useNotesHistory";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +28,7 @@ export const ChecklistItemCore = ({
 
   const { toast } = useToast();
   const { data: mediaItems = [], refetch: refetchMedia } =
-    useChecklistItemMedia(item.id);
+    useOptimizedChecklistItemMedia(item.id);
   const { saveNote } = useNotesHistory(item.id);
 
   const hasUploadedMedia = mediaItems.length > 0;

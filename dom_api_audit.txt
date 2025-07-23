@@ -1,0 +1,104 @@
+src/main.tsx:523:    document.body.innerHTML = `
+src/utils/screenshotCapture.ts:183:    highlight.style.position = "absolute";
+src/utils/screenshotCapture.ts:184:    highlight.style.border = "3px solid #ff4444";
+src/utils/screenshotCapture.ts:185:    highlight.style.backgroundColor = "rgba(255, 68, 68, 0.1)";
+src/utils/screenshotCapture.ts:186:    highlight.style.pointerEvents = "none";
+src/utils/screenshotCapture.ts:187:    highlight.style.zIndex = "99999";
+src/utils/screenshotCapture.ts:188:    highlight.style.borderRadius = "4px";
+src/utils/screenshotCapture.ts:191:    highlight.style.left = `${rect.left + window.scrollX}px`;
+src/utils/screenshotCapture.ts:192:    highlight.style.top = `${rect.top + window.scrollY}px`;
+src/utils/screenshotCapture.ts:193:    highlight.style.width = `${rect.width}px`;
+src/utils/screenshotCapture.ts:194:    highlight.style.height = `${rect.height}px`;
+src/test-setup.ts:207:      if (name === "aria-live" && element.textContent) {
+src/test-setup.ts:209:          message: element.textContent,
+src/components/ui/sidebar/context.tsx:117:              ...style,
+src/components/ui/calendar.tsx:52:        ...classNames,
+src/components/admin/SystemStatusPanel/index.tsx:344:        announcement.className = "sr-only";
+src/components/admin/SystemStatusPanel/index.tsx:345:        announcement.textContent = message;
+src/components/admin/SystemStatusPanel/SystemStatusErrorBoundary.tsx:212:      announcement.className = "sr-only";
+src/components/admin/SystemStatusPanel/SystemStatusErrorBoundary.tsx:213:      announcement.textContent =
+src/components/inspection/OfflineInspectionWorkflow.tsx:540:    document.body.style.setProperty("--touch-target-size", "48px");
+src/components/inspection/OfflineInspectionWorkflow.tsx:541:    document.body.style.setProperty("--button-padding", "16px");
+src/components/inspection/OfflineInspectionWorkflow.tsx:544:    document.body.style.setProperty("--contrast-multiplier", "1.2");
+src/components/inspection/OfflineInspectionWorkflow.tsx:548:      document.body.style.setProperty("--animation-duration", "0.1s");
+src/components/Logo.tsx:96:          target.style.display = "none";
+src/components/Logo.tsx:98:          if (fallback) fallback.style.display = "flex";
+src/components/MobileOptimizedLayout.tsx:28: * @param {string} [props.className] - Additional CSS classes
+src/components/scrapers/PropertySelector.tsx:61:      announcement.textContent = message;
+src/components/SimplifiedInspectionPage.tsx:37:      announcement.className = "sr-only";
+src/components/SimplifiedInspectionPage.tsx:38:      announcement.textContent = message;
+src/components/InspectionProgressTracker.tsx:25: * @param {string} [props.className] - Additional CSS classes
+src/components/reports/AuditTrailDataManager.tsx:183:      link.style.visibility = "hidden";
+src/components/checklist/ChecklistActionButtons.tsx:47:        className={`${getButtonProps(false).className} bg-green-600 hover:bg-green-700 focus:ring-green-500`}
+src/components/checklist/ChecklistActionButtons.tsx:80:        className={`${getButtonProps(false).className} border-gray-300 hover:bg-gray-50`}
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:26:    document.body.innerHTML = "";
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:75:      expect(announcements[0].textContent).toContain("3 status updates");
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:167:      expect(announcement?.textContent).toBe("Test message");
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:191:      expect(assertiveAnnouncements[0].textContent).toBe("Assertive message");
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:207:      expect(announcement?.textContent).toBe("Immediate message");
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:250:      expect(announcements[0].textContent).toContain("2 status updates");
+src/__tests__/performance/BatchedScreenReaderAnnouncements.performance.test.tsx:316:      expect(announcements[0].textContent).toContain("status updates");
+src/hooks/useBatchedScreenReaderAnnouncements.ts:79:      assertiveElement.className = "sr-only";
+src/hooks/useBatchedScreenReaderAnnouncements.ts:83:        assertiveElement.textContent = assertiveMessages[0];
+src/hooks/useBatchedScreenReaderAnnouncements.ts:85:        assertiveElement.textContent = `${assertiveMessages.length} updates: ${assertiveMessages.join(". ")}.`;
+src/hooks/useBatchedScreenReaderAnnouncements.ts:96:      politeElement.className = "sr-only";
+src/hooks/useBatchedScreenReaderAnnouncements.ts:100:        politeElement.textContent = politeMessages[0];
+src/hooks/useBatchedScreenReaderAnnouncements.ts:102:        politeElement.textContent = `${politeMessages.length} status updates: ${politeMessages.join(". ")}.`;
+src/hooks/useBatchedScreenReaderAnnouncements.ts:156:        element.className = "sr-only";
+src/hooks/useBatchedScreenReaderAnnouncements.ts:157:        element.textContent = message;
+src/lib/pwa/GestureController.ts:1087:      element.style.minWidth = `${minSize}px`;
+src/lib/pwa/GestureController.ts:1088:      element.style.minHeight = `${minSize}px`;
+src/lib/pwa/InstallPromptHandler.ts:474:      overlay.className =
+src/lib/pwa/InstallPromptHandler.ts:479:      modal.className =
+src/lib/pwa/InstallPromptHandler.ts:482:      modal.innerHTML = `
+src/lib/monitoring/performance-monitor.ts:255:                className: element.className,
+src/lib/monitoring/performance-monitor.ts:381:          className: target.className,
+src/lib/monitoring/performance-monitor.ts:382:          textContent: target.textContent?.substring(0, 100),
+src/lib/monitoring/performance-monitor.ts:614:    if (element.className) {
+src/lib/monitoring/performance-monitor.ts:617:        typeof element.className === "string"
+src/lib/monitoring/performance-monitor.ts:618:          ? element.className
+src/lib/monitoring/performance-monitor.ts:619:          : element.className?.baseVal || "";
+src/lib/monitoring/error-reporter.ts:416:        text: target.textContent?.substring(0, 100),
+src/lib/monitoring/error-reporter.ts:618:      } else if (current.className) {
+src/lib/monitoring/error-reporter.ts:621:          typeof current.className === "string"
+src/lib/monitoring/error-reporter.ts:622:            ? current.className
+src/lib/monitoring/error-reporter.ts:623:            : current.className?.baseVal || "";
+src/lib/performance/PWAPerformanceMonitor.ts:1255:      if (imgElement.dataset.lowQuality) {
+src/lib/performance/PWAPerformanceMonitor.ts:1256:        imgElement.src = imgElement.dataset.lowQuality;
+src/lib/performance/pagespeed-validator.ts:498:    if (document.styleSheets.length > 5) {
+src/lib/performance/pagespeed-validator.ts:504:        details: { stylesheets: document.styleSheets.length },
+src/lib/performance/core-web-vitals.ts:525:          img.style.aspectRatio = "16/9"; // Default aspect ratio
+src/lib/performance/core-web-vitals.ts:592:        if (!el.style.minHeight) {
+src/lib/performance/core-web-vitals.ts:593:          el.style.minHeight = "100px"; // Reserve minimum height
+src/lib/performance/core-web-vitals.ts:603:      (element as HTMLElement).style.minHeight = "";
+src/lib/performance/core-web-vitals.ts:631:    fontDisplayCSS.textContent = `
+src/lib/performance/core-web-vitals.ts:703:            !element.style.width &&
+src/lib/performance/core-web-vitals.ts:704:            !element.style.height &&
+src/lib/performance/core-web-vitals.ts:710:              element.style.aspectRatio = "16/9";
+src/lib/performance/BatteryOptimizationManager.ts:821:    document.body.style.setProperty("--animation-duration", "0ms");
+src/lib/accessibility/accessibility-manager.ts:550:      element.textContent?.trim();
+src/lib/accessibility/accessibility-manager.ts:857:    return element.textContent?.trim() || "Button";
+src/lib/accessibility/accessibility-manager.ts:874:      element.textContent?.trim() || element.getAttribute("href") || "Link"
+src/lib/accessibility/accessibility-manager.ts:879:    return element.textContent?.trim() || element.tagName.toLowerCase();
+src/lib/accessibility/accessibility-manager.ts:889:      textContent: element.textContent,
+src/lib/accessibility/accessibility-manager.ts:890:      innerHTML: element.innerHTML,
+src/lib/accessibility/accessibility-manager.ts:896:    element.textContent = state.textContent;
+src/lib/accessibility/AriaUtils.tsx:425:    document.body.style.overflow = "hidden";
+src/lib/accessibility/AriaUtils.tsx:429:      document.body.style.overflow = "unset";
+src/lib/accessibility/AccessibilityTester.ts:185:      const hasTextContent = htmlEl.textContent?.trim();
+src/lib/accessibility/AccessibilityTester.ts:439:    if (element.className)
+src/lib/accessibility/AccessibilityTester.ts:440:      return `${element.tagName.toLowerCase()}.${element.className.split(" ")[0]}`;
+src/lib/accessibility/KeyboardNavigation.tsx:207:            nextElement.textContent?.trim() ||
+src/lib/accessibility/KeyboardNavigation.tsx:263:            activeElement.textContent?.trim() ||
+src/lib/accessibility/KeyboardNavigation.tsx:288:            activeElement.textContent?.trim() ||
+src/pages/InspectionPage.tsx:32:      announcement.className = "sr-only";
+src/pages/InspectionPage.tsx:33:      announcement.textContent = message;
+src/services/userActivityService.ts:101:        elementClass: target.className || undefined,
+src/services/userActivityService.ts:102:        elementText: target.textContent?.trim().substring(0, 100) || undefined,
+src/services/userActivityService.ts:144:        elementClass: target.className || undefined,
+src/services/userActivityService.ts:188:    if (element.className) {
+src/services/userActivityService.ts:190:        typeof element.className === "string"
+src/services/userActivityService.ts:191:          ? element.className
+src/services/userActivityService.ts:192:          : element.className.toString();
+src/services/reportDeliveryService.ts:268:        template.textContent,
+src/services/pwa/ConstructionSiteOptimizer.ts:704:    style.textContent = `

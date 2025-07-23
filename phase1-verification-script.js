@@ -91,7 +91,7 @@ const runEliteVerification = async () => {
   try {
     // Verify logs table structure
     const { data: logsData, error: logsError } = await supabase
-      .from('logs')
+      .from('checklist_items')
       .select('*')
       .limit(1);
 
@@ -185,7 +185,7 @@ const runEliteVerification = async () => {
       try {
         console.log(`   Testing ${test.name} relationship...`);
         const { data, error } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .select(`id, ${test.syntax}`)
           .limit(1);
 

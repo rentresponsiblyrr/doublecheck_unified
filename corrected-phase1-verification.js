@@ -61,7 +61,7 @@ await runTest('Static Safety Items Access', async () => {
 // Test 3: Logs table exists
 await runTest('Logs Table Exists', async () => {
   const { data, error, count } = await supabase
-    .from('logs')
+    .from('checklist_items')
     .select('*', { count: 'exact', head: true });
   
   if (error) throw error;

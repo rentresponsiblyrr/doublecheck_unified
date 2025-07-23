@@ -86,7 +86,7 @@ const testSupabaseAccess = async () => {
         console.log("\n🔗 Testing logs-static_safety_items relationship...");
         try {
           const { data, error } = await client
-            .from('logs')
+            .from('checklist_items')
             .select('*, static_safety_items!checklist_id(*)')
             .limit(1);
           

@@ -1,0 +1,91 @@
+src/tests/pwa/PWATestFramework.ts:214:      const report = await this.generateValidationReport(
+src/tests/pwa/PWATestFramework.ts:1029:  private async generateValidationReport(
+src/tests/performance/PWAPerformanceIntegration.test.ts:760:  createMockPerformanceReport: () => ({
+src/stores/bugReportStore.ts:35: * const { formData, updateForm, submitBugReport, isSubmitting } = useBugReportStore();
+src/stores/bugReportStore.ts:150:  submitBugReport: () => Promise<void>;
+src/stores/bugReportStore.ts:218:export const useBugReportStore = create<BugReportStore>()(
+src/stores/bugReportStore.ts:368:        submitBugReport: async () => {
+src/stores/bugReportStore.ts:396:              await intelligentBugReportService.generateIntelligentReport({
+src/stores/bugReportStore.ts:452:          await get().submitBugReport();
+src/stores/bugReportStore.ts:552:    submitBugReport: state.submitBugReport,
+src/components/bug-report/BugReportDialog.tsx:133:        await intelligentBugReportService.createIntelligentReport({
+src/components/reports/ReportGenerator.tsx:42:  const [generatedReport, setGeneratedReport] = useState<Blob | null>(null);
+src/components/reports/ReportGenerator.tsx:66:      const result = await reportService.generateInspectionReport(
+src/components/reports/ReportGenerator.tsx:105:      const blob = reportBlob || generatedReport;
+src/components/reports/ReportGenerator.tsx:308:        {generatedReport && !isGenerating && (
+src/components/reports/ReportGenerator.tsx:337:          {generatedReport && (
+src/__tests__/test-runner.ts:111:      this.generateDetailedReport(results);
+src/__tests__/test-runner.ts:236:  private generateDetailedReport(results: TestSuiteResults): void {
+src/__tests__/performance/PerformanceTestSuite.test.ts:77:    generatePerformanceReport();
+src/__tests__/performance/PerformanceTestSuite.test.ts:607:  const generatePerformanceReport = () => {
+src/__tests__/accessibility/run-accessibility-tests.ts:170:export const generateAccessibilityReport = (
+src/__tests__/accessibility/run-accessibility-tests.ts:251:  const report = generateAccessibilityReport(results);
+src/hooks/useLearningAnalytics.ts:49:  generateReport: (startDate: Date, endDate: Date) => Promise<LearningMetrics>;
+src/hooks/useLearningAnalytics.ts:108:      return learningEngine.generateLearningReport(
+src/hooks/useLearningAnalytics.ts:179:  const generateReportMutation = useMutation({
+src/hooks/useLearningAnalytics.ts:181:      return learningEngine.generateLearningReport(start, end);
+src/hooks/useLearningAnalytics.ts:316:    generateReport: async (start: Date, end: Date) => {
+src/hooks/useLearningAnalytics.ts:317:      const result = await generateReportMutation.mutateAsync({ start, end });
+src/hooks/usePhotoComparison.ts:222:      const batchResult = await engine.generateComparisonReport(results);
+src/lib/security/enterprise-security-manager.ts:636:      this.generateSecurityReport();
+src/lib/security/enterprise-security-manager.ts:907:  private generateSecurityReport(): void {
+src/lib/ai/decision-logger.ts:389:  generateSummaryReport(): string {
+src/lib/ai/decision-logger.ts:541:  aiDecisionLogger.generateSummaryReport.bind(aiDecisionLogger);
+src/lib/ai/session-manager.ts:551:  generateSessionReport(sessionId: string): string {
+src/lib/ai/session-manager.ts:770:export const generateSessionReport =
+src/lib/ai/session-manager.ts:771:  aiSessionManager.generateSessionReport.bind(aiSessionManager);
+src/lib/ai/learning-engine.ts:136:  async generateLearningReport(
+src/lib/ai/photo-comparison.ts:251:  async generateComparisonReport(
+src/lib/ai/index.ts:59:  generateSessionReport,
+src/lib/scrapers/comprehensive-vrbo-scraper.ts:30:  generateReport: boolean;
+src/lib/scrapers/comprehensive-vrbo-scraper.ts:62:    generateReport: true,
+src/lib/scrapers/comprehensive-vrbo-scraper.ts:194:      const extractionReport = this.generateExtractionReport(
+src/lib/scrapers/comprehensive-vrbo-scraper.ts:409:  private generateExtractionReport(
+src/lib/scrapers/vrbo-scraper.ts:62:        generateReport: true,
+src/lib/scrapers/vrbo-scraper.ts:666:      generateReport: true,
+src/lib/monitoring/error-reporter.ts:148:    const report = this.createErrorReport(errorObj, context, severity);
+src/lib/monitoring/error-reporter.ts:213:  private createErrorReport(
+src/lib/monitoring/ai-metrics.ts:223:  async generatePerformanceReport(
+src/lib/performance/performance-analyzer.ts:391:  generateReport(): {
+src/lib/performance/PWAPerformanceMonitor.ts:864:      await this.generateRealTimeReport();
+src/lib/performance/PWAPerformanceMonitor.ts:1747:  private async generateRealTimeReport(): Promise<void> {
+src/lib/performance/pagespeed-validator.ts:720:  public generateReport(): string {
+src/lib/performance/pagespeed-validator.ts:840:    generateReport: validator?.generateReport.bind(validator),
+src/lib/performance/core-web-vitals.ts:931:  public generateReport(): string {
+src/lib/performance/core-web-vitals.ts:1027:    generateReport: optimizer?.generateReport.bind(optimizer),
+src/lib/error/enterprise-error-handler.ts:541:    const report = this.createErrorReport(enterpriseError, enrichedContext);
+src/lib/error/enterprise-error-handler.ts:701:  private createErrorReport(
+src/services/core/PerformanceMonitor.ts:189:  generateReport(): PerformanceReport {
+src/services/core/PerformanceMonitor.ts:638:        const report = this.generateReport();
+src/services/amenityComparisonEngine.ts:127:  async generateOptimizationReport(
+src/services/intelligentBugReportService.ts:97:  async createIntelligentBugReport(
+src/services/intelligentBugReportService.ts:112:    const reportId = this.generateReportId();
+src/services/intelligentBugReportService.ts:152:            await githubIssuesService.createEnhancedBugReportIssue(
+src/services/intelligentBugReportService.ts:221:        report: this.createFallbackReport(basicBugReport),
+src/services/intelligentBugReportService.ts:312:      aiInsights = this.createFallbackAIInsights(basicBugReport, errorContext);
+src/services/intelligentBugReportService.ts:572:  private createFallbackReport(
+src/services/intelligentBugReportService.ts:714:  private generateReportId(): string {
+src/services/intelligentBugReportService.ts:752:   * COMPATIBILITY METHOD: createIntelligentReport (alias for createIntelligentBugReport)
+src/services/intelligentBugReportService.ts:755:   * intelligentBugReportService.createIntelligentReport() instead of createIntelligentBugReport()
+src/services/intelligentBugReportService.ts:757:  async createIntelligentReport(basicBugReport: BugReportData): Promise<any> {
+src/services/intelligentBugReportService.ts:758:    logger.info("createIntelligentReport called (compatibility method)", {
+src/services/intelligentBugReportService.ts:764:      const result = await this.createIntelligentBugReport(basicBugReport, {
+src/services/intelligentBugReportService.ts:779:      logger.error("createIntelligentReport failed", error);
+src/services/githubIssuesService.ts:84:  async createEnhancedBugReportIssue(
+src/services/githubIssuesService.ts:134:        title: this.generateEnhancedTitle(bugReport, aiClassification),
+src/services/githubIssuesService.ts:141:        labels: this.generateEnhancedLabels(bugReport, aiClassification),
+src/services/githubIssuesService.ts:171:      return this.createBasicBugReportIssue(bugReport);
+src/services/githubIssuesService.ts:178:  async createBasicBugReportIssue(
+src/services/githubIssuesService.ts:182:    const labels = this.generateLabels(bugReport);
+src/services/githubIssuesService.ts:197:  async createBugReportIssue(bugReport: BugReportData): Promise<GitHubIssue> {
+src/services/githubIssuesService.ts:198:    return this.createEnhancedBugReportIssue(bugReport);
+src/services/githubIssuesService.ts:820:  private generateLabels(bugReport: BugReportData): string[] {
+src/services/reportService.ts:80:  async generateInspectionReport(
+src/services/reportService.ts:120:        const pdfBlob = await this.generatePDFReport(reportData, reportOptions);
+src/services/reportService.ts:127:        const htmlContent = await this.generateHTMLReport(
+src/services/reportService.ts:151:  private async generatePDFReport(
+src/services/reportService.ts:656:  private async generateHTMLReport(
+src/services/reportService.ts:773:  async generatePhotoComparisonReport(
+src/services/reportService.ts:966:        await amenityComparisonEngine.generateOptimizationReport(
+src/services/reportDeliveryService.ts:203:        await reportService.generateInspectionReport(inspectionId);
+src/services/inspectionCleanupService.ts:270:  static generateCleanupReport(summary: CleanupSummary): string {

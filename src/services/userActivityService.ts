@@ -7,6 +7,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { DOMSafetyUtils } from "@/utils/domSafetyUtils";
 
 export interface UserAction {
   id: string;
@@ -95,11 +96,11 @@ class UserActivityService {
 
     this.addAction({
       type: "click",
-      element: this.getElementSelector(target),
+      element: DOMSafetyUtils.generateSafeSelector(target),
       details: {
         elementId: target.id || undefined,
-        elementClass: target.className || undefined,
-        elementText: target.textContent?.trim().substring(0, 100) || undefined,
+        elementClass: DOMSafetyUtils.getElementClasses(target).join(' ') || undefined,
+        elementText: DOMSafetyUtils.getElementText(target, 100) || undefined,
         coordinates: {
           x: event.clientX,
           y: event.clientY,
@@ -138,10 +139,10 @@ class UserActivityService {
 
     this.addAction({
       type: "input",
-      element: this.getElementSelector(target),
+      element: DOMSafetyUtils.generateSafeSelector(target),
       details: {
         elementId: target.id || undefined,
-        elementClass: target.className || undefined,
+        elementClass: DOMSafetyUtils.getElementClasses(target).join(' ') || undefined,
         value: isSensitive ? "[REDACTED]" : target.value?.substring(0, 100),
       },
     });
@@ -178,28 +179,13 @@ class UserActivityService {
     }, 100);
   }
 
+  /**
+   * @deprecated Use DOMSafetyUtils.generateSafeSelector() instead
+   * This method has been replaced with a more robust implementation
+   * that handles all DOM API edge cases safely.
+   */
   private getElementSelector(element: HTMLElement): string {
-    // Create a simple selector for the element
-    const tag = element.tagName.toLowerCase();
-    const id = element.id ? `#${element.id}` : "";
-
-    // FIXED: Handle className safely - it might be DOMTokenList, null, or string
-    let classes = "";
-    if (element.className) {
-      const classNameStr =
-        typeof element.className === "string"
-          ? element.className
-          : element.className.toString();
-
-      if (classNameStr.trim()) {
-        classes = `.${classNameStr
-          .split(" ")
-          .filter((c) => c.trim())
-          .join(".")}`;
-      }
-    }
-
-    return `${tag}${id}${classes}`.substring(0, 200);
+    return DOMSafetyUtils.generateSafeSelector(element);
   }
 
   private addAction(
