@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { InspectionLayout } from "@/components/InspectionLayout";
-import { InspectionProgressTracker } from "@/components/InspectionProgressTracker";
 import { InspectionList } from "@/components/InspectionList";
 import { InspectionCompleteButton } from "@/components/InspectionCompleteButton";
 import { ChecklistItemType } from "@/types/inspection";

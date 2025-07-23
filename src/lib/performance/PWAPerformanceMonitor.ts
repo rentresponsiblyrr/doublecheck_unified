@@ -1888,7 +1888,7 @@ export class PWAPerformanceMonitor {
     return {
       overall: "pass",
       budgets: [],
-      violations: [],
+      violations: [], // Always ensure violations is an empty array
       overallStatus: "pass",
     };
   }
@@ -1945,19 +1945,17 @@ export class PWAPerformanceMonitor {
         logger.warn(
           `Performance budget violations detected`,
           {
-            violations: budgetStatus.violations?.length || 0,
+            violations: Array.isArray(budgetStatus.violations) ? budgetStatus.violations.length : 0,
             status: budgetStatus.overallStatus,
           },
           "PWA_PERFORMANCE",
         );
 
         // Trigger automated optimizations for critical violations
-        if (
-          budgetStatus &&
-          budgetStatus.violations &&
-          Array.isArray(budgetStatus.violations)
-        ) {
-          const criticalViolations = budgetStatus.violations.filter(
+        // Ensure violations is always treated as an array
+        const violations = Array.isArray(budgetStatus.violations) ? budgetStatus.violations : [];
+        if (violations.length > 0) {
+          const criticalViolations = violations.filter(
             (v) => v && v.severity === "critical",
           );
           if (criticalViolations.length > 0) {

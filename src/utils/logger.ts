@@ -52,9 +52,48 @@ class Logger {
     return undefined;
   }
 
-  private shouldLogToConsole(message: string, level: LogLevel): boolean {
-    // Always allow error and warn logs
-    if (level === "error" || level === "warn") {
+  private shouldLogToConsole(message: string, level: LogLevel, context?: string): boolean {
+    // Block PWA-related info logs in production to reduce console noise
+    const blockedContextsInProduction = [
+      'PWA_PERFORMANCE', 
+      'SW_MANAGER', 
+      'NETWORK_ADAPTATION', 
+      'BATTERY_OPTIMIZATION',
+      'CACHE_MANAGER',
+      'SERVICE_WORKER',
+      'OFFLINE_MANAGER',
+      'PERFORMANCE',
+      'UNIFIED_SYSTEM',
+      'WORKFLOW_PERSISTENCE',
+      'INSTALL_PROMPT',
+      'SYNC_MANAGER',
+      'PUSH_NOTIFICATIONS',
+      'INTEGRATION_BRIDGE'
+    ];
+
+    // In production, block info logs from PWA systems
+    if (this.isProduction && level === "info" && context) {
+      if (blockedContextsInProduction.includes(context)) {
+        return false;
+      }
+    }
+
+    // Always allow error logs
+    if (level === "error") {
+      return true;
+    }
+
+    // In production, only allow critical warnings (not PWA system warnings)
+    if (level === "warn") {
+      if (this.isProduction) {
+        // Block specific PWA warnings that are not critical
+        if (message.includes("Performance budget violations") ||
+            message.includes("Network adaptation") ||
+            message.includes("Battery optimization") ||
+            message.includes("Unknown SW message type")) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -83,7 +122,7 @@ class Logger {
     }
 
     // FIXED: Re-enabled console output with proper throttling
-    if (this.shouldLogToConsole(entry.message, entry.level)) {
+    if (this.shouldLogToConsole(entry.message, entry.level, entry.context)) {
       const consoleMethod =
         entry.level === "error"
           ? "error"

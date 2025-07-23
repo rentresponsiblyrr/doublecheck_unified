@@ -284,6 +284,37 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
         }
       />
 
+      {/* Debug Inspection Route - Development only */}
+      <Route
+        path="/debug-inspection/:id"
+        element={
+          <ProtectedRoute requiredRole="inspector">
+            <ErrorBoundary level="component">
+              <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg p-6 shadow-lg max-w-md w-full text-center">
+                  <h1 className="text-xl font-semibold text-gray-900 mb-4">
+                    Debug Mode
+                  </h1>
+                  <p className="text-gray-600 mb-4">
+                    Debug inspection route is not implemented yet. 
+                    Use the regular inspection page instead.
+                  </p>
+                  <button
+                    onClick={() => {
+                      const inspectionId = window.location.pathname.split('/').pop();
+                      window.location.href = `/inspection/${inspectionId}`;
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Go to Regular Inspection
+                  </button>
+                </div>
+              </div>
+            </ErrorBoundary>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Catch-all Route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
