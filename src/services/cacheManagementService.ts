@@ -1,9 +1,9 @@
 /**
  * Cache Management Service
- * 
+ *
  * Handles browser cache, service worker cache, and localStorage cleanup
  * to resolve stale RPC function calls and configuration errors.
- * 
+ *
  * @author STR Certified Engineering Team
  * @since 1.0.0
  * @version 1.0.0
@@ -43,7 +43,7 @@ export class CacheManagementService {
       // 1. Clear localStorage
       await this.clearLocalStorage(result);
 
-      // 2. Clear sessionStorage  
+      // 2. Clear sessionStorage
       await this.clearSessionStorage(result);
 
       // 3. Clear IndexedDB
@@ -65,9 +65,10 @@ export class CacheManagementService {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`General cache cleanup error: ${errorMessage}`);
-      
+
       logger.error("Cache cleanup failed", {
         component: "CacheManagementService",
         action: "clearAllCaches",
@@ -87,7 +88,8 @@ export class CacheManagementService {
       localStorage.clear();
       result.clearedCaches.push(`localStorage (${itemCount} items)`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`localStorage: ${errorMessage}`);
     }
   }
@@ -101,7 +103,8 @@ export class CacheManagementService {
       sessionStorage.clear();
       result.clearedCaches.push(`sessionStorage (${itemCount} items)`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`sessionStorage: ${errorMessage}`);
     }
   }
@@ -111,9 +114,9 @@ export class CacheManagementService {
    */
   private async clearIndexedDB(result: CacheCleanupResult): Promise<void> {
     try {
-      if ('indexedDB' in window) {
+      if ("indexedDB" in window) {
         // Get list of databases (if supported)
-        if ('databases' in indexedDB) {
+        if ("databases" in indexedDB) {
           const databases = await indexedDB.databases();
           let clearedCount = 0;
 
@@ -136,7 +139,8 @@ export class CacheManagementService {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`IndexedDB: ${errorMessage}`);
     }
   }
@@ -147,10 +151,11 @@ export class CacheManagementService {
   private deleteIndexedDBDatabase(dbName: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const deleteRequest = indexedDB.deleteDatabase(dbName);
-      
+
       deleteRequest.onsuccess = () => resolve();
       deleteRequest.onerror = () => reject(deleteRequest.error);
-      deleteRequest.onblocked = () => reject(new Error("Database deletion blocked"));
+      deleteRequest.onblocked = () =>
+        reject(new Error("Database deletion blocked"));
     });
   }
 
@@ -159,7 +164,7 @@ export class CacheManagementService {
    */
   private async clearCacheAPI(result: CacheCleanupResult): Promise<void> {
     try {
-      if ('caches' in window) {
+      if ("caches" in window) {
         const cacheNames = await caches.keys();
         let clearedCount = 0;
 
@@ -179,7 +184,8 @@ export class CacheManagementService {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`Cache API: ${errorMessage}`);
     }
   }
@@ -191,11 +197,12 @@ export class CacheManagementService {
     try {
       // Add cache-busting parameter to current URL
       const url = new URL(window.location.href);
-      url.searchParams.set('_cache_clear', Date.now().toString());
-      
+      url.searchParams.set("_cache_clear", Date.now().toString());
+
       result.clearedCaches.push("HTTP cache (reload scheduled)");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`HTTP cache: ${errorMessage}`);
     }
   }
@@ -213,14 +220,15 @@ export class CacheManagementService {
 
     try {
       // Clear localStorage entries related to Supabase
-      const supabaseKeys = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || 
-        key.includes('sb-') ||
-        key.includes('user-profile') ||
-        key.includes('auth')
+      const supabaseKeys = Object.keys(localStorage).filter(
+        (key) =>
+          key.includes("supabase") ||
+          key.includes("sb-") ||
+          key.includes("user-profile") ||
+          key.includes("auth"),
       );
 
-      supabaseKeys.forEach(key => {
+      supabaseKeys.forEach((key) => {
         try {
           localStorage.removeItem(key);
         } catch (error) {
@@ -229,19 +237,23 @@ export class CacheManagementService {
       });
 
       if (supabaseKeys.length > 0) {
-        result.clearedCaches.push(`Supabase localStorage (${supabaseKeys.length} keys)`);
+        result.clearedCaches.push(
+          `Supabase localStorage (${supabaseKeys.length} keys)`,
+        );
       }
 
       // Clear specific cache entries that might contain stale RPC calls
-      if ('caches' in window) {
+      if ("caches" in window) {
         const cacheNames = await caches.keys();
         for (const cacheName of cacheNames) {
-          if (cacheName.includes('supabase') || cacheName.includes('api')) {
+          if (cacheName.includes("supabase") || cacheName.includes("api")) {
             try {
               await caches.delete(cacheName);
               result.clearedCaches.push(`Supabase cache: ${cacheName}`);
             } catch (error) {
-              result.errors.push(`Failed to clear cache ${cacheName}: ${error}`);
+              result.errors.push(
+                `Failed to clear cache ${cacheName}: ${error}`,
+              );
             }
           }
         }
@@ -257,9 +269,10 @@ export class CacheManagementService {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       result.errors.push(`Supabase cache cleanup error: ${errorMessage}`);
-      
+
       logger.error("Supabase cache cleanup failed", {
         component: "CacheManagementService",
         action: "clearSupabaseCaches",
@@ -286,7 +299,7 @@ export class CacheManagementService {
     } catch (error) {
       // Fallback: redirect to same page with cache-busting parameter
       const url = new URL(window.location.href);
-      url.searchParams.set('_force_reload', Date.now().toString());
+      url.searchParams.set("_force_reload", Date.now().toString());
       window.location.href = url.toString();
     }
   }
@@ -296,20 +309,22 @@ export class CacheManagementService {
    */
   public shouldClearCaches(error: Error): boolean {
     const errorMessage = error.message.toLowerCase();
-    
+
     const cacheIndicators = [
-      'get_user_profile',
-      'rpc',
-      '404',
-      'function not found',
-      'interval',
-      'polling_config',
-      'systemmetrics',
-      'stale',
-      'cached',
+      "get_user_profile",
+      "rpc",
+      "404",
+      "function not found",
+      "interval",
+      "polling_config",
+      "systemmetrics",
+      "stale",
+      "cached",
     ];
 
-    return cacheIndicators.some(indicator => errorMessage.includes(indicator));
+    return cacheIndicators.some((indicator) =>
+      errorMessage.includes(indicator),
+    );
   }
 }
 

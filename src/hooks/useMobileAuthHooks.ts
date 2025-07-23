@@ -28,9 +28,12 @@ export const useMobileAuthHooks = () => {
 
         const fetchRole = async () => {
           try {
-            const { data, error } = await supabase.rpc("get_user_role_simple", {
-              _user_id: userId,
-            });
+            // Use direct database query instead of RPC (post-migration schema)
+            const { data, error } = await supabase
+              .from("users")
+              .select("role")
+              .eq("id", userId)
+              .single();
 
             clearTimeout(timeout);
 
@@ -39,7 +42,7 @@ export const useMobileAuthHooks = () => {
               return;
             }
 
-            const role = data || "inspector";
+            const role = data?.role || "inspector";
             setCachedRole(userId, role);
             resolve(role);
           } catch (error) {

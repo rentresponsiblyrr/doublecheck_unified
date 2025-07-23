@@ -104,7 +104,10 @@ export const useMobileInspectionOptimizer = () => {
 
         // Race between the actual operation and timeout
         const workflowResult = await Promise.race([
-          MobileInspectionOptimizer.getOrCreateInspectionOptimized(propertyId, user.id),
+          MobileInspectionOptimizer.getOrCreateInspectionOptimized(
+            propertyId,
+            user.id,
+          ),
           timeoutPromise,
         ]);
 
@@ -117,7 +120,7 @@ export const useMobileInspectionOptimizer = () => {
         // Validate workflow result structure
         if (!workflowResult.success || !workflowResult.result) {
           throw new Error(
-            workflowResult.error?.message || "Inspection workflow failed"
+            workflowResult.error?.message || "Inspection workflow failed",
           );
         }
 

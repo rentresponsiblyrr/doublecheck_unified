@@ -11,15 +11,15 @@ import { userActivityService, type BugReportData } from "./userActivityService";
 import { enhancedErrorCollectionService } from "./enhancedErrorCollectionService";
 import { aiIssueClassificationService } from "./aiIssueClassificationService";
 import { githubIssuesService } from "./githubIssuesService";
-import { 
-  StandardService, 
-  BugReportServiceInterface, 
+import {
+  StandardService,
+  BugReportServiceInterface,
   ServiceResponse,
   GitHubIssueResponse,
   BugReportResult,
   ListOptions,
   CommonErrorCodes,
-  ValidationUtils
+  ValidationUtils,
 } from "./interfaces/ServiceStandards";
 
 export interface IntelligentBugReport extends BugReportData {
@@ -96,30 +96,42 @@ interface ErrorContext {
   };
 }
 
-class IntelligentBugReportService extends StandardService implements BugReportServiceInterface {
+class IntelligentBugReportService
+  extends StandardService
+  implements BugReportServiceInterface
+{
   private reportingInProgress = false;
   private recentReports = new Map<string, IntelligentBugReport>();
   private analytics: BugReportAnalytics[] = [];
 
   constructor() {
-    super('IntelligentBugReportService');
+    super("IntelligentBugReportService");
   }
 
   /**
    * ✅ STANDARDIZED: Single method for all bug report creation
    * Replaces createIntelligentReport, createIntelligentBugReport variants
    */
-  async createReport(data: BugReportData): Promise<ServiceResponse<GitHubIssueResponse>> {
+  async createReport(
+    data: BugReportData,
+  ): Promise<ServiceResponse<GitHubIssueResponse>> {
     const startTime = performance.now();
 
     try {
       // Validate required fields
       const validationError = ValidationUtils.validateRequired(data, [
-        'title', 'description', 'severity', 'category'
+        "title",
+        "description",
+        "severity",
+        "category",
       ]);
 
       if (validationError) {
-        return this.createErrorResponse(validationError, startTime, 'createReport');
+        return this.createErrorResponse(
+          validationError,
+          startTime,
+          "createReport",
+        );
       }
 
       // Use the existing intelligent bug report logic
@@ -130,33 +142,36 @@ class IntelligentBugReportService extends StandardService implements BugReportSe
       });
 
       if (legacyResult.success && legacyResult.githubIssue) {
-        return this.createSuccessResponse(legacyResult.githubIssue, startTime, 'createReport');
+        return this.createSuccessResponse(
+          legacyResult.githubIssue,
+          startTime,
+          "createReport",
+        );
       } else {
         const error = this.createServiceError(
           CommonErrorCodes.SYSTEM_INTERNAL_ERROR,
-          'Failed to create bug report',
+          "Failed to create bug report",
           {
             details: legacyResult.error,
-            userMessage: 'Unable to submit bug report. Please try again.',
-            category: 'system',
-            severity: 'high'
-          }
+            userMessage: "Unable to submit bug report. Please try again.",
+            category: "system",
+            severity: "high",
+          },
         );
-        return this.createErrorResponse(error, startTime, 'createReport');
+        return this.createErrorResponse(error, startTime, "createReport");
       }
-
     } catch (error) {
       const serviceError = this.createServiceError(
         CommonErrorCodes.SYSTEM_INTERNAL_ERROR,
-        'Bug report creation failed',
+        "Bug report creation failed",
         {
           details: error,
-          userMessage: 'An unexpected error occurred. Please try again.',
-          category: 'system',
-          severity: 'high'
-        }
+          userMessage: "An unexpected error occurred. Please try again.",
+          category: "system",
+          severity: "high",
+        },
       );
-      return this.createErrorResponse(serviceError, startTime, 'createReport');
+      return this.createErrorResponse(serviceError, startTime, "createReport");
     }
   }
 
@@ -173,67 +188,75 @@ class IntelligentBugReportService extends StandardService implements BugReportSe
           CommonErrorCodes.DATABASE_RECORD_NOT_FOUND,
           `Bug report not found: ${id}`,
           {
-            userMessage: 'Bug report not found.',
-            category: 'business',
-            severity: 'low'
-          }
+            userMessage: "Bug report not found.",
+            category: "business",
+            severity: "low",
+          },
         );
-        return this.createErrorResponse(error, startTime, 'getReport');
+        return this.createErrorResponse(error, startTime, "getReport");
       }
 
       const result: BugReportResult = {
         id,
-        status: 'submitted',
+        status: "submitted",
         createdAt: report.systemInfo.timestamp,
       };
 
-      return this.createSuccessResponse(result, startTime, 'getReport');
+      return this.createSuccessResponse(result, startTime, "getReport");
     } catch (error) {
       const serviceError = this.createServiceError(
         CommonErrorCodes.SYSTEM_INTERNAL_ERROR,
-        'Failed to retrieve bug report',
+        "Failed to retrieve bug report",
         {
           details: error,
-          userMessage: 'Unable to retrieve bug report.',
-          category: 'system',
-          severity: 'medium'
-        }
+          userMessage: "Unable to retrieve bug report.",
+          category: "system",
+          severity: "medium",
+        },
       );
-      return this.createErrorResponse(serviceError, startTime, 'getReport');
+      return this.createErrorResponse(serviceError, startTime, "getReport");
     }
   }
 
   /**
    * ✅ STANDARDIZED: Get list of bug reports
    */
-  async getReportList(options?: ListOptions): Promise<ServiceResponse<BugReportResult[]>> {
+  async getReportList(
+    options?: ListOptions,
+  ): Promise<ServiceResponse<BugReportResult[]>> {
     const startTime = performance.now();
 
     try {
-      const reports = Array.from(this.recentReports.entries()).map(([id, report]) => ({
-        id,
-        status: 'submitted' as const,
-        createdAt: report.systemInfo.timestamp,
-      }));
+      const reports = Array.from(this.recentReports.entries()).map(
+        ([id, report]) => ({
+          id,
+          status: "submitted" as const,
+          createdAt: report.systemInfo.timestamp,
+        }),
+      );
 
       // Apply pagination
       const offset = options?.offset || 0;
       const limit = options?.limit || 50;
       const paginatedReports = reports.slice(offset, offset + limit);
 
-      return this.createSuccessResponse(paginatedReports, startTime, 'getReportList');
+      return this.createSuccessResponse(
+        paginatedReports,
+        startTime,
+        "getReportList",
+      );
     } catch (error) {
       const serviceError = this.createServiceError(
         CommonErrorCodes.SYSTEM_INTERNAL_ERROR,
-        'Failed to retrieve bug report list',
+        "Failed to retrieve bug report list",
         {
           details: error,
-          userMessage: 'Unable to retrieve bug reports.',
-          category: 'system',
-          severity: 'medium'
-        }
+          userMessage: "Unable to retrieve bug reports.",
+          category: "system",
+          severity: "medium",
+        },
       );
-      return this.createErrorResponse(serviceError, startTime, 'getReportList');
+      return this.createErrorResponse(serviceError, startTime, "getReportList");
     }
   }
 
@@ -505,21 +528,22 @@ class IntelligentBugReportService extends StandardService implements BugReportSe
     bugReport: BugReportData,
     errorContext: ErrorContext,
   ): IntelligentBugReport["enhancedContext"]["userFrustrationMetrics"] {
-    // Calculate time from first error to bug report
+    // Calculate time from first error to bug report with safe array access
     const firstErrorTime =
-      errorContext.consoleErrors.length > 0
+      errorContext.consoleErrors.length > 0 && errorContext.consoleErrors[0]
         ? new Date(errorContext.consoleErrors[0].timestamp).getTime()
         : Date.now();
     const reportTime = new Date(bugReport.systemInfo.timestamp).getTime();
     const timeToReportBug = reportTime - firstErrorTime;
 
-    // Count consecutive errors in a short time frame
+    // Count consecutive errors in a short time frame with safe array access
     let consecutiveErrors = 0;
     const errorTimes = [
       ...errorContext.consoleErrors,
       ...errorContext.networkErrors,
       ...errorContext.databaseErrors,
     ]
+      .filter((e) => e && e.timestamp) // Filter out undefined/null errors
       .map((e) => new Date(e.timestamp).getTime())
       .sort();
 
@@ -898,25 +922,29 @@ class IntelligentBugReportService extends StandardService implements BugReportSe
   /**
    * COMPATIBILITY METHOD: createIntelligentReport
    * @deprecated Use createReport() instead for standardized interface
-   * 
+   *
    * This method maintains backward compatibility with existing code that calls
    * intelligentBugReportService.createIntelligentReport()
    */
-  async createIntelligentReport(basicBugReport: BugReportData): Promise<GitHubIssueResponse> {
+  async createIntelligentReport(
+    basicBugReport: BugReportData,
+  ): Promise<GitHubIssueResponse> {
     logger.warn("Deprecated method used - please migrate to createReport()", {
-      method: 'createIntelligentReport',
-      replacement: 'createReport',
+      method: "createIntelligentReport",
+      replacement: "createReport",
       title: basicBugReport.title,
       category: basicBugReport.category,
-      component: 'IntelligentBugReportService'
+      component: "IntelligentBugReportService",
     });
 
     try {
       // Use the new standardized method
       const response = await this.createReport(basicBugReport);
-      
+
       if (!response.success) {
-        throw new Error(response.error?.userMessage || 'Bug report submission failed');
+        throw new Error(
+          response.error?.userMessage || "Bug report submission failed",
+        );
       }
 
       return response.data!;
@@ -924,9 +952,9 @@ class IntelligentBugReportService extends StandardService implements BugReportSe
       logger.error("createIntelligentReport compatibility method failed", {
         error: error instanceof Error ? error.message : String(error),
         title: basicBugReport.title,
-        component: 'IntelligentBugReportService'
+        component: "IntelligentBugReportService",
       });
-      
+
       throw new Error(
         `Bug report submission failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       );

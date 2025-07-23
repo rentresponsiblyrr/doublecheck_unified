@@ -22,14 +22,15 @@ export const useAdminAuth = (): AdminAuthState & {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // SECURE: Load user role with server-side validation - NEVER default to admin
+  // SECURE: Load user role with database validation - NEVER default to admin
   const loadUserRole = useCallback(async (userId: string) => {
     try {
-      // SECURE: Use server-side RPC function for role validation
-      const { data: roleResult, error: roleError } = await supabase.rpc(
-        "get_user_role_secure",
-        { user_id: userId },
-      );
+      // SECURE: Use direct database query for role validation (post-migration schema)
+      const { data: userData, error: roleError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", userId)
+        .single();
 
       if (roleError) {
         logger.error("Failed to get user role - SECURITY VIOLATION", {
@@ -46,22 +47,22 @@ export const useAdminAuth = (): AdminAuthState & {
 
       // SECURE: Only proceed if we have explicit role confirmation
       if (
-        !roleResult?.role ||
-        !["admin", "super_admin"].includes(roleResult.role)
+        !userData?.role ||
+        !["admin", "super_admin"].includes(userData.role)
       ) {
         logger.warn("User attempted admin access without privileges", {
           userId: userId,
-          providedRole: roleResult?.role || "none",
+          providedRole: userData?.role || "none",
           timestamp: new Date().toISOString(),
         });
 
-        setUserRole(roleResult?.role || "none");
+        setUserRole(userData?.role || "none");
         setError("Insufficient admin privileges");
         return;
       }
 
       // SUCCESS: User has verified admin role
-      setUserRole(roleResult.role);
+      setUserRole(userData.role);
       setError(null);
     } catch (err) {
       logger.error("Admin role verification failed - SECURITY EVENT", {

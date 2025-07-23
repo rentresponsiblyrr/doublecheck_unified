@@ -128,20 +128,37 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         }));
       }, 200);
 
-      // Create GitHub issue
-      const issueData =
-        await intelligentBugReportService.createIntelligentReport({
-          title: formData.title,
-          description: formData.description,
-          severity: formData.severity,
-          category: formData.category,
-          steps: formData.steps.filter((step) => step.trim()),
-          userActions: formData.userActions,
-          screenshot: formData.screenshot,
-          userEmail: user?.email,
+      // Create GitHub issue using standardized interface
+      const response = await intelligentBugReportService.createReport({
+        title: formData.title,
+        description: formData.description,
+        severity: formData.severity,
+        category: formData.category,
+        steps: formData.steps.filter((step) => step.trim()),
+        userActions: formData.userActions,
+        screenshot: formData.screenshot,
+        systemInfo: {
           userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          screenResolution: `${screen.width}x${screen.height}`,
+          timestamp: new Date().toISOString(),
           url: window.location.href,
-        });
+        },
+        userInfo: {
+          userId: user?.id,
+          userRole: user?.role,
+          email: user?.email,
+        },
+      });
+
+      if (!response.success) {
+        throw new Error(
+          response.error?.userMessage || "Bug report submission failed",
+        );
+      }
+
+      const issueData = response.data;
 
       clearInterval(progressInterval);
       updateState({

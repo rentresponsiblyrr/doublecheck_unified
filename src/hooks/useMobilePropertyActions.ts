@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useMobileInspectionFlow } from "@/hooks/useMobileInspectionFlow";
+import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 
 export const useMobilePropertyActions = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { startOrJoinInspection } = useMobileInspectionFlow();
+  const { startOrJoinInspection } = useMobileInspectionOptimizer();
 
   const handleEdit = (propertyId: string) => {
     navigate(`/add-property?edit=${propertyId}`);

@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  productionDb,
-  ProductionUser,
-} from "@/services/productionDatabaseService";
-import { logger } from "@/lib/logger/production-logger";
+import { secureUserDataService } from "@/services/admin/SecureUserDataService";
+import { User } from "@/types/database-verified";
+import { logger } from "@/utils/logger";
 
 interface UserFormData {
   name: string;
@@ -15,7 +13,7 @@ interface UserFormData {
 
 interface UserDataManagerProps {
   children: (props: {
-    users: ProductionUser[];
+    users: User[];
     loading: boolean;
     error: string | null;
     onCreateUser: (data: UserFormData) => Promise<void>;
@@ -28,7 +26,7 @@ interface UserDataManagerProps {
 export const UserDataManager: React.FC<UserDataManagerProps> = ({
   children,
 }) => {
-  const [users, setUsers] = useState<ProductionUser[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +35,7 @@ export const UserDataManager: React.FC<UserDataManagerProps> = ({
     setError(null);
 
     try {
-      const userList = await productionDb.getUsers();
+      const userList = await secureUserDataService.loadUsers();
       setUsers(userList);
 
       logger.info("Users loaded successfully", {
@@ -63,7 +61,15 @@ export const UserDataManager: React.FC<UserDataManagerProps> = ({
   const createUser = useCallback(
     async (data: UserFormData) => {
       try {
-        await productionDb.createUser(data);
+        const userData = {
+          name: data.name,
+          email: data.email,
+          role: data.role as any,
+          status: data.status as any,
+          phone: data.phone || undefined,
+        };
+
+        await secureUserDataService.createUser(userData);
         await loadUsers();
 
         logger.info("User created successfully", {
@@ -92,7 +98,15 @@ export const UserDataManager: React.FC<UserDataManagerProps> = ({
   const updateUser = useCallback(
     async (id: string, data: UserFormData) => {
       try {
-        await productionDb.updateUser(id, data);
+        const updates = {
+          name: data.name,
+          email: data.email,
+          role: data.role as any,
+          status: data.status as any,
+          phone: data.phone || undefined,
+        };
+
+        await secureUserDataService.updateUser(id, updates);
         await loadUsers();
 
         logger.info("User updated successfully", {
@@ -120,19 +134,23 @@ export const UserDataManager: React.FC<UserDataManagerProps> = ({
   const deleteUser = useCallback(
     async (id: string) => {
       try {
-        await productionDb.deleteUser(id);
+        // Note: For security, we typically soft-delete users by updating status
+        // Hard deletion might violate audit trails
+        await secureUserDataService.updateUser(id, {
+          status: "suspended" as any,
+        });
         await loadUsers();
 
-        logger.info("User deleted successfully", {
+        logger.info("User suspended (soft delete) successfully", {
           component: "UserDataManager",
           userId: id,
           action: "user_delete",
         });
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Failed to delete user";
+          err instanceof Error ? err.message : "Failed to suspend user";
 
-        logger.error("Failed to delete user", {
+        logger.error("Failed to suspend user", {
           component: "UserDataManager",
           error: errorMessage,
           userId: id,

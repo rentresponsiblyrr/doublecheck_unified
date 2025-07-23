@@ -1,7 +1,7 @@
 /**
  * Elite Optimized Checklist Item Media Hook
  * Zero N+1 queries with comprehensive error handling and performance monitoring
- * 
+ *
  * ELITE FEATURES IMPLEMENTED:
  * ✅ Automatic batched loading with zero N+1 queries
  * ✅ Intelligent retry logic with exponential backoff
@@ -11,17 +11,17 @@
  * ✅ Production-ready monitoring and alerting
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useOptimizedChecklistItemMedia as useBatchedMedia } from '@/contexts/BatchedMediaProvider';
-import { logger } from '@/utils/logger';
-import { analytics } from '@/utils/analytics';
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useOptimizedChecklistItemMedia as useBatchedMedia } from "@/contexts/BatchedMediaProvider";
+import { logger } from "@/utils/logger";
+import { analytics } from "@/utils/analytics";
 
 // ===== ELITE TYPE DEFINITIONS =====
 
 interface MediaItem {
   id: string;
   checklist_item_id: string;
-  type: 'photo' | 'video' | 'document';
+  type: "photo" | "video" | "document";
   url: string;
   created_at: string;
   file_size?: number;
@@ -33,19 +33,19 @@ interface UseOptimizedMediaOptions {
   autoRetry?: boolean;
   retryDelay?: number;
   maxRetries?: number;
-  
+
   // Performance monitoring
   trackUsage?: boolean;
   enableAnalytics?: boolean;
-  
+
   // Preloading options
   preloadOnMount?: boolean;
   prefetchRelated?: boolean;
-  
+
   // Error handling
   fallbackToEmpty?: boolean;
   silentErrors?: boolean;
-  
+
   // Performance optimization
   debounceMs?: number;
   cacheTimeout?: number;
@@ -69,25 +69,25 @@ interface UseOptimizedMediaResult {
   media: MediaItem[];
   isLoading: boolean;
   isEmpty: boolean;
-  
+
   // Error state
   error: Error | null;
   hasError: boolean;
   canRetry: boolean;
-  
+
   // Actions
   reload: () => Promise<void>;
   retry: () => Promise<void>;
   clear: () => void;
   preload: () => Promise<void>;
-  
+
   // Performance metrics
   metrics: PerformanceMetrics;
-  
+
   // Health status
   isHealthy: boolean;
   healthScore: number; // 0-100
-  
+
   // Debug information
   debug: {
     hookId: string;
@@ -115,7 +115,7 @@ interface RetryState {
 export const useOptimizedChecklistItemMedia = (
   inspectionId: string,
   itemId: string,
-  options: UseOptimizedMediaOptions = {}
+  options: UseOptimizedMediaOptions = {},
 ): UseOptimizedMediaResult => {
   // Default configuration with production-ready values
   const {
@@ -129,13 +129,18 @@ export const useOptimizedChecklistItemMedia = (
     fallbackToEmpty = true,
     silentErrors = false,
     debounceMs = 100,
-    cacheTimeout = 300000 // 5 minutes
+    cacheTimeout = 300000, // 5 minutes
   } = options;
 
   // ===== STATE MANAGEMENT =====
 
   // Use the elite batched provider
-  const { media: batchedMedia, isLoading, error, reload } = useBatchedMedia(inspectionId, itemId);
+  const {
+    media: batchedMedia,
+    isLoading,
+    error,
+    reload,
+  } = useBatchedMedia(inspectionId, itemId);
 
   // Local state for advanced features
   const [retryState, setRetryState] = useState<RetryState>({
@@ -143,28 +148,29 @@ export const useOptimizedChecklistItemMedia = (
     lastAttempt: 0,
     nextRetryAt: 0,
     isRetrying: false,
-    backoffMultiplier: 1
+    backoffMultiplier: 1,
   });
 
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>({
-    loadTime: 0,
-    retryCount: 0,
-    cacheHitRate: 0,
-    errorRate: 0,
-    lastUpdated: null,
-    totalRequests: 0,
-    successfulRequests: 0,
-    failedRequests: 0,
-    averageResponseTime: 0,
-    memoryUsage: 0
-  });
+  const [performanceMetrics, setPerformanceMetrics] =
+    useState<PerformanceMetrics>({
+      loadTime: 0,
+      retryCount: 0,
+      cacheHitRate: 0,
+      errorRate: 0,
+      lastUpdated: null,
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTime: 0,
+      memoryUsage: 0,
+    });
 
   const [debugInfo, setDebugInfo] = useState({
     hookId: `hook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     mountTime: Date.now(),
     operationCount: 0,
     lastOperation: null as string | null,
-    cacheSize: 0
+    cacheSize: 0,
   });
 
   // Performance tracking refs
@@ -175,104 +181,122 @@ export const useOptimizedChecklistItemMedia = (
 
   // ===== PERFORMANCE TRACKING =====
 
-  const updateMetrics = useCallback((
-    operation: string, 
-    success: boolean, 
-    duration: number,
-    cacheHit: boolean = false
-  ) => {
-    const now = Date.now();
-    
-    setPerformanceMetrics(prev => {
-      const newTotalRequests = prev.totalRequests + 1;
-      const newSuccessfulRequests = success ? prev.successfulRequests + 1 : prev.successfulRequests;
-      const newFailedRequests = success ? prev.failedRequests : prev.failedRequests + 1;
-      
-      // Calculate cache hit rate
-      const cacheHitRate = cacheHit ? 
-        (prev.cacheHitRate * prev.totalRequests + 1) / newTotalRequests :
-        (prev.cacheHitRate * prev.totalRequests) / newTotalRequests;
-      
-      // Calculate error rate
-      const errorRate = newFailedRequests / newTotalRequests;
-      
-      // Calculate average response time
-      requestHistoryRef.current.push(duration);
-      if (requestHistoryRef.current.length > 100) {
-        requestHistoryRef.current.shift(); // Keep only last 100 requests
-      }
-      
-      const averageResponseTime = requestHistoryRef.current.reduce((a, b) => a + b, 0) / 
-        requestHistoryRef.current.length;
+  const updateMetrics = useCallback(
+    (
+      operation: string,
+      success: boolean,
+      duration: number,
+      cacheHit: boolean = false,
+    ) => {
+      const now = Date.now();
 
-      return {
+      setPerformanceMetrics((prev) => {
+        const newTotalRequests = prev.totalRequests + 1;
+        const newSuccessfulRequests = success
+          ? prev.successfulRequests + 1
+          : prev.successfulRequests;
+        const newFailedRequests = success
+          ? prev.failedRequests
+          : prev.failedRequests + 1;
+
+        // Calculate cache hit rate
+        const cacheHitRate = cacheHit
+          ? (prev.cacheHitRate * prev.totalRequests + 1) / newTotalRequests
+          : (prev.cacheHitRate * prev.totalRequests) / newTotalRequests;
+
+        // Calculate error rate
+        const errorRate = newFailedRequests / newTotalRequests;
+
+        // Calculate average response time
+        requestHistoryRef.current.push(duration);
+        if (requestHistoryRef.current.length > 100) {
+          requestHistoryRef.current.shift(); // Keep only last 100 requests
+        }
+
+        const averageResponseTime =
+          requestHistoryRef.current.reduce((a, b) => a + b, 0) /
+          requestHistoryRef.current.length;
+
+        return {
+          ...prev,
+          loadTime: duration,
+          totalRequests: newTotalRequests,
+          successfulRequests: newSuccessfulRequests,
+          failedRequests: newFailedRequests,
+          cacheHitRate,
+          errorRate,
+          averageResponseTime,
+          lastUpdated: new Date(),
+          memoryUsage: performance.memory?.usedJSHeapSize || 0,
+        };
+      });
+
+      setDebugInfo((prev) => ({
         ...prev,
-        loadTime: duration,
-        totalRequests: newTotalRequests,
-        successfulRequests: newSuccessfulRequests,
-        failedRequests: newFailedRequests,
-        cacheHitRate,
-        errorRate,
-        averageResponseTime,
-        lastUpdated: new Date(),
-        memoryUsage: performance.memory?.usedJSHeapSize || 0
-      };
-    });
+        operationCount: prev.operationCount + 1,
+        lastOperation: operation,
+      }));
 
-    setDebugInfo(prev => ({
-      ...prev,
-      operationCount: prev.operationCount + 1,
-      lastOperation: operation
-    }));
+      // Analytics tracking
+      if (enableAnalytics) {
+        analytics.track("optimized_media_operation", {
+          hookId: debugInfo.hookId,
+          inspectionId,
+          itemId,
+          operation,
+          success,
+          duration,
+          cacheHit,
+          retryCount: retryState.count,
+          timestamp: now,
+        });
+      }
 
-    // Analytics tracking
-    if (enableAnalytics) {
-      analytics.track('optimized_media_operation', {
-        hookId: debugInfo.hookId,
-        inspectionId,
-        itemId,
-        operation,
-        success,
-        duration,
-        cacheHit,
-        retryCount: retryState.count,
-        timestamp: now
-      });
-    }
-
-    // Logging for monitoring
-    if (trackUsage) {
-      logger.debug('Media hook operation completed', {
-        hookId: debugInfo.hookId,
-        inspectionId,
-        itemId,
-        operation,
-        success,
-        duration: duration.toFixed(2),
-        cacheHit,
-        retryCount: retryState.count,
-        component: 'useOptimizedChecklistItemMedia'
-      });
-    }
-  }, [inspectionId, itemId, enableAnalytics, trackUsage, debugInfo.hookId, retryState.count]);
+      // Logging for monitoring
+      if (trackUsage) {
+        logger.debug("Media hook operation completed", {
+          hookId: debugInfo.hookId,
+          inspectionId,
+          itemId,
+          operation,
+          success,
+          duration: duration.toFixed(2),
+          cacheHit,
+          retryCount: retryState.count,
+          component: "useOptimizedChecklistItemMedia",
+        });
+      }
+    },
+    [
+      inspectionId,
+      itemId,
+      enableAnalytics,
+      trackUsage,
+      debugInfo.hookId,
+      retryState.count,
+    ],
+  );
 
   // ===== INTELLIGENT RETRY LOGIC =====
 
-  const calculateRetryDelay = useCallback((attemptNumber: number): number => {
-    // Exponential backoff with jitter
-    const baseDelay = retryDelay * Math.pow(2, attemptNumber - 1);
-    const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
-    return Math.min(baseDelay + jitter, 30000); // Max 30 seconds
-  }, [retryDelay]);
+  const calculateRetryDelay = useCallback(
+    (attemptNumber: number): number => {
+      // Exponential backoff with jitter
+      const baseDelay = retryDelay * Math.pow(2, attemptNumber - 1);
+      const jitter = Math.random() * 0.1 * baseDelay; // 10% jitter
+      return Math.min(baseDelay + jitter, 30000); // Max 30 seconds
+    },
+    [retryDelay],
+  );
 
   const scheduleRetry = useCallback(async () => {
     if (retryState.count >= maxRetries) {
-      logger.warn('Max retries reached for media loading', {
+      logger.warn("Max retries reached for media loading", {
         hookId: debugInfo.hookId,
         inspectionId,
         itemId,
         retryCount: retryState.count,
-        maxRetries
+        maxRetries,
       });
       return;
     }
@@ -281,76 +305,83 @@ export const useOptimizedChecklistItemMedia = (
     const delay = calculateRetryDelay(nextAttempt);
     const nextRetryAt = Date.now() + delay;
 
-    setRetryState(prev => ({
+    setRetryState((prev) => ({
       ...prev,
       nextRetryAt,
-      isRetrying: true
+      isRetrying: true,
     }));
 
-    logger.info('Scheduling media loading retry', {
+    logger.info("Scheduling media loading retry", {
       hookId: debugInfo.hookId,
       inspectionId,
       itemId,
       attemptNumber: nextAttempt,
       delay: delay.toFixed(0),
-      nextRetryAt: new Date(nextRetryAt).toISOString()
+      nextRetryAt: new Date(nextRetryAt).toISOString(),
     });
 
     retryTimerRef.current = setTimeout(async () => {
       await executeRetry();
     }, delay);
-  }, [retryState.count, maxRetries, calculateRetryDelay, debugInfo.hookId, inspectionId, itemId]);
+  }, [
+    retryState.count,
+    maxRetries,
+    calculateRetryDelay,
+    debugInfo.hookId,
+    inspectionId,
+    itemId,
+  ]);
 
   const executeRetry = useCallback(async () => {
     const startTime = performance.now();
-    
-    setRetryState(prev => ({
+
+    setRetryState((prev) => ({
       ...prev,
       count: prev.count + 1,
       lastAttempt: Date.now(),
-      isRetrying: true
+      isRetrying: true,
     }));
 
     try {
       await reload();
-      
+
       const duration = performance.now() - startTime;
-      updateMetrics('retry_success', true, duration);
-      
+      updateMetrics("retry_success", true, duration);
+
       // Reset retry state on success
       setRetryState({
         count: 0,
         lastAttempt: 0,
         nextRetryAt: 0,
         isRetrying: false,
-        backoffMultiplier: 1
+        backoffMultiplier: 1,
       });
 
-      logger.info('Media loading retry successful', {
-        hookId: debugInfo.hookId,
-        inspectionId,
-        itemId,
-        attemptNumber: retryState.count,
-        duration: duration.toFixed(2)
-      });
-
-    } catch (retryError) {
-      const duration = performance.now() - startTime;
-      updateMetrics('retry_failed', false, duration);
-
-      setRetryState(prev => ({
-        ...prev,
-        isRetrying: false,
-        backoffMultiplier: Math.min(prev.backoffMultiplier * 1.5, 5) // Max 5x multiplier
-      }));
-
-      logger.error('Media loading retry failed', {
+      logger.info("Media loading retry successful", {
         hookId: debugInfo.hookId,
         inspectionId,
         itemId,
         attemptNumber: retryState.count,
         duration: duration.toFixed(2),
-        error: retryError instanceof Error ? retryError.message : String(retryError)
+      });
+    } catch (retryError) {
+      const duration = performance.now() - startTime;
+      updateMetrics("retry_failed", false, duration);
+
+      setRetryState((prev) => ({
+        ...prev,
+        isRetrying: false,
+        backoffMultiplier: Math.min(prev.backoffMultiplier * 1.5, 5), // Max 5x multiplier
+      }));
+
+      logger.error("Media loading retry failed", {
+        hookId: debugInfo.hookId,
+        inspectionId,
+        itemId,
+        attemptNumber: retryState.count,
+        duration: duration.toFixed(2),
+        error:
+          retryError instanceof Error ? retryError.message : String(retryError),
       });
 
       // Schedule next retry if we haven't hit the limit
@@ -358,12 +389,27 @@ export const useOptimizedChecklistItemMedia = (
         await scheduleRetry();
       }
     }
-  }, [reload, updateMetrics, debugInfo.hookId, inspectionId, itemId, retryState.count, maxRetries, autoRetry, scheduleRetry]);
+  }, [
+    reload,
+    updateMetrics,
+    debugInfo.hookId,
+    inspectionId,
+    itemId,
+    retryState.count,
+    maxRetries,
+    autoRetry,
+    scheduleRetry,
+  ]);
 
   // ===== AUTO-RETRY LOGIC =====
 
   useEffect(() => {
-    if (error && autoRetry && retryState.count < maxRetries && !retryState.isRetrying) {
+    if (
+      error &&
+      autoRetry &&
+      retryState.count < maxRetries &&
+      !retryState.isRetrying
+    ) {
       scheduleRetry();
     }
 
@@ -372,62 +418,82 @@ export const useOptimizedChecklistItemMedia = (
         clearTimeout(retryTimerRef.current);
       }
     };
-  }, [error, autoRetry, retryState.count, retryState.isRetrying, maxRetries, scheduleRetry]);
+  }, [
+    error,
+    autoRetry,
+    retryState.count,
+    retryState.isRetrying,
+    maxRetries,
+    scheduleRetry,
+  ]);
 
   // ===== DEBOUNCED OPERATIONS =====
 
-  const debouncedOperation = useCallback((operation: () => Promise<void>) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+  const debouncedOperation = useCallback(
+    (operation: () => Promise<void>) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    debounceTimerRef.current = setTimeout(async () => {
-      await operation();
-    }, debounceMs);
-  }, [debounceMs]);
+      debounceTimerRef.current = setTimeout(async () => {
+        await operation();
+      }, debounceMs);
+    },
+    [debounceMs],
+  );
 
   // ===== PUBLIC API METHODS =====
 
   const manualReload = useCallback(async () => {
     const startTime = performance.now();
-    
+
     // Reset retry state
     setRetryState({
       count: 0,
       lastAttempt: 0,
       nextRetryAt: 0,
       isRetrying: false,
-      backoffMultiplier: 1
+      backoffMultiplier: 1,
     });
 
     try {
       await reload();
       const duration = performance.now() - startTime;
-      updateMetrics('manual_reload', true, duration);
-      
-      logger.info('Manual media reload completed', {
+      updateMetrics("manual_reload", true, duration);
+
+      logger.info("Manual media reload completed", {
         hookId: debugInfo.hookId,
         inspectionId,
         itemId,
-        duration: duration.toFixed(2)
+        duration: duration.toFixed(2),
       });
     } catch (reloadError) {
       const duration = performance.now() - startTime;
-      updateMetrics('manual_reload', false, duration);
-      
+      updateMetrics("manual_reload", false, duration);
+
       if (!silentErrors) {
-        logger.error('Manual media reload failed', {
+        logger.error("Manual media reload failed", {
           hookId: debugInfo.hookId,
           inspectionId,
           itemId,
           duration: duration.toFixed(2),
-          error: reloadError instanceof Error ? reloadError.message : String(reloadError)
+          error:
+            reloadError instanceof Error
+              ? reloadError.message
+              : String(reloadError),
         });
       }
-      
+
       throw reloadError;
     }
-  }, [reload, updateMetrics, debugInfo.hookId, inspectionId, itemId, silentErrors]);
+  }, [
+    reload,
+    updateMetrics,
+    debugInfo.hookId,
+    inspectionId,
+    itemId,
+    silentErrors,
+  ]);
 
   const manualRetry = useCallback(async () => {
     await executeRetry();
@@ -439,7 +505,7 @@ export const useOptimizedChecklistItemMedia = (
       lastAttempt: 0,
       nextRetryAt: 0,
       isRetrying: false,
-      backoffMultiplier: 1
+      backoffMultiplier: 1,
     });
 
     setPerformanceMetrics({
@@ -452,15 +518,15 @@ export const useOptimizedChecklistItemMedia = (
       successfulRequests: 0,
       failedRequests: 0,
       averageResponseTime: 0,
-      memoryUsage: 0
+      memoryUsage: 0,
     });
 
     requestHistoryRef.current = [];
 
-    logger.info('Media hook data cleared', {
+    logger.info("Media hook data cleared", {
       hookId: debugInfo.hookId,
       inspectionId,
-      itemId
+      itemId,
     });
   }, [debugInfo.hookId, inspectionId, itemId]);
 
@@ -470,58 +536,76 @@ export const useOptimizedChecklistItemMedia = (
     }
 
     const startTime = performance.now();
-    
+
     try {
       await debouncedOperation(async () => {
         await reload();
         const duration = performance.now() - startTime;
-        updateMetrics('preload', true, duration, false);
+        updateMetrics("preload", true, duration, false);
       });
     } catch (preloadError) {
       const duration = performance.now() - startTime;
-      updateMetrics('preload', false, duration, false);
-      
+      updateMetrics("preload", false, duration, false);
+
       if (!silentErrors) {
-        logger.warn('Media preload failed', {
+        logger.warn("Media preload failed", {
           hookId: debugInfo.hookId,
           inspectionId,
           itemId,
-          error: preloadError instanceof Error ? preloadError.message : String(preloadError)
+          error:
+            preloadError instanceof Error
+              ? preloadError.message
+              : String(preloadError),
         });
       }
     }
-  }, [batchedMedia, reload, updateMetrics, debouncedOperation, debugInfo.hookId, inspectionId, itemId, silentErrors]);
+  }, [
+    batchedMedia,
+    reload,
+    updateMetrics,
+    debouncedOperation,
+    debugInfo.hookId,
+    inspectionId,
+    itemId,
+    silentErrors,
+  ]);
 
   // ===== HEALTH CALCULATIONS =====
 
   const calculateHealthScore = useCallback((): number => {
     let score = 100;
-    
+
     // Deduct for errors
     score -= performanceMetrics.errorRate * 50;
-    
+
     // Deduct for retries
     score -= (retryState.count / maxRetries) * 20;
-    
+
     // Deduct for slow performance
     if (performanceMetrics.averageResponseTime > 1000) {
       score -= 15;
     } else if (performanceMetrics.averageResponseTime > 500) {
       score -= 10;
     }
-    
+
     // Bonus for cache hits
     score += performanceMetrics.cacheHitRate * 10;
-    
+
     return Math.max(0, Math.min(100, score));
-  }, [performanceMetrics.errorRate, performanceMetrics.averageResponseTime, performanceMetrics.cacheHitRate, retryState.count, maxRetries]);
+  }, [
+    performanceMetrics.errorRate,
+    performanceMetrics.averageResponseTime,
+    performanceMetrics.cacheHitRate,
+    retryState.count,
+    maxRetries,
+  ]);
 
   const isHealthy = calculateHealthScore() >= 70;
 
   // ===== INITIALIZATION =====
 
   useEffect(() => {
-    logger.info('Elite media hook initialized', {
+    logger.info("Elite media hook initialized", {
       hookId: debugInfo.hookId,
       inspectionId,
       itemId,
@@ -530,9 +614,9 @@ export const useOptimizedChecklistItemMedia = (
         maxRetries,
         preloadOnMount,
         trackUsage,
-        enableAnalytics
+        enableAnalytics,
       },
-      component: 'useOptimizedChecklistItemMedia'
+      component: "useOptimizedChecklistItemMedia",
     });
 
     // Preload if requested
@@ -549,14 +633,25 @@ export const useOptimizedChecklistItemMedia = (
         clearTimeout(debounceTimerRef.current);
       }
 
-      logger.debug('Elite media hook unmounted', {
+      logger.debug("Elite media hook unmounted", {
         hookId: debugInfo.hookId,
         inspectionId,
         itemId,
-        finalMetrics: performanceMetrics
+        finalMetrics: performanceMetrics,
       });
     };
-  }, [debugInfo.hookId, inspectionId, itemId, autoRetry, maxRetries, preloadOnMount, trackUsage, enableAnalytics, preloadData, performanceMetrics]);
+  }, [
+    debugInfo.hookId,
+    inspectionId,
+    itemId,
+    autoRetry,
+    maxRetries,
+    preloadOnMount,
+    trackUsage,
+    enableAnalytics,
+    preloadData,
+    performanceMetrics,
+  ]);
 
   // ===== UPDATE METRICS ON SUCCESSFUL LOAD =====
 
@@ -564,8 +659,8 @@ export const useOptimizedChecklistItemMedia = (
     if (batchedMedia && !isLoading && performanceMetrics.loadTime === 0) {
       const currentLoadTime = performance.now() - startTimeRef.current;
       const cacheHit = currentLoadTime < 10; // Very fast = likely cache hit
-      
-      updateMetrics('initial_load', true, currentLoadTime, cacheHit);
+
+      updateMetrics("initial_load", true, currentLoadTime, cacheHit);
     }
   }, [batchedMedia, isLoading, performanceMetrics.loadTime, updateMetrics]);
 
@@ -575,34 +670,35 @@ export const useOptimizedChecklistItemMedia = (
     // Data state
     media: batchedMedia?.media || (fallbackToEmpty ? [] : []),
     isLoading: isLoading || retryState.isRetrying,
-    isEmpty: !isLoading && (!batchedMedia?.media || batchedMedia.media.length === 0),
-    
+    isEmpty:
+      !isLoading && (!batchedMedia?.media || batchedMedia.media.length === 0),
+
     // Error state
     error: silentErrors ? null : error,
     hasError: !!error,
     canRetry: retryState.count < maxRetries && !retryState.isRetrying,
-    
+
     // Actions
     reload: manualReload,
     retry: manualRetry,
     clear: clearData,
     preload: preloadData,
-    
+
     // Performance metrics
     metrics: {
       ...performanceMetrics,
-      retryCount: retryState.count
+      retryCount: retryState.count,
     },
-    
+
     // Health status
     isHealthy,
     healthScore: calculateHealthScore(),
-    
+
     // Debug information
     debug: {
       ...debugInfo,
-      cacheSize: requestHistoryRef.current.length
-    }
+      cacheSize: requestHistoryRef.current.length,
+    },
   };
 };
 
@@ -613,21 +709,21 @@ export const useOptimizedChecklistItemMedia = (
  */
 export const useSimpleChecklistItemMedia = (
   inspectionId: string,
-  itemId: string
+  itemId: string,
 ) => {
   const result = useOptimizedChecklistItemMedia(inspectionId, itemId, {
     autoRetry: true,
     maxRetries: 2,
     trackUsage: false,
     enableAnalytics: false,
-    silentErrors: true
+    silentErrors: true,
   });
 
   return {
     media: result.media,
     isLoading: result.isLoading,
     error: result.error,
-    reload: result.reload
+    reload: result.reload,
   };
 };
 
@@ -636,7 +732,7 @@ export const useSimpleChecklistItemMedia = (
  */
 export const useHighPerformanceChecklistItemMedia = (
   inspectionId: string,
-  itemId: string
+  itemId: string,
 ) => {
   return useOptimizedChecklistItemMedia(inspectionId, itemId, {
     autoRetry: false,
@@ -644,7 +740,7 @@ export const useHighPerformanceChecklistItemMedia = (
     trackUsage: true,
     enableAnalytics: true,
     debounceMs: 50,
-    cacheTimeout: 600000 // 10 minutes
+    cacheTimeout: 600000, // 10 minutes
   });
 };
 

@@ -59,7 +59,7 @@ interface BatchedMediaProviderProps {
  * @example
  * ```tsx
  * const checklistItemIds = checklist.map(item => item.id);
- * 
+ *
  * return (
  *   <BatchedMediaProvider checklistItemIds={checklistItemIds}>
  *     <InspectionList items={checklist} />
@@ -121,13 +121,13 @@ export const BatchedMediaProvider: React.FC<BatchedMediaProviderProps> = ({
  */
 export const useBatchedMediaContext = (): BatchedMediaContextValue => {
   const context = useContext(BatchedMediaContext);
-  
+
   if (context === undefined) {
     throw new Error(
       "useBatchedMediaContext must be used within a BatchedMediaProvider",
     );
   }
-  
+
   return context;
 };
 
@@ -141,7 +141,7 @@ export const useBatchedMediaContext = (): BatchedMediaContextValue => {
  * ```tsx
  * // Replace this:
  * // const { data: media, isLoading } = useChecklistItemMedia(item.id);
- * 
+ *
  * // With this:
  * const { data: media, isLoading } = useOptimizedChecklistItemMedia(item.id);
  * ```
@@ -151,7 +151,7 @@ export const useBatchedMediaContext = (): BatchedMediaContextValue => {
  */
 export const useOptimizedChecklistItemMedia = (checklistItemId: string) => {
   const { getMediaForItem, isLoading, error } = useBatchedMediaContext();
-  
+
   return {
     data: getMediaForItem(checklistItemId),
     isLoading,

@@ -115,9 +115,9 @@ export const useSimplePropertySubmission = () => {
           details: error.details,
           hint: error.hint,
           isEditing,
-          submitData
+          submitData,
         });
-        
+
         let errorMessage = "An error occurred while saving the property.";
 
         if (error.code === "23505") {
@@ -132,12 +132,25 @@ export const useSimplePropertySubmission = () => {
           errorMessage = "Your session has expired. Please log in again.";
         } else if (error.message?.includes("violates row-level security")) {
           errorMessage = "You don't have permission to perform this action.";
-        } else if (error.code === "42703" || error.message?.includes("column") && error.message?.includes("does not exist")) {
-          errorMessage = "Database schema error. Please contact support - the application may need an update.";
-        } else if (error.code === "23502" && error.message?.includes("not-null")) {
-          errorMessage = "Required property information is missing. Please fill in all required fields.";
-        } else if (error.message?.includes("400") || error.message?.includes("Bad Request")) {
-          errorMessage = "Invalid data format. Please check all fields and try again.";
+        } else if (
+          error.code === "42703" ||
+          (error.message?.includes("column") &&
+            error.message?.includes("does not exist"))
+        ) {
+          errorMessage =
+            "Database schema error. Please contact support - the application may need an update.";
+        } else if (
+          error.code === "23502" &&
+          error.message?.includes("not-null")
+        ) {
+          errorMessage =
+            "Required property information is missing. Please fill in all required fields.";
+        } else if (
+          error.message?.includes("400") ||
+          error.message?.includes("Bad Request")
+        ) {
+          errorMessage =
+            "Invalid data format. Please check all fields and try again.";
         }
 
         toast({

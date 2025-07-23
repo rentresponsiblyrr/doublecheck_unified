@@ -29,7 +29,7 @@ import { MediaUpload } from "@/types/inspection";
  * const { data: mediaByItem, isLoading } = useBatchedChecklistMedia([
  *   'item-1', 'item-2', 'item-3'
  * ]);
- * 
+ *
  * // Access media for specific item
  * const item1Media = mediaByItem?.['item-1'] || [];
  * ```
@@ -58,9 +58,9 @@ export const useBatchedChecklistMedia = (checklistItemIds: string[]) => {
 
       // Group media by checklist item ID for easy lookup
       const mediaByItem: Record<string, MediaUpload[]> = {};
-      
+
       // Initialize empty arrays for all requested items
-      checklistItemIds.forEach(id => {
+      checklistItemIds.forEach((id) => {
         mediaByItem[id] = [];
       });
 
@@ -70,7 +70,7 @@ export const useBatchedChecklistMedia = (checklistItemIds: string[]) => {
         if (!mediaByItem[checklistItemId]) {
           mediaByItem[checklistItemId] = [];
         }
-        
+
         mediaByItem[checklistItemId].push({
           id: item.id,
           checklist_item_id: item.checklist_item_id,
@@ -101,7 +101,7 @@ export const useBatchedChecklistMedia = (checklistItemIds: string[]) => {
  * ```typescript
  * // In the parent component that knows all item IDs:
  * const allItemIds = checklist.map(item => item.id);
- * 
+ *
  * // In child components:
  * const media = useOptimizedChecklistItemMedia(item.id, allItemIds);
  * ```
@@ -111,10 +111,11 @@ export const useBatchedChecklistMedia = (checklistItemIds: string[]) => {
  */
 export const useOptimizedChecklistItemMedia = (
   checklistItemId: string,
-  allChecklistItemIds: string[]
+  allChecklistItemIds: string[],
 ) => {
-  const { data: batchedMedia, ...rest } = useBatchedChecklistMedia(allChecklistItemIds);
-  
+  const { data: batchedMedia, ...rest } =
+    useBatchedChecklistMedia(allChecklistItemIds);
+
   return {
     ...rest,
     data: batchedMedia?.[checklistItemId] || [],

@@ -14,15 +14,15 @@ export const ErrorHeader: React.FC = () => {
         <div className="flex flex-col items-center text-center">
           {/* DoubleCheck Logo */}
           <div className="mb-2">
-            <Logo 
-              size="lg" 
+            <Logo
+              size="lg"
               variant="horizontal-strapline"
               showText={true}
               theme="light"
               className="justify-center"
             />
           </div>
-          
+
           {/* Error Recovery Subtitle */}
           <p className="text-sm text-gray-600">Mobile Error Recovery</p>
         </div>

@@ -135,7 +135,7 @@ export default function DirectAdminRouter() {
         case "checklists":
           return (
             <div className="p-6">
-              <ChecklistManagementRedesigned 
+              <ChecklistManagementRedesigned
                 showAdvancedOptions={true}
                 enableBulkActions={true}
               />

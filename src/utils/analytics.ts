@@ -1,7 +1,7 @@
 /**
  * Elite Analytics Service
  * Enterprise-grade analytics tracking for performance monitoring and user behavior analysis
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0 - Netflix/Google/Meta Production Standards
  */
@@ -30,10 +30,12 @@ class AnalyticsService {
   constructor() {
     this.sessionId = this.generateSessionId();
     this.config = {
-      enabled: import.meta.env.PROD || import.meta.env.VITE_ANALYTICS_ENABLED === 'true',
+      enabled:
+        import.meta.env.PROD ||
+        import.meta.env.VITE_ANALYTICS_ENABLED === "true",
       debug: import.meta.env.DEV,
       bufferSize: 100,
-      flushInterval: 30000 // 30 seconds
+      flushInterval: 30000, // 30 seconds
     };
 
     if (this.config.enabled) {
@@ -60,13 +62,13 @@ class AnalyticsService {
       },
       timestamp: new Date().toISOString(),
       userId: this.getCurrentUserId(),
-      sessionId: this.sessionId
+      sessionId: this.sessionId,
     };
 
     this.events.push(analyticsEvent);
 
     if (this.config.debug) {
-      console.log('Analytics Event:', analyticsEvent);
+      console.log("Analytics Event:", analyticsEvent);
     }
 
     // Auto-flush if buffer is full
@@ -78,12 +80,16 @@ class AnalyticsService {
   /**
    * Track performance metrics
    */
-  trackPerformance(operation: string, duration: number, metadata?: Record<string, any>): void {
-    this.track('performance_metric', {
+  trackPerformance(
+    operation: string,
+    duration: number,
+    metadata?: Record<string, any>,
+  ): void {
+    this.track("performance_metric", {
       operation,
       duration,
       performanceGrade: this.calculatePerformanceGrade(duration),
-      ...metadata
+      ...metadata,
     });
   }
 
@@ -91,11 +97,11 @@ class AnalyticsService {
    * Track errors
    */
   trackError(error: Error, context?: Record<string, any>): void {
-    this.track('error_occurred', {
+    this.track("error_occurred", {
       errorMessage: error.message,
       errorStack: error.stack,
       errorName: error.name,
-      ...context
+      ...context,
     });
   }
 
@@ -144,11 +150,13 @@ class AnalyticsService {
   /**
    * Calculate performance grade based on duration
    */
-  private calculatePerformanceGrade(duration: number): 'excellent' | 'good' | 'average' | 'poor' {
-    if (duration < 100) return 'excellent';
-    if (duration < 300) return 'good';
-    if (duration < 1000) return 'average';
-    return 'poor';
+  private calculatePerformanceGrade(
+    duration: number,
+  ): "excellent" | "good" | "average" | "poor" {
+    if (duration < 100) return "excellent";
+    if (duration < 300) return "good";
+    if (duration < 1000) return "average";
+    return "poor";
   }
 
   /**
@@ -166,8 +174,8 @@ class AnalyticsService {
 export const analytics = new AnalyticsService();
 
 // Cleanup on window unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
     analytics.destroy();
   });
 }

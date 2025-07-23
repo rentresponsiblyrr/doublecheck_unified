@@ -9,6 +9,8 @@
  * @version 1.0 - Production Ready
  */
 
+import { DOMSafetyUtils } from "@/utils/domSafetyUtils";
+
 export interface AccessibilityViolation {
   id: string;
   type: "error" | "warning";
@@ -436,8 +438,13 @@ export class AccessibilityTester {
 
   private getElementSelector(element: HTMLElement): string {
     if (element.id) return `#${element.id}`;
-    if (element.className)
-      return `${element.tagName.toLowerCase()}.${element.className.split(" ")[0]}`;
+
+    // Use DOMSafetyUtils to safely extract classes
+    const classes = DOMSafetyUtils.getElementClasses(element);
+    if (classes.length > 0) {
+      return `${element.tagName.toLowerCase()}.${classes[0]}`;
+    }
+
     return element.tagName.toLowerCase();
   }
 

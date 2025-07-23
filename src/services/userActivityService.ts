@@ -99,7 +99,8 @@ class UserActivityService {
       element: DOMSafetyUtils.generateSafeSelector(target),
       details: {
         elementId: target.id || undefined,
-        elementClass: DOMSafetyUtils.getElementClasses(target).join(' ') || undefined,
+        elementClass:
+          DOMSafetyUtils.getElementClasses(target).join(" ") || undefined,
         elementText: DOMSafetyUtils.getElementText(target, 100) || undefined,
         coordinates: {
           x: event.clientX,
@@ -142,7 +143,8 @@ class UserActivityService {
       element: DOMSafetyUtils.generateSafeSelector(target),
       details: {
         elementId: target.id || undefined,
-        elementClass: DOMSafetyUtils.getElementClasses(target).join(' ') || undefined,
+        elementClass:
+          DOMSafetyUtils.getElementClasses(target).join(" ") || undefined,
         value: isSensitive ? "[REDACTED]" : target.value?.substring(0, 100),
       },
     });

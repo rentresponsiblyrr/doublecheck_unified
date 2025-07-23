@@ -210,13 +210,14 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   });
 
   // Performance monitoring state
-  const [performance, setPerformance] = useState<PerformanceMetrics>({
-    renderTime: 0,
-    fetchTime: 0,
-    cacheHitRate: 0,
-    errorRate: 0,
-    userInteractions: 0,
-  });
+  const [performanceMetrics, setPerformanceMetricsMetrics] =
+    useState<PerformanceMetrics>({
+      renderTime: 0,
+      fetchTime: 0,
+      cacheHitRate: 0,
+      errorRate: 0,
+      userInteractions: 0,
+    });
 
   // Refs for cleanup and performance tracking
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -249,7 +250,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         event.preventDefault();
 
         // Track user interaction for analytics
-        setPerformance((prev) => ({
+        setPerformanceMetrics((prev) => ({
           ...prev,
           userInteractions: prev.userInteractions + 1,
         }));
@@ -410,7 +411,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         const fetchTime = performance.now() - startTime;
 
         // Update performance metrics
-        setPerformance((prev) => ({
+        setPerformanceMetrics((prev) => ({
           ...prev,
           fetchTime,
           cacheHitRate:
@@ -444,7 +445,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         const fetchTime = performance.now() - startTime;
 
         // Update performance metrics
-        setPerformance((prev) => ({
+        setPerformanceMetrics((prev) => ({
           ...prev,
           fetchTime,
           errorRate: Math.min(100, prev.errorRate + 1),
@@ -541,7 +542,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         event.preventDefault();
 
         // Track user interaction
-        setPerformance((prev) => ({
+        setPerformanceMetrics((prev) => ({
           ...prev,
           userInteractions: prev.userInteractions + 1,
         }));
@@ -599,7 +600,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
     // Adaptive polling interval based on performance
     const adaptiveInterval = Math.max(
       refreshInterval,
-      performance.errorRate > 10 ? refreshInterval * 2 : refreshInterval,
+      performanceMetrics.errorRate > 10 ? refreshInterval * 2 : refreshInterval,
     );
 
     pollingIntervalRef.current = setInterval(() => {
@@ -614,7 +615,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   }, [
     enableRealTimeUpdates,
     refreshInterval,
-    performance.errorRate,
+    performanceMetrics.errorRate,
     state.userInteracting,
     fetchMetrics,
   ]);
@@ -666,7 +667,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
           const entries = list.getEntries();
           for (const entry of entries) {
             if (entry.name.includes("SystemStatusPanel")) {
-              setPerformance((prev) => ({
+              setPerformanceMetrics((prev) => ({
                 ...prev,
                 renderTime: entry.duration,
               }));
@@ -753,7 +754,10 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   // Render loading state with accessibility
   if (state.isLoading && !processedMetrics) {
     return (
-      <Card id={ELEMENT_IDS.systemStatusLoadingContainer} className={`${className}`}>
+      <Card
+        id={ELEMENT_IDS.systemStatusLoadingContainer}
+        className={`${className}`}
+      >
         <CardContent className={variantConfig.cardPadding}>
           <div
             id="system-status-loading-state"
@@ -1184,11 +1188,19 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
                 Performance Debug Info
               </summary>
               <div className="mt-2 p-2 bg-gray-100 rounded text-gray-600 font-mono">
-                <div>Render Time: {performance.renderTime.toFixed(2)}ms</div>
-                <div>Fetch Time: {performance.fetchTime.toFixed(2)}ms</div>
-                <div>Cache Hit Rate: {performance.cacheHitRate}</div>
-                <div>Error Rate: {performance.errorRate.toFixed(1)}%</div>
-                <div>User Interactions: {performance.userInteractions}</div>
+                <div>
+                  Render Time: {performanceMetrics.renderTime.toFixed(2)}ms
+                </div>
+                <div>
+                  Fetch Time: {performanceMetrics.fetchTime.toFixed(2)}ms
+                </div>
+                <div>Cache Hit Rate: {performanceMetrics.cacheHitRate}</div>
+                <div>
+                  Error Rate: {performanceMetrics.errorRate.toFixed(1)}%
+                </div>
+                <div>
+                  User Interactions: {performanceMetrics.userInteractions}
+                </div>
                 <div>Polling Active: {state.pollingActive ? "Yes" : "No"}</div>
                 <div>Retry Count: {state.retryCount}</div>
               </div>

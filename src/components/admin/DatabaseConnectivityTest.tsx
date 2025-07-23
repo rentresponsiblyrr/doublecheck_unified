@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, AlertTriangle, Database } from "lucide-react";
+import { secureUserDataService } from "@/services/admin/SecureUserDataService";
+import { secureAdminDashboardService } from "@/services/admin/SecureAdminDashboardService";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function DatabaseConnectivityTest() {
@@ -74,29 +76,40 @@ export default function DatabaseConnectivityTest() {
 
       result += "\n";
 
-      // 4. Test users table specifically with details
-      result += "👥 Users Table Detailed Test:\n";
+      // 4. Test secure admin services
+      result += "🔒 Secure Admin Service Tests:\n";
       try {
-        const { data: users, error: usersError } = await supabase
-          .from("users")
-          .select("id, email, name, role, created_at")
-          .limit(5);
+        // Test system health check
+        const healthCheck =
+          await secureUserDataService.performSystemHealthCheck();
+        result += `  System Health: ${healthCheck.usersTableExists ? "✅" : "❌"} Users table accessible\n`;
+        result += `  Authentication: ${healthCheck.authEnabled ? "✅" : "❌"} Auth enabled\n`;
+        result += `  RLS Security: ${healthCheck.rlsEnabled ? "✅" : "❌"} RLS policies active\n`;
+        result += `  Admin Permissions: ${healthCheck.hasPermissions ? "✅" : "❌"} Admin access\n`;
+        result += `  User Role: ${healthCheck.userRole || "None detected"}\n`;
+        result += `  RPC Functions: ${healthCheck.rpcWorking ? "✅" : "❌"} RPC working\n`;
 
-        if (usersError) {
-          result += `  Query Error: ❌ ${usersError.message}\n`;
-          result += `  Error Code: ${usersError.code}\n`;
-          result += `  Error Details: ${usersError.details}\n`;
-          result += `  Error Hint: ${usersError.hint}\n`;
-        } else if (users && users.length > 0) {
-          result += `  Records Found: ✅ ${users.length} users\n`;
-          users.forEach((user, index) => {
-            result += `    ${index + 1}. ${user.email} (${user.role || "no role"})\n`;
-          });
-        } else {
-          result += `  Records Found: ⚠️ 0 users (table is empty)\n`;
+        if (healthCheck.error) {
+          result += `  Error Details: ${healthCheck.error}\n`;
         }
-      } catch (usersErr) {
-        result += `  Users Exception: ❌ ${usersErr}\n`;
+      } catch (serviceErr) {
+        result += `  Service Exception: ❌ ${serviceErr}\n`;
+      }
+
+      result += "\n";
+
+      // 5. Test admin dashboard metrics
+      result += "📊 Admin Dashboard Metrics Test:\n";
+      try {
+        const metrics =
+          await secureAdminDashboardService.loadDashboardMetrics("30d");
+        result += `  Metrics Load: ✅ Dashboard metrics loaded successfully\n`;
+        result += `  Total Properties: ${metrics.totalProperties}\n`;
+        result += `  Total Inspections: ${metrics.totalInspections}\n`;
+        result += `  Active Inspectors: ${metrics.activeInspectors}\n`;
+        result += `  Completion Rate: ${metrics.completionRate}%\n`;
+      } catch (metricsErr) {
+        result += `  Metrics Exception: ❌ ${metricsErr}\n`;
       }
 
       result += "\n";

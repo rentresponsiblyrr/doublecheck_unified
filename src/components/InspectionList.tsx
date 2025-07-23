@@ -53,7 +53,7 @@ export const InspectionList: React.FC<InspectionListProps> = ({
   }
 
   // Extract all checklist item IDs for batched media fetching
-  const checklistItemIds = items.map(item => item.id);
+  const checklistItemIds = items.map((item) => item.id);
 
   return (
     <BatchedMediaProvider checklistItemIds={checklistItemIds}>

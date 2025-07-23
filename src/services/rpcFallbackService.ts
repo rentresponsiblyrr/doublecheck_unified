@@ -1,9 +1,9 @@
 /**
  * RPC Fallback Service
- * 
+ *
  * Provides fallback implementations for missing RPC functions
  * to prevent 404 errors and maintain admin functionality.
- * 
+ *
  * @author STR Certified Engineering Team
  * @since 1.0.0
  * @version 1.0.0
@@ -53,7 +53,9 @@ export class RPCFallbackService {
 
       const { data, error } = await supabase
         .from("users")
-        .select("id, name, email, role, status, created_at, updated_at, last_login_at, phone")
+        .select(
+          "id, name, email, role, status, created_at, updated_at, last_login_at, phone",
+        )
         .eq("id", userId)
         .single();
 
@@ -71,7 +73,7 @@ export class RPCFallbackService {
     } catch (error) {
       logger.error("User profile fallback error", {
         component: "RPCFallbackService",
-        action: "getUserProfile", 
+        action: "getUserProfile",
         error: error instanceof Error ? error.message : "Unknown error",
         userId,
       });
@@ -153,7 +155,9 @@ export class RPCFallbackService {
 
       const { data, error } = await supabase
         .from("users")
-        .select("id, name, email, role, status, created_at, updated_at, last_login_at, phone")
+        .select(
+          "id, name, email, role, status, created_at, updated_at, last_login_at, phone",
+        )
         .eq("role", role)
         .order("created_at", { ascending: false });
 
@@ -222,16 +226,20 @@ export class RPCFallbackService {
   /**
    * Test if an RPC function exists by attempting to call it
    */
-  public async testRPCFunction(functionName: string, params: any = {}): Promise<boolean> {
+  public async testRPCFunction(
+    functionName: string,
+    params: any = {},
+  ): Promise<boolean> {
     try {
       const { error } = await supabase.rpc(functionName, params);
-      
+
       // If error is 404 or "function not found", RPC doesn't exist
-      if (error && (
-        error.message.includes("404") ||
-        error.message.includes("function") ||
-        error.message.includes("not found")
-      )) {
+      if (
+        error &&
+        (error.message.includes("404") ||
+          error.message.includes("function") ||
+          error.message.includes("not found"))
+      ) {
         logger.warn("RPC function not found", {
           component: "RPCFallbackService",
           action: "testRPCFunction",
@@ -260,12 +268,12 @@ export class RPCFallbackService {
   public async callWithFallback<T>(
     rpcFunction: string,
     params: any,
-    fallbackFunction: () => Promise<T>
+    fallbackFunction: () => Promise<T>,
   ): Promise<T | null> {
     try {
       // First try the RPC function
       const { data, error } = await supabase.rpc(rpcFunction, params);
-      
+
       if (error) {
         // If it's a 404 or function not found, use fallback
         if (
@@ -279,14 +287,14 @@ export class RPCFallbackService {
             rpcFunction,
             error: error.message,
           });
-          
+
           return await fallbackFunction();
         }
-        
+
         // Other errors should be thrown
         throw error;
       }
-      
+
       return data;
     } catch (error) {
       logger.error("RPC call with fallback failed", {
@@ -295,7 +303,7 @@ export class RPCFallbackService {
         rpcFunction,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      
+
       // Try fallback on any error
       try {
         return await fallbackFunction();
@@ -304,7 +312,10 @@ export class RPCFallbackService {
           component: "RPCFallbackService",
           action: "callWithFallback",
           rpcFunction,
-          fallbackError: fallbackError instanceof Error ? fallbackError.message : "Unknown error",
+          fallbackError:
+            fallbackError instanceof Error
+              ? fallbackError.message
+              : "Unknown error",
         });
         return null;
       }
