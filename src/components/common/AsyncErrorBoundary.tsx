@@ -34,7 +34,7 @@ interface AsyncErrorBoundaryProps {
   maxRetries?: number;
   retryDelay?: number;
   enableOfflineMode?: boolean;
-  onAsyncError?: (error: Error, context: any) => void;
+  onAsyncError?: (error: Error, context: Record<string, unknown>) => void;
   loadingFallback?: ReactNode;
   context?: string;
 }
@@ -192,7 +192,7 @@ export class AsyncErrorBoundary extends Component<
     context: {
       type?: string;
       operationType?: AsyncErrorBoundaryState["operationType"];
-      data?: any;
+      data?: Record<string, unknown>;
     } = {},
   ) => {
     const enhancedError = {
@@ -576,7 +576,7 @@ export function useAsyncErrorHandler() {
     React.useState<AsyncErrorBoundary | null>(null);
 
   const handleAsyncError = React.useCallback(
-    (error: Error, context?: any) => {
+    (error: Error, context?: Record<string, unknown>) => {
       if (asyncErrorBoundary) {
         asyncErrorBoundary.handleAsyncError(error, context);
       } else {

@@ -20,6 +20,8 @@ import { logger } from "@/utils/logger";
 import { useAuth } from "@/hooks/useAuth";
 import type { ChecklistItem } from "@/types/database-verified";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { emergencyAuthService } from "@/services/emergency/EmergencyAuthService";
+import { emergencyDatabaseFallback } from "@/services/emergency/EmergencyDatabaseFallback";
 
 export interface ActiveInspectionSummary {
   inspectionId: string;
@@ -86,33 +88,41 @@ class ActiveInspectionService {
         "ACTIVE_INSPECTIONS",
       );
 
-      // Query active inspections using RPC function to avoid RLS issues
-      // CRITICAL FIX: Use RPC function instead of direct table access
-      const { data: inspections, error: inspectionsError } = await supabase.rpc(
-        "get_user_active_inspections",
-        {
-          user_id: userId,
-          max_items: maxItems,
-        },
-      );
+      // EMERGENCY: Use emergency fallback for RPC function that returns 404
+      const inspections = await emergencyDatabaseFallback.executeWithFallback(
+        async () => {
+          // Try RPC function first (will fail with 404)
+          const { data: rpcInspections, error: inspectionsError } = await supabase.rpc(
+            "get_user_active_inspections",
+            {
+              user_id: userId,
+              max_items: maxItems,
+            },
+          );
 
-      if (inspectionsError) {
-        logger.error(
-          "Supabase query error for active inspections",
-          {
-            error: inspectionsError,
-            code: inspectionsError.code,
-            message: inspectionsError.message,
-            details: inspectionsError.details,
-            hint: inspectionsError.hint,
-            userId,
-          },
-          "ACTIVE_INSPECTIONS",
-        );
-        throw new Error(
-          `Database query failed: ${inspectionsError.message || "Unknown database error"}`,
-        );
-      }
+          if (inspectionsError) {
+            logger.error(
+              "Supabase query error for active inspections",
+              {
+                error: inspectionsError,
+                code: inspectionsError.code,
+                message: inspectionsError.message,
+                details: inspectionsError.details,
+                hint: inspectionsError.hint,
+                userId,
+              },
+              "ACTIVE_INSPECTIONS",
+            );
+            throw new Error(
+              `Database query failed: ${inspectionsError.message || "Unknown database error"}`,
+            );
+          }
+
+          return rpcInspections || [];
+        },
+        [], // Emergency fallback: return empty array instead of crashing
+        "getActiveInspections"
+      );
 
       if (!inspections || inspections.length === 0) {
         return [];

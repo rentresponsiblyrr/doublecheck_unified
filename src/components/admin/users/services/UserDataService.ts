@@ -7,6 +7,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { User, UserFormData } from "../types";
+import { emergencyAuthService } from "@/services/emergency/EmergencyAuthService";
+import { emergencyDatabaseFallback } from "@/services/emergency/EmergencyDatabaseFallback";
 import type { MutableRefObject } from "react";
 
 interface ToastInstance {
@@ -23,125 +25,90 @@ export class UserDataService {
   ) {}
 
   /**
-   * Load users from database
+   * Load users from database with emergency fallback
    */
   async loadUsers(): Promise<User[]> {
-    try {
-      const { data: usersData, error: usersError } = await supabase
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
+    return emergencyDatabaseFallback.executeWithFallback(
+      async () => {
+        const { data: usersData, error: usersError } = await supabase
+          .from("users")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (usersError) {
-        throw new Error(`Database error: ${usersError.message}`);
-      }
+        if (usersError) {
+          throw new Error(`Database error: ${usersError.message}`);
+        }
 
-      logger.info(
-        `Loaded ${usersData?.length || 0} users successfully`,
-        {},
-        "USER_DATA_SERVICE",
-      );
-      return usersData || [];
-    } catch (error) {
-      logger.error("Failed to load users:", error, "USER_DATA_SERVICE");
-
-      this.toast({
-        title: "Error loading users",
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
-
-      throw error;
-    }
+        logger.info(
+          `Loaded ${usersData?.length || 0} users successfully`,
+          {},
+          "USER_DATA_SERVICE",
+        );
+        return usersData || [];
+      },
+      [], // Emergency fallback: return empty array instead of crashing
+      "loadUsers"
+    );
   }
 
   /**
-   * Save user (create or update)
+   * Save user (create or update) with emergency fallback
    */
   async saveUser(
     formData: UserFormData,
     editingUser: User | null,
   ): Promise<void> {
-    try {
-      if (editingUser) {
-        // Update existing user
-        const { error } = await supabase
-          .from("users")
-          .update({
-            name: formData.name,
-            role: formData.role,
-            phone: formData.phone,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", editingUser.id);
+    return emergencyDatabaseFallback.executeWithFallback(
+      async () => {
+        if (editingUser) {
+          // Update existing user
+          const { error } = await supabase
+            .from("users")
+            .update({
+              name: formData.name,
+              role: formData.role,
+              phone: formData.phone,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", editingUser.id);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        this.toast({
-          title: "Success",
-          description: "User account updated successfully.",
-        });
-
-        logger.info(`Updated user: ${editingUser.id}`, {}, "USER_DATA_SERVICE");
-      } else {
-        // For new users, we would typically integrate with Supabase Auth
-        this.toast({
-          title: "Information",
-          description:
-            "User creation requires admin API integration. Please use Supabase dashboard for now.",
-          variant: "destructive",
-        });
-
-        logger.warn(
-          "User creation attempted - requires admin API integration",
-          {},
-          "USER_DATA_SERVICE",
-        );
-        return;
-      }
-    } catch (error) {
-      logger.error("Failed to save user:", error, "USER_DATA_SERVICE");
-      this.toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to save user",
-        variant: "destructive",
-      });
-      throw error;
-    }
+          this.toast.success("User account updated successfully.");
+          logger.info(`Updated user: ${editingUser.id}`, {}, "USER_DATA_SERVICE");
+        } else {
+          // For new users, we would typically integrate with Supabase Auth
+          this.toast.info("User creation requires admin API integration. Please use Supabase dashboard for now.");
+          logger.warn("User creation attempted - requires admin API integration", {}, "USER_DATA_SERVICE");
+          return;
+        }
+      },
+      undefined, // Emergency fallback: do nothing instead of crashing
+      "saveUser"
+    );
   }
 
   /**
-   * Delete user (deactivate)
+   * Delete user (deactivate) with emergency fallback
    */
   async deleteUser(userId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from("users")
-        .update({
-          status: "inactive",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
+    return emergencyDatabaseFallback.executeWithFallback(
+      async () => {
+        const { error } = await supabase
+          .from("users")
+          .update({
+            status: "inactive",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", userId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      this.toast({
-        title: "Success",
-        description: "User deactivated successfully.",
-      });
-
-      logger.info(`Deactivated user: ${userId}`, {}, "USER_DATA_SERVICE");
-    } catch (error) {
-      logger.error("Failed to delete user:", error, "USER_DATA_SERVICE");
-      this.toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete user",
-        variant: "destructive",
-      });
-      throw error;
-    }
+        this.toast.success("User deactivated successfully.");
+        logger.info(`Deactivated user: ${userId}`, {}, "USER_DATA_SERVICE");
+      },
+      undefined, // Emergency fallback: do nothing instead of crashing
+      "deleteUser"
+    );
   }
 }

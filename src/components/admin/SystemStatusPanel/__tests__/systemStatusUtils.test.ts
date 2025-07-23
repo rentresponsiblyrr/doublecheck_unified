@@ -297,7 +297,7 @@ describe("SmartCache", () => {
 
   it("handles errors gracefully", async () => {
     // Test with invalid data that might cause JSON issues
-    const circularRef: any = {};
+    const circularRef: Record<string, unknown> = {};
     circularRef.self = circularRef;
 
     // Should not throw
