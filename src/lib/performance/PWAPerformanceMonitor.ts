@@ -536,14 +536,20 @@ export class PWAPerformanceMonitor {
     }
 
     try {
-      // Install prompt conversion tracking
-      installPromptHandler.onInstallPromptShown(() => {
-        this.startTrackingInstallConversion();
-      });
+      // Install prompt conversion tracking with fallback
+      if (installPromptHandler && typeof installPromptHandler.onInstallPromptShown === 'function') {
+        installPromptHandler.onInstallPromptShown(() => {
+          this.startTrackingInstallConversion();
+        });
+      } else {
+        logger.debug('Install prompt handler not available - skipping tracking', {}, 'PWA_PERFORMANCE');
+      }
 
-      installPromptHandler.onInstallSuccess(() => {
-        this.recordInstallConversion(true);
-      });
+      if (installPromptHandler && typeof installPromptHandler.onInstallSuccess === 'function') {
+        installPromptHandler.onInstallSuccess(() => {
+          this.recordInstallConversion(true);
+        });
+      }
 
       installPromptHandler.onInstallDismissed(() => {
         this.recordInstallConversion(false);
@@ -561,12 +567,16 @@ export class PWAPerformanceMonitor {
       this.recordPWAMetric('backgroundSyncFailure', event.detail.error);
     });
 
-    // Service Worker update detection
-    serviceWorkerManager.onUpdateAvailable(() => {
-      this.recordPWAMetric('updateAvailable', true);
-      this.triggerAlert('pwa', 'info', 'Service Worker Update Available', 
-        'A new version of the app is ready to install');
-    });
+    // Service Worker update detection with fallback
+    if (serviceWorkerManager && typeof serviceWorkerManager.onUpdateAvailable === 'function') {
+      serviceWorkerManager.onUpdateAvailable(() => {
+        this.recordPWAMetric('updateAvailable', true);
+        this.triggerAlert('pwa', 'info', 'Service Worker Update Available', 
+          'A new version of the app is ready to install');
+      });
+    } else {
+      logger.debug('Service worker manager not available - skipping update detection', {}, 'PWA_PERFORMANCE');
+    }
   }
 
   /**

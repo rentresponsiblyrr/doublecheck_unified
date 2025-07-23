@@ -408,22 +408,27 @@ export class WorkflowStatePersistence {
     try {
       if (!this.currentState) return false;
 
-      const { error } = await supabase
-        .from('workflow_states')
-        .upsert({
-          id: this.currentState.id,
-          user_id: this.currentState.userId,
-          inspection_id: this.currentState.inspectionId,
-          state_data: this.currentState,
-          version: this.currentState.metadata.version,
-          last_saved: this.currentState.metadata.lastSaved.toISOString(),
-          session_id: this.sessionId
-        });
+      // TEMPORARY: workflow_states table doesn't exist yet - skip server save
+      // Will use IndexedDB only until workflow_states table is created
+      logger.debug('Skipping server save - workflow_states table not available, using IndexedDB only', 
+        { stateId: this.currentState.id }, 'WORKFLOW_PERSISTENCE');
+      
+      // const { error } = await supabase
+      //   .from('workflow_states')
+      //   .upsert({
+      //     id: this.currentState.id,
+      //     user_id: this.currentState.userId,
+      //     inspection_id: this.currentState.inspectionId,
+      //     state_data: this.currentState,
+      //     version: this.currentState.metadata.version,
+      //     last_saved: this.currentState.metadata.lastSaved.toISOString(),
+      //     session_id: this.sessionId
+      //   });
 
-      if (error) {
-        logger.error('Failed to save to server', error, 'WORKFLOW_PERSISTENCE');
-        return false;
-      }
+      // if (error) {
+      //   logger.warn('workflow_states table not available', error, 'WORKFLOW_PERSISTENCE');
+      //   return false;
+      // }
 
       return true;
 
@@ -574,6 +579,10 @@ export class WorkflowStatePersistence {
    */
   private async recoverFromServer(stateId?: string): Promise<WorkflowState | null> {
     try {
+      // TEMPORARY: workflow_states table doesn't exist yet - skip server recovery
+      logger.debug('Skipping server recovery - workflow_states table not available', { stateId }, 'WORKFLOW_PERSISTENCE');
+      return null;
+      
       const sessionState = authGuard.getSessionState();
       if (!sessionState) return null;
 

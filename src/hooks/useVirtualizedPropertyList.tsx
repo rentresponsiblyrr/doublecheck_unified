@@ -8,13 +8,13 @@ import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react'
 import { FixedSizeList as List } from 'react-window';
 
 interface PropertyData {
-  property_id: string;
-  property_name: string;
-  property_address: string;
-  property_vrbo_url: string | null;
-  property_airbnb_url: string | null;
-  property_status?: string;
-  property_created_at?: string;
+  id: string;  // UUID from properties table
+  name: string;  // Property name from properties table
+  address: string;  // Property address from properties table
+  vrbo_url: string | null;
+  airbnb_url: string | null;
+  status?: string;
+  created_at?: string;
   inspection_count?: number;
   completed_inspection_count?: number;
   active_inspection_count?: number;
@@ -68,7 +68,7 @@ export const useVirtualizedPropertyList = (
     if (!searchQuery.trim()) return properties;
 
     const query = searchQuery.toLowerCase();
-    const searchFields = ['property_name', 'property_address'];
+    const searchFields = ['name', 'address'];
     
     return properties.filter((property) => {
       return searchFields.some(field => {
@@ -126,7 +126,7 @@ export const useVirtualizedPropertyList = (
    * Scroll to specific property with smooth animation
    */
   const scrollToProperty = useCallback((propertyId: string) => {
-    const index = filteredProperties.findIndex(p => p.property_id === propertyId);
+    const index = filteredProperties.findIndex(p => p.id === propertyId);
     if (index !== -1 && listRef.current) {
       listRef.current.scrollToItem(index, 'center');
     }
@@ -143,7 +143,7 @@ export const useVirtualizedPropertyList = (
    * Check if property is currently visible in viewport
    */
   const isPropertyVisible = useCallback((propertyId: string): boolean => {
-    const index = filteredProperties.findIndex(p => p.property_id === propertyId);
+    const index = filteredProperties.findIndex(p => p.id === propertyId);
     return index >= visibleRange.start && index <= visibleRange.end;
   }, [filteredProperties, visibleRange]);
 

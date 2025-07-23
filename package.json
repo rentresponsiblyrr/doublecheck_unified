@@ -102,7 +102,10 @@
     "pre-commit": "npm run quality-gates",
     "pre-push": "npm run quality-gates:strict",
     "eliminate-console": "node scripts/eliminate-console-violations.js",
-    "production-ready": "npm run eliminate-console && npm run quality-gates:strict"
+    "production-ready": "npm run eliminate-console && npm run quality-gates:strict",
+    "setup:quality-gates": "node scripts/setup-quality-gates.js",
+    "quality:fix-docs": "node scripts/fix-documentation-issues.js",
+    "audit:comprehensive": "npm run quality-gates:strict && npm run test:comprehensive && npm run test:security"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.18.0",

@@ -87,7 +87,8 @@ const PropertySelection = () => {
         property_id: property.id,
         completed: property.latest_inspection_completed || false,
         start_time: null,
-        status: property.latest_inspection_completed ? 'completed' : 'in_progress'
+        // Use proper status from the RPC response instead of oversimplified mapping
+        status: property.latest_inspection_status || (property.latest_inspection_completed ? 'completed' : 'in_progress')
       }));
   }, [properties]);
 

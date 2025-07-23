@@ -4,13 +4,13 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MobilePropertyData {
-  property_id: string;
-  property_name: string;
-  property_address: string;
-  property_vrbo_url: string | null;
-  property_airbnb_url: string | null;
-  property_status: string;
-  property_created_at: string;
+  id: string;  // UUID from properties table
+  name: string;  // Property name from properties table
+  address: string;  // Property address from properties table
+  vrbo_url: string | null;
+  airbnb_url: string | null;
+  status: string;
+  created_at: string;
   inspection_count: number;
   completed_inspection_count: number;
   active_inspection_count: number;

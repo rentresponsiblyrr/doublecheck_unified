@@ -94,10 +94,10 @@ class PropertyInspectionService {
           status,
           created_at,
           updated_at,
-          logs!inner (
+          checklist_items!inner (
             id,
             status,
-            static_safety_items!inner (
+            static_safety_items!static_item_id (
               id,
               label,
               evidence_type

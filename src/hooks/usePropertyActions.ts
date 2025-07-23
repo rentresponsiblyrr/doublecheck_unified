@@ -191,12 +191,24 @@ export const usePropertyActions = () => {
 
       const result = await inspectionCreationService.createInspection(request);
 
-      if (!result.success || !result.data) {
+      if (!result.success || !result.data || !result.data.inspectionId) {
         const errorMessage = result.error?.userMessage || result.error?.message || 'Enterprise inspection creation failed';
+        logger.error('Inspection creation failed', { 
+          success: result.success,
+          hasData: !!result.data,
+          inspectionId: result.data?.inspectionId,
+          error: result.error 
+        }, 'PROPERTY_ACTIONS');
         throw new Error(errorMessage);
       }
 
       const inspectionId = result.data.inspectionId;
+      
+      // Validate inspection ID before navigation
+      if (!inspectionId || inspectionId === 'undefined' || inspectionId.trim() === '') {
+        logger.error('Invalid inspection ID returned from creation service', { inspectionId }, 'PROPERTY_ACTIONS');
+        throw new Error('Failed to create inspection - invalid ID returned');
+      }
       
       navigate(`/inspection/${inspectionId}`);
       

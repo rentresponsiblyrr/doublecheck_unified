@@ -5,13 +5,13 @@ import { usePropertySelection } from "@/hooks/usePropertySelection";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PropertyData {
-  property_id: string;
-  property_name: string;
-  property_address: string;
-  property_vrbo_url: string | null;
-  property_airbnb_url: string | null;
-  property_status?: string;
-  property_created_at?: string;
+  id: string;  // UUID from properties table
+  name: string;  // Property name from properties table
+  address: string;  // Property address from properties table
+  vrbo_url: string | null;
+  airbnb_url: string | null;
+  status?: string;
+  created_at?: string;
   inspection_count?: number;
   completed_inspection_count?: number;
   active_inspection_count?: number;
@@ -92,7 +92,7 @@ export const useOptimizedPropertySelection = () => {
   const onPropertyDeleted = async () => {
     // Clear selection if the deleted property was selected
     if (selectedProperty) {
-      const stillExists = properties.some(p => p.property_id === selectedProperty);
+      const stillExists = properties.some(p => p.id === selectedProperty);
       if (!stillExists) {
         setSelectedProperty(null);
       }

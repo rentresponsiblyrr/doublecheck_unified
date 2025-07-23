@@ -69,10 +69,10 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({ childr
       }
 
       const formattedProperties: Property[] = data?.map(property => ({
-        id: property.property_id.toString(),
-        property_id: property.property_id,
-        property_name: property.property_name || 'Unnamed Property',
-        street_address: property.street_address || 'No address provided',
+        id: property.id,  // UUID from properties table
+        property_id: property.id,  // Keep for backwards compatibility
+        property_name: property.name || 'Unnamed Property',  // Fixed: use name field
+        street_address: property.address || 'No address provided',  // Fixed: use address field
         vrbo_url: property.vrbo_url,
         airbnb_url: property.airbnb_url,
         type: 'rental',

@@ -3,13 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface OptimizedPropertyData {
-  property_id: string;
-  property_name: string;
-  property_address: string;
-  property_vrbo_url: string;
-  property_airbnb_url: string;
-  property_status: string;
-  property_created_at: string;
+  id: string;  // UUID from properties table
+  name: string;  // Property name from properties table
+  address: string;  // Property address from properties table
+  vrbo_url: string;
+  airbnb_url: string;
+  status: string;
+  created_at: string;
   inspection_count: number;
   completed_inspection_count: number;
   active_inspection_count: number;
@@ -34,10 +34,10 @@ export const useOptimizedPropertyData = (userId?: string) => {
         throw error;
       }
 
-        count: data?.length || 0,
-        fetchDuration,
-        timestamp: new Date().toISOString()
-      });
+      // Debug log removed to prevent infinite console loops
+      // count: data?.length || 0,
+      // fetchDuration,
+      // timestamp: new Date().toISOString()
 
       return data as OptimizedPropertyData[];
     },
