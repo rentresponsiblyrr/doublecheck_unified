@@ -42,9 +42,9 @@ import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
 import { logger } from '@/utils/logger';
 
 export interface Property {
-  property_id: number;
-  property_name: string;
-  street_address: string;
+  id: string;
+  name: string;
+  address: string;
   vrbo_url?: string;
   airbnb_url?: string;
   created_at: string;
@@ -91,7 +91,7 @@ export const PropertyCardWithResume = ({
   useEffect(() => {
     checkForActiveInspection();
     checkForOfflineChanges();
-  }, [property.property_id, user, checkForActiveInspection, checkForOfflineChanges]);
+  }, [property.id, user, checkForActiveInspection, checkForOfflineChanges]);
 
   /**
    * Check for active inspection on this property
@@ -112,7 +112,7 @@ export const PropertyCardWithResume = ({
           created_at,
           updated_at
         `)
-        .eq('property_id', property.property_id.toString())
+        .eq('property_id', property.id)
         .eq('inspector_id', user.id)
         .in('status', ['draft', 'in_progress'])
         .order('created_at', { ascending: false })
@@ -122,28 +122,28 @@ export const PropertyCardWithResume = ({
       let checklistItems = [];
       if (inspection && inspection.length > 0) {
         const { data: logs, error: logsError } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .select(`
-            log_id,
-            pass,
-            inspector_remarks,
-            static_safety_items!checklist_id (
+            id,
+            status,
+            notes,
+            static_safety_items!static_item_id (
               id,
               label,
               evidence_type
             )
           `)
-          .eq('property_id', property.property_id);
+          .eq('inspection_id', inspection[0].id);
 
         if (logsError) {
-          logger.warn('Error fetching checklist items', { error: logsError, propertyId: property.property_id }, 'PROPERTY_CARD');
+          logger.warn('Error fetching checklist items', { error: logsError, propertyId: property.id }, 'PROPERTY_CARD');
         } else {
           checklistItems = logs || [];
         }
       }
 
       if (error) {
-        logger.warn('Error checking for active inspection', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
+        logger.warn('Error checking for active inspection', { error, propertyId: property.id }, 'PROPERTY_CARD');
         setLoading(false);
         return;
       }
@@ -152,8 +152,8 @@ export const PropertyCardWithResume = ({
         const inspectionData = inspection[0];
         
         // Calculate completed items based on corrected schema
-        const completedItems = checklistItems.filter((item: { pass?: boolean | null }) => 
-          item.pass === true || item.pass === false // Item has been evaluated (true = pass, false = fail)
+        const completedItems = checklistItems.filter((item: { status?: string }) => 
+          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
         ).length;
 
         const photosRequired = checklistItems.filter((item: { static_safety_items?: { evidence_type: string } }) => 
@@ -187,25 +187,25 @@ export const PropertyCardWithResume = ({
       setLoading(false);
 
     } catch (error) {
-      logger.error('Unexpected error checking for active inspection', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
+      logger.error('Unexpected error checking for active inspection', { error, propertyId: property.id }, 'PROPERTY_CARD');
       setLoading(false);
     }
-  }, [user, property.property_id]);
+  }, [user, property.id]);
 
   /**
    * Check for offline changes
    */
   const checkForOfflineChanges = useCallback(async () => {
     try {
-      const recoveryResult = await workflowStatePersistence.recoverState(`property_${property.property_id}`);
+      const recoveryResult = await workflowStatePersistence.recoverState(`property_${property.id}`);
       if (recoveryResult.recovered) {
         setHasOfflineChanges(true);
-        logger.info('Offline changes detected for property', { propertyId: property.property_id }, 'PROPERTY_CARD');
+        logger.info('Offline changes detected for property', { propertyId: property.id }, 'PROPERTY_CARD');
       }
     } catch (error) {
-      logger.warn('Error checking for offline changes', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
+      logger.warn('Error checking for offline changes', { error, propertyId: property.id }, 'PROPERTY_CARD');
     }
-  }, [property.property_id]);
+  }, [property.id]);
 
   /**
    * Handle starting new or resuming inspection
@@ -221,7 +221,7 @@ export const PropertyCardWithResume = ({
     }
 
     if (onInspectionStart) {
-      onInspectionStart(property.property_id.toString(), isResume);
+      onInspectionStart(property.id, isResume);
       return;
     }
 
@@ -229,7 +229,7 @@ export const PropertyCardWithResume = ({
     if (isResume && activeInspection) {
       logger.info('Resuming inspection', { 
         inspectionId: activeInspection.id,
-        propertyId: property.property_id 
+        propertyId: property.id 
       }, 'PROPERTY_CARD');
       
       navigate(`/inspection/${activeInspection.id}`);
@@ -239,11 +239,11 @@ export const PropertyCardWithResume = ({
         description: `Continuing where you left off - ${activeInspection.completed_items}/${activeInspection.total_items} items completed.`,
       });
     } else {
-      logger.info('Starting new inspection', { propertyId: property.property_id }, 'PROPERTY_CARD');
+      logger.info('Starting new inspection', { propertyId: property.id }, 'PROPERTY_CARD');
       
       // This will be handled by the existing usePropertyActions.startInspection logic
       // which will detect if there's an existing inspection and navigate accordingly
-      navigate(`/property-selection?property=${property.property_id}&start=true`);
+      navigate(`/property-selection?property=${property.id}&start=true`);
     }
   };
 
@@ -303,7 +303,7 @@ export const PropertyCardWithResume = ({
   }
 
   return (
-    <Card className={`relative transition-all duration-200 hover:shadow-md ${className}`} id={`property-card-${property.property_id}`}>
+    <Card className={`relative transition-all duration-200 hover:shadow-md ${className}`} id={`property-card-${property.id}`}>
       {/* Offline indicator */}
       {hasOfflineChanges && (
         <div className="absolute top-2 right-2">
@@ -318,11 +318,11 @@ export const PropertyCardWithResume = ({
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-              {property.property_name}
+              {property.name}
             </CardTitle>
             <div className="flex items-center text-sm text-gray-600 mb-2">
               <MapPin className="w-4 h-4 mr-1" />
-              <span>{property.street_address}</span>
+              <span>{property.address}</span>
             </div>
           </div>
           {getStatusBadge()}

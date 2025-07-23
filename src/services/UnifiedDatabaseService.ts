@@ -45,14 +45,15 @@ export interface DatabaseUser {
 }
 
 export interface DatabaseProperty {
-  property_id: number; // Integer in database
-  name: string;
-  address: string;
+  id: PropertyId; // UUID primary key
+  name: string; // Property name
+  address: string; // Property address
   vrbo_url?: string;
   airbnb_url?: string;
+  added_by: UserId; // UUID referencing users
+  status: string; // 'active' by default
   created_at: string;
-  created_by: UserId;
-  scraped_at?: string;
+  updated_at: string;
 }
 
 export interface PropertyWithInspections extends DatabaseProperty {
@@ -79,13 +80,15 @@ export interface InspectionWithItems extends DatabaseInspection {
 }
 
 export interface ChecklistItem {
-  log_id: number;
-  property_id: number;
-  checklist_id: SafetyItemId;
-  ai_result?: string;
-  inspector_remarks?: string;
-  pass?: boolean;
-  inspector_id?: UserId;
+  id: string; // UUID primary key
+  inspection_id: string; // UUID referencing inspections.id
+  static_item_id?: string; // UUID referencing static_safety_items.id
+  status?: string; // 'completed'|'failed'|'not_applicable'
+  notes?: string; // Inspector notes
+  ai_status?: string; // 'pass'|'fail'|'conflict'
+  created_at: string;
+  evidence_type: string;
+  source_photo_url?: string;
 }
 
 export interface StaticSafetyItem {
@@ -529,18 +532,10 @@ export class UnifiedDatabaseService {
         return cached;
       }
       
-      const { data, error } = await this.supabase
+      // CRITICAL FIX: Separate queries to avoid join issues
+      const { data: inspection, error } = await this.supabase
         .from('inspections')
-        .select(`
-          *,
-          properties!inner (property_id, name, address),
-          users!inner (id, name, email, role),
-          logs!inner (
-            *,
-            static_safety_items!static_item_id (id, label, category),
-            media (*)
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       
@@ -548,8 +543,39 @@ export class UnifiedDatabaseService {
         if (error.code === 'PGRST116') {
           return null;
         }
-        throw new DatabaseError('Failed to fetch inspection', 'INSPECTION_FETCH_FAILED', error);
+        throw new DatabaseError(`Failed to fetch inspection: ${error.message}`, 'FETCH_FAILED');
       }
+      
+      // Get property data separately
+      const { data: property } = await this.supabase
+        .from('properties')
+        .select('property_id, property_name, street_address')
+        .eq('property_id', parseInt(inspection.property_id))
+        .single();
+      
+      // Get user data separately  
+      const { data: user } = await this.supabase
+        .from('users')
+        .select('id, name, email, role')
+        .eq('id', inspection.inspector_id)
+        .single();
+      
+      // Get logs data separately
+      const { data: logs } = await this.supabase
+        .from('logs')
+        .select(`
+          *,
+          static_safety_items!checklist_id (id, label, category),
+          media (*)
+        `)
+        .eq('property_id', parseInt(inspection.property_id));
+      
+      const data = {
+        ...inspection,
+        properties: property,
+        users: user,
+        logs: logs || []
+      };
       
       const inspection = data as InspectionWithItems;
       await this.cache.set(cacheKey, inspection, 300);

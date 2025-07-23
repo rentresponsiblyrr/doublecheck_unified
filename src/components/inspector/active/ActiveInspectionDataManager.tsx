@@ -77,7 +77,7 @@ class ActiveInspectionService {
       logger.debug('Fetching active inspections', { userId, maxItems }, 'ACTIVE_INSPECTIONS');
       
       // Query active inspections with property data
-      // CORRECTED: Using actual production database schema
+      // CRITICAL FIX: Handle property_id type conversion (inspections.property_id is TEXT, properties.property_id is INTEGER)
       const { data: inspections, error: inspectionsError } = await supabase
         .from('inspections')
         .select(`
@@ -85,12 +85,7 @@ class ActiveInspectionService {
           property_id,
           status,
           created_at,
-          updated_at,
-          properties!inner (
-            property_id,
-            property_name,
-            street_address
-          )
+          updated_at
         `)
         .eq('inspector_id', userId)
         .in('status', ['draft', 'in_progress'])
@@ -113,39 +108,63 @@ class ActiveInspectionService {
         return [];
       }
 
+      // Get property data separately using correct schema
+      const propertyIds = [...new Set(inspections.map(i => i.property_id))];
+      const { data: properties, error: propertiesError } = await supabase
+        .from('properties')
+        .select('id, name, address')
+        .in('id', propertyIds);
+
+      if (propertiesError) {
+        logger.error('Failed to fetch property data', { error: propertiesError, propertyIds }, 'ACTIVE_INSPECTIONS');
+        throw new Error(`Property query failed: ${propertiesError.message}`);
+      }
+
+      // Create property lookup map
+      const propertyMap = new Map(properties?.map(p => [p.id, p]) || []);
+
       // Transform data with progress calculation
       const inspectionSummaries: ActiveInspectionSummary[] = [];
       
       for (const inspection of inspections) {
-        const property = inspection.properties;
+        const propertyId = inspection.property_id;
+        const property = propertyMap.get(propertyId);
         
-        // Get checklist items separately using correct schema
-        const { data: logs, error: logsError } = await supabase
-          .from('logs')
+        if (!property) {
+          logger.warn('Property not found for inspection', { 
+            inspectionId: inspection.id, 
+            propertyId: inspection.property_id 
+          }, 'ACTIVE_INSPECTIONS');
+          continue;
+        }
+        
+        // Get checklist items using correct schema
+        const { data: checklistItemsData, error: checklistError } = await supabase
+          .from('checklist_items')
           .select(`
-            log_id,
-            pass,
-            inspector_remarks,
-            static_safety_items!checklist_id (
+            id,
+            status,
+            notes,
+            static_safety_items!static_item_id (
               id,
               label,
               evidence_type
             )
           `)
-          .eq('property_id', property.property_id);
+          .eq('inspection_id', inspection.id);
 
-        const checklistItems = logs || [];
+        const checklistItems = checklistItemsData || [];
         
-        if (logsError) {
+        if (checklistError) {
           logger.warn('Error fetching checklist items for inspection', { 
-            error: logsError, 
+            error: checklistError, 
             inspectionId: inspection.id,
-            propertyId: property.property_id
+            propertyId: property.id
           }, 'ACTIVE_INSPECTIONS');
         }
         
         const completedItems = checklistItems.filter((item: any) => 
-          item.pass === true || item.pass === false // Item has been evaluated (true = pass, false = fail)
+          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
         ).length;
 
         const photosRequired = checklistItems.filter((item: any) => 
@@ -153,7 +172,7 @@ class ActiveInspectionService {
         ).length;
 
         // Check for offline changes
-        const hasOfflineChanges = await this.checkOfflineChanges(property.property_id.toString(), inspection.id);
+        const hasOfflineChanges = await this.checkOfflineChanges(property.id, inspection.id);
         
         const progressPercentage = checklistItems.length > 0 
           ? Math.round((completedItems / checklistItems.length) * 100) 
@@ -161,9 +180,9 @@ class ActiveInspectionService {
 
         inspectionSummaries.push({
           inspectionId: inspection.id,
-          propertyId: property.property_id.toString(),
-          propertyName: property.property_name,
-          propertyAddress: property.street_address,
+          propertyId: property.id,
+          propertyName: property.name,
+          propertyAddress: property.address,
           status: inspection.status as 'draft' | 'in_progress' | 'completed',
           completedItems,
           totalItems: checklistItems.length,

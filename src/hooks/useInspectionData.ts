@@ -65,9 +65,9 @@ export const useInspectionData = (inspectionId: string) => {
         debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
           count: items?.length || 0,
           sampleItems: items?.slice(0, 3).map(i => ({ 
-            id: i.log_id, 
-            label: i.static_safety_items?.label, 
-            pass: i.pass 
+            id: i.id, 
+            label: i.static_safety_items?.title, 
+            status: i.status 
           })) || []
         });
         
@@ -83,15 +83,15 @@ export const useInspectionData = (inspectionId: string) => {
           return [];
         }
         
-        // Transform the data to match our TypeScript interface - CORRECTED for logs table schema
+        // Transform the data to match our TypeScript interface - CORRECTED for checklist_items table schema
         const transformedData: ChecklistItemType[] = items.map(item => ({
-          id: item.log_id.toString(), // Convert integer to string for compatibility
-          inspection_id: inspectionId, // Use the passed inspectionId since logs doesn't store it
-          label: item.static_safety_items?.label || '',
+          id: item.id, // UUID from checklist_items table
+          inspection_id: inspectionId, // Already stored in checklist_items table
+          label: item.static_safety_items?.title || '',
           category: item.static_safety_items?.category || 'safety',
           evidence_type: 'photo', // Default to photo for now
-          status: item.pass === true ? 'completed' : item.pass === false ? 'failed' : null,
-          notes: item.inspector_remarks || '',
+          status: item.status, // Use status field directly
+          notes: item.notes || '', // Use notes field
           created_at: item.created_at || new Date().toISOString()
         }));
         
