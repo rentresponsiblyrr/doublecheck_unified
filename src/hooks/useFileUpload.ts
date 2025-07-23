@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { uploadMedia, updateChecklistItemStatus } from "@/lib/supabase";
+import { uploadMedia } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/useOfflineStorage";
 import { useFileValidation } from "@/utils/fileValidation";

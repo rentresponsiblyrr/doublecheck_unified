@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { logger, logError, logInfo } from "@/utils/logger";
+import { logError, logInfo } from "@/utils/logger";
 
 interface SimpleAuthFormProps {
   onAuthSuccess?: () => void;
