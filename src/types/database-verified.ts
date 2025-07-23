@@ -191,7 +191,7 @@ export interface KnowledgeBase {
   content: string | null;
   category: string | null;
   embedding: number[]; // Vector(1536) - OpenAI embeddings
-  metadata: any; // JSONB metadata
+  metadata: Record<string, unknown>; // JSONB metadata
   status: string | null;
   created_at: string;
 }
@@ -233,7 +233,7 @@ export interface LearningMetrics {
 export interface ChecklistOperationsAudit {
   id: string;
   operation: string; // Operation type
-  details: any; // JSONB operation details
+  details: Record<string, unknown>; // JSONB operation details
   created_at: string;
 }
 
@@ -359,7 +359,7 @@ export interface AdminDashboardMetrics {
  */
 export type DatabaseQueryResult<T> = {
   data: T | null;
-  error: any;
+  error: Record<string, unknown>;
 };
 
 /**
@@ -419,7 +419,7 @@ export interface QueryMetrics {
 export interface DatabaseError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   hint?: string;
 }
 

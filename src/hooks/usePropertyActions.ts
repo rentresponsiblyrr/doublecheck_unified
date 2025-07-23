@@ -181,7 +181,7 @@ export const usePropertyActions = () => {
           .from("inspections")
           .select("id")
           .eq("property_id", propertyIdForQuery)
-          .eq("completed", false)
+          .in("status", ["draft", "in_progress"])
           .single();
 
         if (checkError && checkError.code !== "PGRST116") {

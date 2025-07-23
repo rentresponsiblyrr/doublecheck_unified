@@ -325,7 +325,7 @@ export class AtomicInspectionService {
           .from("inspections")
           .select("id, status")
           .eq("property_id", propertyId)
-          .eq("completed", false)
+          .in("status", ["draft", "in_progress"])
           .limit(1);
 
         if (error) throw error;

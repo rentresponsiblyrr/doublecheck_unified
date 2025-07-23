@@ -218,14 +218,20 @@ ValidatedForm.displayName = "ValidatedForm";
 // Form Context for accessing form state in child components
 const FormContext = React.createContext<{
   formId: string;
-  formData: Record<string, any>;
-  validationResult: any;
+  formData: Record<string, unknown>;
+  validationResult: Record<string, unknown>;
   isSubmitting: boolean;
   disabled: boolean;
 } | null>(null);
 
 const FormProvider: React.FC<{
-  value: any;
+  value: {
+    formId: string;
+    formData: Record<string, unknown>;
+    validationResult: Record<string, unknown>;
+    isSubmitting: boolean;
+    disabled: boolean;
+  };
   children: ReactNode;
 }> = ({ value, children }) => (
   <FormContext.Provider value={value}>{children}</FormContext.Provider>

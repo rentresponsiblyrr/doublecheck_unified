@@ -385,10 +385,10 @@ export class QueryBuilder<T = Record<string, unknown>> {
    * Build query for inspection checklist items
    * With safety items and media relationships
    *
-   * @param propertyId - Property ID to filter by
+   * @param inspectionId - Inspection ID to filter by
    * @returns Configured QueryBuilder
    */
-  static inspectionChecklist(propertyId: number): QueryBuilder<DatabaseLog> {
+  static inspectionChecklist(inspectionId: string): QueryBuilder<DatabaseLog> {
     return new QueryBuilder("checklist_items")
       .select(
         `
@@ -403,8 +403,8 @@ export class QueryBuilder<T = Record<string, unknown>> {
         media!left (*)
       `,
       )
-      .eq("property_id", propertyId)
-      .orderBy("log_id");
+      .eq("inspection_id", inspectionId)
+      .orderBy("created_at");
   }
 
   /**
@@ -872,10 +872,10 @@ export function queryInspections(
  * @param options - Query builder options
  * @returns Configured QueryBuilder
  */
-export function queryLogs(
+export function queryChecklistItems(
   options?: QueryBuilderOptions,
 ): QueryBuilder<DatabaseLog> {
-  return new QueryBuilder("logs", options);
+  return new QueryBuilder("checklist_items", options);
 }
 
 /**

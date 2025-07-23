@@ -236,7 +236,7 @@ export interface PerformanceMetrics {
 export interface PWAEvent {
   type: "install" | "update" | "offline" | "online" | "sync" | "notification";
   timestamp: number;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface PWAHookResult<T> {
@@ -248,7 +248,7 @@ export interface PWAHookResult<T> {
 
 export interface SyncHookActions {
   queueSync: (
-    data: any,
+    data: Record<string, unknown>,
     priority?: "immediate" | "high" | "normal" | "low",
   ) => Promise<string>;
   triggerSync: (queueName?: string) => Promise<void>;
@@ -318,7 +318,7 @@ export interface PWAError {
   severity: "low" | "medium" | "high" | "critical";
   timestamp: number;
   recoverable: boolean;
-  context?: any;
+  context?: Record<string, unknown>;
 }
 
 export interface RecoveryStrategy {
@@ -389,9 +389,9 @@ export type InstallState =
 declare global {
   interface Window {
     __PWA_STATUS__?: PWAStatus;
-    __BACKGROUND_SYNC_MANAGER__?: any;
-    __PUSH_NOTIFICATION_MANAGER__?: any;
-    __UNIFIED_SYSTEM_STATUS__?: any;
+    __BACKGROUND_SYNC_MANAGER__?: BackgroundSyncManager;
+    __PUSH_NOTIFICATION_MANAGER__?: PushNotificationManager;
+    __UNIFIED_SYSTEM_STATUS__?: UnifiedSystemStatus;
   }
 
   interface BeforeInstallPromptEvent extends Event {
@@ -403,12 +403,65 @@ declare global {
     prompt(): Promise<void>;
   }
 
+  interface BatteryManager {
+    charging: boolean;
+    chargingTime: number;
+    dischargingTime: number;
+    level: number;
+    addEventListener(type: string, listener: EventListener): void;
+  }
+
+  interface NetworkInformation {
+    downlink: number;
+    effectiveType: string;
+    rtt: number;
+    saveData: boolean;
+    addEventListener(type: string, listener: EventListener): void;
+  }
+
   interface Navigator {
     standalone?: boolean;
-    getBattery?: () => Promise<any>;
-    connection?: any;
+    getBattery?: () => Promise<BatteryManager>;
+    connection?: NetworkInformation;
     serviceWorker: ServiceWorkerContainer;
   }
+}
+
+// Additional type definitions for global interface references
+export interface BackgroundSyncManager {
+  initialize(registration: ServiceWorkerRegistration): Promise<void>;
+  queueSyncTask(task: unknown): Promise<string>;
+  destroy(): void;
+}
+
+export interface PushNotificationManager {
+  initialize(registration: ServiceWorkerRegistration): Promise<void>;
+  sendNotification(payload: NotificationPayload): Promise<void>;
+  destroy(): void;
+}
+
+export interface UnifiedSystemStatus {
+  performance: {
+    coreWebVitals: boolean;
+    realTimeMonitoring: boolean;
+    budgetEnforcement: boolean;
+  };
+  pwa: PWAStatus & {
+    serviceWorker: boolean;
+    offlineManager: boolean;
+    installPrompt: boolean;
+    backgroundSync: boolean;
+    pushNotifications: boolean;
+    allSystemsReady: boolean;
+    phase4bComplete: boolean;
+  };
+  integration: {
+    crossSystemMonitoring: boolean;
+    constructionSiteReady: boolean;
+    productionReady: boolean;
+    phase4bIntegration: boolean;
+  };
+  error?: string;
 }
 
 export default PWAStatus;

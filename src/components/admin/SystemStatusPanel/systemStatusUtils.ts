@@ -260,7 +260,7 @@ export const requestManager = new RequestManager();
  * @accessibility Ensures numeric values are screen reader friendly
  * @since 1.0.0
  */
-export function validateAndProcessMetrics(rawData: any): SystemMetrics {
+export function validateAndProcessMetrics(rawData: unknown): SystemMetrics {
   try {
     // Handle null/undefined data gracefully
     if (!rawData || typeof rawData !== "object") {
@@ -458,7 +458,7 @@ function calculatePerformanceScore(metrics: {
  * @since 1.0.0
  */
 function validateWorkloadDistribution(
-  rawWorkloads: any[],
+  rawWorkloads: unknown[],
 ): InspectorWorkload[] {
   if (!Array.isArray(rawWorkloads)) {
     return [];
@@ -485,7 +485,7 @@ function validateWorkloadDistribution(
  *
  * @since 1.0.0
  */
-function validateInspectorStatus(status: any): InspectorWorkload["status"] {
+function validateInspectorStatus(status: unknown): InspectorWorkload["status"] {
   const validStatuses: InspectorWorkload["status"][] = [
     "available",
     "busy",
@@ -510,7 +510,7 @@ function validateInspectorStatus(status: any): InspectorWorkload["status"] {
  * @performance O(1) validation time
  * @since 1.0.0
  */
-function validateTimestamp(timestamp: any): string | null {
+function validateTimestamp(timestamp: unknown): string | null {
   try {
     if (!timestamp) return null;
 
@@ -603,7 +603,9 @@ export async function fetchSystemMetricsWithCache(): Promise<SystemMetrics> {
           supabase
             .from("inspections")
             .select("id, status, start_time, end_time, created_at"),
-          supabase.rpc("get_all_users"),
+          supabase
+            .from("users")
+            .select("id, name, email, role, status, created_at"),
         ]);
 
       return {
@@ -651,9 +653,9 @@ export async function fetchSystemMetricsWithCache(): Promise<SystemMetrics> {
  * @since 1.0.0
  */
 function processRawSystemData(rawData: {
-  properties: any[];
-  inspections: any[];
-  users: any[];
+  properties: unknown[];
+  inspections: unknown[];
+  users: unknown[];
 }): SystemMetrics {
   const { properties, inspections, users } = rawData;
 

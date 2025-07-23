@@ -36,7 +36,7 @@ export class RobustMobileInspectionService {
         .from("inspections")
         .select("id, inspector_id, status")
         .eq("property_id", propertyId)
-        .eq("completed", false)
+        .in("status", ["draft", "in_progress"])
         .order("start_time", { ascending: false })
         .limit(1)
         .maybeSingle();

@@ -48,10 +48,17 @@ interface OfflineStore {
 interface ServiceLayer {
   execute<T>(operation: string, params: Record<string, unknown>): Promise<T>;
   getHealth(): {
-    status: "healthy" | "degraded" | "unhealthy";
-    details: Record<string, unknown>;
+    status: "healthy" | "degraded" | "error";
+    uptime: number;
+    metrics: Record<string, unknown>;
   };
   reset(): Promise<void>;
+}
+
+interface ConflictQueueItem {
+  type: string;
+  data: Record<string, unknown>;
+  timestamp: number;
 }
 
 interface IntegrationState {
@@ -88,8 +95,7 @@ export class PWAEnhancedServicesBridge {
   private state: IntegrationState;
   private mapping: ServicePWAMapping;
   private healthCheckTimer: number | null = null;
-  private conflictQueue: Array<{ type: string; data: any; timestamp: number }> =
-    [];
+  private conflictQueue: ConflictQueueItem[] = [];
 
   constructor() {
     this.state = {
@@ -347,8 +353,8 @@ export class PWAEnhancedServicesBridge {
   async coordinateCache(
     operation: string,
     key: string,
-    data?: any,
-  ): Promise<any> {
+    data?: Record<string, unknown>,
+  ): Promise<unknown> {
     switch (operation) {
       case "get":
         // Try Enhanced cache first for data, PWA cache for assets
@@ -401,7 +407,10 @@ export class PWAEnhancedServicesBridge {
    * COORDINATE SYNC OPERATIONS
    * Manages sequential coordination between PWA Background Sync and Enhanced Real-Time Sync
    */
-  async coordinateSync(type: "offline" | "realtime", data: any): Promise<void> {
+  async coordinateSync(
+    type: "offline" | "realtime",
+    data: Record<string, unknown>,
+  ): Promise<void> {
     if (type === "offline") {
       // Use PWA Background Sync for offline operations
       if (this.mapping.sync.backgroundSync) {
@@ -419,7 +428,10 @@ export class PWAEnhancedServicesBridge {
    * RESOLVE DATA CONFLICTS
    * Handles conflicts between PWA offline data and Enhanced Services data
    */
-  async resolveDataConflict(localData: any, remoteData: any): Promise<any> {
+  async resolveDataConflict(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     // Enhanced Services wins for data integrity
     if (this.mapping.data.conflictResolution === "enhanced-wins") {
       return remoteData;

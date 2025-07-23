@@ -472,12 +472,12 @@ class AIProxyService {
       await supabase.from("ai_usage_log").insert({
         inspection_id: request.inspectionId,
         checklist_item_id: request.checklistItemId,
-        prompt_tokens: response.usage.promptTokens,
-        completion_tokens: response.usage.completionTokens,
-        total_tokens: response.usage.totalTokens,
+        input_tokens: response.usage.promptTokens,
+        output_tokens: response.usage.completionTokens,
         cost: response.usage.cost,
+        ai_provider: "anthropic", // or determine from response.metadata
         model: response.metadata.model,
-        processing_time_ms: response.metadata.processingTimeMs,
+        analysis_type: "photo_analysis", // or determine from request type
         created_at: new Date().toISOString(),
       });
     } catch (error) {

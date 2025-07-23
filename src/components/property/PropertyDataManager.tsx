@@ -18,6 +18,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { supabase } from "@/integrations/supabase/client";
+import type { ChecklistItem } from "@/types/database-verified";
 import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
 import { logger } from "@/utils/logger";
 
@@ -131,14 +132,18 @@ class PropertyInspectionService {
       const checklistItems = inspectionData.logs || [];
 
       const completedItems = checklistItems.filter(
-        (item: any) =>
+        (item: ChecklistItem) =>
           item.status === "completed" ||
           item.status === "failed" ||
           item.status === "not_applicable",
       ).length;
 
       const photosRequired = checklistItems.filter(
-        (item: any) => item.static_safety_items?.evidence_type === "photo",
+        (
+          item: ChecklistItem & {
+            static_safety_items?: { evidence_type?: string };
+          },
+        ) => item.static_safety_items?.evidence_type === "photo",
       ).length;
 
       const activeInspectionData: ActiveInspection = {

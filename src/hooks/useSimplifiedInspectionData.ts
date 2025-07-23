@@ -72,7 +72,7 @@ export const useSimplifiedInspectionData = (
           inspectionCheck,
         );
 
-        // Step 2: Check if inspection has specific checklist items in logs table
+        // Step 2: Check if inspection has specific checklist items in checklist_items table
         debugLogger.debug(
           "SimplifiedInspectionData",
           "Fetching checklist items",

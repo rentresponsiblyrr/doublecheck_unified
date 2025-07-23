@@ -28,23 +28,26 @@ export const useMobileAuthHooks = () => {
 
         const fetchRole = async () => {
           try {
-            // Use direct database query instead of RPC (post-migration schema)
-            const { data, error } = await supabase
-              .from("users")
-              .select("role")
-              .eq("id", userId)
-              .single();
+            // Use verified RPC function to avoid 503 errors
+            const { data: role, error } = await supabase.rpc("get_user_role", {
+              user_id: userId,
+            });
 
             clearTimeout(timeout);
 
             if (error) {
+              // Fallback to default role if RPC fails
               resolve("inspector");
               return;
             }
 
-            const role = data?.role || "inspector";
-            setCachedRole(userId, role);
-            resolve(role);
+            // Use the role returned by RPC function (already validated)
+            const validRole =
+              role && ["admin", "inspector", "auditor"].includes(role)
+                ? role
+                : "inspector";
+            setCachedRole(userId, validRole);
+            resolve(validRole);
           } catch (error) {
             clearTimeout(timeout);
             resolve("inspector");

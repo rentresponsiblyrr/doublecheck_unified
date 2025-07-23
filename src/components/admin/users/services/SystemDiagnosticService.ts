@@ -31,7 +31,9 @@ export class SystemDiagnosticService {
 
       // Test users table access using RPC function to avoid RLS recursion
       try {
-        const { data, error } = await supabase.rpc("get_all_users");
+        const { data, error } = await supabase
+          .from("users")
+          .select("id, name, email, role, status");
         diagnosticResults.usersTableExists = !error;
         diagnosticResults.hasPermissions = !error;
 

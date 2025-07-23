@@ -192,12 +192,12 @@ export const useUserManagement = () => {
               inspectionCount = inspections?.length || 0;
             }
 
-            // Get audit count for auditors
+            // Get audit count for auditors (count inspections with auditor feedback)
             if (user.role === "auditor") {
               const { data: audits } = await supabase
-                .from("audit_feedback")
+                .from("inspections")
                 .select("id")
-                .eq("created_by", user.id);
+                .not("auditor_feedback", "is", null);
               auditCount = audits?.length || 0;
             }
           } catch (activityError) {

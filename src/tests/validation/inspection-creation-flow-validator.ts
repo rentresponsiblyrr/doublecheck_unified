@@ -79,6 +79,12 @@ export interface MockTestData {
   };
 }
 
+export interface RpcTestResult {
+  status: "PASS" | "FAIL";
+  message: string;
+  code?: string;
+}
+
 // ================================================================
 // MAIN VALIDATION CLASS
 // ================================================================
@@ -424,10 +430,12 @@ export class InspectionCreationFlowValidator {
       throw new Error("RPC validation function returned invalid data");
     }
 
-    const failedTests = data.filter((test: any) => test.status === "FAIL");
+    const failedTests = data.filter(
+      (test: RpcTestResult) => test.status === "FAIL",
+    );
     if (failedTests.length > 0) {
       throw new Error(
-        `RPC validation failed: ${failedTests.map((t: any) => t.message).join(", ")}`,
+        `RPC validation failed: ${failedTests.map((t: RpcTestResult) => t.message).join(", ")}`,
       );
     }
   }
@@ -575,7 +583,7 @@ export class InspectionCreationFlowValidator {
     };
   }
 
-  private sanitizeTestData(testData: MockTestData): any {
+  private sanitizeTestData(testData: MockTestData): Record<string, unknown> {
     return {
       ...testData,
       validInspectorId: "***",

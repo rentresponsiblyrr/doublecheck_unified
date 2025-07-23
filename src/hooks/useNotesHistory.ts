@@ -73,7 +73,7 @@ export const useNotesHistory = (itemId: string) => {
             {
               event: "UPDATE",
               schema: "public",
-              table: "logs",
+              table: "checklist_items",
               filter: `id=eq.${itemId}`,
             },
             (payload) => {

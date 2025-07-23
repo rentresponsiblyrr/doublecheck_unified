@@ -75,7 +75,7 @@ export class InspectionQueryService {
             "id, property_id, inspector_id, status, completed, start_time, end_time",
           )
           .eq("property_id", cleanPropertyId)
-          .eq("completed", false)
+          .in("status", ["draft", "in_progress"])
           .order("start_time", { ascending: false })
           .limit(1)
           .maybeSingle(),

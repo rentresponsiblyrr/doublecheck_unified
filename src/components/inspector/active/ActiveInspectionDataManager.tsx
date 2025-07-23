@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
 import { logger } from "@/utils/logger";
 import { useAuth } from "@/hooks/useAuth";
+import type { ChecklistItem } from "@/types/database-verified";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 export interface ActiveInspectionSummary {
@@ -85,23 +86,15 @@ class ActiveInspectionService {
         "ACTIVE_INSPECTIONS",
       );
 
-      // Query active inspections with property data
-      // CRITICAL FIX: Handle property_id type conversion (inspections.property_id is TEXT, properties.property_id is INTEGER)
-      const { data: inspections, error: inspectionsError } = await supabase
-        .from("inspections")
-        .select(
-          `
-          id,
-          property_id,
-          status,
-          created_at,
-          updated_at
-        `,
-        )
-        .eq("inspector_id", userId)
-        .in("status", ["draft", "in_progress"])
-        .order("updated_at", { ascending: false })
-        .limit(maxItems);
+      // Query active inspections using RPC function to avoid RLS issues
+      // CRITICAL FIX: Use RPC function instead of direct table access
+      const { data: inspections, error: inspectionsError } = await supabase.rpc(
+        "get_user_active_inspections",
+        {
+          user_id: userId,
+          max_items: maxItems,
+        },
+      );
 
       if (inspectionsError) {
         logger.error(
@@ -125,35 +118,18 @@ class ActiveInspectionService {
         return [];
       }
 
-      // Get property data separately using correct schema
-      const propertyIds = [...new Set(inspections.map((i) => i.property_id))];
-      const { data: properties, error: propertiesError } = await supabase
-        .from("properties")
-        .select("id, name, address")
-        .in("id", propertyIds);
-
-      if (propertiesError) {
-        logger.error(
-          "Failed to fetch property data",
-          { error: propertiesError, propertyIds },
-          "ACTIVE_INSPECTIONS",
-        );
-        throw new Error(`Property query failed: ${propertiesError.message}`);
-      }
-
-      // Create property lookup map
-      const propertyMap = new Map(properties?.map((p) => [p.id, p]) || []);
-
-      // Transform data with progress calculation
+      // Transform data with progress calculation (RPC already includes property data)
       const inspectionSummaries: ActiveInspectionSummary[] = [];
 
       for (const inspection of inspections) {
+        // RPC function returns property data directly
         const propertyId = inspection.property_id;
-        const property = propertyMap.get(propertyId);
+        const propertyName = inspection.property_name || "Unknown Property";
+        const propertyAddress = inspection.property_address || "No address";
 
-        if (!property) {
+        if (!propertyName) {
           logger.warn(
-            "Property not found for inspection",
+            "Property data missing from RPC response",
             {
               inspectionId: inspection.id,
               propertyId: inspection.property_id,
@@ -196,17 +172,21 @@ class ActiveInspectionService {
         }
 
         const completedItems = checklistItems.filter(
-          (item: any) =>
+          (item: ChecklistItem) =>
             item.status === "completed" || item.status === "failed", // Item has been evaluated
         ).length;
 
         const photosRequired = checklistItems.filter(
-          (item: any) => item.static_safety_items?.evidence_type === "photo",
+          (
+            item: ChecklistItem & {
+              static_safety_items?: { evidence_type?: string };
+            },
+          ) => item.static_safety_items?.evidence_type === "photo",
         ).length;
 
         // Check for offline changes
         const hasOfflineChanges = await this.checkOfflineChanges(
-          property.id,
+          propertyId,
           inspection.id,
         );
 
@@ -217,9 +197,9 @@ class ActiveInspectionService {
 
         inspectionSummaries.push({
           inspectionId: inspection.id,
-          propertyId: property.id,
-          propertyName: property.name,
-          propertyAddress: property.address,
+          propertyId: propertyId,
+          propertyName: propertyName,
+          propertyAddress: propertyAddress,
           status: inspection.status as "draft" | "in_progress" | "completed",
           completedItems,
           totalItems: checklistItems.length,

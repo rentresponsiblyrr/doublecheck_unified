@@ -58,7 +58,7 @@ export interface TestMetrics {
   cacheHits?: number;
   networkCalls?: number;
   errorCounts?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface NetworkTrace {

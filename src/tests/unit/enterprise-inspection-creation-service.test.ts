@@ -37,8 +37,8 @@ const mockLogger = logger as jest.Mocked<typeof logger>;
 
 describe("EnterpriseInspectionCreationService", () => {
   let service: EnterpriseInspectionCreationService;
-  let mockRpcResponse: any;
-  let mockAuthResponse: any;
+  let mockRpcResponse: Record<string, unknown>;
+  let mockAuthResponse: Record<string, unknown>;
 
   beforeEach(() => {
     service = EnterpriseInspectionCreationService.getInstance();

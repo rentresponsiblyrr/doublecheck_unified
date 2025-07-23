@@ -107,9 +107,7 @@ export class UploadService {
         created_at: new Date().toISOString(),
       }));
 
-      const { error } = await supabase
-        .from("inspection_checklist_items")
-        .insert(records);
+      const { error } = await supabase.from("checklist_items").insert(records);
 
       if (error) throw error;
     } catch (error) {

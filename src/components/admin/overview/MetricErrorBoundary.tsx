@@ -3,7 +3,7 @@
  * Netflix-grade fault tolerance for individual dashboard metrics
  */
 
-import React, { Component, ReactNode } from "react";
+import React, { Component, ReactNode, ErrorInfo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,9 +12,9 @@ import { logger } from "@/lib/logger/production-logger";
 
 interface MetricErrorBoundaryProps {
   metricName: string;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
   onRetry: () => void;
-  onError?: (error: Error, errorInfo: any) => void;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
   children: ReactNode;
   showFallbackData?: boolean;
   retryDelay?: number;
@@ -23,7 +23,7 @@ interface MetricErrorBoundaryProps {
 interface MetricErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
-  errorInfo: any;
+  errorInfo: ErrorInfo | null;
   retryCount: number;
   lastErrorTime: number;
   isRetrying: boolean;
@@ -58,7 +58,7 @@ export class MetricErrorBoundary extends Component<
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { metricName, onError } = this.props;
 
     // Log error with comprehensive context
@@ -273,7 +273,7 @@ export class MetricErrorBoundary extends Component<
 // Convenience wrapper for functional components
 interface MetricErrorWrapperProps {
   metricName: string;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
   onRetry: () => void;
   children: ReactNode;
   showFallbackData?: boolean;
@@ -289,28 +289,30 @@ export const MetricErrorWrapper: React.FC<MetricErrorWrapperProps> = (
 export function withMetricErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   metricName: string,
-  fallbackData?: any,
+  fallbackData?: Record<string, unknown>,
 ) {
-  return React.forwardRef<any, P & { onRetry?: () => void }>((props, ref) => {
-    const { onRetry = () => {}, ...componentProps } = props;
+  return React.forwardRef<HTMLElement, P & { onRetry?: () => void }>(
+    (props, ref) => {
+      const { onRetry = () => {}, ...componentProps } = props;
 
-    return (
-      <MetricErrorBoundary
-        metricName={metricName}
-        fallbackData={fallbackData}
-        onRetry={onRetry}
-      >
-        <Component {...(componentProps as P)} ref={ref} />
-      </MetricErrorBoundary>
-    );
-  });
+      return (
+        <MetricErrorBoundary
+          metricName={metricName}
+          fallbackData={fallbackData}
+          onRetry={onRetry}
+        >
+          <Component {...(componentProps as P)} ref={ref} />
+        </MetricErrorBoundary>
+      );
+    },
+  );
 }
 
 // Specialized error boundaries for different metric types
 export const InspectionCountsErrorBoundary: React.FC<{
   children: ReactNode;
   onRetry: () => void;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
 }> = ({ children, onRetry, fallbackData }) => (
   <MetricErrorBoundary
     metricName="Inspection Counts"
@@ -327,7 +329,7 @@ export const InspectionCountsErrorBoundary: React.FC<{
 export const TimeAnalyticsErrorBoundary: React.FC<{
   children: ReactNode;
   onRetry: () => void;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
 }> = ({ children, onRetry, fallbackData }) => (
   <MetricErrorBoundary
     metricName="Time Analytics"
@@ -341,7 +343,7 @@ export const TimeAnalyticsErrorBoundary: React.FC<{
 export const AIMetricsErrorBoundary: React.FC<{
   children: ReactNode;
   onRetry: () => void;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
 }> = ({ children, onRetry, fallbackData }) => (
   <MetricErrorBoundary
     metricName="AI Performance"
@@ -355,7 +357,7 @@ export const AIMetricsErrorBoundary: React.FC<{
 export const RevenueMetricsErrorBoundary: React.FC<{
   children: ReactNode;
   onRetry: () => void;
-  fallbackData?: any;
+  fallbackData?: Record<string, unknown>;
 }> = ({ children, onRetry, fallbackData }) => (
   <MetricErrorBoundary
     metricName="Revenue Analytics"

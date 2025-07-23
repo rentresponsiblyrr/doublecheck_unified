@@ -37,12 +37,23 @@ interface ErrorBoundaryState {
 }
 
 /**
+ * Fallback data interface for error recovery
+ */
+interface FallbackSystemData {
+  totalInspections?: number;
+  activeInspectors?: number;
+  recentActivity?: number;
+  systemHealth?: string;
+  lastUpdate?: string;
+}
+
+/**
  * Error boundary props interface
  * Configurable fallback behavior and error handling callbacks
  */
 interface SystemStatusErrorBoundaryProps {
   children: ReactNode;
-  fallbackData?: any;
+  fallbackData?: FallbackSystemData;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   maxRetries?: number;
   retryDelay?: number;

@@ -24,6 +24,9 @@ import { pwaEnhancedBridge } from "@/integrations/PWAEnhancedServicesBridge";
 // NEW: Import Core Web Vitals monitoring for unified integration
 import { coreWebVitalsMonitor } from "@/lib/performance/CoreWebVitalsMonitor";
 
+// Import PWA types to eliminate any type violations
+type PWAContextStatus = Record<string, unknown>;
+
 // PHASE 4B: Initialize PWA component managers globally
 let backgroundSyncManager: BackgroundSyncManager | null = null;
 let pushNotificationManager: PushNotificationManager | null = null;
@@ -153,161 +156,177 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
       return;
     }
 
-    // PHASE 4B: Initialize background sync and push notifications
+    // PHASE 4B: Initialize background sync and push notifications with throttling
     let backgroundSyncInitialized = false;
     let pushNotificationInitialized = false;
 
-    try {
-      // Initialize Background Sync Manager with timeout
-      const syncPromise = Promise.race([
-        (async () => {
-          backgroundSyncManager = new BackgroundSyncManager({
-            enableBatching: true,
-            enableRetry: true,
-            enableCircuitBreaker: true,
-            maxRetryAttempts: 2, // Reduced for faster initialization
-            retryDelays: [1000, 3000], // Shorter delays
-            batchSize: 10,
-            batchInterval: 30000,
-            circuitBreakerThreshold: 3, // More sensitive
-            circuitBreakerTimeout: 30000, // Shorter timeout
-          });
+    // CRITICAL FIX: Only initialize background sync if not already running
+    if (!(window as any).__BACKGROUND_SYNC_MANAGER__) {
+      try {
+        // Initialize Background Sync Manager with aggressive throttling
+        const syncPromise = Promise.race([
+          (async () => {
+            backgroundSyncManager = new BackgroundSyncManager({
+              enableBatching: true,
+              enableRetry: false, // Disable retries to prevent cascading failures
+              enableCircuitBreaker: true,
+              maxRetryAttempts: 1, // Minimal retries
+              retryDelays: [5000], // Single longer delay
+              batchSize: 5, // Smaller batches
+              batchInterval: 60000, // Much longer interval to reduce activity
+              circuitBreakerThreshold: 2, // Very sensitive to failures
+              circuitBreakerTimeout: 60000, // Longer cooldown
+            });
 
-          const registration = await navigator.serviceWorker.ready;
-          await backgroundSyncManager.initialize(registration);
-          return true;
-        })(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Background sync timeout")), 5000),
-        ),
-      ]);
-
-      backgroundSyncInitialized = await syncPromise;
-      logger.info(
-        "✅ Background Sync Manager initialized",
-        {},
-        "UNIFIED_SYSTEM",
-      );
-
-      // Initialize Push Notification Manager with timeout
-      const pushPromise = Promise.race([
-        (async () => {
-          pushNotificationManager = new PushNotificationManager({
-            vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || "",
-            enableBatching: true,
-            enableConstructionSiteMode: true,
-            enableEmergencyOverride: true,
-            batchInterval: 60000, // Longer batch interval for less overhead
-            maxBatchSize: 5, // Smaller batches
-            retryAttempts: 2, // Fewer retries
-            notificationTTL: 24 * 60 * 60 * 1000,
-            vibrationPatterns: {
-              critical: [200, 100, 200],
-              high: [100, 50],
-              medium: [50],
-              low: [25],
-            },
-          });
-
-          const registration = await navigator.serviceWorker.ready;
-          await pushNotificationManager.initialize(registration);
-          return true;
-        })(),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Push notification timeout")),
-            5000,
+            const registration = await navigator.serviceWorker.ready;
+            await backgroundSyncManager.initialize(registration);
+            return true;
+          })(),
+          new Promise(
+            (_, reject) =>
+              setTimeout(
+                () => reject(new Error("Background sync timeout")),
+                3000,
+              ), // Shorter timeout
           ),
-        ),
-      ]);
+        ]);
 
-      pushNotificationInitialized = await pushPromise;
+        backgroundSyncInitialized = await syncPromise;
+        logger.info(
+          "✅ Background Sync Manager initialized with throttling",
+          {
+            batchInterval: 60000,
+            circuitBreakerEnabled: true,
+            retryDisabled: true,
+          },
+          "UNIFIED_SYSTEM",
+        );
+      } catch (syncError) {
+        logger.warn(
+          "⚠️ Background sync initialization failed - continuing without sync",
+          { error: syncError },
+          "UNIFIED_SYSTEM",
+        );
+        backgroundSyncInitialized = false;
+      }
+    } else {
       logger.info(
-        "✅ Push Notification Manager initialized",
+        "Background sync already initialized - skipping duplicate initialization",
         {},
         "UNIFIED_SYSTEM",
       );
+      backgroundSyncInitialized = true;
+    }
 
-      // Store managers globally only after successful initialization
-      if (backgroundSyncManager) {
-        (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
-      }
-      if (pushNotificationManager) {
-        (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
-      }
-
-      // Setup PWA context bridge
-      (window as any).__PWA_CONTEXT_UPDATE__ = (
-        component: string,
-        status: any,
-      ) => {
-        const event = new CustomEvent("pwa-context-update", {
-          detail: { component, status },
+    // Initialize Push Notification Manager with timeout
+    const pushPromise = Promise.race([
+      (async () => {
+        pushNotificationManager = new PushNotificationManager({
+          vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || "",
+          enableBatching: true,
+          enableConstructionSiteMode: true,
+          enableEmergencyOverride: true,
+          batchInterval: 60000, // Longer batch interval for less overhead
+          maxBatchSize: 5, // Smaller batches
+          retryAttempts: 2, // Fewer retries
+          notificationTTL: 24 * 60 * 60 * 1000,
+          vibrationPatterns: {
+            critical: [200, 100, 200],
+            high: [100, 50],
+            medium: [50],
+            low: [25],
+          },
         });
-        window.dispatchEvent(event);
-      };
 
-      // Initialize integration bridge with timeout (OPTIONAL - app works without it)
-      if (backgroundSyncManager && pushNotificationManager) {
+        const registration = await navigator.serviceWorker.ready;
+        await pushNotificationManager.initialize(registration);
+        return true;
+      })(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Push notification timeout")), 5000),
+      ),
+    ]);
+
+    pushNotificationInitialized = await pushPromise;
+    logger.info(
+      "✅ Push Notification Manager initialized",
+      {},
+      "UNIFIED_SYSTEM",
+    );
+
+    // Store managers globally only after successful initialization
+    if (backgroundSyncManager) {
+      (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
+    }
+    if (pushNotificationManager) {
+      (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
+    }
+
+    // Setup PWA context bridge
+    (window as any).__PWA_CONTEXT_UPDATE__ = (
+      component: string,
+      status: PWAContextStatus,
+    ) => {
+      const event = new CustomEvent("pwa-context-update", {
+        detail: { component, status },
+      });
+      window.dispatchEvent(event);
+    };
+
+    // Initialize integration bridge with timeout (OPTIONAL - app works without it)
+    if (backgroundSyncManager && pushNotificationManager) {
+      try {
+        // Reduced timeout and added more robust error handling
+        await Promise.race([
+          pwaEnhancedBridge.initialize(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Bridge timeout")), 1000),
+          ),
+        ]);
+        logger.info(
+          "✅ PWA-Enhanced Services integration bridge active",
+          {},
+          "MAIN_INTEGRATION",
+        );
+      } catch (error) {
+        // CRITICAL: Don't let bridge failures break the app
+        logger.warn(
+          "⚠️ Integration bridge failed - app continues normally",
+          { error },
+          "MAIN_INTEGRATION",
+        );
+        // Clear any partially initialized state
         try {
-          // Reduced timeout and added more robust error handling
-          await Promise.race([
-            pwaEnhancedBridge.initialize(),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error("Bridge timeout")), 1000),
-            ),
-          ]);
-          logger.info(
-            "✅ PWA-Enhanced Services integration bridge active",
-            {},
-            "MAIN_INTEGRATION",
-          );
-        } catch (error) {
-          // CRITICAL: Don't let bridge failures break the app
-          logger.warn(
-            "⚠️ Integration bridge failed - app continues normally",
-            { error },
-            "MAIN_INTEGRATION",
-          );
-          // Clear any partially initialized state
-          try {
-            pwaEnhancedBridge.destroy();
-          } catch (cleanupError) {
-            // Ignore cleanup errors
-          }
+          pwaEnhancedBridge.destroy();
+        } catch (cleanupError) {
+          // Ignore cleanup errors
         }
       }
-
-      // Update global status
-      const updatedStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
-      if (updatedStatus) {
-        updatedStatus.pwa.installPrompt = installPromptReady;
-        updatedStatus.pwa.backgroundSync = backgroundSyncInitialized;
-        updatedStatus.pwa.pushNotifications = pushNotificationInitialized;
-        updatedStatus.pwa.allSystemsReady =
-          backgroundSyncInitialized && pushNotificationInitialized;
-        updatedStatus.pwa.phase4bComplete =
-          backgroundSyncInitialized && pushNotificationInitialized;
-        updatedStatus.integration.phase4bIntegration =
-          backgroundSyncInitialized && pushNotificationInitialized;
-      }
-
-      logger.info(
-        "✅ Background PWA component initialization completed",
-        {
-          backgroundSync: backgroundSyncInitialized,
-          pushNotifications: pushNotificationInitialized,
-          integrationBridge: true,
-        },
-        "UNIFIED_SYSTEM",
-      );
-    } catch (error) {
-      logger.warn(
-        "⚠️ Background PWA initialization failed - app still functional",
-        { error },
-        "UNIFIED_SYSTEM",
-      );
     }
+
+    // Update global status
+    const updatedStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
+    if (updatedStatus) {
+      updatedStatus.pwa.installPrompt = installPromptReady;
+      updatedStatus.pwa.backgroundSync = backgroundSyncInitialized;
+      updatedStatus.pwa.pushNotifications = pushNotificationInitialized;
+      updatedStatus.pwa.allSystemsReady =
+        backgroundSyncInitialized && pushNotificationInitialized;
+      updatedStatus.pwa.phase4bComplete =
+        backgroundSyncInitialized && pushNotificationInitialized;
+      updatedStatus.integration.phase4bIntegration =
+        backgroundSyncInitialized && pushNotificationInitialized;
+    }
+
+    logger.info(
+      "✅ Background PWA component initialization completed",
+      {
+        backgroundSync: backgroundSyncInitialized,
+        pushNotifications: pushNotificationInitialized,
+        integrationBridge: true,
+      },
+      "UNIFIED_SYSTEM",
+    );
   } catch (error) {
     logger.warn(
       "⚠️ Background initialization failed - app remains functional",

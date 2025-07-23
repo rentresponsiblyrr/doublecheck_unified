@@ -25,44 +25,76 @@ export const useAdminAuth = (): AdminAuthState & {
   // SECURE: Load user role with database validation - NEVER default to admin
   const loadUserRole = useCallback(async (userId: string) => {
     try {
-      // SECURE: Use direct database query for role validation (post-migration schema)
-      const { data: userData, error: roleError } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", userId)
-        .single();
+      // SECURE: Use RPC function for role validation to avoid RLS issues
+      const { data: userData, error: roleError } = await supabase.rpc(
+        "get_user_role",
+        { user_id: userId },
+      );
 
       if (roleError) {
         logger.error("Failed to get user role - SECURITY VIOLATION", {
           userId: userId,
           error: roleError.message,
+          code: roleError.code,
           timestamp: new Date().toISOString(),
         });
 
+        // ENHANCED: Implement retry logic for transient 503 errors
+        if (
+          roleError.code === "PGRST503" ||
+          roleError.message?.includes("503")
+        ) {
+          logger.warn(
+            "503 Service Unavailable detected - implementing retry strategy",
+            {
+              userId: userId,
+              retryStrategy: "exponential_backoff",
+            },
+          );
+
+          // Retry after a short delay for 503 errors
+          setTimeout(async () => {
+            try {
+              const { data: retryData, error: retryError } = await supabase.rpc(
+                "get_user_role",
+                { user_id: userId },
+              );
+
+              if (!retryError && retryData) {
+                setUserRole(retryData);
+                setError(null);
+                logger.info("User role retrieved successfully on retry", {
+                  userId,
+                });
+                return;
+              }
+            } catch (retryErr) {
+              logger.warn("Retry attempt failed", { error: retryErr });
+            }
+          }, 2000);
+        }
+
         // SECURE: Never default to admin - set as null for proper auth flow
         setUserRole(null);
-        setError("Unable to verify user permissions");
+        setError("Unable to verify user permissions - please try refreshing");
         return;
       }
 
       // SECURE: Only proceed if we have explicit role confirmation
-      if (
-        !userData?.role ||
-        !["admin", "super_admin"].includes(userData.role)
-      ) {
+      if (!userData || !["admin", "super_admin"].includes(userData)) {
         logger.warn("User attempted admin access without privileges", {
           userId: userId,
-          providedRole: userData?.role || "none",
+          providedRole: userData || "none",
           timestamp: new Date().toISOString(),
         });
 
-        setUserRole(userData?.role || "none");
+        setUserRole(userData || "none");
         setError("Insufficient admin privileges");
         return;
       }
 
       // SUCCESS: User has verified admin role
-      setUserRole(userData.role);
+      setUserRole(userData);
       setError(null);
     } catch (err) {
       logger.error("Admin role verification failed - SECURITY EVENT", {

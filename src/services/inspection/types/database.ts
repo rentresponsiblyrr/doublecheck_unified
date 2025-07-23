@@ -376,9 +376,11 @@ export function isSuccessfulQuery<T>(
 export function extractPropertyId(propertyId: string | number): number {
   if (typeof propertyId === "number") return propertyId;
 
-  // If it's a UUID from properties_fixed view, we need conversion
-  // This would require the uuid_to_int function or mapping
-  throw new Error(`Cannot convert UUID property ID to integer: ${propertyId}`);
+  // UUID property IDs are no longer supported - all properties use UUID format
+  // This function is deprecated and should not be used with current schema
+  throw new Error(
+    `Property ID conversion no longer supported. UUID property ID: ${propertyId}`,
+  );
 }
 
 /**

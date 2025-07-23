@@ -76,6 +76,7 @@ export const useInspectionReports = () => {
             end_time,
             completed,
             inspector_id,
+            auditor_feedback,
             properties:property_id (
               id,
               name,
@@ -146,15 +147,12 @@ export const useInspectionReports = () => {
             const videosCount =
               mediaData?.filter((media) => media.type === "video").length || 0;
 
-            // Get audit feedback if available
-            const { data: auditData } = await supabase
-              .from("audit_feedback")
-              .select("feedback_text, review_time_minutes, overrides_count")
-              .eq("inspection_id", inspection.id)
-              .order("created_at", { ascending: false })
-              .limit(1);
-
-            const auditFeedback = auditData?.[0];
+            // Audit feedback is stored in the inspections table itself
+            const auditFeedback = {
+              feedback_text: inspection.auditor_feedback,
+              review_time_minutes: null, // Not available in current schema
+              overrides_count: null, // Not available in current schema
+            };
 
             // Extract property details from scraped data
             const scrapedData = inspection.properties?.scraped_data as Record<

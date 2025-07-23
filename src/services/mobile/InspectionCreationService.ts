@@ -375,7 +375,7 @@ export class InspectionCreationService {
         .from("inspections")
         .select("id, status, completed")
         .eq("property_id", property_id)
-        .eq("completed", false)
+        .in("status", ["draft", "in_progress"])
         .limit(1);
 
       if (error) {

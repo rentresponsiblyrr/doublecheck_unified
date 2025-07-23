@@ -83,68 +83,12 @@ import {
 } from "./systemStatusConstants";
 
 import { SystemStatusErrorBoundary } from "./SystemStatusErrorBoundary";
-
-/**
- * Component props interface with comprehensive configuration options
- * All props are optional with sensible defaults for ease of use
- */
-interface SystemStatusPanelProps {
-  /** Custom refresh interval in milliseconds (default: 30000) */
-  refreshInterval?: number;
-
-  /** Callback function for navigation to system health dashboard */
-  onNavigateToHealth?: (path: string) => void;
-
-  /** Enable/disable real-time polling updates (default: true) */
-  enableRealTimeUpdates?: boolean;
-
-  /** Custom CSS classes for styling customization */
-  className?: string;
-
-  /** Show detailed metrics in expanded view (default: false) */
-  showDetailedMetrics?: boolean;
-
-  /** Enable performance monitoring and telemetry (default: true) */
-  enableTelemetry?: boolean;
-
-  /** Custom error handler for external error tracking */
-  onError?: (error: Error, context: Record<string, any>) => void;
-
-  /** Theme variant for different UI contexts */
-  variant?: "default" | "compact" | "detailed";
-
-  /** Maximum number of retry attempts for failed requests */
-  maxRetries?: number;
-}
-
-/**
- * Internal component state interface
- * Tracks all aspects of component lifecycle and user interactions
- */
-interface SystemStatusState {
-  metrics: SystemMetrics | null;
-  isLoading: boolean;
-  isRefreshing: boolean;
-  error: Error | null;
-  lastUpdateTime: string;
-  retryCount: number;
-  pollingActive: boolean;
-  userInteracting: boolean;
-  performanceScore: number;
-  connectionStatus: "online" | "offline" | "limited";
-}
-
-/**
- * Performance metrics tracking interface
- * Monitors component performance for optimization
- */
-interface PerformanceMetrics {
-  renderTime: number;
-  fetchTime: number;
-  cacheHitRate: number;
-  errorRate: number;
-  userInteractions: number;
-}
+import type {
+  SystemStatusPanelProps,
+  SystemStatusState,
+  PerformanceMetrics,
+  ErrorContext,
+} from "./types";
 
 /**
  * Enterprise System Status Panel Component
@@ -210,7 +154,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   });
 
   // Performance monitoring state
-  const [performanceMetrics, setPerformanceMetricsMetrics] =
+  const [performanceMetrics, setPerformanceMetrics] =
     useState<PerformanceMetrics>({
       renderTime: 0,
       fetchTime: 0,
@@ -1212,9 +1156,5 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
   );
 };
 
-// Re-export for backward compatibility and different naming conventions
-export { SystemStatusPanel as default };
-export { SystemStatusPanel as EnterpriseSystemStatusPanel };
-
-// Export additional types for external usage
-export type { SystemStatusPanelProps, SystemStatusState, PerformanceMetrics };
+// Default export for fast refresh compatibility
+export default SystemStatusPanel;

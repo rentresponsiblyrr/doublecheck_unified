@@ -184,7 +184,7 @@ const useFieldValidation = (name: string) => {
   });
 
   // In a real implementation, this would connect to the form validation hook
-  const setValue = React.useCallback((value: any) => {
+  const setValue = React.useCallback((value: unknown) => {
     setFieldState((prev) => ({ ...prev, value, isTouched: true }));
   }, []);
 
@@ -198,7 +198,8 @@ const useFieldValidation = (name: string) => {
     // Mock implementations - in real app these would come from useFormValidation
     getFieldProps: (field: string) => ({
       value: fieldState.value,
-      onChange: (e: any) => setValue(e.target.value),
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setValue(e.target.value),
       onBlur: () => {},
       "aria-invalid": !fieldState.isValid,
       "aria-describedby": fieldState.error ? `form-${field}-error` : undefined,

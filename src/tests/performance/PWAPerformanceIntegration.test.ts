@@ -28,6 +28,7 @@ import { pwaPerformanceMonitor } from "@/lib/performance/PWAPerformanceMonitor";
 import { lighthousePWAAuditor } from "@/lib/performance/LighthousePWAAuditor";
 import { networkAdaptationEngine } from "@/lib/performance/NetworkAdaptationEngine";
 import { batteryOptimizationManager } from "@/lib/performance/BatteryOptimizationManager";
+import type { PerformanceMetric } from "@/types/pwa";
 
 // Mock external dependencies
 vi.mock("@/utils/logger", () => ({
@@ -305,7 +306,7 @@ describe("PWA Performance Integration Tests", () => {
       expect(auditReport.constructionSiteOptimizations).toHaveLength(4);
 
       const loadTimeMetric = auditReport.constructionSiteOptimizations.find(
-        (m: any) => m.metric === "load_time_2g",
+        (m: PerformanceMetric) => m.metric === "load_time_2g",
       );
 
       expect(loadTimeMetric).toBeDefined();
@@ -791,7 +792,7 @@ export const PWAPerformanceTestUtils = {
     budgetStatus: { overall: "pass", budgets: [], violations: 0 },
   }),
 
-  validateNetflixMetaStandards: (auditReport: any) => ({
+  validateNetflixMetaStandards: (auditReport: Record<string, unknown>) => ({
     lighthousePWAScore: auditReport.score >= 90,
     coreWebVitals: {
       lcp: auditReport.coreWebVitalsIntegration.lcp.value < 2500,
@@ -800,7 +801,7 @@ export const PWAPerformanceTestUtils = {
     },
     constructionSite:
       auditReport.constructionSiteOptimizations.find(
-        (m: any) => m.metric === "load_time_2g",
+        (m: PerformanceMetric) => m.metric === "load_time_2g",
       )?.current < 5000,
     offlineCapability: auditReport.metrics.offline === true,
     installability: auditReport.metrics.installable === true,

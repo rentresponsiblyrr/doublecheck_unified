@@ -1372,15 +1372,20 @@ export class BackgroundSyncManager extends EventEmitter {
       return;
     }
 
+    // CRITICAL FIX: Only register essential sync events to reduce activity
     try {
+      // Only register the most critical sync events
       await this.registration.sync.register("inspection-data-sync");
       await this.registration.sync.register("photo-upload-sync");
-      await this.registration.sync.register("checklist-update-sync");
-      await this.registration.sync.register("user-action-sync");
-      await this.registration.sync.register("analytics-sync");
-      await this.registration.sync.register("batch-operation-sync");
 
-      logger.info("Background sync events registered", {}, "SYNC_MANAGER");
+      logger.info(
+        "Essential background sync events registered (limited set)",
+        {
+          events: ["inspection-data-sync", "photo-upload-sync"],
+          reducedActivity: true,
+        },
+        "SYNC_MANAGER",
+      );
     } catch (error) {
       logger.error(
         "Failed to register background sync events",

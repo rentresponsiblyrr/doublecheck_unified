@@ -143,7 +143,8 @@ export class ProductionLogger {
 
       // Only send to external logging service in production
       // DISABLED: No backend API endpoints available in current architecture
-      if (false && !this.isDevelopment) {
+      const externalLoggingEnabled = false;
+      if (externalLoggingEnabled && !this.isDevelopment) {
         fetch("/api/logs/errors", {
           method: "POST",
           headers: {
@@ -184,7 +185,8 @@ export class ProductionLogger {
 
       // Only send to external analytics service in production
       // DISABLED: No backend API endpoints available in current architecture
-      if (false && !this.isDevelopment) {
+      const externalAnalyticsEnabled = false;
+      if (externalAnalyticsEnabled && !this.isDevelopment) {
         fetch("/api/analytics/events", {
           method: "POST",
           headers: {
@@ -222,7 +224,8 @@ export class ProductionLogger {
   ): void {
     try {
       // DISABLED: No backend API endpoints available in current architecture
-      if (false) {
+      const performanceMetricsEnabled = false;
+      if (performanceMetricsEnabled) {
         fetch("/api/metrics/performance", {
           method: "POST",
           headers: {

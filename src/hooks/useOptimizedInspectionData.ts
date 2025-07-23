@@ -42,7 +42,7 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
       }
 
       try {
-        // Try logs table first (production schema)
+        // Try checklist_items table first (production schema)
         let data, error;
 
         // First get the inspection to find its property_id

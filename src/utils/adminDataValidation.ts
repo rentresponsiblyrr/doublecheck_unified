@@ -10,7 +10,7 @@ import { logger } from "@/lib/logger/production-logger";
 export class ValidationError extends Error {
   constructor(
     message: string,
-    public readonly details?: any,
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "ValidationError";
@@ -265,7 +265,9 @@ export const sanitizeDisplayValue = (
 };
 
 // Metric transformation utilities
-export const transformRawMetrics = (rawData: any): DashboardMetrics => {
+export const transformRawMetrics = (
+  rawData: Record<string, unknown>,
+): DashboardMetrics => {
   try {
     // Ensure all required fields exist with safe defaults
     const transformed = {
