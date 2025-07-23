@@ -1,14 +1,14 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Video, 
-  Square, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  CheckCircle 
-} from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Video,
+  Square,
+  Play,
+  Pause,
+  RotateCcw,
+  CheckCircle,
+} from "lucide-react";
 
 interface VideoControlsProps {
   isRecording: boolean;
@@ -33,28 +33,32 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
   onPause,
   onReset,
   onComplete,
-  disabled = false
+  disabled = false,
 }) => {
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getRecordingStatus = (): string => {
-    if (isRecording && isPaused) return 'paused';
-    if (isRecording) return 'recording';
-    if (hasRecordedVideo) return 'completed';
-    return 'ready';
+    if (isRecording && isPaused) return "paused";
+    if (isRecording) return "recording";
+    if (hasRecordedVideo) return "completed";
+    return "ready";
   };
 
   const getStatusColor = (): string => {
     const status = getRecordingStatus();
     switch (status) {
-      case 'recording': return 'bg-red-100 text-red-800 border-red-200';
-      case 'paused': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "recording":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "paused":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -88,10 +92,14 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
               variant="outline"
               className="flex items-center gap-2"
             >
-              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-              {isPaused ? 'Resume' : 'Pause'}
+              {isPaused ? (
+                <Play className="w-4 h-4" />
+              ) : (
+                <Pause className="w-4 h-4" />
+              )}
+              {isPaused ? "Resume" : "Pause"}
             </Button>
-            
+
             <Button
               onClick={onStop}
               variant="destructive"
@@ -113,7 +121,7 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
               <RotateCcw className="w-4 h-4" />
               Re-record
             </Button>
-            
+
             <Button
               onClick={onComplete}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"

@@ -3,18 +3,30 @@
  * Generates and manages compliance reports for various standards
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileText, BarChart3, TrendingUp, Settings } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Download,
+  FileText,
+  BarChart3,
+  TrendingUp,
+  Settings,
+} from "lucide-react";
 
 interface ComplianceReport {
   id: string;
-  standard: 'soc2' | 'gdpr' | 'hipaa' | 'pci-dss';
-  reportType: 'audit' | 'assessment' | 'gap-analysis' | 'remediation';
-  status: 'draft' | 'in-progress' | 'completed' | 'approved';
+  standard: "soc2" | "gdpr" | "hipaa" | "pci-dss";
+  reportType: "audit" | "assessment" | "gap-analysis" | "remediation";
+  status: "draft" | "in-progress" | "completed" | "approved";
   createdAt: string;
   completedAt?: string;
   score: number;
@@ -33,49 +45,48 @@ interface ComplianceReportingPanelProps {
   isGenerating?: boolean;
 }
 
-export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> = ({
-  reports,
-  onGenerateReport,
-  onDownloadReport,
-  isGenerating = false
-}) => {
-  const [selectedStandard, setSelectedStandard] = useState<string>('soc2');
+export const ComplianceReportingPanel: React.FC<
+  ComplianceReportingPanelProps
+> = ({ reports, onGenerateReport, onDownloadReport, isGenerating = false }) => {
+  const [selectedStandard, setSelectedStandard] = useState<string>("soc2");
 
-  const getStatusBadge = (status: ComplianceReport['status']) => {
+  const getStatusBadge = (status: ComplianceReport["status"]) => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'approved':
-        return 'default';
-      case 'in-progress':
-        return 'secondary';
-      case 'draft':
-        return 'outline';
+      case "completed":
+        return "default";
+      case "approved":
+        return "default";
+      case "in-progress":
+        return "secondary";
+      case "draft":
+        return "outline";
     }
   };
 
   const getStandardName = (standard: string) => {
     switch (standard) {
-      case 'soc2':
-        return 'SOC 2 Type II';
-      case 'gdpr':
-        return 'GDPR';
-      case 'hipaa':
-        return 'HIPAA';
-      case 'pci-dss':
-        return 'PCI DSS';
+      case "soc2":
+        return "SOC 2 Type II";
+      case "gdpr":
+        return "GDPR";
+      case "hipaa":
+        return "HIPAA";
+      case "pci-dss":
+        return "PCI DSS";
       default:
         return standard.toUpperCase();
     }
   };
 
-  const filteredReports = reports.filter(report => report.standard === selectedStandard);
+  const filteredReports = reports.filter(
+    (report) => report.standard === selectedStandard,
+  );
 
   const reportTypes = [
-    { value: 'audit', label: 'Full Audit Report' },
-    { value: 'assessment', label: 'Risk Assessment' },
-    { value: 'gap-analysis', label: 'Gap Analysis' },
-    { value: 'remediation', label: 'Remediation Plan' }
+    { value: "audit", label: "Full Audit Report" },
+    { value: "assessment", label: "Risk Assessment" },
+    { value: "gap-analysis", label: "Gap Analysis" },
+    { value: "remediation", label: "Remediation Plan" },
   ];
 
   return (
@@ -88,7 +99,8 @@ export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> =
             Compliance Report Generation
           </CardTitle>
           <CardDescription>
-            Generate comprehensive compliance reports for audit and regulatory requirements
+            Generate comprehensive compliance reports for audit and regulatory
+            requirements
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,13 +115,18 @@ export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> =
             <TabsContent value={selectedStandard} className="mt-6">
               <div className="grid gap-4 md:grid-cols-2">
                 {reportTypes.map((type) => (
-                  <Card key={type.value} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <Card
+                    key={type.value}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                  >
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base">{type.label}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Button
-                        onClick={() => onGenerateReport(selectedStandard, type.value)}
+                        onClick={() =>
+                          onGenerateReport(selectedStandard, type.value)
+                        }
                         disabled={isGenerating}
                         className="w-full"
                       >
@@ -132,7 +149,8 @@ export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> =
             <div>
               <CardTitle>Recent Reports ({filteredReports.length})</CardTitle>
               <CardDescription>
-                {getStandardName(selectedStandard)} compliance reports and assessments
+                {getStandardName(selectedStandard)} compliance reports and
+                assessments
               </CardDescription>
             </div>
             <Button variant="outline" size="sm">
@@ -146,7 +164,10 @@ export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> =
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No reports generated yet</p>
-              <p className="text-sm">Generate your first {getStandardName(selectedStandard)} report above</p>
+              <p className="text-sm">
+                Generate your first {getStandardName(selectedStandard)} report
+                above
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -156,39 +177,52 @@ export const ComplianceReportingPanel: React.FC<ComplianceReportingPanelProps> =
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-medium">
-                          {getStandardName(report.standard)} {report.reportType.replace('-', ' ')}
+                          {getStandardName(report.standard)}{" "}
+                          {report.reportType.replace("-", " ")}
                         </h4>
                         <Badge variant={getStatusBadge(report.status)}>
-                          {report.status.replace('-', ' ')}
+                          {report.status.replace("-", " ")}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-3 gap-4 text-sm mb-3">
                         <div>
                           <span className="text-gray-500">Score:</span>
-                          <span className="ml-2 font-medium">{report.score}%</span>
+                          <span className="ml-2 font-medium">
+                            {report.score}%
+                          </span>
                         </div>
                         <div>
                           <span className="text-gray-500">Passed:</span>
-                          <span className="ml-2 text-green-600">{report.findings.passed}</span>
+                          <span className="ml-2 text-green-600">
+                            {report.findings.passed}
+                          </span>
                         </div>
                         <div>
                           <span className="text-gray-500">Failed:</span>
-                          <span className="ml-2 text-red-600">{report.findings.failed}</span>
+                          <span className="ml-2 text-red-600">
+                            {report.findings.failed}
+                          </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>Created: {new Date(report.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          Created:{" "}
+                          {new Date(report.createdAt).toLocaleDateString()}
+                        </span>
                         {report.completedAt && (
-                          <span>Completed: {new Date(report.completedAt).toLocaleDateString()}</span>
+                          <span>
+                            Completed:{" "}
+                            {new Date(report.completedAt).toLocaleDateString()}
+                          </span>
                         )}
                         <span>Warnings: {report.findings.warnings}</span>
                       </div>
                     </div>
 
                     <div className="flex gap-2 ml-4">
-                      {report.status === 'completed' && report.downloadUrl && (
+                      {report.status === "completed" && report.downloadUrl && (
                         <Button
                           size="sm"
                           variant="outline"

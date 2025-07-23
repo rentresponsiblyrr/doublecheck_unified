@@ -1,10 +1,7 @@
 // Knowledge Base for STR Certified AI Learning System
 // Manages external knowledge sources for RAG (Retrieval Augmented Generation)
 
-import type {
-  KnowledgeEntry,
-  KnowledgeCategory
-} from '@/types/learning';
+import type { KnowledgeEntry, KnowledgeCategory } from "@/types/learning";
 
 export class KnowledgeBase {
   private entries: Map<string, KnowledgeEntry> = new Map();
@@ -12,8 +9,8 @@ export class KnowledgeBase {
   private embeddingModel: EmbeddingModel;
 
   constructor(
-    embeddingModel: string = 'text-embedding-ada-002',
-    vectorDimension: number = 1536
+    embeddingModel: string = "text-embedding-ada-002",
+    vectorDimension: number = 1536,
   ) {
     this.embeddingModel = new EmbeddingModel(embeddingModel);
     this.vectorIndex = new VectorIndex(vectorDimension);
@@ -24,7 +21,7 @@ export class KnowledgeBase {
    * Adds a new knowledge entry to the base
    */
   async addEntry(
-    entry: Omit<KnowledgeEntry, 'id' | 'embeddings' | 'usage' | 'lastUpdated'>
+    entry: Omit<KnowledgeEntry, "id" | "embeddings" | "usage" | "lastUpdated">,
   ): Promise<KnowledgeEntry> {
     // Generate ID
     const id = `kb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -39,14 +36,14 @@ export class KnowledgeBase {
       embeddings: {
         vector: embeddings,
         model: this.embeddingModel.modelName,
-        dimension: embeddings.length
+        dimension: embeddings.length,
       },
       usage: {
         queryCount: 0,
         relevanceScore: 1.0,
-        citationCount: 0
+        citationCount: 0,
       },
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
 
     // Store entry
@@ -55,7 +52,7 @@ export class KnowledgeBase {
     // Index vector
     await this.vectorIndex.add(id, embeddings, {
       category: entry.category,
-      tags: entry.metadata.tags
+      tags: entry.metadata.tags,
     });
 
     return knowledgeEntry;
@@ -66,7 +63,7 @@ export class KnowledgeBase {
    */
   async updateEntry(
     id: string,
-    updates: Partial<Omit<KnowledgeEntry, 'id' | 'embeddings'>>
+    updates: Partial<Omit<KnowledgeEntry, "id" | "embeddings">>,
   ): Promise<KnowledgeEntry | null> {
     const existing = this.entries.get(id);
     if (!existing) return null;
@@ -78,7 +75,7 @@ export class KnowledgeBase {
       embeddings = {
         vector: newEmbeddings,
         model: this.embeddingModel.modelName,
-        dimension: newEmbeddings.length
+        dimension: newEmbeddings.length,
       };
 
       // Update vector index
@@ -90,7 +87,7 @@ export class KnowledgeBase {
       ...existing,
       ...updates,
       embeddings,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
 
     this.entries.set(id, updated);
@@ -108,43 +105,52 @@ export class KnowledgeBase {
       categories?: KnowledgeCategory[];
       tags?: string[];
       jurisdiction?: string;
-    } = {}
+    } = {},
   ): Promise<SearchResult[]> {
     const {
       limit = 5,
       threshold = 0.7,
       categories,
       tags,
-      jurisdiction
+      jurisdiction,
     } = options;
 
     // Generate query embeddings
     const queryEmbeddings = await this.embeddingModel.embed(query);
 
     // Search vector index
-    const similarVectors = await this.vectorIndex.search(queryEmbeddings, limit * 2);
+    const similarVectors = await this.vectorIndex.search(
+      queryEmbeddings,
+      limit * 2,
+    );
 
     // Filter and rank results
     const results: SearchResult[] = [];
-    
+
     for (const match of similarVectors) {
       const entry = this.entries.get(match.id);
       if (!entry) continue;
 
       // Apply filters
       if (categories && !categories.includes(entry.category)) continue;
-      if (tags && !tags.some(tag => entry.metadata.tags.includes(tag))) continue;
-      if (jurisdiction && entry.metadata.jurisdiction !== jurisdiction) continue;
+      if (tags && !tags.some((tag) => entry.metadata.tags.includes(tag)))
+        continue;
+      if (jurisdiction && entry.metadata.jurisdiction !== jurisdiction)
+        continue;
       if (match.similarity < threshold) continue;
 
       // Check if entry is still valid
-      if (entry.status !== 'active') continue;
-      if (entry.metadata.expirationDate && entry.metadata.expirationDate < new Date()) continue;
+      if (entry.status !== "active") continue;
+      if (
+        entry.metadata.expirationDate &&
+        entry.metadata.expirationDate < new Date()
+      )
+        continue;
 
       results.push({
         entry,
         similarity: match.similarity,
-        relevance: this.calculateRelevance(entry, query, match.similarity)
+        relevance: this.calculateRelevance(entry, query, match.similarity),
       });
     }
 
@@ -165,8 +171,9 @@ export class KnowledgeBase {
    * Gets entries by category
    */
   getByCategory(category: KnowledgeCategory): KnowledgeEntry[] {
-    return Array.from(this.entries.values())
-      .filter(entry => entry.category === category && entry.status === 'active');
+    return Array.from(this.entries.values()).filter(
+      (entry) => entry.category === category && entry.status === "active",
+    );
   }
 
   /**
@@ -174,14 +181,14 @@ export class KnowledgeBase {
    */
   getByRegulationType(
     regulationType: string,
-    jurisdiction?: string
+    jurisdiction?: string,
   ): KnowledgeEntry[] {
-    return Array.from(this.entries.values())
-      .filter(entry => 
+    return Array.from(this.entries.values()).filter(
+      (entry) =>
         entry.metadata.regulationType === regulationType &&
         (!jurisdiction || entry.metadata.jurisdiction === jurisdiction) &&
-        entry.status === 'active'
-      );
+        entry.status === "active",
+    );
   }
 
   /**
@@ -195,17 +202,20 @@ export class KnowledgeBase {
 
     for (const [id, entry] of this.entries) {
       // Check expiration
-      if (entry.metadata.expirationDate && entry.metadata.expirationDate < new Date()) {
+      if (
+        entry.metadata.expirationDate &&
+        entry.metadata.expirationDate < new Date()
+      ) {
         expiredEntries++;
         issues.push({
           entryId: id,
-          type: 'expired',
-          message: `Entry expired on ${entry.metadata.expirationDate.toISOString()}`
+          type: "expired",
+          message: `Entry expired on ${entry.metadata.expirationDate.toISOString()}`,
         });
       }
 
       // Check deprecation
-      if (entry.status === 'deprecated') {
+      if (entry.status === "deprecated") {
         deprecatedEntries++;
       }
 
@@ -213,8 +223,8 @@ export class KnowledgeBase {
       if (entry.embeddings.dimension !== this.vectorIndex.dimension) {
         issues.push({
           entryId: id,
-          type: 'dimension_mismatch',
-          message: `Embedding dimension ${entry.embeddings.dimension} doesn't match index dimension ${this.vectorIndex.dimension}`
+          type: "dimension_mismatch",
+          message: `Embedding dimension ${entry.embeddings.dimension} doesn't match index dimension ${this.vectorIndex.dimension}`,
         });
       }
 
@@ -222,12 +232,12 @@ export class KnowledgeBase {
       if (entry.content.length < 50) {
         issues.push({
           entryId: id,
-          type: 'content_too_short',
-          message: 'Content is too short to be useful'
+          type: "content_too_short",
+          message: "Content is too short to be useful",
         });
       }
 
-      if (entry.status === 'active' && !issues.some(i => i.entryId === id)) {
+      if (entry.status === "active" && !issues.some((i) => i.entryId === id)) {
         validEntries++;
       }
     }
@@ -238,7 +248,7 @@ export class KnowledgeBase {
       expiredEntries,
       deprecatedEntries,
       issues,
-      lastValidated: new Date()
+      lastValidated: new Date(),
     };
   }
 
@@ -247,15 +257,15 @@ export class KnowledgeBase {
    */
   exportToJSON(): string {
     const data = {
-      version: '1.0',
+      version: "1.0",
       exported: new Date().toISOString(),
-      entries: Array.from(this.entries.values()).map(entry => ({
+      entries: Array.from(this.entries.values()).map((entry) => ({
         ...entry,
         embeddings: {
           ...entry.embeddings,
-          vector: undefined // Exclude vectors from export
-        }
-      }))
+          vector: undefined, // Exclude vectors from export
+        },
+      })),
     };
 
     return JSON.stringify(data, null, 2);
@@ -280,21 +290,21 @@ export class KnowledgeBase {
 
         // Re-generate embeddings
         const embeddings = await this.embeddingModel.embed(entry.content);
-        
+
         const knowledgeEntry: KnowledgeEntry = {
           ...entry,
           embeddings: {
             vector: embeddings,
             model: this.embeddingModel.modelName,
-            dimension: embeddings.length
+            dimension: embeddings.length,
           },
-          lastUpdated: new Date(entry.lastUpdated)
+          lastUpdated: new Date(entry.lastUpdated),
         };
 
         this.entries.set(entry.id, knowledgeEntry);
         await this.vectorIndex.add(entry.id, embeddings, {
           category: entry.category,
-          tags: entry.metadata.tags
+          tags: entry.metadata.tags,
         });
 
         imported++;
@@ -311,7 +321,7 @@ export class KnowledgeBase {
    */
   getPopularEntries(limit: number = 10): KnowledgeEntry[] {
     return Array.from(this.entries.values())
-      .filter(entry => entry.status === 'active')
+      .filter((entry) => entry.status === "active")
       .sort((a, b) => b.usage.queryCount - a.usage.queryCount)
       .slice(0, limit);
   }
@@ -321,7 +331,7 @@ export class KnowledgeBase {
    */
   getRecentlyUpdated(limit: number = 10): KnowledgeEntry[] {
     return Array.from(this.entries.values())
-      .filter(entry => entry.status === 'active')
+      .filter((entry) => entry.status === "active")
       .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime())
       .slice(0, limit);
   }
@@ -336,14 +346,16 @@ export class KnowledgeBase {
     for (const [id, entry] of this.entries) {
       // Remove expired entries older than 30 days
       if (entry.metadata.expirationDate) {
-        const daysSinceExpiration = (Date.now() - entry.metadata.expirationDate.getTime()) / (1000 * 60 * 60 * 24);
+        const daysSinceExpiration =
+          (Date.now() - entry.metadata.expirationDate.getTime()) /
+          (1000 * 60 * 60 * 24);
         if (daysSinceExpiration > 30) {
           toRemove.push(id);
         }
       }
 
       // Remove deprecated entries with no recent usage
-      if (entry.status === 'deprecated' && entry.usage.queryCount === 0) {
+      if (entry.status === "deprecated" && entry.usage.queryCount === 0) {
         toRemove.push(id);
       }
     }
@@ -357,7 +369,7 @@ export class KnowledgeBase {
 
     return {
       removed,
-      remaining: this.entries.size
+      remaining: this.entries.size,
     };
   }
 
@@ -367,63 +379,66 @@ export class KnowledgeBase {
     // Initialize with some default knowledge entries
     const defaultEntries = [
       {
-        category: 'building_codes' as KnowledgeCategory,
-        title: 'Minimum Room Dimensions',
-        content: 'According to International Residential Code (IRC), habitable rooms must have a floor area of not less than 70 square feet. Habitable rooms, other than kitchens, must be at least 7 feet in any horizontal dimension.',
-        source: 'IRC Section R304.1',
+        category: "building_codes" as KnowledgeCategory,
+        title: "Minimum Room Dimensions",
+        content:
+          "According to International Residential Code (IRC), habitable rooms must have a floor area of not less than 70 square feet. Habitable rooms, other than kitchens, must be at least 7 feet in any horizontal dimension.",
+        source: "IRC Section R304.1",
         metadata: {
-          regulationType: 'building_code' as const,
-          jurisdiction: 'International',
-          tags: ['room-size', 'dimensions', 'habitable-space'],
-          version: '2021',
-          effectiveDate: new Date('2021-01-01')
+          regulationType: "building_code" as const,
+          jurisdiction: "International",
+          tags: ["room-size", "dimensions", "habitable-space"],
+          version: "2021",
+          effectiveDate: new Date("2021-01-01"),
         },
-        status: 'active' as const
+        status: "active" as const,
       },
       {
-        category: 'fire_safety' as KnowledgeCategory,
-        title: 'Smoke Detector Requirements',
-        content: 'Smoke alarms shall be installed in each sleeping room, outside each separate sleeping area in the immediate vicinity of the bedrooms, and on each additional story of the dwelling, including basements and habitable attics.',
-        source: 'IRC Section R314.3',
+        category: "fire_safety" as KnowledgeCategory,
+        title: "Smoke Detector Requirements",
+        content:
+          "Smoke alarms shall be installed in each sleeping room, outside each separate sleeping area in the immediate vicinity of the bedrooms, and on each additional story of the dwelling, including basements and habitable attics.",
+        source: "IRC Section R314.3",
         metadata: {
-          regulationType: 'fire' as const,
-          jurisdiction: 'International',
-          tags: ['smoke-detector', 'fire-safety', 'bedroom'],
-          version: '2021',
-          effectiveDate: new Date('2021-01-01')
+          regulationType: "fire" as const,
+          jurisdiction: "International",
+          tags: ["smoke-detector", "fire-safety", "bedroom"],
+          version: "2021",
+          effectiveDate: new Date("2021-01-01"),
         },
-        status: 'active' as const
+        status: "active" as const,
       },
       {
-        category: 'ada_compliance' as KnowledgeCategory,
-        title: 'Accessible Route Width',
-        content: 'An accessible route must have a clear width of 36 inches minimum. The clear width of walking surfaces shall be 36 inches minimum, except at doors and doorways.',
-        source: 'ADA Standards Section 403.5',
+        category: "ada_compliance" as KnowledgeCategory,
+        title: "Accessible Route Width",
+        content:
+          "An accessible route must have a clear width of 36 inches minimum. The clear width of walking surfaces shall be 36 inches minimum, except at doors and doorways.",
+        source: "ADA Standards Section 403.5",
         metadata: {
-          regulationType: 'ada' as const,
-          jurisdiction: 'United States',
-          tags: ['accessibility', 'route-width', 'ada'],
-          version: '2010',
-          effectiveDate: new Date('2010-09-15')
+          regulationType: "ada" as const,
+          jurisdiction: "United States",
+          tags: ["accessibility", "route-width", "ada"],
+          version: "2010",
+          effectiveDate: new Date("2010-09-15"),
         },
-        status: 'active' as const
-      }
+        status: "active" as const,
+      },
     ];
 
     // Add default entries
-    defaultEntries.forEach(entry => {
-    });
+    defaultEntries.forEach((entry) => {});
   }
 
   private calculateRelevance(
     entry: KnowledgeEntry,
     query: string,
-    similarity: number
+    similarity: number,
   ): number {
     let relevance = similarity * 100;
 
     // Boost for recent entries
-    const daysSinceUpdate = (Date.now() - entry.lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+    const daysSinceUpdate =
+      (Date.now() - entry.lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSinceUpdate < 30) {
       relevance += 5;
     }
@@ -437,7 +452,7 @@ export class KnowledgeBase {
     relevance += entry.usage.relevanceScore * 5;
 
     // Penalty for deprecated entries
-    if (entry.status === 'deprecated') {
+    if (entry.status === "deprecated") {
       relevance -= 20;
     }
 
@@ -455,7 +470,7 @@ class EmbeddingModel {
     // In production, would call OpenAI API
     const hash = this.hashString(text);
     const embedding = new Array(1536).fill(0);
-    
+
     for (let i = 0; i < embedding.length; i++) {
       embedding[i] = Math.sin(hash * (i + 1)) * Math.cos(hash / (i + 1));
     }
@@ -467,7 +482,7 @@ class EmbeddingModel {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash);
@@ -479,7 +494,11 @@ class VectorIndex {
 
   constructor(public dimension: number) {}
 
-  async add(id: string, vector: number[], metadata?: Record<string, unknown>): Promise<void> {
+  async add(
+    id: string,
+    vector: number[],
+    metadata?: Record<string, unknown>,
+  ): Promise<void> {
     this.vectors.set(id, { id, vector, metadata });
   }
 
@@ -551,7 +570,7 @@ interface SearchResult {
 
 interface ValidationIssue {
   entryId: string;
-  type: 'expired' | 'deprecated' | 'dimension_mismatch' | 'content_too_short';
+  type: "expired" | "deprecated" | "dimension_mismatch" | "content_too_short";
   message: string;
 }
 
@@ -578,7 +597,7 @@ interface CleanupResult {
 // Export factory function
 export const createKnowledgeBase = (
   embeddingModel?: string,
-  vectorDimension?: number
+  vectorDimension?: number,
 ): KnowledgeBase => {
   return new KnowledgeBase(embeddingModel, vectorDimension);
 };

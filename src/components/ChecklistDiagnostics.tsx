@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +17,9 @@ interface ChecklistDiagnosticsProps {
   inspectionId: string;
 }
 
-export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps) => {
+export const ChecklistDiagnostics = ({
+  inspectionId,
+}: ChecklistDiagnosticsProps) => {
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,10 +27,10 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
     const fetchAuditData = async () => {
       try {
         const { data, error } = await supabase
-          .from('checklist_operations_audit')
-          .select('*')
-          .eq('inspection_id', inspectionId)
-          .order('created_at', { ascending: false });
+          .from("checklist_operations_audit")
+          .select("*")
+          .eq("inspection_id", inspectionId)
+          .order("created_at", { ascending: false });
 
         if (error) {
           return;
@@ -37,7 +38,7 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
 
         setAuditEntries(data || []);
       } catch (error) {
-        console.error('Failed to load audit entries:', error);
+        console.error("Failed to load audit entries:", error);
       } finally {
         setIsLoading(false);
       }
@@ -58,11 +59,11 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
 
   const getIcon = (operationType: string) => {
     switch (operationType) {
-      case 'populate':
+      case "populate":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'duplicate_detected':
+      case "duplicate_detected":
         return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      case 'cleanup':
+      case "cleanup":
         return <AlertCircle className="w-4 h-4 text-blue-500" />;
       default:
         return <AlertCircle className="w-4 h-4 text-gray-500" />;
@@ -71,14 +72,14 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
 
   const getVariant = (operationType: string) => {
     switch (operationType) {
-      case 'populate':
-        return 'default';
-      case 'duplicate_detected':
-        return 'destructive';
-      case 'cleanup':
-        return 'secondary';
+      case "populate":
+        return "default";
+      case "duplicate_detected":
+        return "destructive";
+      case "cleanup":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
@@ -92,10 +93,21 @@ export const ChecklistDiagnostics = ({ inspectionId }: ChecklistDiagnosticsProps
       </CardHeader>
       <CardContent className="space-y-2">
         {auditEntries.map((entry) => (
-          <div key={entry.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+          <div
+            key={entry.id}
+            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+          >
             <div className="flex items-center gap-2">
               {getIcon(entry.operation_type)}
-              <Badge variant={getVariant(entry.operation_type) as "default" | "destructive" | "outline" | "secondary"}>
+              <Badge
+                variant={
+                  getVariant(entry.operation_type) as
+                    | "default"
+                    | "destructive"
+                    | "outline"
+                    | "secondary"
+                }
+              >
                 {entry.operation_type}
               </Badge>
               <span className="text-sm text-gray-600">

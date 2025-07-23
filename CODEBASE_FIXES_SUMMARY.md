@@ -50,8 +50,8 @@
 - ✅ `users` → `profiles` (user data with `full_name`, `email`)
 - ✅ `static_safety_items` → `checklist` (checklist templates)
 - ✅ `properties.id` → `properties.property_id` (integer primary key)
-- ✅ `properties.name` → `properties.property_name` 
-- ✅ `properties.address` → `properties.street_address`
+- ✅ `properties.name` → `properties.name` 
+- ✅ `properties.address` → `properties.address`
 
 **Files Fixed:**
 - `src/services/checklistDataService.ts`

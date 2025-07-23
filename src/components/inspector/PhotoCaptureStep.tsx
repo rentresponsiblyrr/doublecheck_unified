@@ -1,5 +1,5 @@
-import React from 'react';
-import { PhotoCaptureContainer } from './camera/PhotoCaptureContainer';
+import React from "react";
+import { PhotoCaptureContainer } from "./camera/PhotoCaptureContainer";
 
 interface ChecklistItem {
   id: string;
@@ -23,7 +23,7 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({
   checklist,
   onPhotosUpdate,
   onStepComplete,
-  className = ''
+  className = "",
 }) => {
   return (
     <PhotoCaptureContainer

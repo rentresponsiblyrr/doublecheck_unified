@@ -3,12 +3,20 @@
  * Extracted from ProductionInspectionWorkflow.tsx for surgical refactoring
  */
 
-import { useState, useEffect } from 'react';
-import { productionDb, ProductionProperty, ProductionSafetyItem } from '@/services/productionDatabaseService';
-import { logger as log } from '@/lib/utils/logger';
+import { useState, useEffect } from "react";
+import {
+  productionDb,
+  ProductionProperty,
+  ProductionSafetyItem,
+} from "@/services/productionDatabaseService";
+import { logger as log } from "@/lib/utils/logger";
 
 interface InspectionState {
-  currentStep: 'property-selection' | 'inspection-active' | 'checklist-completion' | 'submission';
+  currentStep:
+    | "property-selection"
+    | "inspection-active"
+    | "checklist-completion"
+    | "submission";
   selectedProperty: ProductionProperty | null;
   inspectionId: string | null;
   checklistItems: ProductionSafetyItem[];
@@ -18,12 +26,12 @@ interface InspectionState {
 
 export const useProductionInspection = () => {
   const [inspectionState, setInspectionState] = useState<InspectionState>({
-    currentStep: 'property-selection',
+    currentStep: "property-selection",
     selectedProperty: null,
     inspectionId: null,
     checklistItems: [],
     completedItems: [],
-    notes: {}
+    notes: {},
   });
 
   const [properties, setProperties] = useState<ProductionProperty[]>([]);
@@ -46,19 +54,20 @@ export const useProductionInspection = () => {
       const role = await productionDb.getCurrentUserRole();
       setCurrentUser(role);
 
-      log.info('Initial data loaded successfully', {
-        component: 'useProductionInspection',
-        action: 'loadInitialData',
+      log.info("Initial data loaded successfully", {
+        component: "useProductionInspection",
+        action: "loadInitialData",
         propertyCount: propertyList.length,
-        userRole: role
+        userRole: role,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load initial data';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load initial data";
       setError(errorMessage);
-      
-      log.error('Failed to load initial data', err as Error, {
-        component: 'useProductionInspection',
-        action: 'loadInitialData'
+
+      log.error("Failed to load initial data", err as Error, {
+        component: "useProductionInspection",
+        action: "loadInitialData",
       });
     } finally {
       setLoading(false);
@@ -70,61 +79,68 @@ export const useProductionInspection = () => {
       setLoading(true);
       setError(null);
 
-      const inspectionId = await productionDb.createInspection(property.property_id);
+      const inspectionId = await productionDb.createInspection(
+        property.property_id,
+      );
       const safetyItems = await productionDb.getAllSafetyItems();
-      const requiredItems = safetyItems.filter(item => item.required);
+      const requiredItems = safetyItems.filter((item) => item.required);
 
       setInspectionState({
-        currentStep: 'inspection-active',
+        currentStep: "inspection-active",
         selectedProperty: property,
         inspectionId,
         checklistItems: requiredItems,
         completedItems: [],
-        notes: {}
+        notes: {},
       });
 
-      log.info('Inspection started successfully', {
-        component: 'useProductionInspection',
-        action: 'startInspection',
+      log.info("Inspection started successfully", {
+        component: "useProductionInspection",
+        action: "startInspection",
         propertyId: property.property_id,
         inspectionId,
-        checklistItemCount: requiredItems.length
+        checklistItemCount: requiredItems.length,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to start inspection';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to start inspection";
       setError(errorMessage);
-      
-      log.error('Failed to start inspection', err as Error, {
-        component: 'useProductionInspection',
-        action: 'startInspection',
-        propertyId: property.property_id
+
+      log.error("Failed to start inspection", err as Error, {
+        component: "useProductionInspection",
+        action: "startInspection",
+        propertyId: property.property_id,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleItemCompletion = (itemId: string, completed: boolean, notes?: string) => {
-    setInspectionState(prev => {
-      const newCompletedItems = completed 
-        ? [...prev.completedItems.filter(id => id !== itemId), itemId]
-        : prev.completedItems.filter(id => id !== itemId);
-        
+  const handleItemCompletion = (
+    itemId: string,
+    completed: boolean,
+    notes?: string,
+  ) => {
+    setInspectionState((prev) => {
+      const newCompletedItems = completed
+        ? [...prev.completedItems.filter((id) => id !== itemId), itemId]
+        : prev.completedItems.filter((id) => id !== itemId);
+
       const newNotes = notes ? { ...prev.notes, [itemId]: notes } : prev.notes;
 
       return {
         ...prev,
         completedItems: newCompletedItems,
-        notes: newNotes
+        notes: newNotes,
       };
     });
 
-    log.info('Checklist item updated', {
-      component: 'useProductionInspection',
-      action: 'updateChecklistItem',
+    log.info("Checklist item updated", {
+      component: "useProductionInspection",
+      action: "updateChecklistItem",
       itemId,
       completed,
-      hasNotes: !!notes
+      hasNotes: !!notes,
     });
   };
 
@@ -133,25 +149,26 @@ export const useProductionInspection = () => {
       setLoading(true);
       setError(null);
 
-      setInspectionState(prev => ({
+      setInspectionState((prev) => ({
         ...prev,
-        currentStep: 'submission'
+        currentStep: "submission",
       }));
 
-      log.info('Inspection submitted successfully', {
-        component: 'useProductionInspection',
-        action: 'submitInspection',
+      log.info("Inspection submitted successfully", {
+        component: "useProductionInspection",
+        action: "submitInspection",
         inspectionId: inspectionState.inspectionId,
         completedItemsCount: inspectionState.completedItems.length,
-        totalItemsCount: inspectionState.checklistItems.length
+        totalItemsCount: inspectionState.checklistItems.length,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit inspection';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to submit inspection";
       setError(errorMessage);
-      
-      log.error('Failed to submit inspection', err as Error, {
-        component: 'useProductionInspection',
-        action: 'submitInspection'
+
+      log.error("Failed to submit inspection", err as Error, {
+        component: "useProductionInspection",
+        action: "submitInspection",
       });
     } finally {
       setLoading(false);
@@ -160,19 +177,23 @@ export const useProductionInspection = () => {
 
   const resetWorkflow = () => {
     setInspectionState({
-      currentStep: 'property-selection',
+      currentStep: "property-selection",
       selectedProperty: null,
       inspectionId: null,
       checklistItems: [],
       completedItems: [],
-      notes: {}
+      notes: {},
     });
     setError(null);
   };
 
   const getCompletionPercentage = () => {
     if (inspectionState.checklistItems.length === 0) return 0;
-    return Math.round((inspectionState.completedItems.length / inspectionState.checklistItems.length) * 100);
+    return Math.round(
+      (inspectionState.completedItems.length /
+        inspectionState.checklistItems.length) *
+        100,
+    );
   };
 
   return {
@@ -186,6 +207,6 @@ export const useProductionInspection = () => {
     handleItemCompletion,
     handleInspectionSubmission,
     resetWorkflow,
-    getCompletionPercentage
+    getCompletionPercentage,
   };
 };

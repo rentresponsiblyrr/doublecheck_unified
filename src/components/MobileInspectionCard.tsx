@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,10 +38,10 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   onSelect,
   onStartInspection,
   onEdit,
-  isLoading = false
+  isLoading = false,
 }) => {
   const { userRole, user } = useFastAuth();
-  
+
   // Debug logging to help troubleshoot
   // REMOVED: MobileInspectionCard logging to prevent infinite render loops
   //   userRole,
@@ -51,14 +50,14 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   //   hasOnEdit: !!onEdit,
   //   isAdmin: userRole === 'admin'
   // });
-  
-  const isAdmin = userRole === 'admin';
+
+  const isAdmin = userRole === "admin";
 
   const getButtonText = () => {
-    if (propertyStatus.status === 'in-progress') {
-      return 'Join Inspection';
+    if (propertyStatus.status === "in-progress") {
+      return "Join Inspection";
     }
-    return 'Start Inspection';
+    return "Start Inspection";
   };
 
   const handleCardTap = () => {
@@ -78,11 +77,11 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
   };
 
   return (
-    <Card 
+    <Card
       className={`mobile-optimized-card cursor-pointer transition-all duration-200 ${
-        isSelected 
-          ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-200' 
-          : 'hover:shadow-md border-gray-200'
+        isSelected
+          ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200"
+          : "hover:shadow-md border-gray-200"
       }`}
       onClick={handleCardTap}
     >
@@ -94,7 +93,9 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
             </CardTitle>
             <div className="flex items-center mt-1 text-gray-600">
               <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-              <span className="text-sm truncate">{property.property_address}</span>
+              <span className="text-sm truncate">
+                {property.property_address}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2 ml-2 flex-shrink-0">
@@ -119,19 +120,18 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
 
       <CardContent className="pt-0 space-y-3">
         {/* Debug info for troubleshooting */}
-        {user?.email?.includes('@rentresponsibly.org') && (
+        {user?.email?.includes("@rentresponsibly.org") && (
           <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-            Debug: Role={userRole}, Admin={isAdmin ? 'Yes' : 'No'}, HasEdit={onEdit ? 'Yes' : 'No'}
+            Debug: Role={userRole}, Admin={isAdmin ? "Yes" : "No"}, HasEdit=
+            {onEdit ? "Yes" : "No"}
           </div>
         )}
-        
+
         {/* Inspection Stats */}
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex items-center">
             <Clock className="w-4 h-4 mr-1" />
-            <span>
-              {property.inspection_count || 0} total inspections
-            </span>
+            <span>{property.inspection_count || 0} total inspections</span>
           </div>
           {(property.completed_inspection_count || 0) > 0 && (
             <div className="flex items-center">
@@ -148,9 +148,9 @@ export const MobileInspectionCard: React.FC<MobileInspectionCardProps> = ({
           onClick={handleInspectionStart}
           disabled={isLoading}
           className={`w-full mobile-touch-target ${
-            propertyStatus.status === 'in-progress'
-              ? 'bg-yellow-600 hover:bg-yellow-700'
-              : 'bg-blue-600 hover:bg-blue-700'
+            propertyStatus.status === "in-progress"
+              ? "bg-yellow-600 hover:bg-yellow-700"
+              : "bg-blue-600 hover:bg-blue-700"
           }`}
           size="lg"
         >

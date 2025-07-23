@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Bookmark, Trash2, Plus } from 'lucide-react';
-import { VideoBookmark } from './types';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Bookmark, Trash2, Plus } from "lucide-react";
+import { VideoBookmark } from "./types";
 
 interface VideoBookmarksProps {
   bookmarks: VideoBookmark[];
@@ -20,27 +24,27 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
   currentTime,
   onAddBookmark,
   onDeleteBookmark,
-  onSeekToBookmark
+  onSeekToBookmark,
 }) => {
-  const [newBookmarkDescription, setNewBookmarkDescription] = useState('');
+  const [newBookmarkDescription, setNewBookmarkDescription] = useState("");
   const [isAddingBookmark, setIsAddingBookmark] = useState(false);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleAddBookmark = () => {
     if (newBookmarkDescription.trim()) {
       onAddBookmark(currentTime, newBookmarkDescription.trim());
-      setNewBookmarkDescription('');
+      setNewBookmarkDescription("");
       setIsAddingBookmark(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleAddBookmark();
     }
   };
@@ -49,7 +53,7 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
     <div id="video-bookmarks" className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-medium text-gray-900">Bookmarks</h3>
-        
+
         <Popover open={isAddingBookmark} onOpenChange={setIsAddingBookmark}>
           <PopoverTrigger asChild>
             <Button size="sm" className="flex items-center gap-1">
@@ -65,7 +69,7 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
                   Current time: {formatTime(currentTime)}
                 </p>
               </div>
-              
+
               <Input
                 placeholder="Bookmark description..."
                 value={newBookmarkDescription}
@@ -73,7 +77,7 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
                 onKeyPress={handleKeyPress}
                 autoFocus
               />
-              
+
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -105,15 +109,15 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-4 h-4 text-blue-500" />
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className="cursor-pointer hover:bg-blue-50"
                     onClick={() => onSeekToBookmark(bookmark.time)}
                   >
                     {formatTime(bookmark.time)}
                   </Badge>
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -123,7 +127,7 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
                   <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
-              
+
               <p className="text-sm text-gray-700">{bookmark.description}</p>
             </div>
           ))}
@@ -134,7 +138,9 @@ export const VideoBookmarks: React.FC<VideoBookmarksProps> = ({
         <div className="text-center py-6 text-gray-500">
           <Bookmark className="w-10 h-10 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No bookmarks yet</p>
-          <p className="text-xs mt-1">Press 'B' to add bookmark at current time</p>
+          <p className="text-xs mt-1">
+            Press 'B' to add bookmark at current time
+          </p>
         </div>
       )}
     </div>

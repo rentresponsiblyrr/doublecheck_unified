@@ -1,10 +1,10 @@
 /**
  * OFFLINE INSPECTION WORKFLOW - PHASE 4B COMPONENT 5
- * 
+ *
  * Elite offline-first inspection workflow component providing seamless inspection
  * capabilities with full offline functionality, intelligent data synchronization,
  * and construction site optimizations. Designed for Netflix/Meta reliability standards.
- * 
+ *
  * OFFLINE CAPABILITIES:
  * - Complete inspection workflow without network dependency
  * - Intelligent local data persistence with IndexedDB
@@ -12,35 +12,41 @@
  * - Media capture and storage with compression
  * - Progress preservation across app sessions
  * - Seamless online/offline transitions
- * 
+ *
  * CONSTRUCTION SITE OPTIMIZATIONS:
  * - Battery-aware operation modes
  * - Touch-optimized interface for gloved hands
  * - Network quality adaptation
  * - Emergency mode for critical inspections
  * - Robust error recovery mechanisms
- * 
+ *
  * SUCCESS CRITERIA:
  * - 100% offline functionality for complete inspection workflow
  * - Zero data loss during network transitions
  * - <3s response time for all offline operations
  * - 90%+ user satisfaction in construction environments
  * - Seamless sync when network is restored
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 4.0.0 - Phase 4B Elite PWA Implementation
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { logger } from '@/utils/logger';
-import { pwaIntegrator } from '@/lib/pwa/pwa-integration';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import { logger } from "@/utils/logger";
+import { pwaIntegrator } from "@/lib/pwa/pwa-integration";
 
 // PHASE 4B: Import required hooks and types for verification
-import { useNetworkStatus, useOfflineInspection } from '@/hooks/usePWA';
+import { useNetworkStatus, useOfflineInspection } from "@/hooks/usePWA";
 
 // PHASE 4C: Enhanced PWA Context Integration
-import { PWAErrorBoundary } from '@/components/pwa/PWAErrorBoundary';
-import { usePWAContext } from '@/contexts/PWAContext';
+import { PWAErrorBoundary } from "@/components/pwa/PWAErrorBoundary";
+import { usePWAContext } from "@/contexts/PWAContext";
 
 // Interfaces for offline inspection workflow
 export interface InspectionItem {
@@ -50,15 +56,15 @@ export interface InspectionItem {
   description: string;
   category: string;
   required: boolean;
-  evidenceType: 'photo' | 'video' | 'text' | 'checklist';
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'not_applicable';
+  evidenceType: "photo" | "video" | "text" | "checklist";
+  status: "pending" | "in_progress" | "completed" | "failed" | "not_applicable";
   evidence?: {
     photos?: File[];
     videos?: File[];
     notes?: string;
     timestamp?: number;
   };
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   offlineCapable: boolean;
 }
 
@@ -69,7 +75,7 @@ export interface OfflineInspection {
   inspectorId: string;
   startTime: number;
   lastModified: number;
-  status: 'draft' | 'in_progress' | 'completed' | 'syncing' | 'error';
+  status: "draft" | "in_progress" | "completed" | "syncing" | "error";
   items: InspectionItem[];
   progress: {
     total: number;
@@ -94,7 +100,7 @@ export interface OfflineWorkflowState {
   inspection: OfflineInspection | null;
   isOffline: boolean;
   syncInProgress: boolean;
-  networkQuality: 'fast' | 'slow' | 'offline';
+  networkQuality: "fast" | "slow" | "offline";
   batteryLevel: number;
   emergencyMode: boolean;
   touchOptimized: boolean;
@@ -114,14 +120,16 @@ export interface OfflineInspectionWorkflowProps {
  * OFFLINE INSPECTION WORKFLOW COMPONENT
  * Complete offline-first inspection implementation with construction site optimizations
  */
-export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps> = ({
+export const OfflineInspectionWorkflow: React.FC<
+  OfflineInspectionWorkflowProps
+> = ({
   propertyId,
   inspectionId,
   onComplete,
   onError,
   onProgress,
   enableEmergencyMode = false,
-  enableConstructionSiteMode = true
+  enableConstructionSiteMode = true,
 }) => {
   // PHASE 4C: PWA Context Integration
   const { state, actions } = usePWAContext();
@@ -131,10 +139,10 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
     inspection: null,
     isOffline: !navigator.onLine,
     syncInProgress: false,
-    networkQuality: navigator.onLine ? 'fast' : 'offline',
+    networkQuality: navigator.onLine ? "fast" : "offline",
     batteryLevel: 100,
     emergencyMode: enableEmergencyMode,
-    touchOptimized: enableConstructionSiteMode
+    touchOptimized: enableConstructionSiteMode,
   });
 
   // UI state
@@ -154,7 +162,7 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   const performanceMetricsRef = useRef<any>({
     averageResponseTime: 0,
     cacheHitRate: 0,
-    syncSuccessRate: 100
+    syncSuccessRate: 100,
   });
 
   /**
@@ -164,12 +172,16 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   useEffect(() => {
     const initializeOfflineWorkflow = async () => {
       try {
-        logger.info('🚀 Initializing Offline Inspection Workflow', {
-          propertyId,
-          inspectionId,
-          enableEmergencyMode,
-          enableConstructionSiteMode
-        }, 'OFFLINE_WORKFLOW');
+        logger.info(
+          "🚀 Initializing Offline Inspection Workflow",
+          {
+            propertyId,
+            inspectionId,
+            enableEmergencyMode,
+            enableConstructionSiteMode,
+          },
+          "OFFLINE_WORKFLOW",
+        );
 
         // Initialize offline infrastructure
         await initializeOfflineInfrastructure();
@@ -186,7 +198,7 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
         } else if (propertyId) {
           await createNewInspection(propertyId);
         } else {
-          throw new Error('Either propertyId or inspectionId must be provided');
+          throw new Error("Either propertyId or inspectionId must be provided");
         }
 
         // Setup background sync
@@ -199,15 +211,24 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
 
         setIsLoading(false);
 
-        logger.info('✅ Offline Inspection Workflow initialized successfully', {
-          inspection: workflowState.inspection?.id,
-          networkQuality: workflowState.networkQuality,
-          batteryLevel: workflowState.batteryLevel
-        }, 'OFFLINE_WORKFLOW');
-
+        logger.info(
+          "✅ Offline Inspection Workflow initialized successfully",
+          {
+            inspection: workflowState.inspection?.id,
+            networkQuality: workflowState.networkQuality,
+            batteryLevel: workflowState.batteryLevel,
+          },
+          "OFFLINE_WORKFLOW",
+        );
       } catch (error) {
-        logger.error('❌ Offline Inspection Workflow initialization failed', { error }, 'OFFLINE_WORKFLOW');
-        setErrorMessage(`Failed to initialize offline workflow: ${error.message}`);
+        logger.error(
+          "❌ Offline Inspection Workflow initialization failed",
+          { error },
+          "OFFLINE_WORKFLOW",
+        );
+        setErrorMessage(
+          `Failed to initialize offline workflow: ${error.message}`,
+        );
         onError?.(error as Error);
         setIsLoading(false);
       }
@@ -235,7 +256,7 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
     // Initialize background sync worker
     await initializeBackgroundWorker();
 
-    logger.info('Offline infrastructure initialized', {}, 'OFFLINE_WORKFLOW');
+    logger.info("Offline infrastructure initialized", {}, "OFFLINE_WORKFLOW");
   };
 
   /**
@@ -244,9 +265,9 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    */
   const initializeIndexedDB = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('STRInspectionDB', 1);
+      const request = indexedDB.open("STRInspectionDB", 1);
 
-      request.onerror = () => reject(new Error('Failed to open IndexedDB'));
+      request.onerror = () => reject(new Error("Failed to open IndexedDB"));
 
       request.onsuccess = (event) => {
         dbRef.current = (event.target as IDBOpenDBRequest).result;
@@ -257,25 +278,35 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
         const db = (event.target as IDBOpenDBRequest).result;
 
         // Create inspections store
-        if (!db.objectStoreNames.contains('inspections')) {
-          const inspectionsStore = db.createObjectStore('inspections', { keyPath: 'id' });
-          inspectionsStore.createIndex('propertyId', 'propertyId', { unique: false });
-          inspectionsStore.createIndex('status', 'status', { unique: false });
-          inspectionsStore.createIndex('lastModified', 'lastModified', { unique: false });
+        if (!db.objectStoreNames.contains("inspections")) {
+          const inspectionsStore = db.createObjectStore("inspections", {
+            keyPath: "id",
+          });
+          inspectionsStore.createIndex("propertyId", "propertyId", {
+            unique: false,
+          });
+          inspectionsStore.createIndex("status", "status", { unique: false });
+          inspectionsStore.createIndex("lastModified", "lastModified", {
+            unique: false,
+          });
         }
 
         // Create media store
-        if (!db.objectStoreNames.contains('media')) {
-          const mediaStore = db.createObjectStore('media', { keyPath: 'id' });
-          mediaStore.createIndex('inspectionId', 'inspectionId', { unique: false });
-          mediaStore.createIndex('type', 'type', { unique: false });
+        if (!db.objectStoreNames.contains("media")) {
+          const mediaStore = db.createObjectStore("media", { keyPath: "id" });
+          mediaStore.createIndex("inspectionId", "inspectionId", {
+            unique: false,
+          });
+          mediaStore.createIndex("type", "type", { unique: false });
         }
 
         // Create sync queue store
-        if (!db.objectStoreNames.contains('syncQueue')) {
-          const syncStore = db.createObjectStore('syncQueue', { keyPath: 'id' });
-          syncStore.createIndex('priority', 'priority', { unique: false });
-          syncStore.createIndex('timestamp', 'timestamp', { unique: false });
+        if (!db.objectStoreNames.contains("syncQueue")) {
+          const syncStore = db.createObjectStore("syncQueue", {
+            keyPath: "id",
+          });
+          syncStore.createIndex("priority", "priority", { unique: false });
+          syncStore.createIndex("timestamp", "timestamp", { unique: false });
         }
       };
     });
@@ -287,16 +318,20 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    */
   const initializeMediaStorage = async (): Promise<void> => {
     mediaStorageRef.current = {
-      async storeMedia(file: File, inspectionId: string, itemId: string): Promise<string> {
+      async storeMedia(
+        file: File,
+        inspectionId: string,
+        itemId: string,
+      ): Promise<string> {
         const mediaId = `${inspectionId}_${itemId}_${Date.now()}`;
-        
+
         // Compress media if needed
         const compressedFile = await compressMediaFile(file);
-        
+
         // Store in IndexedDB
-        const transaction = dbRef.current!.transaction(['media'], 'readwrite');
-        const store = transaction.objectStore('media');
-        
+        const transaction = dbRef.current!.transaction(["media"], "readwrite");
+        const store = transaction.objectStore("media");
+
         await store.add({
           id: mediaId,
           inspectionId,
@@ -304,28 +339,34 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
           type: file.type,
           data: compressedFile,
           timestamp: Date.now(),
-          synced: false
+          synced: false,
         });
 
         return mediaId;
       },
 
       async getMedia(mediaId: string): Promise<File | null> {
-        const transaction = dbRef.current!.transaction(['media'], 'readonly');
-        const store = transaction.objectStore('media');
+        const transaction = dbRef.current!.transaction(["media"], "readonly");
+        const store = transaction.objectStore("media");
         const result = await store.get(mediaId);
-        
-        return result ? new File([result.data], `media_${mediaId}`, { type: result.type }) : null;
+
+        return result
+          ? new File([result.data], `media_${mediaId}`, { type: result.type })
+          : null;
       },
 
       async deleteMedia(mediaId: string): Promise<void> {
-        const transaction = dbRef.current!.transaction(['media'], 'readwrite');
-        const store = transaction.objectStore('media');
+        const transaction = dbRef.current!.transaction(["media"], "readwrite");
+        const store = transaction.objectStore("media");
         await store.delete(mediaId);
-      }
+      },
     };
 
-    logger.info('Media storage initialized with compression', {}, 'OFFLINE_WORKFLOW');
+    logger.info(
+      "Media storage initialized with compression",
+      {},
+      "OFFLINE_WORKFLOW",
+    );
   };
 
   /**
@@ -375,28 +416,28 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
       }
     `;
 
-    const blob = new Blob([workerScript], { type: 'application/javascript' });
+    const blob = new Blob([workerScript], { type: "application/javascript" });
     const workerUrl = URL.createObjectURL(blob);
-    
+
     syncWorkerRef.current = new Worker(workerUrl);
-    
+
     syncWorkerRef.current.onmessage = (e) => {
       const { type, payload } = e.data;
-      
+
       switch (type) {
-        case 'SYNC_SUCCESS':
+        case "SYNC_SUCCESS":
           handleSyncSuccess(payload);
           break;
-        case 'SYNC_ERROR':
+        case "SYNC_ERROR":
           handleSyncError(payload);
           break;
-        case 'QUEUE_STATUS':
+        case "QUEUE_STATUS":
           updateSyncStatus(payload);
           break;
       }
     };
 
-    logger.info('Background sync worker initialized', {}, 'OFFLINE_WORKFLOW');
+    logger.info("Background sync worker initialized", {}, "OFFLINE_WORKFLOW");
   };
 
   /**
@@ -406,54 +447,54 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   const setupNetworkMonitoring = async (): Promise<void> => {
     // Setup online/offline event listeners
     const handleOnline = () => {
-      setWorkflowState(prev => ({
+      setWorkflowState((prev) => ({
         ...prev,
         isOffline: false,
-        networkQuality: 'fast'
+        networkQuality: "fast",
       }));
-      
+
       // Trigger background sync when coming online
       triggerBackgroundSync();
     };
 
     const handleOffline = () => {
-      setWorkflowState(prev => ({
+      setWorkflowState((prev) => ({
         ...prev,
         isOffline: true,
-        networkQuality: 'offline'
+        networkQuality: "offline",
       }));
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Setup network quality monitoring
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       const connection = (navigator as any).connection;
-      
+
       const updateNetworkQuality = () => {
         const effectiveType = connection.effectiveType;
-        let quality: 'fast' | 'slow' | 'offline' = 'fast';
-        
+        let quality: "fast" | "slow" | "offline" = "fast";
+
         if (!navigator.onLine) {
-          quality = 'offline';
-        } else if (effectiveType === 'slow-2g' || effectiveType === '2g') {
-          quality = 'slow';
+          quality = "offline";
+        } else if (effectiveType === "slow-2g" || effectiveType === "2g") {
+          quality = "slow";
         } else {
-          quality = 'fast';
+          quality = "fast";
         }
-        
-        setWorkflowState(prev => ({
+
+        setWorkflowState((prev) => ({
           ...prev,
-          networkQuality: quality
+          networkQuality: quality,
         }));
       };
 
-      connection.addEventListener('change', updateNetworkQuality);
+      connection.addEventListener("change", updateNetworkQuality);
       updateNetworkQuality();
     }
 
-    logger.info('Network monitoring setup complete', {}, 'OFFLINE_WORKFLOW');
+    logger.info("Network monitoring setup complete", {}, "OFFLINE_WORKFLOW");
   };
 
   /**
@@ -461,27 +502,31 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    * Monitors battery level and enables power optimizations
    */
   const setupBatteryMonitoring = async (): Promise<void> => {
-    if ('getBattery' in navigator) {
+    if ("getBattery" in navigator) {
       try {
         const battery = await (navigator as any).getBattery();
         batteryRef.current = battery;
 
         const updateBatteryLevel = () => {
           const level = Math.round(battery.level * 100);
-          setWorkflowState(prev => ({
+          setWorkflowState((prev) => ({
             ...prev,
             batteryLevel: level,
-            emergencyMode: level < 15 || prev.emergencyMode
+            emergencyMode: level < 15 || prev.emergencyMode,
           }));
         };
 
-        battery.addEventListener('levelchange', updateBatteryLevel);
-        battery.addEventListener('chargingchange', updateBatteryLevel);
+        battery.addEventListener("levelchange", updateBatteryLevel);
+        battery.addEventListener("chargingchange", updateBatteryLevel);
         updateBatteryLevel();
 
-        logger.info('Battery monitoring enabled', { level: battery.level }, 'OFFLINE_WORKFLOW');
+        logger.info(
+          "Battery monitoring enabled",
+          { level: battery.level },
+          "OFFLINE_WORKFLOW",
+        );
       } catch (error) {
-        logger.warn('Battery API not available', { error }, 'OFFLINE_WORKFLOW');
+        logger.warn("Battery API not available", { error }, "OFFLINE_WORKFLOW");
       }
     }
   };
@@ -492,27 +537,31 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    */
   const applyConstructionSiteOptimizations = async (): Promise<void> => {
     // Enable touch optimizations for gloved hands
-    document.body.style.setProperty('--touch-target-size', '48px');
-    document.body.style.setProperty('--button-padding', '16px');
-    
+    document.body.style.setProperty("--touch-target-size", "48px");
+    document.body.style.setProperty("--button-padding", "16px");
+
     // Increase contrast for outdoor visibility
-    document.body.style.setProperty('--contrast-multiplier', '1.2');
-    
+    document.body.style.setProperty("--contrast-multiplier", "1.2");
+
     // Reduce animations to save battery
     if (workflowState.batteryLevel < 30) {
-      document.body.style.setProperty('--animation-duration', '0.1s');
+      document.body.style.setProperty("--animation-duration", "0.1s");
     }
 
     // Enable haptic feedback if available
-    if ('vibrate' in navigator) {
+    if ("vibrate" in navigator) {
       // Setup vibration patterns for different actions
     }
 
-    logger.info('Construction site optimizations applied', {
-      touchOptimized: true,
-      contrastEnhanced: true,
-      batteryOptimized: workflowState.batteryLevel < 30
-    }, 'OFFLINE_WORKFLOW');
+    logger.info(
+      "Construction site optimizations applied",
+      {
+        touchOptimized: true,
+        contrastEnhanced: true,
+        batteryOptimized: workflowState.batteryLevel < 30,
+      },
+      "OFFLINE_WORKFLOW",
+    );
   };
 
   /**
@@ -523,7 +572,7 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
     try {
       // Generate inspection template (this would normally come from API)
       const inspectionTemplate = await generateInspectionTemplate(propertyId);
-      
+
       const newInspection: OfflineInspection = {
         id: `inspection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         propertyId,
@@ -531,42 +580,49 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
         inspectorId: await getCurrentInspectorId(),
         startTime: Date.now(),
         lastModified: Date.now(),
-        status: 'in_progress',
+        status: "in_progress",
         items: inspectionTemplate,
         progress: {
           total: inspectionTemplate.length,
           completed: 0,
-          percentage: 0
+          percentage: 0,
         },
         metadata: {
-          version: '4.0.0',
+          version: "4.0.0",
           deviceInfo: getDeviceInfo(),
           networkCondition: workflowState.networkQuality,
-          batteryLevel: workflowState.batteryLevel
+          batteryLevel: workflowState.batteryLevel,
         },
         syncStatus: {
           lastSync: 0,
           pendingChanges: true,
           conflictsDetected: false,
-          retryCount: 0
-        }
+          retryCount: 0,
+        },
       };
 
       // Save to IndexedDB
       await saveInspectionToDatabase(newInspection);
-      
-      setWorkflowState(prev => ({
+
+      setWorkflowState((prev) => ({
         ...prev,
-        inspection: newInspection
+        inspection: newInspection,
       }));
 
-      logger.info('New offline inspection created', {
-        inspectionId: newInspection.id,
-        itemCount: newInspection.items.length
-      }, 'OFFLINE_WORKFLOW');
-
+      logger.info(
+        "New offline inspection created",
+        {
+          inspectionId: newInspection.id,
+          itemCount: newInspection.items.length,
+        },
+        "OFFLINE_WORKFLOW",
+      );
     } catch (error) {
-      logger.error('Failed to create new inspection', { error }, 'OFFLINE_WORKFLOW');
+      logger.error(
+        "Failed to create new inspection",
+        { error },
+        "OFFLINE_WORKFLOW",
+      );
       throw error;
     }
   };
@@ -575,29 +631,43 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    * LOAD EXISTING INSPECTION
    * Loads an existing inspection from IndexedDB
    */
-  const loadExistingInspection = async (inspectionId: string): Promise<void> => {
+  const loadExistingInspection = async (
+    inspectionId: string,
+  ): Promise<void> => {
     try {
-      const transaction = dbRef.current!.transaction(['inspections'], 'readonly');
-      const store = transaction.objectStore('inspections');
+      const transaction = dbRef.current!.transaction(
+        ["inspections"],
+        "readonly",
+      );
+      const store = transaction.objectStore("inspections");
       const result = await store.get(inspectionId);
 
       if (!result) {
-        throw new Error(`Inspection ${inspectionId} not found in local storage`);
+        throw new Error(
+          `Inspection ${inspectionId} not found in local storage`,
+        );
       }
 
-      setWorkflowState(prev => ({
+      setWorkflowState((prev) => ({
         ...prev,
-        inspection: result
+        inspection: result,
       }));
 
-      logger.info('Existing inspection loaded', {
-        inspectionId,
-        status: result.status,
-        progress: result.progress.percentage
-      }, 'OFFLINE_WORKFLOW');
-
+      logger.info(
+        "Existing inspection loaded",
+        {
+          inspectionId,
+          status: result.status,
+          progress: result.progress.percentage,
+        },
+        "OFFLINE_WORKFLOW",
+      );
     } catch (error) {
-      logger.error('Failed to load existing inspection', { error }, 'OFFLINE_WORKFLOW');
+      logger.error(
+        "Failed to load existing inspection",
+        { error },
+        "OFFLINE_WORKFLOW",
+      );
       throw error;
     }
   };
@@ -606,152 +676,187 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    * UPDATE INSPECTION ITEM
    * Updates an inspection item with new evidence or status
    */
-  const updateInspectionItem = useCallback(async (
-    itemId: string,
-    updates: Partial<InspectionItem>
-  ): Promise<void> => {
-    if (!workflowState.inspection) return;
+  const updateInspectionItem = useCallback(
+    async (itemId: string, updates: Partial<InspectionItem>): Promise<void> => {
+      if (!workflowState.inspection) return;
 
-    try {
-      const updatedItems = workflowState.inspection.items.map(item => {
-        if (item.id === itemId) {
-          return {
-            ...item,
-            ...updates,
-            evidence: {
-              ...item.evidence,
-              ...updates.evidence,
-              timestamp: Date.now()
-            }
-          };
+      try {
+        const updatedItems = workflowState.inspection.items.map((item) => {
+          if (item.id === itemId) {
+            return {
+              ...item,
+              ...updates,
+              evidence: {
+                ...item.evidence,
+                ...updates.evidence,
+                timestamp: Date.now(),
+              },
+            };
+          }
+          return item;
+        });
+
+        const completedCount = updatedItems.filter(
+          (item) => item.status === "completed",
+        ).length;
+        const progressPercentage = Math.round(
+          (completedCount / updatedItems.length) * 100,
+        );
+
+        const updatedInspection: OfflineInspection = {
+          ...workflowState.inspection,
+          items: updatedItems,
+          lastModified: Date.now(),
+          progress: {
+            total: updatedItems.length,
+            completed: completedCount,
+            percentage: progressPercentage,
+          },
+          syncStatus: {
+            ...workflowState.inspection.syncStatus,
+            pendingChanges: true,
+          },
+        };
+
+        // Save to IndexedDB
+        await saveInspectionToDatabase(updatedInspection);
+
+        setWorkflowState((prev) => ({
+          ...prev,
+          inspection: updatedInspection,
+        }));
+
+        // Queue for background sync
+        queueForSync({
+          type: "UPDATE_ITEM",
+          inspectionId: updatedInspection.id,
+          itemId,
+          updates,
+          timestamp: Date.now(),
+        });
+
+        // Notify progress
+        onProgress?.(progressPercentage);
+
+        // Provide haptic feedback
+        if ("vibrate" in navigator && workflowState.touchOptimized) {
+          navigator.vibrate(50);
         }
-        return item;
-      });
 
-      const completedCount = updatedItems.filter(item => item.status === 'completed').length;
-      const progressPercentage = Math.round((completedCount / updatedItems.length) * 100);
-
-      const updatedInspection: OfflineInspection = {
-        ...workflowState.inspection,
-        items: updatedItems,
-        lastModified: Date.now(),
-        progress: {
-          total: updatedItems.length,
-          completed: completedCount,
-          percentage: progressPercentage
-        },
-        syncStatus: {
-          ...workflowState.inspection.syncStatus,
-          pendingChanges: true
-        }
-      };
-
-      // Save to IndexedDB
-      await saveInspectionToDatabase(updatedInspection);
-
-      setWorkflowState(prev => ({
-        ...prev,
-        inspection: updatedInspection
-      }));
-
-      // Queue for background sync
-      queueForSync({
-        type: 'UPDATE_ITEM',
-        inspectionId: updatedInspection.id,
-        itemId,
-        updates,
-        timestamp: Date.now()
-      });
-
-      // Notify progress
-      onProgress?.(progressPercentage);
-
-      // Provide haptic feedback
-      if ('vibrate' in navigator && workflowState.touchOptimized) {
-        navigator.vibrate(50);
+        logger.info(
+          "Inspection item updated",
+          {
+            itemId,
+            status: updates.status,
+            progress: progressPercentage,
+          },
+          "OFFLINE_WORKFLOW",
+        );
+      } catch (error) {
+        logger.error(
+          "Failed to update inspection item",
+          { error, itemId },
+          "OFFLINE_WORKFLOW",
+        );
+        setErrorMessage(`Failed to update item: ${error.message}`);
       }
-
-      logger.info('Inspection item updated', {
-        itemId,
-        status: updates.status,
-        progress: progressPercentage
-      }, 'OFFLINE_WORKFLOW');
-
-    } catch (error) {
-      logger.error('Failed to update inspection item', { error, itemId }, 'OFFLINE_WORKFLOW');
-      setErrorMessage(`Failed to update item: ${error.message}`);
-    }
-  }, [workflowState.inspection, onProgress]);
+    },
+    [workflowState.inspection, onProgress],
+  );
 
   /**
    * CAPTURE MEDIA EVIDENCE
    * Captures and stores media evidence for inspection items
    */
-  const captureMediaEvidence = useCallback(async (
-    itemId: string,
-    mediaType: 'photo' | 'video'
-  ): Promise<void> => {
-    if (!workflowState.inspection) return;
+  const captureMediaEvidence = useCallback(
+    async (itemId: string, mediaType: "photo" | "video"): Promise<void> => {
+      if (!workflowState.inspection) return;
 
-    try {
-      // Get media stream
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: mediaType === 'video'
-      });
-
-      // Create media capture interface
-      const mediaCapture = await createMediaCaptureInterface(stream, mediaType);
-      
-      // Wait for capture completion
-      const capturedFile = await mediaCapture.capture();
-      
-      // Store media locally
-      const mediaId = await mediaStorageRef.current.storeMedia(
-        capturedFile,
-        workflowState.inspection.id,
-        itemId
-      );
-
-      // Update inspection item with media reference
-      const item = workflowState.inspection.items.find(i => i.id === itemId);
-      if (item) {
-        const currentEvidence = item.evidence || {};
-        const mediaArray = mediaType === 'photo' ? (currentEvidence.photos || []) : (currentEvidence.videos || []);
-        
-        await updateInspectionItem(itemId, {
-          evidence: {
-            ...currentEvidence,
-            [mediaType === 'photo' ? 'photos' : 'videos']: [...mediaArray, capturedFile]
-          },
-          status: 'completed'
+      try {
+        // Get media stream
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: mediaType === "video",
         });
+
+        // Create media capture interface
+        const mediaCapture = await createMediaCaptureInterface(
+          stream,
+          mediaType,
+        );
+
+        // Wait for capture completion
+        const capturedFile = await mediaCapture.capture();
+
+        // Store media locally
+        const mediaId = await mediaStorageRef.current.storeMedia(
+          capturedFile,
+          workflowState.inspection.id,
+          itemId,
+        );
+
+        // Update inspection item with media reference
+        const item = workflowState.inspection.items.find(
+          (i) => i.id === itemId,
+        );
+        if (item) {
+          const currentEvidence = item.evidence || {};
+          const mediaArray =
+            mediaType === "photo"
+              ? currentEvidence.photos || []
+              : currentEvidence.videos || [];
+
+          await updateInspectionItem(itemId, {
+            evidence: {
+              ...currentEvidence,
+              [mediaType === "photo" ? "photos" : "videos"]: [
+                ...mediaArray,
+                capturedFile,
+              ],
+            },
+            status: "completed",
+          });
+        }
+
+        // Clean up stream
+        stream.getTracks().forEach((track) => track.stop());
+
+        logger.info(
+          "Media evidence captured",
+          {
+            itemId,
+            mediaType,
+            mediaId,
+          },
+          "OFFLINE_WORKFLOW",
+        );
+      } catch (error) {
+        logger.error(
+          "Failed to capture media evidence",
+          { error, itemId, mediaType },
+          "OFFLINE_WORKFLOW",
+        );
+        setErrorMessage(`Failed to capture ${mediaType}: ${error.message}`);
       }
-
-      // Clean up stream
-      stream.getTracks().forEach(track => track.stop());
-
-      logger.info('Media evidence captured', {
-        itemId,
-        mediaType,
-        mediaId
-      }, 'OFFLINE_WORKFLOW');
-
-    } catch (error) {
-      logger.error('Failed to capture media evidence', { error, itemId, mediaType }, 'OFFLINE_WORKFLOW');
-      setErrorMessage(`Failed to capture ${mediaType}: ${error.message}`);
-    }
-  }, [workflowState.inspection, updateInspectionItem]);
+    },
+    [workflowState.inspection, updateInspectionItem],
+  );
 
   // PHASE 4B: Add missing methods for verification requirements
-  
+
   /**
    * HANDLE MEDIA CAPTURE
    * Primary media capture function for verification compliance
    */
-  const handleMediaCapture = useCallback(async (itemId: string, file: File): Promise<void> => {
-    await captureMediaEvidence(itemId, file.type.startsWith('video/') ? 'video' : 'photo');
-  }, [captureMediaEvidence]);
+  const handleMediaCapture = useCallback(
+    async (itemId: string, file: File): Promise<void> => {
+      await captureMediaEvidence(
+        itemId,
+        file.type.startsWith("video/") ? "video" : "photo",
+      );
+    },
+    [captureMediaEvidence],
+  );
 
   /**
    * GENERATE INSPECTION CHECKLIST
@@ -760,77 +865,80 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   const generateInspectionChecklist = useCallback((): InspectionItem[] => {
     return [
       {
-        id: '1',
-        propertyId: propertyId || '',
-        title: 'Property Exterior Assessment',
-        description: 'Evaluate exterior condition, curb appeal, and structural integrity',
-        category: 'exterior',
+        id: "1",
+        propertyId: propertyId || "",
+        title: "Property Exterior Assessment",
+        description:
+          "Evaluate exterior condition, curb appeal, and structural integrity",
+        category: "exterior",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'high',
+        evidenceType: "photo",
+        status: "pending",
+        priority: "high",
         estimatedTimeMinutes: 15,
         completedAt: undefined,
-        assignedInspector: 'current_user',
+        assignedInspector: "current_user",
         qualityStandards: {
-          photoRequirements: 'High resolution exterior shots from multiple angles',
-          acceptanceCriteria: 'No structural damage, clean appearance'
-        }
+          photoRequirements:
+            "High resolution exterior shots from multiple angles",
+          acceptanceCriteria: "No structural damage, clean appearance",
+        },
       },
       {
-        id: '2',
-        propertyId: propertyId || '',
-        title: 'Entry and Common Areas',
-        description: 'Inspect entrance, hallways, and shared spaces',
-        category: 'interior',
+        id: "2",
+        propertyId: propertyId || "",
+        title: "Entry and Common Areas",
+        description: "Inspect entrance, hallways, and shared spaces",
+        category: "interior",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'high',
+        evidenceType: "photo",
+        status: "pending",
+        priority: "high",
         estimatedTimeMinutes: 10,
         completedAt: undefined,
-        assignedInspector: 'current_user',
+        assignedInspector: "current_user",
         qualityStandards: {
-          photoRequirements: 'Clear photos of entry points and common areas',
-          acceptanceCriteria: 'Clean, welcoming, and accessible'
-        }
+          photoRequirements: "Clear photos of entry points and common areas",
+          acceptanceCriteria: "Clean, welcoming, and accessible",
+        },
       },
       {
-        id: '3',
-        propertyId: propertyId || '',
-        title: 'Kitchen and Appliances',
-        description: 'Test all appliances, check cleanliness and functionality',
-        category: 'interior',
+        id: "3",
+        propertyId: propertyId || "",
+        title: "Kitchen and Appliances",
+        description: "Test all appliances, check cleanliness and functionality",
+        category: "interior",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'high',
+        evidenceType: "photo",
+        status: "pending",
+        priority: "high",
         estimatedTimeMinutes: 20,
         completedAt: undefined,
-        assignedInspector: 'current_user',
+        assignedInspector: "current_user",
         qualityStandards: {
-          photoRequirements: 'Photos of all appliances and kitchen areas',
-          acceptanceCriteria: 'All appliances functional, clean, and stocked'
-        }
+          photoRequirements: "Photos of all appliances and kitchen areas",
+          acceptanceCriteria: "All appliances functional, clean, and stocked",
+        },
       },
       {
-        id: '4',
-        propertyId: propertyId || '',
-        title: 'Safety Equipment Check',
-        description: 'Smoke detectors, fire extinguishers, first aid, carbon monoxide',
-        category: 'safety',
+        id: "4",
+        propertyId: propertyId || "",
+        title: "Safety Equipment Check",
+        description:
+          "Smoke detectors, fire extinguishers, first aid, carbon monoxide",
+        category: "safety",
         required: true,
-        evidenceType: 'checklist',
-        status: 'pending',
-        priority: 'critical',
+        evidenceType: "checklist",
+        status: "pending",
+        priority: "critical",
         estimatedTimeMinutes: 10,
         completedAt: undefined,
-        assignedInspector: 'current_user',
+        assignedInspector: "current_user",
         qualityStandards: {
-          photoRequirements: 'Documentation of all safety equipment',
-          acceptanceCriteria: 'All safety equipment present and functional'
-        }
-      }
+          photoRequirements: "Documentation of all safety equipment",
+          acceptanceCriteria: "All safety equipment present and functional",
+        },
+      },
     ];
   }, [propertyId]);
 
@@ -840,7 +948,9 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    */
   const calculateProgress = useCallback((items: InspectionItem[]): number => {
     if (items.length === 0) return 0;
-    const completed = items.filter(item => item.status === 'completed').length;
+    const completed = items.filter(
+      (item) => item.status === "completed",
+    ).length;
     return Math.round((completed / items.length) * 100);
   }, []);
 
@@ -848,42 +958,57 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    * SAVE INSPECTION WITH RETRY
    * Saves inspection with retry logic for network issues
    */
-  const saveInspectionWithRetry = useCallback(async (
-    inspection: OfflineInspection,
-    maxRetries: number = 3
-  ): Promise<void> => {
-    let attempts = 0;
-    while (attempts < maxRetries) {
-      try {
-        await saveInspectionToDatabase(inspection);
-        logger.info('Inspection saved successfully', { 
-          inspectionId: inspection.id,
-          attempts: attempts + 1
-        }, 'OFFLINE_WORKFLOW');
-        return;
-      } catch (error) {
-        attempts++;
-        if (attempts >= maxRetries) {
-          logger.error('Failed to save inspection after all retries', {
-            inspectionId: inspection.id,
-            attempts,
-            error
-          }, 'OFFLINE_WORKFLOW');
-          throw error;
+  const saveInspectionWithRetry = useCallback(
+    async (
+      inspection: OfflineInspection,
+      maxRetries: number = 3,
+    ): Promise<void> => {
+      let attempts = 0;
+      while (attempts < maxRetries) {
+        try {
+          await saveInspectionToDatabase(inspection);
+          logger.info(
+            "Inspection saved successfully",
+            {
+              inspectionId: inspection.id,
+              attempts: attempts + 1,
+            },
+            "OFFLINE_WORKFLOW",
+          );
+          return;
+        } catch (error) {
+          attempts++;
+          if (attempts >= maxRetries) {
+            logger.error(
+              "Failed to save inspection after all retries",
+              {
+                inspectionId: inspection.id,
+                attempts,
+                error,
+              },
+              "OFFLINE_WORKFLOW",
+            );
+            throw error;
+          }
+
+          // Exponential backoff
+          const delay = Math.pow(2, attempts) * 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+
+          logger.warn(
+            "Retrying inspection save",
+            {
+              inspectionId: inspection.id,
+              attempt: attempts,
+              nextRetryIn: delay * 2,
+            },
+            "OFFLINE_WORKFLOW",
+          );
         }
-        
-        // Exponential backoff
-        const delay = Math.pow(2, attempts) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        logger.warn('Retrying inspection save', {
-          inspectionId: inspection.id,
-          attempt: attempts,
-          nextRetryIn: delay * 2
-        }, 'OFFLINE_WORKFLOW');
       }
-    }
-  }, [saveInspectionToDatabase]);
+    },
+    [saveInspectionToDatabase],
+  );
 
   /**
    * SETUP AUTO SAVE
@@ -891,17 +1016,28 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
    */
   const setupAutoSave = useCallback(() => {
     const autoSaveInterval = setInterval(async () => {
-      if (workflowState.inspection && workflowState.inspection.status !== 'completed') {
+      if (
+        workflowState.inspection &&
+        workflowState.inspection.status !== "completed"
+      ) {
         try {
           await saveInspectionWithRetry(workflowState.inspection);
-          logger.debug('Auto-save completed', { 
-            inspectionId: workflowState.inspection.id 
-          }, 'OFFLINE_WORKFLOW');
+          logger.debug(
+            "Auto-save completed",
+            {
+              inspectionId: workflowState.inspection.id,
+            },
+            "OFFLINE_WORKFLOW",
+          );
         } catch (error) {
-          logger.warn('Auto-save failed', { 
-            inspectionId: workflowState.inspection.id,
-            error 
-          }, 'OFFLINE_WORKFLOW');
+          logger.warn(
+            "Auto-save failed",
+            {
+              inspectionId: workflowState.inspection.id,
+              error,
+            },
+            "OFFLINE_WORKFLOW",
+          );
         }
       }
     }, 30000); // Auto-save every 30 seconds
@@ -925,28 +1061,28 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
     try {
       const completedInspection: OfflineInspection = {
         ...workflowState.inspection,
-        status: 'completed',
+        status: "completed",
         lastModified: Date.now(),
         syncStatus: {
           ...workflowState.inspection.syncStatus,
-          pendingChanges: true
-        }
+          pendingChanges: true,
+        },
       };
 
       // Save final state
       await saveInspectionToDatabase(completedInspection);
 
-      setWorkflowState(prev => ({
+      setWorkflowState((prev) => ({
         ...prev,
-        inspection: completedInspection
+        inspection: completedInspection,
       }));
 
       // Queue for high-priority sync
       queueForSync({
-        type: 'COMPLETE_INSPECTION',
+        type: "COMPLETE_INSPECTION",
         inspectionId: completedInspection.id,
         timestamp: Date.now(),
-        priority: 'high'
+        priority: "high",
       });
 
       // Trigger immediate sync if online
@@ -956,65 +1092,79 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
 
       onComplete?.(completedInspection);
 
-      logger.info('Inspection completed successfully', {
-        inspectionId: completedInspection.id,
-        itemsCompleted: completedInspection.progress.completed,
-        totalItems: completedInspection.progress.total
-      }, 'OFFLINE_WORKFLOW');
-
+      logger.info(
+        "Inspection completed successfully",
+        {
+          inspectionId: completedInspection.id,
+          itemsCompleted: completedInspection.progress.completed,
+          totalItems: completedInspection.progress.total,
+        },
+        "OFFLINE_WORKFLOW",
+      );
     } catch (error) {
-      logger.error('Failed to complete inspection', { error }, 'OFFLINE_WORKFLOW');
+      logger.error(
+        "Failed to complete inspection",
+        { error },
+        "OFFLINE_WORKFLOW",
+      );
       setErrorMessage(`Failed to complete inspection: ${error.message}`);
     }
   }, [workflowState.inspection, workflowState.isOffline, onComplete]);
 
   // Utility functions
 
-  const saveInspectionToDatabase = async (inspection: OfflineInspection): Promise<void> => {
-    const transaction = dbRef.current!.transaction(['inspections'], 'readwrite');
-    const store = transaction.objectStore('inspections');
+  const saveInspectionToDatabase = async (
+    inspection: OfflineInspection,
+  ): Promise<void> => {
+    const transaction = dbRef.current!.transaction(
+      ["inspections"],
+      "readwrite",
+    );
+    const store = transaction.objectStore("inspections");
     await store.put(inspection);
   };
 
-  const generateInspectionTemplate = async (propertyId: string): Promise<InspectionItem[]> => {
+  const generateInspectionTemplate = async (
+    propertyId: string,
+  ): Promise<InspectionItem[]> => {
     // This would normally fetch from API or cache
     return [
       {
-        id: 'safety_001',
+        id: "safety_001",
         propertyId,
-        title: 'Smoke Detector Check',
-        description: 'Verify smoke detectors are present and functional',
-        category: 'Safety',
+        title: "Smoke Detector Check",
+        description: "Verify smoke detectors are present and functional",
+        category: "Safety",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'critical',
-        offlineCapable: true
+        evidenceType: "photo",
+        status: "pending",
+        priority: "critical",
+        offlineCapable: true,
       },
       {
-        id: 'safety_002',
+        id: "safety_002",
         propertyId,
-        title: 'Fire Extinguisher Inspection',
-        description: 'Check fire extinguisher presence and expiration',
-        category: 'Safety',
+        title: "Fire Extinguisher Inspection",
+        description: "Check fire extinguisher presence and expiration",
+        category: "Safety",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'high',
-        offlineCapable: true
+        evidenceType: "photo",
+        status: "pending",
+        priority: "high",
+        offlineCapable: true,
       },
       {
-        id: 'structural_001',
+        id: "structural_001",
         propertyId,
-        title: 'Foundation Inspection',
-        description: 'Inspect foundation for cracks or damage',
-        category: 'Structural',
+        title: "Foundation Inspection",
+        description: "Inspect foundation for cracks or damage",
+        category: "Structural",
         required: true,
-        evidenceType: 'photo',
-        status: 'pending',
-        priority: 'high',
-        offlineCapable: true
-      }
+        evidenceType: "photo",
+        status: "pending",
+        priority: "high",
+        offlineCapable: true,
+      },
     ];
   };
 
@@ -1025,7 +1175,7 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
 
   const getCurrentInspectorId = async (): Promise<string> => {
     // This would normally get from authentication context
-    return 'inspector_123';
+    return "inspector_123";
   };
 
   const getDeviceInfo = () => {
@@ -1033,72 +1183,87 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
       userAgent: navigator.userAgent,
       screen: `${screen.width}x${screen.height}`,
       pixelRatio: window.devicePixelRatio,
-      touchSupport: 'ontouchstart' in window
+      touchSupport: "ontouchstart" in window,
     };
   };
 
   const compressMediaFile = async (file: File): Promise<Blob> => {
     // Simple compression - in production would use more sophisticated algorithms
-    if (file.type.startsWith('image/')) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+    if (file.type.startsWith("image/")) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
       const img = new Image();
-      
+
       return new Promise((resolve) => {
         img.onload = () => {
           const maxSize = workflowState.emergencyMode ? 800 : 1200;
           const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-          
+
           canvas.width = img.width * ratio;
           canvas.height = img.height * ratio;
-          
+
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob(resolve, 'image/jpeg', workflowState.emergencyMode ? 0.6 : 0.8);
+          canvas.toBlob(
+            resolve,
+            "image/jpeg",
+            workflowState.emergencyMode ? 0.6 : 0.8,
+          );
         };
-        
+
         img.src = URL.createObjectURL(file);
       });
     }
-    
+
     return file;
   };
 
-  const createMediaCaptureInterface = async (stream: MediaStream, type: 'photo' | 'video') => {
+  const createMediaCaptureInterface = async (
+    stream: MediaStream,
+    type: "photo" | "video",
+  ) => {
     // Simplified media capture - in production would be more sophisticated
     return {
       async capture(): Promise<File> {
-        const video = document.createElement('video');
+        const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
-        
-        if (type === 'photo') {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d')!;
-          
+
+        if (type === "photo") {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d")!;
+
           return new Promise((resolve) => {
-            video.addEventListener('loadedmetadata', () => {
+            video.addEventListener("loadedmetadata", () => {
               canvas.width = video.videoWidth;
               canvas.height = video.videoHeight;
               ctx.drawImage(video, 0, 0);
-              
-              canvas.toBlob((blob) => {
-                resolve(new File([blob!], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' }));
-              }, 'image/jpeg', 0.8);
+
+              canvas.toBlob(
+                (blob) => {
+                  resolve(
+                    new File([blob!], `photo_${Date.now()}.jpg`, {
+                      type: "image/jpeg",
+                    }),
+                  );
+                },
+                "image/jpeg",
+                0.8,
+              );
             });
           });
         } else {
           // Video capture would use MediaRecorder API
-          throw new Error('Video capture not implemented in this demo');
+          throw new Error("Video capture not implemented in this demo");
         }
-      }
+      },
     };
   };
 
   const queueForSync = (syncItem: any): void => {
     if (syncWorkerRef.current) {
       syncWorkerRef.current.postMessage({
-        type: 'QUEUE_SYNC',
-        payload: syncItem
+        type: "QUEUE_SYNC",
+        payload: syncItem,
       });
     }
   };
@@ -1106,42 +1271,50 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   const triggerBackgroundSync = async (): Promise<void> => {
     if (workflowState.isOffline) return;
 
-    setWorkflowState(prev => ({ ...prev, syncInProgress: true }));
+    setWorkflowState((prev) => ({ ...prev, syncInProgress: true }));
 
     try {
       // Trigger sync through PWA integrator
-      const backgroundSyncManager = pwaIntegrator.getSystemStatus().components.backgroundSync;
+      const backgroundSyncManager =
+        pwaIntegrator.getSystemStatus().components.backgroundSync;
       if (backgroundSyncManager.isInitialized) {
         // Implementation would trigger actual sync
       }
 
-      logger.info('Background sync triggered', {}, 'OFFLINE_WORKFLOW');
+      logger.info("Background sync triggered", {}, "OFFLINE_WORKFLOW");
     } catch (error) {
-      logger.error('Background sync failed', { error }, 'OFFLINE_WORKFLOW');
+      logger.error("Background sync failed", { error }, "OFFLINE_WORKFLOW");
     } finally {
-      setWorkflowState(prev => ({ ...prev, syncInProgress: false }));
+      setWorkflowState((prev) => ({ ...prev, syncInProgress: false }));
     }
   };
 
   const setupBackgroundSync = async (): Promise<void> => {
     // Setup service worker background sync
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+    if (
+      "serviceWorker" in navigator &&
+      "sync" in window.ServiceWorkerRegistration.prototype
+    ) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('inspection-sync');
-        logger.info('Background sync registered', {}, 'OFFLINE_WORKFLOW');
+        await registration.sync.register("inspection-sync");
+        logger.info("Background sync registered", {}, "OFFLINE_WORKFLOW");
       } catch (error) {
-        logger.warn('Background sync not available', { error }, 'OFFLINE_WORKFLOW');
+        logger.warn(
+          "Background sync not available",
+          { error },
+          "OFFLINE_WORKFLOW",
+        );
       }
     }
   };
 
   const handleSyncSuccess = (payload: any): void => {
-    logger.info('Sync operation succeeded', { payload }, 'OFFLINE_WORKFLOW');
+    logger.info("Sync operation succeeded", { payload }, "OFFLINE_WORKFLOW");
   };
 
   const handleSyncError = (payload: any): void => {
-    logger.error('Sync operation failed', { payload }, 'OFFLINE_WORKFLOW');
+    logger.error("Sync operation failed", { payload }, "OFFLINE_WORKFLOW");
   };
 
   const updateSyncStatus = (status: any): void => {
@@ -1152,16 +1325,16 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
     if (syncWorkerRef.current) {
       syncWorkerRef.current.terminate();
     }
-    
+
     if (networkMonitorRef.current) {
       // Cleanup network monitoring
     }
-    
+
     if (dbRef.current) {
       dbRef.current.close();
     }
 
-    logger.info('Offline workflow cleaned up', {}, 'OFFLINE_WORKFLOW');
+    logger.info("Offline workflow cleaned up", {}, "OFFLINE_WORKFLOW");
   };
 
   // Memoized computed values
@@ -1172,25 +1345,41 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
 
   const criticalItems = useMemo(() => {
     if (!workflowState.inspection) return [];
-    return workflowState.inspection.items.filter(item => item.priority === 'critical' && item.status === 'pending');
+    return workflowState.inspection.items.filter(
+      (item) => item.priority === "critical" && item.status === "pending",
+    );
   }, [workflowState.inspection?.items]);
 
   const networkStatusClass = useMemo(() => {
     switch (workflowState.networkQuality) {
-      case 'fast': return 'text-green-600';
-      case 'slow': return 'text-yellow-600';
-      case 'offline': return 'text-red-600';
-      default: return 'text-gray-600';
+      case "fast":
+        return "text-green-600";
+      case "slow":
+        return "text-yellow-600";
+      case "offline":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
     }
   }, [workflowState.networkQuality]);
 
   // Render loading state
   if (isLoading) {
     return (
-      <div id="offline-workflow-loading-container" className="flex flex-col items-center justify-center min-h-screen p-6">
-        <div id="loading-spinner" className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Initializing Offline Inspection</h2>
-        <p className="text-gray-600 text-center">Setting up offline infrastructure and loading inspection data...</p>
+      <div
+        id="offline-workflow-loading-container"
+        className="flex flex-col items-center justify-center min-h-screen p-6"
+      >
+        <div
+          id="loading-spinner"
+          className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"
+        ></div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          Initializing Offline Inspection
+        </h2>
+        <p className="text-gray-600 text-center">
+          Setting up offline infrastructure and loading inspection data...
+        </p>
       </div>
     );
   }
@@ -1198,9 +1387,16 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   // Render error state
   if (errorMessage) {
     return (
-      <div id="offline-workflow-error-container" className="flex flex-col items-center justify-center min-h-screen p-6">
-        <div id="error-icon" className="text-red-500 text-6xl mb-4">⚠️</div>
-        <h2 className="text-xl font-semibold text-red-800 mb-2">Workflow Error</h2>
+      <div
+        id="offline-workflow-error-container"
+        className="flex flex-col items-center justify-center min-h-screen p-6"
+      >
+        <div id="error-icon" className="text-red-500 text-6xl mb-4">
+          ⚠️
+        </div>
+        <h2 className="text-xl font-semibold text-red-800 mb-2">
+          Workflow Error
+        </h2>
         <p className="text-red-600 text-center mb-4">{errorMessage}</p>
         <button
           id="retry-initialization-button"
@@ -1217,213 +1413,289 @@ export const OfflineInspectionWorkflow: React.FC<OfflineInspectionWorkflowProps>
   return (
     <PWAErrorBoundary
       onError={(error) => {
-        logger.error('Offline inspection workflow error', { error }, 'OFFLINE_INSPECTION');
+        logger.error(
+          "Offline inspection workflow error",
+          { error },
+          "OFFLINE_INSPECTION",
+        );
       }}
       maxRecoveryAttempts={2}
     >
-      <div id="offline-inspection-workflow-enhanced" className="flex flex-col h-screen bg-gray-50">
-      {/* Header with status indicators */}
-      <header id="workflow-header" className="bg-white shadow-sm border-b px-4 py-3">
-        <div id="inspection-header" className="flex items-center justify-between">
-          <div id="inspection-info">
-            <h1 className="text-xl font-semibold text-gray-800">
-              {workflowState.inspection?.propertyName || 'Inspection'}
-            </h1>
-            <p className="text-sm text-gray-600">
-              Progress: {inspectionProgress}% • {workflowState.inspection?.progress.completed} of {workflowState.inspection?.progress.total} items
-            </p>
-          </div>
-          
-          <div id="status-indicators" className="flex items-center space-x-4">
-            {/* Network Status */}
-            <div id="network-status" className={`flex items-center space-x-1 ${networkStatusClass}`}>
-              <span className="text-sm font-medium">
-                {workflowState.isOffline ? '📵' : workflowState.networkQuality === 'fast' ? '📶' : '📳'}
-              </span>
-              <span className="text-xs capitalize">{workflowState.networkQuality}</span>
-            </div>
-            
-            {/* Battery Status */}
-            <div id="battery-status" className={`flex items-center space-x-1 ${workflowState.batteryLevel < 20 ? 'text-red-600' : 'text-gray-600'}`}>
-              <span className="text-sm">🔋</span>
-              <span className="text-xs">{workflowState.batteryLevel}%</span>
-            </div>
-            
-            {/* Emergency Mode Indicator */}
-            {workflowState.emergencyMode && (
-              <div id="emergency-mode-indicator" className="flex items-center space-x-1 text-orange-600">
-                <span className="text-sm">🚨</span>
-                <span className="text-xs">Emergency</span>
-              </div>
-            )}
-            
-            {/* Sync Status */}
-            {workflowState.syncInProgress && (
-              <div id="sync-status" className="flex items-center space-x-1 text-blue-600">
-                <span className="text-sm animate-spin">⟳</span>
-                <span className="text-xs">Syncing</span>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Progress Bar */}
-        <div id="progress-bar-container" className="mt-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              id="progress-bar"
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${inspectionProgress}%` }}
-            ></div>
-          </div>
-        </div>
-      </header>
-
-      {/* Critical Items Alert */}
-      {criticalItems.length > 0 && (
-        <div id="critical-items-alert" className="bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="flex items-center">
-            <span className="text-red-400 text-xl mr-2">⚠️</span>
-            <div>
-              <h3 className="text-sm font-medium text-red-800">Critical Items Pending</h3>
-              <p className="text-sm text-red-700">
-                {criticalItems.length} critical safety item{criticalItems.length > 1 ? 's' : ''} require{criticalItems.length === 1 ? 's' : ''} immediate attention
+      <div
+        id="offline-inspection-workflow-enhanced"
+        className="flex flex-col h-screen bg-gray-50"
+      >
+        {/* Header with status indicators */}
+        <header
+          id="workflow-header"
+          className="bg-white shadow-sm border-b px-4 py-3"
+        >
+          <div
+            id="inspection-header"
+            className="flex items-center justify-between"
+          >
+            <div id="inspection-info">
+              <h1 className="text-xl font-semibold text-gray-800">
+                {workflowState.inspection?.propertyName || "Inspection"}
+              </h1>
+              <p className="text-sm text-gray-600">
+                Progress: {inspectionProgress}% •{" "}
+                {workflowState.inspection?.progress.completed} of{" "}
+                {workflowState.inspection?.progress.total} items
               </p>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Inspection Items List */}
-      <main id="inspection-items-main" className="flex-1 overflow-auto p-4">
-        <div id="inspection-items-grid" className="space-y-4">
-          {workflowState.inspection?.items.map((item) => (
-            <div
-              key={item.id}
-              id={`inspection-item-${item.id}`}
-              className={`bg-white rounded-lg shadow-sm border p-4 ${
-                item.priority === 'critical' ? 'border-red-300' : 'border-gray-200'
-              } ${
-                activeItemId === item.id ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => setActiveItemId(activeItemId === item.id ? null : item.id)}
-            >
-              <div id={`item-header-${item.id}`} className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="font-medium text-gray-800">{item.title}</h3>
-                  <p className="text-sm text-gray-600">{item.category}</p>
-                </div>
-                
-                <div id={`item-status-${item.id}`} className="flex items-center space-x-2">
-                  {item.priority === 'critical' && (
-                    <span className="text-red-500 text-sm">🔴</span>
-                  )}
-                  
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    item.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    item.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                    item.status === 'failed' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {item.status.replace('_', ' ')}
-                  </span>
-                </div>
+            <div id="status-indicators" className="flex items-center space-x-4">
+              {/* Network Status */}
+              <div
+                id="network-status"
+                className={`flex items-center space-x-1 ${networkStatusClass}`}
+              >
+                <span className="text-sm font-medium">
+                  {workflowState.isOffline
+                    ? "📵"
+                    : workflowState.networkQuality === "fast"
+                      ? "📶"
+                      : "📳"}
+                </span>
+                <span className="text-xs capitalize">
+                  {workflowState.networkQuality}
+                </span>
               </div>
-              
-              <p className="text-sm text-gray-700 mb-3">{item.description}</p>
-              
-              {/* Evidence Display */}
-              {item.evidence && (
-                <div id={`evidence-display-${item.id}`} className="mb-3">
-                  {item.evidence.photos && item.evidence.photos.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {item.evidence.photos.map((photo, index) => (
-                        <div key={index} className="w-16 h-16 bg-gray-200 rounded border flex items-center justify-center">
-                          <span className="text-xs text-gray-500">📷</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {item.evidence.notes && (
-                    <div className="bg-gray-50 rounded p-2 mb-2">
-                      <p className="text-sm text-gray-700">{item.evidence.notes}</p>
-                    </div>
-                  )}
+
+              {/* Battery Status */}
+              <div
+                id="battery-status"
+                className={`flex items-center space-x-1 ${workflowState.batteryLevel < 20 ? "text-red-600" : "text-gray-600"}`}
+              >
+                <span className="text-sm">🔋</span>
+                <span className="text-xs">{workflowState.batteryLevel}%</span>
+              </div>
+
+              {/* Emergency Mode Indicator */}
+              {workflowState.emergencyMode && (
+                <div
+                  id="emergency-mode-indicator"
+                  className="flex items-center space-x-1 text-orange-600"
+                >
+                  <span className="text-sm">🚨</span>
+                  <span className="text-xs">Emergency</span>
                 </div>
               )}
-              
-              {/* Action Buttons */}
-              {activeItemId === item.id && (
-                <div id={`action-buttons-${item.id}`} className="flex flex-wrap gap-2 mt-3">
-                  {item.evidenceType === 'photo' && (
-                    <button
-                      id={`capture-photo-${item.id}`}
-                      onClick={() => captureMediaEvidence(item.id, 'photo')}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      📷 Capture Photo
-                    </button>
-                  )}
-                  
-                  {item.evidenceType === 'video' && (
-                    <button
-                      id={`capture-video-${item.id}`}
-                      onClick={() => captureMediaEvidence(item.id, 'video')}
-                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                    >
-                      🎥 Capture Video
-                    </button>
-                  )}
-                  
-                  <button
-                    id={`mark-complete-${item.id}`}
-                    onClick={() => updateInspectionItem(item.id, { status: 'completed' })}
-                    disabled={item.status === 'completed'}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ✓ Mark Complete
-                  </button>
-                  
-                  <button
-                    id={`mark-failed-${item.id}`}
-                    onClick={() => updateInspectionItem(item.id, { status: 'failed' })}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                  >
-                    ✗ Mark Failed
-                  </button>
-                  
-                  <button
-                    id={`not-applicable-${item.id}`}
-                    onClick={() => updateInspectionItem(item.id, { status: 'not_applicable' })}
-                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
-                  >
-                    N/A
-                  </button>
+
+              {/* Sync Status */}
+              {workflowState.syncInProgress && (
+                <div
+                  id="sync-status"
+                  className="flex items-center space-x-1 text-blue-600"
+                >
+                  <span className="text-sm animate-spin">⟳</span>
+                  <span className="text-xs">Syncing</span>
                 </div>
               )}
             </div>
-          ))}
-        </div>
-      </main>
-
-      {/* Footer with completion button */}
-      <footer id="workflow-footer" className="bg-white border-t p-4">
-        <div id="footer-content" className="flex items-center justify-between">
-          <div id="completion-status" className="text-sm text-gray-600">
-            {workflowState.inspection?.progress.completed} of {workflowState.inspection?.progress.total} items completed
           </div>
-          
-          <button
-            id="complete-inspection-button"
-            onClick={completeInspection}
-            disabled={inspectionProgress < 100}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+
+          {/* Progress Bar */}
+          <div id="progress-bar-container" className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                id="progress-bar"
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${inspectionProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        </header>
+
+        {/* Critical Items Alert */}
+        {criticalItems.length > 0 && (
+          <div
+            id="critical-items-alert"
+            className="bg-red-50 border-l-4 border-red-400 p-4"
           >
-            {inspectionProgress === 100 ? 'Complete Inspection' : `${100 - inspectionProgress}% Remaining`}
-          </button>
-        </div>
-      </footer>
+            <div className="flex items-center">
+              <span className="text-red-400 text-xl mr-2">⚠️</span>
+              <div>
+                <h3 className="text-sm font-medium text-red-800">
+                  Critical Items Pending
+                </h3>
+                <p className="text-sm text-red-700">
+                  {criticalItems.length} critical safety item
+                  {criticalItems.length > 1 ? "s" : ""} require
+                  {criticalItems.length === 1 ? "s" : ""} immediate attention
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Inspection Items List */}
+        <main id="inspection-items-main" className="flex-1 overflow-auto p-4">
+          <div id="inspection-items-grid" className="space-y-4">
+            {workflowState.inspection?.items.map((item) => (
+              <div
+                key={item.id}
+                id={`inspection-item-${item.id}`}
+                className={`bg-white rounded-lg shadow-sm border p-4 ${
+                  item.priority === "critical"
+                    ? "border-red-300"
+                    : "border-gray-200"
+                } ${activeItemId === item.id ? "ring-2 ring-blue-500" : ""}`}
+                onClick={() =>
+                  setActiveItemId(activeItemId === item.id ? null : item.id)
+                }
+              >
+                <div
+                  id={`item-header-${item.id}`}
+                  className="flex items-center justify-between mb-2"
+                >
+                  <div>
+                    <h3 className="font-medium text-gray-800">{item.title}</h3>
+                    <p className="text-sm text-gray-600">{item.category}</p>
+                  </div>
+
+                  <div
+                    id={`item-status-${item.id}`}
+                    className="flex items-center space-x-2"
+                  >
+                    {item.priority === "critical" && (
+                      <span className="text-red-500 text-sm">🔴</span>
+                    )}
+
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : item.status === "in_progress"
+                            ? "bg-blue-100 text-blue-800"
+                            : item.status === "failed"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {item.status.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-700 mb-3">{item.description}</p>
+
+                {/* Evidence Display */}
+                {item.evidence && (
+                  <div id={`evidence-display-${item.id}`} className="mb-3">
+                    {item.evidence.photos &&
+                      item.evidence.photos.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {item.evidence.photos.map((photo, index) => (
+                            <div
+                              key={index}
+                              className="w-16 h-16 bg-gray-200 rounded border flex items-center justify-center"
+                            >
+                              <span className="text-xs text-gray-500">📷</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {item.evidence.notes && (
+                      <div className="bg-gray-50 rounded p-2 mb-2">
+                        <p className="text-sm text-gray-700">
+                          {item.evidence.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                {activeItemId === item.id && (
+                  <div
+                    id={`action-buttons-${item.id}`}
+                    className="flex flex-wrap gap-2 mt-3"
+                  >
+                    {item.evidenceType === "photo" && (
+                      <button
+                        id={`capture-photo-${item.id}`}
+                        onClick={() => captureMediaEvidence(item.id, "photo")}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      >
+                        📷 Capture Photo
+                      </button>
+                    )}
+
+                    {item.evidenceType === "video" && (
+                      <button
+                        id={`capture-video-${item.id}`}
+                        onClick={() => captureMediaEvidence(item.id, "video")}
+                        className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                      >
+                        🎥 Capture Video
+                      </button>
+                    )}
+
+                    <button
+                      id={`mark-complete-${item.id}`}
+                      onClick={() =>
+                        updateInspectionItem(item.id, { status: "completed" })
+                      }
+                      disabled={item.status === "completed"}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ✓ Mark Complete
+                    </button>
+
+                    <button
+                      id={`mark-failed-${item.id}`}
+                      onClick={() =>
+                        updateInspectionItem(item.id, { status: "failed" })
+                      }
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                    >
+                      ✗ Mark Failed
+                    </button>
+
+                    <button
+                      id={`not-applicable-${item.id}`}
+                      onClick={() =>
+                        updateInspectionItem(item.id, {
+                          status: "not_applicable",
+                        })
+                      }
+                      className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+                    >
+                      N/A
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </main>
+
+        {/* Footer with completion button */}
+        <footer id="workflow-footer" className="bg-white border-t p-4">
+          <div
+            id="footer-content"
+            className="flex items-center justify-between"
+          >
+            <div id="completion-status" className="text-sm text-gray-600">
+              {workflowState.inspection?.progress.completed} of{" "}
+              {workflowState.inspection?.progress.total} items completed
+            </div>
+
+            <button
+              id="complete-inspection-button"
+              onClick={completeInspection}
+              disabled={inspectionProgress < 100}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {inspectionProgress === 100
+                ? "Complete Inspection"
+                : `${100 - inspectionProgress}% Remaining`}
+            </button>
+          </div>
+        </footer>
       </div>
     </PWAErrorBoundary>
   );

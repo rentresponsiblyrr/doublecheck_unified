@@ -1,9 +1,8 @@
-
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
 
 export const useMobileAuth = () => {
   const authContext = useAuth();
-  
+
   if (!authContext) {
     return {
       user: null,
@@ -11,15 +10,15 @@ export const useMobileAuth = () => {
       loading: true,
       error: null,
       isAuthenticated: false,
-      signIn: async () => ({ error: new Error('Auth not available') }),
-      signUp: async () => ({ error: new Error('Auth not available') }),
+      signIn: async () => ({ error: new Error("Auth not available") }),
+      signUp: async () => ({ error: new Error("Auth not available") }),
       signOut: async () => {},
       forceRefresh: async () => {},
       clearSession: () => {},
-      loadUserRole: async () => 'inspector' as const,
+      loadUserRole: async () => "inspector" as const,
     };
   }
-  
+
   return {
     user: authContext.user,
     userRole: authContext.userRole,

@@ -6,7 +6,7 @@ import { Eye, Trash2, Download, Camera, Video, FileX } from "lucide-react";
 
 interface MediaItem {
   id: string;
-  type: 'photo' | 'video';
+  type: "photo" | "video";
   url: string;
   user_id?: string;
   uploaded_by_name?: string;
@@ -28,13 +28,13 @@ export const MediaItem: React.FC<MediaItemProps> = ({
   onDelete,
   onDownload,
   isDeleting = false,
-  showActions = true
+  showActions = true,
 }) => {
   const getMediaIcon = () => {
     switch (item.type) {
-      case 'photo':
+      case "photo":
         return <Camera className="w-5 h-5 text-blue-600" />;
-      case 'video':
+      case "video":
         return <Video className="w-5 h-5 text-purple-600" />;
       default:
         return <FileX className="w-5 h-5 text-gray-600" />;
@@ -43,26 +43,29 @@ export const MediaItem: React.FC<MediaItemProps> = ({
 
   const getMediaTypeColor = () => {
     switch (item.type) {
-      case 'photo':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'video':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case "photo":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "video":
+        return "bg-purple-100 text-purple-800 border-purple-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   return (
-    <Card id={`media-item-${item.id}`} className="bg-white border border-gray-200">
+    <Card
+      id={`media-item-${item.id}`}
+      className="bg-white border border-gray-200"
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -97,7 +100,7 @@ export const MediaItem: React.FC<MediaItemProps> = ({
                   <Eye className="w-4 h-4" />
                 </Button>
               )}
-              
+
               {onDownload && (
                 <Button
                   variant="ghost"
@@ -109,7 +112,7 @@ export const MediaItem: React.FC<MediaItemProps> = ({
                   <Download className="w-4 h-4" />
                 </Button>
               )}
-              
+
               {onDelete && (
                 <Button
                   variant="ghost"

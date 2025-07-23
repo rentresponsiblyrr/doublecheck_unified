@@ -1,15 +1,15 @@
 /**
  * Property Data Manager - Enterprise Grade
- * 
+ *
  * Handles property data fetching, caching, and state management
  * following enterprise render props pattern for clean component separation
  */
 
-import React, { useCallback, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { log } from '@/lib/logging/enterprise-logger';
+import React, { useCallback, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { log } from "@/lib/logging/enterprise-logger";
 
 export interface PropertyData {
   property_id: string;
@@ -36,7 +36,9 @@ interface PropertyDataManagerProps {
   }) => React.ReactNode;
 }
 
-export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({ children }) => {
+export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
+  children,
+}) => {
   const { user } = useAuth();
   const mountedRef = useRef(true);
 
@@ -49,36 +51,36 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({ childr
   /**
    * Fetch properties with caching and error handling
    */
-  const { 
-    data: properties = [], 
-    isLoading, 
-    error, 
+  const {
+    data: properties = [],
+    isLoading,
+    error,
     refetch,
-    isRefetching 
+    isRefetching,
   } = useQuery({
-    queryKey: ['properties', user?.id],
+    queryKey: ["properties", user?.id],
     queryFn: async () => {
       const startTime = performance.now();
-      
+
       if (!user?.id) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       const { data, error } = await supabase
-        .rpc('get_properties_with_inspections')
-        .order('property_created_at', { ascending: false });
+        .rpc("get_properties_with_inspections")
+        .order("property_created_at", { ascending: false });
 
       if (error) {
-        log.error('Failed to fetch properties', { error, userId: user.id });
+        log.error("Failed to fetch properties", { error, userId: user.id });
         throw error;
       }
 
       const endTime = performance.now();
       if (mountedRef.current) {
-        log.info('Properties fetched successfully', {
+        log.info("Properties fetched successfully", {
           count: data?.length || 0,
           loadTime: endTime - startTime,
-          userId: user.id
+          userId: user.id,
         });
       }
 
@@ -88,7 +90,7 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({ childr
     staleTime: 1000 * 60 * 5, // 5 minutes
     cacheTime: 1000 * 60 * 30, // 30 minutes
     refetchOnWindowFocus: false,
-    retry: 3
+    retry: 3,
   });
 
   return (
@@ -98,7 +100,7 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({ childr
         isLoading,
         error: error as Error | null,
         refetch,
-        isRefetching
+        isRefetching,
       })}
     </>
   );

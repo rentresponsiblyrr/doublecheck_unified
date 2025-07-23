@@ -1,9 +1,9 @@
 /**
  * USER MANAGEMENT REDESIGNED - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade user management following ZERO_TOLERANCE_STANDARDS
  * Reduced from 400 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (UserManagementDataManager, UserSystemDiagnostic, etc.)
@@ -11,31 +11,37 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - UserManagementDataManager: Data operations, filtering, and state management
  * - UserSystemDiagnostic: System health checks and diagnostics
  * - UserFiltersComponent: Search and filtering interface
  * - UserTable: User data display with actions
  * - UserFormDialog: User creation and editing forms
- * 
+ *
  * @example
  * ```typescript
  * <UserManagementRedesigned />
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Users, RefreshCw, AlertTriangle } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Users, RefreshCw, AlertTriangle } from "lucide-react";
 
-import { UserManagementDataManager } from './UserManagementDataManager';
-import { UserSystemDiagnostic } from './UserSystemDiagnostic';
-import { UserFiltersComponent } from './UserFilters';
-import { UserTable } from './UserTable';
-import { UserFormDialog } from './UserFormDialog';
+import { UserManagementDataManager } from "./UserManagementDataManager";
+import { UserSystemDiagnostic } from "./UserSystemDiagnostic";
+import { UserFiltersComponent } from "./UserFilters";
+import { UserTable } from "./UserTable";
+import { UserFormDialog } from "./UserFormDialog";
 
 /**
  * Main User Management Redesigned Component - Orchestration Only
@@ -65,7 +71,7 @@ const UserManagementRedesigned: React.FC = () => {
           onRefresh,
           onToggleUserForm,
           onToggleDiagnostics,
-          onCloseUserForm
+          onCloseUserForm,
         }) => (
           <>
             {/* Header */}
@@ -78,7 +84,8 @@ const UserManagementRedesigned: React.FC = () => {
                       User Management
                     </CardTitle>
                     <CardDescription>
-                      Manage system users, roles, and permissions ({stats.total} users)
+                      Manage system users, roles, and permissions ({stats.total}{" "}
+                      users)
                     </CardDescription>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -87,14 +94,16 @@ const UserManagementRedesigned: React.FC = () => {
                       onClick={onToggleDiagnostics}
                       className="focus:ring-2 focus:ring-blue-500"
                     >
-                      {showDiagnostics ? 'Hide' : 'Show'} Diagnostics
+                      {showDiagnostics ? "Hide" : "Show"} Diagnostics
                     </Button>
                     <Button
                       onClick={onRefresh}
                       disabled={isLoading}
                       className="focus:ring-2 focus:ring-blue-500"
                     >
-                      <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                      />
                       Refresh
                     </Button>
                     <Button onClick={onToggleUserForm}>
@@ -137,20 +146,28 @@ const UserManagementRedesigned: React.FC = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Total Users</p>
-                          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                          <p className="text-sm font-medium text-gray-600">
+                            Total Users
+                          </p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {stats.total}
+                          </p>
                         </div>
                         <Users className="h-8 w-8 text-blue-600" />
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Active</p>
-                          <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                          <p className="text-sm font-medium text-gray-600">
+                            Active
+                          </p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {stats.active}
+                          </p>
                         </div>
                         <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                           <div className="h-4 w-4 rounded-full bg-green-600"></div>
@@ -158,25 +175,33 @@ const UserManagementRedesigned: React.FC = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Recent Sign-ins</p>
-                          <p className="text-2xl font-bold text-blue-600">{stats.recentSignIns}</p>
+                          <p className="text-sm font-medium text-gray-600">
+                            Recent Sign-ins
+                          </p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {stats.recentSignIns}
+                          </p>
                         </div>
                         <RefreshCw className="h-8 w-8 text-blue-600" />
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-600">Admins</p>
-                          <p className="text-2xl font-bold text-orange-600">{stats.byRole.admin || 0}</p>
+                          <p className="text-sm font-medium text-gray-600">
+                            Admins
+                          </p>
+                          <p className="text-2xl font-bold text-orange-600">
+                            {stats.byRole.admin || 0}
+                          </p>
                         </div>
                         <AlertTriangle className="h-8 w-8 text-orange-600" />
                       </div>

@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Camera, Video } from "lucide-react";
 import { ChecklistItemType } from "@/types/inspection";
@@ -11,10 +10,10 @@ interface ChecklistItemHeaderProps {
 
 export const ChecklistItemHeader = ({ item }: ChecklistItemHeaderProps) => {
   const { data: categories = [] } = useCategories();
-  
+
   // Find the category object for this item
-  const categoryObj = categories.find(cat => cat.name === item.category);
-  
+  const categoryObj = categories.find((cat) => cat.name === item.category);
+
   const categoryColor = getCategoryColor(categoryObj || item.category);
   const CategoryIcon = getCategoryIcon(categoryObj || item.category);
 
@@ -31,7 +30,7 @@ export const ChecklistItemHeader = ({ item }: ChecklistItemHeaderProps) => {
           </div>
         </Badge>
         <div className="flex items-center gap-2 text-sm text-gray-600">
-          {item.evidence_type === 'photo' ? (
+          {item.evidence_type === "photo" ? (
             <Camera className="w-4 h-4" />
           ) : (
             <Video className="w-4 h-4" />

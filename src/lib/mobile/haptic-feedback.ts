@@ -3,8 +3,8 @@
  * Professional haptic feedback for mobile workflow interactions
  */
 
-type HapticIntensity = 'light' | 'medium' | 'heavy';
-type HapticPattern = 'success' | 'warning' | 'error' | 'impact' | 'selection';
+type HapticIntensity = "light" | "medium" | "heavy";
+type HapticPattern = "success" | "warning" | "error" | "impact" | "selection";
 
 class HapticFeedbackService {
   private isSupported: boolean = false;
@@ -16,57 +16,60 @@ class HapticFeedbackService {
 
   private initialize() {
     // Check for various haptic APIs
-    if ('vibrate' in navigator) {
+    if ("vibrate" in navigator) {
       this.vibrationAPI = navigator.vibrate.bind(navigator);
       this.isSupported = true;
     }
-    
+
     // iOS haptic feedback support
-    if (window.DeviceMotionEvent && 'ontouchstart' in window) {
+    if (window.DeviceMotionEvent && "ontouchstart" in window) {
       this.isSupported = true;
     }
 
     // Web Haptics API (future support)
-    if ('haptics' in navigator) {
+    if ("haptics" in navigator) {
       this.isSupported = true;
     }
   }
 
   // Basic vibration patterns
-  private getVibrationPattern(pattern: HapticPattern, intensity: HapticIntensity): number[] {
+  private getVibrationPattern(
+    pattern: HapticPattern,
+    intensity: HapticIntensity,
+  ): number[] {
     const patterns = {
       success: {
         light: [50],
         medium: [100],
-        heavy: [150]
+        heavy: [150],
       },
       warning: {
         light: [50, 50, 50],
         medium: [100, 50, 100],
-        heavy: [150, 100, 150]
+        heavy: [150, 100, 150],
       },
       error: {
         light: [100, 50, 100, 50, 100],
         medium: [150, 75, 150, 75, 150],
-        heavy: [200, 100, 200, 100, 200]
+        heavy: [200, 100, 200, 100, 200],
       },
       impact: {
         light: [25],
         medium: [50],
-        heavy: [75]
+        heavy: [75],
       },
       selection: {
         light: [10],
         medium: [20],
-        heavy: [30]
-      }
+        heavy: [30],
+      },
     };
 
     return patterns[pattern][intensity] || [50];
   }
 
   // Main haptic feedback method
-  public impact(intensity: HapticIntensity = 'medium'): void {
+  public impact(intensity: HapticIntensity = "medium"): void {
     if (!this.isSupported) return;
 
     try {
@@ -78,45 +81,45 @@ class HapticFeedbackService {
 
       // Standard Vibration API
       if (this.vibrationAPI) {
-        const pattern = this.getVibrationPattern('impact', intensity);
+        const pattern = this.getVibrationPattern("impact", intensity);
         this.vibrationAPI(pattern);
       }
     } catch (error) {
-      console.warn('Haptic feedback failed:', error);
+      console.warn("Haptic feedback failed:", error);
     }
   }
 
   // Workflow-specific haptic patterns
   public workflowSuccess(): void {
     if (!this.isSupported) return;
-    
+
     try {
-      const pattern = this.getVibrationPattern('success', 'medium');
+      const pattern = this.getVibrationPattern("success", "medium");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn('Workflow success haptic failed:', error);
+      console.warn("Workflow success haptic failed:", error);
     }
   }
 
   public workflowError(): void {
     if (!this.isSupported) return;
-    
+
     try {
-      const pattern = this.getVibrationPattern('error', 'heavy');
+      const pattern = this.getVibrationPattern("error", "heavy");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn('Workflow error haptic failed:', error);
+      console.warn("Workflow error haptic failed:", error);
     }
   }
 
   public workflowProgress(): void {
     if (!this.isSupported) return;
-    
+
     try {
-      const pattern = this.getVibrationPattern('selection', 'light');
+      const pattern = this.getVibrationPattern("selection", "light");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn('Workflow progress haptic failed:', error);
+      console.warn("Workflow progress haptic failed:", error);
     }
   }
 
@@ -126,21 +129,21 @@ class HapticFeedbackService {
     // For now, fall back to vibration
     const intensityMap = {
       light: [25],
-      medium: [50], 
-      heavy: [75]
+      medium: [50],
+      heavy: [75],
     };
-    
+
     this.vibrationAPI?.(intensityMap[intensity]);
   }
 
   // Custom pattern method
   public customPattern(pattern: number[]): void {
     if (!this.isSupported || !this.vibrationAPI) return;
-    
+
     try {
       this.vibrationAPI(pattern);
     } catch (error) {
-      console.warn('Custom haptic pattern failed:', error);
+      console.warn("Custom haptic pattern failed:", error);
     }
   }
 

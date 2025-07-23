@@ -3,9 +3,9 @@
  * Displays when network connectivity issues are detected
  */
 
-import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 export const OfflineFallback: React.FC = () => {
   return (

@@ -4,14 +4,14 @@
  */
 
 export type SidebarContext = {
-  state: "expanded" | "collapsed"
-  open: boolean
-  setOpen: (open: boolean) => void
-  openMobile: boolean
-  setOpenMobile: (open: boolean) => void
-  isMobile: boolean
-  toggleSidebar: () => void
-}
+  state: "expanded" | "collapsed";
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  openMobile: boolean;
+  setOpenMobile: (open: boolean) => void;
+  isMobile: boolean;
+  toggleSidebar: () => void;
+};
 
 export const SIDEBAR_CONSTANTS = {
   COOKIE_NAME: "sidebar:state",
@@ -19,5 +19,5 @@ export const SIDEBAR_CONSTANTS = {
   WIDTH: "16rem",
   WIDTH_MOBILE: "18rem",
   WIDTH_ICON: "3rem",
-  KEYBOARD_SHORTCUT: "b"
+  KEYBOARD_SHORTCUT: "b",
 } as const;

@@ -1,18 +1,18 @@
 /**
  * RESILIENT SUPABASE CLIENT - PRODUCTION-HARDENED DATABASE CONNECTION
- * 
+ *
  * Addresses critical database connectivity issues:
  * - Enhanced error handling for RLS policy failures
- * - Proper authentication error propagation  
+ * - Proper authentication error propagation
  * - Connection resilience and retry logic
  * - Detailed logging for debugging database issues
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Database Connectivity Fix
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { logger } from '@/utils/logger';
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { logger } from "@/utils/logger";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -60,7 +60,7 @@ interface RetryConfig {
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   baseDelay: 1000,
-  maxDelay: 10000
+  maxDelay: 10000,
 };
 
 /**
@@ -73,16 +73,18 @@ class ResilientSupabaseClient {
   constructor() {
     this.retryConfig = DEFAULT_RETRY_CONFIG;
     this.client = this.createEnhancedClient();
-    logger.info('Resilient Supabase client initialized', {
+    logger.info("Resilient Supabase client initialized", {
       url: SUPABASE_URL,
       hasApiKey: !!SUPABASE_ANON_KEY,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
   private createEnhancedClient(): SupabaseClient {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      throw new Error('Missing Supabase configuration: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required');
+      throw new Error(
+        "Missing Supabase configuration: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required",
+      );
     }
 
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -90,21 +92,21 @@ class ResilientSupabaseClient {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: "pkce",
       },
       global: {
         headers: {
-          'Connection': 'keep-alive',
-          'Cache-Control': 'no-cache'
-        }
+          Connection: "keep-alive",
+          "Cache-Control": "no-cache",
+        },
       },
       realtime: {
         timeout: 30000,
-        heartbeatIntervalMs: 30000
+        heartbeatIntervalMs: 30000,
       },
       db: {
-        schema: 'public'
-      }
+        schema: "public",
+      },
     });
 
     // Enhance the client with better error handling
@@ -117,43 +119,53 @@ class ResilientSupabaseClient {
     const originalRequest = (client as any).rest.request;
 
     // Override with enhanced error handling
-    (client as SupabaseClient & { rest: { request: (...args: unknown[]) => Promise<unknown> } }).rest.request = async (...args: unknown[]) => {
+    (
+      client as SupabaseClient & {
+        rest: { request: (...args: unknown[]) => Promise<unknown> };
+      }
+    ).rest.request = async (...args: unknown[]) => {
       const endpoint = args[0];
       const retryCount = args[3]?.retryCount || 0;
 
       try {
-        const response = await originalRequest.apply((client as any).rest, args);
-        
+        const response = await originalRequest.apply(
+          (client as any).rest,
+          args,
+        );
+
         // Reset retry count on success
         if (retryCount > 0) {
-          logger.info('Database request succeeded after retries', {
+          logger.info("Database request succeeded after retries", {
             endpoint,
             retryCount,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
 
         return response;
       } catch (error: unknown) {
         const enhancedError = this.enhanceError(error, endpoint);
-        
+
         // Determine if request should be retried
-        if (this.shouldRetry(error) && retryCount < this.retryConfig.maxRetries) {
-          logger.warn('Database request failed, retrying', {
+        if (
+          this.shouldRetry(error) &&
+          retryCount < this.retryConfig.maxRetries
+        ) {
+          logger.warn("Database request failed, retrying", {
             endpoint,
             error: enhancedError.message,
             retryCount: retryCount + 1,
-            maxRetries: this.retryConfig.maxRetries
+            maxRetries: this.retryConfig.maxRetries,
           });
 
           // Calculate delay with exponential backoff
           const delay = Math.min(
             this.retryConfig.baseDelay * Math.pow(2, retryCount),
-            this.retryConfig.maxDelay
+            this.retryConfig.maxDelay,
           );
 
           // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
 
           // Retry with incremented count
           const retryArgs = [...args];
@@ -162,7 +174,7 @@ class ResilientSupabaseClient {
         }
 
         // Log final error
-        logger.error('Database request failed (final)', {
+        logger.error("Database request failed (final)", {
           endpoint,
           error: enhancedError.message,
           code: enhancedError.code,
@@ -170,7 +182,7 @@ class ResilientSupabaseClient {
           hint: enhancedError.hint,
           status: enhancedError.status,
           retryCount,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         throw enhancedError;
@@ -178,67 +190,75 @@ class ResilientSupabaseClient {
     };
   }
 
-  private enhanceError(error: Error | { code?: string; message: string; details?: string; hint?: string }, endpoint?: string): DatabaseError {
+  private enhanceError(
+    error:
+      | Error
+      | { code?: string; message: string; details?: string; hint?: string },
+    endpoint?: string,
+  ): DatabaseError {
     const baseError: DatabaseError = {
-      code: error.code || 'UNKNOWN_ERROR',
-      message: error.message || 'Unknown database error',
+      code: error.code || "UNKNOWN_ERROR",
+      message: error.message || "Unknown database error",
       details: error.details,
       hint: error.hint,
-      status: error.status
+      status: error.status,
     };
 
     // Enhanced error messages based on common patterns
     switch (error.code) {
-      case '42501': // permission denied
+      case "42501": // permission denied
         return {
           ...baseError,
           message: `Permission denied for database operation. This is likely a Row Level Security (RLS) policy issue. Please check that proper policies exist for authenticated users on the target table. Original error: ${error.message}`,
-          hint: 'Check RLS policies in Supabase dashboard or run: SELECT * FROM pg_policies WHERE schemaname = \'public\';'
+          hint: "Check RLS policies in Supabase dashboard or run: SELECT * FROM pg_policies WHERE schemaname = 'public';",
         };
 
-      case '42P01': // table or view does not exist
+      case "42P01": // table or view does not exist
         return {
           ...baseError,
           message: `Table or view does not exist: ${error.message}. Check that the table name is correct and migrations have been applied.`,
-          hint: 'Verify table exists in Supabase Table Editor'
+          hint: "Verify table exists in Supabase Table Editor",
         };
 
-      case '23505': // unique constraint violation
+      case "23505": // unique constraint violation
         return {
           ...baseError,
           message: `Duplicate entry: ${error.message}. A record with this unique value already exists.`,
-          hint: 'Check for existing records before inserting'
+          hint: "Check for existing records before inserting",
         };
 
-      case '23503': // foreign key violation
+      case "23503": // foreign key violation
         return {
           ...baseError,
           message: `Foreign key constraint violation: ${error.message}. Referenced record may not exist.`,
-          hint: 'Verify that referenced records exist in related tables'
+          hint: "Verify that referenced records exist in related tables",
         };
 
       default:
-        if (error.message?.includes('Invalid API key')) {
+        if (error.message?.includes("Invalid API key")) {
           return {
             ...baseError,
-            message: 'Database authentication failed: API key is invalid or expired. Check VITE_SUPABASE_ANON_KEY configuration.',
-            hint: 'Verify API key in Supabase project settings'
+            message:
+              "Database authentication failed: API key is invalid or expired. Check VITE_SUPABASE_ANON_KEY configuration.",
+            hint: "Verify API key in Supabase project settings",
           };
         }
 
-        if (error.message?.includes('JWT')) {
+        if (error.message?.includes("JWT")) {
           return {
             ...baseError,
-            message: 'Authentication token issue: JWT token is invalid or expired. User may need to sign in again.',
-            hint: 'Check user authentication state and token validity'
+            message:
+              "Authentication token issue: JWT token is invalid or expired. User may need to sign in again.",
+            hint: "Check user authentication state and token validity",
           };
         }
 
-        if (error.message?.includes('Network')) {
+        if (error.message?.includes("Network")) {
           return {
             ...baseError,
-            message: 'Network connectivity issue: Unable to reach Supabase servers. Check internet connection and Supabase status.',
-            hint: 'Verify network connection and check status.supabase.com'
+            message:
+              "Network connectivity issue: Unable to reach Supabase servers. Check internet connection and Supabase status.",
+            hint: "Verify network connection and check status.supabase.com",
           };
         }
 
@@ -246,9 +266,15 @@ class ResilientSupabaseClient {
     }
   }
 
-  private shouldRetry(error: Error | { code?: string; status?: number }): boolean {
+  private shouldRetry(
+    error: Error | { code?: string; status?: number },
+  ): boolean {
     // Don't retry on authentication/authorization errors
-    if (error.code === '42501' || error.status === 401 || error.status === 403) {
+    if (
+      error.code === "42501" ||
+      error.status === 401 ||
+      error.status === 403
+    ) {
       return false;
     }
 
@@ -258,7 +284,11 @@ class ResilientSupabaseClient {
     }
 
     // Retry on server errors (5xx) or network issues
-    if (error.status >= 500 || error.message?.includes('Network') || error.message?.includes('fetch')) {
+    if (
+      error.status >= 500 ||
+      error.message?.includes("Network") ||
+      error.message?.includes("fetch")
+    ) {
       return true;
     }
 
@@ -277,30 +307,34 @@ class ResilientSupabaseClient {
    */
   async testConnection(): Promise<ConnectionTestResult> {
     try {
-      logger.info('Testing database connectivity');
-      
+      logger.info("Testing database connectivity");
+
       // Try a simple query that should work with basic permissions
       const { data, error } = await this.client
-        .from('properties')
-        .select('property_id')
+        .from("properties")
+        .select("property_id")
         .limit(1);
 
       if (error) {
         return {
           success: false,
           error: error.message,
-          details: error
+          details: error,
         };
       }
 
-      logger.info('Database connectivity test passed', { recordCount: data?.length });
+      logger.info("Database connectivity test passed", {
+        recordCount: data?.length,
+      });
       return { success: true };
     } catch (error: unknown) {
-      logger.error('Database connectivity test failed', { error: error.message });
+      logger.error("Database connectivity test failed", {
+        error: error.message,
+      });
       return {
         success: false,
         error: error.message,
-        details: error
+        details: error,
       };
     }
   }
@@ -315,18 +349,21 @@ class ResilientSupabaseClient {
     error?: string;
   }> {
     try {
-      const { data: { user, session }, error } = await this.client.auth.getUser();
-      
+      const {
+        data: { user, session },
+        error,
+      } = await this.client.auth.getUser();
+
       return {
         authenticated: !!user && !!session,
         user,
         session,
-        error: error?.message
+        error: error?.message,
       };
     } catch (error: unknown) {
       return {
         authenticated: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

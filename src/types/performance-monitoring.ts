@@ -91,11 +91,11 @@ export interface AlertRule {
   name: string;
   description: string;
   metric: string;
-  condition: 'greater_than' | 'less_than' | 'equals' | 'not_equals';
+  condition: "greater_than" | "less_than" | "equals" | "not_equals";
   threshold: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   isActive: boolean;
-  channels: ('email' | 'slack' | 'webhook')[];
+  channels: ("email" | "slack" | "webhook")[];
   cooldownMinutes: number;
   lastTriggered?: string;
 }
@@ -103,7 +103,7 @@ export interface AlertRule {
 export interface PerformanceAlert {
   id: string;
   ruleId: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   message: string;
   timestamp: string;
@@ -123,7 +123,7 @@ export interface PerformanceTrend {
     timestamp: string;
     value: number;
   }>;
-  trend: 'improving' | 'declining' | 'stable';
+  trend: "improving" | "declining" | "stable";
   changePercentage: number;
   forecast?: Array<{
     timestamp: string;
@@ -148,7 +148,7 @@ export interface SystemHealthScore {
     impact: string;
   }>;
   recommendations: Array<{
-    priority: 'high' | 'medium' | 'low';
+    priority: "high" | "medium" | "low";
     action: string;
     expectedImprovement: number;
   }>;
@@ -160,7 +160,7 @@ export interface MonitoringDashboardConfig {
   layout: {
     widgets: Array<{
       id: string;
-      type: 'chart' | 'metric' | 'alert' | 'health' | 'table';
+      type: "chart" | "metric" | "alert" | "health" | "table";
       position: { x: number; y: number; width: number; height: number };
       config: Record<string, unknown>;
     }>;

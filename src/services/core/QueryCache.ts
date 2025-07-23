@@ -1,22 +1,22 @@
 /**
  * ENTERPRISE QUERY CACHE - PHASE 2 INTELLIGENT CACHING SYSTEM
- * 
+ *
  * Production-grade multi-layer caching system designed to achieve:
  * - >60% cache hit rate across all data access
- * - <200ms response times for cached operations  
+ * - <200ms response times for cached operations
  * - Intelligent invalidation with zero stale data
  * - Mobile-optimized with offline support
- * 
+ *
  * ARCHITECTURE:
  * - L1: In-memory LRU cache (fastest access)
  * - L2: IndexedDB persistent cache (offline support)
  * - L3: Service worker cache (network optimization)
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // ========================================
 // CACHE CONFIGURATION & TYPES
@@ -51,12 +51,12 @@ interface CacheConfig {
 
 // Elite performance targets
 const CACHE_CONFIG: CacheConfig = {
-  maxEntries: 1000,           // Maximum cache entries
-  defaultTTL: 30 * 1000,      // 30 seconds default TTL
-  maxSize: 50 * 1024 * 1024,  // 50MB max cache size  
-  enablePersistence: true,     // IndexedDB for offline
-  enableServiceWorker: true,   // Service worker optimization
-  cleanupInterval: 60 * 1000,  // Cleanup every minute
+  maxEntries: 1000, // Maximum cache entries
+  defaultTTL: 30 * 1000, // 30 seconds default TTL
+  maxSize: 50 * 1024 * 1024, // 50MB max cache size
+  enablePersistence: true, // IndexedDB for offline
+  enableServiceWorker: true, // Service worker optimization
+  cleanupInterval: 60 * 1000, // Cleanup every minute
 };
 
 // ========================================
@@ -65,7 +65,7 @@ const CACHE_CONFIG: CacheConfig = {
 
 /**
  * QueryCache - Elite-level caching system with multi-layer architecture
- * 
+ *
  * Features:
  * - LRU eviction with size-based and time-based expiration
  * - Tag-based invalidation for complex dependency management
@@ -84,10 +84,10 @@ export class QueryCache {
     hitRate: 0,
     avgResponseTime: 0,
   };
-  
+
   private cleanupTimer?: NodeJS.Timeout;
   private persistenceEnabled = false;
-  private dbName = 'str_certified_cache';
+  private dbName = "str_certified_cache";
   private dbVersion = 1;
 
   constructor(private config: CacheConfig = CACHE_CONFIG) {
@@ -105,14 +105,14 @@ export class QueryCache {
    */
   get<T>(key: string): T | null {
     const startTime = performance.now();
-    
+
     try {
       const entry = this.cache.get(key);
-      
+
       if (!entry) {
         this.stats.misses++;
         this.updateStats(startTime);
-        logger.debug('Cache miss', { key, hitRate: this.getHitRate() });
+        logger.debug("Cache miss", { key, hitRate: this.getHitRate() });
         return null;
       }
 
@@ -121,27 +121,30 @@ export class QueryCache {
         this.cache.delete(key);
         this.stats.misses++;
         this.updateStats(startTime);
-        logger.debug('Cache expired', { key, age: performance.now() - entry.timestamp });
+        logger.debug("Cache expired", {
+          key,
+          age: performance.now() - entry.timestamp,
+        });
         return null;
       }
 
       // Update access patterns for LRU
       entry.accessCount++;
       entry.lastAccess = Date.now();
-      
+
       this.stats.hits++;
       this.updateStats(startTime);
-      
-      logger.debug('Cache hit', { 
-        key, 
+
+      logger.debug("Cache hit", {
+        key,
         accessCount: entry.accessCount,
         hitRate: this.getHitRate(),
-        responseTime: performance.now() - startTime
+        responseTime: performance.now() - startTime,
       });
 
       return entry.data as T;
     } catch (error) {
-      logger.error('Cache get error', { error, key });
+      logger.error("Cache get error", { error, key });
       this.stats.misses++;
       return null;
     }
@@ -152,10 +155,10 @@ export class QueryCache {
    * Implements size-based and access-based LRU eviction
    */
   set<T>(
-    key: string, 
-    value: T, 
+    key: string,
+    value: T,
     ttl: number = this.config.defaultTTL,
-    tags: string[] = []
+    tags: string[] = [],
   ): void {
     try {
       const entry: CacheEntry<T> = {
@@ -179,15 +182,15 @@ export class QueryCache {
         this.persistToIndexedDB(key, entry);
       }
 
-      logger.debug('Cache set', { 
-        key, 
-        ttl, 
-        tags, 
+      logger.debug("Cache set", {
+        key,
+        ttl,
+        tags,
         entries: this.cache.size,
-        size: this.calculateCacheSize()
+        size: this.calculateCacheSize(),
       });
     } catch (error) {
-      logger.error('Cache set error', { error, key, value });
+      logger.error("Cache set error", { error, key, value });
     }
   }
 
@@ -199,7 +202,7 @@ export class QueryCache {
     if (deleted) {
       this.updateCacheStats();
       this.deleteFromIndexedDB(key);
-      logger.debug('Cache delete', { key });
+      logger.debug("Cache delete", { key });
     }
     return deleted;
   }
@@ -222,8 +225,8 @@ export class QueryCache {
    */
   invalidatePattern(pattern: string): number {
     let invalidated = 0;
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    
+    const regex = new RegExp(pattern.replace(/\*/g, ".*"));
+
     for (const [key, entry] of this.cache.entries()) {
       // Check if key matches pattern
       if (regex.test(key)) {
@@ -231,9 +234,9 @@ export class QueryCache {
         invalidated++;
         continue;
       }
-      
+
       // Check if any tags match pattern
-      if (entry.tags.some(tag => regex.test(tag))) {
+      if (entry.tags.some((tag) => regex.test(tag))) {
         this.cache.delete(key);
         invalidated++;
       }
@@ -241,7 +244,7 @@ export class QueryCache {
 
     if (invalidated > 0) {
       this.updateCacheStats();
-      logger.info('Pattern invalidation', { pattern, invalidated });
+      logger.info("Pattern invalidation", { pattern, invalidated });
     }
 
     return invalidated;
@@ -253,9 +256,9 @@ export class QueryCache {
   invalidateTags(tags: string[]): number {
     let invalidated = 0;
     const tagSet = new Set(tags);
-    
+
     for (const [key, entry] of this.cache.entries()) {
-      if (entry.tags.some(tag => tagSet.has(tag))) {
+      if (entry.tags.some((tag) => tagSet.has(tag))) {
         this.cache.delete(key);
         invalidated++;
       }
@@ -263,7 +266,7 @@ export class QueryCache {
 
     if (invalidated > 0) {
       this.updateCacheStats();
-      logger.info('Tag invalidation', { tags, invalidated });
+      logger.info("Tag invalidation", { tags, invalidated });
     }
 
     return invalidated;
@@ -280,11 +283,15 @@ export class QueryCache {
     ];
 
     let totalInvalidated = 0;
-    patterns.forEach(pattern => {
+    patterns.forEach((pattern) => {
       totalInvalidated += this.invalidatePattern(pattern);
     });
 
-    logger.info('Related invalidation', { entityType, entityId, invalidated: totalInvalidated });
+    logger.info("Related invalidation", {
+      entityType,
+      entityId,
+      invalidated: totalInvalidated,
+    });
     return totalInvalidated;
   }
 
@@ -319,7 +326,7 @@ export class QueryCache {
 
     for (const [, entry] of this.cache) {
       // Tag distribution
-      entry.tags.forEach(tag => {
+      entry.tags.forEach((tag) => {
         tagDistribution[tag] = (tagDistribution[tag] || 0) + 1;
       });
 
@@ -329,7 +336,7 @@ export class QueryCache {
       else if (size < 10240) sizeDistribution.medium++;
       else sizeDistribution.large++;
 
-      // Age distribution  
+      // Age distribution
       const age = now - entry.timestamp;
       if (age < 10000) ageDistribution.fresh++;
       else if (age < 60000) ageDistribution.aging++;
@@ -394,11 +401,11 @@ export class QueryCache {
 
     this.updateCacheStats();
 
-    logger.info('Cache cleanup completed', { 
+    logger.info("Cache cleanup completed", {
       removed,
       duration: performance.now() - startTime,
       entries: this.cache.size,
-      hitRate: this.getHitRate()
+      hitRate: this.getHitRate(),
     });
   }
 
@@ -409,13 +416,13 @@ export class QueryCache {
     const previousSize = this.cache.size;
     this.cache.clear();
     this.updateCacheStats();
-    
+
     // Clear IndexedDB if enabled
     if (this.persistenceEnabled) {
       this.clearIndexedDB();
     }
 
-    logger.info('Cache cleared', { previousSize });
+    logger.info("Cache cleared", { previousSize });
   }
 
   // ========================================
@@ -427,53 +434,56 @@ export class QueryCache {
 
     try {
       // Initialize IndexedDB for offline persistence
-      if ('indexedDB' in window) {
+      if ("indexedDB" in window) {
         await this.initIndexedDB();
         this.persistenceEnabled = true;
-        logger.info('IndexedDB cache persistence enabled');
+        logger.info("IndexedDB cache persistence enabled");
       }
 
       // Initialize Service Worker cache if available
-      if (this.config.enableServiceWorker && 'serviceWorker' in navigator) {
+      if (this.config.enableServiceWorker && "serviceWorker" in navigator) {
         await this.initServiceWorkerCache();
-        logger.info('Service Worker cache enabled');
+        logger.info("Service Worker cache enabled");
       }
     } catch (error) {
-      logger.warn('Cache persistence initialization failed', { error });
+      logger.warn("Cache persistence initialization failed", { error });
     }
   }
 
   private async initIndexedDB(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
-      
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve();
-      
+
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('cache')) {
-          const store = db.createObjectStore('cache', { keyPath: 'key' });
-          store.createIndex('timestamp', 'timestamp');
-          store.createIndex('tags', 'tags', { multiEntry: true });
+        if (!db.objectStoreNames.contains("cache")) {
+          const store = db.createObjectStore("cache", { keyPath: "key" });
+          store.createIndex("timestamp", "timestamp");
+          store.createIndex("tags", "tags", { multiEntry: true });
         }
       };
     });
   }
 
-  private async persistToIndexedDB(key: string, entry: CacheEntry): Promise<void> {
+  private async persistToIndexedDB(
+    key: string,
+    entry: CacheEntry,
+  ): Promise<void> {
     if (!this.persistenceEnabled) return;
 
     try {
       const request = indexedDB.open(this.dbName, this.dbVersion);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['cache'], 'readwrite');
-        const store = transaction.objectStore('cache');
+        const transaction = db.transaction(["cache"], "readwrite");
+        const store = transaction.objectStore("cache");
         store.put({ key, ...entry });
       };
     } catch (error) {
-      logger.warn('IndexedDB persist failed', { error, key });
+      logger.warn("IndexedDB persist failed", { error, key });
     }
   }
 
@@ -484,12 +494,12 @@ export class QueryCache {
       const request = indexedDB.open(this.dbName, this.dbVersion);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['cache'], 'readwrite');
-        const store = transaction.objectStore('cache');
+        const transaction = db.transaction(["cache"], "readwrite");
+        const store = transaction.objectStore("cache");
         store.delete(key);
       };
     } catch (error) {
-      logger.warn('IndexedDB delete failed', { error, key });
+      logger.warn("IndexedDB delete failed", { error, key });
     }
   }
 
@@ -500,19 +510,19 @@ export class QueryCache {
       const request = indexedDB.open(this.dbName, this.dbVersion);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['cache'], 'readwrite');
-        const store = transaction.objectStore('cache');
+        const transaction = db.transaction(["cache"], "readwrite");
+        const store = transaction.objectStore("cache");
         store.clear();
       };
     } catch (error) {
-      logger.warn('IndexedDB clear failed', { error });
+      logger.warn("IndexedDB clear failed", { error });
     }
   }
 
   private async initServiceWorkerCache(): Promise<void> {
     // Service worker cache initialization
     // Would implement network request interception and caching
-    logger.debug('Service Worker cache initialization - future implementation');
+    logger.debug("Service Worker cache initialization - future implementation");
   }
 
   // ========================================
@@ -527,8 +537,9 @@ export class QueryCache {
     if (this.cache.size <= this.config.maxEntries) return;
 
     // LRU eviction - remove least recently accessed entries
-    const entries = Array.from(this.cache.entries())
-      .sort((a, b) => a[1].lastAccess - b[1].lastAccess);
+    const entries = Array.from(this.cache.entries()).sort(
+      (a, b) => a[1].lastAccess - b[1].lastAccess,
+    );
 
     const toRemove = this.cache.size - this.config.maxEntries;
     for (let i = 0; i < toRemove; i++) {
@@ -542,7 +553,11 @@ export class QueryCache {
 
     // Size-based eviction - remove largest entries first
     const entries = Array.from(this.cache.entries())
-      .map(([key, entry]) => ({ key, entry, size: this.estimateEntrySize(entry) }))
+      .map(([key, entry]) => ({
+        key,
+        entry,
+        size: this.estimateEntrySize(entry),
+      }))
       .sort((a, b) => b.size - a.size);
 
     let removedSize = 0;
@@ -578,11 +593,12 @@ export class QueryCache {
   private updateStats(startTime: number): void {
     const responseTime = performance.now() - startTime;
     const total = this.stats.hits + this.stats.misses;
-    
+
     this.stats.hitRate = this.getHitRate();
-    this.stats.avgResponseTime = total > 0 
-      ? (this.stats.avgResponseTime * (total - 1) + responseTime) / total
-      : responseTime;
+    this.stats.avgResponseTime =
+      total > 0
+        ? (this.stats.avgResponseTime * (total - 1) + responseTime) / total
+        : responseTime;
   }
 
   private updateCacheStats(): void {
@@ -605,7 +621,7 @@ export class QueryCache {
       clearInterval(this.cleanupTimer);
     }
     this.clear();
-    logger.info('QueryCache destroyed');
+    logger.info("QueryCache destroyed");
   }
 }
 
@@ -622,7 +638,9 @@ export const queryCache = new QueryCache();
 /**
  * Create specialized cache instance for specific use cases
  */
-export const createQueryCache = (config: Partial<CacheConfig> = {}): QueryCache => {
+export const createQueryCache = (
+  config: Partial<CacheConfig> = {},
+): QueryCache => {
   return new QueryCache({ ...CACHE_CONFIG, ...config });
 };
 
@@ -631,8 +649,8 @@ export const createQueryCache = (config: Partial<CacheConfig> = {}): QueryCache 
  */
 export const CacheKeys = {
   property: (id: string) => `property:${id}`,
-  properties: (filters?: Record<string, any>) => 
-    `properties:${filters ? btoa(JSON.stringify(filters)) : 'all'}`,
+  properties: (filters?: Record<string, any>) =>
+    `properties:${filters ? btoa(JSON.stringify(filters)) : "all"}`,
   inspection: (id: string) => `inspection:${id}`,
   inspections: (propertyId: string) => `inspections:property:${propertyId}`,
   checklist: (inspectionId: string) => `checklist:${inspectionId}`,

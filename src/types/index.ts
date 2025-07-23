@@ -1,7 +1,7 @@
 // Type exports for better organization
-export * from './categories';
-export * from './inspection';
-export * from './propertySubmission';
+export * from "./categories";
+export * from "./inspection";
+export * from "./propertySubmission";
 
 // Common types
 export interface AppError {
@@ -14,7 +14,7 @@ export interface PaginationOptions {
   page: number;
   limit: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface APIResponse<T = unknown> {

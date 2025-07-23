@@ -1,12 +1,11 @@
-
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DataIntegrityCheck {
   id: string;
-  type: 'missing_data' | 'orphaned_record' | 'duplicate_data' | 'invalid_state';
-  severity: 'low' | 'medium' | 'high';
+  type: "missing_data" | "orphaned_record" | "duplicate_data" | "invalid_state";
+  severity: "low" | "medium" | "high";
   message: string;
   data?: Record<string, unknown>[];
 }
@@ -18,62 +17,65 @@ export const useDataIntegrity = (inspectionId?: string) => {
 
   const runIntegrityChecks = async () => {
     if (!inspectionId) return;
-    
+
     setIsChecking(true);
     const issues: DataIntegrityCheck[] = [];
 
     try {
       // Check for orphaned media items
       const { data: orphanedMedia } = await supabase
-        .from('media')
-        .select('id, checklist_item_id')
-        .not('checklist_item_id', 'in', 
-          `(SELECT id FROM checklist_items WHERE inspection_id = '${inspectionId}')`
+        .from("media")
+        .select("id, checklist_item_id")
+        .not(
+          "checklist_item_id",
+          "in",
+          `(SELECT id FROM checklist_items WHERE inspection_id = '${inspectionId}')`,
         );
 
       if (orphanedMedia && orphanedMedia.length > 0) {
         issues.push({
-          id: 'orphaned-media',
-          type: 'orphaned_record',
-          severity: 'medium',
+          id: "orphaned-media",
+          type: "orphaned_record",
+          severity: "medium",
           message: `Found ${orphanedMedia.length} orphaned media items`,
-          data: orphanedMedia
+          data: orphanedMedia,
         });
       }
 
       // Check for checklist items without required evidence
       const { data: itemsWithoutEvidence } = await supabase
-        .from('checklist_items')
-        .select('id, title, status')
-        .eq('inspection_id', inspectionId)
-        .in('status', ['completed', 'failed'])
-        .not('id', 'in', 
-          `(SELECT DISTINCT checklist_item_id FROM media)`
-        );
+        .from("checklist_items")
+        .select("id, title, status")
+        .eq("inspection_id", inspectionId)
+        .in("status", ["completed", "failed"])
+        .not("id", "in", `(SELECT DISTINCT checklist_item_id FROM media)`);
 
       if (itemsWithoutEvidence && itemsWithoutEvidence.length > 0) {
         issues.push({
-          id: 'missing-evidence',
-          type: 'missing_data',
-          severity: 'high',
+          id: "missing-evidence",
+          type: "missing_data",
+          severity: "high",
           message: `${itemsWithoutEvidence.length} completed items missing evidence`,
-          data: itemsWithoutEvidence
+          data: itemsWithoutEvidence,
         });
       }
 
       // Check for duplicate checklist items
-      const { data: duplicates } = await supabase
-        .rpc('analyze_checklist_duplicates');
+      const { data: duplicates } = await supabase.rpc(
+        "analyze_checklist_duplicates",
+      );
 
       if (duplicates && duplicates.length > 0) {
-        const inspectionDuplicates = duplicates.filter(d => d.inspection_id === inspectionId);
+        const inspectionDuplicates = duplicates.filter(
+          (d) => d.inspection_id === inspectionId,
+        );
         if (inspectionDuplicates.length > 0) {
           issues.push({
-            id: 'duplicate-items',
-            type: 'duplicate_data',
-            severity: 'high',
+            id: "duplicate-items",
+            type: "duplicate_data",
+            severity: "high",
             message: `Found duplicate checklist items`,
-            data: inspectionDuplicates
+            data: inspectionDuplicates,
           });
         }
       }
@@ -81,7 +83,9 @@ export const useDataIntegrity = (inspectionId?: string) => {
       setChecks(issues);
 
       if (issues.length > 0) {
-        const highSeverityIssues = issues.filter(i => i.severity === 'high').length;
+        const highSeverityIssues = issues.filter(
+          (i) => i.severity === "high",
+        ).length;
         if (highSeverityIssues > 0) {
           toast({
             title: "Data Integrity Issues Found",
@@ -90,7 +94,6 @@ export const useDataIntegrity = (inspectionId?: string) => {
           });
         }
       }
-
     } catch (error) {
       toast({
         title: "Integrity Check Failed",
@@ -103,28 +106,26 @@ export const useDataIntegrity = (inspectionId?: string) => {
   };
 
   const fixIssue = async (issueId: string) => {
-    const issue = checks.find(c => c.id === issueId);
+    const issue = checks.find((c) => c.id === issueId);
     if (!issue) return;
 
     try {
       switch (issue.type) {
-        case 'duplicate_data':
-          if (issueId === 'duplicate-items') {
-            await supabase.rpc('cleanup_duplicate_checklist_items');
+        case "duplicate_data":
+          if (issueId === "duplicate-items") {
+            await supabase.rpc("cleanup_duplicate_checklist_items");
             toast({
               title: "Duplicates Cleaned",
               description: "Duplicate checklist items have been removed.",
             });
           }
           break;
-        
-        case 'orphaned_record':
-          if (issueId === 'orphaned-media' && issue.data) {
-            const mediaIds = issue.data?.map((item) => (item as { id: string }).id) || [];
-            await supabase
-              .from('media')
-              .delete()
-              .in('id', mediaIds);
+
+        case "orphaned_record":
+          if (issueId === "orphaned-media" && issue.data) {
+            const mediaIds =
+              issue.data?.map((item) => (item as { id: string }).id) || [];
+            await supabase.from("media").delete().in("id", mediaIds);
             toast({
               title: "Orphaned Records Cleaned",
               description: "Orphaned media items have been removed.",
@@ -134,8 +135,7 @@ export const useDataIntegrity = (inspectionId?: string) => {
       }
 
       // Remove the fixed issue from the list
-      setChecks(prev => prev.filter(c => c.id !== issueId));
-      
+      setChecks((prev) => prev.filter((c) => c.id !== issueId));
     } catch (error) {
       toast({
         title: "Fix Failed",
@@ -157,6 +157,6 @@ export const useDataIntegrity = (inspectionId?: string) => {
     runIntegrityChecks,
     fixIssue,
     hasIssues: checks.length > 0,
-    highPriorityIssues: checks.filter(c => c.severity === 'high').length
+    highPriorityIssues: checks.filter((c) => c.severity === "high").length,
   };
 };

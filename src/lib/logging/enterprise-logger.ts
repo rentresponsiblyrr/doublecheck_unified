@@ -1,8 +1,8 @@
 /**
  * ENTERPRISE LOGGING SYSTEM - GOOGLE/META/NETFLIX STANDARDS
- * 
+ *
  * This is how real engineers handle logging in production systems.
- * 
+ *
  * Features:
  * - Structured logging with correlation IDs
  * - Log levels with filtering and routing
@@ -12,13 +12,13 @@
  * - Real-time alerting integration
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 // ============================================================================
 // ENTERPRISE LOGGING TYPES
 // ============================================================================
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL";
 
 // Extended Error interface for detailed error logging
 interface ExtendedError extends Error {
@@ -28,7 +28,14 @@ interface ExtendedError extends Error {
 }
 
 // Type for objects that can be sanitized
-type SanitizableValue = string | number | boolean | null | undefined | Record<string, unknown> | unknown[];
+type SanitizableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | unknown[];
 type SanitizedObject = Record<string, SanitizableValue>;
 
 export interface LogContext {
@@ -65,7 +72,7 @@ export interface LogEntry {
 }
 
 export interface LoggerConfig {
-  environment: 'development' | 'staging' | 'production';
+  environment: "development" | "staging" | "production";
   minLevel: LogLevel;
   enableConsole: boolean;
   enableRemote: boolean;
@@ -106,7 +113,7 @@ export class EnterpriseLogger {
     INFO: 1,
     WARN: 2,
     ERROR: 3,
-    FATAL: 4
+    FATAL: 4,
   };
 
   // Sensitive data patterns for sanitization
@@ -120,13 +127,13 @@ export class EnterpriseLogger {
     /ssn/i,
     /credit.*card/i,
     /email/i,
-    /phone/i
+    /phone/i,
   ];
 
   constructor(config: Partial<LoggerConfig> = {}) {
     this.config = {
-      environment: 'development',
-      minLevel: 'INFO',
+      environment: "development",
+      minLevel: "INFO",
       enableConsole: false, // DISABLED IN PRODUCTION
       enableRemote: true,
       bufferSize: 100,
@@ -134,13 +141,13 @@ export class EnterpriseLogger {
       enablePerformanceTracking: true,
       enableSecurityAudit: true,
       sanitizeData: true,
-      correlationHeader: 'x-correlation-id',
-      ...config
+      correlationHeader: "x-correlation-id",
+      ...config,
     };
 
     this.correlationId = this.generateCorrelationId();
     this.sessionId = this.generateSessionId();
-    
+
     // Auto-flush buffer periodically
     if (this.config.enableRemote) {
       this.startPeriodicFlush();
@@ -160,63 +167,89 @@ export class EnterpriseLogger {
    * DEBUG: Detailed diagnostic information
    * Only logged in development environment
    */
-  public debug(message: string, context: LogContext = {}, eventType?: string): void {
-    this.log('DEBUG', message, context, eventType);
+  public debug(
+    message: string,
+    context: LogContext = {},
+    eventType?: string,
+  ): void {
+    this.log("DEBUG", message, context, eventType);
   }
 
   /**
    * INFO: General operational information
    * Business logic flow, user actions, system events
    */
-  public info(message: string, context: LogContext = {}, eventType?: string): void {
-    this.log('INFO', message, context, eventType);
+  public info(
+    message: string,
+    context: LogContext = {},
+    eventType?: string,
+  ): void {
+    this.log("INFO", message, context, eventType);
   }
 
   /**
    * WARN: Something unexpected but not critical
    * Deprecated API usage, fallback scenarios, configuration issues
    */
-  public warn(message: string, context: LogContext = {}, eventType?: string): void {
-    this.log('WARN', message, context, eventType);
+  public warn(
+    message: string,
+    context: LogContext = {},
+    eventType?: string,
+  ): void {
+    this.log("WARN", message, context, eventType);
   }
 
   /**
    * ERROR: Errors that need attention but don't crash the application
    * API failures, validation errors, recoverable exceptions
    */
-  public error(message: string, error?: Error, context: LogContext = {}, eventType?: string): void {
-    const errorContext = error ? {
-      ...context,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: (error as ExtendedError).code,
-        statusCode: (error as ExtendedError).statusCode
-      }
-    } : context;
+  public error(
+    message: string,
+    error?: Error,
+    context: LogContext = {},
+    eventType?: string,
+  ): void {
+    const errorContext = error
+      ? {
+          ...context,
+          error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: (error as ExtendedError).code,
+            statusCode: (error as ExtendedError).statusCode,
+          },
+        }
+      : context;
 
-    this.log('ERROR', message, errorContext, eventType);
+    this.log("ERROR", message, errorContext, eventType);
   }
 
   /**
    * FATAL: Critical errors that may crash the application
    * Database connection loss, security breaches, system failures
    */
-  public fatal(message: string, error?: Error, context: LogContext = {}, eventType?: string): void {
-    const errorContext = error ? {
-      ...context,
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: (error as ExtendedError).code,
-        statusCode: (error as ExtendedError).statusCode
-      }
-    } : context;
+  public fatal(
+    message: string,
+    error?: Error,
+    context: LogContext = {},
+    eventType?: string,
+  ): void {
+    const errorContext = error
+      ? {
+          ...context,
+          error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: (error as ExtendedError).code,
+            statusCode: (error as ExtendedError).statusCode,
+          },
+        }
+      : context;
 
-    this.log('FATAL', message, errorContext, eventType);
-    
+    this.log("FATAL", message, errorContext, eventType);
+
     // Immediately flush fatal errors
     this.flush();
   }
@@ -229,16 +262,20 @@ export class EnterpriseLogger {
    * User action tracking with business intelligence
    */
   public userAction(
-    action: string, 
-    userId: string, 
-    metadata: Record<string, unknown> = {}
+    action: string,
+    userId: string,
+    metadata: Record<string, unknown> = {},
   ): void {
-    this.info(`User action: ${action}`, {
-      userId,
-      component: 'user-tracking',
-      action,
-      ...metadata
-    }, 'USER_ACTION');
+    this.info(
+      `User action: ${action}`,
+      {
+        userId,
+        component: "user-tracking",
+        action,
+        ...metadata,
+      },
+      "USER_ACTION",
+    );
   }
 
   /**
@@ -249,18 +286,24 @@ export class EnterpriseLogger {
     url: string,
     statusCode: number,
     duration: number,
-    requestId?: string
+    requestId?: string,
   ): void {
-    const level = statusCode >= 500 ? 'ERROR' : statusCode >= 400 ? 'WARN' : 'INFO';
-    
-    this.log(level, `API ${method} ${url}`, {
-      component: 'api',
-      requestId,
-      statusCode,
-      method,
-      url,
-      duration
-    }, 'API_CALL');
+    const level =
+      statusCode >= 500 ? "ERROR" : statusCode >= 400 ? "WARN" : "INFO";
+
+    this.log(
+      level,
+      `API ${method} ${url}`,
+      {
+        component: "api",
+        requestId,
+        statusCode,
+        method,
+        url,
+        duration,
+      },
+      "API_CALL",
+    );
   }
 
   /**
@@ -268,18 +311,28 @@ export class EnterpriseLogger {
    */
   public securityEvent(
     event: string,
-    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
-    context: LogContext = {}
+    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+    context: LogContext = {},
   ): void {
-    const level = severity === 'CRITICAL' ? 'FATAL' : 
-                 severity === 'HIGH' ? 'ERROR' : 
-                 severity === 'MEDIUM' ? 'WARN' : 'INFO';
+    const level =
+      severity === "CRITICAL"
+        ? "FATAL"
+        : severity === "HIGH"
+          ? "ERROR"
+          : severity === "MEDIUM"
+            ? "WARN"
+            : "INFO";
 
-    this.log(level, `Security event: ${event}`, {
-      ...context,
-      component: 'security',
-      severity
-    }, 'SECURITY_EVENT');
+    this.log(
+      level,
+      `Security event: ${event}`,
+      {
+        ...context,
+        component: "security",
+        severity,
+      },
+      "SECURITY_EVENT",
+    );
   }
 
   /**
@@ -289,19 +342,24 @@ export class EnterpriseLogger {
     operation: string,
     duration: number,
     success: boolean,
-    metadata: Record<string, unknown> = {}
+    metadata: Record<string, unknown> = {},
   ): void {
     // Alert on slow operations
     const isSlowOperation = duration > 1000; // 1 second threshold
-    const level = !success ? 'ERROR' : isSlowOperation ? 'WARN' : 'INFO';
+    const level = !success ? "ERROR" : isSlowOperation ? "WARN" : "INFO";
 
-    this.log(level, `Performance: ${operation}`, {
-      component: 'performance',
-      operation,
-      duration,
-      success,
-      ...metadata
-    }, 'PERFORMANCE');
+    this.log(
+      level,
+      `Performance: ${operation}`,
+      {
+        component: "performance",
+        operation,
+        duration,
+        success,
+        ...metadata,
+      },
+      "PERFORMANCE",
+    );
   }
 
   /**
@@ -310,14 +368,18 @@ export class EnterpriseLogger {
   public businessEvent(
     event: string,
     value?: number,
-    dimensions: Record<string, string> = {}
+    dimensions: Record<string, string> = {},
   ): void {
-    this.info(`Business event: ${event}`, {
-      component: 'business-intelligence',
-      event,
-      value,
-      dimensions
-    }, 'BUSINESS_EVENT');
+    this.info(
+      `Business event: ${event}`,
+      {
+        component: "business-intelligence",
+        event,
+        value,
+        dimensions,
+      },
+      "BUSINESS_EVENT",
+    );
   }
 
   // ============================================================================
@@ -337,10 +399,10 @@ export class EnterpriseLogger {
    * End performance timer and log result
    */
   public endTimer(
-    timerId: string, 
-    operation: string, 
+    timerId: string,
+    operation: string,
     success = true,
-    metadata: Record<string, unknown> = {}
+    metadata: Record<string, unknown> = {},
   ): void {
     const startTime = this.performanceTracker.get(timerId);
     if (!startTime) {
@@ -350,7 +412,7 @@ export class EnterpriseLogger {
 
     const duration = performance.now() - startTime;
     this.performanceTracker.delete(timerId);
-    
+
     this.performance(operation, duration, success, metadata);
   }
 
@@ -360,7 +422,7 @@ export class EnterpriseLogger {
   public async measure<T>(
     operation: string,
     fn: () => Promise<T>,
-    context: LogContext = {}
+    context: LogContext = {},
   ): Promise<T> {
     const startTime = performance.now();
     let success = true;
@@ -375,13 +437,18 @@ export class EnterpriseLogger {
       throw err;
     } finally {
       const duration = performance.now() - startTime;
-      
+
       if (error) {
-        this.error(`Operation failed: ${operation}`, error, {
-          ...context,
-          operation,
-          duration
-        }, 'OPERATION_FAILED');
+        this.error(
+          `Operation failed: ${operation}`,
+          error,
+          {
+            ...context,
+            operation,
+            duration,
+          },
+          "OPERATION_FAILED",
+        );
       } else {
         this.performance(operation, duration, success, context);
       }
@@ -396,7 +463,7 @@ export class EnterpriseLogger {
     level: LogLevel,
     message: string,
     context: LogContext = {},
-    eventType?: string
+    eventType?: string,
   ): void {
     // Check if this log level should be recorded
     if (this.LOG_LEVELS[level] < this.LOG_LEVELS[this.config.minLevel]) {
@@ -410,7 +477,7 @@ export class EnterpriseLogger {
       message,
       context: this.enrichContext(context),
       eventType,
-      tags: this.generateTags(level, context, eventType)
+      tags: this.generateTags(level, context, eventType),
     };
 
     // Sanitize sensitive data
@@ -419,7 +486,10 @@ export class EnterpriseLogger {
     }
 
     // Output to console in development (DISABLED IN PRODUCTION)
-    if (this.config.enableConsole && this.config.environment === 'development') {
+    if (
+      this.config.enableConsole &&
+      this.config.environment === "development"
+    ) {
       this.logToConsole(entry);
     }
 
@@ -429,7 +499,7 @@ export class EnterpriseLogger {
     }
 
     // Immediate alerts for critical issues
-    if (level === 'FATAL' || level === 'ERROR') {
+    if (level === "FATAL" || level === "ERROR") {
       this.handleCriticalLog(entry);
     }
   }
@@ -440,18 +510,20 @@ export class EnterpriseLogger {
       correlationId: context.correlationId || this.correlationId,
       sessionId: context.sessionId || this.sessionId,
       environment: this.config.environment,
-      version: process.env.npm_package_version || '0.0.0',
+      version: process.env.npm_package_version || "0.0.0",
       timestamp: new Date().toISOString(),
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-      url: typeof window !== 'undefined' ? window.location.href : undefined
+      userAgent:
+        typeof window !== "undefined" ? window.navigator.userAgent : undefined,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
     };
   }
 
-  private generateTags(level: LogLevel, context: LogContext, eventType?: string): string[] {
-    const tags: string[] = [
-      level.toLowerCase(),
-      this.config.environment
-    ];
+  private generateTags(
+    level: LogLevel,
+    context: LogContext,
+    eventType?: string,
+  ): string[] {
+    const tags: string[] = [level.toLowerCase(), this.config.environment];
 
     if (eventType) {
       tags.push(eventType.toLowerCase());
@@ -462,7 +534,7 @@ export class EnterpriseLogger {
     }
 
     if (context.userId) {
-      tags.push('user-action');
+      tags.push("user-action");
     }
 
     return tags;
@@ -477,22 +549,24 @@ export class EnterpriseLogger {
   }
 
   private sanitizeObject(obj: SanitizableValue): SanitizableValue {
-    if (typeof obj !== 'object' || obj === null) {
+    if (typeof obj !== "object" || obj === null) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item) => this.sanitizeObject(item));
     }
 
     const sanitized: SanitizedObject = {};
     for (const [key, value] of Object.entries(obj)) {
       // Check if key contains sensitive information
-      const isSensitive = this.SENSITIVE_PATTERNS.some(pattern => pattern.test(key));
-      
+      const isSensitive = this.SENSITIVE_PATTERNS.some((pattern) =>
+        pattern.test(key),
+      );
+
       if (isSensitive) {
-        sanitized[key] = '[REDACTED]';
-      } else if (typeof value === 'object') {
+        sanitized[key] = "[REDACTED]";
+      } else if (typeof value === "object") {
         sanitized[key] = this.sanitizeObject(value);
       } else {
         sanitized[key] = value;
@@ -505,23 +579,23 @@ export class EnterpriseLogger {
   private logToConsole(entry: LogEntry): void {
     const { timestamp, level, message, context } = entry;
     const prefix = `[${timestamp}] [${level}]`;
-    
+
     switch (level) {
-      case 'DEBUG':
+      case "DEBUG":
         break;
-      case 'INFO':
+      case "INFO":
         break;
-      case 'WARN':
+      case "WARN":
         break;
-      case 'ERROR':
-      case 'FATAL':
+      case "ERROR":
+      case "FATAL":
         break;
     }
   }
 
   private addToBuffer(entry: LogEntry): void {
     this.buffer.push(entry);
-    
+
     // Flush if buffer is full
     if (this.buffer.length >= this.config.bufferSize) {
       this.flush();
@@ -531,8 +605,8 @@ export class EnterpriseLogger {
   private handleCriticalLog(entry: LogEntry): void {
     // In production, this would trigger immediate alerts
     // For now, ensure immediate flushing and console output
-    
-    if (entry.level === 'FATAL') {
+
+    if (entry.level === "FATAL") {
       // Force console output for fatal errors even in production
     }
   }
@@ -551,12 +625,14 @@ export class EnterpriseLogger {
       await this.sendToRemote(entries);
     } catch (error) {
       // If remote logging fails, fall back to console in development
-      if (this.config.environment === 'development') {
-        entries.forEach(entry => this.logToConsole(entry));
+      if (this.config.environment === "development") {
+        entries.forEach((entry) => this.logToConsole(entry));
       }
-      
+
       // Re-add failed entries to buffer (with limit to prevent memory issues)
-      this.buffer.unshift(...entries.slice(0, this.config.bufferSize - this.buffer.length));
+      this.buffer.unshift(
+        ...entries.slice(0, this.config.bufferSize - this.buffer.length),
+      );
     }
   }
 
@@ -566,24 +642,28 @@ export class EnterpriseLogger {
     const payload = {
       logs: entries,
       metadata: {
-        source: 'str-certified-frontend',
-        version: process.env.npm_package_version || '0.0.0',
+        source: "str-certified-frontend",
+        version: process.env.npm_package_version || "0.0.0",
         environment: this.config.environment,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
 
     const response = await fetch(this.config.remoteEndpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` })
+        "Content-Type": "application/json",
+        ...(this.config.apiKey && {
+          Authorization: `Bearer ${this.config.apiKey}`,
+        }),
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      throw new Error(`Remote logging failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Remote logging failed: ${response.status} ${response.statusText}`,
+      );
     }
   }
 
@@ -595,14 +675,16 @@ export class EnterpriseLogger {
 
   private initializePerformanceTracking(): void {
     // Track page load performance
-    if (typeof window !== 'undefined') {
-      window.addEventListener('load', () => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    if (typeof window !== "undefined") {
+      window.addEventListener("load", () => {
+        const navigation = performance.getEntriesByType(
+          "navigation",
+        )[0] as PerformanceNavigationTiming;
         const loadTime = navigation.loadEventEnd - navigation.loadEventStart;
-        
-        this.performance('page-load', loadTime, true, {
+
+        this.performance("page-load", loadTime, true, {
           url: window.location.href,
-          referrer: document.referrer
+          referrer: document.referrer,
         });
       });
     }
@@ -639,12 +721,12 @@ export class EnterpriseLogger {
   public async destroy(): Promise<void> {
     // Flush remaining logs
     await this.flush();
-    
+
     // Clear timers
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
     }
-    
+
     // Clear buffers
     this.buffer = [];
     this.performanceTracker.clear();
@@ -660,7 +742,7 @@ export class EnterpriseLogger {
       bufferSize: this.buffer.length,
       activeTimers: this.performanceTracker.size,
       sessionId: this.sessionId,
-      correlationId: this.correlationId
+      correlationId: this.correlationId,
     };
   }
 }
@@ -678,11 +760,15 @@ export function createLogger(config?: Partial<LoggerConfig>): EnterpriseLogger {
 export function getGlobalLogger(): EnterpriseLogger {
   if (!globalLogger) {
     globalLogger = createLogger({
-      environment: (import.meta.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
-      enableConsole: import.meta.env.NODE_ENV === 'development' || import.meta.env.DEV,
-      enableRemote: import.meta.env.NODE_ENV === 'production' || import.meta.env.PROD,
+      environment:
+        (import.meta.env.NODE_ENV as "development" | "production" | "test") ||
+        "development",
+      enableConsole:
+        import.meta.env.NODE_ENV === "development" || import.meta.env.DEV,
+      enableRemote:
+        import.meta.env.NODE_ENV === "production" || import.meta.env.PROD,
       remoteEndpoint: import.meta.env.VITE_LOGGING_ENDPOINT,
-      apiKey: import.meta.env.VITE_LOGGING_API_KEY
+      apiKey: import.meta.env.VITE_LOGGING_API_KEY,
     });
   }
   return globalLogger;
@@ -707,7 +793,7 @@ export const log = {
   businessEvent: logger.businessEvent.bind(logger),
   startTimer: logger.startTimer.bind(logger),
   endTimer: logger.endTimer.bind(logger),
-  measure: logger.measure.bind(logger)
+  measure: logger.measure.bind(logger),
 };
 
 export default logger;

@@ -19,7 +19,7 @@ export interface PhotoQualityMetrics {
 export interface DiscrepancyReport {
   type: string;
   description: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
   confidence: number;
   location?: {
     x: number;
@@ -37,7 +37,7 @@ export interface AIAnalysis {
 }
 
 export interface PhotoComparisonResult {
-  overallMatch: 'match' | 'partial' | 'mismatch';
+  overallMatch: "match" | "partial" | "mismatch";
   similarityScore: number;
   confidence: number;
   discrepancies: DiscrepancyReport[];

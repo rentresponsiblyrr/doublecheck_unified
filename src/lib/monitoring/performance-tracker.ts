@@ -1,11 +1,11 @@
-import { errorReporter } from './error-reporter';
-// TEMPORARILY DISABLE TO FIX CRASH  
+import { errorReporter } from "./error-reporter";
+// TEMPORARILY DISABLE TO FIX CRASH
 // import { env } from '../config/environment';
 
 export interface PerformanceMetric {
   name: string;
   value: number;
-  unit: 'ms' | 's' | 'bytes' | 'count' | 'percent';
+  unit: "ms" | "s" | "bytes" | "count" | "percent";
   timestamp: string;
   tags?: Record<string, string>;
   metadata?: Record<string, unknown>;
@@ -143,17 +143,20 @@ export class PerformanceTracker {
     if (!window.performance || !window.performance.timing) return;
 
     // Wait for page to be fully loaded
-    if (document.readyState !== 'complete') {
-      window.addEventListener('load', () => this.trackPageLoad());
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", () => this.trackPageLoad());
       return;
     }
 
     const timing = window.performance.timing;
-    const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    const navigation = window.performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming;
 
     const metrics = {
       pageLoadTime: timing.loadEventEnd - timing.navigationStart,
-      domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
+      domContentLoaded:
+        timing.domContentLoadedEventEnd - timing.navigationStart,
       timeToFirstByte: timing.responseStart - timing.navigationStart,
       dnsLookup: timing.domainLookupEnd - timing.domainLookupStart,
       tcpConnection: timing.connectEnd - timing.connectStart,
@@ -164,12 +167,12 @@ export class PerformanceTracker {
 
     // Track each metric
     Object.entries(metrics).forEach(([name, value]) => {
-      this.trackMetric(name, value, 'ms', { category: 'page_load' });
+      this.trackMetric(name, value, "ms", { category: "page_load" });
     });
 
     // Check for slow page load
     if (metrics.pageLoadTime > (this.config.slowThreshold?.pageLoad || 3000)) {
-      this.reportSlowOperation('page_load', metrics.pageLoadTime, metrics);
+      this.reportSlowOperation("page_load", metrics.pageLoadTime, metrics);
     }
   }
 
@@ -186,45 +189,56 @@ export class PerformanceTracker {
         const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
           element?: { tagName: string };
         };
-        this.trackMetric('lcp', lastEntry.startTime, 'ms', { 
-          category: 'web_vitals',
+        this.trackMetric("lcp", lastEntry.startTime, "ms", {
+          category: "web_vitals",
           element: lastEntry.element?.tagName,
         });
       });
-      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
 
       // Track First Input Delay (FID)
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: PerformanceEntry & {
-          processingStart: number;
-        }) => {
-          this.trackMetric('fid', entry.processingStart - entry.startTime, 'ms', {
-            category: 'web_vitals',
-            eventType: entry.name,
-          });
-        });
+        entries.forEach(
+          (
+            entry: PerformanceEntry & {
+              processingStart: number;
+            },
+          ) => {
+            this.trackMetric(
+              "fid",
+              entry.processingStart - entry.startTime,
+              "ms",
+              {
+                category: "web_vitals",
+                eventType: entry.name,
+              },
+            );
+          },
+        );
       });
-      fidObserver.observe({ entryTypes: ['first-input'] });
+      fidObserver.observe({ entryTypes: ["first-input"] });
 
       // Track Cumulative Layout Shift (CLS)
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: PerformanceEntry & {
-          hadRecentInput?: boolean;
-          value: number;
-        }) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value;
-          }
-        });
-        this.trackMetric('cls', clsValue, 'count', { category: 'web_vitals' });
+        entries.forEach(
+          (
+            entry: PerformanceEntry & {
+              hadRecentInput?: boolean;
+              value: number;
+            },
+          ) => {
+            if (!entry.hadRecentInput) {
+              clsValue += entry.value;
+            }
+          },
+        );
+        this.trackMetric("cls", clsValue, "count", { category: "web_vitals" });
       });
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
-
-    } catch (error) {
-    }
+      clsObserver.observe({ entryTypes: ["layout-shift"] });
+    } catch (error) {}
   }
 
   /**
@@ -237,7 +251,7 @@ export class PerformanceTracker {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         entries.forEach((entry: PerformanceResourceTiming) => {
-          if (entry.entryType === 'resource') {
+          if (entry.entryType === "resource") {
             const resource: ResourceTiming = {
               name: entry.name,
               type: entry.initiatorType,
@@ -248,8 +262,8 @@ export class PerformanceTracker {
 
             // Track slow resources
             if (resource.duration > 1000) {
-              this.trackMetric('slow_resource', resource.duration, 'ms', {
-                category: 'resource',
+              this.trackMetric("slow_resource", resource.duration, "ms", {
+                category: "resource",
                 url: resource.name,
                 type: resource.type,
                 cached: resource.cached,
@@ -259,10 +273,9 @@ export class PerformanceTracker {
         });
       });
 
-      observer.observe({ entryTypes: ['resource'] });
+      observer.observe({ entryTypes: ["resource"] });
       this.observer = observer;
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   /**
@@ -275,9 +288,9 @@ export class PerformanceTracker {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         entries.forEach((entry) => {
-          if (entry.entryType === 'measure') {
-            this.trackMetric(entry.name, entry.duration, 'ms', {
-              category: 'user_timing',
+          if (entry.entryType === "measure") {
+            this.trackMetric(entry.name, entry.duration, "ms", {
+              category: "user_timing",
               startMark: (entry as PerformanceMeasure).detail?.start,
               endMark: (entry as PerformanceMeasure).detail?.end,
             });
@@ -285,9 +298,8 @@ export class PerformanceTracker {
         });
       });
 
-      observer.observe({ entryTypes: ['measure'] });
-    } catch (error) {
-    }
+      observer.observe({ entryTypes: ["measure"] });
+    } catch (error) {}
   }
 
   /**
@@ -296,8 +308,8 @@ export class PerformanceTracker {
   trackMetric(
     name: string,
     value: number,
-    unit: PerformanceMetric['unit'] = 'ms',
-    metadata?: Record<string, unknown>
+    unit: PerformanceMetric["unit"] = "ms",
+    metadata?: Record<string, unknown>,
   ) {
     const metric: PerformanceMetric = {
       name,
@@ -327,8 +339,8 @@ export class PerformanceTracker {
    * Track API call performance
    */
   trackApiCall(url: string, method: string, duration: number, status: number) {
-    this.trackMetric('api_call', duration, 'ms', {
-      category: 'api',
+    this.trackMetric("api_call", duration, "ms", {
+      category: "api",
       url,
       method,
       status,
@@ -337,7 +349,7 @@ export class PerformanceTracker {
 
     // Check for slow API calls
     if (duration > (this.config.slowThreshold?.api || 1000)) {
-      this.reportSlowOperation('api', duration, { url, method, status });
+      this.reportSlowOperation("api", duration, { url, method, status });
     }
   }
 
@@ -345,8 +357,8 @@ export class PerformanceTracker {
    * Track AI processing performance
    */
   trackAIProcessing(metrics: AIProcessingMetrics) {
-    this.trackMetric('ai_processing', metrics.duration, 'ms', {
-      category: 'ai',
+    this.trackMetric("ai_processing", metrics.duration, "ms", {
+      category: "ai",
       operation: metrics.operationType,
       model: metrics.modelUsed,
       inputSize: metrics.inputSize,
@@ -357,25 +369,33 @@ export class PerformanceTracker {
 
     // Check for slow AI operations
     if (metrics.duration > (this.config.slowThreshold?.ai || 5000)) {
-      this.reportSlowOperation('ai', metrics.duration, metrics);
+      this.reportSlowOperation("ai", metrics.duration, metrics);
     }
 
     // Report errors
     if (!metrics.success && metrics.error) {
-      errorReporter.reportError(new Error(`AI Processing Failed: ${metrics.error}`), {
-        category: 'ai',
-        operation: metrics.operationType,
-        model: metrics.modelUsed,
-      });
+      errorReporter.reportError(
+        new Error(`AI Processing Failed: ${metrics.error}`),
+        {
+          category: "ai",
+          operation: metrics.operationType,
+          model: metrics.modelUsed,
+        },
+      );
     }
   }
 
   /**
    * Track database query performance
    */
-  trackDatabaseQuery(query: string, duration: number, success: boolean, rowCount?: number) {
-    this.trackMetric('database_query', duration, 'ms', {
-      category: 'database',
+  trackDatabaseQuery(
+    query: string,
+    duration: number,
+    success: boolean,
+    rowCount?: number,
+  ) {
+    this.trackMetric("database_query", duration, "ms", {
+      category: "database",
       query: this.sanitizeQuery(query),
       success,
       rowCount,
@@ -383,7 +403,7 @@ export class PerformanceTracker {
 
     // Check for slow queries
     if (duration > (this.config.slowThreshold?.database || 500)) {
-      this.reportSlowOperation('database', duration, { query, rowCount });
+      this.reportSlowOperation("database", duration, { query, rowCount });
     }
   }
 
@@ -403,8 +423,7 @@ export class PerformanceTracker {
     if (window.performance && window.performance.measure) {
       try {
         window.performance.measure(name, startMark, endMark);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   }
 
@@ -419,10 +438,10 @@ export class PerformanceTracker {
     return () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       this.measure(name, markName);
-      this.trackMetric(name, duration, 'ms', { category: 'timer' });
-      
+      this.trackMetric(name, duration, "ms", { category: "timer" });
+
       return duration;
     };
   }
@@ -430,12 +449,16 @@ export class PerformanceTracker {
   /**
    * Report slow operations
    */
-  private reportSlowOperation(type: string, duration: number, details: Record<string, unknown>) {
+  private reportSlowOperation(
+    type: string,
+    duration: number,
+    details: Record<string, unknown>,
+  ) {
     errorReporter.addBreadcrumb({
-      type: 'custom',
-      category: 'performance',
+      type: "custom",
+      category: "performance",
       message: `Slow ${type} operation: ${duration}ms`,
-      level: 'warning',
+      level: "warning",
       data: details,
     });
 
@@ -451,18 +474,21 @@ export class PerformanceTracker {
   /**
    * Get current performance summary
    */
-  getPerformanceSummary(): PerformanceReport['summary'] {
-    const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const paint = window.performance.getEntriesByType('paint');
+  getPerformanceSummary(): PerformanceReport["summary"] {
+    const navigation = window.performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming;
+    const paint = window.performance.getEntriesByType("paint");
 
-    const fcp = paint.find(entry => entry.name === 'first-contentful-paint');
-    const lcp = this.metricsQueue.find(m => m.name === 'lcp')?.value || 0;
-    const fid = this.metricsQueue.find(m => m.name === 'fid')?.value || 0;
-    const cls = this.metricsQueue.find(m => m.name === 'cls')?.value || 0;
+    const fcp = paint.find((entry) => entry.name === "first-contentful-paint");
+    const lcp = this.metricsQueue.find((m) => m.name === "lcp")?.value || 0;
+    const fid = this.metricsQueue.find((m) => m.name === "fid")?.value || 0;
+    const cls = this.metricsQueue.find((m) => m.name === "cls")?.value || 0;
 
     return {
       pageLoadTime: navigation?.loadEventEnd - navigation?.fetchStart || 0,
-      timeToInteractive: navigation?.domInteractive - navigation?.fetchStart || 0,
+      timeToInteractive:
+        navigation?.domInteractive - navigation?.fetchStart || 0,
       firstContentfulPaint: fcp?.startTime || 0,
       largestContentfulPaint: lcp,
       cumulativeLayoutShift: cls,
@@ -477,7 +503,7 @@ export class PerformanceTracker {
   private calculateTotalBlockingTime(): number {
     // Temporarily disabled to avoid deprecated API warnings
     return 0;
-    
+
     // Using Performance Observer API for modern browsers
     // const longTasks = window.performance.getEntriesByType('longtask') as PerformanceEntry[];
     // return longTasks.reduce((total, task) => {
@@ -513,19 +539,20 @@ export class PerformanceTracker {
       // Log summary in development
       if (import.meta.env.DEV) {
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   /**
    * Get resource timings
    */
   private getResourceTimings(): ResourceTiming[] {
-    const entries = window.performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-    
+    const entries = window.performance.getEntriesByType(
+      "resource",
+    ) as PerformanceResourceTiming[];
+
     return entries
       .slice(-50) // Last 50 resources
-      .map(entry => ({
+      .map((entry) => ({
         name: entry.name,
         type: entry.initiatorType,
         duration: entry.duration,
@@ -548,8 +575,8 @@ export class PerformanceTracker {
   private sanitizeQuery(query: string): string {
     // Remove potentially sensitive data from queries
     return query
-      .replace(/\b\d{4,}\b/g, 'XXX') // Replace long numbers
-      .replace(/(['"])([^'"]{20,})\1/g, '$1...$1') // Truncate long strings
+      .replace(/\b\d{4,}\b/g, "XXX") // Replace long numbers
+      .replace(/(['"])([^'"]{20,})\1/g, "$1...$1") // Truncate long strings
       .substring(0, 200); // Limit length
   }
 
@@ -591,19 +618,26 @@ export class PerformanceTracker {
 export const performanceTracker = PerformanceTracker.getInstance();
 
 // Export convenience functions
-export const trackMetric = (name: string, value: number, unit?: PerformanceMetric['unit'], metadata?: Record<string, unknown>) =>
-  performanceTracker.trackMetric(name, value, unit, metadata);
+export const trackMetric = (
+  name: string,
+  value: number,
+  unit?: PerformanceMetric["unit"],
+  metadata?: Record<string, unknown>,
+) => performanceTracker.trackMetric(name, value, unit, metadata);
 
-export const trackApiCall = (url: string, method: string, duration: number, status: number) =>
-  performanceTracker.trackApiCall(url, method, duration, status);
+export const trackApiCall = (
+  url: string,
+  method: string,
+  duration: number,
+  status: number,
+) => performanceTracker.trackApiCall(url, method, duration, status);
 
 export const trackAIProcessing = (metrics: AIProcessingMetrics) =>
   performanceTracker.trackAIProcessing(metrics);
 
-export const startTimer = (name: string) =>
-  performanceTracker.startTimer(name);
+export const startTimer = (name: string) => performanceTracker.startTimer(name);
 
 // Initialize on import if in browser
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   performanceTracker.initialize();
 }

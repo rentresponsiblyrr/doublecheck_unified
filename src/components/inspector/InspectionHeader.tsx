@@ -4,13 +4,13 @@
  * Enhanced with PWA performance status for mobile optimization
  */
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { User, Gauge, Wifi, Battery } from 'lucide-react';
-import { pwaPerformanceMonitor } from '@/lib/performance/PWAPerformanceMonitor';
-import { networkAdaptationEngine } from '@/lib/performance/NetworkAdaptationEngine';
-import { batteryOptimizationManager } from '@/lib/performance/BatteryOptimizationManager';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { User, Gauge, Wifi, Battery } from "lucide-react";
+import { pwaPerformanceMonitor } from "@/lib/performance/PWAPerformanceMonitor";
+import { networkAdaptationEngine } from "@/lib/performance/NetworkAdaptationEngine";
+import { batteryOptimizationManager } from "@/lib/performance/BatteryOptimizationManager";
 
 interface InspectionHeaderProps {
   currentUser: string | null;
@@ -29,36 +29,39 @@ export const InspectionHeader: React.FC<InspectionHeaderProps> = ({
   currentUser,
   showNewInspectionButton,
   onNewInspection,
-  showPerformanceStatus = true
+  showPerformanceStatus = true,
 }) => {
-  const [performanceStatus, setPerformanceStatus] = useState<InspectionPerformanceStatus | null>(null);
+  const [performanceStatus, setPerformanceStatus] =
+    useState<InspectionPerformanceStatus | null>(null);
 
   const fetchPerformanceStatus = async () => {
     try {
       // Get network adaptation status
-      const adaptationState = networkAdaptationEngine.getCurrentAdaptationState();
-      const networkMode = adaptationState?.currentStrategy?.level || 'optimal';
+      const adaptationState =
+        networkAdaptationEngine.getCurrentAdaptationState();
+      const networkMode = adaptationState?.currentStrategy?.level || "optimal";
 
-      // Get battery optimization status  
+      // Get battery optimization status
       const batteryState = batteryOptimizationManager.getCurrentBatteryState();
-      const batteryMode = batteryState?.powerTier || 'optimal';
+      const batteryMode = batteryState?.powerTier || "optimal";
 
       // Determine if conditions are optimal for inspection
-      const isOptimal = networkMode === 'minimal' && 
-                       (batteryMode === 'green' || batteryMode === 'optimal') &&
-                       navigator.onLine;
+      const isOptimal =
+        networkMode === "minimal" &&
+        (batteryMode === "green" || batteryMode === "optimal") &&
+        navigator.onLine;
 
       setPerformanceStatus({
         networkMode,
         batteryMode,
-        isOptimal
+        isOptimal,
       });
     } catch (error) {
       // Fallback status
       setPerformanceStatus({
-        networkMode: 'optimal',
-        batteryMode: 'optimal', 
-        isOptimal: true
+        networkMode: "optimal",
+        batteryMode: "optimal",
+        isOptimal: true,
       });
     }
   };
@@ -66,31 +69,42 @@ export const InspectionHeader: React.FC<InspectionHeaderProps> = ({
   useEffect(() => {
     if (showPerformanceStatus) {
       fetchPerformanceStatus();
-      
+
       // Update every 60 seconds
       const interval = setInterval(fetchPerformanceStatus, 60000);
-      
+
       return () => clearInterval(interval);
     }
   }, [showPerformanceStatus]);
 
   const getNetworkStatusColor = (mode: string) => {
     switch (mode) {
-      case 'minimal': return 'text-green-600';
-      case 'moderate': return 'text-blue-600';
-      case 'aggressive': return 'text-yellow-600';
-      case 'emergency': return 'text-red-600';
-      default: return 'text-green-600';
+      case "minimal":
+        return "text-green-600";
+      case "moderate":
+        return "text-blue-600";
+      case "aggressive":
+        return "text-yellow-600";
+      case "emergency":
+        return "text-red-600";
+      default:
+        return "text-green-600";
     }
   };
 
   const getBatteryStatusColor = (mode: string) => {
     switch (mode) {
-      case 'green': case 'optimal': return 'text-green-600';
-      case 'yellow': return 'text-yellow-600';
-      case 'orange': return 'text-orange-600';
-      case 'red': return 'text-red-600';
-      default: return 'text-green-600';
+      case "green":
+      case "optimal":
+        return "text-green-600";
+      case "yellow":
+        return "text-yellow-600";
+      case "orange":
+        return "text-orange-600";
+      case "red":
+        return "text-red-600";
+      default:
+        return "text-green-600";
     }
   };
 
@@ -103,36 +117,11 @@ export const InspectionHeader: React.FC<InspectionHeaderProps> = ({
             <User className="w-4 h-4" />
             <span>Role: {currentUser}</span>
           </div>
-          
-          {showPerformanceStatus && performanceStatus && (
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1">
-                <Wifi className={`w-4 h-4 ${getNetworkStatusColor(performanceStatus.networkMode)}`} />
-                <span className="text-xs text-gray-500 capitalize">{performanceStatus.networkMode}</span>
-              </div>
-              
-              <div className="flex items-center space-x-1">
-                <Battery className={`w-4 h-4 ${getBatteryStatusColor(performanceStatus.batteryMode)}`} />
-                <span className="text-xs text-gray-500 capitalize">{performanceStatus.batteryMode}</span>
-              </div>
-              
-              {performanceStatus.isOptimal && (
-                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                  <Gauge className="w-3 h-3 mr-1" />
-                  Optimal
-                </Badge>
-              )}
-              
-              {!navigator.onLine && (
-                <Badge variant="destructive" className="text-xs">
-                  Offline
-                </Badge>
-              )}
-            </div>
-          )}
+
+          {/* Performance status indicators removed per user request */}
         </div>
       </div>
-      
+
       {showNewInspectionButton && (
         <Button variant="outline" onClick={onNewInspection}>
           Start New Inspection

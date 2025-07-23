@@ -1,25 +1,25 @@
 // Video Walkthrough Prompt Component
 // Prominent first-item UI for mandatory video walkthrough with permissions handling
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  Play, 
-  Square, 
-  AlertTriangle, 
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Play,
+  Square,
+  AlertTriangle,
   CheckCircle,
   Camera,
   Clock,
-  MapPin
-} from 'lucide-react';
-import { useVideoRecording } from '@/hooks/useVideoRecording';
-import { logger } from '@/utils/logger';
+  MapPin,
+} from "lucide-react";
+import { useVideoRecording } from "@/hooks/useVideoRecording";
+import { logger } from "@/utils/logger";
 
 interface VideoWalkthroughPromptProps {
   propertyName: string;
@@ -29,13 +29,12 @@ interface VideoWalkthroughPromptProps {
   className?: string;
 }
 
-
 export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
   propertyName,
   expectedDuration,
   onVideoRecorded,
   onSkip,
-  className = ''
+  className = "",
 }) => {
   const [showPermissionHelp, setShowPermissionHelp] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -50,11 +49,11 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
     requestPermissions,
     startRecording,
     stopRecording,
-    resetRecording
+    resetRecording,
   } = useVideoRecording({
     video: true,
     audio: true,
-    facingMode: 'environment'
+    facingMode: "environment",
   });
 
   // Update video element when stream becomes available
@@ -66,7 +65,10 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
 
   // Handle errors and show permission help
   useEffect(() => {
-    if (error && (permissions.camera === 'denied' || permissions.microphone === 'denied')) {
+    if (
+      error &&
+      (permissions.camera === "denied" || permissions.microphone === "denied")
+    ) {
       setShowPermissionHelp(true);
     } else {
       setShowPermissionHelp(false);
@@ -95,23 +97,31 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   /**
    * Get permission status color
    */
-  const getPermissionColor = (status: 'unknown' | 'granted' | 'denied' | 'requesting'): string => {
+  const getPermissionColor = (
+    status: "unknown" | "granted" | "denied" | "requesting",
+  ): string => {
     switch (status) {
-      case 'granted': return 'text-green-600';
-      case 'denied': return 'text-red-600';
-      case 'requesting': return 'text-blue-600';
-      default: return 'text-gray-600';
+      case "granted":
+        return "text-green-600";
+      case "denied":
+        return "text-red-600";
+      case "requesting":
+        return "text-blue-600";
+      default:
+        return "text-gray-600";
     }
   };
 
-  const allPermissionsGranted = permissions.camera === 'granted' && permissions.microphone === 'granted';
-  const anyPermissionDenied = permissions.camera === 'denied' || permissions.microphone === 'denied';
+  const allPermissionsGranted =
+    permissions.camera === "granted" && permissions.microphone === "granted";
+  const anyPermissionDenied =
+    permissions.camera === "denied" || permissions.microphone === "denied";
   const hasRecording = recording.isAvailable && recordedBlob;
 
   return (
@@ -127,8 +137,7 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
             {propertyName}
           </div>
           <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            ~{expectedDuration} minutes
+            <Clock className="h-4 w-4" />~{expectedDuration} minutes
           </div>
         </div>
       </CardHeader>
@@ -138,33 +147,57 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
         <Alert className="bg-blue-50 border-blue-200">
           <CheckCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <strong>Great! Before we go through the full checklist, let's get our bearings.</strong>
+            <strong>
+              Great! Before we go through the full checklist, let's get our
+              bearings.
+            </strong>
             <br />
-            Give me a video tour of the property to help orient the audit process. This helps ensure we don't miss anything important!
+            Give me a video tour of the property to help orient the audit
+            process. This helps ensure we don't miss anything important!
           </AlertDescription>
         </Alert>
 
         {/* Permission Status */}
         <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Camera & Microphone Permissions</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">
+            Camera & Microphone Permissions
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
-              <Camera className={`h-5 w-5 ${getPermissionColor(permissions.camera)}`} />
+              <Camera
+                className={`h-5 w-5 ${getPermissionColor(permissions.camera)}`}
+              />
               <span className="text-sm">
-                Camera: <span className={`font-medium ${getPermissionColor(permissions.camera)}`}>
-                  {permissions.camera === 'granted' ? 'Enabled' : 
-                   permissions.camera === 'denied' ? 'Denied' :
-                   permissions.camera === 'requesting' ? 'Requesting...' : 'Not requested'}
+                Camera:{" "}
+                <span
+                  className={`font-medium ${getPermissionColor(permissions.camera)}`}
+                >
+                  {permissions.camera === "granted"
+                    ? "Enabled"
+                    : permissions.camera === "denied"
+                      ? "Denied"
+                      : permissions.camera === "requesting"
+                        ? "Requesting..."
+                        : "Not requested"}
                 </span>
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Mic className={`h-5 w-5 ${getPermissionColor(permissions.microphone)}`} />
+              <Mic
+                className={`h-5 w-5 ${getPermissionColor(permissions.microphone)}`}
+              />
               <span className="text-sm">
-                Microphone: <span className={`font-medium ${getPermissionColor(permissions.microphone)}`}>
-                  {permissions.microphone === 'granted' ? 'Enabled' : 
-                   permissions.microphone === 'denied' ? 'Denied' :
-                   permissions.microphone === 'requesting' ? 'Requesting...' : 'Not requested'}
+                Microphone:{" "}
+                <span
+                  className={`font-medium ${getPermissionColor(permissions.microphone)}`}
+                >
+                  {permissions.microphone === "granted"
+                    ? "Enabled"
+                    : permissions.microphone === "denied"
+                      ? "Denied"
+                      : permissions.microphone === "requesting"
+                        ? "Requesting..."
+                        : "Not requested"}
                 </span>
               </span>
             </div>
@@ -195,15 +228,13 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
           {!allPermissionsGranted && (
             <Button
               onClick={requestPermissions}
-              disabled={permissions.camera === 'requesting'}
+              disabled={permissions.camera === "requesting"}
               size="lg"
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
-              {permissions.camera === 'requesting' ? (
-                'Requesting Permissions...'
-              ) : (
-                'Enable Camera & Microphone'
-              )}
+              {permissions.camera === "requesting"
+                ? "Requesting Permissions..."
+                : "Enable Camera & Microphone"}
             </Button>
           )}
 
@@ -213,9 +244,9 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
               disabled={!isReady}
               size="lg"
               className={`w-full ${
-                recording.isRecording 
-                  ? 'bg-red-600 hover:bg-red-700' 
-                  : 'bg-green-600 hover:bg-green-700'
+                recording.isRecording
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-green-600 hover:bg-green-700"
               }`}
             >
               {recording.isRecording ? (
@@ -237,11 +268,12 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
               <Alert className="bg-green-50 border-green-200">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  Great! Video recorded successfully ({formatDuration(recording.duration)}). 
-                  Ready to continue with the inspection checklist.
+                  Great! Video recorded successfully (
+                  {formatDuration(recording.duration)}). Ready to continue with
+                  the inspection checklist.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="flex gap-3">
                 <Button
                   onClick={submitRecording}
@@ -250,12 +282,8 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
                 >
                   Continue with Checklist
                 </Button>
-                
-                <Button
-                  onClick={handleRecordAgain}
-                  variant="outline"
-                  size="lg"
-                >
+
+                <Button onClick={handleRecordAgain} variant="outline" size="lg">
                   Record Again
                 </Button>
               </div>
@@ -280,9 +308,17 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
             <AlertDescription className="text-yellow-800">
               <strong>Need help with permissions?</strong>
               <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                <li>Look for the camera/microphone icon in your browser's address bar</li>
-                <li>Click "Allow" when prompted for camera and microphone access</li>
-                <li>Check your browser settings if permissions were previously denied</li>
+                <li>
+                  Look for the camera/microphone icon in your browser's address
+                  bar
+                </li>
+                <li>
+                  Click "Allow" when prompted for camera and microphone access
+                </li>
+                <li>
+                  Check your browser settings if permissions were previously
+                  denied
+                </li>
                 <li>Try refreshing the page if permissions are stuck</li>
               </ul>
             </AlertDescription>
@@ -292,13 +328,23 @@ export const VideoWalkthroughPrompt: React.FC<VideoWalkthroughPromptProps> = ({
         {/* Recording Instructions */}
         {allPermissionsGranted && !recording.isRecording && !hasRecording && (
           <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">📋 Recording Tips</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">
+              📋 Recording Tips
+            </h3>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• Walk through each room slowly and narrate what you see</li>
-              <li>• Point out key features, amenities, and overall condition</li>
-              <li>• Include all areas guests will access (bedrooms, bathrooms, kitchen, living areas)</li>
+              <li>
+                • Point out key features, amenities, and overall condition
+              </li>
+              <li>
+                • Include all areas guests will access (bedrooms, bathrooms,
+                kitchen, living areas)
+              </li>
               <li>• Show any outdoor spaces like patios, decks, or pools</li>
-              <li>• Aim for {expectedDuration} minutes to cover everything thoroughly</li>
+              <li>
+                • Aim for {expectedDuration} minutes to cover everything
+                thoroughly
+              </li>
             </ul>
           </div>
         )}

@@ -1,14 +1,14 @@
 /**
  * Photo Preview Card - Focused Component
- * 
+ *
  * Displays captured photo preview with confirm/retake actions
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { RefreshCw, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { RefreshCw, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PhotoPreviewCardProps {
   capturedPhoto: string;
@@ -21,7 +21,7 @@ export const PhotoPreviewCard: React.FC<PhotoPreviewCardProps> = ({
   capturedPhoto,
   onRetake,
   onConfirm,
-  className
+  className,
 }) => {
   return (
     <div className={cn("space-y-4", className)} id="photo-preview-card">

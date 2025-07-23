@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +13,7 @@ interface ExtendedPropertyFormData extends PropertyFormData {
 export const useSimplePropertySubmission = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editId = searchParams.get('edit');
+  const editId = searchParams.get("edit");
   const isEditing = !!editId;
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +52,7 @@ export const useSimplePropertySubmission = () => {
     // Check that at least one URL is provided
     const hasVrbo = formData.vrbo_url && formData.vrbo_url.trim();
     const hasAirbnb = formData.airbnb_url && formData.airbnb_url.trim();
-    
+
     if (!hasVrbo && !hasAirbnb) {
       toast({
         title: "Validation Error",
@@ -67,7 +66,6 @@ export const useSimplePropertySubmission = () => {
   };
 
   const submitProperty = async (formData: ExtendedPropertyFormData) => {
-    
     if (!validateForm(formData)) {
       return false;
     }
@@ -83,25 +81,24 @@ export const useSimplePropertySubmission = () => {
         scraped_data: formData.scraped_vrbo_data || null,
       };
 
-
       let result;
       if (isEditing) {
         result = await supabase
-          .from('properties')
+          .from("properties")
           .update({
             ...submitData,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', editId)
+          .eq("id", editId)
           .select()
           .single();
       } else {
         result = await supabase
-          .from('properties')
+          .from("properties")
           .insert({
             ...submitData,
             added_by: user.id,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -110,47 +107,45 @@ export const useSimplePropertySubmission = () => {
       const { data, error } = result;
 
       if (error) {
-        
         let errorMessage = "An error occurred while saving the property.";
-        
-        if (error.code === '23505') {
-          if (error.message?.includes('properties_name')) {
+
+        if (error.code === "23505") {
+          if (error.message?.includes("properties_name")) {
             errorMessage = "A property with this name already exists.";
-          } else if (error.message?.includes('vrbo_url')) {
+          } else if (error.message?.includes("vrbo_url")) {
             errorMessage = "This Vrbo URL is already registered.";
-          } else if (error.message?.includes('airbnb_url')) {
+          } else if (error.message?.includes("airbnb_url")) {
             errorMessage = "This Airbnb URL is already registered.";
           }
-        } else if (error.code === '42501' || error.message?.includes('JWT')) {
+        } else if (error.code === "42501" || error.message?.includes("JWT")) {
           errorMessage = "Your session has expired. Please log in again.";
-        } else if (error.message?.includes('violates row-level security')) {
+        } else if (error.message?.includes("violates row-level security")) {
           errorMessage = "You don't have permission to perform this action.";
         }
 
         toast({
-          title: `Error ${isEditing ? 'Updating' : 'Creating'} Property`,
+          title: `Error ${isEditing ? "Updating" : "Creating"} Property`,
           description: errorMessage,
           variant: "destructive",
         });
         return false;
       }
 
-
       toast({
-        title: `Property ${isEditing ? 'Updated' : 'Added'}`,
-        description: `The property "${formData.name.trim()}" has been ${isEditing ? 'updated' : 'added'} successfully.`,
+        title: `Property ${isEditing ? "Updated" : "Added"}`,
+        description: `The property "${formData.name.trim()}" has been ${isEditing ? "updated" : "added"} successfully.`,
       });
 
       setTimeout(() => {
-        navigate('/properties');
+        navigate("/properties");
       }, 500);
 
       return true;
     } catch (error) {
-      
       toast({
         title: "Unexpected Error",
-        description: "An unexpected error occurred. Please try again or contact support if the problem persists.",
+        description:
+          "An unexpected error occurred. Please try again or contact support if the problem persists.",
         variant: "destructive",
       });
       return false;
@@ -162,6 +157,6 @@ export const useSimplePropertySubmission = () => {
   return {
     isLoading,
     submitProperty,
-    isEditing
+    isEditing,
   };
 };

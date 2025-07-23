@@ -1,18 +1,18 @@
 /**
  * Claude Results Display - Enterprise Grade
- * 
+ *
  * Comprehensive display of Claude AI analysis results
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface AnalysisResult {
   content?: string;
   analysis?: {
-    status: 'pass' | 'fail' | 'needs_review';
+    status: "pass" | "fail" | "needs_review";
     confidence: number;
     reasoning: string;
     issues: string[];
@@ -21,8 +21,8 @@ interface AnalysisResult {
   review?: {
     score: number;
     issues: Array<{
-      severity: 'critical' | 'high' | 'medium' | 'low';
-      category: 'security' | 'performance' | 'maintainability' | 'style';
+      severity: "critical" | "high" | "medium" | "low";
+      category: "security" | "performance" | "maintainability" | "style";
       description: string;
       suggestion?: string;
     }>;
@@ -46,32 +46,34 @@ interface ClaudeResultsDisplayProps {
   result: AnalysisResult | null;
 }
 
-export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ result }) => {
+export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({
+  result,
+}) => {
   if (!result) {
     return null;
   }
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'pass':
-        return 'bg-green-100 text-green-800';
-      case 'fail':
-        return 'bg-red-100 text-red-800';
+      case "pass":
+        return "bg-green-100 text-green-800";
+      case "fail":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return "bg-yellow-100 text-yellow-800";
     }
   };
 
   const getSeverityBadgeClass = (severity: string) => {
     switch (severity) {
-      case 'critical':
-        return 'bg-red-100 text-red-800';
-      case 'high':
-        return 'bg-orange-100 text-orange-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+      case "critical":
+        return "bg-red-100 text-red-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-blue-100 text-blue-800';
+        return "bg-blue-100 text-blue-800";
     }
   };
 
@@ -81,13 +83,14 @@ export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ resu
         <CardTitle className="text-lg">Analysis Results</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        
         {/* Generated Text */}
         {result.content && (
           <div>
             <h4 className="font-semibold mb-2">Generated Text</h4>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <pre className="whitespace-pre-wrap text-sm">{result.content}</pre>
+              <pre className="whitespace-pre-wrap text-sm">
+                {result.content}
+              </pre>
             </div>
           </div>
         )}
@@ -105,10 +108,12 @@ export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ resu
                   Confidence: {Math.round(result.analysis.confidence * 100)}%
                 </span>
               </div>
-              
+
               <div>
                 <h5 className="font-medium mb-1">Reasoning</h5>
-                <p className="text-sm text-gray-700">{result.analysis.reasoning}</p>
+                <p className="text-sm text-gray-700">
+                  {result.analysis.reasoning}
+                </p>
               </div>
 
               {result.analysis.issues.length > 0 && (
@@ -143,7 +148,10 @@ export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ resu
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Score:</span>
-                <Progress value={result.review.score} className="flex-1 max-w-32" />
+                <Progress
+                  value={result.review.score}
+                  className="flex-1 max-w-32"
+                />
                 <span className="text-sm">{result.review.score}/100</span>
               </div>
 
@@ -157,16 +165,21 @@ export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ resu
                   <h5 className="font-medium mb-2">Issues Found</h5>
                   <div className="space-y-2">
                     {result.review.issues.map((issue, index) => (
-                      <div key={index} className="border-l-4 border-red-200 pl-3">
+                      <div
+                        key={index}
+                        className="border-l-4 border-red-200 pl-3"
+                      >
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge className={getSeverityBadgeClass(issue.severity)}>
+                          <Badge
+                            className={getSeverityBadgeClass(issue.severity)}
+                          >
                             {issue.severity}
                           </Badge>
-                          <Badge variant="outline">
-                            {issue.category}
-                          </Badge>
+                          <Badge variant="outline">{issue.category}</Badge>
                         </div>
-                        <p className="text-sm text-gray-700">{issue.description}</p>
+                        <p className="text-sm text-gray-700">
+                          {issue.description}
+                        </p>
                         {issue.suggestion && (
                           <p className="text-xs text-gray-500 mt-1">
                             Suggestion: {issue.suggestion}
@@ -187,7 +200,9 @@ export const ClaudeResultsDisplay: React.FC<ClaudeResultsDisplayProps> = ({ resu
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Processing Time:</span>
-              <div className="font-medium">{result.metadata.processingTime}ms</div>
+              <div className="font-medium">
+                {result.metadata.processingTime}ms
+              </div>
             </div>
             <div>
               <span className="text-gray-600">Model:</span>

@@ -3,10 +3,16 @@
  * Extracted from FunctionalChecklistManagement.tsx
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CategoryFilterProps {
   selectedCategory: string;
@@ -17,7 +23,7 @@ interface CategoryFilterProps {
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategory,
   onCategoryChange,
-  categories
+  categories,
 }) => {
   return (
     <Card id="category-filter-card">

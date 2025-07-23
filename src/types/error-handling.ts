@@ -1,9 +1,9 @@
 /**
  * @fileoverview Enterprise Error Handling Types
  * Professional TypeScript interfaces for error handling hooks and utilities
- * 
+ *
  * Eliminates amateur 'any' error patterns with proper typing
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
@@ -103,24 +103,38 @@ export interface ErrorRecoveryActions {
 /**
  * Type guard to check if error is an API error
  */
-export function isApiError(error: unknown): error is Error & { status?: number; statusCode?: number } {
-  return error instanceof Error && ('status' in error || 'statusCode' in error);
+export function isApiError(
+  error: unknown,
+): error is Error & { status?: number; statusCode?: number } {
+  return error instanceof Error && ("status" in error || "statusCode" in error);
 }
 
 /**
  * Type guard to check if error is a validation error
  */
-export function isValidationError(error: unknown): error is Error & { field?: string; rule?: string } {
-  return error instanceof Error && ('field' in error || 'rule' in error);
+export function isValidationError(
+  error: unknown,
+): error is Error & { field?: string; rule?: string } {
+  return error instanceof Error && ("field" in error || "rule" in error);
 }
 
 /**
  * Type guard to check if error is a network error
  */
 export function isNetworkError(error: unknown): error is Error {
-  const networkKeywords = ['network', 'timeout', 'connection', 'fetch', 'abort'];
-  return error instanceof Error && 
-    networkKeywords.some(keyword => error.message.toLowerCase().includes(keyword));
+  const networkKeywords = [
+    "network",
+    "timeout",
+    "connection",
+    "fetch",
+    "abort",
+  ];
+  return (
+    error instanceof Error &&
+    networkKeywords.some((keyword) =>
+      error.message.toLowerCase().includes(keyword),
+    )
+  );
 }
 
 /**
@@ -129,7 +143,7 @@ export function isNetworkError(error: unknown): error is Error {
 export function createErrorDetails(
   error: Error,
   context: ErrorContext,
-  type: string = 'generic'
+  type: string = "generic",
 ): ErrorDetails {
   return {
     message: error.message,
@@ -147,14 +161,14 @@ export function createErrorDetails(
  */
 export function formatErrorMessage(error: ErrorDetails): string {
   let message = error.message;
-  
+
   if (error.code) {
     message += ` (${error.code})`;
   }
-  
+
   if (error.context.operation) {
     message += ` - Operation: ${error.context.operation}`;
   }
-  
+
   return message;
 }

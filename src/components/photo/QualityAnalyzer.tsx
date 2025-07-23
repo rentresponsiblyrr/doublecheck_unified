@@ -1,15 +1,15 @@
 /**
  * Quality Analyzer - Enterprise Grade
- * 
+ *
  * AI-powered photo quality analysis and scoring
  */
 
-import React, { useEffect } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Brain, CheckCircle } from 'lucide-react';
-import type { PropertyData } from '@/types/ai-interfaces';
-import type { DynamicChecklistItem } from '@/lib/ai/dynamic-checklist-generator';
-import type { PhotoAnalysis } from '../../types/business-logic';
+import React, { useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Brain, CheckCircle } from "lucide-react";
+import type { PropertyData } from "@/types/ai-interfaces";
+import type { DynamicChecklistItem } from "@/lib/ai/dynamic-checklist-generator";
+import type { PhotoAnalysis } from "../../types/business-logic";
 
 interface QualityAnalyzerProps {
   file: File;
@@ -24,14 +24,14 @@ export const QualityAnalyzer: React.FC<QualityAnalyzerProps> = ({
   checklistItem,
   propertyData,
   onAnalysisComplete,
-  onAnalysisError
+  onAnalysisError,
 }) => {
   useEffect(() => {
     const analyzePhoto = async () => {
       try {
         // Mock analysis delay
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
         // Mock analysis result - in real implementation would call AI service
         const mockAnalysis: PhotoAnalysis = {
           qualityScore: Math.floor(Math.random() * 30) + 70, // 70-100%
@@ -39,14 +39,20 @@ export const QualityAnalyzer: React.FC<QualityAnalyzerProps> = ({
           aiAnalysis: {
             passes: Math.random() > 0.3,
             confidence: Math.random() * 0.3 + 0.7,
-            reasoning: 'Photo meets quality standards for inspection documentation.',
-            suggestions: ['Good lighting and focus', 'Clear subject visibility']
-          }
+            reasoning:
+              "Photo meets quality standards for inspection documentation.",
+            suggestions: [
+              "Good lighting and focus",
+              "Clear subject visibility",
+            ],
+          },
         };
-        
+
         onAnalysisComplete(mockAnalysis);
       } catch (error) {
-        onAnalysisError(error instanceof Error ? error : new Error('Analysis failed'));
+        onAnalysisError(
+          error instanceof Error ? error : new Error("Analysis failed"),
+        );
       }
     };
 
@@ -61,7 +67,9 @@ export const QualityAnalyzer: React.FC<QualityAnalyzerProps> = ({
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="font-medium">AI Quality Analysis in Progress</span>
+              <span className="font-medium">
+                AI Quality Analysis in Progress
+              </span>
             </div>
             <div className="text-sm text-gray-600">
               Analyzing photo for: {checklistItem.title}

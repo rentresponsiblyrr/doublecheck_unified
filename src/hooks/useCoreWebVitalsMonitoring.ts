@@ -1,10 +1,10 @@
 /**
  * USE CORE WEB VITALS MONITORING HOOK - ELITE PERFORMANCE INTEGRATION
- * 
+ *
  * React hook that integrates Core Web Vitals monitoring with React components,
  * providing real-time performance metrics, alerting, and optimization recommendations.
  * Designed for Netflix/Meta performance standards with construction site optimization.
- * 
+ *
  * FEATURES:
  * - Real-time Core Web Vitals tracking (LCP, FID, CLS, FCP, TTFB)
  * - Performance budget monitoring and violation alerts
@@ -13,7 +13,7 @@
  * - Construction site performance optimization
  * - Mobile battery and memory optimization
  * - Performance debugging and diagnostics
- * 
+ *
  * USAGE:
  * ```typescript
  * const {
@@ -25,13 +25,19 @@
  *   exportData
  * } = useCoreWebVitalsMonitoring();
  * ```
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { coreWebVitalsMonitor, CoreWebVitalsMetrics, PerformanceTrend, PerformanceBudget, PerformanceAlert } from '@/lib/performance/CoreWebVitalsMonitor';
-import { logger } from '@/utils/logger';
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  coreWebVitalsMonitor,
+  CoreWebVitalsMetrics,
+  PerformanceTrend,
+  PerformanceBudget,
+  PerformanceAlert,
+} from "@/lib/performance/CoreWebVitalsMonitor";
+import { logger } from "@/utils/logger";
 
 // Hook interfaces
 export interface CoreWebVitalsState {
@@ -48,15 +54,17 @@ export interface CoreWebVitalsState {
 export interface CoreWebVitalsActions {
   startMonitoring: () => Promise<boolean>;
   stopMonitoring: () => void;
-  exportData: (format?: 'json' | 'csv') => string;
+  exportData: (format?: "json" | "csv") => string;
   clearAlerts: () => void;
   refreshMetrics: () => void;
-  subscribeToAlerts: (callback: (alert: PerformanceAlert) => void) => () => void;
+  subscribeToAlerts: (
+    callback: (alert: PerformanceAlert) => void,
+  ) => () => void;
   getOptimizationSuggestions: () => OptimizationSuggestion[];
 }
 
 export interface DevicePerformanceMetrics {
-  deviceType: 'mobile' | 'tablet' | 'desktop';
+  deviceType: "mobile" | "tablet" | "desktop";
   connectionType: string;
   effectiveConnectionType: string;
   batteryLevel?: number;
@@ -75,12 +83,12 @@ export interface SupportedFeatures {
 }
 
 export interface OptimizationSuggestion {
-  type: 'critical' | 'important' | 'moderate' | 'minor';
+  type: "critical" | "important" | "moderate" | "minor";
   metric: string;
   issue: string;
   suggestion: string;
-  impact: 'high' | 'medium' | 'low';
-  effort: 'low' | 'medium' | 'high';
+  impact: "high" | "medium" | "low";
+  effort: "low" | "medium" | "high";
   priority: number;
 }
 
@@ -91,16 +99,17 @@ export interface CoreWebVitalsOptions {
   enableBudgetMonitoring?: boolean;
   enableAlerts?: boolean;
   enableOptimizationSuggestions?: boolean;
-  customThresholds?: Partial<Record<string, { good: number; needsImprovement: number }>>;
+  customThresholds?: Partial<
+    Record<string, { good: number; needsImprovement: number }>
+  >;
 }
 
 /**
  * Main Core Web Vitals monitoring hook
  */
 export function useCoreWebVitalsMonitoring(
-  options: CoreWebVitalsOptions = {}
+  options: CoreWebVitalsOptions = {},
 ): [CoreWebVitalsState, CoreWebVitalsActions] {
-  
   // Default options
   const config = {
     enableRealTimeUpdates: true,
@@ -109,7 +118,7 @@ export function useCoreWebVitalsMonitoring(
     enableBudgetMonitoring: true,
     enableAlerts: true,
     enableOptimizationSuggestions: true,
-    ...options
+    ...options,
   };
 
   // State management
@@ -121,7 +130,7 @@ export function useCoreWebVitalsMonitoring(
     isMonitoring: false,
     isInitialized: false,
     lastUpdate: Date.now(),
-    deviceMetrics: getDeviceMetrics()
+    deviceMetrics: getDeviceMetrics(),
   }));
 
   // Refs for cleanup and state management
@@ -140,24 +149,30 @@ export function useCoreWebVitalsMonitoring(
     isInitializingRef.current = true;
 
     try {
-      logger.info('Initializing Core Web Vitals monitoring hook', config, 'CORE_WEB_VITALS_HOOK');
+      logger.info(
+        "Initializing Core Web Vitals monitoring hook",
+        config,
+        "CORE_WEB_VITALS_HOOK",
+      );
 
       // Initialize Core Web Vitals monitor
       const initialized = await coreWebVitalsMonitor.initialize();
-      
+
       if (!initialized) {
-        throw new Error('Core Web Vitals monitor initialization failed');
+        throw new Error("Core Web Vitals monitor initialization failed");
       }
 
       // Setup alert subscription
       if (config.enableAlerts) {
-        alertUnsubscribeRef.current = coreWebVitalsMonitor.subscribeToAlerts((alert) => {
-          setState(prev => ({
-            ...prev,
-            alerts: [...prev.alerts, alert],
-            lastUpdate: Date.now()
-          }));
-        });
+        alertUnsubscribeRef.current = coreWebVitalsMonitor.subscribeToAlerts(
+          (alert) => {
+            setState((prev) => ({
+              ...prev,
+              alerts: [...prev.alerts, alert],
+              lastUpdate: Date.now(),
+            }));
+          },
+        );
       }
 
       // Setup real-time updates
@@ -165,31 +180,42 @@ export function useCoreWebVitalsMonitoring(
         startRealTimeUpdates();
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isInitialized: true,
         isMonitoring: true,
         metrics: coreWebVitalsMonitor.getCurrentMetrics(),
-        budgets: config.enableBudgetMonitoring ? coreWebVitalsMonitor.getPerformanceBudgets() : [],
-        trends: config.enableTrendAnalysis ? coreWebVitalsMonitor.getPerformanceTrends() : [],
-        lastUpdate: Date.now()
+        budgets: config.enableBudgetMonitoring
+          ? coreWebVitalsMonitor.getPerformanceBudgets()
+          : [],
+        trends: config.enableTrendAnalysis
+          ? coreWebVitalsMonitor.getPerformanceTrends()
+          : [],
+        lastUpdate: Date.now(),
       }));
 
-      logger.info('Core Web Vitals monitoring hook initialized successfully', {
-        deviceType: state.deviceMetrics.deviceType,
-        connectionType: state.deviceMetrics.connectionType,
-        isLowEndDevice: state.deviceMetrics.isLowEndDevice
-      }, 'CORE_WEB_VITALS_HOOK');
+      logger.info(
+        "Core Web Vitals monitoring hook initialized successfully",
+        {
+          deviceType: state.deviceMetrics.deviceType,
+          connectionType: state.deviceMetrics.connectionType,
+          isLowEndDevice: state.deviceMetrics.isLowEndDevice,
+        },
+        "CORE_WEB_VITALS_HOOK",
+      );
 
       return true;
-
     } catch (error) {
-      logger.error('Core Web Vitals monitoring hook initialization failed', { error }, 'CORE_WEB_VITALS_HOOK');
-      
-      setState(prev => ({
+      logger.error(
+        "Core Web Vitals monitoring hook initialization failed",
+        { error },
+        "CORE_WEB_VITALS_HOOK",
+      );
+
+      setState((prev) => ({
         ...prev,
         isInitialized: false,
-        isMonitoring: false
+        isMonitoring: false,
       }));
 
       return false;
@@ -209,22 +235,33 @@ export function useCoreWebVitalsMonitoring(
     updateIntervalRef.current = window.setInterval(() => {
       try {
         const currentMetrics = coreWebVitalsMonitor.getCurrentMetrics();
-        const currentBudgets = config.enableBudgetMonitoring ? coreWebVitalsMonitor.getPerformanceBudgets() : [];
-        const currentTrends = config.enableTrendAnalysis ? coreWebVitalsMonitor.getPerformanceTrends() : [];
+        const currentBudgets = config.enableBudgetMonitoring
+          ? coreWebVitalsMonitor.getPerformanceBudgets()
+          : [];
+        const currentTrends = config.enableTrendAnalysis
+          ? coreWebVitalsMonitor.getPerformanceTrends()
+          : [];
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           metrics: currentMetrics,
           budgets: currentBudgets,
           trends: currentTrends,
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
         }));
-
       } catch (error) {
-        logger.error('Real-time update failed', { error }, 'CORE_WEB_VITALS_HOOK');
+        logger.error(
+          "Real-time update failed",
+          { error },
+          "CORE_WEB_VITALS_HOOK",
+        );
       }
     }, config.updateInterval);
-  }, [config.enableBudgetMonitoring, config.enableTrendAnalysis, config.updateInterval]);
+  }, [
+    config.enableBudgetMonitoring,
+    config.enableTrendAnalysis,
+    config.updateInterval,
+  ]);
 
   /**
    * Stop real-time updates
@@ -244,63 +281,88 @@ export function useCoreWebVitalsMonitoring(
 
     stopMonitoring: useCallback((): void => {
       stopRealTimeUpdates();
-      
+
       if (alertUnsubscribeRef.current) {
         alertUnsubscribeRef.current();
         alertUnsubscribeRef.current = null;
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        isMonitoring: false
+        isMonitoring: false,
       }));
 
-      logger.info('Core Web Vitals monitoring stopped', {}, 'CORE_WEB_VITALS_HOOK');
+      logger.info(
+        "Core Web Vitals monitoring stopped",
+        {},
+        "CORE_WEB_VITALS_HOOK",
+      );
     }, [stopRealTimeUpdates]),
 
-    exportData: useCallback((format: 'json' | 'csv' = 'json'): string => {
+    exportData: useCallback((format: "json" | "csv" = "json"): string => {
       try {
         return coreWebVitalsMonitor.exportPerformanceData(format);
       } catch (error) {
-        logger.error('Performance data export failed', { error, format }, 'CORE_WEB_VITALS_HOOK');
-        return JSON.stringify({ error: 'Export failed', timestamp: Date.now() });
+        logger.error(
+          "Performance data export failed",
+          { error, format },
+          "CORE_WEB_VITALS_HOOK",
+        );
+        return JSON.stringify({
+          error: "Export failed",
+          timestamp: Date.now(),
+        });
       }
     }, []),
 
     clearAlerts: useCallback((): void => {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         alerts: [],
-        lastUpdate: Date.now()
+        lastUpdate: Date.now(),
       }));
     }, []),
 
     refreshMetrics: useCallback((): void => {
       try {
         const currentMetrics = coreWebVitalsMonitor.getCurrentMetrics();
-        const currentBudgets = config.enableBudgetMonitoring ? coreWebVitalsMonitor.getPerformanceBudgets() : [];
-        const currentTrends = config.enableTrendAnalysis ? coreWebVitalsMonitor.getPerformanceTrends() : [];
+        const currentBudgets = config.enableBudgetMonitoring
+          ? coreWebVitalsMonitor.getPerformanceBudgets()
+          : [];
+        const currentTrends = config.enableTrendAnalysis
+          ? coreWebVitalsMonitor.getPerformanceTrends()
+          : [];
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           metrics: currentMetrics,
           budgets: currentBudgets,
           trends: currentTrends,
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
         }));
-
       } catch (error) {
-        logger.error('Metrics refresh failed', { error }, 'CORE_WEB_VITALS_HOOK');
+        logger.error(
+          "Metrics refresh failed",
+          { error },
+          "CORE_WEB_VITALS_HOOK",
+        );
       }
     }, [config.enableBudgetMonitoring, config.enableTrendAnalysis]),
 
-    subscribeToAlerts: useCallback((callback: (alert: PerformanceAlert) => void): (() => void) => {
-      return coreWebVitalsMonitor.subscribeToAlerts(callback);
-    }, []),
+    subscribeToAlerts: useCallback(
+      (callback: (alert: PerformanceAlert) => void): (() => void) => {
+        return coreWebVitalsMonitor.subscribeToAlerts(callback);
+      },
+      [],
+    ),
 
     getOptimizationSuggestions: useCallback((): OptimizationSuggestion[] => {
-      return generateOptimizationSuggestions(state.metrics, state.budgets, state.deviceMetrics);
-    }, [state.metrics, state.budgets, state.deviceMetrics])
+      return generateOptimizationSuggestions(
+        state.metrics,
+        state.budgets,
+        state.deviceMetrics,
+      );
+    }, [state.metrics, state.budgets, state.deviceMetrics]),
   };
 
   // Initialize on mount
@@ -312,12 +374,16 @@ export function useCoreWebVitalsMonitoring(
   useEffect(() => {
     return () => {
       stopRealTimeUpdates();
-      
+
       if (alertUnsubscribeRef.current) {
         alertUnsubscribeRef.current();
       }
 
-      logger.info('Core Web Vitals monitoring hook cleanup completed', {}, 'CORE_WEB_VITALS_HOOK');
+      logger.info(
+        "Core Web Vitals monitoring hook cleanup completed",
+        {},
+        "CORE_WEB_VITALS_HOOK",
+      );
     };
   }, [stopRealTimeUpdates]);
 
@@ -332,7 +398,7 @@ export function useCoreWebVitals() {
     enableTrendAnalysis: false,
     enableBudgetMonitoring: false,
     enableAlerts: false,
-    enableOptimizationSuggestions: false
+    enableOptimizationSuggestions: false,
   });
 
   return {
@@ -343,7 +409,7 @@ export function useCoreWebVitals() {
     ttfb: state.metrics.ttfb,
     performanceScore: state.metrics.performanceScore,
     lastUpdate: state.lastUpdate,
-    refreshMetrics: actions.refreshMetrics
+    refreshMetrics: actions.refreshMetrics,
   };
 }
 
@@ -355,7 +421,7 @@ export function usePerformanceBudgets() {
     enableRealTimeUpdates: true,
     enableTrendAnalysis: false,
     enableAlerts: true,
-    enableOptimizationSuggestions: false
+    enableOptimizationSuggestions: false,
   });
 
   return {
@@ -363,27 +429,31 @@ export function usePerformanceBudgets() {
     alerts: state.alerts,
     isMonitoring: state.isMonitoring,
     clearAlerts: actions.clearAlerts,
-    subscribeToAlerts: actions.subscribeToAlerts
+    subscribeToAlerts: actions.subscribeToAlerts,
   };
 }
 
 /**
  * Convenience hook for performance trends
  */
-export function usePerformanceTrends(period: '1h' | '24h' | '7d' | '30d' = '24h') {
+export function usePerformanceTrends(
+  period: "1h" | "24h" | "7d" | "30d" = "24h",
+) {
   const [state, actions] = useCoreWebVitalsMonitoring({
     enableRealTimeUpdates: false,
     enableTrendAnalysis: true,
     enableBudgetMonitoring: false,
-    enableAlerts: false
+    enableAlerts: false,
   });
 
-  const filteredTrends = state.trends.filter(trend => trend.period === period);
+  const filteredTrends = state.trends.filter(
+    (trend) => trend.period === period,
+  );
 
   return {
     trends: filteredTrends,
     refreshTrends: actions.refreshMetrics,
-    exportData: actions.exportData
+    exportData: actions.exportData,
   };
 }
 
@@ -398,35 +468,38 @@ function getDeviceMetrics(): DevicePerformanceMetrics {
   const hardwareConcurrency = navigator.hardwareConcurrency || 4;
 
   const deviceType = getDeviceType();
-  const isLowEndDevice = deviceMemory < 2 || hardwareConcurrency < 2 || 
-                        connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
+  const isLowEndDevice =
+    deviceMemory < 2 ||
+    hardwareConcurrency < 2 ||
+    connection?.effectiveType === "2g" ||
+    connection?.effectiveType === "slow-2g";
 
   return {
     deviceType,
-    connectionType: connection?.type || 'unknown',
-    effectiveConnectionType: connection?.effectiveType || 'unknown',
+    connectionType: connection?.type || "unknown",
+    effectiveConnectionType: connection?.effectiveType || "unknown",
     batteryLevel: undefined, // Would be populated by battery API if available
     deviceMemory,
     hardwareConcurrency,
     isLowEndDevice,
     supportedFeatures: {
-      performanceObserver: 'PerformanceObserver' in window,
-      intersectionObserver: 'IntersectionObserver' in window,
-      webWorkers: 'Worker' in window,
-      serviceWorkers: 'serviceWorker' in navigator,
-      webAssembly: 'WebAssembly' in window
-    }
+      performanceObserver: "PerformanceObserver" in window,
+      intersectionObserver: "IntersectionObserver" in window,
+      webWorkers: "Worker" in window,
+      serviceWorkers: "serviceWorker" in navigator,
+      webAssembly: "WebAssembly" in window,
+    },
   };
 }
 
 /**
  * Determine device type based on viewport
  */
-function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
+function getDeviceType(): "mobile" | "tablet" | "desktop" {
   const width = window.innerWidth;
-  if (width < 768) return 'mobile';
-  if (width < 1024) return 'tablet';
-  return 'desktop';
+  if (width < 768) return "mobile";
+  if (width < 1024) return "tablet";
+  return "desktop";
 }
 
 /**
@@ -435,72 +508,73 @@ function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
 function generateOptimizationSuggestions(
   metrics: CoreWebVitalsMetrics,
   budgets: PerformanceBudget[],
-  deviceMetrics: DevicePerformanceMetrics
+  deviceMetrics: DevicePerformanceMetrics,
 ): OptimizationSuggestion[] {
   const suggestions: OptimizationSuggestion[] = [];
 
   // LCP optimizations
-  if (metrics.lcp && metrics.lcp.rating !== 'good') {
+  if (metrics.lcp && metrics.lcp.rating !== "good") {
     suggestions.push({
-      type: 'critical',
-      metric: 'lcp',
+      type: "critical",
+      metric: "lcp",
       issue: `LCP is ${metrics.lcp.value.toFixed(0)}ms (target: <2500ms)`,
-      suggestion: 'Optimize server response times and preload key resources',
-      impact: 'high',
-      effort: 'medium',
-      priority: 10
+      suggestion: "Optimize server response times and preload key resources",
+      impact: "high",
+      effort: "medium",
+      priority: 10,
     });
   }
 
   // FID optimizations
-  if (metrics.fid && metrics.fid.rating !== 'good') {
+  if (metrics.fid && metrics.fid.rating !== "good") {
     suggestions.push({
-      type: 'important',
-      metric: 'fid',
+      type: "important",
+      metric: "fid",
       issue: `FID is ${metrics.fid.value.toFixed(0)}ms (target: <100ms)`,
-      suggestion: 'Split long tasks and defer non-essential JavaScript',
-      impact: 'high',
-      effort: 'high',
-      priority: 9
+      suggestion: "Split long tasks and defer non-essential JavaScript",
+      impact: "high",
+      effort: "high",
+      priority: 9,
     });
   }
 
   // CLS optimizations
-  if (metrics.cls && metrics.cls.rating !== 'good') {
+  if (metrics.cls && metrics.cls.rating !== "good") {
     suggestions.push({
-      type: 'important',
-      metric: 'cls',
+      type: "important",
+      metric: "cls",
       issue: `CLS is ${metrics.cls.value.toFixed(3)} (target: <0.1)`,
-      suggestion: 'Set dimensions on images and avoid layout shifts',
-      impact: 'medium',
-      effort: 'low',
-      priority: 8
+      suggestion: "Set dimensions on images and avoid layout shifts",
+      impact: "medium",
+      effort: "low",
+      priority: 8,
     });
   }
 
   // Device-specific optimizations
   if (deviceMetrics.isLowEndDevice) {
     suggestions.push({
-      type: 'moderate',
-      metric: 'general',
-      issue: 'Low-end device detected',
-      suggestion: 'Implement device-specific optimizations and reduce bundle size',
-      impact: 'medium',
-      effort: 'medium',
-      priority: 7
+      type: "moderate",
+      metric: "general",
+      issue: "Low-end device detected",
+      suggestion:
+        "Implement device-specific optimizations and reduce bundle size",
+      impact: "medium",
+      effort: "medium",
+      priority: 7,
     });
   }
 
   // Mobile-specific optimizations
-  if (deviceMetrics.deviceType === 'mobile') {
+  if (deviceMetrics.deviceType === "mobile") {
     suggestions.push({
-      type: 'moderate',
-      metric: 'general',
-      issue: 'Mobile device performance',
-      suggestion: 'Optimize for touch interactions and battery usage',
-      impact: 'medium',
-      effort: 'medium',
-      priority: 6
+      type: "moderate",
+      metric: "general",
+      issue: "Mobile device performance",
+      suggestion: "Optimize for touch interactions and battery usage",
+      impact: "medium",
+      effort: "medium",
+      priority: 6,
     });
   }
 

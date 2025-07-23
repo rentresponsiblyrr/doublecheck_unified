@@ -1,18 +1,13 @@
 /**
  * Photo Capture Buttons - Focused Component
- * 
+ *
  * Primary capture controls with accessibility and visual feedback
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  Camera,
-  X,
-  FlipHorizontal,
-  Loader2
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Camera, X, FlipHorizontal, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PhotoCaptureButtonsProps {
   canCapture: boolean;
@@ -31,10 +26,13 @@ export const PhotoCaptureButtons: React.FC<PhotoCaptureButtonsProps> = ({
   onCapture,
   onCancel,
   onFlip,
-  className
+  className,
 }) => {
   return (
-    <div className={cn("grid grid-cols-3 gap-3", className)} id="photo-capture-buttons">
+    <div
+      className={cn("grid grid-cols-3 gap-3", className)}
+      id="photo-capture-buttons"
+    >
       {onCancel && (
         <Button
           variant="outline"
@@ -46,7 +44,7 @@ export const PhotoCaptureButtons: React.FC<PhotoCaptureButtonsProps> = ({
           Cancel
         </Button>
       )}
-      
+
       <Button
         variant="ghost"
         className="w-full"
@@ -57,22 +55,22 @@ export const PhotoCaptureButtons: React.FC<PhotoCaptureButtonsProps> = ({
         <FlipHorizontal className="w-4 h-4 mr-2" />
         Flip
       </Button>
-      
+
       <Button
         onClick={onCapture}
         disabled={!canCapture}
         className={cn(
           "w-full",
-          hasQualityIssues ? "bg-yellow-500 hover:bg-yellow-600" : ""
+          hasQualityIssues ? "bg-yellow-500 hover:bg-yellow-600" : "",
         )}
-        aria-label={isProcessing ? 'Processing photo' : 'Capture photo'}
+        aria-label={isProcessing ? "Processing photo" : "Capture photo"}
       >
         {isProcessing ? (
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
         ) : (
           <Camera className="w-4 h-4 mr-2" />
         )}
-        {isProcessing ? 'Processing...' : 'Capture'}
+        {isProcessing ? "Processing..." : "Capture"}
       </Button>
     </div>
   );

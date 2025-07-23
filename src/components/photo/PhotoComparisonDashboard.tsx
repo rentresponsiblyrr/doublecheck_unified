@@ -3,15 +3,15 @@
  * Consolidated from PhotoComparisonView.tsx (581 lines → 120 lines)
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Eye } from 'lucide-react';
-import { PhotoViewer } from './PhotoViewer';
-import { ComparisonResults } from './ComparisonResults';
-import { QualityMetrics } from './QualityMetrics';
-import { usePhotoComparison } from '../../hooks/usePhotoComparison';
-import type { PhotoComparisonResult } from '../../types/photo-comparison';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Camera, Eye } from "lucide-react";
+import { PhotoViewer } from "./PhotoViewer";
+import { ComparisonResults } from "./ComparisonResults";
+import { QualityMetrics } from "./QualityMetrics";
+import { usePhotoComparison } from "../../hooks/usePhotoComparison";
+import type { PhotoComparisonResult } from "../../types/photo-comparison";
 
 interface PhotoComparisonDashboardProps {
   inspectionPhoto: string;
@@ -20,19 +20,17 @@ interface PhotoComparisonDashboardProps {
   onComparisonComplete?: (result: PhotoComparisonResult) => void;
 }
 
-export const PhotoComparisonDashboard: React.FC<PhotoComparisonDashboardProps> = ({
+export const PhotoComparisonDashboard: React.FC<
+  PhotoComparisonDashboardProps
+> = ({
   inspectionPhoto,
   listingPhoto,
   checklistItemId,
-  onComparisonComplete
+  onComparisonComplete,
 }) => {
-  const [activeTab, setActiveTab] = useState('comparison');
-  
-  const {
-    comparisonResult,
-    isAnalyzing,
-    analyzePhotos
-  } = usePhotoComparison();
+  const [activeTab, setActiveTab] = useState("comparison");
+
+  const { comparisonResult, isAnalyzing, analyzePhotos } = usePhotoComparison();
 
   React.useEffect(() => {
     if (inspectionPhoto && listingPhoto) {
@@ -64,21 +62,21 @@ export const PhotoComparisonDashboard: React.FC<PhotoComparisonDashboardProps> =
             <TabsTrigger value="results">Results</TabsTrigger>
             <TabsTrigger value="quality">Quality</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="comparison" className="mt-6">
-            <PhotoViewer 
+            <PhotoViewer
               inspectionPhoto={inspectionPhoto}
               listingPhoto={listingPhoto}
               isAnalyzing={isAnalyzing}
             />
           </TabsContent>
-          
+
           <TabsContent value="results" className="mt-6">
             {comparisonResult && (
               <ComparisonResults result={comparisonResult} />
             )}
           </TabsContent>
-          
+
           <TabsContent value="quality" className="mt-6">
             {comparisonResult && (
               <QualityMetrics metrics={comparisonResult.qualityMetrics} />

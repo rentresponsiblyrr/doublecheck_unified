@@ -1,34 +1,34 @@
 /**
  * MONITORING SERVICE - ENTERPRISE EXCELLENCE INFRASTRUCTURE
- * 
+ *
  * Production-grade monitoring and observability for service performance,
  * error tracking, and health monitoring with real-time alerts.
- * 
+ *
  * Features:
  * - Performance metrics collection and analysis
  * - Error tracking with categorization and alerting
  * - Service health monitoring with SLA tracking
  * - Real-time alerts and notification system
  * - Professional logging integration
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 2 Service Excellence
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 /**
  * Metric types for comprehensive monitoring
  */
-export type MetricType = 
-  | 'database_query'
-  | 'service_operation'
-  | 'cache_operation'
-  | 'api_request'
-  | 'user_interaction'
-  | 'ai_analysis'
-  | 'mobile_sync'
-  | 'file_upload';
+export type MetricType =
+  | "database_query"
+  | "service_operation"
+  | "cache_operation"
+  | "api_request"
+  | "user_interaction"
+  | "ai_analysis"
+  | "mobile_sync"
+  | "file_upload";
 
 /**
  * Metric data structure
@@ -62,7 +62,7 @@ export interface PerformanceMetric {
  * Service health status
  */
 export interface ServiceHealth {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   uptime: number;
   responseTime: number;
   errorRate: number;
@@ -78,7 +78,7 @@ export interface AlertRule {
   name: string;
   condition: string;
   threshold: number;
-  severity: 'info' | 'warning' | 'error' | 'critical';
+  severity: "info" | "warning" | "error" | "critical";
   enabled: boolean;
   cooldown: number; // minutes
 }
@@ -107,20 +107,20 @@ export class MonitoringService {
     type: MetricType,
     value: number,
     tags: Record<string, string | number> = {},
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void {
     const metricData: MetricData = {
       timestamp: Date.now(),
       value,
       tags: {
         service: this.serviceName,
-        ...tags
+        ...tags,
       },
-      metadata
+      metadata,
     };
 
     const key = `${type}:${name}`;
-    
+
     if (!this.metrics.has(key)) {
       this.metrics.set(key, []);
     }
@@ -138,12 +138,12 @@ export class MonitoringService {
 
     // Log significant events
     if (this.isSignificantEvent(type, value, tags)) {
-      logger.info('Performance metric recorded', {
+      logger.info("Performance metric recorded", {
         service: this.serviceName,
         metric: name,
         type,
         value,
-        tags
+        tags,
       });
     }
   }
@@ -153,13 +153,13 @@ export class MonitoringService {
    */
   async getMetrics(
     type?: MetricType,
-    timeRange?: { start: number; end: number }
+    timeRange?: { start: number; end: number },
   ): Promise<PerformanceMetric[]> {
     const results: PerformanceMetric[] = [];
 
     for (const [key, data] of this.metrics.entries()) {
-      const [metricType, metricName] = key.split(':');
-      
+      const [metricType, metricName] = key.split(":");
+
       if (type && metricType !== type) {
         continue;
       }
@@ -167,8 +167,8 @@ export class MonitoringService {
       // Filter by time range if provided
       let filteredData = data;
       if (timeRange) {
-        filteredData = data.filter(d => 
-          d.timestamp >= timeRange.start && d.timestamp <= timeRange.end
+        filteredData = data.filter(
+          (d) => d.timestamp >= timeRange.start && d.timestamp <= timeRange.end,
         );
       }
 
@@ -176,8 +176,8 @@ export class MonitoringService {
         continue;
       }
 
-      const values = filteredData.map(d => d.value).sort((a, b) => a - b);
-      const errors = filteredData.filter(d => d.tags.error === true).length;
+      const values = filteredData.map((d) => d.value).sort((a, b) => a - b);
+      const errors = filteredData.filter((d) => d.tags.error === true).length;
 
       results.push({
         name: metricName,
@@ -191,7 +191,7 @@ export class MonitoringService {
         p99: this.calculatePercentile(values, 0.99),
         standardDeviation: this.calculateStandardDeviation(values),
         errorRate: (errors / filteredData.length) * 100,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       });
     }
 
@@ -204,7 +204,7 @@ export class MonitoringService {
   async monitorHealth(): Promise<ServiceHealth> {
     const now = Date.now();
     const recentMetrics = this.getRecentMetrics(300000); // Last 5 minutes
-    
+
     let totalRequests = 0;
     let totalResponseTime = 0;
     let totalErrors = 0;
@@ -214,33 +214,35 @@ export class MonitoringService {
       for (const metric of data) {
         totalRequests++;
         totalResponseTime += metric.value;
-        
+
         if (metric.tags.error === true) {
           totalErrors++;
         }
       }
     }
 
-    const averageResponseTime = totalRequests > 0 ? totalResponseTime / totalRequests : 0;
-    const errorRate = totalRequests > 0 ? (totalErrors / totalRequests) * 100 : 0;
+    const averageResponseTime =
+      totalRequests > 0 ? totalResponseTime / totalRequests : 0;
+    const errorRate =
+      totalRequests > 0 ? (totalErrors / totalRequests) * 100 : 0;
     const throughput = totalRequests / 5; // per minute
 
     // Health assessment
-    let status: ServiceHealth['status'] = 'healthy';
+    let status: ServiceHealth["status"] = "healthy";
 
     if (averageResponseTime > 1000) {
-      status = 'degraded';
+      status = "degraded";
       issues.push(`High response time: ${averageResponseTime.toFixed(0)}ms`);
     }
 
     if (errorRate > 5) {
-      status = 'unhealthy';
+      status = "unhealthy";
       issues.push(`High error rate: ${errorRate.toFixed(1)}%`);
     }
 
     if (totalRequests === 0) {
-      status = 'unhealthy';
-      issues.push('No recent activity detected');
+      status = "unhealthy";
+      issues.push("No recent activity detected");
     }
 
     const uptime = now - this.startTime;
@@ -252,29 +254,29 @@ export class MonitoringService {
       errorRate,
       throughput,
       lastHealthCheck: new Date().toISOString(),
-      issues
+      issues,
     };
 
     // Store health data for trend analysis
-    if (!this.healthData.has('health_checks')) {
-      this.healthData.set('health_checks', []);
+    if (!this.healthData.has("health_checks")) {
+      this.healthData.set("health_checks", []);
     }
-    
-    const healthHistory = this.healthData.get('health_checks')!;
+
+    const healthHistory = this.healthData.get("health_checks")!;
     healthHistory.push({ ...health, timestamp: now });
-    
+
     // Keep only last 1000 health checks
     if (healthHistory.length > 1000) {
       healthHistory.shift();
     }
 
     // Alert on health degradation
-    if (status !== 'healthy') {
-      this.triggerAlert('service_health', status, {
+    if (status !== "healthy") {
+      this.triggerAlert("service_health", status, {
         service: this.serviceName,
         responseTime: averageResponseTime,
         errorRate,
-        issues: issues.join(', ')
+        issues: issues.join(", "),
       });
     }
 
@@ -286,51 +288,57 @@ export class MonitoringService {
    */
   configureAlert(rule: AlertRule): void {
     this.alerts.set(rule.name, rule);
-    logger.info('Alert rule configured', {
+    logger.info("Alert rule configured", {
       service: this.serviceName,
       rule: rule.name,
       threshold: rule.threshold,
-      severity: rule.severity
+      severity: rule.severity,
     });
   }
 
   /**
    * Get service analytics and insights
    */
-  async getAnalytics(
-    timeRange: { start: number; end: number }
-  ): Promise<{
+  async getAnalytics(timeRange: { start: number; end: number }): Promise<{
     totalRequests: number;
     averageResponseTime: number;
     errorRate: number;
     peakThroughput: number;
     slowestOperations: Array<{ name: string; averageTime: number }>;
     errorDistribution: Record<string, number>;
-    performanceTrend: Array<{ timestamp: number; responseTime: number; errorRate: number }>;
+    performanceTrend: Array<{
+      timestamp: number;
+      responseTime: number;
+      errorRate: number;
+    }>;
   }> {
     const metrics = await this.getMetrics(undefined, timeRange);
-    
+
     const totalRequests = metrics.reduce((sum, m) => sum + m.count, 0);
-    const averageResponseTime = metrics.reduce((sum, m) => sum + (m.average * m.count), 0) / totalRequests;
-    const averageErrorRate = metrics.reduce((sum, m) => sum + (m.errorRate * m.count), 0) / totalRequests;
-    
+    const averageResponseTime =
+      metrics.reduce((sum, m) => sum + m.average * m.count, 0) / totalRequests;
+    const averageErrorRate =
+      metrics.reduce((sum, m) => sum + m.errorRate * m.count, 0) /
+      totalRequests;
+
     const slowestOperations = metrics
-      .filter(m => m.type === 'service_operation')
+      .filter((m) => m.type === "service_operation")
       .sort((a, b) => b.average - a.average)
       .slice(0, 5)
-      .map(m => ({ name: m.name, averageTime: m.average }));
+      .map((m) => ({ name: m.name, averageTime: m.average }));
 
     // Calculate error distribution
     const errorDistribution: Record<string, number> = {};
     for (const [key, data] of this.metrics.entries()) {
-      const errors = data.filter(d => 
-        d.timestamp >= timeRange.start && 
-        d.timestamp <= timeRange.end &&
-        d.tags.error === true
+      const errors = data.filter(
+        (d) =>
+          d.timestamp >= timeRange.start &&
+          d.timestamp <= timeRange.end &&
+          d.tags.error === true,
       );
-      
+
       if (errors.length > 0) {
-        const [, name] = key.split(':');
+        const [, name] = key.split(":");
         errorDistribution[name] = errors.length;
       }
     }
@@ -345,7 +353,7 @@ export class MonitoringService {
       peakThroughput: this.calculatePeakThroughput(timeRange),
       slowestOperations,
       errorDistribution,
-      performanceTrend
+      performanceTrend,
     };
   }
 
@@ -355,32 +363,32 @@ export class MonitoringService {
   private initializeDefaultAlerts(): void {
     const defaultAlerts: AlertRule[] = [
       {
-        name: 'high_response_time',
-        condition: 'response_time > threshold',
+        name: "high_response_time",
+        condition: "response_time > threshold",
         threshold: 1000,
-        severity: 'warning',
+        severity: "warning",
         enabled: true,
-        cooldown: 5
+        cooldown: 5,
       },
       {
-        name: 'high_error_rate',
-        condition: 'error_rate > threshold',
+        name: "high_error_rate",
+        condition: "error_rate > threshold",
         threshold: 5,
-        severity: 'error',
+        severity: "error",
         enabled: true,
-        cooldown: 3
+        cooldown: 3,
       },
       {
-        name: 'service_unavailable',
-        condition: 'no_requests_in_timeframe',
+        name: "service_unavailable",
+        condition: "no_requests_in_timeframe",
         threshold: 300,
-        severity: 'critical',
+        severity: "critical",
         enabled: true,
-        cooldown: 10
-      }
+        cooldown: 10,
+      },
     ];
 
-    defaultAlerts.forEach(alert => {
+    defaultAlerts.forEach((alert) => {
       this.alerts.set(alert.name, alert);
     });
   }
@@ -389,26 +397,32 @@ export class MonitoringService {
     name: string,
     type: MetricType,
     value: number,
-    tags: Record<string, string | number>
+    tags: Record<string, string | number>,
   ): void {
     for (const [alertName, rule] of this.alerts.entries()) {
       if (!rule.enabled) continue;
 
-      const shouldAlert = this.evaluateAlertCondition(rule, name, type, value, tags);
-      
+      const shouldAlert = this.evaluateAlertCondition(
+        rule,
+        name,
+        type,
+        value,
+        tags,
+      );
+
       if (shouldAlert) {
         const lastAlert = this.lastAlerts.get(alertName) || 0;
         const cooldownMs = rule.cooldown * 60 * 1000;
-        
+
         if (Date.now() - lastAlert > cooldownMs) {
           this.triggerAlert(alertName, rule.severity, {
             metric: name,
             type,
             value,
             threshold: rule.threshold,
-            tags
+            tags,
           });
-          
+
           this.lastAlerts.set(alertName, Date.now());
         }
       }
@@ -420,12 +434,12 @@ export class MonitoringService {
     name: string,
     type: MetricType,
     value: number,
-    tags: Record<string, string | number>
+    tags: Record<string, string | number>,
   ): boolean {
     switch (rule.name) {
-      case 'high_response_time':
+      case "high_response_time":
         return value > rule.threshold;
-      case 'high_error_rate':
+      case "high_error_rate":
         return tags.error === true;
       default:
         return false;
@@ -435,24 +449,26 @@ export class MonitoringService {
   private triggerAlert(
     alertName: string,
     severity: string,
-    context: Record<string, any>
+    context: Record<string, any>,
   ): void {
-    logger.warn('Service alert triggered', {
+    logger.warn("Service alert triggered", {
       service: this.serviceName,
       alert: alertName,
       severity,
-      context
+      context,
     });
   }
 
   private isSignificantEvent(
     type: MetricType,
     value: number,
-    tags: Record<string, string | number>
+    tags: Record<string, string | number>,
   ): boolean {
     // Log slow operations
-    if ((type === 'database_query' && value > 100) ||
-        (type === 'service_operation' && value > 200)) {
+    if (
+      (type === "database_query" && value > 100) ||
+      (type === "service_operation" && value > 200)
+    ) {
       return true;
     }
 
@@ -469,7 +485,7 @@ export class MonitoringService {
     const recentMetrics = new Map<string, MetricData[]>();
 
     for (const [key, data] of this.metrics.entries()) {
-      const recent = data.filter(d => d.timestamp >= cutoff);
+      const recent = data.filter((d) => d.timestamp >= cutoff);
       if (recent.length > 0) {
         recentMetrics.set(key, recent);
       }
@@ -489,17 +505,23 @@ export class MonitoringService {
 
   private calculateStandardDeviation(values: number[]): number {
     const avg = this.calculateAverage(values);
-    const squaredDiffs = values.map(val => Math.pow(val - avg, 2));
+    const squaredDiffs = values.map((val) => Math.pow(val - avg, 2));
     const avgSquaredDiff = this.calculateAverage(squaredDiffs);
     return Math.sqrt(avgSquaredDiff);
   }
 
-  private calculatePeakThroughput(timeRange: { start: number; end: number }): number {
+  private calculatePeakThroughput(timeRange: {
+    start: number;
+    end: number;
+  }): number {
     // Implementation for calculating peak throughput
     return 0; // Placeholder
   }
 
-  private calculatePerformanceTrend(timeRange: { start: number; end: number }): Array<{
+  private calculatePerformanceTrend(timeRange: {
+    start: number;
+    end: number;
+  }): Array<{
     timestamp: number;
     responseTime: number;
     errorRate: number;
@@ -512,6 +534,8 @@ export class MonitoringService {
 /**
  * Factory function for dependency injection
  */
-export function createMonitoringService(serviceName: string): MonitoringService {
+export function createMonitoringService(
+  serviceName: string,
+): MonitoringService {
   return new MonitoringService(serviceName);
 }

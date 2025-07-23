@@ -1,15 +1,21 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  ClipboardList, 
-  CheckCircle, 
-  XCircle, 
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  ClipboardList,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   BarChart3,
-  FileText
-} from 'lucide-react';
-import { ChecklistStats, SystemHealth } from './types';
+  FileText,
+} from "lucide-react";
+import { ChecklistStats, SystemHealth } from "./types";
 
 interface ChecklistStatsPanelProps {
   stats: ChecklistStats;
@@ -20,7 +26,7 @@ interface ChecklistStatsPanelProps {
 export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
   stats,
   systemHealth,
-  isLoading
+  isLoading,
 }) => {
   if (isLoading) {
     return (
@@ -47,9 +53,7 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              All checklist items
-            </p>
+            <p className="text-xs text-muted-foreground">All checklist items</p>
           </CardContent>
         </Card>
 
@@ -59,23 +63,25 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently in use
-            </p>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.active}
+            </div>
+            <p className="text-xs text-muted-foreground">Currently in use</p>
           </CardContent>
         </Card>
 
         <Card id="required-items-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Required Items</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Required Items
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.required}</div>
-            <p className="text-xs text-muted-foreground">
-              Must be completed
-            </p>
+            <div className="text-2xl font-bold text-orange-600">
+              {stats.required}
+            </div>
+            <p className="text-xs text-muted-foreground">Must be completed</p>
           </CardContent>
         </Card>
 
@@ -85,10 +91,10 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.deleted}</div>
-            <p className="text-xs text-muted-foreground">
-              Soft deleted
-            </p>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.deleted}
+            </div>
+            <p className="text-xs text-muted-foreground">Soft deleted</p>
           </CardContent>
         </Card>
       </div>
@@ -105,13 +111,18 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
           <CardContent>
             <div className="space-y-2">
               {Object.entries(stats.byCategory).map(([category, count]) => (
-                <div key={category} className="flex items-center justify-between">
+                <div
+                  key={category}
+                  className="flex items-center justify-between"
+                >
                   <span className="text-sm capitalize">{category}</span>
                   <Badge variant="secondary">{count}</Badge>
                 </div>
               ))}
               {Object.keys(stats.byCategory).length === 0 && (
-                <p className="text-sm text-muted-foreground">No categories found</p>
+                <p className="text-sm text-muted-foreground">
+                  No categories found
+                </p>
               )}
             </div>
           </CardContent>
@@ -123,7 +134,9 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
               <FileText className="h-5 w-5" />
               <span>By Evidence Type</span>
             </CardTitle>
-            <CardDescription>Items grouped by evidence requirements</CardDescription>
+            <CardDescription>
+              Items grouped by evidence requirements
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -134,7 +147,9 @@ export const ChecklistStatsPanel: React.FC<ChecklistStatsPanelProps> = ({
                 </div>
               ))}
               {Object.keys(stats.byEvidenceType).length === 0 && (
-                <p className="text-sm text-muted-foreground">No evidence types found</p>
+                <p className="text-sm text-muted-foreground">
+                  No evidence types found
+                </p>
               )}
             </div>
           </CardContent>

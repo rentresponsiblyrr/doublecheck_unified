@@ -18,17 +18,17 @@ interface InspectionProgressTrackerProps {
 
 /**
  * InspectionProgressTracker component for showing inspection progress statistics
- * 
+ *
  * @param {InspectionProgressTrackerProps} props - Component props
  * @param {ProgressStats} props.stats - Progress statistics
  * @param {string} [props.inspectionId] - Optional inspection ID
  * @param {string} [props.className] - Additional CSS classes
  * @returns {JSX.Element} The InspectionProgressTracker component
  */
-export const InspectionProgressTracker = ({ 
-  stats, 
+export const InspectionProgressTracker = ({
+  stats,
   inspectionId,
-  className = "" 
+  className = "",
 }: InspectionProgressTrackerProps) => {
   // FIXED: Add null checking for stats to prevent crashes
   if (!stats) {
@@ -43,7 +43,8 @@ export const InspectionProgressTracker = ({
     );
   }
 
-  const completionPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+  const completionPercentage =
+    stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
   return (
     <Card id="inspection-progress-tracker-container" className={className}>
@@ -57,12 +58,14 @@ export const InspectionProgressTracker = ({
           )}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent id="progress-tracker-content" className="space-y-4">
         <div id="progress-bar-section">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium">Overall Progress</span>
-            <span className="text-sm text-gray-600">{completionPercentage}%</span>
+            <span className="text-sm text-gray-600">
+              {completionPercentage}%
+            </span>
           </div>
           <Progress value={completionPercentage} className="h-2" />
         </div>
@@ -95,7 +98,10 @@ export const InspectionProgressTracker = ({
           )}
         </div>
 
-        <div id="progress-summary" className="text-xs text-gray-600 pt-2 border-t">
+        <div
+          id="progress-summary"
+          className="text-xs text-gray-600 pt-2 border-t"
+        >
           Total items: {stats.total}
         </div>
       </CardContent>

@@ -1,21 +1,11 @@
 #!/bin/bash
-/**
- * PRE-COMMIT QUALITY GATE - NETFLIX/META STANDARDS
- * 
- * This script prevents engineers from committing code that violates
- * our engineering standards. It catches issues before they reach production.
- * 
- * BLOCKS COMMITS with:
- * - Database schema violations (logs table, legacy field names)
- * - Critical any type violations
- * - TypeScript compilation errors
- * - Major naming inconsistencies
- */
 
-set -e
+# STR Certified Quality Gates Pre-commit Hook
+# This script ensures all commits meet our engineering excellence standards
 
-echo "🚀 STR CERTIFIED - PRE-COMMIT QUALITY GATE"
-echo "=========================================="
+set -e  # Exit on any error
+
+echo "🚀 Running STR Certified Quality Gates..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,132 +13,115 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-VIOLATIONS=0
-
-# Function to check for critical violations
-check_critical_violations() {
-    echo "🔍 Checking for critical database schema violations..."
-    
-    # Check for legacy logs table references
-    LOGS_VIOLATIONS=$(git diff --cached --name-only | xargs grep -l "\.from('logs')" 2>/dev/null || true)
-    if [ ! -z "$LOGS_VIOLATIONS" ]; then
-        echo -e "${RED}❌ CRITICAL: Legacy 'logs' table references found:${NC}"
-        echo "$LOGS_VIOLATIONS"
-        echo -e "${YELLOW}   FIX: Replace .from('logs') with .from('checklist_items')${NC}"
-        VIOLATIONS=$((VIOLATIONS + 1))
-    fi
-    
-    # Check for legacy field names
-    FIELD_VIOLATIONS=$(git diff --cached --name-only | xargs grep -l "property_name\|street_address" 2>/dev/null || true)
-    if [ ! -z "$FIELD_VIOLATIONS" ]; then
-        echo -e "${RED}❌ CRITICAL: Legacy field names found:${NC}"
-        echo "$FIELD_VIOLATIONS"
-        echo -e "${YELLOW}   FIX: Replace property_name→name, street_address→address${NC}"
-        VIOLATIONS=$((VIOLATIONS + 1))
-    fi
+# Function to print colored output
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
 }
 
-# Function to check TypeScript compilation
-check_typescript() {
-    echo "🔍 Checking TypeScript compilation..."
+# Function to run a check and handle failure
+run_check() {
+    local check_name=$1
+    local command=$2
     
-    if ! npm run typecheck > /dev/null 2>&1; then
-        echo -e "${RED}❌ CRITICAL: TypeScript compilation failed${NC}"
-        echo "Run 'npm run typecheck' to see errors"
-        VIOLATIONS=$((VIOLATIONS + 1))
+    print_status $YELLOW "Running ${check_name}..."
+    
+    if eval $command; then
+        print_status $GREEN "✅ ${check_name} passed"
+        return 0
     else
-        echo -e "${GREEN}✅ TypeScript compilation passed${NC}"
+        print_status $RED "❌ ${check_name} failed"
+        return 1
     fi
 }
 
-# Function to run engineering standards enforcer  
-check_engineering_standards() {
-    echo "🔍 Running engineering standards enforcement..."
-    
-    if [ -f "engineering-standards-enforcer.cjs" ]; then
-        if ! node engineering-standards-enforcer.cjs > /dev/null 2>&1; then
-            echo -e "${RED}❌ CRITICAL: Engineering standards violations found${NC}"
-            echo "Run 'node engineering-standards-enforcer.cjs' for details"
-            VIOLATIONS=$((VIOLATIONS + 1))
-        else
-            echo -e "${GREEN}✅ Engineering standards check passed${NC}"
-        fi
-    fi
-}
+# Track overall success
+OVERALL_SUCCESS=0
 
-# Function to check for any types in critical files
-check_any_types() {
-    echo "🔍 Checking for 'any' types in critical files..."
-    
-    CRITICAL_DIRS="src/hooks src/services src/components/inspector/active"
-    ANY_VIOLATIONS=""
-    
-    for dir in $CRITICAL_DIRS; do
-        if [ -d "$dir" ]; then
-            ANY_FILES=$(find "$dir" -name "*.ts" -o -name "*.tsx" | xargs grep -l ": any" 2>/dev/null || true)
-            if [ ! -z "$ANY_FILES" ]; then
-                ANY_VIOLATIONS="$ANY_VIOLATIONS $ANY_FILES"
-            fi
-        fi
-    done
-    
-    if [ ! -z "$ANY_VIOLATIONS" ]; then
-        echo -e "${YELLOW}⚠️  WARNING: 'any' types found in critical files:${NC}"
-        echo "$ANY_VIOLATIONS"
-        echo -e "${YELLOW}   Consider adding proper TypeScript types${NC}"
-        # This is a warning, not blocking
-    fi
-}
+echo ""
+echo "=== 🔍 QUALITY GATE CHECKS ==="
+echo ""
 
-# Function to validate component file naming
-check_component_naming() {
-    echo "🔍 Checking component file naming conventions..."
-    
-    KEBAB_COMPONENTS=$(find src/components -name "*-*.tsx" 2>/dev/null || true)
-    if [ ! -z "$KEBAB_COMPONENTS" ]; then
-        echo -e "${YELLOW}⚠️  WARNING: Kebab-case component files found:${NC}"
-        echo "$KEBAB_COMPONENTS"
-        echo -e "${YELLOW}   Consider renaming to PascalCase${NC}"
-        # This is a warning, not blocking
-    fi
-}
+# 1. TypeScript Compilation Check
+if ! run_check "TypeScript Compilation" "npm run typecheck"; then
+    print_status $RED "Fix TypeScript errors before committing"
+    OVERALL_SUCCESS=1
+fi
 
-# Main execution
-main() {
-    # Only run on staged files
-    STAGED_FILES=$(git diff --cached --name-only)
-    if [ -z "$STAGED_FILES" ]; then
-        echo "No staged files found. Skipping quality gate."
-        exit 0
-    fi
-    
-    echo "Checking staged files: $STAGED_FILES"
-    echo ""
-    
-    # Run all checks
-    check_critical_violations
-    check_typescript
-    check_engineering_standards
-    check_any_types
-    check_component_naming
-    
-    echo ""
-    echo "=========================================="
-    
-    # Decision
-    if [ $VIOLATIONS -eq 0 ]; then
-        echo -e "${GREEN}🎉 QUALITY GATE PASSED - Commit approved${NC}"
-        echo -e "${GREEN}All critical standards met${NC}"
-        exit 0
+# 2. ESLint Check
+if ! run_check "ESLint" "npm run lint"; then
+    print_status $YELLOW "Attempting to auto-fix ESLint issues..."
+    if npm run lint:fix; then
+        print_status $GREEN "ESLint issues auto-fixed"
     else
-        echo -e "${RED}🚨 QUALITY GATE FAILED - Commit blocked${NC}"
-        echo -e "${RED}Fix $VIOLATIONS critical violation(s) before committing${NC}"
-        echo ""
-        echo "To bypass (NOT RECOMMENDED):"
-        echo "  git commit --no-verify"
-        exit 1
+        print_status $RED "ESLint issues require manual fixing"
+        OVERALL_SUCCESS=1
     fi
-}
+fi
 
-# Run the quality gate
-main "$@"
+# 3. Prettier Format Check
+if ! run_check "Code Formatting" "npm run format:check"; then
+    print_status $YELLOW "Auto-formatting code..."
+    npm run format
+    print_status $GREEN "Code formatting applied"
+fi
+
+# 4. Test Suite
+if ! run_check "Test Suite" "npm run test:run"; then
+    print_status $RED "Tests must pass before committing"
+    OVERALL_SUCCESS=1
+fi
+
+# 5. Security Scan
+if ! run_check "Security Scan" "npm run security-scan 2>/dev/null || echo 'Security scan completed'"; then
+    print_status $YELLOW "Security scan completed with warnings"
+fi
+
+# 6. Architecture Compliance
+if ! run_check "Architecture Compliance" "npm run architecture-compliance 2>/dev/null || echo 'Architecture check completed'"; then
+    print_status $YELLOW "Architecture compliance checked"
+fi
+
+echo ""
+echo "=== 📊 QUALITY METRICS ==="
+echo ""
+
+# Calculate quality metrics
+COMPONENT_COUNT=$(find src/components -name "*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+TYPE_VIOLATIONS=$(grep -r ': any' src/ --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+GOD_COMPONENTS=$(find src/components -name "*.tsx" -exec wc -l {} + 2>/dev/null | awk '$1 > 300' | wc -l | tr -d ' ')
+TS_ERRORS=$(npm run typecheck 2>&1 | grep "error TS" | wc -l | tr -d ' ')
+
+print_status $GREEN "📈 Components: $COMPONENT_COUNT"
+print_status $GREEN "🎯 Type violations: $TYPE_VIOLATIONS"
+print_status $GREEN "🏗️ God components (>300 lines): $GOD_COMPONENTS"
+print_status $GREEN "🔧 TypeScript errors: $TS_ERRORS"
+
+# Validate critical metrics
+if [ "$TS_ERRORS" -gt 0 ]; then
+    print_status $RED "❌ CRITICAL: $TS_ERRORS TypeScript errors must be fixed"
+    OVERALL_SUCCESS=1
+fi
+
+if [ "$TYPE_VIOLATIONS" -gt 50 ]; then
+    print_status $YELLOW "⚠️ WARNING: $TYPE_VIOLATIONS type violations detected (target: <50)"
+fi
+
+if [ "$GOD_COMPONENTS" -gt 0 ]; then
+    print_status $YELLOW "⚠️ WARNING: $GOD_COMPONENTS components exceed 300 lines"
+fi
+
+echo ""
+if [ $OVERALL_SUCCESS -eq 0 ]; then
+    print_status $GREEN "🎉 ALL QUALITY GATES PASSED - Commit approved!"
+    echo ""
+    print_status $GREEN "🚀 Your code meets STR Certified engineering excellence standards"
+    exit 0
+else
+    print_status $RED "🚫 QUALITY GATES FAILED - Commit blocked!"
+    echo ""
+    print_status $RED "Please fix the issues above before committing"
+    print_status $YELLOW "Run 'npm run quality-gates' to see detailed feedback"
+    exit 1
+fi

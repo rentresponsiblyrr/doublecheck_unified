@@ -3,8 +3,8 @@
  * Extracted from InspectionReviewPanel.tsx for surgical refactoring
  */
 
-import { useState, useEffect } from 'react';
-import { logger } from '@/utils/logger';
+import { useState, useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 export interface Inspection {
   id: string;
@@ -12,9 +12,14 @@ export interface Inspection {
   propertyAddress: string;
   inspectorId: string;
   inspectorName: string;
-  status: 'pending_review' | 'in_review' | 'completed' | 'approved' | 'rejected';
+  status:
+    | "pending_review"
+    | "in_review"
+    | "completed"
+    | "approved"
+    | "rejected";
   submittedAt: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   aiScore: number;
   photoCount: number;
   videoCount: number;
@@ -40,17 +45,17 @@ export interface AIAnalysis {
   recommendations: string[];
 }
 
-export type ReviewDecision = 'approved' | 'rejected' | 'needs_revision' | null;
+export type ReviewDecision = "approved" | "rejected" | "needs_revision" | null;
 
 export const useInspectionReview = (
   inspection: Inspection | null,
   onApprove: (inspectionId: string, feedback: string) => Promise<void>,
   onReject: (inspectionId: string, feedback: string) => Promise<void>,
-  onRequestRevision: (inspectionId: string, feedback: string) => Promise<void>
+  onRequestRevision: (inspectionId: string, feedback: string) => Promise<void>,
 ) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [reviewDecision, setReviewDecision] = useState<ReviewDecision>(null);
-  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackText, setFeedbackText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiAnalysis, setAIAnalysis] = useState<AIAnalysis | null>(null);
 
@@ -60,23 +65,28 @@ export const useInspectionReview = (
       setAIAnalysis({
         overallScore: inspection.aiScore,
         confidence: Math.min(95, inspection.aiScore + 10),
-        completedItems: Math.max(1, inspection.photoCount + inspection.videoCount - inspection.issuesFound),
+        completedItems: Math.max(
+          1,
+          inspection.photoCount +
+            inspection.videoCount -
+            inspection.issuesFound,
+        ),
         totalItems: inspection.photoCount + inspection.videoCount,
         photoCount: inspection.photoCount,
         videoCount: inspection.videoCount,
         issues: Array.from({ length: inspection.issuesFound }, (_, i) => ({
           id: `issue_${i}`,
           label: `Issue ${i + 1}`,
-          category: ['safety', 'cleanliness', 'maintenance'][i % 3],
-          status: 'flagged',
-          ai_status: 'attention_required',
-          notes: `AI detected potential issue requiring review`
+          category: ["safety", "cleanliness", "maintenance"][i % 3],
+          status: "flagged",
+          ai_status: "attention_required",
+          notes: `AI detected potential issue requiring review`,
         })),
         recommendations: [
-          'Review flagged safety items carefully',
-          'Verify photo quality meets standards',
-          'Check completeness of inspection coverage'
-        ]
+          "Review flagged safety items carefully",
+          "Verify photo quality meets standards",
+          "Check completeness of inspection coverage",
+        ],
       });
     }
   }, [inspection]);
@@ -86,46 +96,53 @@ export const useInspectionReview = (
 
     try {
       setIsSubmitting(true);
-      
-      logger.info('Submitting review decision', {
-        inspectionId: inspection.id,
-        decision: reviewDecision,
-        feedbackLength: feedbackText.length
-      }, 'INSPECTION_REVIEW_PANEL');
+
+      logger.info(
+        "Submitting review decision",
+        {
+          inspectionId: inspection.id,
+          decision: reviewDecision,
+          feedbackLength: feedbackText.length,
+        },
+        "INSPECTION_REVIEW_PANEL",
+      );
 
       switch (reviewDecision) {
-        case 'approved':
+        case "approved":
           await onApprove(inspection.id, feedbackText);
           break;
-        case 'rejected':
+        case "rejected":
           await onReject(inspection.id, feedbackText);
           break;
-        case 'needs_revision':
+        case "needs_revision":
           await onRequestRevision(inspection.id, feedbackText);
           break;
       }
 
       // Reset form after successful submission
       setReviewDecision(null);
-      setFeedbackText('');
-      
+      setFeedbackText("");
     } catch (error) {
-      logger.error('Failed to submit review decision', error, 'INSPECTION_REVIEW_PANEL');
+      logger.error(
+        "Failed to submit review decision",
+        error,
+        "INSPECTION_REVIEW_PANEL",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const getScoreColor = (score: number): string => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return 'default';
-    if (score >= 60) return 'secondary';
-    return 'destructive';
+    if (score >= 80) return "default";
+    if (score >= 60) return "secondary";
+    return "destructive";
   };
 
   return {
@@ -139,6 +156,6 @@ export const useInspectionReview = (
     aiAnalysis,
     handleSubmitDecision,
     getScoreColor,
-    getScoreBadgeVariant
+    getScoreBadgeVariant,
   };
 };

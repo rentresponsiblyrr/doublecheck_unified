@@ -1,9 +1,9 @@
 /**
  * BLEEDING EDGE: Core Web Vitals Optimizer
- * 
+ *
  * Professional Core Web Vitals optimization that targets 100% Google PageSpeed scores
  * - Largest Contentful Paint (LCP) optimization
- * - First Input Delay (FID) optimization  
+ * - First Input Delay (FID) optimization
  * - Cumulative Layout Shift (CLS) optimization
  * - Real-time monitoring and automatic adjustments
  * - Advanced performance budgets and alerts
@@ -35,7 +35,7 @@ export interface OptimizationStrategy {
   name: string;
   description: string;
   metric: keyof CoreWebVitals;
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   impact: number; // Expected improvement (0-1)
   implementation: () => Promise<void>;
   rollback: () => Promise<void>;
@@ -54,7 +54,7 @@ export interface PerformanceInsight {
   metric: keyof CoreWebVitals;
   currentValue: number;
   targetValue: number;
-  status: 'excellent' | 'good' | 'needs-improvement' | 'poor';
+  status: "excellent" | "good" | "needs-improvement" | "poor";
   recommendations: string[];
   potentialGain: number;
 }
@@ -65,7 +65,14 @@ export interface PerformanceInsight {
 
 export class CoreWebVitalsOptimizer {
   private config: VitalsConfig;
-  private vitals: CoreWebVitals = { lcp: null, fid: null, cls: null, fcp: null, ttfb: null, inp: null };
+  private vitals: CoreWebVitals = {
+    lcp: null,
+    fid: null,
+    cls: null,
+    fcp: null,
+    ttfb: null,
+    inp: null,
+  };
   private optimizations: Map<string, OptimizationStrategy> = new Map();
   private performanceObserver?: PerformanceObserver;
   private mutations: MutationObserver[] = [];
@@ -73,21 +80,21 @@ export class CoreWebVitalsOptimizer {
 
   // Google's thresholds for Core Web Vitals
   private readonly EXCELLENT_THRESHOLDS = {
-    lcp: 1500,  // < 1.5s
-    fid: 50,    // < 50ms  
-    cls: 0.05,  // < 0.05
-    fcp: 1000,  // < 1.0s
-    ttfb: 200,  // < 200ms
-    inp: 100    // < 100ms
+    lcp: 1500, // < 1.5s
+    fid: 50, // < 50ms
+    cls: 0.05, // < 0.05
+    fcp: 1000, // < 1.0s
+    ttfb: 200, // < 200ms
+    inp: 100, // < 100ms
   };
 
   private readonly GOOD_THRESHOLDS = {
-    lcp: 2500,  // < 2.5s
-    fid: 100,   // < 100ms
-    cls: 0.1,   // < 0.1
-    fcp: 1800,  // < 1.8s
-    ttfb: 500,  // < 500ms
-    inp: 200    // < 200ms
+    lcp: 2500, // < 2.5s
+    fid: 100, // < 100ms
+    cls: 0.1, // < 0.1
+    fcp: 1800, // < 1.8s
+    ttfb: 500, // < 500ms
+    inp: 200, // < 200ms
   };
 
   constructor(config: Partial<VitalsConfig> = {}) {
@@ -95,12 +102,12 @@ export class CoreWebVitalsOptimizer {
       enableRealTimeMonitoring: true,
       enableAutoOptimization: true,
       performanceBudget: {
-        lcp: 1200,  // Ultra-aggressive target for 100% score
-        fid: 30,    // Ultra-responsive
-        cls: 0.03,  // Minimal shift
-        fcp: 800,   // Instant paint
-        ttfb: 150,  // Lightning fast server
-        inp: 50     // Instant interaction
+        lcp: 1200, // Ultra-aggressive target for 100% score
+        fid: 30, // Ultra-responsive
+        cls: 0.03, // Minimal shift
+        fcp: 800, // Instant paint
+        ttfb: 150, // Lightning fast server
+        inp: 50, // Instant interaction
       },
       alertThresholds: {
         lcp: 1500,
@@ -108,10 +115,10 @@ export class CoreWebVitalsOptimizer {
         cls: 0.05,
         fcp: 1000,
         ttfb: 200,
-        inp: 100
+        inp: 100,
       },
       samplingRate: 1.0,
-      ...config
+      ...config,
     };
 
     this.initializeOptimizations();
@@ -125,9 +132,8 @@ export class CoreWebVitalsOptimizer {
   private startMonitoring(): void {
     if (!this.config.enableRealTimeMonitoring) return;
 
-
     // Performance Observer for Web Vitals
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       this.performanceObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           this.handlePerformanceEntry(entry);
@@ -136,11 +142,17 @@ export class CoreWebVitalsOptimizer {
 
       // Observe all performance metrics
       try {
-        this.performanceObserver.observe({ 
-          entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'paint', 'navigation'] 
+        this.performanceObserver.observe({
+          entryTypes: [
+            "largest-contentful-paint",
+            "first-input",
+            "layout-shift",
+            "paint",
+            "navigation",
+          ],
         });
       } catch (error) {
-        console.warn('Failed to observe performance entries:', error);
+        console.warn("Failed to observe performance entries:", error);
       }
     }
 
@@ -159,39 +171,39 @@ export class CoreWebVitalsOptimizer {
 
   private handlePerformanceEntry(entry: PerformanceEntry): void {
     switch (entry.entryType) {
-      case 'largest-contentful-paint':
+      case "largest-contentful-paint":
         this.vitals.lcp = entry.startTime;
-        this.checkAndOptimize('lcp', entry.startTime);
+        this.checkAndOptimize("lcp", entry.startTime);
         break;
 
-      case 'first-input': {
+      case "first-input": {
         const fidEntry = entry as PerformanceEventTiming;
         this.vitals.fid = fidEntry.processingStart - fidEntry.startTime;
-        this.checkAndOptimize('fid', this.vitals.fid);
+        this.checkAndOptimize("fid", this.vitals.fid);
         break;
       }
 
-      case 'layout-shift': {
+      case "layout-shift": {
         if (!(entry as any).hadRecentInput) {
           const clsEntry = entry as any;
           this.vitals.cls = (this.vitals.cls || 0) + clsEntry.value;
-          this.checkAndOptimize('cls', this.vitals.cls);
+          this.checkAndOptimize("cls", this.vitals.cls);
         }
         break;
       }
 
-      case 'paint': {
-        if (entry.name === 'first-contentful-paint') {
+      case "paint": {
+        if (entry.name === "first-contentful-paint") {
           this.vitals.fcp = entry.startTime;
-          this.checkAndOptimize('fcp', entry.startTime);
+          this.checkAndOptimize("fcp", entry.startTime);
         }
         break;
       }
 
-      case 'navigation': {
+      case "navigation": {
         const navEntry = entry as PerformanceNavigationTiming;
         this.vitals.ttfb = navEntry.responseStart - navEntry.requestStart;
-        this.checkAndOptimize('ttfb', this.vitals.ttfb);
+        this.checkAndOptimize("ttfb", this.vitals.ttfb);
         break;
       }
     }
@@ -207,16 +219,16 @@ export class CoreWebVitalsOptimizer {
   private initializeWebVitalsLib(): void {
     // Integrate with web-vitals library for accurate measurements
     // In production, this would use the actual web-vitals npm package
-    
+
     // LCP measurement
     this.measureLCP();
-    
-    // FID measurement  
+
+    // FID measurement
     this.measureFID();
-    
+
     // CLS measurement
     this.measureCLS();
-    
+
     // INP measurement (new Core Web Vital)
     this.measureINP();
   }
@@ -225,16 +237,16 @@ export class CoreWebVitalsOptimizer {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const lastEntry = entries[entries.length - 1];
-      
+
       this.vitals.lcp = lastEntry.startTime;
-      
-      this.checkAndOptimize('lcp', lastEntry.startTime);
+
+      this.checkAndOptimize("lcp", lastEntry.startTime);
     });
 
     try {
-      observer.observe({ type: 'largest-contentful-paint', buffered: true });
+      observer.observe({ type: "largest-contentful-paint", buffered: true });
     } catch (error) {
-      console.warn('Failed to observe LCP:', error);
+      console.warn("Failed to observe LCP:", error);
     }
   }
 
@@ -243,64 +255,64 @@ export class CoreWebVitalsOptimizer {
       for (const entry of list.getEntries()) {
         const fidEntry = entry as PerformanceEventTiming;
         const fid = fidEntry.processingStart - fidEntry.startTime;
-        
+
         this.vitals.fid = fid;
-        
-        this.checkAndOptimize('fid', fid);
+
+        this.checkAndOptimize("fid", fid);
       }
     });
 
     try {
-      observer.observe({ type: 'first-input', buffered: true });
+      observer.observe({ type: "first-input", buffered: true });
     } catch (error) {
-      console.warn('Failed to observe FID:', error);
+      console.warn("Failed to observe FID:", error);
     }
   }
 
   private measureCLS(): void {
     let clsValue = 0;
-    
+
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         const clsEntry = entry as any;
-        
+
         // Only count shifts not caused by user input
         if (!clsEntry.hadRecentInput) {
           clsValue += clsEntry.value;
           this.vitals.cls = clsValue;
-          
-          this.checkAndOptimize('cls', clsValue);
+
+          this.checkAndOptimize("cls", clsValue);
         }
       }
     });
 
     try {
-      observer.observe({ type: 'layout-shift', buffered: true });
+      observer.observe({ type: "layout-shift", buffered: true });
     } catch (error) {
-      console.warn('Failed to observe CLS:', error);
+      console.warn("Failed to observe CLS:", error);
     }
   }
 
   private measureINP(): void {
     // Interaction to Next Paint - new Core Web Vital
     let maxINP = 0;
-    
+
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         const eventEntry = entry as PerformanceEventTiming;
         const inp = eventEntry.processingEnd - eventEntry.startTime;
-        
+
         maxINP = Math.max(maxINP, inp);
         this.vitals.inp = maxINP;
-        
-        this.checkAndOptimize('inp', maxINP);
+
+        this.checkAndOptimize("inp", maxINP);
       }
     });
 
     try {
-      observer.observe({ type: 'event', buffered: true });
+      observer.observe({ type: "event", buffered: true });
     } catch (error) {
-      console.warn('Failed to observe INP:', error);
+      console.warn("Failed to observe INP:", error);
     }
   }
 
@@ -310,141 +322,149 @@ export class CoreWebVitalsOptimizer {
 
   private initializeOptimizations(): void {
     // LCP Optimizations
-    this.optimizations.set('preload-critical-resources', {
-      name: 'Preload Critical Resources',
-      description: 'Preload LCP element and critical resources',
-      metric: 'lcp',
-      priority: 'critical',
+    this.optimizations.set("preload-critical-resources", {
+      name: "Preload Critical Resources",
+      description: "Preload LCP element and critical resources",
+      metric: "lcp",
+      priority: "critical",
       impact: 0.3,
       implementation: async () => {
         await this.preloadCriticalResources();
       },
       rollback: async () => {
         this.removeCriticalPreloads();
-      }
+      },
     });
 
-    this.optimizations.set('optimize-lcp-element', {
-      name: 'Optimize LCP Element',
-      description: 'Optimize the Largest Contentful Paint element',
-      metric: 'lcp',
-      priority: 'critical',
+    this.optimizations.set("optimize-lcp-element", {
+      name: "Optimize LCP Element",
+      description: "Optimize the Largest Contentful Paint element",
+      metric: "lcp",
+      priority: "critical",
       impact: 0.4,
       implementation: async () => {
         await this.optimizeLCPElement();
       },
       rollback: async () => {
         this.revertLCPOptimizations();
-      }
+      },
     });
 
     // FID Optimizations
-    this.optimizations.set('defer-non-critical-js', {
-      name: 'Defer Non-Critical JavaScript',
-      description: 'Defer non-critical JavaScript to improve FID',
-      metric: 'fid',
-      priority: 'high',
+    this.optimizations.set("defer-non-critical-js", {
+      name: "Defer Non-Critical JavaScript",
+      description: "Defer non-critical JavaScript to improve FID",
+      metric: "fid",
+      priority: "high",
       impact: 0.5,
       implementation: async () => {
         await this.deferNonCriticalJS();
       },
       rollback: async () => {
         this.revertJSDefer();
-      }
+      },
     });
 
-    this.optimizations.set('code-splitting-aggressive', {
-      name: 'Aggressive Code Splitting',
-      description: 'Split code at component level for minimal initial bundle',
-      metric: 'fid',
-      priority: 'high',
+    this.optimizations.set("code-splitting-aggressive", {
+      name: "Aggressive Code Splitting",
+      description: "Split code at component level for minimal initial bundle",
+      metric: "fid",
+      priority: "high",
       impact: 0.3,
       implementation: async () => {
         await this.implementAggressiveCodeSplitting();
       },
       rollback: async () => {
         this.revertCodeSplitting();
-      }
+      },
     });
 
     // CLS Optimizations
-    this.optimizations.set('reserve-space-dynamic-content', {
-      name: 'Reserve Space for Dynamic Content',
-      description: 'Pre-allocate space for dynamic content to prevent layout shifts',
-      metric: 'cls',
-      priority: 'critical',
+    this.optimizations.set("reserve-space-dynamic-content", {
+      name: "Reserve Space for Dynamic Content",
+      description:
+        "Pre-allocate space for dynamic content to prevent layout shifts",
+      metric: "cls",
+      priority: "critical",
       impact: 0.6,
       implementation: async () => {
         await this.reserveSpaceForDynamicContent();
       },
       rollback: async () => {
         this.removeSpaceReservations();
-      }
+      },
     });
 
-    this.optimizations.set('optimize-font-loading', {
-      name: 'Optimize Font Loading',
-      description: 'Use font-display: swap and preload critical fonts',
-      metric: 'cls',
-      priority: 'high',
+    this.optimizations.set("optimize-font-loading", {
+      name: "Optimize Font Loading",
+      description: "Use font-display: swap and preload critical fonts",
+      metric: "cls",
+      priority: "high",
       impact: 0.4,
       implementation: async () => {
         await this.optimizeFontLoading();
       },
       rollback: async () => {
         this.revertFontOptimizations();
-      }
+      },
     });
 
     // INP Optimizations
-    this.optimizations.set('optimize-event-handlers', {
-      name: 'Optimize Event Handlers',
-      description: 'Debounce and optimize event handlers for better INP',
-      metric: 'inp',
-      priority: 'high',
+    this.optimizations.set("optimize-event-handlers", {
+      name: "Optimize Event Handlers",
+      description: "Debounce and optimize event handlers for better INP",
+      metric: "inp",
+      priority: "high",
       impact: 0.4,
       implementation: async () => {
         await this.optimizeEventHandlers();
       },
       rollback: async () => {
         this.revertEventOptimizations();
-      }
+      },
     });
   }
 
-  private async checkAndOptimize(metric: keyof CoreWebVitals, value: number): Promise<void> {
+  private async checkAndOptimize(
+    metric: keyof CoreWebVitals,
+    value: number,
+  ): Promise<void> {
     if (this.isOptimizing || !this.config.enableAutoOptimization) return;
 
     const budget = this.config.performanceBudget[metric];
-    
+
     if (value > budget) {
       await this.triggerOptimizations(metric);
     }
   }
 
-  private async triggerOptimizations(metric: keyof CoreWebVitals): Promise<void> {
+  private async triggerOptimizations(
+    metric: keyof CoreWebVitals,
+  ): Promise<void> {
     this.isOptimizing = true;
-    
+
     try {
       const relevantOptimizations = Array.from(this.optimizations.values())
-        .filter(opt => opt.metric === metric)
+        .filter((opt) => opt.metric === metric)
         .sort((a, b) => b.impact - a.impact); // Sort by impact
 
       for (const optimization of relevantOptimizations) {
-        
         try {
           await optimization.implementation();
-          
+
           // Wait a bit for the optimization to take effect
           await this.sleep(100);
-          
+
           // Check if we've improved enough
           const currentValue = this.vitals[metric];
-          if (currentValue && currentValue <= this.config.performanceBudget[metric]) {
+          if (
+            currentValue &&
+            currentValue <= this.config.performanceBudget[metric]
+          ) {
             break;
           }
         } catch (error) {
-          console.warn('Optimization failed, rolling back:', error);
+          console.warn("Optimization failed, rolling back:", error);
           await optimization.rollback();
         }
       }
@@ -460,110 +480,118 @@ export class CoreWebVitalsOptimizer {
   private async preloadCriticalResources(): Promise<void> {
     // Preload critical resources for LCP improvement
     const criticalResources = [
-      { href: '/assets/js/index-*.js', as: 'script' },
-      { href: '/assets/js/react-core-*.js', as: 'script' },
-      { href: '/assets/index-*.css', as: 'style' },
-      { href: '/assets/fonts/inter-v12-latin-regular.woff2', as: 'font', crossorigin: 'anonymous' }
+      { href: "/assets/js/index-*.js", as: "script" },
+      { href: "/assets/js/react-core-*.js", as: "script" },
+      { href: "/assets/index-*.css", as: "style" },
+      {
+        href: "/assets/fonts/inter-v12-latin-regular.woff2",
+        as: "font",
+        crossorigin: "anonymous",
+      },
     ];
 
-    criticalResources.forEach(resource => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
+    criticalResources.forEach((resource) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
       link.href = resource.href;
       link.as = resource.as;
       if (resource.crossorigin) link.crossOrigin = resource.crossorigin;
-      link.setAttribute('data-critical-preload', 'true');
+      link.setAttribute("data-critical-preload", "true");
       document.head.appendChild(link);
     });
   }
 
   private removeCriticalPreloads(): void {
-    const preloads = document.querySelectorAll('[data-critical-preload="true"]');
-    preloads.forEach(link => link.remove());
+    const preloads = document.querySelectorAll(
+      '[data-critical-preload="true"]',
+    );
+    preloads.forEach((link) => link.remove());
   }
 
   private async optimizeLCPElement(): Promise<void> {
     // Find and optimize the LCP element
-    const lcpElements = document.querySelectorAll('img, video, [data-lcp]');
-    
-    lcpElements.forEach(element => {
-      if (element.tagName === 'IMG') {
+    const lcpElements = document.querySelectorAll("img, video, [data-lcp]");
+
+    lcpElements.forEach((element) => {
+      if (element.tagName === "IMG") {
         const img = element as HTMLImageElement;
-        
+
         // Add high priority loading
-        img.loading = 'eager';
-        img.fetchPriority = 'high';
-        
+        img.loading = "eager";
+        img.fetchPriority = "high";
+
         // Ensure image has dimensions to prevent CLS
         if (!img.width || !img.height) {
-          img.style.aspectRatio = '16/9'; // Default aspect ratio
+          img.style.aspectRatio = "16/9"; // Default aspect ratio
         }
       }
-      
+
       // Mark as optimized
-      element.setAttribute('data-lcp-optimized', 'true');
+      element.setAttribute("data-lcp-optimized", "true");
     });
   }
 
   private revertLCPOptimizations(): void {
     const optimized = document.querySelectorAll('[data-lcp-optimized="true"]');
-    optimized.forEach(element => {
-      element.removeAttribute('data-lcp-optimized');
-      if (element.tagName === 'IMG') {
+    optimized.forEach((element) => {
+      element.removeAttribute("data-lcp-optimized");
+      if (element.tagName === "IMG") {
         const img = element as HTMLImageElement;
-        img.loading = 'lazy';
-        img.removeAttribute('fetchpriority');
+        img.loading = "lazy";
+        img.removeAttribute("fetchpriority");
       }
     });
   }
 
   private async deferNonCriticalJS(): Promise<void> {
     // Defer non-critical JavaScript
-    const scripts = document.querySelectorAll('script[src]:not([data-critical])');
-    
-    scripts.forEach(script => {
-      if (!script.hasAttribute('defer') && !script.hasAttribute('async')) {
-        script.setAttribute('defer', '');
-        script.setAttribute('data-deferred', 'true');
+    const scripts = document.querySelectorAll(
+      "script[src]:not([data-critical])",
+    );
+
+    scripts.forEach((script) => {
+      if (!script.hasAttribute("defer") && !script.hasAttribute("async")) {
+        script.setAttribute("defer", "");
+        script.setAttribute("data-deferred", "true");
       }
     });
   }
 
   private revertJSDefer(): void {
     const deferred = document.querySelectorAll('[data-deferred="true"]');
-    deferred.forEach(script => {
-      script.removeAttribute('defer');
-      script.removeAttribute('data-deferred');
+    deferred.forEach((script) => {
+      script.removeAttribute("defer");
+      script.removeAttribute("data-deferred");
     });
   }
 
   private async implementAggressiveCodeSplitting(): Promise<void> {
     // This would be handled at build time, but we can trigger dynamic imports
-    
+
     // Mark for next build optimization
-    localStorage.setItem('enable-aggressive-splitting', 'true');
+    localStorage.setItem("enable-aggressive-splitting", "true");
   }
 
   private async revertCodeSplitting(): Promise<void> {
-    localStorage.removeItem('enable-aggressive-splitting');
+    localStorage.removeItem("enable-aggressive-splitting");
   }
 
   private async reserveSpaceForDynamicContent(): Promise<void> {
     // Reserve space for common dynamic content areas
     const dynamicSelectors = [
-      '[data-dynamic]',
-      '.loading-placeholder',
-      '.async-content',
-      '.lazy-component'
+      "[data-dynamic]",
+      ".loading-placeholder",
+      ".async-content",
+      ".lazy-component",
     ];
 
-    dynamicSelectors.forEach(selector => {
+    dynamicSelectors.forEach((selector) => {
       const elements = document.querySelectorAll(selector);
-      elements.forEach(element => {
+      elements.forEach((element) => {
         const el = element as HTMLElement;
         if (!el.style.minHeight) {
-          el.style.minHeight = '100px'; // Reserve minimum height
-          el.setAttribute('data-space-reserved', 'true');
+          el.style.minHeight = "100px"; // Reserve minimum height
+          el.setAttribute("data-space-reserved", "true");
         }
       });
     });
@@ -571,35 +599,35 @@ export class CoreWebVitalsOptimizer {
 
   private removeSpaceReservations(): void {
     const reserved = document.querySelectorAll('[data-space-reserved="true"]');
-    reserved.forEach(element => {
-      (element as HTMLElement).style.minHeight = '';
-      element.removeAttribute('data-space-reserved');
+    reserved.forEach((element) => {
+      (element as HTMLElement).style.minHeight = "";
+      element.removeAttribute("data-space-reserved");
     });
   }
 
   private async optimizeFontLoading(): Promise<void> {
     // Add font-display: swap to existing fonts
     const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
-    
+
     // Add critical font preloading
     const criticalFonts = [
-      '/assets/fonts/inter-v12-latin-regular.woff2',
-      '/assets/fonts/inter-v12-latin-500.woff2'
+      "/assets/fonts/inter-v12-latin-regular.woff2",
+      "/assets/fonts/inter-v12-latin-500.woff2",
     ];
 
-    criticalFonts.forEach(fontUrl => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
+    criticalFonts.forEach((fontUrl) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
       link.href = fontUrl;
-      link.as = 'font';
-      link.type = 'font/woff2';
-      link.crossOrigin = 'anonymous';
-      link.setAttribute('data-font-preload', 'true');
+      link.as = "font";
+      link.type = "font/woff2";
+      link.crossOrigin = "anonymous";
+      link.setAttribute("data-font-preload", "true");
       document.head.appendChild(link);
     });
 
     // Inject font-display: swap CSS
-    const fontDisplayCSS = document.createElement('style');
+    const fontDisplayCSS = document.createElement("style");
     fontDisplayCSS.textContent = `
       @font-face {
         font-family: 'Inter';
@@ -609,29 +637,30 @@ export class CoreWebVitalsOptimizer {
         font-display: swap;
       }
     `;
-    fontDisplayCSS.setAttribute('data-font-display', 'true');
+    fontDisplayCSS.setAttribute("data-font-display", "true");
     document.head.appendChild(fontDisplayCSS);
   }
 
   private revertFontOptimizations(): void {
-    const fontPreloads = document.querySelectorAll('[data-font-preload="true"]');
+    const fontPreloads = document.querySelectorAll(
+      '[data-font-preload="true"]',
+    );
     const fontDisplay = document.querySelectorAll('[data-font-display="true"]');
-    
-    fontPreloads.forEach(link => link.remove());
-    fontDisplay.forEach(style => style.remove());
+
+    fontPreloads.forEach((link) => link.remove());
+    fontDisplay.forEach((style) => style.remove());
   }
 
   private async optimizeEventHandlers(): Promise<void> {
     // Optimize common event handlers for better INP
-    const events = ['click', 'input', 'scroll', 'resize'];
-    
-    events.forEach(eventType => {
+    const events = ["click", "input", "scroll", "resize"];
+
+    events.forEach((eventType) => {
       // Add passive listeners where appropriate
-      if (['scroll', 'resize'].includes(eventType)) {
+      if (["scroll", "resize"].includes(eventType)) {
         document.addEventListener(eventType, () => {}, { passive: true });
       }
     });
-
   }
 
   private revertEventOptimizations(): void {
@@ -646,7 +675,7 @@ export class CoreWebVitalsOptimizer {
     // Advanced CLS monitoring with element tracking
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === 'childList' || mutation.type === 'attributes') {
+        if (mutation.type === "childList" || mutation.type === "attributes") {
           // Track potential layout-shifting mutations
           this.checkForLayoutShiftRisk(mutation);
         }
@@ -657,24 +686,28 @@ export class CoreWebVitalsOptimizer {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['style', 'class']
+      attributeFilter: ["style", "class"],
     });
 
     this.mutations.push(observer);
   }
 
   private checkForLayoutShiftRisk(mutation: MutationRecord): void {
-    if (mutation.type === 'childList') {
-      mutation.addedNodes.forEach(node => {
+    if (mutation.type === "childList") {
+      mutation.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as HTMLElement;
-          
+
           // Check if element lacks dimensions
-          if (!element.style.width && !element.style.height && !element.hasAttribute('width') && !element.hasAttribute('height')) {
-            
+          if (
+            !element.style.width &&
+            !element.style.height &&
+            !element.hasAttribute("width") &&
+            !element.hasAttribute("height")
+          ) {
             // Auto-fix if possible
-            if (element.tagName === 'IMG') {
-              element.style.aspectRatio = '16/9';
+            if (element.tagName === "IMG") {
+              element.style.aspectRatio = "16/9";
             }
           }
         }
@@ -685,39 +718,50 @@ export class CoreWebVitalsOptimizer {
   private monitorInputDelay(): void {
     // Advanced FID/INP monitoring
     let isFirstInput = true;
-    
-    ['click', 'keydown', 'mousedown', 'pointerdown', 'touchstart'].forEach(eventType => {
-      document.addEventListener(eventType, (event) => {
-        const startTime = performance.now();
-        
-        // Use scheduler.postTask for better timing if available
-        const scheduleCallback = (window as any).scheduler?.postTask || requestIdleCallback || setTimeout;
-        
-        scheduleCallback(() => {
-          const endTime = performance.now();
-          const delay = endTime - startTime;
-          
-          if (isFirstInput) {
-            isFirstInput = false;
-          }
-          
-          if (delay > 50) {
-          }
-        });
-      }, { once: isFirstInput });
-    });
+
+    ["click", "keydown", "mousedown", "pointerdown", "touchstart"].forEach(
+      (eventType) => {
+        document.addEventListener(
+          eventType,
+          (event) => {
+            const startTime = performance.now();
+
+            // Use scheduler.postTask for better timing if available
+            const scheduleCallback =
+              (window as any).scheduler?.postTask ||
+              requestIdleCallback ||
+              setTimeout;
+
+            scheduleCallback(() => {
+              const endTime = performance.now();
+              const delay = endTime - startTime;
+
+              if (isFirstInput) {
+                isFirstInput = false;
+              }
+
+              if (delay > 50) {
+              }
+            });
+          },
+          { once: isFirstInput },
+        );
+      },
+    );
   }
 
   private optimizeLCP(): void {
     // Advanced LCP optimization
     const observer = new MutationObserver(() => {
       // Find potential LCP candidates
-      const candidates = document.querySelectorAll('img, video, [style*="background-image"]');
-      
-      candidates.forEach(element => {
+      const candidates = document.querySelectorAll(
+        'img, video, [style*="background-image"]',
+      );
+
+      candidates.forEach((element) => {
         const rect = element.getBoundingClientRect();
         const area = rect.width * rect.height;
-        
+
         // Large elements are likely LCP candidates
         if (area > window.innerWidth * window.innerHeight * 0.1) {
           this.optimizeLCPCandidate(element);
@@ -730,17 +774,16 @@ export class CoreWebVitalsOptimizer {
   }
 
   private optimizeLCPCandidate(element: Element): void {
-    if (element.hasAttribute('data-lcp-candidate')) return;
-    
-    element.setAttribute('data-lcp-candidate', 'true');
-    
-    if (element.tagName === 'IMG') {
+    if (element.hasAttribute("data-lcp-candidate")) return;
+
+    element.setAttribute("data-lcp-candidate", "true");
+
+    if (element.tagName === "IMG") {
       const img = element as HTMLImageElement;
-      img.loading = 'eager';
-      img.fetchPriority = 'high';
-      img.decoding = 'sync';
+      img.loading = "eager";
+      img.fetchPriority = "high";
+      img.decoding = "sync";
     }
-    
   }
 
   // ============================================================================
@@ -749,75 +792,84 @@ export class CoreWebVitalsOptimizer {
 
   public getPerformanceInsights(): PerformanceInsight[] {
     const insights: PerformanceInsight[] = [];
-    
+
     Object.entries(this.vitals).forEach(([metric, value]) => {
       if (value === null) return;
-      
+
       const metricKey = metric as keyof CoreWebVitals;
       const target = this.config.performanceBudget[metricKey];
       const excellent = this.EXCELLENT_THRESHOLDS[metricKey];
       const good = this.GOOD_THRESHOLDS[metricKey];
-      
-      let status: PerformanceInsight['status'];
-      if (value <= excellent) status = 'excellent';
-      else if (value <= good) status = 'good';
-      else if (value <= good * 1.5) status = 'needs-improvement';
-      else status = 'poor';
-      
-      const recommendations = this.generateRecommendations(metricKey, value, status);
+
+      let status: PerformanceInsight["status"];
+      if (value <= excellent) status = "excellent";
+      else if (value <= good) status = "good";
+      else if (value <= good * 1.5) status = "needs-improvement";
+      else status = "poor";
+
+      const recommendations = this.generateRecommendations(
+        metricKey,
+        value,
+        status,
+      );
       const potentialGain = Math.max(0, value - target);
-      
+
       insights.push({
         metric: metricKey,
         currentValue: value,
         targetValue: target,
         status,
         recommendations,
-        potentialGain
+        potentialGain,
       });
     });
-    
+
     return insights;
   }
 
-  private generateRecommendations(metric: keyof CoreWebVitals, value: number, status: string): string[] {
+  private generateRecommendations(
+    metric: keyof CoreWebVitals,
+    value: number,
+    status: string,
+  ): string[] {
     const recommendations: string[] = [];
-    
+
     switch (metric) {
-      case 'lcp':
-        if (status !== 'excellent') {
-          recommendations.push('Preload critical resources and images');
-          recommendations.push('Optimize server response times');
-          recommendations.push('Use a CDN for static assets');
-          if (value > 2500) recommendations.push('Consider server-side rendering');
+      case "lcp":
+        if (status !== "excellent") {
+          recommendations.push("Preload critical resources and images");
+          recommendations.push("Optimize server response times");
+          recommendations.push("Use a CDN for static assets");
+          if (value > 2500)
+            recommendations.push("Consider server-side rendering");
         }
         break;
-        
-      case 'fid':
-        if (status !== 'excellent') {
-          recommendations.push('Reduce JavaScript execution time');
-          recommendations.push('Use code splitting and lazy loading');
-          recommendations.push('Minimize main thread work');
+
+      case "fid":
+        if (status !== "excellent") {
+          recommendations.push("Reduce JavaScript execution time");
+          recommendations.push("Use code splitting and lazy loading");
+          recommendations.push("Minimize main thread work");
         }
         break;
-        
-      case 'cls':
-        if (status !== 'excellent') {
-          recommendations.push('Set explicit dimensions for images and videos');
-          recommendations.push('Reserve space for dynamic content');
-          recommendations.push('Use font-display: swap for web fonts');
+
+      case "cls":
+        if (status !== "excellent") {
+          recommendations.push("Set explicit dimensions for images and videos");
+          recommendations.push("Reserve space for dynamic content");
+          recommendations.push("Use font-display: swap for web fonts");
         }
         break;
-        
-      case 'inp':
-        if (status !== 'excellent') {
-          recommendations.push('Optimize event handlers');
-          recommendations.push('Use debouncing for frequent events');
-          recommendations.push('Break up long-running tasks');
+
+      case "inp":
+        if (status !== "excellent") {
+          recommendations.push("Optimize event handlers");
+          recommendations.push("Use debouncing for frequent events");
+          recommendations.push("Break up long-running tasks");
         }
         break;
     }
-    
+
     return recommendations;
   }
 
@@ -825,16 +877,16 @@ export class CoreWebVitalsOptimizer {
     const vitalsString = Object.entries(this.vitals)
       .filter(([_, value]) => value !== null)
       .map(([metric, value]) => {
-        const target = this.config.performanceBudget[metric as keyof CoreWebVitals];
-        const status = value! <= target ? '✅' : '⚠️';
+        const target =
+          this.config.performanceBudget[metric as keyof CoreWebVitals];
+        const status = value! <= target ? "✅" : "⚠️";
         return `${status} ${metric.toUpperCase()}: ${value!.toFixed(1)}`;
       })
-      .join(' | ');
-    
+      .join(" | ");
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // ============================================================================
@@ -847,27 +899,31 @@ export class CoreWebVitalsOptimizer {
 
   public getScore(): number {
     const insights = this.getPerformanceInsights();
-    const validInsights = insights.filter(i => i.currentValue > 0);
-    
+    const validInsights = insights.filter((i) => i.currentValue > 0);
+
     if (validInsights.length === 0) return 100;
-    
+
     const totalScore = validInsights.reduce((sum, insight) => {
-      const score = insight.status === 'excellent' ? 100 :
-                   insight.status === 'good' ? 80 :
-                   insight.status === 'needs-improvement' ? 60 : 30;
+      const score =
+        insight.status === "excellent"
+          ? 100
+          : insight.status === "good"
+            ? 80
+            : insight.status === "needs-improvement"
+              ? 60
+              : 30;
       return sum + score;
     }, 0);
-    
+
     return Math.round(totalScore / validInsights.length);
   }
 
   public async forceOptimization(): Promise<void> {
-    
     for (const optimization of this.optimizations.values()) {
       try {
         await optimization.implementation();
       } catch (error) {
-        console.warn('Force optimization failed:', error);
+        console.warn("Force optimization failed:", error);
       }
     }
   }
@@ -875,7 +931,7 @@ export class CoreWebVitalsOptimizer {
   public generateReport(): string {
     const insights = this.getPerformanceInsights();
     const score = this.getScore();
-    
+
     let report = `
 🎯 BLEEDING EDGE: Core Web Vitals Report
 =====================================
@@ -884,16 +940,21 @@ Overall Score: ${score}/100
 Metrics:
 `;
 
-    insights.forEach(insight => {
-      const emoji = insight.status === 'excellent' ? '🟢' : 
-                   insight.status === 'good' ? '🟡' : 
-                   insight.status === 'needs-improvement' ? '🟠' : '🔴';
-      
+    insights.forEach((insight) => {
+      const emoji =
+        insight.status === "excellent"
+          ? "🟢"
+          : insight.status === "good"
+            ? "🟡"
+            : insight.status === "needs-improvement"
+              ? "🟠"
+              : "🔴";
+
       report += `${emoji} ${insight.metric.toUpperCase()}: ${insight.currentValue.toFixed(1)} (target: ${insight.targetValue})\n`;
-      
+
       if (insight.recommendations.length > 0) {
         report += `   Recommendations:\n`;
-        insight.recommendations.forEach(rec => {
+        insight.recommendations.forEach((rec) => {
           report += `   • ${rec}\n`;
         });
       }
@@ -906,8 +967,8 @@ Metrics:
     if (this.performanceObserver) {
       this.performanceObserver.disconnect();
     }
-    
-    this.mutations.forEach(observer => observer.disconnect());
+
+    this.mutations.forEach((observer) => observer.disconnect());
     this.mutations = [];
   }
 }
@@ -916,7 +977,9 @@ Metrics:
 // FACTORY FUNCTION
 // ============================================================================
 
-export function createCoreWebVitalsOptimizer(config?: Partial<VitalsConfig>): CoreWebVitalsOptimizer {
+export function createCoreWebVitalsOptimizer(
+  config?: Partial<VitalsConfig>,
+): CoreWebVitalsOptimizer {
   return new CoreWebVitalsOptimizer(config);
 }
 
@@ -924,11 +987,19 @@ export function createCoreWebVitalsOptimizer(config?: Partial<VitalsConfig>): Co
 // INTEGRATION HOOK
 // ============================================================================
 
-import React from 'react';
+import React from "react";
 
 export function useCoreWebVitals(config?: Partial<VitalsConfig>) {
-  const [optimizer, setOptimizer] = React.useState<CoreWebVitalsOptimizer | null>(null);
-  const [vitals, setVitals] = React.useState<CoreWebVitals>({ lcp: null, fid: null, cls: null, fcp: null, ttfb: null, inp: null });
+  const [optimizer, setOptimizer] =
+    React.useState<CoreWebVitalsOptimizer | null>(null);
+  const [vitals, setVitals] = React.useState<CoreWebVitals>({
+    lcp: null,
+    fid: null,
+    cls: null,
+    fcp: null,
+    ttfb: null,
+    inp: null,
+  });
   const [score, setScore] = React.useState(100);
 
   React.useEffect(() => {
@@ -953,6 +1024,6 @@ export function useCoreWebVitals(config?: Partial<VitalsConfig>) {
     score,
     insights: optimizer?.getPerformanceInsights() || [],
     forceOptimization: optimizer?.forceOptimization.bind(optimizer),
-    generateReport: optimizer?.generateReport.bind(optimizer)
+    generateReport: optimizer?.generateReport.bind(optimizer),
   };
 }

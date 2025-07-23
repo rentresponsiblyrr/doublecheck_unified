@@ -168,7 +168,7 @@ Database relationship between `logs` and `static_safety_items` is not properly c
 // Run in browser console:
 // Test current relationship attempt
 const { data, error } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     *,
     static_safety_items(*)
@@ -179,7 +179,7 @@ console.log('Relationship error:', error);
 console.log('Data returned:', data);
 
 // If relationship fails, check individual tables:
-const { data: logsData } = await supabase.from('logs').select('*').limit(1);
+const { data: logsData } = await supabase.from('checklist_items').select('*').limit(1);
 console.log('Logs table sample:', logsData);
 
 const { data: safetyData } = await supabase.from('static_safety_items').select('*').limit(1);
@@ -203,7 +203,7 @@ Based on our previous schema investigation, we know:
 ```typescript
 // CURRENT (WRONG):
 const { data: logs } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     *,
     static_safety_items!inner (
@@ -215,7 +215,7 @@ const { data: logs } = await supabase
 
 // CORRECTED VERSION:
 const { data: logs } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     *,
     static_safety_items!checklist_id (
@@ -230,7 +230,7 @@ const { data: logs } = await supabase
 ```typescript
 // If the relationship uses a different foreign key syntax:
 const { data: logs } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     log_id,
     property_id,
@@ -252,7 +252,7 @@ After fixing, test in browser console:
 ```javascript
 // This should now work without errors:
 const { data, error } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     *,
     static_safety_items!checklist_id (

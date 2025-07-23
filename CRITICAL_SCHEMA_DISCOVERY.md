@@ -35,8 +35,8 @@ properties.audit_assigned_to → profiles.id (uuid)
 
 **Properties Table** ✅ VERIFIED:
 - `property_id`: integer (auto-increment) ✅ MATCHES CODE
-- `property_name`: text ✅ MATCHES CODE  
-- `street_address`: text ✅ MATCHES CODE
+- `name`: text ✅ MATCHES CODE  
+- `address`: text ✅ MATCHES CODE
 - All other fields match documentation
 
 **Profiles Table** ✅ VERIFIED:
@@ -99,7 +99,7 @@ const { data: inspection } = await supabase
   .single();
 
 const { data: logs } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select('*')
   .eq('property_id', inspection.property_id);
 

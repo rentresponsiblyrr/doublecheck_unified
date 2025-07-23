@@ -3,13 +3,19 @@
  * Knowledge base search, insights management, and learning analytics
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
   Search,
   BookOpen,
   Lightbulb,
@@ -18,10 +24,13 @@ import {
   AlertCircle,
   Brain,
   TrendingUp,
-  Activity
-} from 'lucide-react';
-import { sanitizeSearchQuery, validateAndSanitize } from '@/utils/validation';
-import type { LearningInsight, KnowledgeSearchResult } from '@/types/ai-database';
+  Activity,
+} from "lucide-react";
+import { sanitizeSearchQuery, validateAndSanitize } from "@/utils/validation";
+import type {
+  LearningInsight,
+  KnowledgeSearchResult,
+} from "@/types/ai-database";
 
 interface AIKnowledgeSearchProps {
   learningInsights: LearningInsight[];
@@ -36,48 +45,50 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
   knowledgeResults,
   isSearchingKnowledge,
   onSearch,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const [knowledgeQuery, setKnowledgeQuery] = useState('');
+  const [knowledgeQuery, setKnowledgeQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = () => {
     if (!knowledgeQuery.trim()) return;
-    
+
     try {
       const sanitizedQuery = sanitizeSearchQuery(knowledgeQuery);
-      const validatedQuery = validateAndSanitize(sanitizedQuery, 'searchQuery');
-      
+      const validatedQuery = validateAndSanitize(sanitizedQuery, "searchQuery");
+
       if (validatedQuery) {
         onSearch(validatedQuery);
         setHasSearched(true);
       }
     } catch (error) {
-      console.error('Search validation failed:', error);
+      console.error("Search validation failed:", error);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      'inspection': 'bg-blue-100 text-blue-700',
-      'compliance': 'bg-green-100 text-green-700',
-      'safety': 'bg-red-100 text-red-700',
-      'quality': 'bg-purple-100 text-purple-700',
-      'efficiency': 'bg-orange-100 text-orange-700'
+      inspection: "bg-blue-100 text-blue-700",
+      compliance: "bg-green-100 text-green-700",
+      safety: "bg-red-100 text-red-700",
+      quality: "bg-purple-100 text-purple-700",
+      efficiency: "bg-orange-100 text-orange-700",
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-700';
+    return (
+      colors[category as keyof typeof colors] || "bg-gray-100 text-gray-700"
+    );
   };
 
   const getConfidenceLevel = (confidence: number) => {
-    if (confidence >= 0.8) return { label: 'High', color: 'text-green-600' };
-    if (confidence >= 0.6) return { label: 'Medium', color: 'text-yellow-600' };
-    return { label: 'Low', color: 'text-red-600' };
+    if (confidence >= 0.8) return { label: "High", color: "text-green-600" };
+    if (confidence >= 0.6) return { label: "Medium", color: "text-yellow-600" };
+    return { label: "Low", color: "text-red-600" };
   };
 
   if (isLoading) {
@@ -117,7 +128,7 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
               onKeyDown={handleKeyDown}
               className="flex-1"
             />
-            <Button 
+            <Button
               onClick={handleSearch}
               disabled={isSearchingKnowledge || !knowledgeQuery.trim()}
             >
@@ -128,14 +139,15 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
               )}
             </Button>
           </div>
-          
+
           {hasSearched && !isSearchingKnowledge && (
             <div className="mt-4">
               {knowledgeResults.length === 0 ? (
                 <Alert>
                   <AlertCircle className="w-4 h-4" />
                   <AlertDescription>
-                    No results found for "{knowledgeQuery}". Try different search terms.
+                    No results found for "{knowledgeQuery}". Try different
+                    search terms.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -171,7 +183,12 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
                         {result.source} • {result.category}
                       </p>
                     </div>
-                    <Badge variant="outline" className={getConfidenceLevel(result.relevanceScore).color}>
+                    <Badge
+                      variant="outline"
+                      className={
+                        getConfidenceLevel(result.relevanceScore).color
+                      }
+                    >
                       {(result.relevanceScore * 100).toFixed(0)}% relevance
                     </Badge>
                   </div>
@@ -180,11 +197,16 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
                     <Badge className={getCategoryColor(result.category)}>
                       {result.category}
                     </Badge>
-                    {result.tags && result.tags.map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
+                    {result.tags &&
+                      result.tags.map((tag, tagIndex) => (
+                        <Badge
+                          key={tagIndex}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
                   </div>
                 </div>
               ))}
@@ -208,7 +230,9 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
           {learningInsights.length === 0 ? (
             <div className="text-center py-8">
               <Brain className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-muted-foreground">No learning insights available</p>
+              <p className="text-muted-foreground">
+                No learning insights available
+              </p>
               <p className="text-sm text-muted-foreground">
                 Insights will appear as the AI processes inspection feedback
               </p>
@@ -216,12 +240,15 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
           ) : (
             <div className="space-y-4">
               {Object.entries(
-                learningInsights.reduce((acc, insight) => {
-                  const category = insight.category || 'general';
-                  if (!acc[category]) acc[category] = [];
-                  acc[category].push(insight);
-                  return acc;
-                }, {} as Record<string, LearningInsight[]>)
+                learningInsights.reduce(
+                  (acc, insight) => {
+                    const category = insight.category || "general";
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(insight);
+                    return acc;
+                  },
+                  {} as Record<string, LearningInsight[]>,
+                ),
               ).map(([category, insights]) => (
                 <div key={category} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -233,10 +260,13 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
                       {category}
                     </Badge>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {insights.slice(0, 3).map((insight, index) => (
-                      <div key={index} className="flex items-start gap-3 p-2 bg-gray-50 rounded">
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-2 bg-gray-50 rounded"
+                      >
                         <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <p className="text-sm">{insight.content}</p>
@@ -245,13 +275,14 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
                               {new Date(insight.timestamp).toLocaleDateString()}
                             </span>
                             <Badge variant="outline" className="text-xs">
-                              {(insight.confidence * 100).toFixed(0)}% confidence
+                              {(insight.confidence * 100).toFixed(0)}%
+                              confidence
                             </Badge>
                           </div>
                         </div>
                       </div>
                     ))}
-                    
+
                     {insights.length > 3 && (
                       <div className="text-sm text-muted-foreground text-center">
                         +{insights.length - 3} more insights in this category
@@ -269,7 +300,9 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Insights</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Insights
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{learningInsights.length}</div>
@@ -285,7 +318,7 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Set(learningInsights.map(i => i.category)).size}
+              {new Set(learningInsights.map((i) => i.category)).size}
             </div>
             <p className="text-xs text-muted-foreground">
               Distinct knowledge areas
@@ -295,13 +328,23 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
 
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Confidence</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Avg Confidence
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {learningInsights.length > 0 
-                ? ((learningInsights.reduce((sum, i) => sum + i.confidence, 0) / learningInsights.length) * 100).toFixed(1)
-                : 0}%
+              {learningInsights.length > 0
+                ? (
+                    (learningInsights.reduce(
+                      (sum, i) => sum + i.confidence,
+                      0,
+                    ) /
+                      learningInsights.length) *
+                    100
+                  ).toFixed(1)
+                : 0}
+              %
             </div>
             <p className="text-xs text-muted-foreground">
               Knowledge reliability

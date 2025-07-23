@@ -12,15 +12,15 @@ interface CompletedChecklistItemProps {
 
 export const CompletedChecklistItem: React.FC<CompletedChecklistItemProps> = ({
   item,
-  onComplete
+  onComplete,
 }) => {
   const getStatusIcon = () => {
     switch (item.status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'not_applicable':
+      case "not_applicable":
         return <Minus className="w-5 h-5 text-gray-600" />;
       default:
         return null;
@@ -29,27 +29,27 @@ export const CompletedChecklistItem: React.FC<CompletedChecklistItemProps> = ({
 
   const getStatusText = () => {
     switch (item.status) {
-      case 'completed':
-        return 'Passed';
-      case 'failed':
-        return 'Failed';
-      case 'not_applicable':
-        return 'Not Applicable';
+      case "completed":
+        return "Passed";
+      case "failed":
+        return "Failed";
+      case "not_applicable":
+        return "Not Applicable";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
   const getStatusColor = () => {
     switch (item.status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'not_applicable':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "failed":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "not_applicable":
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -60,7 +60,10 @@ export const CompletedChecklistItem: React.FC<CompletedChecklistItemProps> = ({
   };
 
   return (
-    <Card id={`completed-checklist-item-${item.id}`} className={`${getStatusColor()}`}>
+    <Card
+      id={`completed-checklist-item-${item.id}`}
+      className={`${getStatusColor()}`}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -73,7 +76,7 @@ export const CompletedChecklistItem: React.FC<CompletedChecklistItemProps> = ({
                 {getStatusText()}
               </Badge>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
               <Badge variant="outline" className="capitalize">
                 {item.category}

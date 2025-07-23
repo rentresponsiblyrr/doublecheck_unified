@@ -1,18 +1,18 @@
 /**
  * Virtualized Property List - Enterprise Grade
- * 
+ *
  * High-performance virtualized list with accessibility and performance monitoring
  */
 
-import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Activity } from 'lucide-react';
-import { useOptimizedPropertyList } from '@/hooks/useVirtualizedPropertyList';
-import { VirtualizedPropertyCard } from './VirtualizedPropertyCard';
-import { log } from '@/lib/logging/enterprise-logger';
-import type { PropertyData } from './PropertyDataManager';
+import React, { useRef, useCallback, useEffect, useState } from "react";
+import { FixedSizeList as List } from "react-window";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Search, Activity } from "lucide-react";
+import { useOptimizedPropertyList } from "@/hooks/useVirtualizedPropertyList";
+import { VirtualizedPropertyCard } from "./VirtualizedPropertyCard";
+import { log } from "@/lib/logging/enterprise-logger";
+import type { PropertyData } from "./PropertyDataManager";
 
 interface VirtualizedPropertyListProps {
   properties: PropertyData[];
@@ -24,14 +24,16 @@ interface VirtualizedPropertyListProps {
   isLoading: boolean;
 }
 
-export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = ({
+export const VirtualizedPropertyList: React.FC<
+  VirtualizedPropertyListProps
+> = ({
   properties,
   searchQuery,
   containerHeight,
   selectedProperty,
   onPropertySelect,
   onNewInspection,
-  isLoading
+  isLoading,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lastSearchTime, setLastSearchTime] = useState<number>(0);
@@ -49,7 +51,7 @@ export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = (
     createItemRenderer,
     getAccessibilityProps,
     visibleRange,
-    getPerformanceMetrics
+    getPerformanceMetrics,
   } = useOptimizedPropertyList(properties, searchQuery, containerHeight);
 
   /**
@@ -59,19 +61,20 @@ export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = (
     if (searchQuery) {
       const searchTime = performance.now();
       const timeSinceLastSearch = searchTime - lastSearchTime;
-      
-      if (timeSinceLastSearch > 100) { // Only log if significant time has passed
+
+      if (timeSinceLastSearch > 100) {
+        // Only log if significant time has passed
         const metrics = getPerformanceMetrics();
-        
-        log.info('Search performance metrics', {
+
+        log.info("Search performance metrics", {
           searchQuery,
           searchTime: timeSinceLastSearch,
           totalProperties: metrics.searchStats.totalProperties,
           filteredCount: metrics.searchStats.filteredCount,
           searchEfficiency: metrics.searchStats.searchEfficiency,
-          renderEfficiency: metrics.memoryUsage.renderEfficiency
+          renderEfficiency: metrics.memoryUsage.renderEfficiency,
         });
-        
+
         setLastSearchTime(searchTime);
       }
     }
@@ -80,20 +83,26 @@ export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = (
   /**
    * Create optimized item renderer for virtual list
    */
-  const itemRenderer = createItemRenderer((property: PropertyData, index: number) => (
-    <VirtualizedPropertyCard
-      property={property}
-      index={index}
-      isSelected={selectedProperty?.property_id === property.property_id}
-      onSelect={onPropertySelect}
-      onNewInspection={onNewInspection}
-    />
-  ));
+  const itemRenderer = createItemRenderer(
+    (property: PropertyData, index: number) => (
+      <VirtualizedPropertyCard
+        property={property}
+        index={index}
+        isSelected={selectedProperty?.property_id === property.property_id}
+        onSelect={onPropertySelect}
+        onNewInspection={onNewInspection}
+      />
+    ),
+  );
 
   // Loading State
   if (isLoading) {
     return (
-      <div id="loading-properties" className="space-y-3" aria-label="Loading properties">
+      <div
+        id="loading-properties"
+        className="space-y-3"
+        aria-label="Loading properties"
+      >
         {[1, 2, 3].map((i) => (
           <Card key={i} aria-hidden="true">
             <CardContent className="p-4">
@@ -128,17 +137,18 @@ export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = (
             </span>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Activity className="h-3 w-3" />
           <span>
-            Rendering {visibleRange.end - visibleRange.start} of {virtualMetrics.itemCount}
+            Rendering {visibleRange.end - visibleRange.start} of{" "}
+            {virtualMetrics.itemCount}
           </span>
         </div>
       </div>
 
       {/* Virtual Scrolling List */}
-      <div 
+      <div
         ref={containerRef}
         className="relative"
         style={{ height: containerHeight }}
@@ -147,13 +157,12 @@ export const VirtualizedPropertyList: React.FC<VirtualizedPropertyListProps> = (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
             <Search className="h-12 w-12 mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold mb-2">
-              {searchQuery ? 'No properties found' : 'No properties available'}
+              {searchQuery ? "No properties found" : "No properties available"}
             </h3>
             <p className="text-sm">
-              {searchQuery 
-                ? `Try adjusting your search for "${searchQuery}"` 
-                : 'Properties will appear here once they are added to your account'
-              }
+              {searchQuery
+                ? `Try adjusting your search for "${searchQuery}"`
+                : "Properties will appear here once they are added to your account"}
             </p>
           </div>
         ) : (

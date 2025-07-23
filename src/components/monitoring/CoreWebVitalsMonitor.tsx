@@ -3,18 +3,24 @@
  * Detailed Core Web Vitals tracking and thresholds analysis
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Gauge, Clock, Zap, Eye, Activity } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Gauge, Clock, Zap, Eye, Activity } from "lucide-react";
 
 interface CoreWebVitals {
   fcp: number;
   lcp: number;
   cls: number;
   fid: number;
-  status: 'good' | 'needs-improvement' | 'poor';
+  status: "good" | "needs-improvement" | "poor";
 }
 
 interface GeographicPerformance {
@@ -33,53 +39,53 @@ interface CoreWebVitalsMonitorProps {
 export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
   coreWebVitals,
   geographicPerformance,
-  isLoading = false
+  isLoading = false,
 }) => {
   const getVitalStatus = (value: number, metric: string) => {
     switch (metric) {
-      case 'fcp':
-        if (value <= 1800) return 'good';
-        if (value <= 3000) return 'needs-improvement';
-        return 'poor';
-      case 'lcp':
-        if (value <= 2500) return 'good';
-        if (value <= 4000) return 'needs-improvement';
-        return 'poor';
-      case 'cls':
-        if (value <= 0.1) return 'good';
-        if (value <= 0.25) return 'needs-improvement';
-        return 'poor';
-      case 'fid':
-        if (value <= 100) return 'good';
-        if (value <= 300) return 'needs-improvement';
-        return 'poor';
+      case "fcp":
+        if (value <= 1800) return "good";
+        if (value <= 3000) return "needs-improvement";
+        return "poor";
+      case "lcp":
+        if (value <= 2500) return "good";
+        if (value <= 4000) return "needs-improvement";
+        return "poor";
+      case "cls":
+        if (value <= 0.1) return "good";
+        if (value <= 0.25) return "needs-improvement";
+        return "poor";
+      case "fid":
+        if (value <= 100) return "good";
+        if (value <= 300) return "needs-improvement";
+        return "poor";
       default:
-        return 'good';
+        return "good";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'good':
-        return 'text-green-600 bg-green-100';
-      case 'needs-improvement':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'poor':
-        return 'text-red-600 bg-red-100';
+      case "good":
+        return "text-green-600 bg-green-100";
+      case "needs-improvement":
+        return "text-yellow-600 bg-yellow-100";
+      case "poor":
+        return "text-red-600 bg-red-100";
       default:
-        return 'text-gray-600 bg-gray-100';
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getProgressValue = (value: number, metric: string) => {
     switch (metric) {
-      case 'fcp':
+      case "fcp":
         return Math.max(0, Math.min(100, (3000 - value) / 30));
-      case 'lcp':
+      case "lcp":
         return Math.max(0, Math.min(100, (4000 - value) / 40));
-      case 'cls':
+      case "cls":
         return Math.max(0, Math.min(100, (0.25 - value) * 400));
-      case 'fid':
+      case "fid":
         return Math.max(0, Math.min(100, (300 - value) / 3));
       default:
         return 50;
@@ -88,11 +94,11 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
 
   const formatVitalValue = (value: number, metric: string) => {
     switch (metric) {
-      case 'cls':
+      case "cls":
         return value.toFixed(3);
-      case 'fcp':
-      case 'lcp':
-      case 'fid':
+      case "fcp":
+      case "lcp":
+      case "fid":
         return `${value.toFixed(0)}ms`;
       default:
         return value.toString();
@@ -121,37 +127,37 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
 
   const vitals = [
     {
-      name: 'First Contentful Paint',
-      key: 'fcp',
+      name: "First Contentful Paint",
+      key: "fcp",
       value: coreWebVitals.fcp,
       icon: Eye,
-      description: 'Time until first content renders',
-      threshold: '< 1.8s good, < 3s needs improvement'
+      description: "Time until first content renders",
+      threshold: "< 1.8s good, < 3s needs improvement",
     },
     {
-      name: 'Largest Contentful Paint',
-      key: 'lcp',
+      name: "Largest Contentful Paint",
+      key: "lcp",
       value: coreWebVitals.lcp,
       icon: Gauge,
-      description: 'Time until largest content renders',
-      threshold: '< 2.5s good, < 4s needs improvement'
+      description: "Time until largest content renders",
+      threshold: "< 2.5s good, < 4s needs improvement",
     },
     {
-      name: 'Cumulative Layout Shift',
-      key: 'cls',
+      name: "Cumulative Layout Shift",
+      key: "cls",
       value: coreWebVitals.cls,
       icon: Activity,
-      description: 'Visual stability measurement',
-      threshold: '< 0.1 good, < 0.25 needs improvement'
+      description: "Visual stability measurement",
+      threshold: "< 0.1 good, < 0.25 needs improvement",
     },
     {
-      name: 'First Input Delay',
-      key: 'fid',
+      name: "First Input Delay",
+      key: "fid",
       value: coreWebVitals.fid,
       icon: Zap,
-      description: 'Interactivity responsiveness',
-      threshold: '< 100ms good, < 300ms needs improvement'
-    }
+      description: "Interactivity responsiveness",
+      threshold: "< 100ms good, < 300ms needs improvement",
+    },
   ];
 
   return (
@@ -161,12 +167,14 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
         {vitals.map((vital) => {
           const status = getVitalStatus(vital.value, vital.key);
           const IconComponent = vital.icon;
-          
+
           return (
             <Card key={vital.key}>
               <CardHeader className="space-y-0 pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">{vital.name}</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    {vital.name}
+                  </CardTitle>
                   <IconComponent className="h-4 w-4 text-muted-foreground" />
                 </div>
               </CardHeader>
@@ -175,11 +183,11 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
                   {formatVitalValue(vital.value, vital.key)}
                 </div>
                 <Badge className={getStatusColor(status)}>
-                  {status.replace('-', ' ')}
+                  {status.replace("-", " ")}
                 </Badge>
-                <Progress 
-                  value={getProgressValue(vital.value, vital.key)} 
-                  className="mt-3 h-2" 
+                <Progress
+                  value={getProgressValue(vital.value, vital.key)}
+                  className="mt-3 h-2"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
                   {vital.description}
@@ -215,34 +223,41 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
                       {region.userCount.toLocaleString()} users
                     </p>
                   </div>
-                  <Badge 
+                  <Badge
                     className={getStatusColor(
-                      region.performanceScore >= 90 ? 'good' :
-                      region.performanceScore >= 70 ? 'needs-improvement' : 'poor'
+                      region.performanceScore >= 90
+                        ? "good"
+                        : region.performanceScore >= 70
+                          ? "needs-improvement"
+                          : "poor",
                     )}
                   >
                     {region.performanceScore}/100
                   </Badge>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Avg Load Time:</span>
+                    <span className="text-muted-foreground">
+                      Avg Load Time:
+                    </span>
                     <div className="font-medium">
                       {region.averageLoadTime.toFixed(0)}ms
                     </div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Performance Score:</span>
+                    <span className="text-muted-foreground">
+                      Performance Score:
+                    </span>
                     <div className="font-medium">
                       {region.performanceScore}/100
                     </div>
                   </div>
                 </div>
-                
-                <Progress 
-                  value={region.performanceScore} 
-                  className="mt-3 h-2" 
+
+                <Progress
+                  value={region.performanceScore}
+                  className="mt-3 h-2"
                 />
               </div>
             ))}
@@ -273,7 +288,7 @@ export const CoreWebVitalsMonitor: React.FC<CoreWebVitalsMonitorProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               <h4 className="font-medium">Interactivity & Stability</h4>
               <div className="space-y-2 text-sm">

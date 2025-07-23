@@ -4,14 +4,14 @@
  * Business logic extracted to useMobileErrorRecovery hook
  */
 
-import React from 'react';
-import { useMobileErrorRecovery } from '@/hooks/useMobileErrorRecovery';
-import { ErrorHeader } from '@/components/error/ErrorHeader';
-import { ErrorInformationCard } from '@/components/error/ErrorInformationCard';
-import { QuickRecoveryCard } from '@/components/error/QuickRecoveryCard';
-import { ManualRecoveryCard } from '@/components/error/ManualRecoveryCard';
-import { NavigationActionsCard } from '@/components/error/NavigationActionsCard';
-import { HelpText } from '@/components/error/HelpText';
+import React from "react";
+import { useMobileErrorRecovery } from "@/hooks/useMobileErrorRecovery";
+import { ErrorHeader } from "@/components/error/ErrorHeader";
+import { ErrorInformationCard } from "@/components/error/ErrorInformationCard";
+import { QuickRecoveryCard } from "@/components/error/QuickRecoveryCard";
+import { ManualRecoveryCard } from "@/components/error/ManualRecoveryCard";
+import { NavigationActionsCard } from "@/components/error/NavigationActionsCard";
+import { HelpText } from "@/components/error/HelpText";
 
 interface MobileErrorRecoveryProps {
   error?: Error | null;
@@ -20,6 +20,8 @@ interface MobileErrorRecoveryProps {
   onReset?: () => void;
   onNavigateHome?: () => void;
   onContactSupport?: () => void;
+  onNavigateBack?: () => void;
+  showBackButton?: boolean;
   className?: string;
 }
 
@@ -30,41 +32,52 @@ const MobileErrorRecovery: React.FC<MobileErrorRecoveryProps> = ({
   onReset,
   onNavigateHome,
   onContactSupport,
-  className = ''
+  onNavigateBack,
+  showBackButton = false,
+  className = "",
 }) => {
   const {
     isRecovering,
     recoveryActions,
     connectionStatus,
-    handleAutoRecovery
-  } = useMobileErrorRecovery(error, onRetry, onReset, onNavigateHome, onContactSupport);
+    handleAutoRecovery,
+  } = useMobileErrorRecovery(
+    error,
+    onRetry,
+    onReset,
+    onNavigateHome,
+    onContactSupport,
+  );
 
   return (
-    <div id="mobile-error-recovery-container" className={`min-h-screen bg-gray-50 flex flex-col ${className}`}>
+    <div
+      id="mobile-error-recovery-container"
+      className={`min-h-screen bg-gray-50 flex flex-col ${className}`}
+    >
       <ErrorHeader />
-      
+
       <div id="error-recovery-content" className="flex-1 px-4 py-6">
         <ErrorInformationCard
           error={error}
           errorInfo={errorInfo}
           connectionStatus={connectionStatus}
         />
-        
+
         <QuickRecoveryCard
           isRecovering={isRecovering}
           onAutoRecovery={handleAutoRecovery}
         />
-        
-        <ManualRecoveryCard
-          recoveryActions={recoveryActions}
-        />
-        
+
+        <ManualRecoveryCard recoveryActions={recoveryActions} />
+
         <NavigationActionsCard
           onNavigateHome={onNavigateHome}
           onContactSupport={onContactSupport}
           onReset={onReset}
+          onNavigateBack={onNavigateBack}
+          showBackButton={showBackButton}
         />
-        
+
         <HelpText error={error} />
       </div>
     </div>

@@ -4,12 +4,12 @@
  * Business logic extracted to useInspectionWorkflow hook
  */
 
-import React from 'react';
-import { useInspectionWorkflow } from '@/hooks/useInspectionWorkflow';
-import { WorkflowErrorBoundary } from './WorkflowErrorBoundary';
-import { WorkflowSidebar } from './WorkflowSidebar';
-import { WorkflowActions } from './WorkflowActions';
-import { WorkflowStepContent } from './WorkflowStepContent';
+import React from "react";
+import { useInspectionWorkflow } from "@/hooks/useInspectionWorkflow";
+import { WorkflowErrorBoundary } from "./WorkflowErrorBoundary";
+import { WorkflowSidebar } from "./WorkflowSidebar";
+import { WorkflowActions } from "./WorkflowActions";
+import { WorkflowStepContent } from "./WorkflowStepContent";
 
 export const InspectionWorkflowContainer: React.FC = () => {
   const {
@@ -18,16 +18,16 @@ export const InspectionWorkflowContainer: React.FC = () => {
     dispatch,
     isOnline,
     error,
-    
+
     // Actions
     handleSafeReturn,
     handlePropertySelect,
     handleChecklistGenerated,
     handleStepNavigation,
     clearError,
-    
+
     // Navigation
-    navigate
+    navigate,
   } = useInspectionWorkflow();
 
   // Professional Error Boundary
@@ -48,17 +48,16 @@ export const InspectionWorkflowContainer: React.FC = () => {
           <WorkflowSidebar
             steps={state.inspectionSteps}
             currentStep={state.currentStep}
-            onStepClick={(stepIndex) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepIndex })}
+            onStepClick={(stepIndex) =>
+              dispatch({ type: "SET_CURRENT_STEP", payload: stepIndex })
+            }
             isOnline={isOnline}
           />
-          
+
           <div className="lg:col-span-3">
             <div className="space-y-6">
-              <WorkflowActions
-                state={state}
-                onSafeReturn={handleSafeReturn}
-              />
-              
+              <WorkflowActions state={state} onSafeReturn={handleSafeReturn} />
+
               <WorkflowStepContent
                 state={state}
                 error={error}

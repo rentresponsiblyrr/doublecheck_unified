@@ -1,16 +1,16 @@
 /**
  * PHOTO CAPTURE CONTROLS - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored photo capture controls following ZERO_TOLERANCE_STANDARDS
  * Reduced from 339 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - pure orchestration only
  * - Uses PhotoCaptureDataManager with render props for clean separation
  * - Professional error handling and accessibility compliance
  * - Mobile-first responsive design maintained
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - PhotoCaptureDataManager: Complete data operations with render props
  * - PhotoPreviewCard: Preview and confirm/retake actions
@@ -18,7 +18,7 @@
  * - PhotoQualityAlert: Quality warning display
  * - PhotoCaptureButtons: Primary capture controls
  * - PhotoCaptureAdditionalControls: Secondary settings controls
- * 
+ *
  * @example
  * ```typescript
  * <PhotoCaptureControls
@@ -30,17 +30,20 @@
  * ```
  */
 
-import React from 'react';
-import { cn } from '@/lib/utils';
-import type { PhotoGuidance, ChecklistItem } from '@/types/photo';
+import React from "react";
+import { cn } from "@/lib/utils";
+import type { PhotoGuidance, ChecklistItem } from "@/types/photo";
 
 // Import focused components
-import { PhotoCaptureDataManager, type PhotoCaptureMetadata } from './PhotoCaptureDataManager';
-import { PhotoPreviewCard } from './PhotoPreviewCard';
-import { ReferencePhotoPanel } from './ReferencePhotoPanel';
-import { PhotoQualityAlert } from './PhotoQualityAlert';
-import { PhotoCaptureButtons } from './PhotoCaptureButtons';
-import { PhotoCaptureAdditionalControls } from './PhotoCaptureAdditionalControls';
+import {
+  PhotoCaptureDataManager,
+  type PhotoCaptureMetadata,
+} from "./PhotoCaptureDataManager";
+import { PhotoPreviewCard } from "./PhotoPreviewCard";
+import { ReferencePhotoPanel } from "./ReferencePhotoPanel";
+import { PhotoQualityAlert } from "./PhotoQualityAlert";
+import { PhotoCaptureButtons } from "./PhotoCaptureButtons";
+import { PhotoCaptureAdditionalControls } from "./PhotoCaptureAdditionalControls";
 
 /**
  * Export PhotoCaptureMetadata from data manager
@@ -83,7 +86,7 @@ export const PhotoCaptureControls: React.FC<PhotoCaptureControlsProps> = ({
   onReferenceOpacityChange,
   expandedView,
   onToggleExpanded,
-  className
+  className,
 }) => {
   return (
     <div className={cn("space-y-4", className)} id="photo-capture-controls">
@@ -102,7 +105,7 @@ export const PhotoCaptureControls: React.FC<PhotoCaptureControlsProps> = ({
           qualityScore,
           onCapture,
           onRetake,
-          onConfirm
+          onConfirm,
         }) => (
           <>
             {/* Photo Preview State */}

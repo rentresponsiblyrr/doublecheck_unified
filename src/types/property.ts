@@ -8,7 +8,7 @@ export interface PhotoData {
   order: number;
   width?: number;
   height?: number;
-  source: 'listing' | 'inspector' | 'ai_generated';
+  source: "listing" | "inspector" | "ai_generated";
   metadata?: {
     takenDate?: Date;
     device?: string;

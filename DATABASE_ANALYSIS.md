@@ -156,8 +156,8 @@ profiles {
 ```sql
 properties {
   property_id: INTEGER PRIMARY KEY
-  property_name: TEXT           -- ⚠️ Should be NOT NULL
-  street_address: TEXT
+  name: TEXT           -- ⚠️ Should be NOT NULL
+  address: TEXT
   vrbo_url: TEXT
   airbnb_url: TEXT
   status: TEXT                  -- ⚠️ Needs CHECK constraint
@@ -170,7 +170,7 @@ properties {
 **Critical Issues:**
 - `added_by` lacks foreign key constraint → **ORPHANED RECORDS RISK**
 - No validation for URLs
-- Missing NOT NULL constraint on property_name
+- Missing NOT NULL constraint on name
 
 **Recommendations:**
 ```sql
@@ -179,7 +179,7 @@ ADD CONSTRAINT fk_properties_added_by
 FOREIGN KEY (added_by) REFERENCES profiles(id) ON DELETE CASCADE;
 
 ALTER TABLE properties 
-ALTER COLUMN property_name SET NOT NULL;
+ALTER COLUMN name SET NOT NULL;
 
 ALTER TABLE properties 
 ADD CONSTRAINT chk_properties_status 

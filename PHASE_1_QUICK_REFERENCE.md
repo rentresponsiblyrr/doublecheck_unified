@@ -62,7 +62,7 @@ const { data: inspections } = await supabase.from('inspections').select('*').lim
 console.log('Inspections columns:', Object.keys(inspections[0]));
 
 // Test 3: Relationship
-const { data, error } = await supabase.from('logs').select('*, static_safety_items(*)').limit(1);
+const { data, error } = await supabase.from('checklist_items').select('*, static_safety_items(*)').limit(1);
 console.log('Relationship error:', error?.message);
 ```
 

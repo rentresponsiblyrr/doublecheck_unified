@@ -3,8 +3,8 @@
  * Extracted from PropertyManagerDelivery.tsx
  */
 
-import React from 'react';
-import { Textarea } from '@/components/ui/textarea';
+import React from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CustomMessageFormProps {
   customMessage: string;
@@ -13,7 +13,7 @@ interface CustomMessageFormProps {
 
 export const CustomMessageForm: React.FC<CustomMessageFormProps> = ({
   customMessage,
-  onMessageChange
+  onMessageChange,
 }) => {
   return (
     <div className="space-y-2">

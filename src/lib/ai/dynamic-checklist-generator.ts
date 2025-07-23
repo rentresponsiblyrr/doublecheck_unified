@@ -1,10 +1,10 @@
 // Dynamic Checklist Generator for STR Certified MVP
 // Creates property-specific checklists from VRBO data and amenities
 
-import { STRCertifiedAIService } from './openai-service';
-import { aiDecisionLogger } from './decision-logger';
-import { logger } from '../../utils/logger';
-import type { VRBOPropertyData, PropertyAmenity } from '../scrapers/types';
+import { STRCertifiedAIService } from "./openai-service";
+import { aiDecisionLogger } from "./decision-logger";
+import { logger } from "../../utils/logger";
+import type { VRBOPropertyData, PropertyAmenity } from "../scrapers/types";
 
 // Type for AI service (nullable for security)
 type NullableAIService = STRCertifiedAIService | null;
@@ -17,11 +17,14 @@ interface RoomData {
 }
 
 // AI Response data types
-type AIResponseData = AIGeneratedItem | AIGeneratedItem[] | AIEnhancementResponse;
+type AIResponseData =
+  | AIGeneratedItem
+  | AIGeneratedItem[]
+  | AIEnhancementResponse;
 
 // Property data for AI service
 interface AIPropertyData {
-  property_type: 'apartment' | 'house' | 'condo' | 'townhouse' | 'other';
+  property_type: "apartment" | "house" | "condo" | "townhouse" | "other";
   room_count: {
     bedrooms: number;
     bathrooms: number;
@@ -42,7 +45,7 @@ interface PropertyLocation {
 // Property amenity processing types
 type AmenityMap<T> = Record<string, T>;
 type CategoryMapping = AmenityMap<ChecklistCategory>;
-type PriorityMapping = AmenityMap<'critical' | 'high' | 'medium' | 'low'>;
+type PriorityMapping = AmenityMap<"critical" | "high" | "medium" | "low">;
 type TimeMapping = AmenityMap<number>;
 type SubjectMapping = AmenityMap<string[]>;
 type InstructionMapping = AmenityMap<string>;
@@ -52,7 +55,7 @@ interface AIGeneratedItem {
   title: string;
   description: string;
   category: ChecklistCategory;
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   required: boolean;
   estimatedTimeMinutes?: number;
   roomType?: string;
@@ -77,12 +80,12 @@ export interface DynamicChecklistItem {
   evidenceRequired: boolean;
   safetyRelated: boolean;
   complianceRequired: boolean;
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   estimatedTimeMinutes: number;
   order: number;
   roomSpecific?: string;
   amenityRelated?: string[];
-  passFailOptions: ('pass' | 'fail' | 'not_applicable')[];
+  passFailOptions: ("pass" | "fail" | "not_applicable")[];
   naRequiresNote: boolean;
   expectedSubjects: string[];
   qualityThreshold: number;
@@ -91,27 +94,32 @@ export interface DynamicChecklistItem {
   instructions?: string;
   referencePhotos?: string[];
   metadata: {
-    generatedFrom: 'vrbo_amenity' | 'property_type' | 'safety_requirement' | 'compliance_rule' | 'bedroom_count';
+    generatedFrom:
+      | "vrbo_amenity"
+      | "property_type"
+      | "safety_requirement"
+      | "compliance_rule"
+      | "bedroom_count";
     sourceData: Record<string, unknown>;
     aiGenerated: boolean;
   };
 }
 
-export type ChecklistCategory = 
-  | 'safety'
-  | 'compliance'
-  | 'amenities'
-  | 'cleanliness'
-  | 'maintenance'
-  | 'documentation'
-  | 'kitchen'
-  | 'bedrooms'
-  | 'bathrooms'
-  | 'outdoor'
-  | 'entertainment'
-  | 'accessibility'
-  | 'emergency'
-  | 'general';
+export type ChecklistCategory =
+  | "safety"
+  | "compliance"
+  | "amenities"
+  | "cleanliness"
+  | "maintenance"
+  | "documentation"
+  | "kitchen"
+  | "bedrooms"
+  | "bathrooms"
+  | "outdoor"
+  | "entertainment"
+  | "accessibility"
+  | "emergency"
+  | "general";
 
 export interface ChecklistGenerationOptions {
   includeVideoWalkthrough: boolean;
@@ -147,7 +155,7 @@ export class DynamicChecklistGenerator {
   private constructor() {
     // AI service disabled for security - API key should never be in browser
     this.aiService = null;
-    
+
     this.initializeBaseRequirements();
   }
 
@@ -171,19 +179,19 @@ export class DynamicChecklistGenerator {
       includeSafetyChecks: true,
       includeComplianceChecks: true,
       includeAmenityVerification: true,
-      includeRoomSpecificItems: true
-    }
+      includeRoomSpecificItems: true,
+    },
   ): Promise<ChecklistGenerationResult> {
     const startTime = Date.now();
-    
+
     try {
       // Log checklist generation start
       await aiDecisionLogger.logSimpleDecision(
         `Generate dynamic checklist for property`,
-        'architectural_choice',
+        "architectural_choice",
         `Generating checklist for ${propertyData.specifications.bedrooms}BR/${propertyData.specifications.bathrooms}BA property with ${propertyData.amenities.length} amenities`,
         [],
-        'high'
+        "high",
       );
 
       const items: DynamicChecklistItem[] = [];
@@ -198,7 +206,7 @@ export class DynamicChecklistGenerator {
         const bedroomItems = this.generateBedroomItems(
           propertyData.specifications.bedrooms,
           propertyData.rooms,
-          currentOrder
+          currentOrder,
         );
         items.push(...bedroomItems);
         currentOrder += bedroomItems.length;
@@ -209,7 +217,7 @@ export class DynamicChecklistGenerator {
         const bathroomItems = this.generateBathroomItems(
           propertyData.specifications.bathrooms,
           propertyData.rooms,
-          currentOrder
+          currentOrder,
         );
         items.push(...bathroomItems);
         currentOrder += bathroomItems.length;
@@ -219,7 +227,7 @@ export class DynamicChecklistGenerator {
       if (options.includeAmenityVerification) {
         const amenityItems = await this.generateAmenityItems(
           propertyData.amenities,
-          currentOrder
+          currentOrder,
         );
         items.push(...amenityItems);
         currentOrder += amenityItems.length;
@@ -227,34 +235,54 @@ export class DynamicChecklistGenerator {
 
       // 5. Add safety requirements
       if (options.includeSafetyChecks) {
-        const safetyItems = this.generateSafetyItems(propertyData, currentOrder);
+        const safetyItems = this.generateSafetyItems(
+          propertyData,
+          currentOrder,
+        );
         items.push(...safetyItems);
         currentOrder += safetyItems.length;
       }
 
       // 6. Add compliance requirements
       if (options.includeComplianceChecks) {
-        const complianceItems = this.generateComplianceItems(propertyData, currentOrder);
+        const complianceItems = this.generateComplianceItems(
+          propertyData,
+          currentOrder,
+        );
         items.push(...complianceItems);
         currentOrder += complianceItems.length;
       }
 
       // 7. Add listing verification items
-      const verificationItems = this.generateListingVerificationItems(propertyData, currentOrder);
+      const verificationItems = this.generateListingVerificationItems(
+        propertyData,
+        currentOrder,
+      );
       items.push(...verificationItems);
       currentOrder += verificationItems.length;
 
       // 8. Add general inspection items
-      const generalItems = this.generateGeneralItems(propertyData, currentOrder);
+      const generalItems = this.generateGeneralItems(
+        propertyData,
+        currentOrder,
+      );
       items.push(...generalItems);
 
       // 9. Use AI to enhance and validate the checklist
-      const enhancedItems = await this.enhanceChecklistWithAI(items, propertyData);
+      const enhancedItems = await this.enhanceChecklistWithAI(
+        items,
+        propertyData,
+      );
 
       // Calculate metadata
-      const totalEstimatedTime = enhancedItems.reduce((sum, item) => sum + item.estimatedTimeMinutes, 0);
+      const totalEstimatedTime = enhancedItems.reduce(
+        (sum, item) => sum + item.estimatedTimeMinutes,
+        0,
+      );
       const categories = this.calculateCategoryDistribution(enhancedItems);
-      const aiGenerated = enhancedItems.filter(item => item.metadata.aiGenerated).length;
+      const aiGenerated = enhancedItems.filter(
+        (item) => item.metadata.aiGenerated,
+      ).length;
 
       const result: ChecklistGenerationResult = {
         items: enhancedItems,
@@ -267,22 +295,27 @@ export class DynamicChecklistGenerator {
           sourceAmenities: propertyData.amenities.length,
           aiGenerated,
           manuallyAdded: enhancedItems.length - aiGenerated,
-          processingTime: Date.now() - startTime
-        }
+          processingTime: Date.now() - startTime,
+        },
       };
 
-      logger.info(`Dynamic checklist generated`, {
-        propertyId: propertyData.vrboId,
-        totalItems: result.totalItems,
-        estimatedTime: result.estimatedTimeMinutes,
-        categories: Object.keys(categories).length,
-        processingTime: result.generationMetadata.processingTime
-      }, 'CHECKLIST_GENERATION');
+      logger.info(
+        `Dynamic checklist generated`,
+        {
+          propertyId: propertyData.vrboId,
+          totalItems: result.totalItems,
+          estimatedTime: result.estimatedTimeMinutes,
+          categories: Object.keys(categories).length,
+          processingTime: result.generationMetadata.processingTime,
+        },
+        "CHECKLIST_GENERATION",
+      );
 
       return result;
-
     } catch (error) {
-      logger.error('Failed to generate dynamic checklist', { error: (error as Error).message });
+      logger.error("Failed to generate dynamic checklist", {
+        error: (error as Error).message,
+      });
       throw error;
     }
   }
@@ -294,34 +327,42 @@ export class DynamicChecklistGenerator {
    */
   private createVideoWalkthroughItem(order: number): DynamicChecklistItem {
     return {
-      id: 'video_walkthrough_001',
-      title: '🎥 Property Video Walkthrough',
-      description: 'Great! Before we go through the full checklist, let\'s get our bearings. Give me a video tour of the property to help orient the audit process.',
-      category: 'documentation',
+      id: "video_walkthrough_001",
+      title: "🎥 Property Video Walkthrough",
+      description:
+        "Great! Before we go through the full checklist, let's get our bearings. Give me a video tour of the property to help orient the audit process.",
+      category: "documentation",
       required: true,
       evidenceRequired: true,
       safetyRelated: false,
       complianceRequired: true,
-      priority: 'critical',
+      priority: "critical",
       estimatedTimeMinutes: 15,
       order: 1, // Always first, regardless of input order
-      passFailOptions: ['pass', 'fail'],
+      passFailOptions: ["pass", "fail"],
       naRequiresNote: false,
-      expectedSubjects: ['all_rooms', 'exterior', 'amenities', 'safety_equipment', 'property_overview'],
+      expectedSubjects: [
+        "all_rooms",
+        "exterior",
+        "amenities",
+        "safety_equipment",
+        "property_overview",
+      ],
       qualityThreshold: 80,
       isVideoWalkthrough: true,
       canRename: false,
-      instructions: 'Click the record button to start your video walkthrough. Walk through each room slowly, narrating key features, amenities, and the overall condition. Show all areas guests will access including bedrooms, bathrooms, kitchen, living areas, and any outdoor spaces.',
+      instructions:
+        "Click the record button to start your video walkthrough. Walk through each room slowly, narrating key features, amenities, and the overall condition. Show all areas guests will access including bedrooms, bathrooms, kitchen, living areas, and any outdoor spaces.",
       referencePhotos: [],
       metadata: {
-        generatedFrom: 'safety_requirement',
-        sourceData: { 
-          type: 'mandatory_walkthrough',
+        generatedFrom: "safety_requirement",
+        sourceData: {
+          type: "mandatory_walkthrough",
           isFirstItem: true,
-          requiresPermissions: ['camera', 'microphone']
+          requiresPermissions: ["camera", "microphone"],
         },
-        aiGenerated: false
-      }
+        aiGenerated: false,
+      },
     };
   }
 
@@ -335,40 +376,46 @@ export class DynamicChecklistGenerator {
   private generateBedroomItems(
     bedroomCount: number,
     rooms: RoomData[],
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const items: DynamicChecklistItem[] = [];
-    
+
     for (let i = 1; i <= bedroomCount; i++) {
       const bedroomItem: DynamicChecklistItem = {
         id: `bedroom_${i}_inspection`,
         title: `Bedroom ${i}`,
         description: `Inspect bedroom ${i} for cleanliness, safety, and amenities`,
-        category: 'bedrooms',
+        category: "bedrooms",
         required: true,
         evidenceRequired: true,
         safetyRelated: true,
         complianceRequired: false,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 8,
         order: startOrder + i - 1,
         roomSpecific: `bedroom_${i}`,
-        passFailOptions: ['pass', 'fail', 'not_applicable'],
+        passFailOptions: ["pass", "fail", "not_applicable"],
         naRequiresNote: true,
-        expectedSubjects: ['bed', 'furniture', 'lighting', 'windows', 'outlets'],
+        expectedSubjects: [
+          "bed",
+          "furniture",
+          "lighting",
+          "windows",
+          "outlets",
+        ],
         qualityThreshold: 75,
         canRename: true,
         instructions: `Check bed quality, linens, furniture condition, lighting, and safety features. Rename if needed (e.g., "Primary Bedroom", "Kids Room").`,
         metadata: {
-          generatedFrom: 'bedroom_count',
+          generatedFrom: "bedroom_count",
           sourceData: { bedroomNumber: i, totalBedrooms: bedroomCount },
-          aiGenerated: false
-        }
+          aiGenerated: false,
+        },
       };
-      
+
       items.push(bedroomItem);
     }
-    
+
     return items;
   }
 
@@ -382,40 +429,46 @@ export class DynamicChecklistGenerator {
   private generateBathroomItems(
     bathroomCount: number,
     rooms: RoomData[],
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const items: DynamicChecklistItem[] = [];
-    
+
     for (let i = 1; i <= bathroomCount; i++) {
       const bathroomItem: DynamicChecklistItem = {
         id: `bathroom_${i}_inspection`,
         title: `Bathroom ${i}`,
         description: `Inspect bathroom ${i} for cleanliness, functionality, and safety`,
-        category: 'bathrooms',
+        category: "bathrooms",
         required: true,
         evidenceRequired: true,
         safetyRelated: true,
         complianceRequired: true,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 10,
         order: startOrder + i - 1,
         roomSpecific: `bathroom_${i}`,
-        passFailOptions: ['pass', 'fail', 'not_applicable'],
+        passFailOptions: ["pass", "fail", "not_applicable"],
         naRequiresNote: true,
-        expectedSubjects: ['toilet', 'sink', 'shower_tub', 'fixtures', 'ventilation'],
+        expectedSubjects: [
+          "toilet",
+          "sink",
+          "shower_tub",
+          "fixtures",
+          "ventilation",
+        ],
         qualityThreshold: 80,
         canRename: false,
         instructions: `Check all fixtures, plumbing, cleanliness, ventilation, and safety features. Test water pressure and temperature.`,
         metadata: {
-          generatedFrom: 'property_type',
+          generatedFrom: "property_type",
           sourceData: { bathroomNumber: i, totalBathrooms: bathroomCount },
-          aiGenerated: false
-        }
+          aiGenerated: false,
+        },
       };
-      
+
       items.push(bathroomItem);
     }
-    
+
     return items;
   }
 
@@ -427,20 +480,24 @@ export class DynamicChecklistGenerator {
    */
   private async generateAmenityItems(
     amenities: PropertyAmenity[],
-    startOrder: number
+    startOrder: number,
   ): Promise<DynamicChecklistItem[]> {
     const items: DynamicChecklistItem[] = [];
-    
+
     // Filter high-priority amenities that need verification
-    const verifiableAmenities = amenities.filter(amenity => 
-      amenity.priority === 'essential' || 
-      amenity.priority === 'important' ||
-      amenity.category === 'safety'
+    const verifiableAmenities = amenities.filter(
+      (amenity) =>
+        amenity.priority === "essential" ||
+        amenity.priority === "important" ||
+        amenity.category === "safety",
     );
 
     for (let i = 0; i < verifiableAmenities.length; i++) {
       const amenity = verifiableAmenities[i];
-      const item = await this.createAmenityChecklistItem(amenity, startOrder + i);
+      const item = await this.createAmenityChecklistItem(
+        amenity,
+        startOrder + i,
+      );
       items.push(item);
     }
 
@@ -455,34 +512,35 @@ export class DynamicChecklistGenerator {
    */
   private async createAmenityChecklistItem(
     amenity: PropertyAmenity,
-    order: number
+    order: number,
   ): Promise<DynamicChecklistItem> {
     const amenityInstructions = this.getAmenityInstructions(amenity);
-    
+
     return {
-      id: `amenity_${amenity.name.toLowerCase().replace(/\s+/g, '_')}_${order}`,
+      id: `amenity_${amenity.name.toLowerCase().replace(/\s+/g, "_")}_${order}`,
       title: `${amenity.name} Verification`,
       description: `Verify the ${amenity.name} is present, functional, and matches listing description`,
       category: this.mapAmenityToCategory(amenity.category),
-      required: amenity.priority === 'essential',
+      required: amenity.priority === "essential",
       evidenceRequired: true,
-      safetyRelated: amenity.category === 'safety',
-      complianceRequired: amenity.category === 'safety' || amenity.category === 'accessibility',
+      safetyRelated: amenity.category === "safety",
+      complianceRequired:
+        amenity.category === "safety" || amenity.category === "accessibility",
       priority: this.mapAmenityPriority(amenity.priority),
       estimatedTimeMinutes: this.getAmenityInspectionTime(amenity),
       order,
       amenityRelated: [amenity.name],
-      passFailOptions: ['pass', 'fail', 'not_applicable'],
+      passFailOptions: ["pass", "fail", "not_applicable"],
       naRequiresNote: true,
       expectedSubjects: this.getAmenityExpectedSubjects(amenity),
-      qualityThreshold: amenity.priority === 'essential' ? 85 : 75,
+      qualityThreshold: amenity.priority === "essential" ? 85 : 75,
       canRename: false,
       instructions: amenityInstructions,
       metadata: {
-        generatedFrom: 'vrbo_amenity',
+        generatedFrom: "vrbo_amenity",
         sourceData: amenity as unknown as Record<string, unknown>,
-        aiGenerated: false
-      }
+        aiGenerated: false,
+      },
     };
   }
 
@@ -494,81 +552,95 @@ export class DynamicChecklistGenerator {
    */
   private generateSafetyItems(
     propertyData: VRBOPropertyData,
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const safetyItems: DynamicChecklistItem[] = [
       {
-        id: 'smoke_detector_check',
-        title: 'Smoke Detector Inspection',
-        description: 'Verify smoke detectors are present, functional, and have fresh batteries',
-        category: 'safety',
+        id: "smoke_detector_check",
+        title: "Smoke Detector Inspection",
+        description:
+          "Verify smoke detectors are present, functional, and have fresh batteries",
+        category: "safety",
         required: true,
         evidenceRequired: true,
         safetyRelated: true,
         complianceRequired: true,
-        priority: 'critical',
+        priority: "critical",
         estimatedTimeMinutes: 5,
         order: startOrder,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['smoke_detector', 'battery_indicator', 'test_button'],
+        expectedSubjects: [
+          "smoke_detector",
+          "battery_indicator",
+          "test_button",
+        ],
         qualityThreshold: 90,
         canRename: false,
-        instructions: 'Test each smoke detector and check battery levels. Document any issues.',
+        instructions:
+          "Test each smoke detector and check battery levels. Document any issues.",
         metadata: {
-          generatedFrom: 'safety_requirement',
-          sourceData: { type: 'smoke_detection' },
-          aiGenerated: false
-        }
+          generatedFrom: "safety_requirement",
+          sourceData: { type: "smoke_detection" },
+          aiGenerated: false,
+        },
       },
       {
-        id: 'fire_extinguisher_check',
-        title: 'Fire Extinguisher Inspection',
-        description: 'Verify fire extinguisher is present, accessible, and within inspection dates',
-        category: 'safety',
+        id: "fire_extinguisher_check",
+        title: "Fire Extinguisher Inspection",
+        description:
+          "Verify fire extinguisher is present, accessible, and within inspection dates",
+        category: "safety",
         required: true,
         evidenceRequired: true,
         safetyRelated: true,
         complianceRequired: true,
-        priority: 'critical',
+        priority: "critical",
         estimatedTimeMinutes: 3,
         order: startOrder + 1,
-        passFailOptions: ['pass', 'fail', 'not_applicable'],
+        passFailOptions: ["pass", "fail", "not_applicable"],
         naRequiresNote: true,
-        expectedSubjects: ['fire_extinguisher', 'inspection_tag', 'mounting_bracket'],
+        expectedSubjects: [
+          "fire_extinguisher",
+          "inspection_tag",
+          "mounting_bracket",
+        ],
         qualityThreshold: 90,
         canRename: false,
-        instructions: 'Check expiration date, pressure gauge, and accessibility. Note if not required by local code.',
+        instructions:
+          "Check expiration date, pressure gauge, and accessibility. Note if not required by local code.",
         metadata: {
-          generatedFrom: 'safety_requirement',
-          sourceData: { type: 'fire_safety' },
-          aiGenerated: false
-        }
+          generatedFrom: "safety_requirement",
+          sourceData: { type: "fire_safety" },
+          aiGenerated: false,
+        },
       },
       {
-        id: 'emergency_exits_check',
-        title: 'Emergency Exits Inspection',
-        description: 'Verify all emergency exits are clearly marked and unobstructed',
-        category: 'safety',
+        id: "emergency_exits_check",
+        title: "Emergency Exits Inspection",
+        description:
+          "Verify all emergency exits are clearly marked and unobstructed",
+        category: "safety",
         required: true,
         evidenceRequired: true,
         safetyRelated: true,
         complianceRequired: true,
-        priority: 'critical',
+        priority: "critical",
         estimatedTimeMinutes: 4,
         order: startOrder + 2,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['exit_doors', 'exit_signs', 'clear_pathways'],
+        expectedSubjects: ["exit_doors", "exit_signs", "clear_pathways"],
         qualityThreshold: 85,
         canRename: false,
-        instructions: 'Check all exit doors open easily and pathways are clear of obstructions.',
+        instructions:
+          "Check all exit doors open easily and pathways are clear of obstructions.",
         metadata: {
-          generatedFrom: 'safety_requirement',
-          sourceData: { type: 'emergency_egress' },
-          aiGenerated: false
-        }
-      }
+          generatedFrom: "safety_requirement",
+          sourceData: { type: "emergency_egress" },
+          aiGenerated: false,
+        },
+      },
     ];
 
     return safetyItems;
@@ -582,33 +654,34 @@ export class DynamicChecklistGenerator {
    */
   private generateComplianceItems(
     propertyData: VRBOPropertyData,
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const complianceItems: DynamicChecklistItem[] = [
       {
-        id: 'occupancy_limits_check',
-        title: 'Occupancy Limits Verification',
-        description: 'Verify sleeping arrangements match advertised capacity',
-        category: 'compliance',
+        id: "occupancy_limits_check",
+        title: "Occupancy Limits Verification",
+        description: "Verify sleeping arrangements match advertised capacity",
+        category: "compliance",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: true,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 5,
         order: startOrder,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['bed_count', 'sleeping_areas', 'capacity_signage'],
+        expectedSubjects: ["bed_count", "sleeping_areas", "capacity_signage"],
         qualityThreshold: 80,
         canRename: false,
-        instructions: 'Count actual sleeping spaces and verify they match listing capacity.',
+        instructions:
+          "Count actual sleeping spaces and verify they match listing capacity.",
         metadata: {
-          generatedFrom: 'compliance_rule',
+          generatedFrom: "compliance_rule",
           sourceData: { maxGuests: propertyData.specifications.maxGuests },
-          aiGenerated: false
-        }
-      }
+          aiGenerated: false,
+        },
+      },
     ];
 
     return complianceItems;
@@ -622,118 +695,147 @@ export class DynamicChecklistGenerator {
    */
   private generateListingVerificationItems(
     propertyData: VRBOPropertyData,
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const verificationItems: DynamicChecklistItem[] = [
       {
-        id: 'listing_photos_verification',
-        title: 'Listing Photos Verification',
-        description: 'Compare property condition to listing photos and verify accuracy',
-        category: 'documentation',
+        id: "listing_photos_verification",
+        title: "Listing Photos Verification",
+        description:
+          "Compare property condition to listing photos and verify accuracy",
+        category: "documentation",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: true,
-        priority: 'critical',
+        priority: "critical",
         estimatedTimeMinutes: 15,
         order: startOrder,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['listing_comparison', 'photo_accuracy', 'condition_verification'],
+        expectedSubjects: [
+          "listing_comparison",
+          "photo_accuracy",
+          "condition_verification",
+        ],
         qualityThreshold: 85,
         canRename: false,
-        instructions: 'Take photos from same angles as listing photos. Document any discrepancies between actual property and listing images.',
+        instructions:
+          "Take photos from same angles as listing photos. Document any discrepancies between actual property and listing images.",
         metadata: {
-          generatedFrom: 'compliance_rule',
-          sourceData: { verificationType: 'listing_accuracy', vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl },
-          aiGenerated: false
-        }
+          generatedFrom: "compliance_rule",
+          sourceData: {
+            verificationType: "listing_accuracy",
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl,
+          },
+          aiGenerated: false,
+        },
       },
       {
-        id: 'amenities_listing_verification',
-        title: 'Amenities vs Listing Verification',
-        description: 'Verify all advertised amenities are present and functional',
-        category: 'amenities',
+        id: "amenities_listing_verification",
+        title: "Amenities vs Listing Verification",
+        description:
+          "Verify all advertised amenities are present and functional",
+        category: "amenities",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: true,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 12,
         order: startOrder + 1,
-        passFailOptions: ['pass', 'fail', 'not_applicable'],
+        passFailOptions: ["pass", "fail", "not_applicable"],
         naRequiresNote: true,
-        expectedSubjects: ['amenity_verification', 'functionality_check', 'listing_accuracy'],
+        expectedSubjects: [
+          "amenity_verification",
+          "functionality_check",
+          "listing_accuracy",
+        ],
         qualityThreshold: 80,
         canRename: false,
-        instructions: `Check each amenity listed in the Vrbo posting: ${propertyData.amenities.map(a => a.name).slice(0, 5).join(', ')}${propertyData.amenities.length > 5 ? '...' : ''}. Document any missing or non-functional items.`,
+        instructions: `Check each amenity listed in the Vrbo posting: ${propertyData.amenities
+          .map((a) => a.name)
+          .slice(0, 5)
+          .join(
+            ", ",
+          )}${propertyData.amenities.length > 5 ? "..." : ""}. Document any missing or non-functional items.`,
         metadata: {
-          generatedFrom: 'vrbo_amenity',
-          sourceData: { 
-            verificationType: 'amenity_accuracy', 
+          generatedFrom: "vrbo_amenity",
+          sourceData: {
+            verificationType: "amenity_accuracy",
             listedAmenities: propertyData.amenities.length,
-            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl,
           },
-          aiGenerated: false
-        }
+          aiGenerated: false,
+        },
       },
       {
-        id: 'room_count_verification',
-        title: 'Room Count Verification',
-        description: 'Verify bedroom and bathroom counts match listing description',
-        category: 'compliance',
+        id: "room_count_verification",
+        title: "Room Count Verification",
+        description:
+          "Verify bedroom and bathroom counts match listing description",
+        category: "compliance",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: true,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 8,
         order: startOrder + 2,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['bedroom_count', 'bathroom_count', 'listing_accuracy'],
+        expectedSubjects: [
+          "bedroom_count",
+          "bathroom_count",
+          "listing_accuracy",
+        ],
         qualityThreshold: 90,
         canRename: false,
         instructions: `Verify property has ${propertyData.specifications.bedrooms} bedrooms and ${propertyData.specifications.bathrooms} bathrooms as advertised. Document any discrepancies.`,
         metadata: {
-          generatedFrom: 'compliance_rule',
-          sourceData: { 
-            verificationType: 'room_count_accuracy',
+          generatedFrom: "compliance_rule",
+          sourceData: {
+            verificationType: "room_count_accuracy",
             listedBedrooms: propertyData.specifications.bedrooms,
             listedBathrooms: propertyData.specifications.bathrooms,
-            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl,
           },
-          aiGenerated: false
-        }
+          aiGenerated: false,
+        },
       },
       {
-        id: 'capacity_verification',
-        title: 'Guest Capacity Verification',
-        description: 'Verify actual sleeping capacity matches advertised guest limit',
-        category: 'compliance',
+        id: "capacity_verification",
+        title: "Guest Capacity Verification",
+        description:
+          "Verify actual sleeping capacity matches advertised guest limit",
+        category: "compliance",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: true,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 10,
         order: startOrder + 3,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['sleeping_arrangements', 'guest_capacity', 'listing_accuracy'],
+        expectedSubjects: [
+          "sleeping_arrangements",
+          "guest_capacity",
+          "listing_accuracy",
+        ],
         qualityThreshold: 85,
         canRename: false,
         instructions: `Count actual sleeping spaces and verify they accommodate ${propertyData.specifications.maxGuests} guests as advertised. Include beds, sofa beds, air mattresses, etc.`,
         metadata: {
-          generatedFrom: 'compliance_rule',
-          sourceData: { 
-            verificationType: 'capacity_accuracy',
+          generatedFrom: "compliance_rule",
+          sourceData: {
+            verificationType: "capacity_accuracy",
             listedCapacity: propertyData.specifications.maxGuests,
-            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl 
+            vrboUrl: (propertyData as { vrboUrl?: string }).vrboUrl,
           },
-          aiGenerated: false
-        }
-      }
+          aiGenerated: false,
+        },
+      },
     ];
 
     return verificationItems;
@@ -747,33 +849,39 @@ export class DynamicChecklistGenerator {
    */
   private generateGeneralItems(
     propertyData: VRBOPropertyData,
-    startOrder: number
+    startOrder: number,
   ): DynamicChecklistItem[] {
     const generalItems: DynamicChecklistItem[] = [
       {
-        id: 'overall_cleanliness_check',
-        title: 'Overall Cleanliness Assessment',
-        description: 'Assess general cleanliness and maintenance of the property',
-        category: 'cleanliness',
+        id: "overall_cleanliness_check",
+        title: "Overall Cleanliness Assessment",
+        description:
+          "Assess general cleanliness and maintenance of the property",
+        category: "cleanliness",
         required: true,
         evidenceRequired: true,
         safetyRelated: false,
         complianceRequired: false,
-        priority: 'high',
+        priority: "high",
         estimatedTimeMinutes: 10,
         order: startOrder,
-        passFailOptions: ['pass', 'fail'],
+        passFailOptions: ["pass", "fail"],
         naRequiresNote: false,
-        expectedSubjects: ['general_condition', 'maintenance_issues', 'cleanliness_level'],
+        expectedSubjects: [
+          "general_condition",
+          "maintenance_issues",
+          "cleanliness_level",
+        ],
         qualityThreshold: 75,
         canRename: false,
-        instructions: 'Document overall property condition, noting any maintenance or cleanliness issues.',
+        instructions:
+          "Document overall property condition, noting any maintenance or cleanliness issues.",
         metadata: {
-          generatedFrom: 'property_type',
-          sourceData: { type: 'general_inspection' },
-          aiGenerated: false
-        }
-      }
+          generatedFrom: "property_type",
+          sourceData: { type: "general_inspection" },
+          aiGenerated: false,
+        },
+      },
     ];
 
     return generalItems;
@@ -787,14 +895,20 @@ export class DynamicChecklistGenerator {
    */
   private async enhanceChecklistWithAI(
     items: DynamicChecklistItem[],
-    propertyData: VRBOPropertyData
+    propertyData: VRBOPropertyData,
   ): Promise<DynamicChecklistItem[]> {
     try {
       // AI enhancement disabled for security - return items without AI enhancement
-      logger.info('AI enhancement disabled for security', { itemCount: items.length }, 'CHECKLIST_GENERATION');
+      logger.info(
+        "AI enhancement disabled for security",
+        { itemCount: items.length },
+        "CHECKLIST_GENERATION",
+      );
       return items;
     } catch (error) {
-      logger.error('AI enhancement failed, using base checklist', { error: (error as Error).message });
+      logger.error("AI enhancement failed, using base checklist", {
+        error: (error as Error).message,
+      });
       return items;
     }
   }
@@ -805,7 +919,10 @@ export class DynamicChecklistGenerator {
    * @param order - Order in checklist
    * @returns DynamicChecklistItem
    */
-  private convertAIItemToChecklistItem(aiItem: AIGeneratedItem, order: number): DynamicChecklistItem {
+  private convertAIItemToChecklistItem(
+    aiItem: AIGeneratedItem,
+    order: number,
+  ): DynamicChecklistItem {
     return {
       id: `ai_generated_${order}`,
       title: aiItem.title,
@@ -813,21 +930,21 @@ export class DynamicChecklistGenerator {
       category: aiItem.category,
       required: aiItem.required,
       evidenceRequired: true,
-      safetyRelated: aiItem.category === 'safety',
-      complianceRequired: aiItem.category === 'compliance',
+      safetyRelated: aiItem.category === "safety",
+      complianceRequired: aiItem.category === "compliance",
       priority: aiItem.priority,
       estimatedTimeMinutes: aiItem.estimatedTimeMinutes || 5,
       order,
-      passFailOptions: ['pass', 'fail', 'not_applicable'],
+      passFailOptions: ["pass", "fail", "not_applicable"],
       naRequiresNote: true,
-      expectedSubjects: [aiItem.title.toLowerCase().replace(/\s+/g, '_')],
+      expectedSubjects: [aiItem.title.toLowerCase().replace(/\s+/g, "_")],
       qualityThreshold: 75,
       canRename: false,
       metadata: {
-        generatedFrom: 'vrbo_amenity',
+        generatedFrom: "vrbo_amenity",
         sourceData: aiItem as unknown as Record<string, unknown>,
-        aiGenerated: true
-      }
+        aiGenerated: true,
+      },
     };
   }
 
@@ -835,76 +952,91 @@ export class DynamicChecklistGenerator {
 
   private getAmenityInstructions(amenity: PropertyAmenity): string {
     const instructions: InstructionMapping = {
-      'Hot Tub': 'Check water temperature, cleanliness, and safety features. Verify cover is present.',
-      'Fireplace': 'Inspect safety screen, damper, and surrounding area. Check for soot or damage.',
-      'Pool': 'Verify water clarity, safety barriers, and pool equipment functionality.',
-      'WiFi': 'Test internet connectivity and speed. Check router location and signal strength.',
-      'Kitchen': 'Inspect all appliances, cookware, and cleanliness. Test stove, oven, and refrigerator.',
-      'Parking': 'Verify parking spaces match listing description and are accessible.',
-      'Air Conditioning': 'Test cooling function and check filter condition.',
-      'Heating': 'Test heating system and check thermostat functionality.'
+      "Hot Tub":
+        "Check water temperature, cleanliness, and safety features. Verify cover is present.",
+      Fireplace:
+        "Inspect safety screen, damper, and surrounding area. Check for soot or damage.",
+      Pool: "Verify water clarity, safety barriers, and pool equipment functionality.",
+      WiFi: "Test internet connectivity and speed. Check router location and signal strength.",
+      Kitchen:
+        "Inspect all appliances, cookware, and cleanliness. Test stove, oven, and refrigerator.",
+      Parking:
+        "Verify parking spaces match listing description and are accessible.",
+      "Air Conditioning": "Test cooling function and check filter condition.",
+      Heating: "Test heating system and check thermostat functionality.",
     };
-    
-    return instructions[amenity.name] || 
-           `Verify ${amenity.name} is present, functional, and matches the listing description.`;
+
+    return (
+      instructions[amenity.name] ||
+      `Verify ${amenity.name} is present, functional, and matches the listing description.`
+    );
   }
 
   private mapAmenityToCategory(amenityCategory: string): ChecklistCategory {
     const categoryMap: CategoryMapping = {
-      'kitchen': 'kitchen',
-      'outdoor': 'outdoor',
-      'entertainment': 'entertainment',
-      'safety': 'safety',
-      'accessibility': 'accessibility',
-      'general': 'general',
-      'laundry': 'maintenance',
-      'parking': 'general',
-      'connectivity': 'general',
-      'climate': 'maintenance'
+      kitchen: "kitchen",
+      outdoor: "outdoor",
+      entertainment: "entertainment",
+      safety: "safety",
+      accessibility: "accessibility",
+      general: "general",
+      laundry: "maintenance",
+      parking: "general",
+      connectivity: "general",
+      climate: "maintenance",
     };
-    
-    return categoryMap[amenityCategory] || 'general';
+
+    return categoryMap[amenityCategory] || "general";
   }
 
-  private mapAmenityPriority(amenityPriority: string): 'critical' | 'high' | 'medium' | 'low' {
+  private mapAmenityPriority(
+    amenityPriority: string,
+  ): "critical" | "high" | "medium" | "low" {
     const priorityMap: PriorityMapping = {
-      'essential': 'critical',
-      'important': 'high',
-      'nice_to_have': 'medium'
+      essential: "critical",
+      important: "high",
+      nice_to_have: "medium",
     };
-    
-    return priorityMap[amenityPriority] || 'medium';
+
+    return priorityMap[amenityPriority] || "medium";
   }
 
   private getAmenityInspectionTime(amenity: PropertyAmenity): number {
     const timeMap: TimeMapping = {
-      'Hot Tub': 8,
-      'Pool': 10,
-      'Fireplace': 6,
-      'Kitchen': 12,
-      'WiFi': 3,
-      'Air Conditioning': 4,
-      'Heating': 4,
-      'Parking': 2
+      "Hot Tub": 8,
+      Pool: 10,
+      Fireplace: 6,
+      Kitchen: 12,
+      WiFi: 3,
+      "Air Conditioning": 4,
+      Heating: 4,
+      Parking: 2,
     };
-    
+
     return timeMap[amenity.name] || 5;
   }
 
   private getAmenityExpectedSubjects(amenity: PropertyAmenity): string[] {
     const subjectMap: SubjectMapping = {
-      'Hot Tub': ['hot_tub', 'cover', 'controls', 'safety_features'],
-      'Fireplace': ['fireplace', 'screen', 'damper', 'surrounding_area'],
-      'Pool': ['pool', 'water', 'safety_barriers', 'equipment'],
-      'Kitchen': ['appliances', 'cookware', 'utensils', 'cleanliness'],
-      'WiFi': ['router', 'signal_strength', 'connectivity'],
-      'Parking': ['parking_spaces', 'accessibility', 'markings']
+      "Hot Tub": ["hot_tub", "cover", "controls", "safety_features"],
+      Fireplace: ["fireplace", "screen", "damper", "surrounding_area"],
+      Pool: ["pool", "water", "safety_barriers", "equipment"],
+      Kitchen: ["appliances", "cookware", "utensils", "cleanliness"],
+      WiFi: ["router", "signal_strength", "connectivity"],
+      Parking: ["parking_spaces", "accessibility", "markings"],
     };
-    
-    return subjectMap[amenity.name] || [amenity.name.toLowerCase().replace(/\s+/g, '_')];
+
+    return (
+      subjectMap[amenity.name] || [
+        amenity.name.toLowerCase().replace(/\s+/g, "_"),
+      ]
+    );
   }
 
-  private buildEnhancementPrompt(items: DynamicChecklistItem[], propertyData: VRBOPropertyData): string {
+  private buildEnhancementPrompt(
+    items: DynamicChecklistItem[],
+    propertyData: VRBOPropertyData,
+  ): string {
     return `
 Review and enhance this STR inspection checklist:
 
@@ -912,7 +1044,7 @@ Property: ${propertyData.title}
 Type: ${propertyData.specifications.propertyType}
 Bedrooms: ${propertyData.specifications.bedrooms}
 Bathrooms: ${propertyData.specifications.bathrooms}
-Amenities: ${propertyData.amenities.map(a => a.name).join(', ')}
+Amenities: ${propertyData.amenities.map((a) => a.name).join(", ")}
 
 Current checklist has ${items.length} items. 
 
@@ -926,7 +1058,9 @@ Focus on actionable, specific items that an inspector can verify with photo evid
     `.trim();
   }
 
-  private calculateCategoryDistribution(items: DynamicChecklistItem[]): Record<ChecklistCategory, number> {
+  private calculateCategoryDistribution(
+    items: DynamicChecklistItem[],
+  ): Record<ChecklistCategory, number> {
     const distribution: Record<ChecklistCategory, number> = {
       safety: 0,
       compliance: 0,
@@ -941,10 +1075,10 @@ Focus on actionable, specific items that an inspector can verify with photo evid
       entertainment: 0,
       accessibility: 0,
       emergency: 0,
-      general: 0
+      general: 0,
     };
 
-    items.forEach(item => {
+    items.forEach((item) => {
       distribution[item.category]++;
     });
 
@@ -958,7 +1092,11 @@ Focus on actionable, specific items that an inspector can verify with photo evid
 }
 
 // Export singleton instance
-export const dynamicChecklistGenerator = DynamicChecklistGenerator.getInstance();
+export const dynamicChecklistGenerator =
+  DynamicChecklistGenerator.getInstance();
 
 // Export convenience function
-export const generateChecklistFromVRBO = dynamicChecklistGenerator.generateChecklistFromVRBO.bind(dynamicChecklistGenerator);
+export const generateChecklistFromVRBO =
+  dynamicChecklistGenerator.generateChecklistFromVRBO.bind(
+    dynamicChecklistGenerator,
+  );

@@ -1,7 +1,6 @@
-
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { getCachedRole } from '@/utils/mobileCacheUtils';
+import { useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { getCachedRole } from "@/utils/mobileCacheUtils";
 
 interface UseAuthInitializationProps {
   setSession: (session: any) => void;
@@ -20,9 +19,8 @@ export const useAuthInitialization = ({
   setLoading,
   setError,
   fetchUserRole,
-  initializationRef
+  initializationRef,
 }: UseAuthInitializationProps) => {
-  
   const initializeAuth = useCallback(async (): Promise<void> => {
     if (initializationRef.current) {
       return initializationRef.current;
@@ -34,41 +32,43 @@ export const useAuthInitialization = ({
       try {
         // Mobile-friendly timeout (2 seconds)
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Mobile auth timeout')), 2000);
+          setTimeout(() => reject(new Error("Mobile auth timeout")), 2000);
         });
 
         const sessionPromise = supabase.auth.getSession();
-        
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
-        
+
+        const {
+          data: { session },
+        } = await Promise.race([sessionPromise, timeoutPromise]);
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           const cachedRole = getCachedRole(session.user.id);
           if (cachedRole) {
             setUserRole(cachedRole);
           } else {
-            setUserRole('inspector');
+            setUserRole("inspector");
             // Background role fetch for mobile
-            fetchUserRole(session.user.id, false).then(role => {
-              setUserRole(role);
-            }).catch(() => {
-            });
+            fetchUserRole(session.user.id, false)
+              .then((role) => {
+                setUserRole(role);
+              })
+              .catch(() => {});
           }
         } else {
           setUserRole(null);
         }
-        
+
         setLoading(false);
         setError(null);
         resolve();
-        
       } catch (error) {
         setUser(null);
         setSession(null);
         setUserRole(null);
-        setError('Mobile authentication failed');
+        setError("Mobile authentication failed");
         setLoading(false);
         resolve();
       }
@@ -76,7 +76,15 @@ export const useAuthInitialization = ({
 
     initializationRef.current = initPromise;
     return initPromise;
-  }, [setSession, setUser, setUserRole, setLoading, setError, fetchUserRole, initializationRef]);
+  }, [
+    setSession,
+    setUser,
+    setUserRole,
+    setLoading,
+    setError,
+    fetchUserRole,
+    initializationRef,
+  ]);
 
   return { initializeAuth };
 };

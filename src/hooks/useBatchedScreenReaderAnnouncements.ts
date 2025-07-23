@@ -4,11 +4,11 @@
  * Maintains WCAG 2.1 AA compliance while improving performance
  */
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from "react";
 
 interface AnnouncementBatch {
   message: string;
-  priority: 'polite' | 'assertive';
+  priority: "polite" | "assertive";
   timestamp: number;
 }
 
@@ -24,25 +24,28 @@ interface BatchedAnnouncementsOptions {
  * Optimizes performance by batching rapid announcements while maintaining accessibility
  */
 export const useBatchedScreenReaderAnnouncements = (
-  options: BatchedAnnouncementsOptions = {}
+  options: BatchedAnnouncementsOptions = {},
 ) => {
   const {
     batchDelay = 500,
     maxBatchSize = 3,
     deduplicationWindow = 1000,
-    enableBatching = true
+    enableBatching = true,
   } = options;
 
   const pendingAnnouncements = useRef<AnnouncementBatch[]>([]);
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastAnnouncementRef = useRef<{ message: string; timestamp: number } | null>(null);
+  const lastAnnouncementRef = useRef<{
+    message: string;
+    timestamp: number;
+  } | null>(null);
   const currentAnnouncementElements = useRef<HTMLElement[]>([]);
 
   /**
    * Clean up announcement elements after screen readers process them
    */
   const cleanupAnnouncementElements = useCallback(() => {
-    currentAnnouncementElements.current.forEach(element => {
+    currentAnnouncementElements.current.forEach((element) => {
       if (document.body.contains(element)) {
         document.body.removeChild(element);
       }
@@ -58,47 +61,47 @@ export const useBatchedScreenReaderAnnouncements = (
     if (pendingAnnouncements.current.length === 0) return;
 
     const batch = pendingAnnouncements.current.splice(0, maxBatchSize);
-    
+
     // Group announcements by priority
     const assertiveMessages = batch
-      .filter(item => item.priority === 'assertive')
-      .map(item => item.message);
-    
+      .filter((item) => item.priority === "assertive")
+      .map((item) => item.message);
+
     const politeMessages = batch
-      .filter(item => item.priority === 'polite')
-      .map(item => item.message);
+      .filter((item) => item.priority === "polite")
+      .map((item) => item.message);
 
     // Create announcement elements for each priority level
     if (assertiveMessages.length > 0) {
-      const assertiveElement = document.createElement('div');
-      assertiveElement.setAttribute('aria-live', 'assertive');
-      assertiveElement.setAttribute('aria-atomic', 'true');
-      assertiveElement.className = 'sr-only';
-      
+      const assertiveElement = document.createElement("div");
+      assertiveElement.setAttribute("aria-live", "assertive");
+      assertiveElement.setAttribute("aria-atomic", "true");
+      assertiveElement.className = "sr-only";
+
       // Combine messages intelligently
       if (assertiveMessages.length === 1) {
         assertiveElement.textContent = assertiveMessages[0];
       } else {
-        assertiveElement.textContent = `${assertiveMessages.length} updates: ${assertiveMessages.join('. ')}.`;
+        assertiveElement.textContent = `${assertiveMessages.length} updates: ${assertiveMessages.join(". ")}.`;
       }
-      
+
       document.body.appendChild(assertiveElement);
       currentAnnouncementElements.current.push(assertiveElement);
     }
 
     if (politeMessages.length > 0) {
-      const politeElement = document.createElement('div');
-      politeElement.setAttribute('aria-live', 'polite');
-      politeElement.setAttribute('aria-atomic', 'true');
-      politeElement.className = 'sr-only';
-      
+      const politeElement = document.createElement("div");
+      politeElement.setAttribute("aria-live", "polite");
+      politeElement.setAttribute("aria-atomic", "true");
+      politeElement.className = "sr-only";
+
       // Combine messages intelligently
       if (politeMessages.length === 1) {
         politeElement.textContent = politeMessages[0];
       } else {
-        politeElement.textContent = `${politeMessages.length} status updates: ${politeMessages.join('. ')}.`;
+        politeElement.textContent = `${politeMessages.length} status updates: ${politeMessages.join(". ")}.`;
       }
-      
+
       document.body.appendChild(politeElement);
       currentAnnouncementElements.current.push(politeElement);
     }
@@ -115,63 +118,67 @@ export const useBatchedScreenReaderAnnouncements = (
   /**
    * Check if message should be deduplicated
    */
-  const shouldDeduplicate = useCallback((message: string): boolean => {
-    if (!lastAnnouncementRef.current) return false;
-    
-    const timeSinceLastAnnouncement = Date.now() - lastAnnouncementRef.current.timestamp;
-    const isSameMessage = lastAnnouncementRef.current.message === message;
-    
-    return isSameMessage && timeSinceLastAnnouncement < deduplicationWindow;
-  }, [deduplicationWindow]);
+  const shouldDeduplicate = useCallback(
+    (message: string): boolean => {
+      if (!lastAnnouncementRef.current) return false;
+
+      const timeSinceLastAnnouncement =
+        Date.now() - lastAnnouncementRef.current.timestamp;
+      const isSameMessage = lastAnnouncementRef.current.message === message;
+
+      return isSameMessage && timeSinceLastAnnouncement < deduplicationWindow;
+    },
+    [deduplicationWindow],
+  );
 
   /**
    * Announce message to screen readers with batching optimization
    */
-  const announceToScreenReader = useCallback((
-    message: string, 
-    priority: 'polite' | 'assertive' = 'polite'
-  ) => {
-    // Skip empty messages
-    if (!message.trim()) return;
+  const announceToScreenReader = useCallback(
+    (message: string, priority: "polite" | "assertive" = "polite") => {
+      // Skip empty messages
+      if (!message.trim()) return;
 
-    // Skip if this is a duplicate recent message
-    if (shouldDeduplicate(message)) return;
+      // Skip if this is a duplicate recent message
+      if (shouldDeduplicate(message)) return;
 
-    // Update last announcement tracking
-    lastAnnouncementRef.current = {
-      message,
-      timestamp: Date.now()
-    };
+      // Update last announcement tracking
+      lastAnnouncementRef.current = {
+        message,
+        timestamp: Date.now(),
+      };
 
-    // If batching is disabled, announce immediately
-    if (!enableBatching) {
-      const element = document.createElement('div');
-      element.setAttribute('aria-live', priority);
-      element.setAttribute('aria-atomic', 'true');
-      element.className = 'sr-only';
-      element.textContent = message;
-      document.body.appendChild(element);
-      
-      setTimeout(() => {
-        if (document.body.contains(element)) {
-          document.body.removeChild(element);
-        }
-      }, 2000);
-      return;
-    }
+      // If batching is disabled, announce immediately
+      if (!enableBatching) {
+        const element = document.createElement("div");
+        element.setAttribute("aria-live", priority);
+        element.setAttribute("aria-atomic", "true");
+        element.className = "sr-only";
+        element.textContent = message;
+        document.body.appendChild(element);
 
-    // Add to batch
-    pendingAnnouncements.current.push({
-      message,
-      priority,
-      timestamp: Date.now()
-    });
+        setTimeout(() => {
+          if (document.body.contains(element)) {
+            document.body.removeChild(element);
+          }
+        }, 2000);
+        return;
+      }
 
-    // Start batch processing if not already running
-    if (!batchTimeoutRef.current) {
-      batchTimeoutRef.current = setTimeout(processBatch, batchDelay);
-    }
-  }, [shouldDeduplicate, enableBatching, processBatch, batchDelay]);
+      // Add to batch
+      pendingAnnouncements.current.push({
+        message,
+        priority,
+        timestamp: Date.now(),
+      });
+
+      // Start batch processing if not already running
+      if (!batchTimeoutRef.current) {
+        batchTimeoutRef.current = setTimeout(processBatch, batchDelay);
+      }
+    },
+    [shouldDeduplicate, enableBatching, processBatch, batchDelay],
+  );
 
   /**
    * Force immediate processing of pending announcements
@@ -198,11 +205,14 @@ export const useBatchedScreenReaderAnnouncements = (
   /**
    * Get current batch statistics for debugging/monitoring
    */
-  const getBatchStats = useCallback(() => ({
-    pendingCount: pendingAnnouncements.current.length,
-    isProcessing: batchTimeoutRef.current !== null,
-    activeElements: currentAnnouncementElements.current.length
-  }), []);
+  const getBatchStats = useCallback(
+    () => ({
+      pendingCount: pendingAnnouncements.current.length,
+      isProcessing: batchTimeoutRef.current !== null,
+      activeElements: currentAnnouncementElements.current.length,
+    }),
+    [],
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -216,7 +226,7 @@ export const useBatchedScreenReaderAnnouncements = (
     announceToScreenReader,
     flushAnnouncements,
     clearPendingAnnouncements,
-    getBatchStats
+    getBatchStats,
   };
 };
 
@@ -229,7 +239,7 @@ export const useOptimizedScreenReaderAnnouncements = () => {
     batchDelay: 300, // Faster batching for high-frequency scenarios
     maxBatchSize: 5,
     deduplicationWindow: 2000,
-    enableBatching: true
+    enableBatching: true,
   });
 };
 
@@ -242,6 +252,6 @@ export const useImmediateScreenReaderAnnouncements = () => {
     batchDelay: 100, // Very fast batching
     maxBatchSize: 1, // No batching for critical announcements
     deduplicationWindow: 500,
-    enableBatching: false
+    enableBatching: false,
   });
 };

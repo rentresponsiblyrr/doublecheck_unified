@@ -3,16 +3,24 @@
  * Provides navigation options when a section is unavailable
  */
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Shield, ArrowLeft } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Shield, ArrowLeft } from "lucide-react";
 
 interface RedirectFallbackProps {
   onNavigateBack: () => void;
 }
 
-export const RedirectFallback: React.FC<RedirectFallbackProps> = ({ onNavigateBack }) => {
+export const RedirectFallback: React.FC<RedirectFallbackProps> = ({
+  onNavigateBack,
+}) => {
   return (
     <div className="flex items-center justify-center min-h-[400px] p-6">
       <Card className="w-full max-w-md">
@@ -22,7 +30,8 @@ export const RedirectFallback: React.FC<RedirectFallbackProps> = ({ onNavigateBa
           </div>
           <CardTitle>Section Unavailable</CardTitle>
           <CardDescription>
-            This section is temporarily unavailable. You can return to the previous page.
+            This section is temporarily unavailable. You can return to the
+            previous page.
           </CardDescription>
         </CardHeader>
         <CardContent>

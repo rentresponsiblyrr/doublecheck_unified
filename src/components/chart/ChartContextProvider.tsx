@@ -3,8 +3,8 @@
  * Extracted from chart.tsx
  */
 
-import React from 'react';
-import { ChartConfig } from '@/components/ui/chart';
+import React from "react";
+import { ChartConfig } from "@/components/ui/chart";
 
 type ChartContextProps = {
   config: ChartConfig;
@@ -29,11 +29,9 @@ interface ChartContextProviderProps {
 
 export const ChartContextProvider: React.FC<ChartContextProviderProps> = ({
   config,
-  children
+  children,
 }) => {
   return (
-    <ChartContext.Provider value={{ config }}>
-      {children}
-    </ChartContext.Provider>
+    <ChartContext.Provider value={{ config }}>{children}</ChartContext.Provider>
   );
 };

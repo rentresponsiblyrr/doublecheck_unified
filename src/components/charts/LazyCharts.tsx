@@ -19,5 +19,5 @@ export {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";

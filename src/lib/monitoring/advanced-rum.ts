@@ -1,14 +1,14 @@
 /**
  * Advanced Real User Monitoring (RUM) Collector
- * 
+ *
  * Enhances existing performance monitoring with advanced user experience tracking,
  * geographic analysis, and device capability detection.
- * 
+ *
  * Built to Netflix performance standards with collision-free architecture.
  */
 
-import { log } from '../logging/enterprise-logger';
-import { performanceMonitor } from './performance-monitor';
+import { log } from "../logging/enterprise-logger";
+import { performanceMonitor } from "./performance-monitor";
 
 // Enhanced types for RUM monitoring
 type MetadataRecord = Record<string, unknown>;
@@ -16,7 +16,7 @@ type MetadataRecord = Record<string, unknown>;
 // Navigator with connection API extension
 interface NavigatorWithConnection extends Navigator {
   connection?: {
-    effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
+    effectiveType?: "2g" | "3g" | "4g" | "slow-2g";
     downlink?: number;
     rtt?: number;
     saveData?: boolean;
@@ -52,7 +52,7 @@ export interface UserJourney {
 }
 
 export interface DeviceCapabilities {
-  deviceType: 'mobile' | 'tablet' | 'desktop';
+  deviceType: "mobile" | "tablet" | "desktop";
   screenSize: { width: number; height: number };
   pixelRatio: number;
   touchSupport: boolean;
@@ -65,7 +65,7 @@ export interface DeviceCapabilities {
 }
 
 export interface NetworkConditions {
-  effectiveType: '2g' | '3g' | '4g' | 'slow-2g' | 'unknown';
+  effectiveType: "2g" | "3g" | "4g" | "slow-2g" | "unknown";
   downlink: number;
   rtt: number;
   saveData: boolean;
@@ -90,7 +90,7 @@ export interface PerformanceRegression {
   currentValue: number;
   baselineValue: number;
   degradationPercentage: number;
-  severity: 'minor' | 'moderate' | 'severe' | 'critical';
+  severity: "minor" | "moderate" | "severe" | "critical";
   detectedAt: number;
   affectedUsers: number;
   deviceTypes: string[];
@@ -103,8 +103,8 @@ export interface PerformanceBudget {
   budget: number;
   current: number;
   utilizationPercentage: number;
-  status: 'within-budget' | 'approaching-limit' | 'over-budget';
-  trend: 'improving' | 'stable' | 'degrading';
+  status: "within-budget" | "approaching-limit" | "over-budget";
+  trend: "improving" | "stable" | "degrading";
 }
 
 export class AdvancedRUMCollector {
@@ -119,12 +119,12 @@ export class AdvancedRUMCollector {
 
   // Performance budgets (Netflix-level standards)
   private readonly DEFAULT_BUDGETS = {
-    'page.loadComplete': 2000, // 2 seconds
-    'navigation.firstPaint': 1000, // 1 second
-    'component.renderTime': 16, // 60fps
-    'api.responseTime': 500, // 500ms
-    'bundle.totalSize': 250 * 1024, // 250KB
-    'memory.heapUsed': 100 * 1024 * 1024, // 100MB
+    "page.loadComplete": 2000, // 2 seconds
+    "navigation.firstPaint": 1000, // 1 second
+    "component.renderTime": 16, // 60fps
+    "api.responseTime": 500, // 500ms
+    "bundle.totalSize": 250 * 1024, // 250KB
+    "memory.heapUsed": 100 * 1024 * 1024, // 100MB
   };
 
   constructor() {
@@ -143,31 +143,39 @@ export class AdvancedRUMCollector {
 
       // Setup network monitoring
       this.setupNetworkMonitoring();
-      
+
       // Setup user journey tracking
       this.setupJourneyTracking();
-      
+
       // Setup regression detection
       this.setupRegressionDetection();
-      
+
       // Setup performance budget monitoring
       this.setupBudgetMonitoring();
 
       this.isInitialized = true;
 
-      log.info('Advanced RUM Collector initialized', {
-        component: 'AdvancedRUMCollector',
-        action: 'initialize',
-        deviceCapabilities: this.deviceCapabilities,
-        networkConditions: this.networkConditions,
-        geographicData: this.geographicData
-      }, 'ADVANCED_RUM_INITIALIZED');
-
+      log.info(
+        "Advanced RUM Collector initialized",
+        {
+          component: "AdvancedRUMCollector",
+          action: "initialize",
+          deviceCapabilities: this.deviceCapabilities,
+          networkConditions: this.networkConditions,
+          geographicData: this.geographicData,
+        },
+        "ADVANCED_RUM_INITIALIZED",
+      );
     } catch (error) {
-      log.error('Failed to initialize Advanced RUM Collector', error as Error, {
-        component: 'AdvancedRUMCollector',
-        action: 'initialize'
-      }, 'ADVANCED_RUM_INIT_FAILED');
+      log.error(
+        "Failed to initialize Advanced RUM Collector",
+        error as Error,
+        {
+          component: "AdvancedRUMCollector",
+          action: "initialize",
+        },
+        "ADVANCED_RUM_INIT_FAILED",
+      );
     }
   }
 
@@ -177,7 +185,7 @@ export class AdvancedRUMCollector {
   startJourney(journeyName: string, metadata?: MetadataRecord): string {
     const journeyId = `journey_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const sessionId = this.getSessionId();
-    
+
     const journey: UserJourney = {
       journeyId,
       sessionId,
@@ -186,7 +194,7 @@ export class AdvancedRUMCollector {
       completed: false,
       deviceCapabilities: this.deviceCapabilities,
       networkConditions: this.networkConditions,
-      geographicData: this.geographicData
+      geographicData: this.geographicData,
     };
 
     this.journeys.set(journeyId, journey);
@@ -194,18 +202,22 @@ export class AdvancedRUMCollector {
 
     // Track with existing performance monitor
     performanceMonitor.trackInteraction({
-      type: 'navigation',
-      element: 'journey_start',
-      metadata: { journeyName, journeyId, ...metadata }
+      type: "navigation",
+      element: "journey_start",
+      metadata: { journeyName, journeyId, ...metadata },
     });
 
-    log.debug('User journey started', {
-      component: 'AdvancedRUMCollector',
-      action: 'startJourney',
-      journeyId,
-      journeyName,
-      metadata
-    }, 'USER_JOURNEY_STARTED');
+    log.debug(
+      "User journey started",
+      {
+        component: "AdvancedRUMCollector",
+        action: "startJourney",
+        journeyId,
+        journeyName,
+        metadata,
+      },
+      "USER_JOURNEY_STARTED",
+    );
 
     return journeyId;
   }
@@ -213,19 +225,31 @@ export class AdvancedRUMCollector {
   /**
    * Add a step to the current journey
    */
-  addJourneyStep(stepName: string, success: boolean = true, errorDetails?: string, metadata?: MetadataRecord): void {
+  addJourneyStep(
+    stepName: string,
+    success: boolean = true,
+    errorDetails?: string,
+    metadata?: MetadataRecord,
+  ): void {
     if (!this.currentJourney) {
-      log.warn('No current journey to add step to', {
-        component: 'AdvancedRUMCollector',
-        action: 'addJourneyStep',
-        stepName
-      }, 'NO_CURRENT_JOURNEY');
+      log.warn(
+        "No current journey to add step to",
+        {
+          component: "AdvancedRUMCollector",
+          action: "addJourneyStep",
+          stepName,
+        },
+        "NO_CURRENT_JOURNEY",
+      );
       return;
     }
 
     const now = performance.now();
-    const lastStep = this.currentJourney.steps[this.currentJourney.steps.length - 1];
-    const startTime = lastStep ? lastStep.endTime : this.currentJourney.startTime;
+    const lastStep =
+      this.currentJourney.steps[this.currentJourney.steps.length - 1];
+    const startTime = lastStep
+      ? lastStep.endTime
+      : this.currentJourney.startTime;
 
     const step: UserJourneyStep = {
       stepName,
@@ -234,7 +258,7 @@ export class AdvancedRUMCollector {
       duration: now - startTime,
       success,
       errorDetails,
-      metadata
+      metadata,
     };
 
     this.currentJourney.steps.push(step);
@@ -243,18 +267,22 @@ export class AdvancedRUMCollector {
     performanceMonitor.trackMetric(
       `journey.step.${stepName}`,
       step.duration,
-      'ms',
-      { success, errorDetails }
+      "ms",
+      { success, errorDetails },
     );
 
-    log.debug('Journey step added', {
-      component: 'AdvancedRUMCollector',
-      action: 'addJourneyStep',
-      journeyId: this.currentJourney.journeyId,
-      stepName,
-      duration: step.duration,
-      success
-    }, 'JOURNEY_STEP_ADDED');
+    log.debug(
+      "Journey step added",
+      {
+        component: "AdvancedRUMCollector",
+        action: "addJourneyStep",
+        journeyId: this.currentJourney.journeyId,
+        stepName,
+        duration: step.duration,
+        success,
+      },
+      "JOURNEY_STEP_ADDED",
+    );
   }
 
   /**
@@ -262,10 +290,14 @@ export class AdvancedRUMCollector {
    */
   completeJourney(success: boolean = true): void {
     if (!this.currentJourney) {
-      log.warn('No current journey to complete', {
-        component: 'AdvancedRUMCollector',
-        action: 'completeJourney'
-      }, 'NO_CURRENT_JOURNEY');
+      log.warn(
+        "No current journey to complete",
+        {
+          component: "AdvancedRUMCollector",
+          action: "completeJourney",
+        },
+        "NO_CURRENT_JOURNEY",
+      );
       return;
     }
 
@@ -275,7 +307,9 @@ export class AdvancedRUMCollector {
     this.currentJourney.completed = success;
 
     if (!success) {
-      this.currentJourney.abandonedAt = this.currentJourney.steps[this.currentJourney.steps.length - 1]?.stepName || 'unknown';
+      this.currentJourney.abandonedAt =
+        this.currentJourney.steps[this.currentJourney.steps.length - 1]
+          ?.stepName || "unknown";
     }
 
     // Analyze journey performance
@@ -283,25 +317,29 @@ export class AdvancedRUMCollector {
 
     // Track with existing performance monitor
     performanceMonitor.trackInteraction({
-      type: 'navigation',
-      element: 'journey_complete',
+      type: "navigation",
+      element: "journey_complete",
       duration: this.currentJourney.totalDuration,
       metadata: {
         journeyId: this.currentJourney.journeyId,
         success,
         stepCount: this.currentJourney.steps.length,
-        abandonedAt: this.currentJourney.abandonedAt
-      }
+        abandonedAt: this.currentJourney.abandonedAt,
+      },
     });
 
-    log.info('User journey completed', {
-      component: 'AdvancedRUMCollector',
-      action: 'completeJourney',
-      journeyId: this.currentJourney.journeyId,
-      totalDuration: this.currentJourney.totalDuration,
-      stepCount: this.currentJourney.steps.length,
-      success
-    }, 'USER_JOURNEY_COMPLETED');
+    log.info(
+      "User journey completed",
+      {
+        component: "AdvancedRUMCollector",
+        action: "completeJourney",
+        journeyId: this.currentJourney.journeyId,
+        totalDuration: this.currentJourney.totalDuration,
+        stepCount: this.currentJourney.steps.length,
+        success,
+      },
+      "USER_JOURNEY_COMPLETED",
+    );
 
     this.currentJourney = null;
   }
@@ -312,11 +350,11 @@ export class AdvancedRUMCollector {
   detectRegressions(): PerformanceRegression[] {
     const regressions: PerformanceRegression[] = [];
     const recentMetrics = performanceMonitor.getMetrics();
-    
+
     // Group metrics by name for analysis
     const metricGroups = new Map<string, number[]>();
-    
-    recentMetrics.forEach(metric => {
+
+    recentMetrics.forEach((metric) => {
       if (!metricGroups.has(metric.name)) {
         metricGroups.set(metric.name, []);
       }
@@ -334,13 +372,18 @@ export class AdvancedRUMCollector {
       }
 
       const currentAverage = values.slice(-5).reduce((a, b) => a + b, 0) / 5;
-      const baselineAverage = baseline.reduce((a, b) => a + b, 0) / baseline.length;
-      
-      const degradationPercentage = ((currentAverage - baselineAverage) / baselineAverage) * 100;
-      
-      if (degradationPercentage > 10) { // 10% degradation threshold
-        const severity = this.calculateRegressionSeverity(degradationPercentage);
-        
+      const baselineAverage =
+        baseline.reduce((a, b) => a + b, 0) / baseline.length;
+
+      const degradationPercentage =
+        ((currentAverage - baselineAverage) / baselineAverage) * 100;
+
+      if (degradationPercentage > 10) {
+        // 10% degradation threshold
+        const severity = this.calculateRegressionSeverity(
+          degradationPercentage,
+        );
+
         const regression: PerformanceRegression = {
           metric: metricName,
           currentValue: currentAverage,
@@ -351,16 +394,20 @@ export class AdvancedRUMCollector {
           affectedUsers: this.estimateAffectedUsers(),
           deviceTypes: this.getAffectedDeviceTypes(),
           networkTypes: this.getAffectedNetworkTypes(),
-          geographicRegions: [this.geographicData.region || 'unknown']
+          geographicRegions: [this.geographicData.region || "unknown"],
         };
 
         regressions.push(regression);
 
-        log.warn('Performance regression detected', {
-          component: 'AdvancedRUMCollector',
-          action: 'detectRegressions',
-          regression
-        }, 'PERFORMANCE_REGRESSION_DETECTED');
+        log.warn(
+          "Performance regression detected",
+          {
+            component: "AdvancedRUMCollector",
+            action: "detectRegressions",
+            regression,
+          },
+          "PERFORMANCE_REGRESSION_DETECTED",
+        );
       }
     });
 
@@ -386,27 +433,34 @@ export class AdvancedRUMCollector {
     performanceIssues: string[];
   } {
     const journeys = Array.from(this.journeys.values());
-    const completed = journeys.filter(j => j.completed);
-    
+    const completed = journeys.filter((j) => j.completed);
+
     const abandonmentPoints = journeys
-      .filter(j => !j.completed && j.abandonedAt)
-      .map(j => j.abandonedAt!)
-      .reduce((acc, point) => {
-        acc[point] = (acc[point] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      .filter((j) => !j.completed && j.abandonedAt)
+      .map((j) => j.abandonedAt!)
+      .reduce(
+        (acc, point) => {
+          acc[point] = (acc[point] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
     return {
       totalJourneys: journeys.length,
       completedJourneys: completed.length,
-      completionRate: journeys.length > 0 ? (completed.length / journeys.length) * 100 : 0,
-      averageDuration: completed.length > 0 ? 
-        completed.reduce((sum, j) => sum + (j.totalDuration || 0), 0) / completed.length : 0,
+      completionRate:
+        journeys.length > 0 ? (completed.length / journeys.length) * 100 : 0,
+      averageDuration:
+        completed.length > 0
+          ? completed.reduce((sum, j) => sum + (j.totalDuration || 0), 0) /
+            completed.length
+          : 0,
       commonAbandonmentPoints: Object.entries(abandonmentPoints)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
         .map(([point]) => point),
-      performanceIssues: this.identifyPerformanceIssues()
+      performanceIssues: this.identifyPerformanceIssues(),
     };
   }
 
@@ -415,42 +469,37 @@ export class AdvancedRUMCollector {
    */
   private setupNetworkMonitoring(): void {
     // Monitor network changes
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       const connection = (navigator as NavigatorWithConnection).connection;
       const updateNetworkConditions = () => {
         this.networkConditions = this.detectNetworkConditions();
-        
-        performanceMonitor.trackMetric(
-          'network.change',
-          1,
-          'event',
-          {}
-        );
+
+        performanceMonitor.trackMetric("network.change", 1, "event", {});
       };
 
-      connection?.addEventListener?.('change', updateNetworkConditions);
+      connection?.addEventListener?.("change", updateNetworkConditions);
     }
 
     // Monitor online/offline status
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.networkConditions.isOnline = true;
       this.networkConditions.lastOnlineTime = Date.now();
-      
+
       performanceMonitor.trackInteraction({
-        type: 'navigation',
-        element: 'network_online',
-        metadata: { networkConditions: this.networkConditions as unknown }
+        type: "navigation",
+        element: "network_online",
+        metadata: { networkConditions: this.networkConditions as unknown },
       });
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.networkConditions.isOnline = false;
       this.networkConditions.lastOfflineTime = Date.now();
-      
+
       performanceMonitor.trackInteraction({
-        type: 'navigation',
-        element: 'network_offline',
-        metadata: { networkConditions: this.networkConditions }
+        type: "navigation",
+        element: "network_offline",
+        metadata: { networkConditions: this.networkConditions },
       });
     });
   }
@@ -460,23 +509,23 @@ export class AdvancedRUMCollector {
    */
   private setupJourneyTracking(): void {
     // Track page navigation as journey steps
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       if (this.currentJourney) {
-        this.addJourneyStep('page_unload', true, undefined, {
+        this.addJourneyStep("page_unload", true, undefined, {
           url: window.location.href,
-          timeOnPage: performance.now() - this.currentJourney.startTime
+          timeOnPage: performance.now() - this.currentJourney.startTime,
         });
       }
     });
 
     // Track visibility changes
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (this.currentJourney) {
         this.addJourneyStep(
-          document.hidden ? 'page_hidden' : 'page_visible',
+          document.hidden ? "page_hidden" : "page_visible",
           true,
           undefined,
-          { visibilityState: document.visibilityState }
+          { visibilityState: document.visibilityState },
         );
       }
     });
@@ -487,28 +536,44 @@ export class AdvancedRUMCollector {
    */
   private setupRegressionDetection(): void {
     // Run regression analysis every 5 minutes
-    setInterval(() => {
-      try {
-        const regressions = this.detectRegressions();
-        if (regressions.length > 0) {
-          // Log critical regressions immediately
-          regressions.forEach(regression => {
-            if (regression.severity === 'critical' || regression.severity === 'severe') {
-              log.error('Critical performance regression detected', new Error('Performance degradation'), {
-                component: 'AdvancedRUMCollector',
-                action: 'setupRegressionDetection',
-                regression
-              }, 'CRITICAL_PERFORMANCE_REGRESSION');
-            }
-          });
+    setInterval(
+      () => {
+        try {
+          const regressions = this.detectRegressions();
+          if (regressions.length > 0) {
+            // Log critical regressions immediately
+            regressions.forEach((regression) => {
+              if (
+                regression.severity === "critical" ||
+                regression.severity === "severe"
+              ) {
+                log.error(
+                  "Critical performance regression detected",
+                  new Error("Performance degradation"),
+                  {
+                    component: "AdvancedRUMCollector",
+                    action: "setupRegressionDetection",
+                    regression,
+                  },
+                  "CRITICAL_PERFORMANCE_REGRESSION",
+                );
+              }
+            });
+          }
+        } catch (error) {
+          log.error(
+            "Error during regression detection",
+            error as Error,
+            {
+              component: "AdvancedRUMCollector",
+              action: "setupRegressionDetection",
+            },
+            "REGRESSION_DETECTION_ERROR",
+          );
         }
-      } catch (error) {
-        log.error('Error during regression detection', error as Error, {
-          component: 'AdvancedRUMCollector',
-          action: 'setupRegressionDetection'
-        }, 'REGRESSION_DETECTION_ERROR');
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
   }
 
   /**
@@ -520,10 +585,15 @@ export class AdvancedRUMCollector {
       try {
         this.updatePerformanceBudgets();
       } catch (error) {
-        log.error('Error updating performance budgets', error as Error, {
-          component: 'AdvancedRUMCollector',
-          action: 'setupBudgetMonitoring'
-        }, 'BUDGET_MONITORING_ERROR');
+        log.error(
+          "Error updating performance budgets",
+          error as Error,
+          {
+            component: "AdvancedRUMCollector",
+            action: "setupBudgetMonitoring",
+          },
+          "BUDGET_MONITORING_ERROR",
+        );
       }
     }, 30 * 1000); // 30 seconds
   }
@@ -533,24 +603,24 @@ export class AdvancedRUMCollector {
    */
   private updatePerformanceBudgets(): void {
     const recentMetrics = performanceMonitor.getMetrics();
-    
+
     Object.entries(this.DEFAULT_BUDGETS).forEach(([metricName, budget]) => {
       const metricValues = recentMetrics
-        .filter(m => m.name === metricName)
-        .map(m => m.value);
-      
+        .filter((m) => m.name === metricName)
+        .map((m) => m.value);
+
       if (metricValues.length === 0) return;
 
       const current = metricValues[metricValues.length - 1];
       const utilizationPercentage = (current / budget) * 100;
-      
-      let status: 'within-budget' | 'approaching-limit' | 'over-budget';
+
+      let status: "within-budget" | "approaching-limit" | "over-budget";
       if (utilizationPercentage <= 80) {
-        status = 'within-budget';
+        status = "within-budget";
       } else if (utilizationPercentage <= 100) {
-        status = 'approaching-limit';
+        status = "approaching-limit";
       } else {
-        status = 'over-budget';
+        status = "over-budget";
       }
 
       // Calculate trend
@@ -563,18 +633,18 @@ export class AdvancedRUMCollector {
         current,
         utilizationPercentage,
         status,
-        trend
+        trend,
       };
 
       this.performanceBudgets.set(metricName, budgetInfo);
 
       // Alert on budget violations
-      if (status === 'over-budget') {
+      if (status === "over-budget") {
         performanceMonitor.trackMetric(
-          'budget.violation',
+          "budget.violation",
           utilizationPercentage,
-          'percentage',
-          { metric: metricName, budget, current }
+          "percentage",
+          { metric: metricName, budget, current },
         );
       }
     });
@@ -591,16 +661,21 @@ export class AdvancedRUMCollector {
       deviceType: this.getDeviceType(),
       screenSize: {
         width: screen.width,
-        height: screen.height
+        height: screen.height,
       },
       pixelRatio: window.devicePixelRatio || 1,
-      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-      orientationSupport: 'orientation' in screen,
+      touchSupport: "ontouchstart" in window || navigator.maxTouchPoints > 0,
+      orientationSupport: "orientation" in screen,
       hardwareConcurrency: navigator.hardwareConcurrency || 1,
       maxTouchPoints: navigator.maxTouchPoints || 0,
       colorDepth: screen.colorDepth || 24,
-      memoryEstimate: (navigator as NavigatorWithConnection).deviceMemory ? ((navigator as NavigatorWithConnection).deviceMemory || 0) * 1024 * 1024 * 1024 : undefined,
-      storageQuota: undefined // Will be populated by async quota check
+      memoryEstimate: (navigator as NavigatorWithConnection).deviceMemory
+        ? ((navigator as NavigatorWithConnection).deviceMemory || 0) *
+          1024 *
+          1024 *
+          1024
+        : undefined,
+      storageQuota: undefined, // Will be populated by async quota check
     };
   }
 
@@ -609,16 +684,17 @@ export class AdvancedRUMCollector {
    */
   private detectNetworkConditions(): NetworkConditions {
     const connection = (navigator as NavigatorWithConnection).connection;
-    
+
     return {
-      effectiveType: (connection?.effectiveType || 'unknown') as NetworkConditions['effectiveType'],
+      effectiveType: (connection?.effectiveType ||
+        "unknown") as NetworkConditions["effectiveType"],
       downlink: connection?.downlink || 0,
       rtt: connection?.rtt || 0,
       saveData: connection?.saveData || false,
       connectionType: connection?.type,
       isOnline: navigator.onLine,
       lastOnlineTime: navigator.onLine ? Date.now() : undefined,
-      lastOfflineTime: !navigator.onLine ? Date.now() : undefined
+      lastOfflineTime: !navigator.onLine ? Date.now() : undefined,
     };
   }
 
@@ -630,7 +706,7 @@ export class AdvancedRUMCollector {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       language: navigator.language,
       country: this.getCountryFromLanguage(navigator.language),
-      estimatedLocation: this.estimateLocationFromTimezone()
+      estimatedLocation: this.estimateLocationFromTimezone(),
     };
   }
 
@@ -644,8 +720,8 @@ export class AdvancedRUMCollector {
         budget,
         current: 0,
         utilizationPercentage: 0,
-        status: 'within-budget',
-        trend: 'stable'
+        status: "within-budget",
+        trend: "stable",
       });
     });
   }
@@ -653,26 +729,33 @@ export class AdvancedRUMCollector {
   /**
    * Get device type
    */
-  private getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
+  private getDeviceType(): "mobile" | "tablet" | "desktop" {
     const userAgent = navigator.userAgent.toLowerCase();
     const screenWidth = window.screen.width;
-    
-    if (/mobile|android|iphone|ipod|blackberry|opera mini|iemobile|wpdesktop/.test(userAgent)) {
-      return 'mobile';
-    } else if (/tablet|ipad|playbook|silk/.test(userAgent) || screenWidth >= 768 && screenWidth <= 1024) {
-      return 'tablet';
+
+    if (
+      /mobile|android|iphone|ipod|blackberry|opera mini|iemobile|wpdesktop/.test(
+        userAgent,
+      )
+    ) {
+      return "mobile";
+    } else if (
+      /tablet|ipad|playbook|silk/.test(userAgent) ||
+      (screenWidth >= 768 && screenWidth <= 1024)
+    ) {
+      return "tablet";
     }
-    return 'desktop';
+    return "desktop";
   }
 
   /**
    * Get session ID
    */
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('rum_session_id');
+    let sessionId = sessionStorage.getItem("rum_session_id");
     if (!sessionId) {
       sessionId = `rum_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('rum_session_id', sessionId);
+      sessionStorage.setItem("rum_session_id", sessionId);
     }
     return sessionId;
   }
@@ -681,24 +764,24 @@ export class AdvancedRUMCollector {
    * Analyze journey performance
    */
   private analyzeJourneyPerformance(journey: UserJourney): void {
-    const slowSteps = journey.steps.filter(step => step.duration > 1000);
-    const failedSteps = journey.steps.filter(step => !step.success);
-    
+    const slowSteps = journey.steps.filter((step) => step.duration > 1000);
+    const failedSteps = journey.steps.filter((step) => !step.success);
+
     if (slowSteps.length > 0) {
       performanceMonitor.trackMetric(
-        'journey.performance.slow_steps',
+        "journey.performance.slow_steps",
         slowSteps.length,
-        'count',
-        { journeyId: journey.journeyId }
+        "count",
+        { journeyId: journey.journeyId },
       );
     }
-    
+
     if (failedSteps.length > 0) {
       performanceMonitor.trackMetric(
-        'journey.performance.failed_steps',
+        "journey.performance.failed_steps",
         failedSteps.length,
-        'count',
-        { journeyId: journey.journeyId }
+        "count",
+        { journeyId: journey.journeyId },
       );
     }
   }
@@ -706,11 +789,13 @@ export class AdvancedRUMCollector {
   /**
    * Calculate regression severity
    */
-  private calculateRegressionSeverity(degradationPercentage: number): 'minor' | 'moderate' | 'severe' | 'critical' {
-    if (degradationPercentage >= 50) return 'critical';
-    if (degradationPercentage >= 30) return 'severe';
-    if (degradationPercentage >= 20) return 'moderate';
-    return 'minor';
+  private calculateRegressionSeverity(
+    degradationPercentage: number,
+  ): "minor" | "moderate" | "severe" | "critical" {
+    if (degradationPercentage >= 50) return "critical";
+    if (degradationPercentage >= 30) return "severe";
+    if (degradationPercentage >= 20) return "moderate";
+    return "minor";
   }
 
   /**
@@ -738,20 +823,22 @@ export class AdvancedRUMCollector {
   /**
    * Calculate trend
    */
-  private calculateTrend(values: number[]): 'improving' | 'stable' | 'degrading' {
-    if (values.length < 3) return 'stable';
-    
+  private calculateTrend(
+    values: number[],
+  ): "improving" | "stable" | "degrading" {
+    if (values.length < 3) return "stable";
+
     const firstHalf = values.slice(0, Math.floor(values.length / 2));
     const secondHalf = values.slice(Math.floor(values.length / 2));
-    
+
     const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-    
+
     const changePercentage = ((secondAvg - firstAvg) / firstAvg) * 100;
-    
-    if (changePercentage < -5) return 'improving';
-    if (changePercentage > 5) return 'degrading';
-    return 'stable';
+
+    if (changePercentage < -5) return "improving";
+    if (changePercentage > 5) return "degrading";
+    return "stable";
   }
 
   /**
@@ -759,23 +846,32 @@ export class AdvancedRUMCollector {
    */
   private identifyPerformanceIssues(): string[] {
     const issues: string[] = [];
-    
+
     // Check for common performance issues
-    if (this.networkConditions.effectiveType === '2g' || this.networkConditions.effectiveType === 'slow-2g') {
-      issues.push('Slow network connection detected');
+    if (
+      this.networkConditions.effectiveType === "2g" ||
+      this.networkConditions.effectiveType === "slow-2g"
+    ) {
+      issues.push("Slow network connection detected");
     }
-    
-    if (this.deviceCapabilities.memoryEstimate && this.deviceCapabilities.memoryEstimate < 2 * 1024 * 1024 * 1024) {
-      issues.push('Low device memory detected');
+
+    if (
+      this.deviceCapabilities.memoryEstimate &&
+      this.deviceCapabilities.memoryEstimate < 2 * 1024 * 1024 * 1024
+    ) {
+      issues.push("Low device memory detected");
     }
-    
-    const overBudgetMetrics = Array.from(this.performanceBudgets.values())
-      .filter(budget => budget.status === 'over-budget');
-    
+
+    const overBudgetMetrics = Array.from(
+      this.performanceBudgets.values(),
+    ).filter((budget) => budget.status === "over-budget");
+
     if (overBudgetMetrics.length > 0) {
-      issues.push(`Performance budget exceeded for: ${overBudgetMetrics.map(m => m.metric).join(', ')}`);
+      issues.push(
+        `Performance budget exceeded for: ${overBudgetMetrics.map((m) => m.metric).join(", ")}`,
+      );
     }
-    
+
     return issues;
   }
 
@@ -783,7 +879,7 @@ export class AdvancedRUMCollector {
    * Get country from language
    */
   private getCountryFromLanguage(language: string): string | undefined {
-    const countryCode = language.split('-')[1];
+    const countryCode = language.split("-")[1];
     return countryCode?.toUpperCase();
   }
 
@@ -792,8 +888,8 @@ export class AdvancedRUMCollector {
    */
   private estimateLocationFromTimezone(): string {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const parts = timezone.split('/');
-    return parts.length > 1 ? parts[1].replace('_', ' ') : timezone;
+    const parts = timezone.split("/");
+    return parts.length > 1 ? parts[1].replace("_", " ") : timezone;
   }
 }
 

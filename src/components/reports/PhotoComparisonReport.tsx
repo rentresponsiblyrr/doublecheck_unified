@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle, XCircle, Camera } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, AlertTriangle, XCircle, Camera } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface PhotoComparisonData {
   inspectionId: string;
@@ -31,11 +31,11 @@ interface PhotoComparisonReportProps {
   className?: string;
 }
 
-export function PhotoComparisonReport({ 
-  inspectionId, 
-  propertyName, 
-  checklistItems, 
-  className = '' 
+export function PhotoComparisonReport({
+  inspectionId,
+  propertyName,
+  checklistItems,
+  className = "",
 }: PhotoComparisonReportProps) {
   const [data, setData] = useState<PhotoComparisonData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,12 +48,17 @@ export function PhotoComparisonReport({
   const fetchPhotoComparisonData = async () => {
     try {
       setIsLoading(true);
-      logger.info('Fetching photo comparison data', { inspectionId }, 'PHOTO_COMPARISON_REPORT');
+      logger.info(
+        "Fetching photo comparison data",
+        { inspectionId },
+        "PHOTO_COMPARISON_REPORT",
+      );
 
       // Fetch checklist items with media information
       const { data: logs, error } = await supabase
-        .from('checklist_items')
-        .select(`
+        .from("checklist_items")
+        .select(
+          `
           *,
           static_safety_items!static_item_id (
             id,
@@ -61,9 +66,10 @@ export function PhotoComparisonReport({
             category
           ),
           media (*)
-        `)
-        .eq('property_id', inspectionId.split('-')[0]) // Extract property_id from inspection
-        .order('created_at', { ascending: true });
+        `,
+        )
+        .eq("property_id", inspectionId.split("-")[0]) // Extract property_id from inspection
+        .order("created_at", { ascending: true });
 
       if (error) {
         throw error;
@@ -71,16 +77,23 @@ export function PhotoComparisonReport({
 
       // Calculate comparison metrics
       const totalItems = logs?.length || 0;
-      const completedItems = logs?.filter(log => log.pass !== null).length || 0;
-      const passedItems = logs?.filter(log => log.pass === true).length || 0;
-      const failedItems = logs?.filter(log => log.pass === false).length || 0;
-      const itemsWithPhotos = logs?.filter(log => log.media && log.media.length > 0).length || 0;
+      const completedItems =
+        logs?.filter((log) => log.pass !== null).length || 0;
+      const passedItems = logs?.filter((log) => log.pass === true).length || 0;
+      const failedItems = logs?.filter((log) => log.pass === false).length || 0;
+      const itemsWithPhotos =
+        logs?.filter((log) => log.media && log.media.length > 0).length || 0;
 
       // Calculate overall score based on completion and photo evidence
-      const completionScore = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-      const photoScore = totalItems > 0 ? (itemsWithPhotos / totalItems) * 100 : 0;
-      const passScore = completedItems > 0 ? (passedItems / completedItems) * 100 : 0;
-      const overallScore = Math.round((completionScore + photoScore + passScore) / 3);
+      const completionScore =
+        totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+      const photoScore =
+        totalItems > 0 ? (itemsWithPhotos / totalItems) * 100 : 0;
+      const passScore =
+        completedItems > 0 ? (passedItems / completedItems) * 100 : 0;
+      const overallScore = Math.round(
+        (completionScore + photoScore + passScore) / 3,
+      );
 
       setData({
         inspectionId,
@@ -88,17 +101,21 @@ export function PhotoComparisonReport({
         completedItems,
         passedItems,
         failedItems,
-        overallScore
+        overallScore,
+      });
+    } catch (error) {
+      logger.error(
+        "Failed to fetch photo comparison data",
+        error,
+        "PHOTO_COMPARISON_REPORT",
+      );
+      toast({
+        title: "Error Loading Photo Data",
+        description:
+          "Failed to load photo comparison data. Using default values.",
+        variant: "destructive",
       });
 
-    } catch (error) {
-      logger.error('Failed to fetch photo comparison data', error, 'PHOTO_COMPARISON_REPORT');
-      toast({
-        title: 'Error Loading Photo Data',
-        description: 'Failed to load photo comparison data. Using default values.',
-        variant: 'destructive',
-      });
-      
       // Set default data if fetch fails
       setData({
         inspectionId,
@@ -106,7 +123,7 @@ export function PhotoComparisonReport({
         completedItems: 8,
         passedItems: 7,
         failedItems: 1,
-        overallScore: 75
+        overallScore: 75,
       });
     } finally {
       setIsLoading(false);
@@ -151,8 +168,11 @@ export function PhotoComparisonReport({
   }
 
   const completionRate = (data.completedItems / data.totalItems) * 100;
-  const passRate = data.completedItems > 0 ? (data.passedItems / data.completedItems) * 100 : 0;
-  
+  const passRate =
+    data.completedItems > 0
+      ? (data.passedItems / data.completedItems) * 100
+      : 0;
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -166,46 +186,64 @@ export function PhotoComparisonReport({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Inspection Progress</span>
-            <span>{data.completedItems}/{data.totalItems} items</span>
+            <span>
+              {data.completedItems}/{data.totalItems} items
+            </span>
           </div>
           <Progress value={completionRate} className="h-2" />
         </div>
-        
+
         {/* Score Overview */}
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{data.passedItems}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {data.passedItems}
+            </div>
             <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
               <CheckCircle className="w-3 h-3" />
               Passed
             </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{data.failedItems}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {data.failedItems}
+            </div>
             <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
               <XCircle className="w-3 h-3" />
               Failed
             </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{data.overallScore}%</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {data.overallScore}%
+            </div>
             <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
               <AlertTriangle className="w-3 h-3" />
               Score
             </div>
           </div>
         </div>
-        
+
         {/* Status Badge */}
         <div className="flex justify-center">
-          <Badge 
-            variant={passRate >= 80 ? "default" : passRate >= 60 ? "secondary" : "destructive"}
+          <Badge
+            variant={
+              passRate >= 80
+                ? "default"
+                : passRate >= 60
+                  ? "secondary"
+                  : "destructive"
+            }
             className="px-4 py-1"
           >
-            {passRate >= 80 ? "Excellent" : passRate >= 60 ? "Good" : "Needs Improvement"}
+            {passRate >= 80
+              ? "Excellent"
+              : passRate >= 60
+                ? "Good"
+                : "Needs Improvement"}
           </Badge>
         </div>
-        
+
         {/* Additional Stats */}
         <div className="pt-4 border-t text-sm text-gray-600">
           <div className="flex justify-between">

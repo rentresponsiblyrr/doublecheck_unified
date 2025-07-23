@@ -1,21 +1,21 @@
 // VRBO Data Extractor - Phase 3: Comprehensive Data Extraction
 // Handles amenity parsing, detailed descriptions, and room-by-room data extraction
 
-import { ProductionVRBOScraper } from './production-vrbo-scraper';
-import { aiDecisionLogger } from '../ai/decision-logger';
-import { logger } from '../../utils/logger';
-import type { 
-  ScrapingResult, 
-  PropertyAmenity, 
-  PropertyRoom, 
+import { ProductionVRBOScraper } from "./production-vrbo-scraper";
+import { aiDecisionLogger } from "../ai/decision-logger";
+import { logger } from "../../utils/logger";
+import type {
+  ScrapingResult,
+  PropertyAmenity,
+  PropertyRoom,
   VRBOPropertyData,
   AmenityCategory,
   RoomType,
   PropertySpecifications,
   PropertyLocation,
   ScrapingMetadata,
-  ScrapingError
-} from './types';
+  ScrapingError,
+} from "./types";
 
 interface AmenityExtractionOptions {
   includeHidden: boolean;
@@ -63,21 +63,21 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
     expandCollapsed: true,
     categorizeByRoom: true,
     verifyWithAI: false,
-    extractDescriptions: true
+    extractDescriptions: true,
   };
 
   private defaultDescriptionOptions: DescriptionExtractionOptions = {
     includeFormatting: true,
     extractHighlights: true,
     parseStructuredData: true,
-    maxLength: 5000
+    maxLength: 5000,
   };
 
   private defaultRoomOptions: RoomExtractionOptions = {
     detectRoomTypes: true,
     extractDimensions: true,
     includeFeatures: true,
-    linkToAmenities: true
+    linkToAmenities: true,
   };
 
   /**
@@ -87,113 +87,152 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @returns Promise<ScrapingResult<DataExtractionResult>>
    */
   async extractComprehensiveData(
-    url: string, 
+    url: string,
     amenityOptions: Partial<AmenityExtractionOptions> = {},
     descriptionOptions: Partial<DescriptionExtractionOptions> = {},
-    roomOptions: Partial<RoomExtractionOptions> = {}
+    roomOptions: Partial<RoomExtractionOptions> = {},
   ): Promise<ScrapingResult<DataExtractionResult>> {
-    const finalAmenityOptions = { ...this.defaultAmenityOptions, ...amenityOptions };
-    const finalDescriptionOptions = { ...this.defaultDescriptionOptions, ...descriptionOptions };
+    const finalAmenityOptions = {
+      ...this.defaultAmenityOptions,
+      ...amenityOptions,
+    };
+    const finalDescriptionOptions = {
+      ...this.defaultDescriptionOptions,
+      ...descriptionOptions,
+    };
     const finalRoomOptions = { ...this.defaultRoomOptions, ...roomOptions };
     const startTime = Date.now();
-    
+
     const metadata: ScrapingMetadata = {
       scrapedAt: new Date(),
       duration: 0,
       sourceUrl: url,
-      userAgent: this.httpClient.defaults.headers['User-Agent'] as string,
+      userAgent: this.httpClient.defaults.headers["User-Agent"] as string,
       rateLimited: false,
       dataCompleteness: 0,
       fieldsScraped: [],
-      fieldsFailed: []
+      fieldsFailed: [],
     };
 
     try {
       // Log comprehensive data extraction start
       await aiDecisionLogger.logSimpleDecision(
         `Starting comprehensive VRBO data extraction: ${url}`,
-        'data_extraction',
+        "data_extraction",
         `Extracting amenities, descriptions, and room data with advanced parsing`,
         [url],
-        'high'
+        "high",
       );
 
       // Validate URL
       if (!this.isValidVRBOUrl(url)) {
-        throw new Error('Invalid VRBO URL provided');
+        throw new Error("Invalid VRBO URL provided");
       }
 
       // Fetch the main property page
       const html = await this.fetchMainPropertyPage(url);
-      
+
       // Extract amenities with advanced parsing
-      const amenities = await this.extractAdvancedAmenities(html, finalAmenityOptions);
-      
+      const amenities = await this.extractAdvancedAmenities(
+        html,
+        finalAmenityOptions,
+      );
+
       // Extract detailed descriptions
-      const descriptions = await this.extractDetailedDescriptions(html, finalDescriptionOptions);
-      
+      const descriptions = await this.extractDetailedDescriptions(
+        html,
+        finalDescriptionOptions,
+      );
+
       // Extract room-by-room data
       const rooms = await this.extractRoomData(html, finalRoomOptions);
-      
+
       // Extract enhanced specifications
-      const specifications = await this.extractEnhancedSpecifications(html, amenities, rooms);
-      
+      const specifications = await this.extractEnhancedSpecifications(
+        html,
+        amenities,
+        rooms,
+      );
+
       // Extract detailed location data
       const location = await this.extractDetailedLocation(html);
-      
+
       // Calculate extraction statistics
       const extractionStats = {
         amenitiesFound: amenities.length,
         roomsDetected: rooms.length,
-        descriptionsExtracted: Object.keys(descriptions.structured).length + (descriptions.main ? 1 : 0),
-        hiddenDataRevealed: this.calculateHiddenDataCount(html, amenities, descriptions)
+        descriptionsExtracted:
+          Object.keys(descriptions.structured).length +
+          (descriptions.main ? 1 : 0),
+        hiddenDataRevealed: this.calculateHiddenDataCount(
+          html,
+          amenities,
+          descriptions,
+        ),
       };
-      
+
       const result: DataExtractionResult = {
         amenities,
         descriptions,
         rooms,
         specifications,
         location,
-        extractionStats
+        extractionStats,
       };
 
       // Calculate metadata
       metadata.duration = Date.now() - startTime;
-      metadata.dataCompleteness = this.calculateComprehensiveDataCompleteness(result);
-      metadata.fieldsScraped = ['amenities', 'descriptions', 'rooms', 'specifications', 'location'];
+      metadata.dataCompleteness =
+        this.calculateComprehensiveDataCompleteness(result);
+      metadata.fieldsScraped = [
+        "amenities",
+        "descriptions",
+        "rooms",
+        "specifications",
+        "location",
+      ];
 
-      logger.info('VRBO comprehensive data extraction completed successfully', {
-        amenitiesFound: extractionStats.amenitiesFound,
-        roomsDetected: extractionStats.roomsDetected,
-        dataCompleteness: metadata.dataCompleteness,
-        duration: metadata.duration
-      }, 'VRBO_DATA_EXTRACTOR');
+      logger.info(
+        "VRBO comprehensive data extraction completed successfully",
+        {
+          amenitiesFound: extractionStats.amenitiesFound,
+          roomsDetected: extractionStats.roomsDetected,
+          dataCompleteness: metadata.dataCompleteness,
+          duration: metadata.duration,
+        },
+        "VRBO_DATA_EXTRACTOR",
+      );
 
       return {
         success: true,
         data: result,
         errors: [],
-        metadata
+        metadata,
       };
-
     } catch (error) {
       const scrapingError: ScrapingError = {
-        code: 'DATA_EXTRACTION_FAILED',
-        message: error instanceof Error ? error.message : 'Unknown data extraction error',
-        severity: 'high',
-        recoverable: true
+        code: "DATA_EXTRACTION_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown data extraction error",
+        severity: "high",
+        recoverable: true,
       };
-      
+
       metadata.duration = Date.now() - startTime;
-      metadata.fieldsFailed = ['comprehensive_data'];
-      
-      logger.error('VRBO comprehensive data extraction failed', error, 'VRBO_DATA_EXTRACTOR');
+      metadata.fieldsFailed = ["comprehensive_data"];
+
+      logger.error(
+        "VRBO comprehensive data extraction failed",
+        error,
+        "VRBO_DATA_EXTRACTOR",
+      );
 
       return {
         success: false,
         errors: [scrapingError],
-        metadata
+        metadata,
       };
     }
   }
@@ -204,18 +243,23 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @param options - Amenity extraction options
    * @returns Promise<PropertyAmenity[]>
    */
-  private async extractAdvancedAmenities(html: string, options: AmenityExtractionOptions): Promise<PropertyAmenity[]> {
+  private async extractAdvancedAmenities(
+    html: string,
+    options: AmenityExtractionOptions,
+  ): Promise<PropertyAmenity[]> {
     const amenities: PropertyAmenity[] = [];
     const foundAmenityNames = new Set<string>();
 
     // Extract from structured JSON-LD data first
     const jsonLdAmenities = this.extractJsonLdAmenities(html);
     amenities.push(...jsonLdAmenities);
-    jsonLdAmenities.forEach(amenity => foundAmenityNames.add(amenity.name.toLowerCase()));
+    jsonLdAmenities.forEach((amenity) =>
+      foundAmenityNames.add(amenity.name.toLowerCase()),
+    );
 
     // Extract from visible amenity lists
     const visibleAmenities = this.extractVisibleAmenities(html);
-    visibleAmenities.forEach(amenity => {
+    visibleAmenities.forEach((amenity) => {
       if (!foundAmenityNames.has(amenity.name.toLowerCase())) {
         amenities.push(amenity);
         foundAmenityNames.add(amenity.name.toLowerCase());
@@ -225,7 +269,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
     // Extract from collapsed/hidden sections if enabled
     if (options.includeHidden) {
       const hiddenAmenities = this.extractHiddenAmenities(html);
-      hiddenAmenities.forEach(amenity => {
+      hiddenAmenities.forEach((amenity) => {
         if (!foundAmenityNames.has(amenity.name.toLowerCase())) {
           amenities.push(amenity);
           foundAmenityNames.add(amenity.name.toLowerCase());
@@ -235,7 +279,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
 
     // Extract from data attributes and JavaScript
     const dataAttributeAmenities = this.extractDataAttributeAmenities(html);
-    dataAttributeAmenities.forEach(amenity => {
+    dataAttributeAmenities.forEach((amenity) => {
       if (!foundAmenityNames.has(amenity.name.toLowerCase())) {
         amenities.push(amenity);
         foundAmenityNames.add(amenity.name.toLowerCase());
@@ -257,28 +301,37 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractJsonLdAmenities(html: string): PropertyAmenity[] {
     const amenities: PropertyAmenity[] = [];
-    
+
     try {
-      const jsonLdRegex = /<script[^>]*type=[\"']application\/ld\+json[\"'][^>]*>(.*?)<\/script>/gis;
+      const jsonLdRegex =
+        /<script[^>]*type=[\"']application\/ld\+json[\"'][^>]*>(.*?)<\/script>/gis;
       const matches = html.match(jsonLdRegex);
-      
+
       if (matches) {
-        matches.forEach(match => {
+        matches.forEach((match) => {
           try {
-            const jsonContent = match.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
+            const jsonContent = match
+              .replace(/<script[^>]*>/i, "")
+              .replace(/<\/script>/i, "");
             const data = JSON.parse(jsonContent);
-            
+
             // Look for amenity features in various JSON-LD properties
-            const amenityProperties = ['amenityFeature', 'features', 'additionalProperty'];
-            
-            amenityProperties.forEach(prop => {
+            const amenityProperties = [
+              "amenityFeature",
+              "features",
+              "additionalProperty",
+            ];
+
+            amenityProperties.forEach((prop) => {
               if (data[prop]) {
-                const features = Array.isArray(data[prop]) ? data[prop] : [data[prop]];
-                
+                const features = Array.isArray(data[prop])
+                  ? data[prop]
+                  : [data[prop]];
+
                 features.forEach((feature: unknown) => {
                   let amenityName: string;
-                  
-                  if (typeof feature === 'string') {
+
+                  if (typeof feature === "string") {
                     amenityName = feature;
                   } else if (feature.name) {
                     amenityName = feature.name;
@@ -287,13 +340,13 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
                   } else {
                     return;
                   }
-                  
+
                   amenities.push({
                     name: this.cleanAmenityName(amenityName),
                     verified: true,
                     category: this.categorizeAmenity(amenityName),
                     priority: this.prioritizeAmenity(amenityName),
-                    description: feature.description || undefined
+                    description: feature.description || undefined,
                   });
                 });
               }
@@ -304,9 +357,13 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
         });
       }
     } catch (error) {
-      logger.warn('Failed to extract JSON-LD amenities', error, 'VRBO_DATA_EXTRACTOR');
+      logger.warn(
+        "Failed to extract JSON-LD amenities",
+        error,
+        "VRBO_DATA_EXTRACTOR",
+      );
     }
-    
+
     return amenities;
   }
 
@@ -317,7 +374,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractVisibleAmenities(html: string): PropertyAmenity[] {
     const amenities: PropertyAmenity[] = [];
-    
+
     // Common patterns for amenity lists
     const amenityPatterns = [
       // List items with amenity-related classes
@@ -325,16 +382,16 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
       /<li[^>]*class="[^"]*feature[^"]*"[^>]*>([^<]+)</gi,
       /<div[^>]*class="[^"]*amenity[^"]*"[^>]*>([^<]+)<\/div>/gi,
       /<span[^>]*class="[^"]*amenity[^"]*"[^>]*>([^<]+)<\/span>/gi,
-      
+
       // Data attributes
       /data-amenity="([^"]+)"/gi,
       /data-feature="([^"]+)"/gi,
-      
+
       // Icon-based amenity detection
-      /<i[^>]*class="[^"]*(?:wifi|pool|parking|kitchen|gym|spa)[^"]*"[^>]*><\/i>[^<]*<[^>]*>([^<]+)/gi
+      /<i[^>]*class="[^"]*(?:wifi|pool|parking|kitchen|gym|spa)[^"]*"[^>]*><\/i>[^<]*<[^>]*>([^<]+)/gi,
     ];
-    
-    amenityPatterns.forEach(pattern => {
+
+    amenityPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(html)) !== null) {
         const amenityText = this.cleanAmenityName(match[1]);
@@ -343,12 +400,12 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
             name: amenityText,
             verified: false,
             category: this.categorizeAmenity(amenityText),
-            priority: this.prioritizeAmenity(amenityText)
+            priority: this.prioritizeAmenity(amenityText),
           });
         }
       }
     });
-    
+
     return amenities;
   }
 
@@ -359,33 +416,33 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractHiddenAmenities(html: string): PropertyAmenity[] {
     const amenities: PropertyAmenity[] = [];
-    
+
     // Look for hidden content sections
     const hiddenPatterns = [
       // Hidden divs with display:none or similar
       /<div[^>]*style="[^"]*display:\s*none[^"]*"[^>]*>(.*?)<\/div>/gis,
       /<div[^>]*class="[^"]*hidden[^"]*"[^>]*>(.*?)<\/div>/gis,
       /<div[^>]*class="[^"]*collapse[^"]*"[^>]*>(.*?)<\/div>/gis,
-      
+
       // Expandable sections
       /<div[^>]*class="[^"]*expandable[^"]*"[^>]*>(.*?)<\/div>/gis,
       /<div[^>]*data-toggle="collapse"[^>]*>(.*?)<\/div>/gis,
-      
+
       // Modal content
-      /<div[^>]*class="[^"]*modal[^"]*"[^>]*>(.*?)<\/div>/gis
+      /<div[^>]*class="[^"]*modal[^"]*"[^>]*>(.*?)<\/div>/gis,
     ];
-    
-    hiddenPatterns.forEach(pattern => {
+
+    hiddenPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(html)) !== null) {
         const hiddenContent = match[1];
-        
+
         // Extract amenities from hidden content using standard patterns
         const hiddenAmenities = this.extractVisibleAmenities(hiddenContent);
         amenities.push(...hiddenAmenities);
       }
     });
-    
+
     return amenities;
   }
 
@@ -396,36 +453,36 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractDataAttributeAmenities(html: string): PropertyAmenity[] {
     const amenities: PropertyAmenity[] = [];
-    
+
     // Extract from JavaScript configuration objects
     const jsPatterns = [
       /amenities\s*:\s*\[([^\]]+)\]/gi,
       /features\s*:\s*\[([^\]]+)\]/gi,
       /"amenities":\s*\[([^\]]+)\]/gi,
-      /"features":\s*\[([^\]]+)\]/gi
+      /"features":\s*\[([^\]]+)\]/gi,
     ];
-    
-    jsPatterns.forEach(pattern => {
+
+    jsPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(html)) !== null) {
         const amenityArray = match[1];
-        
+
         // Extract quoted strings from the array
         const quotedStrings = amenityArray.match(/"([^"]+)"/g) || [];
-        quotedStrings.forEach(quoted => {
-          const amenityName = quoted.replace(/"/g, '');
+        quotedStrings.forEach((quoted) => {
+          const amenityName = quoted.replace(/"/g, "");
           if (amenityName && amenityName.length > 2) {
             amenities.push({
               name: this.cleanAmenityName(amenityName),
               verified: true,
               category: this.categorizeAmenity(amenityName),
-              priority: this.prioritizeAmenity(amenityName)
+              priority: this.prioritizeAmenity(amenityName),
             });
           }
         });
       }
     });
-    
+
     return amenities;
   }
 
@@ -435,12 +492,15 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @param html - HTML content for context
    * @returns PropertyAmenity[]
    */
-  private categorizeAmenitiesByRoom(amenities: PropertyAmenity[], html: string): PropertyAmenity[] {
-    return amenities.map(amenity => {
+  private categorizeAmenitiesByRoom(
+    amenities: PropertyAmenity[],
+    html: string,
+  ): PropertyAmenity[] {
+    return amenities.map((amenity) => {
       const roomContext = this.detectAmenityRoomContext(amenity.name, html);
       return {
         ...amenity,
-        roomType: roomContext
+        roomType: roomContext,
       };
     });
   }
@@ -451,57 +511,96 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @param html - HTML content for context analysis
    * @returns RoomType | undefined
    */
-  private detectAmenityRoomContext(amenityName: string, html: string): RoomType | undefined {
+  private detectAmenityRoomContext(
+    amenityName: string,
+    html: string,
+  ): RoomType | undefined {
     const name = amenityName.toLowerCase();
-    
+
     // Direct room indicators in amenity name
-    if (name.includes('kitchen') || name.includes('cooking') || name.includes('fridge') || name.includes('microwave')) {
-      return 'kitchen';
+    if (
+      name.includes("kitchen") ||
+      name.includes("cooking") ||
+      name.includes("fridge") ||
+      name.includes("microwave")
+    ) {
+      return "kitchen";
     }
-    if (name.includes('bedroom') || name.includes('bed ') || name.includes('mattress')) {
-      return 'bedroom';
+    if (
+      name.includes("bedroom") ||
+      name.includes("bed ") ||
+      name.includes("mattress")
+    ) {
+      return "bedroom";
     }
-    if (name.includes('bathroom') || name.includes('shower') || name.includes('bathtub')) {
-      return 'bathroom';
+    if (
+      name.includes("bathroom") ||
+      name.includes("shower") ||
+      name.includes("bathtub")
+    ) {
+      return "bathroom";
     }
-    if (name.includes('living') || name.includes('sofa') || name.includes('couch')) {
-      return 'living_room';
+    if (
+      name.includes("living") ||
+      name.includes("sofa") ||
+      name.includes("couch")
+    ) {
+      return "living_room";
     }
-    if (name.includes('dining') || name.includes('table')) {
-      return 'dining_room';
+    if (name.includes("dining") || name.includes("table")) {
+      return "dining_room";
     }
-    if (name.includes('office') || name.includes('desk') || name.includes('workspace')) {
-      return 'office';
+    if (
+      name.includes("office") ||
+      name.includes("desk") ||
+      name.includes("workspace")
+    ) {
+      return "office";
     }
-    if (name.includes('game') || name.includes('entertainment') || name.includes('pool table')) {
-      return 'game_room';
+    if (
+      name.includes("game") ||
+      name.includes("entertainment") ||
+      name.includes("pool table")
+    ) {
+      return "game_room";
     }
-    if (name.includes('balcony') || name.includes('terrace')) {
-      return 'balcony';
+    if (name.includes("balcony") || name.includes("terrace")) {
+      return "balcony";
     }
-    if (name.includes('patio') || name.includes('deck') || name.includes('outdoor dining')) {
-      return 'patio';
+    if (
+      name.includes("patio") ||
+      name.includes("deck") ||
+      name.includes("outdoor dining")
+    ) {
+      return "patio";
     }
-    if (name.includes('garage') || name.includes('car') || name.includes('parking')) {
-      return 'garage';
+    if (
+      name.includes("garage") ||
+      name.includes("car") ||
+      name.includes("parking")
+    ) {
+      return "garage";
     }
-    
+
     // Look for context clues in surrounding HTML
-    const amenityPattern = new RegExp(amenityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const amenityPattern = new RegExp(
+      amenityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "i",
+    );
     const amenityMatch = html.search(amenityPattern);
-    
+
     if (amenityMatch !== -1) {
       const contextStart = Math.max(0, amenityMatch - 500);
       const contextEnd = Math.min(html.length, amenityMatch + 500);
       const context = html.slice(contextStart, contextEnd).toLowerCase();
-      
-      if (context.includes('kitchen')) return 'kitchen';
-      if (context.includes('bedroom')) return 'bedroom';
-      if (context.includes('bathroom')) return 'bathroom';
-      if (context.includes('living')) return 'living_room';
-      if (context.includes('dining')) return 'dining_room';
+
+      if (context.includes("kitchen")) return "kitchen";
+      if (context.includes("bedroom")) return "bedroom";
+      if (context.includes("bathroom")) return "bathroom";
+      if (context.includes("living")) return "living_room";
+      if (context.includes("dining")) return "dining_room";
     }
-    
+
     return undefined;
   }
 
@@ -511,15 +610,18 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @param options - Description extraction options
    * @returns Object with main description, highlights, and structured data
    */
-  private async extractDetailedDescriptions(html: string, options: DescriptionExtractionOptions): Promise<{
+  private async extractDetailedDescriptions(
+    html: string,
+    options: DescriptionExtractionOptions,
+  ): Promise<{
     main: string;
     highlights: string[];
     structured: Record<string, string>;
   }> {
     const descriptions = {
-      main: '',
+      main: "",
       highlights: [] as string[],
-      structured: {} as Record<string, string>
+      structured: {} as Record<string, string>,
     };
 
     // Extract main description from common patterns
@@ -533,21 +635,24 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
       /<section[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/section>/gis,
       // Property overview sections
       /<div[^>]*class="[^"]*overview[^"]*"[^>]*>(.*?)<\/div>/gis,
-      /<div[^>]*class="[^"]*summary[^"]*"[^>]*>(.*?)<\/div>/gis
+      /<div[^>]*class="[^"]*summary[^"]*"[^>]*>(.*?)<\/div>/gis,
     ];
 
     for (const pattern of descriptionPatterns) {
       const match = html.match(pattern);
       if (match && match[1]) {
         let description = match[1];
-        
+
         if (options.includeFormatting) {
           description = this.preserveDescriptionFormatting(description);
         } else {
           description = this.cleanText(description);
         }
-        
-        if (description.length > descriptions.main.length && description.length <= options.maxLength) {
+
+        if (
+          description.length > descriptions.main.length &&
+          description.length <= options.maxLength
+        ) {
           descriptions.main = description;
         }
       }
@@ -573,18 +678,18 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private preserveDescriptionFormatting(description: string): string {
     return description
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n\n')
-      .replace(/<li[^>]*>/gi, '• ')
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<li[^>]*>/gi, "• ")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
-      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .replace(/\n\s*\n\s*\n/g, "\n\n")
       .trim();
   }
 
@@ -595,28 +700,27 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractDescriptionHighlights(html: string): string[] {
     const highlights: string[] = [];
-    
+
     // Look for bullet point lists
-    const listPatterns = [
-      /<ul[^>]*>(.*?)<\/ul>/gis,
-      /<ol[^>]*>(.*?)<\/ol>/gis
-    ];
-    
-    listPatterns.forEach(pattern => {
+    const listPatterns = [/<ul[^>]*>(.*?)<\/ul>/gis, /<ol[^>]*>(.*?)<\/ol>/gis];
+
+    listPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(html)) !== null) {
         const listContent = match[1];
         const listItems = listContent.match(/<li[^>]*>(.*?)<\/li>/gis) || [];
-        
-        listItems.forEach(item => {
-          const cleanItem = this.cleanText(item.replace(/<li[^>]*>|<\/li>/gi, ''));
+
+        listItems.forEach((item) => {
+          const cleanItem = this.cleanText(
+            item.replace(/<li[^>]*>|<\/li>/gi, ""),
+          );
           if (cleanItem && cleanItem.length > 10 && cleanItem.length < 200) {
             highlights.push(cleanItem);
           }
         });
       }
     });
-    
+
     return highlights.slice(0, 20); // Limit to 20 highlights
   }
 
@@ -627,7 +731,7 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private extractStructuredDescriptions(html: string): Record<string, string> {
     const structured: Record<string, string> = {};
-    
+
     // Look for labeled sections
     const sectionPatterns = [
       // Sections with headers
@@ -635,21 +739,21 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
       // Definition lists
       /<dt[^>]*>([^<]+)<\/dt>[^<]*<dd[^>]*>([^<]+)<\/dd>/gi,
       // Labeled divs
-      /<div[^>]*class="[^"]*label[^"]*"[^>]*>([^<]+)<\/div>[^<]*<div[^>]*>([^<]+)<\/div>/gi
+      /<div[^>]*class="[^"]*label[^"]*"[^>]*>([^<]+)<\/div>[^<]*<div[^>]*>([^<]+)<\/div>/gi,
     ];
-    
-    sectionPatterns.forEach(pattern => {
+
+    sectionPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(html)) !== null) {
         const label = this.cleanText(match[1]);
         const content = this.cleanText(match[2]);
-        
+
         if (label && content && label.length < 100 && content.length < 1000) {
           structured[label] = content;
         }
       }
     });
-    
+
     return structured;
   }
 
@@ -659,28 +763,31 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    * @param options - Room extraction options
    * @returns PropertyRoom[]
    */
-  private async extractRoomData(html: string, options: RoomExtractionOptions): Promise<PropertyRoom[]> {
+  private async extractRoomData(
+    html: string,
+    options: RoomExtractionOptions,
+  ): Promise<PropertyRoom[]> {
     const rooms: PropertyRoom[] = [];
-    
+
     // Extract from structured data first
     const jsonLdRooms = this.extractJsonLdRooms(html);
     rooms.push(...jsonLdRooms);
-    
+
     // Extract from description text patterns
     const descriptionRooms = this.extractRoomsFromDescription(html);
     rooms.push(...descriptionRooms);
-    
+
     // Extract from explicit room sections
     const sectionRooms = this.extractRoomsFromSections(html);
     rooms.push(...sectionRooms);
-    
+
     // Deduplicate and enhance rooms
     const uniqueRooms = this.deduplicateRooms(rooms);
-    
+
     if (options.extractDimensions) {
       return this.enhanceRoomsWithDimensions(uniqueRooms, html);
     }
-    
+
     return uniqueRooms;
   }
 
@@ -689,29 +796,41 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
    */
   private cleanAmenityName(name: string): string {
     return name
-      .replace(/[^\w\s\-\/&]/g, '')
-      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-\/&]/g, "")
+      .replace(/\s+/g, " ")
       .trim();
   }
 
-  private prioritizeAmenity(amenityName: string): 'essential' | 'important' | 'nice_to_have' {
+  private prioritizeAmenity(
+    amenityName: string,
+  ): "essential" | "important" | "nice_to_have" {
     const name = amenityName.toLowerCase();
-    
+
     // Essential amenities
-    if (name.includes('wifi') || name.includes('internet') || 
-        name.includes('kitchen') || name.includes('parking') ||
-        name.includes('heating') || name.includes('air conditioning')) {
-      return 'essential';
+    if (
+      name.includes("wifi") ||
+      name.includes("internet") ||
+      name.includes("kitchen") ||
+      name.includes("parking") ||
+      name.includes("heating") ||
+      name.includes("air conditioning")
+    ) {
+      return "essential";
     }
-    
+
     // Important amenities
-    if (name.includes('pool') || name.includes('hot tub') || 
-        name.includes('washer') || name.includes('dryer') ||
-        name.includes('tv') || name.includes('dishwasher')) {
-      return 'important';
+    if (
+      name.includes("pool") ||
+      name.includes("hot tub") ||
+      name.includes("washer") ||
+      name.includes("dryer") ||
+      name.includes("tv") ||
+      name.includes("dishwasher")
+    ) {
+      return "important";
     }
-    
-    return 'nice_to_have';
+
+    return "nice_to_have";
   }
 
   /**
@@ -737,59 +856,77 @@ export class VRBODataExtractor extends ProductionVRBOScraper {
     return rooms;
   }
 
-  private enhanceRoomsWithDimensions(rooms: PropertyRoom[], html: string): PropertyRoom[] {
+  private enhanceRoomsWithDimensions(
+    rooms: PropertyRoom[],
+    html: string,
+  ): PropertyRoom[] {
     // Implementation for dimension extraction
     return rooms;
   }
 
-  private async extractEnhancedSpecifications(html: string, amenities: PropertyAmenity[], rooms: PropertyRoom[]): Promise<PropertySpecifications> {
+  private async extractEnhancedSpecifications(
+    html: string,
+    amenities: PropertyAmenity[],
+    rooms: PropertyRoom[],
+  ): Promise<PropertySpecifications> {
     // Enhanced specifications extraction
     return this.getDefaultSpecifications();
   }
 
-  private async extractDetailedLocation(html: string): Promise<PropertyLocation> {
+  private async extractDetailedLocation(
+    html: string,
+  ): Promise<PropertyLocation> {
     // Detailed location extraction
     return this.getDefaultLocation();
   }
 
-  private calculateHiddenDataCount(html: string, amenities: PropertyAmenity[], descriptions: unknown): number {
+  private calculateHiddenDataCount(
+    html: string,
+    amenities: PropertyAmenity[],
+    descriptions: unknown,
+  ): number {
     // Calculate how much hidden data was revealed
     return 0;
   }
 
-  private calculateComprehensiveDataCompleteness(result: DataExtractionResult): number {
+  private calculateComprehensiveDataCompleteness(
+    result: DataExtractionResult,
+  ): number {
     let score = 0;
-    
+
     // Amenities score (30%)
     if (result.amenities.length > 0) {
       score += Math.min((result.amenities.length / 20) * 30, 30);
     }
-    
+
     // Descriptions score (25%)
     if (result.descriptions.main) score += 15;
     if (result.descriptions.highlights.length > 0) score += 5;
     if (Object.keys(result.descriptions.structured).length > 0) score += 5;
-    
+
     // Rooms score (25%)
     if (result.rooms.length > 0) {
       score += Math.min((result.rooms.length / 5) * 25, 25);
     }
-    
+
     // Specifications score (10%)
     if (result.specifications.bedrooms > 0) score += 3;
     if (result.specifications.bathrooms > 0) score += 3;
     if (result.specifications.maxGuests > 0) score += 4;
-    
+
     // Location score (10%)
-    if (result.location.city && result.location.city !== 'Unknown') score += 5;
-    if (result.location.state && result.location.state !== 'Unknown') score += 3;
+    if (result.location.city && result.location.city !== "Unknown") score += 5;
+    if (result.location.state && result.location.state !== "Unknown")
+      score += 3;
     if (result.location.address) score += 2;
-    
+
     return Math.round(Math.min(score, 100));
   }
 }
 
 // Export factory function
-export const createVRBODataExtractor = (config?: Record<string, unknown>): VRBODataExtractor => {
+export const createVRBODataExtractor = (
+  config?: Record<string, unknown>,
+): VRBODataExtractor => {
   return new VRBODataExtractor(config);
 };

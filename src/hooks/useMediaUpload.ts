@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,46 +10,51 @@ interface UploadProgress {
 
 export const useMediaUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
+    null,
+  );
   const { toast } = useToast();
 
   const uploadFile = async (
     file: File,
     inspectionId: string,
-    checklistItemId: string
+    checklistItemId: string,
   ): Promise<string | null> => {
     setIsUploading(true);
     setUploadProgress({ uploaded: 0, total: file.size, percentage: 0 });
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
       const filePath = `inspection-media/${inspectionId}/${checklistItemId}/${fileName}`;
-
 
       // Note: Supabase doesn't support onUploadProgress in the current version
       // We'll simulate progress for better UX
       const uploadPromise = supabase.storage
-        .from('inspection-media')
+        .from("inspection-media")
         .upload(filePath, file);
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (!prev) return null;
           const newPercentage = Math.min(prev.percentage + 10, 90);
           return {
             ...prev,
             percentage: newPercentage,
-            uploaded: Math.round((newPercentage / 100) * file.size)
+            uploaded: Math.round((newPercentage / 100) * file.size),
           };
         });
       }, 200);
 
       const { data, error } = await uploadPromise;
-      
+
       clearInterval(progressInterval);
-      setUploadProgress({ uploaded: file.size, total: file.size, percentage: 100 });
+      setUploadProgress({
+        uploaded: file.size,
+        total: file.size,
+        percentage: 100,
+      });
 
       if (error) {
         toast({
@@ -61,21 +65,18 @@ export const useMediaUpload = () => {
         return null;
       }
 
-
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('inspection-media')
+        .from("inspection-media")
         .getPublicUrl(data.path);
 
       // Save media record to database with file_path
-      const { error: dbError } = await supabase
-        .from('media')
-        .insert({
-          checklist_item_id: checklistItemId,
-          type: file.type.startsWith('image/') ? 'photo' : 'video',
-          url: urlData.publicUrl,
-          file_path: data.path
-        });
+      const { error: dbError } = await supabase.from("media").insert({
+        checklist_item_id: checklistItemId,
+        type: file.type.startsWith("image/") ? "photo" : "video",
+        url: urlData.publicUrl,
+        file_path: data.path,
+      });
 
       if (dbError) {
         toast({
@@ -106,9 +107,8 @@ export const useMediaUpload = () => {
 
   const deleteFile = async (filePath: string): Promise<boolean> => {
     try {
-
       const { error } = await supabase.storage
-        .from('inspection-media')
+        .from("inspection-media")
         .remove([filePath]);
 
       if (error) {
@@ -140,6 +140,6 @@ export const useMediaUpload = () => {
     uploadFile,
     deleteFile,
     isUploading,
-    uploadProgress
+    uploadProgress,
   };
 };

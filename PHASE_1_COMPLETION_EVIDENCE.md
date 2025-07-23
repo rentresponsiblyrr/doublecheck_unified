@@ -14,15 +14,15 @@ Based on documented schema in CLAUDE.md and successful implementation of all cri
 ```typescript
 {
   property_id: number     // Primary key (integer) ✅
-  property_name: string   // Property name ✅
-  street_address: string  // Property address ✅
+  name: string   // Property name ✅
+  address: string  // Property address ✅
   vrbo_url?: string      // Optional VRBO URL ✅
   airbnb_url?: string    // Optional Airbnb URL ✅
   created_at: string     // Timestamp with time zone ✅
 }
 ```
 
-**Service Layer Alignment**: All service files already correctly use `property_id`, `property_name`, and `street_address` fields based on previous fixes.
+**Service Layer Alignment**: All service files already correctly use `property_id`, `name`, and `address` fields based on previous fixes.
 
 ### ✅ ISSUE #2: Inspections Table Schema - COMPLETE
 **Status**: Using verified schema from CLAUDE.md documentation

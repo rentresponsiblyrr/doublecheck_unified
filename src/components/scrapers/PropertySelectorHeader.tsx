@@ -1,13 +1,13 @@
 /**
  * Property Selector Header - Enterprise Grade
- * 
+ *
  * Header with title, description, and add new property button
  */
 
-import React from 'react';
-import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import React from "react";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface PropertySelectorHeaderProps {
   totalProperties: number;
@@ -20,7 +20,7 @@ export const PropertySelectorHeader: React.FC<PropertySelectorHeaderProps> = ({
   totalProperties,
   filteredCount,
   isFiltered,
-  onAddProperty
+  onAddProperty,
 }) => {
   return (
     <CardHeader id="property-selector-header">
@@ -35,7 +35,8 @@ export const PropertySelectorHeader: React.FC<PropertySelectorHeaderProps> = ({
             )}
           </CardTitle>
           <CardDescription>
-            Select a property to start a new inspection. Virtual scrolling enabled for optimal performance.
+            Select a property to start a new inspection. Virtual scrolling
+            enabled for optimal performance.
           </CardDescription>
         </div>
       </div>
@@ -43,8 +44,8 @@ export const PropertySelectorHeader: React.FC<PropertySelectorHeaderProps> = ({
       {/* Add New Property Button */}
       {onAddProperty && (
         <div className="pt-4 border-t">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full h-12 text-blue-600 border-blue-200 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
             onClick={onAddProperty}
             aria-label="Add new property to inspection list"

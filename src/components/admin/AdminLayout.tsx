@@ -1,8 +1,12 @@
-import React from 'react';
-import { AdminLayoutContainer } from './layout/AdminLayoutContainer';
+import React from "react";
+import { AdminLayoutContainer } from "./layout/AdminLayoutContainer";
 
-const AdminLayout: React.FC = () => {
-  return <AdminLayoutContainer />;
+interface AdminLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  return <AdminLayoutContainer>{children}</AdminLayoutContainer>;
 };
 
 export default AdminLayout;

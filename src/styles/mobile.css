@@ -1,4 +1,3 @@
-
 /* Mobile-specific optimizations for DoubleCheck */
 
 /* Ensure proper touch targets */
@@ -50,8 +49,12 @@ select {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Better scroll behavior */
@@ -76,7 +79,7 @@ select {
     font-size: 14px !important;
     line-height: 1.4;
   }
-  
+
   .mobile-title {
     font-size: 18px !important;
     font-weight: 600;

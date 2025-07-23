@@ -1,10 +1,10 @@
 /**
  * CONSTRUCTION SITE OPTIMIZER - HARSH ENVIRONMENT ADAPTATION
- * 
+ *
  * Specialized optimization system designed for the unique challenges of construction
  * site environments. Adapts PWA performance for poor network conditions, extreme
  * temperatures, dusty conditions, and rugged device usage patterns.
- * 
+ *
  * CONSTRUCTION SITE CHALLENGES:
  * - Poor/intermittent network connectivity (2G, spotty coverage)
  * - Battery drain from outdoor usage and screen brightness
@@ -13,7 +13,7 @@
  * - Dropped/damaged devices requiring resilient data handling
  * - Multiple users sharing devices
  * - Time-critical safety inspections
- * 
+ *
  * OPTIMIZATION STRATEGIES:
  * 1. Aggressive Offline-First Design
  * 2. Network-Adaptive Resource Loading
@@ -22,37 +22,37 @@
  * 5. Data Durability & Recovery
  * 6. Environmental Condition Detection
  * 7. Performance Degradation Prevention
- * 
+ *
  * SUCCESS METRICS:
  * - 100% core functionality available offline
  * - 50%+ battery life improvement in construction mode
  * - <3s app response time on 2G networks
  * - Zero data loss from device failures
  * - Intuitive touch interface for gloved hands
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 3.0.0 - Phase 3 Elite PWA Excellence
  */
 
-import { logger } from '@/utils/logger';
-import type { IntelligentCacheManager } from './IntelligentCacheManager';
-import type { BackgroundSyncManager } from './BackgroundSyncManager';
-import type { PWAPerformanceIntegrator } from './PWAPerformanceIntegrator';
+import { logger } from "@/utils/logger";
+import type { IntelligentCacheManager } from "./IntelligentCacheManager";
+import type { BackgroundSyncManager } from "./BackgroundSyncManager";
+import type { PWAPerformanceIntegrator } from "./PWAPerformanceIntegrator";
 
 export interface ConstructionSiteEnvironment {
-  networkQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'offline';
+  networkQuality: "excellent" | "good" | "fair" | "poor" | "offline";
   batteryLevel: number;
   deviceTemperature?: number;
   screenBrightness?: number;
-  touchSensitivity: 'normal' | 'gloved' | 'impaired';
-  deviceOrientation: 'portrait' | 'landscape' | 'unknown';
-  ambientLight: 'indoor' | 'outdoor' | 'bright-sun' | 'dark';
+  touchSensitivity: "normal" | "gloved" | "impaired";
+  deviceOrientation: "portrait" | "landscape" | "unknown";
+  ambientLight: "indoor" | "outdoor" | "bright-sun" | "dark";
   deviceShaking: boolean;
   isCharging: boolean;
 }
 
 export interface ConstructionOptimizationConfig {
-  enableAggressive OfflineCaching: boolean;
+  enableAggressiveOfflineCaching: boolean;
   enableBatteryOptimization: boolean;
   enableTouchOptimization: boolean;
   enableNetworkAdaptation: boolean;
@@ -83,16 +83,17 @@ export class ConstructionSiteOptimizer {
   private cacheManager: IntelligentCacheManager | null = null;
   private syncManager: BackgroundSyncManager | null = null;
   private performanceIntegrator: PWAPerformanceIntegrator | null = null;
-  
+
   private isEmergencyMode = false;
   private isCriticalInspectionMode = false;
   private environmentMonitoringInterval: number | null = null;
   private optimizationInterval: number | null = null;
-  
+
   // Environmental sensors
   private networkMonitor: any = null;
   private batteryMonitor: any = null;
-  private deviceMotionHandler: ((event: DeviceMotionEvent) => void) | null = null;
+  private deviceMotionHandler: ((event: DeviceMotionEvent) => void) | null =
+    null;
 
   constructor(config: Partial<ConstructionOptimizationConfig> = {}) {
     this.config = {
@@ -103,17 +104,17 @@ export class ConstructionSiteOptimizer {
       enableEnvironmentalAdaptation: true,
       emergencyModeThreshold: 15, // 15% battery
       criticalInspectionMode: false,
-      ...config
+      ...config,
     };
 
     this.environment = {
-      networkQuality: 'good',
+      networkQuality: "good",
       batteryLevel: 1.0,
-      touchSensitivity: 'normal',
-      deviceOrientation: 'portrait',
-      ambientLight: 'indoor',
+      touchSensitivity: "normal",
+      deviceOrientation: "portrait",
+      ambientLight: "indoor",
       deviceShaking: false,
-      isCharging: false
+      isCharging: false,
     };
 
     this.metrics = {
@@ -124,7 +125,7 @@ export class ConstructionSiteOptimizer {
       dataResilienceScore: 0,
       environmentalAdaptations: 0,
       emergencyModeActivations: 0,
-      criticalInspectionsSaved: 0
+      criticalInspectionsSaved: 0,
     };
   }
 
@@ -138,9 +139,13 @@ export class ConstructionSiteOptimizer {
     performanceIntegrator: PWAPerformanceIntegrator;
   }): Promise<void> {
     try {
-      logger.info('🏗️ Initializing Construction Site Optimizer', {
-        config: this.config
-      }, 'CONSTRUCTION_OPTIMIZER');
+      logger.info(
+        "🏗️ Initializing Construction Site Optimizer",
+        {
+          config: this.config,
+        },
+        "CONSTRUCTION_OPTIMIZER",
+      );
 
       // Store dependencies
       this.cacheManager = dependencies.cacheManager;
@@ -181,16 +186,25 @@ export class ConstructionSiteOptimizer {
       // Perform initial environment assessment
       await this.assessEnvironment();
 
-      logger.info('✅ Construction Site Optimizer initialized successfully', {
-        environmentDetected: this.environment,
-        optimizationsEnabled: Object.entries(this.config)
-          .filter(([key, value]) => key.startsWith('enable') && value)
-          .map(([key]) => key)
-      }, 'CONSTRUCTION_OPTIMIZER');
-
+      logger.info(
+        "✅ Construction Site Optimizer initialized successfully",
+        {
+          environmentDetected: this.environment,
+          optimizationsEnabled: Object.entries(this.config)
+            .filter(([key, value]) => key.startsWith("enable") && value)
+            .map(([key]) => key),
+        },
+        "CONSTRUCTION_OPTIMIZER",
+      );
     } catch (error) {
-      logger.error('❌ Construction Site Optimizer initialization failed', { error }, 'CONSTRUCTION_OPTIMIZER');
-      throw new Error(`Construction Site Optimizer initialization failed: ${error.message}`);
+      logger.error(
+        "❌ Construction Site Optimizer initialization failed",
+        { error },
+        "CONSTRUCTION_OPTIMIZER",
+      );
+      throw new Error(
+        `Construction Site Optimizer initialization failed: ${error.message}`,
+      );
     }
   }
 
@@ -200,11 +214,11 @@ export class ConstructionSiteOptimizer {
    */
   private async initializeEnvironmentalMonitoring(): Promise<void> {
     // Network quality monitoring
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       this.networkMonitor = (navigator as any).connection;
       this.updateNetworkQuality();
-      
-      this.networkMonitor.addEventListener('change', () => {
+
+      this.networkMonitor.addEventListener("change", () => {
         this.updateNetworkQuality();
         this.adaptToNetworkChange();
       });
@@ -212,68 +226,69 @@ export class ConstructionSiteOptimizer {
 
     // Battery monitoring
     try {
-      if ('getBattery' in navigator) {
+      if ("getBattery" in navigator) {
         this.batteryMonitor = await (navigator as any).getBattery();
         this.environment.batteryLevel = this.batteryMonitor.level;
         this.environment.isCharging = this.batteryMonitor.charging;
 
-        this.batteryMonitor.addEventListener('levelchange', () => {
+        this.batteryMonitor.addEventListener("levelchange", () => {
           this.environment.batteryLevel = this.batteryMonitor.level;
           this.adaptToBatteryLevel();
         });
 
-        this.batteryMonitor.addEventListener('chargingchange', () => {
+        this.batteryMonitor.addEventListener("chargingchange", () => {
           this.environment.isCharging = this.batteryMonitor.charging;
           this.adaptToChargingState();
         });
       }
     } catch (error) {
-      logger.debug('Battery API not available', {}, 'CONSTRUCTION_OPTIMIZER');
+      logger.debug("Battery API not available", {}, "CONSTRUCTION_OPTIMIZER");
     }
 
     // Device motion monitoring (for shake detection)
-    if ('DeviceMotionEvent' in window) {
+    if ("DeviceMotionEvent" in window) {
       this.deviceMotionHandler = (event: DeviceMotionEvent) => {
         const acceleration = event.accelerationIncludingGravity;
         if (acceleration) {
           const totalAcceleration = Math.sqrt(
             Math.pow(acceleration.x || 0, 2) +
-            Math.pow(acceleration.y || 0, 2) +
-            Math.pow(acceleration.z || 0, 2)
+              Math.pow(acceleration.y || 0, 2) +
+              Math.pow(acceleration.z || 0, 2),
           );
-          
+
           this.environment.deviceShaking = totalAcceleration > 15; // Threshold for construction site vibration
         }
       };
 
-      window.addEventListener('devicemotion', this.deviceMotionHandler);
+      window.addEventListener("devicemotion", this.deviceMotionHandler);
     }
 
     // Screen orientation monitoring
-    if ('screen' in window && 'orientation' in window.screen) {
+    if ("screen" in window && "orientation" in window.screen) {
       const updateOrientation = () => {
-        this.environment.deviceOrientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+        this.environment.deviceOrientation =
+          window.innerWidth > window.innerHeight ? "landscape" : "portrait";
       };
-      
+
       updateOrientation();
-      window.addEventListener('orientationchange', updateOrientation);
-      window.addEventListener('resize', updateOrientation);
+      window.addEventListener("orientationchange", updateOrientation);
+      window.addEventListener("resize", updateOrientation);
     }
 
     // Ambient light detection (approximate)
     try {
-      if ('AmbientLightSensor' in window) {
+      if ("AmbientLightSensor" in window) {
         const sensor = new (window as any).AmbientLightSensor();
-        sensor.addEventListener('reading', () => {
+        sensor.addEventListener("reading", () => {
           const illuminance = sensor.illuminance;
           if (illuminance > 10000) {
-            this.environment.ambientLight = 'bright-sun';
+            this.environment.ambientLight = "bright-sun";
           } else if (illuminance > 1000) {
-            this.environment.ambientLight = 'outdoor';
+            this.environment.ambientLight = "outdoor";
           } else if (illuminance > 100) {
-            this.environment.ambientLight = 'indoor';
+            this.environment.ambientLight = "indoor";
           } else {
-            this.environment.ambientLight = 'dark';
+            this.environment.ambientLight = "dark";
           }
         });
         sensor.start();
@@ -283,11 +298,15 @@ export class ConstructionSiteOptimizer {
       this.detectAmbientLightFallback();
     }
 
-    logger.info('Environmental monitoring initialized', {
-      networkMonitor: !!this.networkMonitor,
-      batteryMonitor: !!this.batteryMonitor,
-      deviceMotion: !!this.deviceMotionHandler
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Environmental monitoring initialized",
+      {
+        networkMonitor: !!this.networkMonitor,
+        batteryMonitor: !!this.batteryMonitor,
+        deviceMotion: !!this.deviceMotionHandler,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -299,13 +318,13 @@ export class ConstructionSiteOptimizer {
 
     // Precache all critical inspection resources
     const criticalResources = [
-      '/',
-      '/offline.html',
-      '/inspection',
-      '/inspection/new',
-      '/checklist-templates',
-      '/safety-protocols',
-      '/emergency-contacts',
+      "/",
+      "/offline.html",
+      "/inspection",
+      "/inspection/new",
+      "/checklist-templates",
+      "/safety-protocols",
+      "/emergency-contacts",
       // Add more critical inspection routes
     ];
 
@@ -314,9 +333,13 @@ export class ConstructionSiteOptimizer {
     // Enable aggressive caching strategies
     await this.cacheManager.adaptToNetworkConditions();
 
-    logger.info('Aggressive offline caching enabled', {
-      criticalResourcesCached: criticalResources.length
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Aggressive offline caching enabled",
+      {
+        criticalResourcesCached: criticalResources.length,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -325,9 +348,12 @@ export class ConstructionSiteOptimizer {
    */
   private async setupBatteryOptimization(): Promise<void> {
     // Reduce background processing frequency
-    this.optimizationInterval = window.setInterval(() => {
-      this.performBatteryOptimizations();
-    }, this.environment.batteryLevel < 0.5 ? 60000 : 30000); // Less frequent when battery low
+    this.optimizationInterval = window.setInterval(
+      () => {
+        this.performBatteryOptimizations();
+      },
+      this.environment.batteryLevel < 0.5 ? 60000 : 30000,
+    ); // Less frequent when battery low
 
     // Implement CPU throttling for low battery
     if (this.environment.batteryLevel < 0.3) {
@@ -337,10 +363,14 @@ export class ConstructionSiteOptimizer {
     // Reduce screen wake locks in low battery
     this.optimizeScreenUsage();
 
-    logger.info('Battery optimization enabled', {
-      batteryLevel: Math.round(this.environment.batteryLevel * 100),
-      isCharging: this.environment.isCharging
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Battery optimization enabled",
+      {
+        batteryLevel: Math.round(this.environment.batteryLevel * 100),
+        isCharging: this.environment.isCharging,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -357,9 +387,13 @@ export class ConstructionSiteOptimizer {
     // Optimize for gloved hand usage
     this.optimizeForGlovedHands();
 
-    logger.info('Touch interface optimization enabled', {
-      touchSensitivity: this.environment.touchSensitivity
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Touch interface optimization enabled",
+      {
+        touchSensitivity: this.environment.touchSensitivity,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -376,9 +410,13 @@ export class ConstructionSiteOptimizer {
     // Setup request prioritization
     this.setupRequestPrioritization();
 
-    logger.info('Network adaptation enabled', {
-      networkQuality: this.environment.networkQuality
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Network adaptation enabled",
+      {
+        networkQuality: this.environment.networkQuality,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -395,10 +433,14 @@ export class ConstructionSiteOptimizer {
     // Setup vibration-resistant interface
     this.setupVibrationResistance();
 
-    logger.info('Environmental adaptation enabled', {
-      ambientLight: this.environment.ambientLight,
-      deviceShaking: this.environment.deviceShaking
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Environmental adaptation enabled",
+      {
+        ambientLight: this.environment.ambientLight,
+        deviceShaking: this.environment.deviceShaking,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -408,9 +450,12 @@ export class ConstructionSiteOptimizer {
   private async assessEnvironment(): Promise<void> {
     // Network quality assessment
     this.updateNetworkQuality();
-    
+
     // Battery level check
-    if (this.environment.batteryLevel <= this.config.emergencyModeThreshold / 100) {
+    if (
+      this.environment.batteryLevel <=
+      this.config.emergencyModeThreshold / 100
+    ) {
       await this.enableEmergencyMode();
     } else if (this.isEmergencyMode && this.environment.batteryLevel > 0.25) {
       await this.disableEmergencyMode();
@@ -423,7 +468,7 @@ export class ConstructionSiteOptimizer {
 
     // Environmental condition adaptations
     await this.adaptToEnvironmentalConditions();
-    
+
     this.metrics.environmentalAdaptations++;
   }
 
@@ -433,7 +478,7 @@ export class ConstructionSiteOptimizer {
    */
   private updateNetworkQuality(): void {
     if (!navigator.onLine) {
-      this.environment.networkQuality = 'offline';
+      this.environment.networkQuality = "offline";
       return;
     }
 
@@ -443,18 +488,18 @@ export class ConstructionSiteOptimizer {
       const downlink = connection.downlink || 0;
       const rtt = connection.rtt || 0;
 
-      if (effectiveType === 'slow-2g' || downlink < 0.5) {
-        this.environment.networkQuality = 'poor';
-      } else if (effectiveType === '2g' || downlink < 1.5) {
-        this.environment.networkQuality = 'fair';
-      } else if (effectiveType === '3g' || downlink < 5) {
-        this.environment.networkQuality = 'good';
+      if (effectiveType === "slow-2g" || downlink < 0.5) {
+        this.environment.networkQuality = "poor";
+      } else if (effectiveType === "2g" || downlink < 1.5) {
+        this.environment.networkQuality = "fair";
+      } else if (effectiveType === "3g" || downlink < 5) {
+        this.environment.networkQuality = "good";
       } else {
-        this.environment.networkQuality = 'excellent';
+        this.environment.networkQuality = "excellent";
       }
     } else {
       // Fallback network quality detection
-      this.environment.networkQuality = 'good';
+      this.environment.networkQuality = "good";
     }
   }
 
@@ -468,10 +513,14 @@ export class ConstructionSiteOptimizer {
     this.isEmergencyMode = true;
     this.metrics.emergencyModeActivations++;
 
-    logger.warn('🚨 Emergency mode activated', {
-      batteryLevel: Math.round(this.environment.batteryLevel * 100),
-      threshold: this.config.emergencyModeThreshold
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.warn(
+      "🚨 Emergency mode activated",
+      {
+        batteryLevel: Math.round(this.environment.batteryLevel * 100),
+        threshold: this.config.emergencyModeThreshold,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
 
     // Extreme battery conservation measures
     await this.enableExtremeEnergyConservation();
@@ -483,9 +532,11 @@ export class ConstructionSiteOptimizer {
     this.disableNonCriticalFeatures();
 
     // Emit emergency mode event
-    window.dispatchEvent(new CustomEvent('construction-emergency-mode', {
-      detail: { enabled: true, batteryLevel: this.environment.batteryLevel }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("construction-emergency-mode", {
+        detail: { enabled: true, batteryLevel: this.environment.batteryLevel },
+      }),
+    );
   }
 
   /**
@@ -498,9 +549,13 @@ export class ConstructionSiteOptimizer {
     this.isCriticalInspectionMode = true;
     this.metrics.criticalInspectionsSaved++;
 
-    logger.info('⚠️ Critical inspection mode activated', {
-      reason: 'Safety-critical inspection detected'
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "⚠️ Critical inspection mode activated",
+      {
+        reason: "Safety-critical inspection detected",
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
 
     // Prioritize safety-related functionality
     await this.prioritizeSafetyFeatures();
@@ -512,9 +567,11 @@ export class ConstructionSiteOptimizer {
     this.enableImmediateSafetySync();
 
     // Emit critical mode event
-    window.dispatchEvent(new CustomEvent('construction-critical-mode', {
-      detail: { enabled: true }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("construction-critical-mode", {
+        detail: { enabled: true },
+      }),
+    );
   }
 
   /**
@@ -525,28 +582,32 @@ export class ConstructionSiteOptimizer {
     this.metrics.networkAdaptationsApplied++;
 
     switch (this.environment.networkQuality) {
-      case 'offline':
+      case "offline":
         await this.enableFullOfflineMode();
         break;
-      
-      case 'poor':
+
+      case "poor":
         await this.enableUltraLowBandwidthMode();
         break;
-      
-      case 'fair':
+
+      case "fair":
         await this.enableLowBandwidthMode();
         break;
-      
-      case 'good':
-      case 'excellent':
+
+      case "good":
+      case "excellent":
         await this.enableOptimalNetworkMode();
         break;
     }
 
-    logger.info('Network adaptation applied', {
-      networkQuality: this.environment.networkQuality,
-      adaptationsApplied: this.metrics.networkAdaptationsApplied
-    }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Network adaptation applied",
+      {
+        networkQuality: this.environment.networkQuality,
+        adaptationsApplied: this.metrics.networkAdaptationsApplied,
+      },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   /**
@@ -588,16 +649,16 @@ export class ConstructionSiteOptimizer {
   private async adaptToEnvironmentalConditions(): Promise<void> {
     // Ambient light adaptations
     switch (this.environment.ambientLight) {
-      case 'bright-sun':
+      case "bright-sun":
         this.enableBrightSunlightMode();
         break;
-      case 'outdoor':
+      case "outdoor":
         this.enableOutdoorMode();
         break;
-      case 'indoor':
+      case "indoor":
         this.enableIndoorMode();
         break;
-      case 'dark':
+      case "dark":
         this.enableDarkMode();
         break;
     }
@@ -639,7 +700,7 @@ export class ConstructionSiteOptimizer {
   }
 
   private injectConstructionSiteCSS(): void {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       /* Construction Site Touch Optimization */
       .construction-optimized {
@@ -676,31 +737,34 @@ export class ConstructionSiteOptimizer {
   private detectTouchSensitivity(): void {
     // Implement touch sensitivity detection
     let touchEvents = 0;
-    let missedTouches = 0;
+    const missedTouches = 0;
 
     const touchHandler = () => {
       touchEvents++;
     };
 
-    document.addEventListener('touchstart', touchHandler);
-    
+    document.addEventListener("touchstart", touchHandler);
+
     setTimeout(() => {
       if (touchEvents < 5) {
-        this.environment.touchSensitivity = 'impaired';
+        this.environment.touchSensitivity = "impaired";
       } else if (touchEvents > 20) {
-        this.environment.touchSensitivity = 'gloved';
+        this.environment.touchSensitivity = "gloved";
       }
     }, 10000);
   }
 
   private optimizeForGlovedHands(): void {
     // Increase touch target sizes and sensitivity
-    document.body.classList.add('construction-optimized');
+    document.body.classList.add("construction-optimized");
   }
 
   private setupDataUsageOptimization(): void {
     // Implement data usage monitoring and optimization
-    if (this.environment.networkQuality === 'poor' || this.environment.networkQuality === 'fair') {
+    if (
+      this.environment.networkQuality === "poor" ||
+      this.environment.networkQuality === "fair"
+    ) {
       // Enable data compression
       // Reduce image quality
       // Defer non-critical requests
@@ -709,9 +773,9 @@ export class ConstructionSiteOptimizer {
 
   private setupAdaptiveMediaLoading(): void {
     // Implement adaptive image and media loading based on network
-    const images = document.querySelectorAll('img[data-src]');
-    images.forEach(img => {
-      if (this.environment.networkQuality === 'poor') {
+    const images = document.querySelectorAll("img[data-src]");
+    images.forEach((img) => {
+      if (this.environment.networkQuality === "poor") {
         // Load low-quality versions
       }
     });
@@ -734,24 +798,26 @@ export class ConstructionSiteOptimizer {
 
   private setupVibrationResistance(): void {
     // Make interface elements resistant to vibration and movement
-    document.body.classList.add('vibration-resistant');
+    document.body.classList.add("vibration-resistant");
   }
 
   private detectAmbientLightFallback(): void {
     const hour = new Date().getHours();
     if (hour >= 6 && hour <= 18) {
-      this.environment.ambientLight = 'outdoor';
+      this.environment.ambientLight = "outdoor";
     } else {
-      this.environment.ambientLight = 'dark';
+      this.environment.ambientLight = "dark";
     }
   }
 
   private shouldEnableCriticalInspectionMode(): boolean {
     // Logic to detect safety-critical inspections
     const currentPath = window.location.pathname;
-    return currentPath.includes('safety') || 
-           currentPath.includes('emergency') ||
-           currentPath.includes('critical');
+    return (
+      currentPath.includes("safety") ||
+      currentPath.includes("emergency") ||
+      currentPath.includes("critical")
+    );
   }
 
   // Mode implementations
@@ -776,7 +842,7 @@ export class ConstructionSiteOptimizer {
   }
 
   private enableMinimalUI(): void {
-    document.body.classList.add('emergency-mode');
+    document.body.classList.add("emergency-mode");
   }
 
   private disableNonCriticalFeatures(): void {
@@ -804,19 +870,19 @@ export class ConstructionSiteOptimizer {
   }
 
   private enableBrightSunlightMode(): void {
-    document.body.classList.add('bright-sunlight-mode');
+    document.body.classList.add("bright-sunlight-mode");
   }
 
   private enableOutdoorMode(): void {
-    document.body.classList.add('outdoor-mode');
+    document.body.classList.add("outdoor-mode");
   }
 
   private enableIndoorMode(): void {
-    document.body.classList.remove('outdoor-mode', 'bright-sunlight-mode');
+    document.body.classList.remove("outdoor-mode", "bright-sunlight-mode");
   }
 
   private enableDarkMode(): void {
-    document.body.classList.add('dark-mode');
+    document.body.classList.add("dark-mode");
   }
 
   private enableVibrationStabilization(): void {
@@ -824,7 +890,8 @@ export class ConstructionSiteOptimizer {
   }
 
   private adaptToTemperature(temperature: number): void {
-    if (temperature > 40) { // Hot device
+    if (temperature > 40) {
+      // Hot device
       this.enableThermalThrottling();
     }
   }
@@ -873,11 +940,13 @@ export class ConstructionSiteOptimizer {
 
   private async disableEmergencyMode(): Promise<void> {
     this.isEmergencyMode = false;
-    document.body.classList.remove('emergency-mode');
-    
-    window.dispatchEvent(new CustomEvent('construction-emergency-mode', {
-      detail: { enabled: false }
-    }));
+    document.body.classList.remove("emergency-mode");
+
+    window.dispatchEvent(
+      new CustomEvent("construction-emergency-mode", {
+        detail: { enabled: false },
+      }),
+    );
   }
 
   // Public API methods
@@ -914,31 +983,41 @@ export class ConstructionSiteOptimizer {
       await this.enableCriticalInspectionMode();
     } else {
       this.isCriticalInspectionMode = false;
-      window.dispatchEvent(new CustomEvent('construction-critical-mode', {
-        detail: { enabled: false }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("construction-critical-mode", {
+          detail: { enabled: false },
+        }),
+      );
     }
   }
 
   updateConfig(newConfig: Partial<ConstructionOptimizationConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    logger.info('Construction site configuration updated', { config: this.config }, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Construction site configuration updated",
+      { config: this.config },
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 
   async destroy(): Promise<void> {
     if (this.environmentMonitoringInterval) {
       clearInterval(this.environmentMonitoringInterval);
     }
-    
+
     if (this.optimizationInterval) {
       clearInterval(this.optimizationInterval);
     }
 
     if (this.deviceMotionHandler) {
-      window.removeEventListener('devicemotion', this.deviceMotionHandler);
+      window.removeEventListener("devicemotion", this.deviceMotionHandler);
     }
 
-    logger.info('Construction Site Optimizer destroyed', {}, 'CONSTRUCTION_OPTIMIZER');
+    logger.info(
+      "Construction Site Optimizer destroyed",
+      {},
+      "CONSTRUCTION_OPTIMIZER",
+    );
   }
 }
 

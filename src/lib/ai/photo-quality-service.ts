@@ -1,11 +1,11 @@
 // Enhanced Photo Quality Service for STR Certified MVP
 // Validates photo quality and provides re-upload prompts
 
-import { STRCertifiedAIService } from './openai-service';
-import { AIProxyService } from './ai-proxy-service';
-import { aiDecisionLogger } from './decision-logger';
-import { logger } from '../../utils/logger';
-import { errorReporter } from '../monitoring/error-reporter';
+import { STRCertifiedAIService } from "./openai-service";
+import { AIProxyService } from "./ai-proxy-service";
+import { aiDecisionLogger } from "./decision-logger";
+import { logger } from "../../utils/logger";
+import { errorReporter } from "../monitoring/error-reporter";
 
 // Photo Quality Types
 export interface PhotoQualityResult {
@@ -20,30 +20,30 @@ export interface PhotoQualityResult {
 
 export interface PhotoQualityIssue {
   type: QualityIssueType;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   fixSuggestion: string;
   blocking: boolean;
 }
 
-export type QualityIssueType = 
-  | 'blur'
-  | 'low_light'
-  | 'overexposure'
-  | 'poor_composition'
-  | 'wrong_subject'
-  | 'obstruction'
-  | 'poor_angle'
-  | 'resolution_too_low'
-  | 'color_distortion'
-  | 'focus_issues'
-  | 'motion_blur'
-  | 'timestamp_missing'
-  | 'safety_equipment_not_visible'
-  | 'insufficient_coverage';
+export type QualityIssueType =
+  | "blur"
+  | "low_light"
+  | "overexposure"
+  | "poor_composition"
+  | "wrong_subject"
+  | "obstruction"
+  | "poor_angle"
+  | "resolution_too_low"
+  | "color_distortion"
+  | "focus_issues"
+  | "motion_blur"
+  | "timestamp_missing"
+  | "safety_equipment_not_visible"
+  | "insufficient_coverage";
 
 export interface QualityRecommendation {
-  action: 'accept' | 'request_retake' | 'manual_review';
+  action: "accept" | "request_retake" | "manual_review";
   reason: string;
   improvements: string[];
   expectedQuality: number;
@@ -68,7 +68,7 @@ export class PhotoQualityService {
     compliance: 80,
     general: 70,
     documentation: 75,
-    evidence: 90
+    evidence: 90,
   };
 
   private constructor() {
@@ -91,77 +91,88 @@ export class PhotoQualityService {
    */
   async validatePhotoQuality(
     photo: File,
-    context: ChecklistItemContext
+    context: ChecklistItemContext,
   ): Promise<PhotoQualityResult> {
     const startTime = Date.now();
-    
+
     try {
       // Log the quality validation attempt
       await aiDecisionLogger.logSimpleDecision(
         `Photo quality validation: ${context.title}`,
-        'code_quality',
+        "code_quality",
         `Validating photo quality for checklist item: ${context.title}`,
         [`photo_${photo.name}`],
-        'medium'
+        "medium",
       );
 
       // Get expected quality threshold for this context
       const expectedQuality = this.getExpectedQuality(context);
-      
+
       // Analyze photo with AI
       const analysisResult = await this.analyzePhotoWithAI(photo, context);
-      
+
       // Process and structure the results
       const result: PhotoQualityResult = {
         isAcceptable: analysisResult.qualityScore >= expectedQuality,
         qualityScore: analysisResult.qualityScore,
         issues: analysisResult.issues,
-        recommendation: this.generateRecommendation(analysisResult, expectedQuality),
+        recommendation: this.generateRecommendation(
+          analysisResult,
+          expectedQuality,
+        ),
         confidence: analysisResult.confidence,
         processingTime: Date.now() - startTime,
-        retryPrompt: analysisResult.qualityScore < expectedQuality ? 
-          this.generateRetryPrompt(analysisResult.issues, context) : undefined
+        retryPrompt:
+          analysisResult.qualityScore < expectedQuality
+            ? this.generateRetryPrompt(analysisResult.issues, context)
+            : undefined,
       };
 
       // Log the validation result
-      logger.info(`Photo quality validation completed`, {
-        checklistItem: context.title,
-        qualityScore: result.qualityScore,
-        acceptable: result.isAcceptable,
-        issues: result.issues.length,
-        processingTime: result.processingTime
-      }, 'PHOTO_QUALITY_VALIDATION');
+      logger.info(
+        `Photo quality validation completed`,
+        {
+          checklistItem: context.title,
+          qualityScore: result.qualityScore,
+          acceptable: result.isAcceptable,
+          issues: result.issues.length,
+          processingTime: result.processingTime,
+        },
+        "PHOTO_QUALITY_VALIDATION",
+      );
 
       return result;
-
     } catch (error) {
       errorReporter.reportError(error, {
-        context: 'PHOTO_QUALITY_VALIDATION',
+        context: "PHOTO_QUALITY_VALIDATION",
         checklistItem: context.title,
         photoName: photo.name,
-        photoSize: photo.size
+        photoSize: photo.size,
       });
 
       // Return fallback result on error
       return {
         isAcceptable: false,
         qualityScore: 0,
-        issues: [{
-          type: 'resolution_too_low',
-          severity: 'high',
-          description: 'Unable to analyze photo quality',
-          fixSuggestion: 'Please try uploading the photo again',
-          blocking: true
-        }],
+        issues: [
+          {
+            type: "resolution_too_low",
+            severity: "high",
+            description: "Unable to analyze photo quality",
+            fixSuggestion: "Please try uploading the photo again",
+            blocking: true,
+          },
+        ],
         recommendation: {
-          action: 'request_retake',
-          reason: 'Technical error during quality analysis',
-          improvements: ['Try uploading the photo again'],
-          expectedQuality: 70
+          action: "request_retake",
+          reason: "Technical error during quality analysis",
+          improvements: ["Try uploading the photo again"],
+          expectedQuality: 70,
         },
         confidence: 0,
         processingTime: Date.now() - startTime,
-        retryPrompt: 'There was an issue analyzing your photo. Please try uploading it again.'
+        retryPrompt:
+          "There was an issue analyzing your photo. Please try uploading it again.",
       };
     }
   }
@@ -172,27 +183,29 @@ export class PhotoQualityService {
    * @returns Promise<PhotoQualityResult[]>
    */
   async validateMultiplePhotos(
-    photos: Array<{ file: File; context: ChecklistItemContext }>
+    photos: Array<{ file: File; context: ChecklistItemContext }>,
   ): Promise<PhotoQualityResult[]> {
     const results: PhotoQualityResult[] = [];
-    
+
     // Process photos in batches to avoid API rate limits
     const batchSize = 3;
     for (let i = 0; i < photos.length; i += batchSize) {
       const batch = photos.slice(i, i + batchSize);
-      
+
       const batchResults = await Promise.all(
-        batch.map(({ file, context }) => this.validatePhotoQuality(file, context))
+        batch.map(({ file, context }) =>
+          this.validatePhotoQuality(file, context),
+        ),
       );
-      
+
       results.push(...batchResults);
-      
+
       // Small delay between batches to respect rate limits
       if (i + batchSize < photos.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
+
     return results;
   }
 
@@ -202,20 +215,25 @@ export class PhotoQualityService {
    * @param context - Checklist item context
    * @returns string
    */
-  private generateRetryPrompt(issues: PhotoQualityIssue[], context: ChecklistItemContext): string {
-    const blockingIssues = issues.filter(issue => issue.blocking);
-    
+  private generateRetryPrompt(
+    issues: PhotoQualityIssue[],
+    context: ChecklistItemContext,
+  ): string {
+    const blockingIssues = issues.filter((issue) => issue.blocking);
+
     if (blockingIssues.length === 0) {
-      return 'Your photo has been accepted! You may continue to the next item.';
+      return "Your photo has been accepted! You may continue to the next item.";
     }
 
     const mainIssue = blockingIssues[0];
-    const suggestions = blockingIssues.map(issue => issue.fixSuggestion).slice(0, 3);
-    
+    const suggestions = blockingIssues
+      .map((issue) => issue.fixSuggestion)
+      .slice(0, 3);
+
     const basePrompt = `📸 Photo needs improvement for "${context.title}"`;
     const issueDescription = mainIssue.description;
-    const improvementTips = suggestions.join('\n• ');
-    
+    const improvementTips = suggestions.join("\n• ");
+
     return `${basePrompt}\n\n${issueDescription}\n\nTo improve your photo:\n• ${improvementTips}`;
   }
 
@@ -227,32 +245,36 @@ export class PhotoQualityService {
    */
   private async analyzePhotoWithAI(
     photo: File,
-    context: ChecklistItemContext
+    context: ChecklistItemContext,
   ): Promise<{
     qualityScore: number;
     issues: PhotoQualityIssue[];
     confidence: number;
   }> {
-    logger.info('Starting AI photo quality analysis', { photoName: photo.name }, 'PHOTO_QUALITY_AI');
-    
+    logger.info(
+      "Starting AI photo quality analysis",
+      { photoName: photo.name },
+      "PHOTO_QUALITY_AI",
+    );
+
     try {
       // Convert file to base64 for AI analysis
       const base64Image = await this.fileToBase64(photo);
-      
+
       // Build the analysis prompt
       const prompt = this.buildQualityAnalysisPrompt(context);
-      
+
       const analysisResult = await this.aiService.analyzeInspectionPhoto({
         imageBase64: base64Image,
         prompt,
-        inspectionId: 'quality-check', // Placeholder for quality checks
+        inspectionId: "quality-check", // Placeholder for quality checks
         checklistItemId: context.title, // Use title as identifier
-        maxTokens: 500
+        maxTokens: 500,
       });
 
       return this.parseQualityAnalysis(analysisResult);
     } catch (error) {
-      logger.error('AI photo analysis failed', error, 'PHOTO_QUALITY_AI');
+      logger.error("AI photo analysis failed", error, "PHOTO_QUALITY_AI");
       throw error;
     }
   }
@@ -281,9 +303,9 @@ Analyze this photo for quality and suitability for STR property inspection.
 Context: ${context.title}
 Description: ${context.description}
 Category: ${context.category}
-Evidence Required: ${context.evidenceRequired ? 'Yes' : 'No'}
-Safety Related: ${context.safetyRelated ? 'Yes' : 'No'}
-Expected Subjects: ${context.expectedSubjects.join(', ')}
+Evidence Required: ${context.evidenceRequired ? "Yes" : "No"}
+Safety Related: ${context.safetyRelated ? "Yes" : "No"}
+Expected Subjects: ${context.expectedSubjects.join(", ")}
 
 Please evaluate:
 1. Technical quality (focus, lighting, resolution, composition)
@@ -300,8 +322,8 @@ Quality score should be 0-100 where:
 - 0-59: Unacceptable, retake required
 
 Focus on practical inspection needs rather than artistic quality.
-${context.safetyRelated ? 'Pay special attention to safety equipment and hazards visibility.' : ''}
-${context.complianceRequired ? 'Ensure compliance elements are clearly visible and documented.' : ''}
+${context.safetyRelated ? "Pay special attention to safety equipment and hazards visibility." : ""}
+${context.complianceRequired ? "Ensure compliance elements are clearly visible and documented." : ""}
     `.trim();
   }
 
@@ -316,32 +338,38 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
     confidence: number;
   } {
     const issues: PhotoQualityIssue[] = [];
-    
+
     // Extract quality score from reasoning or default to confidence
-    const qualityScore = this.extractQualityScore(analysisResult.analysis?.reasoning) || 
-                        Math.min(analysisResult.analysis?.confidence || 70, 80);
-    
+    const qualityScore =
+      this.extractQualityScore(analysisResult.analysis?.reasoning) ||
+      Math.min(analysisResult.analysis?.confidence || 70, 80);
+
     // Parse issues from reasoning
-    const parsedIssues = this.extractIssuesFromReasoning(analysisResult.analysis?.reasoning || '');
+    const parsedIssues = this.extractIssuesFromReasoning(
+      analysisResult.analysis?.reasoning || "",
+    );
     issues.push(...parsedIssues);
-    
+
     // Add any issues from analysis
-    if (analysisResult.analysis?.issues && Array.isArray(analysisResult.analysis.issues)) {
+    if (
+      analysisResult.analysis?.issues &&
+      Array.isArray(analysisResult.analysis.issues)
+    ) {
       analysisResult.analysis.issues.forEach((issue: string) => {
         issues.push({
-          type: 'poor_composition',
-          severity: 'medium',
+          type: "poor_composition",
+          severity: "medium",
           description: issue,
-          fixSuggestion: 'Address the identified issue and retake the photo',
-          blocking: false
+          fixSuggestion: "Address the identified issue and retake the photo",
+          blocking: false,
         });
       });
     }
-    
+
     return {
       qualityScore,
       issues,
-      confidence: analysisResult.analysis?.confidence || 70
+      confidence: analysisResult.analysis?.confidence || 70,
     };
   }
 
@@ -356,9 +384,9 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
       /score:?\s*(\d+)\/100/i,
       /rating:?\s*(\d+)/i,
       /(\d+)\/100/,
-      /(\d+)%/
+      /(\d+)%/,
     ];
-    
+
     for (const pattern of scorePatterns) {
       const match = reasoning.match(pattern);
       if (match) {
@@ -366,7 +394,7 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
         return score >= 0 && score <= 100 ? score : null;
       }
     }
-    
+
     return null;
   }
 
@@ -378,66 +406,72 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
   private extractIssuesFromReasoning(reasoning: string): PhotoQualityIssue[] {
     const issues: PhotoQualityIssue[] = [];
     const lowercaseReasoning = reasoning.toLowerCase();
-    
+
     // Define issue patterns to look for
     const issuePatterns = [
       {
-        keywords: ['blur', 'blurry', 'out of focus', 'unfocused'],
-        type: 'blur' as QualityIssueType,
-        severity: 'high' as const,
-        description: 'Image is blurry or out of focus',
-        fixSuggestion: 'Hold the camera steady and ensure proper focus before taking the photo'
+        keywords: ["blur", "blurry", "out of focus", "unfocused"],
+        type: "blur" as QualityIssueType,
+        severity: "high" as const,
+        description: "Image is blurry or out of focus",
+        fixSuggestion:
+          "Hold the camera steady and ensure proper focus before taking the photo",
       },
       {
-        keywords: ['dark', 'low light', 'underexposed', 'too dim'],
-        type: 'low_light' as QualityIssueType,
-        severity: 'medium' as const,
-        description: 'Image is too dark or poorly lit',
-        fixSuggestion: 'Increase lighting or use flash, ensure adequate room lighting'
+        keywords: ["dark", "low light", "underexposed", "too dim"],
+        type: "low_light" as QualityIssueType,
+        severity: "medium" as const,
+        description: "Image is too dark or poorly lit",
+        fixSuggestion:
+          "Increase lighting or use flash, ensure adequate room lighting",
       },
       {
-        keywords: ['overexposed', 'too bright', 'washed out', 'glare'],
-        type: 'overexposure' as QualityIssueType,
-        severity: 'medium' as const,
-        description: 'Image is overexposed or too bright',
-        fixSuggestion: 'Reduce lighting or adjust camera settings, avoid direct sunlight'
+        keywords: ["overexposed", "too bright", "washed out", "glare"],
+        type: "overexposure" as QualityIssueType,
+        severity: "medium" as const,
+        description: "Image is overexposed or too bright",
+        fixSuggestion:
+          "Reduce lighting or adjust camera settings, avoid direct sunlight",
       },
       {
-        keywords: ['poor angle', 'wrong angle', 'composition', 'framing'],
-        type: 'poor_composition' as QualityIssueType,
-        severity: 'medium' as const,
-        description: 'Poor camera angle or composition',
-        fixSuggestion: 'Adjust camera angle to better capture the subject'
+        keywords: ["poor angle", "wrong angle", "composition", "framing"],
+        type: "poor_composition" as QualityIssueType,
+        severity: "medium" as const,
+        description: "Poor camera angle or composition",
+        fixSuggestion: "Adjust camera angle to better capture the subject",
       },
       {
-        keywords: ['obstruction', 'blocked', 'obstacle', 'partially hidden'],
-        type: 'obstruction' as QualityIssueType,
-        severity: 'high' as const,
-        description: 'Subject is partially obstructed or hidden',
-        fixSuggestion: 'Remove obstructions or change angle to clearly show the subject'
+        keywords: ["obstruction", "blocked", "obstacle", "partially hidden"],
+        type: "obstruction" as QualityIssueType,
+        severity: "high" as const,
+        description: "Subject is partially obstructed or hidden",
+        fixSuggestion:
+          "Remove obstructions or change angle to clearly show the subject",
       },
       {
-        keywords: ['low resolution', 'pixelated', 'poor quality'],
-        type: 'resolution_too_low' as QualityIssueType,
-        severity: 'medium' as const,
-        description: 'Image resolution is too low',
-        fixSuggestion: 'Use higher camera resolution settings or move closer to the subject'
-      }
+        keywords: ["low resolution", "pixelated", "poor quality"],
+        type: "resolution_too_low" as QualityIssueType,
+        severity: "medium" as const,
+        description: "Image resolution is too low",
+        fixSuggestion:
+          "Use higher camera resolution settings or move closer to the subject",
+      },
     ];
 
     // Check for each issue pattern
-    issuePatterns.forEach(pattern => {
-      const hasIssue = pattern.keywords.some(keyword => 
-        lowercaseReasoning.includes(keyword)
+    issuePatterns.forEach((pattern) => {
+      const hasIssue = pattern.keywords.some((keyword) =>
+        lowercaseReasoning.includes(keyword),
       );
-      
+
       if (hasIssue) {
         issues.push({
           type: pattern.type,
           severity: pattern.severity,
           description: pattern.description,
           fixSuggestion: pattern.fixSuggestion,
-          blocking: pattern.severity === 'high' || pattern.severity === 'critical'
+          blocking:
+            pattern.severity === "high" || pattern.severity === "critical",
         });
       }
     });
@@ -452,34 +486,43 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
    * @returns QualityRecommendation
    */
   private generateRecommendation(
-    analysis: { qualityScore: number; issues: PhotoQualityIssue[]; confidence: number },
-    expectedQuality: number
+    analysis: {
+      qualityScore: number;
+      issues: PhotoQualityIssue[];
+      confidence: number;
+    },
+    expectedQuality: number,
   ): QualityRecommendation {
-    const blockingIssues = analysis.issues.filter(issue => issue.blocking);
-    
-    if (analysis.qualityScore >= expectedQuality && blockingIssues.length === 0) {
+    const blockingIssues = analysis.issues.filter((issue) => issue.blocking);
+
+    if (
+      analysis.qualityScore >= expectedQuality &&
+      blockingIssues.length === 0
+    ) {
       return {
-        action: 'accept',
-        reason: 'Photo meets quality standards',
+        action: "accept",
+        reason: "Photo meets quality standards",
         improvements: [],
-        expectedQuality
+        expectedQuality,
       };
     }
-    
+
     if (analysis.confidence < 50) {
       return {
-        action: 'manual_review',
-        reason: 'Low confidence in quality assessment',
-        improvements: ['Consider manual review by auditor'],
-        expectedQuality
+        action: "manual_review",
+        reason: "Low confidence in quality assessment",
+        improvements: ["Consider manual review by auditor"],
+        expectedQuality,
       };
     }
-    
+
     return {
-      action: 'request_retake',
+      action: "request_retake",
       reason: `Quality score ${analysis.qualityScore} is below required ${expectedQuality}`,
-      improvements: analysis.issues.map(issue => issue.fixSuggestion).slice(0, 3),
-      expectedQuality
+      improvements: analysis.issues
+        .map((issue) => issue.fixSuggestion)
+        .slice(0, 3),
+      expectedQuality,
     };
   }
 
@@ -492,19 +535,19 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
     if (context.minimumQuality > 0) {
       return context.minimumQuality;
     }
-    
+
     if (context.safetyRelated) {
       return this.qualityThresholds.safety;
     }
-    
+
     if (context.complianceRequired) {
       return this.qualityThresholds.compliance;
     }
-    
+
     if (context.evidenceRequired) {
       return this.qualityThresholds.evidence;
     }
-    
+
     return this.qualityThresholds.general;
   }
 
@@ -529,5 +572,7 @@ ${context.complianceRequired ? 'Ensure compliance elements are clearly visible a
 export const photoQualityService = PhotoQualityService.getInstance();
 
 // Export convenience functions
-export const validatePhotoQuality = photoQualityService.validatePhotoQuality.bind(photoQualityService);
-export const validateMultiplePhotos = photoQualityService.validateMultiplePhotos.bind(photoQualityService);
+export const validatePhotoQuality =
+  photoQualityService.validatePhotoQuality.bind(photoQualityService);
+export const validateMultiplePhotos =
+  photoQualityService.validateMultiplePhotos.bind(photoQualityService);

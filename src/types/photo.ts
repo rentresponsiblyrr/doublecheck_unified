@@ -22,44 +22,50 @@ export interface PhotoQualityMetrics {
 
 export interface QualityScore {
   score: number; // 0-100
-  rating: 'excellent' | 'good' | 'acceptable' | 'poor' | 'unacceptable';
+  rating: "excellent" | "good" | "acceptable" | "poor" | "unacceptable";
   details?: string;
 }
 
 export interface QualityIssue {
-  type: 'blur' | 'underexposed' | 'overexposed' | 'poor_angle' | 'obstruction' | 'low_resolution';
-  severity: 'critical' | 'major' | 'minor';
+  type:
+    | "blur"
+    | "underexposed"
+    | "overexposed"
+    | "poor_angle"
+    | "obstruction"
+    | "low_resolution";
+  severity: "critical" | "major" | "minor";
   description: string;
   affectedArea?: ImageRegion;
 }
 
 export interface QualityImprovement {
   action: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   icon?: string;
   estimatedImprovement: number; // percentage improvement if followed
 }
 
 export interface DiscrepancyReport {
   type: DiscrepancyType;
-  severity: 'critical' | 'major' | 'minor' | 'negligible';
+  severity: "critical" | "major" | "minor" | "negligible";
   description: string;
   location?: ImageRegion;
   confidence: number; // 0-100
   visualEvidence?: VisualEvidence;
 }
 
-export type DiscrepancyType = 
-  | 'missing_furniture'
-  | 'furniture_moved'
-  | 'damage_detected'
-  | 'color_mismatch'
-  | 'missing_amenity'
-  | 'structural_change'
-  | 'cleanliness_issue'
-  | 'lighting_difference'
-  | 'staging_difference'
-  | 'maintenance_needed';
+export type DiscrepancyType =
+  | "missing_furniture"
+  | "furniture_moved"
+  | "damage_detected"
+  | "color_mismatch"
+  | "missing_amenity"
+  | "structural_change"
+  | "cleanliness_issue"
+  | "lighting_difference"
+  | "staging_difference"
+  | "maintenance_needed";
 
 export interface ImageRegion {
   x: number;
@@ -75,12 +81,12 @@ export interface VisualEvidence {
   heatmapData?: number[][]; // difference heatmap
 }
 
-export type ComparisonRecommendation = 
-  | 'matches_listing'
-  | 'acceptable_differences'
-  | 'review_required'
-  | 'significant_discrepancies'
-  | 'retake_photo';
+export type ComparisonRecommendation =
+  | "matches_listing"
+  | "acceptable_differences"
+  | "review_required"
+  | "significant_discrepancies"
+  | "retake_photo";
 
 export interface ComparisonMetadata {
   roomType?: string;
@@ -91,10 +97,10 @@ export interface ComparisonMetadata {
 }
 
 export interface DeviceInfo {
-  deviceType: 'mobile' | 'tablet' | 'camera';
+  deviceType: "mobile" | "tablet" | "camera";
   model?: string;
   cameraResolution?: string;
-  orientation: 'portrait' | 'landscape';
+  orientation: "portrait" | "landscape";
 }
 
 // Photo capture guidance types
@@ -107,14 +113,14 @@ export interface PhotoGuidance {
 }
 
 export interface GuidanceMessage {
-  type: 'error' | 'warning' | 'info' | 'success';
+  type: "error" | "warning" | "info" | "success";
   message: string;
   action?: string;
   priority: number; // 1-5, higher is more important
 }
 
 export interface OverlayGuide {
-  type: 'grid' | 'frame' | 'arrow' | 'highlight';
+  type: "grid" | "frame" | "arrow" | "highlight";
   coordinates?: ImageRegion;
   color?: string;
   opacity?: number;
@@ -134,7 +140,7 @@ export interface RoomFeatures {
 export interface DetectedFurniture {
   type: string; // bed, sofa, table, chair, etc.
   brand?: string;
-  condition: 'new' | 'excellent' | 'good' | 'fair' | 'poor';
+  condition: "new" | "excellent" | "good" | "fair" | "poor";
   location: ImageRegion;
   confidence: number;
 }
@@ -156,7 +162,7 @@ export interface DetectedAmenity {
 }
 
 export interface ConditionAssessment {
-  overall: 'excellent' | 'good' | 'fair' | 'poor';
+  overall: "excellent" | "good" | "fair" | "poor";
   cleanliness: number; // 0-100
   maintenance: number; // 0-100
   damage: DamageReport[];
@@ -165,7 +171,7 @@ export interface ConditionAssessment {
 
 export interface DamageReport {
   type: string;
-  severity: 'minor' | 'moderate' | 'severe';
+  severity: "minor" | "moderate" | "severe";
   location: ImageRegion;
   description: string;
   repairNeeded: boolean;
@@ -237,7 +243,7 @@ export interface PhotoOptimizationConfig {
   targetQuality: number;
   maxDimensions: { width: number; height: number };
   compressionLevel: number;
-  format: 'jpeg' | 'webp' | 'png';
+  format: "jpeg" | "webp" | "png";
   preserveMetadata: boolean;
 }
 

@@ -1,27 +1,25 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 export const debugDashboardData = async (userId?: string) => {
-  
   try {
     // Get inspections with correct schema (no created_at column)
     const { data: allInspections, error: allError } = await supabase
-      .from('inspections')
-      .select('id, inspector_id, status, start_time, end_time, completed')
-      .order('start_time', { ascending: false, nullsFirst: false })
+      .from("inspections")
+      .select("id, inspector_id, status, start_time, end_time, completed")
+      .order("start_time", { ascending: false, nullsFirst: false })
       .limit(10);
 
     if (allError) {
       return;
     }
 
-
     // Get user-specific inspections if userId provided
     if (userId) {
       const { data: userInspections, error: userError } = await supabase
-        .from('inspections')
-        .select('id, inspector_id, status, start_time, end_time, completed')
-        .eq('inspector_id', userId)
-        .order('start_time', { ascending: false, nullsFirst: false });
+        .from("inspections")
+        .select("id, inspector_id, status, start_time, end_time, completed")
+        .eq("inspector_id", userId)
+        .order("start_time", { ascending: false, nullsFirst: false });
 
       if (userError) {
       } else {
@@ -31,12 +29,12 @@ export const debugDashboardData = async (userId?: string) => {
     // Get checklist items for first inspection
     if (allInspections && allInspections.length > 0) {
       const firstInspection = allInspections[0];
-      
+
       // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
       const { data: inspectionData, error: inspectionError } = await supabase
-        .from('inspections')
-        .select('property_id')
-        .eq('id', firstInspection.id)
+        .from("inspections")
+        .select("property_id")
+        .eq("id", firstInspection.id)
         .single();
 
       if (inspectionError || !inspectionData) {
@@ -44,9 +42,9 @@ export const debugDashboardData = async (userId?: string) => {
       } else {
         // Now get checklist items using inspection_id (corrected schema approach)
         const { data: checklistItems, error: checklistError } = await supabase
-          .from('checklist_items')
-          .select('id, status, inspection_id')
-          .eq('inspection_id', inspectionData.id);
+          .from("checklist_items")
+          .select("id, status, inspection_id")
+          .eq("inspection_id", inspectionData.id);
 
         if (checklistError) {
         } else {
@@ -56,8 +54,8 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Get property count
     const { data: properties, error: propError } = await supabase
-      .from('properties')
-      .select('id, name')
+      .from("properties")
+      .select("id, name")
       .limit(5);
 
     if (propError) {
@@ -65,7 +63,8 @@ export const debugDashboardData = async (userId?: string) => {
     }
 
     // Get user info
-    const { data: userData, error: userAuthError } = await supabase.auth.getUser();
+    const { data: userData, error: userAuthError } =
+      await supabase.auth.getUser();
     if (userAuthError) {
     } else {
     }
@@ -73,9 +72,9 @@ export const debugDashboardData = async (userId?: string) => {
     // Check if user exists in users table
     if (userId) {
       const { data: userRecord, error: userRecordError } = await supabase
-        .from('users')
-        .select('id, email, name, role')
-        .eq('id', userId)
+        .from("users")
+        .select("id, email, name, role")
+        .eq("id", userId)
         .single();
 
       if (userRecordError) {
@@ -85,9 +84,9 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Check for inspections with null inspector_id
     const { data: nullInspections, error: nullError } = await supabase
-      .from('inspections')
-      .select('id, inspector_id, status, created_at')
-      .is('inspector_id', null)
+      .from("inspections")
+      .select("id, inspector_id, status, created_at")
+      .is("inspector_id", null)
       .limit(5);
 
     if (nullError) {
@@ -96,15 +95,13 @@ export const debugDashboardData = async (userId?: string) => {
 
     // Get unique statuses
     const { data: statusData, error: statusError } = await supabase
-      .from('inspections')
-      .select('status')
+      .from("inspections")
+      .select("status")
       .limit(50);
 
     if (statusError) {
     } else {
-      const uniqueStatuses = [...new Set(statusData?.map(i => i.status))];
+      const uniqueStatuses = [...new Set(statusData?.map((i) => i.status))];
     }
-
-  } catch (error) {
-  }
+  } catch (error) {}
 };

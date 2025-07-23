@@ -3,12 +3,16 @@
  * Extracted from VideoRecorder.tsx for surgical refactoring
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { useCamera } from '@/hooks/useCamera';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useCamera } from "@/hooks/useCamera";
 
 export interface VideoRecorderError {
   message: string;
-  code: 'PERMISSION_DENIED' | 'DEVICE_NOT_FOUND' | 'RECORDING_FAILED' | 'STREAM_ERROR';
+  code:
+    | "PERMISSION_DENIED"
+    | "DEVICE_NOT_FOUND"
+    | "RECORDING_FAILED"
+    | "STREAM_ERROR";
 }
 
 export interface UseVideoRecorderProps {
@@ -16,7 +20,7 @@ export interface UseVideoRecorderProps {
   maxDuration?: number;
   onStartRecording?: () => void;
   onStopRecording?: () => void;
-  facingMode?: 'user' | 'environment';
+  facingMode?: "user" | "environment";
   resolution?: { width: number; height: number };
 }
 
@@ -27,7 +31,7 @@ export interface UseVideoRecorderReturn {
   cameraLoading: boolean;
   cameraError: string | null;
   availableDevices: MediaDeviceInfo[];
-  
+
   // Recording state
   internalIsRecording: boolean;
   isPaused: boolean;
@@ -36,7 +40,7 @@ export interface UseVideoRecorderReturn {
   audioEnabled: boolean;
   showSettings: boolean;
   error: string | null;
-  
+
   // Actions
   handleStartRecording: () => Promise<void>;
   handleStopRecording: () => void;
@@ -47,7 +51,7 @@ export interface UseVideoRecorderReturn {
   requestPermission: () => Promise<void>;
   switchCamera: () => Promise<void>;
   clearError: () => void;
-  
+
   // Utility
   formatDuration: (seconds: number) => string;
 }
@@ -57,12 +61,12 @@ export const useVideoRecorder = ({
   maxDuration = 600,
   onStartRecording,
   onStopRecording,
-  facingMode = 'environment',
-  resolution = { width: 1920, height: 1080 }
+  facingMode = "environment",
+  resolution = { width: 1920, height: 1080 },
 }: UseVideoRecorderProps): UseVideoRecorderReturn => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  
+
   const [internalIsRecording, setInternalIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -81,21 +85,21 @@ export const useVideoRecorder = ({
     startCamera,
     stopCamera,
     switchCamera,
-    availableDevices
+    availableDevices,
   } = useCamera({
     videoRef,
     facingMode,
     resolution,
-    autoStart: true
+    autoStart: true,
   });
 
   // Timer for recording duration
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (internalIsRecording && !isPaused) {
       interval = setInterval(() => {
-        setDuration(prev => {
+        setDuration((prev) => {
           if (prev >= maxDuration) {
             handleStopRecording();
             return prev;
@@ -104,7 +108,7 @@ export const useVideoRecorder = ({
         });
       }, 1000);
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -115,50 +119,50 @@ export const useVideoRecorder = ({
     if (stream && isReady) {
       try {
         const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm;codecs=vp9' 
+          mimeType: "video/webm;codecs=vp9",
         });
-        
+
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             chunksRef.current.push(event.data);
           }
         };
-        
+
         mediaRecorder.onstop = () => {
-          const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+          const blob = new Blob(chunksRef.current, { type: "video/webm" });
           setRecordedVideo(blob);
           chunksRef.current = [];
           setInternalIsRecording(false);
           setIsPaused(false);
           onStopRecording?.();
         };
-        
+
         mediaRecorderRef.current = mediaRecorder;
       } catch (err) {
-        setError('Video recording not supported on this device');
+        setError("Video recording not supported on this device");
       }
     }
   }, [stream, isReady, onStopRecording]);
 
   const handleStartRecording = useCallback(async () => {
     if (!mediaRecorderRef.current || !stream) {
-      setError('Camera not ready for recording');
+      setError("Camera not ready for recording");
       return;
     }
-    
+
     try {
       setError(null);
       chunksRef.current = [];
       setDuration(0);
       setRecordedVideo(null);
-      
+
       mediaRecorderRef.current.start(1000); // Record in 1-second chunks
       setInternalIsRecording(true);
       setIsPaused(false);
-      
+
       onStartRecording?.();
     } catch (err) {
-      setError('Failed to start recording');
+      setError("Failed to start recording");
     }
   }, [stream, onStartRecording]);
 
@@ -190,7 +194,7 @@ export const useVideoRecorder = ({
   const formatDuration = useCallback((seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
   return {
@@ -200,7 +204,7 @@ export const useVideoRecorder = ({
     cameraLoading,
     cameraError,
     availableDevices,
-    
+
     // Recording state
     internalIsRecording,
     isPaused,
@@ -209,7 +213,7 @@ export const useVideoRecorder = ({
     audioEnabled,
     showSettings,
     error,
-    
+
     // Actions
     handleStartRecording,
     handleStopRecording,
@@ -220,8 +224,8 @@ export const useVideoRecorder = ({
     requestPermission,
     switchCamera,
     clearError,
-    
+
     // Utility
-    formatDuration
+    formatDuration,
   };
 };

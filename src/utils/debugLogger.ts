@@ -1,7 +1,13 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 // Debug data type for structured debugging information
-type DebugData = Record<string, unknown> | string | number | boolean | null | undefined;
+type DebugData =
+  | Record<string, unknown>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
 
 interface DebugLogEntry {
   timestamp: string;
@@ -21,20 +27,20 @@ class DebugLogger {
       level,
       context,
       message,
-      data
+      data,
     };
 
     this.logs.push(entry);
-    
+
     // Keep only recent logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
     // DISABLED: Console output to prevent infinite loops
-    // const consoleMethod = level === 'error' ? 'error' : 
+    // const consoleMethod = level === 'error' ? 'error' :
     //                      level === 'warn' ? 'warn' : 'log';
-    // 
+    //
     // console[consoleMethod](
     //   `🔍 [${level.toUpperCase()}] [${context}] ${message}`,
     //   data || ''
@@ -42,19 +48,19 @@ class DebugLogger {
   }
 
   debug(context: string, message: string, data?: DebugData) {
-    this.log('debug', context, message, data);
+    this.log("debug", context, message, data);
   }
 
   info(context: string, message: string, data?: DebugData) {
-    this.log('info', context, message, data);
+    this.log("info", context, message, data);
   }
 
   warn(context: string, message: string, data?: DebugData) {
-    this.log('warn', context, message, data);
+    this.log("warn", context, message, data);
   }
 
   error(context: string, message: string, data?: DebugData) {
-    this.log('error', context, message, data);
+    this.log("error", context, message, data);
   }
 
   getRecentLogs(count = 50): DebugLogEntry[] {

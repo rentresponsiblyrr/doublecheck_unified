@@ -8,23 +8,23 @@ declare const __brand: unique symbol;
 type Brand<T, TBrand> = T & { readonly [__brand]: TBrand };
 
 // Core Entity IDs
-export type PropertyId = Brand<string, 'PropertyId'>;
-export type InspectionId = Brand<string, 'InspectionId'>;
-export type UserId = Brand<string, 'UserId'>;
-export type ChecklistItemId = Brand<string, 'ChecklistItemId'>;
-export type MediaId = Brand<string, 'MediaId'>;
+export type PropertyId = Brand<string, "PropertyId">;
+export type InspectionId = Brand<string, "InspectionId">;
+export type UserId = Brand<string, "UserId">;
+export type ChecklistItemId = Brand<string, "ChecklistItemId">;
+export type MediaId = Brand<string, "MediaId">;
 
 // Type guards for runtime validation
 export const isPropertyId = (value: string): value is PropertyId => {
-  return typeof value === 'string' && value.length > 0;
+  return typeof value === "string" && value.length > 0;
 };
 
 export const isInspectionId = (value: string): value is InspectionId => {
-  return typeof value === 'string' && value.length > 0;
+  return typeof value === "string" && value.length > 0;
 };
 
 export const isUserId = (value: string): value is UserId => {
-  return typeof value === 'string' && value.length > 0;
+  return typeof value === "string" && value.length > 0;
 };
 
 // Type constructors for safe creation
@@ -64,7 +64,7 @@ export interface Inspection {
   id: InspectionId;
   property_id: PropertyId;
   inspector_id: UserId;
-  status: 'draft' | 'in_progress' | 'completed' | 'auditing';
+  status: "draft" | "in_progress" | "completed" | "auditing";
   created_at: string;
 }
 
@@ -72,7 +72,7 @@ export interface ChecklistItem {
   id: ChecklistItemId;
   inspection_id: InspectionId;
   static_item_id: string; // CORRECTED: checklist_items.static_item_id -> static_safety_items.id
-  status: 'pending' | 'completed' | 'failed' | 'not_applicable';
+  status: "pending" | "completed" | "failed" | "not_applicable";
   inspector_notes?: string;
 }
 
@@ -80,7 +80,7 @@ export interface User {
   id: UserId;
   name: string;
   email: string;
-  role?: 'inspector' | 'auditor' | 'admin';
+  role?: "inspector" | "auditor" | "admin";
 }
 
 export interface StaticSafetyItem {
@@ -88,5 +88,5 @@ export interface StaticSafetyItem {
   title: string;
   category: string;
   required: boolean;
-  evidence_type: 'photo' | 'video' | 'none';
+  evidence_type: "photo" | "video" | "none";
 }

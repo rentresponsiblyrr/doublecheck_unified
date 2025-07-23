@@ -360,7 +360,7 @@ tests.push({
   name: 'Table Relationships Fixed',
   test: async () => {
     const result = await supabase
-      .from('logs')
+      .from('checklist_items')
       .select('*, static_safety_items(*)')
       .limit(1);
     return result.error ? 'FAILED' : 'SUCCESS';

@@ -1,14 +1,20 @@
 export interface OptimizationSuggestion {
   id: string;
-  category: 'photos' | 'pricing' | 'amenities' | 'description' | 'safety' | 'overall';
-  priority: 'high' | 'medium' | 'low';
+  category:
+    | "photos"
+    | "pricing"
+    | "amenities"
+    | "description"
+    | "safety"
+    | "overall";
+  priority: "high" | "medium" | "low";
   title: string;
   description: string;
   impact: string;
   actionItems: string[];
   estimatedROI: number;
   implementationTime: string;
-  difficultyLevel: 'easy' | 'medium' | 'hard';
+  difficultyLevel: "easy" | "medium" | "hard";
 }
 
 export interface ListingScore {

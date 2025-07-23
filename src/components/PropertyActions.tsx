@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PropertyActionsDropdown } from "@/components/PropertyActionsDropdown";
 import { PropertyDeleteDialog } from "@/components/PropertyDeleteDialog";
@@ -18,7 +17,10 @@ interface PropertyActionsProps {
   onPropertyDeleted: () => void;
 }
 
-export const PropertyActions = ({ property, onPropertyDeleted }: PropertyActionsProps) => {
+export const PropertyActions = ({
+  property,
+  onPropertyDeleted,
+}: PropertyActionsProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { handleEdit, handleDelete } = usePropertyActions();

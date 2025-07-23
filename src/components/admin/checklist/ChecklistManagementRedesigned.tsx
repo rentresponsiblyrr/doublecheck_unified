@@ -1,9 +1,9 @@
 /**
  * CHECKLIST MANAGEMENT REDESIGNED - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade checklist management following ZERO_TOLERANCE_STANDARDS
  * Reduced from 1,018 lines to <200 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (ChecklistDataManager, ChecklistStatsPanel, etc.)
@@ -11,14 +11,14 @@
  * - Performance optimized with proper component separation
  * - Type-safe throughout with shared interfaces
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - ChecklistDataManager: Data fetching and state management
  * - ChecklistStatsPanel: Statistics display
  * - ChecklistFiltersComponent: Search and filtering
  * - ChecklistTable: Data table with actions
  * - ChecklistFormDialog: Item creation/editing
- * 
+ *
  * @example
  * ```typescript
  * <ChecklistManagementRedesigned
@@ -28,19 +28,19 @@
  * ```
  */
 
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, RefreshCw, CheckSquare, XCircle } from 'lucide-react';
+import React, { useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, RefreshCw, CheckSquare, XCircle } from "lucide-react";
 
 // Import decomposed components
-import { ChecklistDataManager } from './ChecklistDataManager';
-import { ChecklistStatsPanel } from './ChecklistStatsPanel';
-import { ChecklistFiltersComponent } from './ChecklistFilters';
-import { ChecklistTable } from './ChecklistTable';
-import { ChecklistFormDialog } from './ChecklistFormDialog';
-import { ChecklistItem, ChecklistFilters } from './types';
+import { ChecklistDataManager } from "./ChecklistDataManager";
+import { ChecklistStatsPanel } from "./ChecklistStatsPanel";
+import { ChecklistFiltersComponent } from "./ChecklistFilters";
+import { ChecklistTable } from "./ChecklistTable";
+import { ChecklistFormDialog } from "./ChecklistFormDialog";
+import { ChecklistItem, ChecklistFilters } from "./types";
 
 /**
  * Checklist management props - simplified for orchestration
@@ -52,23 +52,21 @@ export interface ChecklistManagementRedesignedProps {
   enableBulkActions?: boolean;
 }
 
-
 /**
  * Main Checklist Management Redesigned Component - Orchestration Only
  * Reduced from 1,018 lines to <200 lines through architectural excellence
  */
-const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps> = ({
-  showAdvancedOptions = false,
-  enableBulkActions = false
-}) => {
+const ChecklistManagementRedesigned: React.FC<
+  ChecklistManagementRedesignedProps
+> = ({ showAdvancedOptions = false, enableBulkActions = false }) => {
   // Local state for dialog management only
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [filters, setFilters] = useState<ChecklistFilters>({
-    search: '',
-    category: '',
-    evidenceType: '',
-    status: ''
+    search: "",
+    category: "",
+    evidenceType: "",
+    status: "",
   });
 
   /**
@@ -87,7 +85,7 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
   }, []);
 
   return (
-    <div 
+    <div
       id="checklist-management-redesigned"
       className="space-y-6"
       role="main"
@@ -100,7 +98,8 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
             Checklist Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage inspection checklist items, categories, and evidence requirements
+            Manage inspection checklist items, categories, and evidence
+            requirements
           </p>
         </div>
         <Button onClick={() => setShowAddDialog(true)}>
@@ -122,7 +121,7 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
           onItemCreate,
           onItemUpdate,
           onItemDelete,
-          onFiltersChange
+          onFiltersChange,
         }) => (
           <>
             {/* Loading State */}
@@ -130,7 +129,9 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                   <CheckSquare className="h-8 w-8 animate-pulse mx-auto mb-2 text-blue-600" />
-                  <p className="text-gray-600">Loading checklist management...</p>
+                  <p className="text-gray-600">
+                    Loading checklist management...
+                  </p>
                 </div>
               </div>
             )}
@@ -149,8 +150,8 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
             {!isLoading && !error && (
               <>
                 {/* Statistics Panel */}
-                <ChecklistStatsPanel 
-                  stats={stats} 
+                <ChecklistStatsPanel
+                  stats={stats}
                   systemHealth={systemHealth}
                   isLoading={isLoading}
                 />
@@ -172,7 +173,7 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
                         active: stats.active,
                         deleted: stats.deleted,
                         byCategory: stats.byCategory,
-                        byEvidenceType: stats.byEvidenceType
+                        byEvidenceType: stats.byEvidenceType,
                       }}
                     />
                   </CardContent>
@@ -192,7 +193,9 @@ const ChecklistManagementRedesigned: React.FC<ChecklistManagementRedesignedProps
                         onClick={onRefresh}
                         disabled={isLoading}
                       >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                        <RefreshCw
+                          className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                        />
                         Refresh
                       </Button>
                     </CardTitle>

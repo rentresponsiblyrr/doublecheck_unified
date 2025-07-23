@@ -34,8 +34,8 @@ interface SetCacheOptions extends CacheOptions {
   strategy?: CacheStrategyType;
 }
 
-type CachePriority = 'low' | 'medium' | 'high' | 'critical';
-type CacheStrategyType = 'memory-only' | 'persistent-only' | 'hybrid' | 'auto';
+type CachePriority = "low" | "medium" | "high" | "critical";
+type CacheStrategyType = "memory-only" | "persistent-only" | "hybrid" | "auto";
 
 interface CacheStrategy {
   name: string;
@@ -94,13 +94,16 @@ export class CacheManager {
   /**
    * Gets cached AI response if available
    */
-  async get<T>(key: string, options: CacheOptions = {}): Promise<CachedItem<T> | null> {
+  async get<T>(
+    key: string,
+    options: CacheOptions = {},
+  ): Promise<CachedItem<T> | null> {
     const startTime = performance.now();
 
     // Check memory cache first
     let item = await this.memoryCache.get<T>(key);
     if (item && !this.isExpired(item, options)) {
-      this.cacheMetrics.recordHit('memory', performance.now() - startTime);
+      this.cacheMetrics.recordHit("memory", performance.now() - startTime);
       return item;
     }
 
@@ -111,10 +114,10 @@ export class CacheManager {
       await this.memoryCache.set(key, item.value, {
         ttl: item.ttl,
         tags: item.tags,
-        priority: item.priority
+        priority: item.priority,
       });
-      
-      this.cacheMetrics.recordHit('persistent', performance.now() - startTime);
+
+      this.cacheMetrics.recordHit("persistent", performance.now() - startTime);
       return item;
     }
 
@@ -126,18 +129,18 @@ export class CacheManager {
    * Caches AI response with intelligent TTL and compression
    */
   async set<T>(
-    key: string, 
-    value: T, 
-    options: SetCacheOptions = {}
+    key: string,
+    value: T,
+    options: SetCacheOptions = {},
   ): Promise<void> {
     const startTime = performance.now();
 
     // Determine cache strategy
     const strategy = this.determineCacheStrategy(key, value, options);
-    
+
     // Compress if beneficial
     const shouldCompress = await this.shouldCompress(value, strategy);
-    const processedValue = shouldCompress 
+    const processedValue = shouldCompress
       ? await this.compressionEngine.compress(value)
       : value;
 
@@ -155,9 +158,10 @@ export class CacheManager {
       metadata: {
         ...options.metadata,
         strategy: strategy.name,
-        compressionRatio: shouldCompress ? 
-          this.calculateSize(value) / this.calculateSize(processedValue) : 1
-      }
+        compressionRatio: shouldCompress
+          ? this.calculateSize(value) / this.calculateSize(processedValue)
+          : 1,
+      },
     };
 
     // Store in appropriate cache(s)
@@ -165,7 +169,7 @@ export class CacheManager {
       await this.memoryCache.set(key, item.value, {
         ttl: item.ttl,
         tags: item.tags,
-        priority: item.priority
+        priority: item.priority,
       });
     }
 
@@ -173,7 +177,7 @@ export class CacheManager {
       await this.persistentCache.set(key, item.value, {
         ttl: item.ttl,
         tags: item.tags,
-        priority: item.priority
+        priority: item.priority,
       });
     }
 
@@ -205,8 +209,12 @@ export class CacheManager {
       invalidatedCount += await this.persistentCache.deleteByTags(options.tags);
     } else if (options.olderThan) {
       // Invalidate old entries
-      invalidatedCount += await this.memoryCache.deleteOlderThan(options.olderThan);
-      invalidatedCount += await this.persistentCache.deleteOlderThan(options.olderThan);
+      invalidatedCount += await this.memoryCache.deleteOlderThan(
+        options.olderThan,
+      );
+      invalidatedCount += await this.persistentCache.deleteOlderThan(
+        options.olderThan,
+      );
     }
 
     // Apply custom invalidation rules
@@ -227,7 +235,7 @@ export class CacheManager {
       freedSpace: 0,
       removedItems: 0,
       compressedItems: 0,
-      duration: 0
+      duration: 0,
     };
 
     // 1. Remove low-priority items
@@ -252,7 +260,7 @@ export class CacheManager {
       await this.persistentCache.set(item.key, item.value, {
         ttl: item.ttl,
         tags: item.tags,
-        priority: item.priority
+        priority: item.priority,
       });
       await this.memoryCache.delete(item.key);
       result.freedSpace += item.size;
@@ -271,24 +279,24 @@ export class CacheManager {
   async createCacheKey(
     endpoint: string,
     params: Record<string, unknown>,
-    options: KeyOptions = {}
+    options: KeyOptions = {},
   ): Promise<string> {
     // Normalize parameters
     const normalizedParams = this.normalizeParams(params);
-    
+
     // Create base key
     let key = `${endpoint}:${JSON.stringify(normalizedParams)}`;
-    
+
     // Add context if provided
     if (options.context) {
       key += `:${options.context}`;
     }
-    
+
     // Add user-specific suffix if needed
     if (options.userSpecific && options.userId) {
       key += `:user_${options.userId}`;
     }
-    
+
     // Add device-specific suffix for mobile
     if (options.deviceSpecific && options.deviceId) {
       key += `:device_${options.deviceId}`;
@@ -315,17 +323,17 @@ export class CacheManager {
       memory: memoryStats,
       persistent: persistentStats,
       performance: {
-        hitRate: metrics.hits / (metrics.hits + metrics.misses) * 100,
+        hitRate: (metrics.hits / (metrics.hits + metrics.misses)) * 100,
         avgHitTime: metrics.totalHitTime / metrics.hits,
         avgMissTime: metrics.totalMissTime / metrics.misses,
-        compressionRatio: metrics.totalUncompressed / metrics.totalCompressed
+        compressionRatio: metrics.totalUncompressed / metrics.totalCompressed,
       },
       savings: {
         apiCallsSaved: metrics.hits,
         estimatedCostSaved: this.estimateCostSavings(metrics.hits),
         dataSaved: metrics.totalCompressed - metrics.totalUncompressed,
-        timeSaved: metrics.hits * 1000 // Assume 1s per API call
-      }
+        timeSaved: metrics.hits * 1000, // Assume 1s per API call
+      },
     };
   }
 
@@ -341,9 +349,9 @@ export class CacheManager {
           // Fetch and cache with lower priority
           const value = await prediction.fetcher();
           await this.set(prediction.key, value, {
-            priority: 'low',
+            priority: "low",
             ttl: prediction.ttl || 3600000, // 1 hour default
-            tags: ['preloaded', ...(prediction.tags || [])]
+            tags: ["preloaded", ...(prediction.tags || [])],
           });
         }
       }
@@ -355,13 +363,13 @@ export class CacheManager {
    */
   async warmCache(strategy: WarmingStrategy): Promise<void> {
     switch (strategy.type) {
-      case 'popular':
+      case "popular":
         await this.warmPopularItems(strategy.count || 50);
         break;
-      case 'predicted':
+      case "predicted":
         await this.warmPredictedItems(strategy.predictions || []);
         break;
-      case 'critical':
+      case "critical":
         await this.warmCriticalPaths(strategy.paths || []);
         break;
     }
@@ -372,16 +380,17 @@ export class CacheManager {
   private determineCacheStrategy<T>(
     key: string,
     value: T,
-    options: SetCacheOptions
+    options: SetCacheOptions,
   ): CacheStrategy {
     // Check if it's an AI response
-    const isAIResponse = key.includes('openai') || key.includes('gpt') || key.includes('vision');
-    
+    const isAIResponse =
+      key.includes("openai") || key.includes("gpt") || key.includes("vision");
+
     // Check value characteristics
     const size = this.calculateSize(value);
     const isLarge = size > 500 * 1024; // 500KB
     const isFrequentlyAccessed = this.cacheMetrics.getAccessFrequency(key) > 10;
-    
+
     // Determine strategy
     if (options.strategy) {
       return this.strategies[options.strategy];
@@ -400,50 +409,53 @@ export class CacheManager {
 
   private strategies: Record<string, CacheStrategy> = {
     aggressive: {
-      name: 'aggressive',
+      name: "aggressive",
       ttl: 24 * 60 * 60 * 1000, // 24 hours
       useMemory: true,
       usePersistent: true,
-      priority: 'high'
+      priority: "high",
     },
     frequent: {
-      name: 'frequent',
+      name: "frequent",
       ttl: 4 * 60 * 60 * 1000, // 4 hours
       useMemory: true,
       usePersistent: false,
-      priority: 'high'
+      priority: "high",
     },
     large: {
-      name: 'large',
+      name: "large",
       ttl: 12 * 60 * 60 * 1000, // 12 hours
       useMemory: false,
       usePersistent: true,
-      priority: 'medium'
+      priority: "medium",
     },
     default: {
-      name: 'default',
+      name: "default",
       ttl: 60 * 60 * 1000, // 1 hour
       useMemory: true,
       usePersistent: false,
-      priority: 'medium'
-    }
+      priority: "medium",
+    },
   };
 
-  private async shouldCompress<T>(value: T, strategy: CacheStrategy): Promise<boolean> {
+  private async shouldCompress<T>(
+    value: T,
+    strategy: CacheStrategy,
+  ): Promise<boolean> {
     const size = this.calculateSize(value);
-    
+
     // Don't compress small values
     if (size < 1024) return false; // < 1KB
-    
+
     // Always compress large values
     if (size > 100 * 1024) return true; // > 100KB
-    
+
     // Compress if going to persistent storage
     return strategy.usePersistent;
   }
 
   private calculateSize<T>(value: T): number {
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       return value.length * 2; // UTF-16
     }
     return JSON.stringify(value).length * 2;
@@ -451,67 +463,71 @@ export class CacheManager {
 
   private isExpired<T>(item: CachedItem<T>, options: CacheOptions): boolean {
     if (options.force) return true;
-    
+
     const now = Date.now();
     const age = now - item.timestamp;
-    
+
     // Check TTL
     if (item.ttl && age > item.ttl) {
       return true;
     }
-    
+
     // Check custom expiration
     if (options.maxAge && age > options.maxAge) {
       return true;
     }
-    
+
     return false;
   }
 
   private initializeInvalidationRules(): InvalidationRule[] {
     return [
       {
-        name: 'stale-predictions',
+        name: "stale-predictions",
         condition: (item) => {
-          return item.key.includes('prediction') && 
-                 Date.now() - item.timestamp > 6 * 60 * 60 * 1000; // 6 hours
+          return (
+            item.key.includes("prediction") &&
+            Date.now() - item.timestamp > 6 * 60 * 60 * 1000
+          ); // 6 hours
         },
-        action: 'delete'
+        action: "delete",
       },
       {
-        name: 'low-hit-rate',
+        name: "low-hit-rate",
         condition: (item) => {
-          const hitRate = item.hits / ((Date.now() - item.timestamp) / (60 * 60 * 1000));
+          const hitRate =
+            item.hits / ((Date.now() - item.timestamp) / (60 * 60 * 1000));
           return hitRate < 0.1; // Less than 0.1 hits per hour
         },
-        action: 'delete'
+        action: "delete",
       },
       {
-        name: 'outdated-analysis',
+        name: "outdated-analysis",
         condition: (item) => {
-          return item.key.includes('analysis') && 
-                 item.metadata?.version !== 'latest';
+          return (
+            item.key.includes("analysis") && item.metadata?.version !== "latest"
+          );
         },
-        action: 'invalidate'
-      }
+        action: "invalidate",
+      },
     ];
   }
 
   private async applyInvalidationRules(): Promise<number> {
     let invalidated = 0;
-    
+
     const allItems = [
-      ...await this.memoryCache.getAllItems(),
-      ...await this.persistentCache.getAllItems()
+      ...(await this.memoryCache.getAllItems()),
+      ...(await this.persistentCache.getAllItems()),
     ];
 
     for (const item of allItems) {
       for (const rule of this.invalidationRules) {
         if (rule.condition(item)) {
-          if (rule.action === 'delete') {
+          if (rule.action === "delete") {
             await this.invalidate({ key: item.key });
             invalidated++;
-          } else if (rule.action === 'invalidate') {
+          } else if (rule.action === "invalidate") {
             item.ttl = 0; // Mark as expired
             invalidated++;
           }
@@ -526,43 +542,45 @@ export class CacheManager {
     const regex = new RegExp(pattern);
     const memoryKeys = await this.memoryCache.getKeys();
     const persistentKeys = await this.persistentCache.getKeys();
-    
+
     const allKeys = [...new Set([...memoryKeys, ...persistentKeys])];
-    return allKeys.filter(key => regex.test(key));
+    return allKeys.filter((key) => regex.test(key));
   }
 
-  private normalizeParams(params: Record<string, unknown>): Record<string, unknown> {
+  private normalizeParams(
+    params: Record<string, unknown>,
+  ): Record<string, unknown> {
     const normalized: Record<string, unknown> = {};
-    
+
     // Sort keys for consistent ordering
     const sortedKeys = Object.keys(params).sort();
-    
+
     for (const key of sortedKeys) {
       const value = params[key];
-      
+
       // Skip null/undefined values
       if (value === null || value === undefined) continue;
-      
+
       // Normalize arrays
       if (Array.isArray(value)) {
         normalized[key] = [...value].sort();
-      } else if (typeof value === 'object') {
+      } else if (typeof value === "object") {
         normalized[key] = this.normalizeParams(value);
       } else {
         normalized[key] = value;
       }
     }
-    
+
     return normalized;
   }
 
   private async hashKey(key: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(key);
-    const hash = await crypto.subtle.digest('SHA-256', data);
+    const hash = await crypto.subtle.digest("SHA-256", data);
     return Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   }
 
   private estimateCostSavings(apiCallsSaved: number): number {
@@ -574,19 +592,19 @@ export class CacheManager {
   private async findLowPriorityItems(): Promise<CachedItem<unknown>[]> {
     const allItems = await this.memoryCache.getAllItems();
     return allItems
-      .filter(item => item.priority === 'low')
+      .filter((item) => item.priority === "low")
       .sort((a, b) => a.hits - b.hits)
       .slice(0, 20);
   }
 
   private async findUncompressedItems(): Promise<CachedItem<unknown>[]> {
     const allItems = [
-      ...await this.memoryCache.getAllItems(),
-      ...await this.persistentCache.getAllItems()
+      ...(await this.memoryCache.getAllItems()),
+      ...(await this.persistentCache.getAllItems()),
     ];
-    
-    return allItems.filter(item => 
-      !item.compressed && item.size > 10 * 1024 // > 10KB
+
+    return allItems.filter(
+      (item) => !item.compressed && item.size > 10 * 1024, // > 10KB
     );
   }
 
@@ -594,31 +612,31 @@ export class CacheManager {
     try {
       const compressed = await this.compressionEngine.compress(item.value);
       const newSize = this.calculateSize(compressed);
-      
-      if (newSize < item.size * 0.7) { // At least 30% reduction
+
+      if (newSize < item.size * 0.7) {
+        // At least 30% reduction
         item.value = compressed;
         item.size = newSize;
         item.compressed = true;
-        
+
         // Update in cache
         await this.set(item.key, item.value, {
           ttl: item.ttl,
           tags: item.tags,
-          priority: item.priority
+          priority: item.priority,
         });
-        
+
         return true;
       }
-    } catch (error) {
-    }
-    
+    } catch (error) {}
+
     return false;
   }
 
   private async applyMobileTTLPolicy(): Promise<void> {
     // Reduce TTL for mobile devices to save space
     const factor = 0.5; // 50% of original TTL
-    
+
     const items = await this.memoryCache.getAllItems();
     for (const item of items) {
       if (item.ttl) {
@@ -630,7 +648,7 @@ export class CacheManager {
   private async warmPopularItems(count: number): Promise<void> {
     // Get most accessed keys from metrics
     const popularKeys = this.cacheMetrics.getMostAccessedKeys(count);
-    
+
     for (const key of popularKeys) {
       const exists = await this.get(key);
       if (!exists) {
@@ -639,7 +657,9 @@ export class CacheManager {
     }
   }
 
-  private async warmPredictedItems(predictions: CachePrediction[]): Promise<void> {
+  private async warmPredictedItems(
+    predictions: CachePrediction[],
+  ): Promise<void> {
     // Implement prediction-based warming
     for (const prediction of predictions) {
       await this.preload([prediction]);
@@ -655,11 +675,14 @@ export class CacheManager {
 
   private startBackgroundTasks(): void {
     // Cleanup task
-    setInterval(async () => {
-      await this.memoryCache.cleanup();
-      await this.persistentCache.cleanup();
-      await this.applyInvalidationRules();
-    }, 5 * 60 * 1000); // Every 5 minutes
+    setInterval(
+      async () => {
+        await this.memoryCache.cleanup();
+        await this.persistentCache.cleanup();
+        await this.applyInvalidationRules();
+      },
+      5 * 60 * 1000,
+    ); // Every 5 minutes
 
     // Metrics collection
     setInterval(() => {
@@ -690,7 +713,7 @@ class MemoryCache {
 
   async set<T>(key: string, value: T, options: CacheOptions): Promise<void> {
     const size = this.calculateSize(value);
-    
+
     // Evict if necessary
     while (this.currentSize + size > this.sizeLimit && this.cache.size > 0) {
       await this.evictLRU();
@@ -705,8 +728,8 @@ class MemoryCache {
       size,
       compressed: false,
       tags: options.tags || [],
-      priority: options.priority || 'medium',
-      metadata: {}
+      priority: options.priority || "medium",
+      metadata: {},
     });
 
     this.currentSize += size;
@@ -724,7 +747,7 @@ class MemoryCache {
   async deleteByTags(tags: string[]): Promise<number> {
     let deleted = 0;
     for (const [key, item] of this.cache) {
-      if (tags.some(tag => item.tags.includes(tag))) {
+      if (tags.some((tag) => item.tags.includes(tag))) {
         if (await this.delete(key)) {
           deleted++;
         }
@@ -754,7 +777,9 @@ class MemoryCache {
   }
 
   async findLargeItems(threshold: number): Promise<CachedItem<unknown>[]> {
-    return Array.from(this.cache.values()).filter(item => item.size > threshold);
+    return Array.from(this.cache.values()).filter(
+      (item) => item.size > threshold,
+    );
   }
 
   async getStats(): Promise<{
@@ -767,7 +792,7 @@ class MemoryCache {
       items: this.cache.size,
       size: this.currentSize,
       sizeLimit: this.sizeLimit,
-      utilization: (this.currentSize / this.sizeLimit) * 100
+      utilization: (this.currentSize / this.sizeLimit) * 100,
     };
   }
 
@@ -785,8 +810,8 @@ class MemoryCache {
     let lruTime = Infinity;
 
     for (const [key, item] of this.cache) {
-      const lastAccess = item.timestamp + (item.hits * 1000); // Boost by hits
-      if (lastAccess < lruTime && item.priority !== 'high') {
+      const lastAccess = item.timestamp + item.hits * 1000; // Boost by hits
+      if (lastAccess < lruTime && item.priority !== "high") {
         lruTime = lastAccess;
         lruKey = key;
       }
@@ -803,8 +828,8 @@ class MemoryCache {
 }
 
 class PersistentCache {
-  private dbName = 'str_certified_cache';
-  private storeName = 'ai_responses';
+  private dbName = "str_certified_cache";
+  private storeName = "ai_responses";
   private sizeLimit: number;
   private db: IDBDatabase | null = null;
 
@@ -815,13 +840,13 @@ class PersistentCache {
 
   private async initDB(): Promise<void> {
     const request = indexedDB.open(this.dbName, 1);
-    
+
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(this.storeName)) {
-        const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
-        store.createIndex('timestamp', 'timestamp');
-        store.createIndex('tags', 'tags', { multiEntry: true });
+        const store = db.createObjectStore(this.storeName, { keyPath: "key" });
+        store.createIndex("timestamp", "timestamp");
+        store.createIndex("tags", "tags", { multiEntry: true });
       }
     };
 
@@ -833,10 +858,10 @@ class PersistentCache {
 
   async get<T>(key: string): Promise<CachedItem<T> | null> {
     if (!this.db) await this.initDB();
-    
-    const transaction = this.db!.transaction([this.storeName], 'readonly');
+
+    const transaction = this.db!.transaction([this.storeName], "readonly");
     const store = transaction.objectStore(this.storeName);
-    
+
     return new Promise((resolve, reject) => {
       const request = store.get(key);
       request.onsuccess = () => {
@@ -854,7 +879,7 @@ class PersistentCache {
 
   async set<T>(key: string, value: T, options: CacheOptions): Promise<void> {
     if (!this.db) await this.initDB();
-    
+
     const item: CachedItem<T> = {
       key,
       value,
@@ -864,13 +889,13 @@ class PersistentCache {
       size: this.calculateSize(value),
       compressed: false,
       tags: options.tags || [],
-      priority: options.priority || 'medium',
-      metadata: {}
+      priority: options.priority || "medium",
+      metadata: {},
     };
 
-    const transaction = this.db!.transaction([this.storeName], 'readwrite');
+    const transaction = this.db!.transaction([this.storeName], "readwrite");
     const store = transaction.objectStore(this.storeName);
-    
+
     return new Promise((resolve, reject) => {
       const request = store.put(item);
       request.onsuccess = () => resolve();
@@ -880,10 +905,10 @@ class PersistentCache {
 
   async delete(key: string): Promise<boolean> {
     if (!this.db) await this.initDB();
-    
-    const transaction = this.db!.transaction([this.storeName], 'readwrite');
+
+    const transaction = this.db!.transaction([this.storeName], "readwrite");
     const store = transaction.objectStore(this.storeName);
-    
+
     return new Promise((resolve, reject) => {
       const request = store.delete(key);
       request.onsuccess = () => resolve(true);
@@ -893,33 +918,33 @@ class PersistentCache {
 
   async deleteByTags(tags: string[]): Promise<number> {
     if (!this.db) await this.initDB();
-    
+
     let deleted = 0;
     const items = await this.getAllItems();
-    
+
     for (const item of items) {
-      if (tags.some(tag => item.tags.includes(tag))) {
+      if (tags.some((tag) => item.tags.includes(tag))) {
         await this.delete(item.key);
         deleted++;
       }
     }
-    
+
     return deleted;
   }
 
   async deleteOlderThan(timestamp: number): Promise<number> {
     if (!this.db) await this.initDB();
-    
-    const transaction = this.db!.transaction([this.storeName], 'readwrite');
+
+    const transaction = this.db!.transaction([this.storeName], "readwrite");
     const store = transaction.objectStore(this.storeName);
-    const index = store.index('timestamp');
-    
+    const index = store.index("timestamp");
+
     let deleted = 0;
     const range = IDBKeyRange.upperBound(timestamp);
-    
+
     return new Promise((resolve, reject) => {
       const request = index.openCursor(range);
-      
+
       request.onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -930,17 +955,17 @@ class PersistentCache {
           resolve(deleted);
         }
       };
-      
+
       request.onerror = () => reject(request.error);
     });
   }
 
   async getAllItems(): Promise<CachedItem<unknown>[]> {
     if (!this.db) await this.initDB();
-    
-    const transaction = this.db!.transaction([this.storeName], 'readonly');
+
+    const transaction = this.db!.transaction([this.storeName], "readonly");
     const store = transaction.objectStore(this.storeName);
-    
+
     return new Promise((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result);
@@ -950,7 +975,7 @@ class PersistentCache {
 
   async getKeys(): Promise<string[]> {
     const items = await this.getAllItems();
-    return items.map(item => item.key);
+    return items.map((item) => item.key);
   }
 
   async getStats(): Promise<{
@@ -959,19 +984,19 @@ class PersistentCache {
   }> {
     const items = await this.getAllItems();
     const totalSize = items.reduce((sum, item) => sum + item.size, 0);
-    
+
     return {
       items: items.length,
       size: totalSize,
       sizeLimit: this.sizeLimit,
-      utilization: (totalSize / this.sizeLimit) * 100
+      utilization: (totalSize / this.sizeLimit) * 100,
     };
   }
 
   async cleanup(): Promise<void> {
     const now = Date.now();
     const items = await this.getAllItems();
-    
+
     for (const item of items) {
       if (item.ttl && now - item.timestamp > item.ttl) {
         await this.delete(item.key);
@@ -988,7 +1013,7 @@ class PersistentCache {
         await this.set(key, item.value, {
           ttl: item.ttl,
           tags: item.tags,
-          priority: item.priority
+          priority: item.priority,
         });
       }
     }, 0);
@@ -1004,41 +1029,43 @@ class CompressionEngine {
     const json = JSON.stringify(value);
     const encoder = new TextEncoder();
     const data = encoder.encode(json);
-    
+
     // Use CompressionStream if available
-    if ('CompressionStream' in window) {
-      const cs = new CompressionStream('gzip');
+    if ("CompressionStream" in window) {
+      const cs = new CompressionStream("gzip");
       const writer = cs.writable.getWriter();
       writer.write(data);
       writer.close();
-      
+
       const compressed = await new Response(cs.readable).arrayBuffer();
       return {
         _compressed: true,
-        data: Array.from(new Uint8Array(compressed))
+        data: Array.from(new Uint8Array(compressed)),
       };
     }
-    
+
     // Fallback: simple compression for repeated strings
     return this.simpleCompress(json);
   }
 
-  async decompress<T>(value: T & { _compressed?: boolean; data?: unknown }): Promise<T> {
+  async decompress<T>(
+    value: T & { _compressed?: boolean; data?: unknown },
+  ): Promise<T> {
     if (value._compressed) {
-      if ('DecompressionStream' in window) {
+      if ("DecompressionStream" in window) {
         const data = new Uint8Array(value.data);
-        const ds = new DecompressionStream('gzip');
+        const ds = new DecompressionStream("gzip");
         const writer = ds.writable.getWriter();
         writer.write(data);
         writer.close();
-        
+
         const decompressed = await new Response(ds.readable).text();
         return JSON.parse(decompressed);
       }
-      
+
       return this.simpleDecompress(value.data as CompressionData);
     }
-    
+
     return value;
   }
 
@@ -1047,9 +1074,9 @@ class CompressionEngine {
     const dict: Record<string, number> = {};
     const compressed: number[] = [];
     let dictIndex = 0;
-    
+
     const words = str.split(/(\s+|[{}[\],":])/);
-    
+
     for (const word of words) {
       if (word.length > 3) {
         if (!(word in dict)) {
@@ -1060,22 +1087,24 @@ class CompressionEngine {
         compressed.push(word as unknown as number);
       }
     }
-    
+
     return {
       _compressed: true,
       dict: Object.fromEntries(Object.entries(dict).map(([k, v]) => [v, k])),
-      data: compressed
+      data: compressed,
     };
   }
 
   private simpleDecompress(compressed: CompressionData): string {
     const reverseDict = Object.fromEntries(
-      Object.entries(compressed.dict).map(([key, value]) => [value, key])
+      Object.entries(compressed.dict).map(([key, value]) => [value, key]),
     );
-    const decompressed = compressed.data.map((item: number | string) => 
-      typeof item === 'number' ? reverseDict[item] || item.toString() : item
-    ).join('');
-    
+    const decompressed = compressed.data
+      .map((item: number | string) =>
+        typeof item === "number" ? reverseDict[item] || item.toString() : item,
+      )
+      .join("");
+
     return JSON.parse(decompressed);
   }
 }
@@ -1091,10 +1120,10 @@ class CacheMetrics {
     totalSetTime: 0,
     totalCompressed: 0,
     totalUncompressed: 0,
-    accessFrequency: new Map<string, number>()
+    accessFrequency: new Map<string, number>(),
   };
 
-  recordHit(type: 'memory' | 'persistent', duration: number): void {
+  recordHit(type: "memory" | "persistent", duration: number): void {
     this.metrics.hits++;
     this.metrics.totalHitTime += duration;
   }
@@ -1152,7 +1181,7 @@ interface CachedItem<T> {
   size: number;
   compressed: boolean;
   tags: string[];
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   metadata: Record<string, unknown>;
 }
 
@@ -1164,7 +1193,7 @@ interface CacheOptions {
 interface SetCacheOptions {
   ttl?: number;
   tags?: string[];
-  priority?: 'low' | 'medium' | 'high';
+  priority?: "low" | "medium" | "high";
   metadata?: Record<string, unknown>;
   strategy?: string;
 }
@@ -1182,13 +1211,13 @@ interface CacheStrategy {
   ttl: number;
   useMemory: boolean;
   usePersistent: boolean;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
 }
 
 interface InvalidationRule {
   name: string;
   condition: (item: CachedItem<unknown>) => boolean;
-  action: 'delete' | 'invalidate';
+  action: "delete" | "invalidate";
 }
 
 interface OptimizationResult {
@@ -1232,7 +1261,7 @@ interface CachePrediction {
 }
 
 interface WarmingStrategy {
-  type: 'popular' | 'predicted' | 'critical';
+  type: "popular" | "predicted" | "critical";
   count?: number;
   predictions?: CachePrediction[];
   paths?: string[];
@@ -1243,10 +1272,12 @@ const defaultCacheConfig: CacheConfig = {
   memoryLimit: 50 * 1024 * 1024, // 50MB
   persistentLimit: 200 * 1024 * 1024, // 200MB
   ttl: 60 * 60 * 1000, // 1 hour
-  compressionThreshold: 10 * 1024 // 10KB
+  compressionThreshold: 10 * 1024, // 10KB
 };
 
 // Export factory function
-export const createCacheManager = (config?: Partial<CacheConfig>): CacheManager => {
+export const createCacheManager = (
+  config?: Partial<CacheConfig>,
+): CacheManager => {
   return new CacheManager({ ...defaultCacheConfig, ...config });
 };

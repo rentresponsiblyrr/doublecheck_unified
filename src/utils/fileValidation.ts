@@ -1,9 +1,8 @@
-
 import { useToast } from "@/hooks/use-toast";
 
 export interface FileValidationResult {
   isValid: boolean;
-  detectedType: 'photo' | 'video';
+  detectedType: "photo" | "video";
 }
 
 export const useFileValidation = () => {
@@ -11,9 +10,9 @@ export const useFileValidation = () => {
 
   const validateFile = (file: File): FileValidationResult => {
     // Detect the actual file type based on MIME type
-    const isPhoto = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-    const detectedType: 'photo' | 'video' = isPhoto ? 'photo' : 'video';
+    const isPhoto = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    const detectedType: "photo" | "video" = isPhoto ? "photo" : "video";
 
     if (!isPhoto && !isVideo) {
       toast({

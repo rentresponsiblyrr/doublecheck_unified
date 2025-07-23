@@ -47,17 +47,17 @@ export interface VideoTimestamp {
   annotations?: VideoAnnotation[];
 }
 
-export type SceneType = 
-  | 'room_entry'
-  | 'room_overview'
-  | 'detail_shot'
-  | 'transition'
-  | 'exterior'
-  | 'amenity_focus'
-  | 'issue_documentation';
+export type SceneType =
+  | "room_entry"
+  | "room_overview"
+  | "detail_shot"
+  | "transition"
+  | "exterior"
+  | "amenity_focus"
+  | "issue_documentation";
 
 export interface VideoAnnotation {
-  type: 'text' | 'arrow' | 'box' | 'circle';
+  type: "text" | "arrow" | "box" | "circle";
   content: string;
   position: { x: number; y: number };
   style?: {
@@ -91,16 +91,16 @@ export interface VideoMetadata {
   notes?: string;
 }
 
-export type VideoStatus = 
-  | 'recording'
-  | 'paused'
-  | 'stopped'
-  | 'processing'
-  | 'uploading'
-  | 'uploaded'
-  | 'analyzing'
-  | 'completed'
-  | 'failed';
+export type VideoStatus =
+  | "recording"
+  | "paused"
+  | "stopped"
+  | "processing"
+  | "uploading"
+  | "uploaded"
+  | "analyzing"
+  | "completed"
+  | "failed";
 
 export interface VideoAnalysisResult {
   videoId: string;
@@ -158,7 +158,7 @@ export interface SceneQuality {
 export interface SceneTransition {
   fromScene: number;
   toScene: number;
-  type: 'cut' | 'pan' | 'zoom' | 'fade';
+  type: "cut" | "pan" | "zoom" | "fade";
   duration: number;
   smooth: boolean;
 }
@@ -173,8 +173,8 @@ export interface VideoQualityMetrics {
 }
 
 export interface TechnicalIssue {
-  type: 'shaky' | 'dark' | 'blurry' | 'audio' | 'framerate';
-  severity: 'low' | 'medium' | 'high';
+  type: "shaky" | "dark" | "blurry" | "audio" | "framerate";
+  severity: "low" | "medium" | "high";
   timestamp: number;
   duration: number;
   description: string;
@@ -193,13 +193,13 @@ export interface RoomSequence {
   roomType: string;
   startTime: number;
   endTime: number;
-  coverage: 'complete' | 'partial' | 'minimal';
+  coverage: "complete" | "partial" | "minimal";
   keyMoments: VideoTimestamp[];
 }
 
 export interface VideoIssue {
-  type: 'missing_room' | 'poor_quality' | 'incomplete_coverage' | 'technical';
-  severity: 'low' | 'medium' | 'high';
+  type: "missing_room" | "poor_quality" | "incomplete_coverage" | "technical";
+  severity: "low" | "medium" | "high";
   description: string;
   affectedTimestamps: number[];
   suggestedAction?: string;

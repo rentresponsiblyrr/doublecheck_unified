@@ -1,6 +1,6 @@
 // OpenAI Service for STR Certified AI Analysis
 
-import OpenAI from 'openai';
+import OpenAI from "openai";
 import type {
   AIAnalysisResult,
   PhotoComparisonResult,
@@ -8,8 +8,8 @@ import type {
   PropertyData,
   AIServiceConfig,
   AIAnalysisOptions,
-  AIError
-} from './types';
+  AIError,
+} from "./types";
 
 // ChecklistItem interface for type safety
 interface ChecklistItem {
@@ -30,11 +30,11 @@ export class STRCertifiedAIService {
 
   constructor(config: AIServiceConfig) {
     this.config = {
-      model: 'gpt-4-vision-preview',
+      model: "gpt-4-vision-preview",
       maxTokens: 1000,
       temperature: 0.3,
       timeout: 30000,
-      ...config
+      ...config,
     };
 
     this.openai = new OpenAI({
@@ -53,41 +53,44 @@ export class STRCertifiedAIService {
   async analyzeInspectionPhoto(
     file: File,
     checklistContext: string,
-    options: AIAnalysisOptions = {}
+    options: AIAnalysisOptions = {},
   ): Promise<AIAnalysisResult> {
     try {
       // Convert file to base64 for OpenAI API
       const base64Image = await this.fileToBase64(file);
-      
-      const prompt = this.buildInspectionAnalysisPrompt(checklistContext, options);
+
+      const prompt = this.buildInspectionAnalysisPrompt(
+        checklistContext,
+        options,
+      );
 
       const response = await this.openai.chat.completions.create({
-        model: this.config.model || 'gpt-4-vision-preview',
+        model: this.config.model || "gpt-4-vision-preview",
         max_tokens: this.config.maxTokens,
         temperature: this.config.temperature,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: [
               {
-                type: 'text',
-                text: prompt
+                type: "text",
+                text: prompt,
               },
               {
-                type: 'image_url',
+                type: "image_url",
                 image_url: {
                   url: `data:image/jpeg;base64,${base64Image}`,
-                  detail: 'high'
-                }
-              }
-            ]
-          }
-        ]
+                  detail: "high",
+                },
+              },
+            ],
+          },
+        ],
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('No response from OpenAI');
+        throw new Error("No response from OpenAI");
       }
 
       return this.parseAnalysisResponse(content);
@@ -101,29 +104,32 @@ export class STRCertifiedAIService {
    * @param propertyData - Property information for contextualization
    * @returns Promise<DynamicChecklistItem[]>
    */
-  async generateDynamicChecklist(propertyData: PropertyData): Promise<DynamicChecklistItem[]> {
+  async generateDynamicChecklist(
+    propertyData: PropertyData,
+  ): Promise<DynamicChecklistItem[]> {
     try {
       const prompt = this.buildChecklistGenerationPrompt(propertyData);
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: "gpt-4-turbo-preview",
         max_tokens: 2000,
         temperature: 0.2,
         messages: [
           {
-            role: 'system',
-            content: 'You are an expert property inspector specializing in short-term rental compliance and safety. Generate comprehensive inspection checklists based on property characteristics.'
+            role: "system",
+            content:
+              "You are an expert property inspector specializing in short-term rental compliance and safety. Generate comprehensive inspection checklists based on property characteristics.",
           },
           {
-            role: 'user',
-            content: prompt
-          }
-        ]
+            role: "user",
+            content: prompt,
+          },
+        ],
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('No response from OpenAI');
+        throw new Error("No response from OpenAI");
       }
 
       return this.parseChecklistResponse(content);
@@ -142,58 +148,58 @@ export class STRCertifiedAIService {
   async comparePhotoToListing(
     inspectorPhoto: File,
     listingPhotos: string[],
-    roomContext: string
+    roomContext: string,
   ): Promise<PhotoComparisonResult> {
     try {
       const inspectorBase64 = await this.fileToBase64(inspectorPhoto);
-      
+
       // For now, compare to the first listing photo (can be enhanced to compare multiple)
       const primaryListingPhoto = listingPhotos[0];
-      
+
       const prompt = this.buildPhotoComparisonPrompt(roomContext);
 
       const response = await this.openai.chat.completions.create({
-        model: this.config.model || 'gpt-4-vision-preview',
+        model: this.config.model || "gpt-4-vision-preview",
         max_tokens: 1000,
         temperature: 0.1,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: [
               {
-                type: 'text',
-                text: prompt
+                type: "text",
+                text: prompt,
               },
               {
-                type: 'text',
-                text: 'Inspector Photo:'
+                type: "text",
+                text: "Inspector Photo:",
               },
               {
-                type: 'image_url',
+                type: "image_url",
                 image_url: {
                   url: `data:image/jpeg;base64,${inspectorBase64}`,
-                  detail: 'high'
-                }
+                  detail: "high",
+                },
               },
               {
-                type: 'text',
-                text: 'Listing Photo:'
+                type: "text",
+                text: "Listing Photo:",
               },
               {
-                type: 'image_url',
+                type: "image_url",
                 image_url: {
                   url: primaryListingPhoto,
-                  detail: 'high'
-                }
-              }
-            ]
-          }
-        ]
+                  detail: "high",
+                },
+              },
+            ],
+          },
+        ],
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('No response from OpenAI');
+        throw new Error("No response from OpenAI");
       }
 
       return this.parseComparisonResponse(content);
@@ -210,7 +216,7 @@ export class STRCertifiedAIService {
    */
   async validateInspectionCompleteness(
     checklistItems: ChecklistItem[],
-    photos: File[]
+    photos: File[],
   ): Promise<{
     complete: boolean;
     missingItems: string[];
@@ -221,24 +227,25 @@ export class STRCertifiedAIService {
       const prompt = this.buildValidationPrompt(checklistItems, photos.length);
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: "gpt-4-turbo-preview",
         max_tokens: 1000,
         temperature: 0.2,
         messages: [
           {
-            role: 'system',
-            content: 'You are an expert inspection validator. Analyze checklist completeness and provide recommendations.'
+            role: "system",
+            content:
+              "You are an expert inspection validator. Analyze checklist completeness and provide recommendations.",
           },
           {
-            role: 'user',
-            content: prompt
-          }
-        ]
+            role: "user",
+            content: prompt,
+          },
+        ],
       });
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('No response from OpenAI');
+        throw new Error("No response from OpenAI");
       }
 
       return this.parseValidationResponse(content);
@@ -256,14 +263,17 @@ export class STRCertifiedAIService {
       reader.onload = () => {
         const base64 = reader.result as string;
         // Remove data:image/[type];base64, prefix
-        const base64Data = base64.split(',')[1];
+        const base64Data = base64.split(",")[1];
         resolve(base64Data);
       };
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   }
 
-  private buildInspectionAnalysisPrompt(context: string, options: AIAnalysisOptions): string {
+  private buildInspectionAnalysisPrompt(
+    context: string,
+    options: AIAnalysisOptions,
+  ): string {
     return `
 Analyze this inspection photo for STR (Short-Term Rental) compliance and safety. Context: ${context}
 
@@ -274,9 +284,9 @@ Please provide a detailed analysis including:
 4. Confidence level (0-100)
 5. Detailed reasoning for your assessment
 
-${options.checkSafetyConcerns ? 'Pay special attention to safety concerns and violations.' : ''}
-${options.compareToStandards ? 'Compare against local building codes and STR regulations.' : ''}
-${options.generateRecommendations ? 'Provide specific recommendations for improvement.' : ''}
+${options.checkSafetyConcerns ? "Pay special attention to safety concerns and violations." : ""}
+${options.compareToStandards ? "Compare against local building codes and STR regulations." : ""}
+${options.generateRecommendations ? "Provide specific recommendations for improvement." : ""}
 
 Format your response as JSON with the following structure:
 {
@@ -301,10 +311,10 @@ Generate a comprehensive inspection checklist for this STR property:
 Property Type: ${propertyData.property_type}
 Bedrooms: ${propertyData.room_count.bedrooms}
 Bathrooms: ${propertyData.room_count.bathrooms}
-Amenities: ${propertyData.amenities.join(', ')}
+Amenities: ${propertyData.amenities.join(", ")}
 Description: ${propertyData.description}
 Location: ${propertyData.location.city}, ${propertyData.location.state}
-${propertyData.special_features ? `Special Features: ${propertyData.special_features.join(', ')}` : ''}
+${propertyData.special_features ? `Special Features: ${propertyData.special_features.join(", ")}` : ""}
 
 Generate 15-25 specific checklist items that are:
 1. Relevant to this property type and amenities
@@ -353,7 +363,10 @@ Format response as JSON:
     `.trim();
   }
 
-  private buildValidationPrompt(checklistItems: ChecklistItem[], photoCount: number): string {
+  private buildValidationPrompt(
+    checklistItems: ChecklistItem[],
+    photoCount: number,
+  ): string {
     return `
 Validate the completeness of this STR inspection:
 
@@ -361,7 +374,7 @@ Checklist Items Completed: ${checklistItems.length}
 Photos Taken: ${photoCount}
 
 Checklist Summary:
-${checklistItems.map(item => `- ${item.title}: ${item.status || 'completed'}`).join('\n')}
+${checklistItems.map((item) => `- ${item.title}: ${item.status || "completed"}`).join("\n")}
 
 Analyze if this inspection is complete and provide:
 1. Completeness assessment (true/false)
@@ -385,17 +398,18 @@ Format as JSON:
       return {
         confidence: parsed.confidence || 0,
         detected_features: parsed.detected_features || [],
-        pass_fail_recommendation: parsed.pass_fail_recommendation || 'review_required',
-        reasoning: parsed.reasoning || 'Analysis completed',
+        pass_fail_recommendation:
+          parsed.pass_fail_recommendation || "review_required",
+        reasoning: parsed.reasoning || "Analysis completed",
         safety_concerns: parsed.safety_concerns,
-        compliance_status: parsed.compliance_status
+        compliance_status: parsed.compliance_status,
       };
     } catch (error) {
       // Fallback parsing if JSON is malformed
       return {
         confidence: 50,
-        detected_features: ['Analysis completed'],
-        pass_fail_recommendation: 'review_required',
+        detected_features: ["Analysis completed"],
+        pass_fail_recommendation: "review_required",
         reasoning: content.substring(0, 500),
       };
     }
@@ -417,27 +431,27 @@ Format as JSON:
       return {
         similarity_score: parsed.similarity_score || 0,
         discrepancies: parsed.discrepancies || [],
-        recommendation: parsed.recommendation || 'major_discrepancies',
+        recommendation: parsed.recommendation || "major_discrepancies",
         confidence: parsed.confidence || 0,
         details: parsed.details || {
           lighting_differences: false,
           furniture_changes: false,
           structural_differences: false,
-          room_layout_match: false
-        }
+          room_layout_match: false,
+        },
       };
     } catch (error) {
       return {
         similarity_score: 0,
-        discrepancies: ['Unable to analyze comparison'],
-        recommendation: 'major_discrepancies',
+        discrepancies: ["Unable to analyze comparison"],
+        recommendation: "major_discrepancies",
         confidence: 0,
         details: {
           lighting_differences: false,
           furniture_changes: false,
           structural_differences: false,
-          room_layout_match: false
-        }
+          room_layout_match: false,
+        },
       };
     }
   }
@@ -454,63 +468,65 @@ Format as JSON:
         complete: parsed.complete || false,
         missingItems: parsed.missingItems || [],
         recommendations: parsed.recommendations || [],
-        confidence: parsed.confidence || 0
+        confidence: parsed.confidence || 0,
       };
     } catch (error) {
       return {
         complete: false,
-        missingItems: ['Unable to validate'],
-        recommendations: ['Review inspection manually'],
-        confidence: 0
+        missingItems: ["Unable to validate"],
+        recommendations: ["Review inspection manually"],
+        confidence: 0,
       };
     }
   }
 
   private handleAPIError(error: unknown): AIError {
-    if (error.code === 'insufficient_quota') {
+    if (error.code === "insufficient_quota") {
       return {
-        code: 'QUOTA_EXCEEDED',
-        message: 'OpenAI API quota exceeded',
+        code: "QUOTA_EXCEEDED",
+        message: "OpenAI API quota exceeded",
         details: error,
-        retryable: false
+        retryable: false,
       };
     }
 
-    if (error.code === 'rate_limit_exceeded') {
+    if (error.code === "rate_limit_exceeded") {
       return {
-        code: 'RATE_LIMITED',
-        message: 'Rate limit exceeded, please try again later',
+        code: "RATE_LIMITED",
+        message: "Rate limit exceeded, please try again later",
         details: error,
-        retryable: true
+        retryable: true,
       };
     }
 
     if (error.status === 401) {
       return {
-        code: 'INVALID_API_KEY',
-        message: 'Invalid OpenAI API key',
+        code: "INVALID_API_KEY",
+        message: "Invalid OpenAI API key",
         details: error,
-        retryable: false
+        retryable: false,
       };
     }
 
     return {
-      code: 'UNKNOWN_ERROR',
-      message: error.message || 'An unknown error occurred',
+      code: "UNKNOWN_ERROR",
+      message: error.message || "An unknown error occurred",
       details: error,
-      retryable: true
+      retryable: true,
     };
   }
 }
 
 // Export a singleton instance factory
-export const createAIService = (config: AIServiceConfig): STRCertifiedAIService => {
+export const createAIService = (
+  config: AIServiceConfig,
+): STRCertifiedAIService => {
   return new STRCertifiedAIService(config);
 };
 
 // Export default configuration
 export const DEFAULT_AI_CONFIG: Partial<AIServiceConfig> = {
-  model: 'gpt-4-vision-preview',
+  model: "gpt-4-vision-preview",
   maxTokens: 1000,
   temperature: 0.3,
   timeout: 30000,

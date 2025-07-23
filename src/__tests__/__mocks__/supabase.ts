@@ -1,11 +1,11 @@
 /**
  * PROFESSIONAL SUPABASE MOCK - ZERO TOLERANCE STANDARDS
- * 
+ *
  * Comprehensive Supabase client mock for testing.
  * Provides realistic API responses and error scenarios.
  */
 
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 export const supabase = {
   auth: {
@@ -17,7 +17,7 @@ export const supabase = {
       data: { subscription: { unsubscribe: vi.fn() } },
     })),
   },
-  
+
   from: vi.fn((table: string) => ({
     select: vi.fn(() => ({
       eq: vi.fn(() => ({
@@ -44,7 +44,7 @@ export const supabase = {
     })),
     upsert: vi.fn(() => ({ data: null, error: null })),
   })),
-  
+
   storage: {
     from: vi.fn((bucket: string) => ({
       upload: vi.fn(),
@@ -55,14 +55,14 @@ export const supabase = {
       createSignedUrl: vi.fn(),
     })),
   },
-  
+
   rpc: vi.fn(),
-  
+
   channel: vi.fn(() => ({
     on: vi.fn(() => ({ subscribe: vi.fn() })),
     subscribe: vi.fn(),
     unsubscribe: vi.fn(),
   })),
-  
+
   removeChannel: vi.fn(),
 };

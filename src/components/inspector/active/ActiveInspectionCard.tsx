@@ -1,34 +1,34 @@
 /**
  * ACTIVE INSPECTION CARD - ENTERPRISE EXCELLENCE
- * 
+ *
  * Focused component for displaying individual active inspection information:
  * - Clean visual hierarchy with progress indicators
  * - Offline sync status with clear indicators
  * - One-click resume functionality
  * - Professional accessibility compliance
  * - Optimized for mobile and desktop usage
- * 
+ *
  * Extracted from MyActiveInspections.tsx as part of architectural excellence
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 1C Excellence
  */
 
-import React, { useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  ArrowRight, 
-  PlayCircle, 
-  Clock, 
+import React, { useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  ArrowRight,
+  PlayCircle,
+  Clock,
   MapPin,
   Camera,
   WifiOff,
-  TrendingUp
-} from 'lucide-react';
-import type { ActiveInspectionSummary } from './ActiveInspectionDataManager';
+  TrendingUp,
+} from "lucide-react";
+import type { ActiveInspectionSummary } from "./ActiveInspectionDataManager";
 
 export interface ActiveInspectionCardProps {
   inspection: ActiveInspectionSummary;
@@ -42,10 +42,14 @@ export interface ActiveInspectionCardProps {
  */
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
-    case 'draft': return 'secondary';
-    case 'in_progress': return 'default';
-    case 'completed': return 'success';
-    default: return 'secondary';
+    case "draft":
+      return "secondary";
+    case "in_progress":
+      return "default";
+    case "completed":
+      return "success";
+    default:
+      return "secondary";
   }
 };
 
@@ -54,10 +58,14 @@ const getStatusBadgeVariant = (status: string) => {
  */
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'draft': return 'Draft';
-    case 'in_progress': return 'In Progress';
-    case 'completed': return 'Completed';
-    default: return status;
+    case "draft":
+      return "Draft";
+    case "in_progress":
+      return "In Progress";
+    case "completed":
+      return "Completed";
+    default:
+      return status;
   }
 };
 
@@ -66,17 +74,19 @@ const getStatusText = (status: string) => {
  */
 const getTimeAgo = (date: Date): string => {
   const now = new Date();
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-  
-  if (diffInHours < 1) return 'Just now';
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+  );
+
+  if (diffInHours < 1) return "Just now";
   if (diffInHours < 24) return `${diffInHours}h ago`;
-  
+
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays < 7) return `${diffInDays}d ago`;
-  
+
   const diffInWeeks = Math.floor(diffInDays / 7);
   if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
-  
+
   return date.toLocaleDateString();
 };
 
@@ -87,7 +97,7 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
   inspection,
   compact = false,
   onResume,
-  className = ''
+  className = "",
 }) => {
   const {
     inspectionId,
@@ -98,7 +108,7 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
     totalItems,
     progressPercentage,
     lastActivity,
-    hasOfflineChanges
+    hasOfflineChanges,
   } = inspection;
 
   /**
@@ -111,19 +121,22 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
   /**
    * Handle keyboard navigation
    */
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleResume();
-    }
-  }, [handleResume]);
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleResume();
+      }
+    },
+    [handleResume],
+  );
 
   const cardContent = (
     <>
       {/* Header with property info */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 
+          <h3
             className="font-semibold text-gray-900 truncate"
             id={`property-name-${inspectionId}`}
           >
@@ -134,17 +147,17 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
             <span className="truncate">{propertyAddress}</span>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2 ml-3">
-          <Badge 
+          <Badge
             variant={getStatusBadgeVariant(status) as any}
             className="text-xs"
           >
             {getStatusText(status)}
           </Badge>
           {hasOfflineChanges && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="text-xs border-orange-300 text-orange-700 bg-orange-50"
               title="Has offline changes"
             >
@@ -165,8 +178,8 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
               {completedItems}/{totalItems} items ({progressPercentage}%)
             </span>
           </div>
-          <Progress 
-            value={progressPercentage} 
+          <Progress
+            value={progressPercentage}
             className="h-2"
             aria-labelledby={`property-name-${inspectionId}`}
           />
@@ -200,16 +213,17 @@ export const ActiveInspectionCard: React.FC<ActiveInspectionCardProps> = ({
           <ArrowRight className="h-4 w-4" />
         </Button>
         <div id={`resume-${inspectionId}`} className="sr-only">
-          Resume inspection for {propertyName} at {progressPercentage}% completion
+          Resume inspection for {propertyName} at {progressPercentage}%
+          completion
         </div>
       </div>
     </>
   );
 
   return (
-    <Card 
+    <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-md focus-within:ring-2 focus-within:ring-blue-500 ${className} ${
-        hasOfflineChanges ? 'border-orange-300 bg-orange-50/30' : ''
+        hasOfflineChanges ? "border-orange-300 bg-orange-50/30" : ""
       }`}
       tabIndex={0}
       onKeyDown={handleKeyDown}

@@ -2,26 +2,35 @@
  * @fileoverview Proactive Issue Detection Monitoring System
  * Real-time monitoring system that detects potential issues before they become
  * critical errors, using AI pattern recognition and predictive analytics
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { OpenAI } from 'openai';
-import { supabase } from '@/integrations/supabase/client';
-import { ErrorDetails, SystemContext, ErrorTrendAnalysis } from '@/types/errorTypes';
-import { log } from '@/lib/logging/enterprise-logger';
+import { OpenAI } from "openai";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  ErrorDetails,
+  SystemContext,
+  ErrorTrendAnalysis,
+} from "@/types/errorTypes";
+import { log } from "@/lib/logging/enterprise-logger";
 
 interface MonitoringMetric {
   id: string;
   name: string;
-  type: 'performance' | 'error_rate' | 'user_behavior' | 'system_health' | 'business_kpi';
+  type:
+    | "performance"
+    | "error_rate"
+    | "user_behavior"
+    | "system_health"
+    | "business_kpi";
   value: number;
   threshold: {
     warning: number;
     critical: number;
   };
-  trend: 'increasing' | 'decreasing' | 'stable';
+  trend: "increasing" | "decreasing" | "stable";
   timestamp: string;
   source: string;
   metadata?: Record<string, string | number | boolean>;
@@ -30,8 +39,8 @@ interface MonitoringMetric {
 interface AnomalyDetection {
   id: string;
   metricId: string;
-  type: 'statistical' | 'pattern' | 'threshold' | 'trend';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "statistical" | "pattern" | "threshold" | "trend";
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   confidence: number;
   predictedImpact: {
@@ -68,7 +77,7 @@ interface UserBehaviorPattern {
 
 interface SystemHealthIndicator {
   component: string;
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'critical';
+  status: "healthy" | "degraded" | "unhealthy" | "critical";
   metrics: {
     availability: number;
     responseTime: number;
@@ -94,7 +103,7 @@ interface MonitoringPredictions {
     expectedSeverity: string;
   };
   performanceTrend: {
-    direction: 'improving' | 'degrading' | 'stable';
+    direction: "improving" | "degrading" | "stable";
     confidence: number;
     estimatedChange: number;
   };
@@ -115,11 +124,15 @@ export class ProactiveMonitoring {
 
   constructor() {
     // SECURITY: Direct AI integration disabled for security
-    log.warn('ProactiveMonitoring: Direct AI integration disabled. Use AIProxyService instead.', {
-      component: 'ProactiveMonitoring',
-      action: 'constructor',
-      securityMeasure: 'AI_INTEGRATION_DISABLED'
-    }, 'AI_INTEGRATION_DISABLED');
+    log.warn(
+      "ProactiveMonitoring: Direct AI integration disabled. Use AIProxyService instead.",
+      {
+        component: "ProactiveMonitoring",
+        action: "constructor",
+        securityMeasure: "AI_INTEGRATION_DISABLED",
+      },
+      "AI_INTEGRATION_DISABLED",
+    );
     this.openai = null as any; // DISABLED
   }
 
@@ -132,12 +145,16 @@ export class ProactiveMonitoring {
     }
 
     this.isMonitoring = true;
-    log.info('Starting proactive issue detection monitoring', {
-      component: 'ProactiveMonitoring',
-      action: 'startMonitoring',
-      monitoringCycle: '30s',
-      features: ['performance', 'userBehavior', 'systemHealth']
-    }, 'MONITORING_STARTED');
+    log.info(
+      "Starting proactive issue detection monitoring",
+      {
+        component: "ProactiveMonitoring",
+        action: "startMonitoring",
+        monitoringCycle: "30s",
+        features: ["performance", "userBehavior", "systemHealth"],
+      },
+      "MONITORING_STARTED",
+    );
 
     // Initialize baselines
     await this.initializeBaselines();
@@ -147,11 +164,16 @@ export class ProactiveMonitoring {
       try {
         await this.runMonitoringCycle();
       } catch (error) {
-        log.error('Monitoring cycle failed', error as Error, {
-          component: 'ProactiveMonitoring',
-          action: 'runMonitoringCycle',
-          intervalMs: 30000
-        }, 'MONITORING_CYCLE_FAILED');
+        log.error(
+          "Monitoring cycle failed",
+          error as Error,
+          {
+            component: "ProactiveMonitoring",
+            action: "runMonitoringCycle",
+            intervalMs: 30000,
+          },
+          "MONITORING_CYCLE_FAILED",
+        );
       }
     }, 30000); // Check every 30 seconds
 
@@ -174,12 +196,22 @@ export class ProactiveMonitoring {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = undefined;
     }
-    log.info('Stopped proactive monitoring', {
-      component: 'ProactiveMonitoring',
-      action: 'stopMonitoring',
-      totalMetrics: Array.from(this.metrics.values()).reduce((sum, arr) => sum + arr.length, 0),
-      totalAnomalies: Array.from(this.anomalies.values()).reduce((sum, arr) => sum + arr.length, 0)
-    }, 'MONITORING_STOPPED');
+    log.info(
+      "Stopped proactive monitoring",
+      {
+        component: "ProactiveMonitoring",
+        action: "stopMonitoring",
+        totalMetrics: Array.from(this.metrics.values()).reduce(
+          (sum, arr) => sum + arr.length,
+          0,
+        ),
+        totalAnomalies: Array.from(this.anomalies.values()).reduce(
+          (sum, arr) => sum + arr.length,
+          0,
+        ),
+      },
+      "MONITORING_STOPPED",
+    );
   }
 
   /**
@@ -188,22 +220,22 @@ export class ProactiveMonitoring {
   private async runMonitoringCycle(): Promise<void> {
     // Collect current metrics
     const currentMetrics = await this.collectMetrics();
-    
+
     // Detect anomalies
     const anomalies = await this.detectAnomalies(currentMetrics);
-    
+
     // Analyze trends
     const trends = await this.analyzeTrends(currentMetrics);
-    
+
     // Generate predictions
     const predictions = await this.generatePredictions(currentMetrics, trends);
-    
+
     // Update baselines
     await this.updateBaselines(currentMetrics);
-    
+
     // Trigger alerts if necessary
     await this.processAnomalies(anomalies);
-    
+
     // Log monitoring summary
     this.logMonitoringSummary(currentMetrics, anomalies, predictions);
   }
@@ -216,19 +248,19 @@ export class ProactiveMonitoring {
     const timestamp = new Date().toISOString();
 
     // Performance metrics
-    metrics.push(...await this.collectPerformanceMetrics(timestamp));
-    
+    metrics.push(...(await this.collectPerformanceMetrics(timestamp)));
+
     // Error rate metrics
-    metrics.push(...await this.collectErrorMetrics(timestamp));
-    
+    metrics.push(...(await this.collectErrorMetrics(timestamp)));
+
     // User behavior metrics
-    metrics.push(...await this.collectUserBehaviorMetrics(timestamp));
-    
+    metrics.push(...(await this.collectUserBehaviorMetrics(timestamp)));
+
     // System health metrics
-    metrics.push(...await this.collectSystemHealthMetrics(timestamp));
-    
+    metrics.push(...(await this.collectSystemHealthMetrics(timestamp)));
+
     // Business KPI metrics
-    metrics.push(...await this.collectBusinessMetrics(timestamp));
+    metrics.push(...(await this.collectBusinessMetrics(timestamp)));
 
     return metrics;
   }
@@ -236,38 +268,42 @@ export class ProactiveMonitoring {
   /**
    * Collect performance metrics
    */
-  private async collectPerformanceMetrics(timestamp: string): Promise<MonitoringMetric[]> {
+  private async collectPerformanceMetrics(
+    timestamp: string,
+  ): Promise<MonitoringMetric[]> {
     const metrics: MonitoringMetric[] = [];
 
     // Page load time
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    const navigation = performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming;
     if (navigation) {
       const loadTime = navigation.loadEventEnd - navigation.loadEventStart;
       metrics.push({
         id: `perf-load-time-${Date.now()}`,
-        name: 'Page Load Time',
-        type: 'performance',
+        name: "Page Load Time",
+        type: "performance",
         value: loadTime,
         threshold: { warning: 3000, critical: 5000 },
-        trend: this.calculateTrend('page_load_time', loadTime),
+        trend: this.calculateTrend("page_load_time", loadTime),
         timestamp,
-        source: 'performance_api'
+        source: "performance_api",
       });
     }
 
     // Memory usage
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       const memory = (performance as any).memory;
       const memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
       metrics.push({
         id: `perf-memory-${Date.now()}`,
-        name: 'Memory Usage Ratio',
-        type: 'performance',
+        name: "Memory Usage Ratio",
+        type: "performance",
         value: memoryUsage,
         threshold: { warning: 0.7, critical: 0.9 },
-        trend: this.calculateTrend('memory_usage', memoryUsage),
+        trend: this.calculateTrend("memory_usage", memoryUsage),
         timestamp,
-        source: 'memory_api'
+        source: "memory_api",
       });
     }
 
@@ -275,13 +311,13 @@ export class ProactiveMonitoring {
     const networkLatency = await this.estimateNetworkLatency();
     metrics.push({
       id: `perf-network-${Date.now()}`,
-      name: 'Network Latency',
-      type: 'performance',
+      name: "Network Latency",
+      type: "performance",
       value: networkLatency,
       threshold: { warning: 1000, critical: 3000 },
-      trend: this.calculateTrend('network_latency', networkLatency),
+      trend: this.calculateTrend("network_latency", networkLatency),
       timestamp,
-      source: 'network_estimation'
+      source: "network_estimation",
     });
 
     return metrics;
@@ -290,33 +326,35 @@ export class ProactiveMonitoring {
   /**
    * Collect error rate metrics
    */
-  private async collectErrorMetrics(timestamp: string): Promise<MonitoringMetric[]> {
+  private async collectErrorMetrics(
+    timestamp: string,
+  ): Promise<MonitoringMetric[]> {
     const metrics: MonitoringMetric[] = [];
 
     // Get recent error counts from storage/API
     const errorRate = await this.calculateRecentErrorRate();
     metrics.push({
       id: `error-rate-${Date.now()}`,
-      name: 'Error Rate',
-      type: 'error_rate',
+      name: "Error Rate",
+      type: "error_rate",
       value: errorRate,
       threshold: { warning: 0.05, critical: 0.1 },
-      trend: this.calculateTrend('error_rate', errorRate),
+      trend: this.calculateTrend("error_rate", errorRate),
       timestamp,
-      source: 'error_tracking'
+      source: "error_tracking",
     });
 
     // JavaScript error frequency
     const jsErrors = await this.getJavaScriptErrorCount();
     metrics.push({
       id: `js-errors-${Date.now()}`,
-      name: 'JavaScript Errors',
-      type: 'error_rate',
+      name: "JavaScript Errors",
+      type: "error_rate",
       value: jsErrors,
       threshold: { warning: 5, critical: 10 },
-      trend: this.calculateTrend('js_errors', jsErrors),
+      trend: this.calculateTrend("js_errors", jsErrors),
       timestamp,
-      source: 'error_handler'
+      source: "error_handler",
     });
 
     return metrics;
@@ -325,33 +363,35 @@ export class ProactiveMonitoring {
   /**
    * Collect user behavior metrics
    */
-  private async collectUserBehaviorMetrics(timestamp: string): Promise<MonitoringMetric[]> {
+  private async collectUserBehaviorMetrics(
+    timestamp: string,
+  ): Promise<MonitoringMetric[]> {
     const metrics: MonitoringMetric[] = [];
 
     // Session duration
     const sessionDuration = this.getCurrentSessionDuration();
     metrics.push({
       id: `behavior-session-${Date.now()}`,
-      name: 'Session Duration',
-      type: 'user_behavior',
+      name: "Session Duration",
+      type: "user_behavior",
       value: sessionDuration,
       threshold: { warning: 1800000, critical: 300000 }, // Warning if too long or too short
-      trend: this.calculateTrend('session_duration', sessionDuration),
+      trend: this.calculateTrend("session_duration", sessionDuration),
       timestamp,
-      source: 'session_tracking'
+      source: "session_tracking",
     });
 
     // Click frequency
     const clickFrequency = this.getClickFrequency();
     metrics.push({
       id: `behavior-clicks-${Date.now()}`,
-      name: 'Click Frequency',
-      type: 'user_behavior',
+      name: "Click Frequency",
+      type: "user_behavior",
       value: clickFrequency,
       threshold: { warning: 10, critical: 20 }, // High click frequency might indicate frustration
-      trend: this.calculateTrend('click_frequency', clickFrequency),
+      trend: this.calculateTrend("click_frequency", clickFrequency),
       timestamp,
-      source: 'interaction_tracking'
+      source: "interaction_tracking",
     });
 
     return metrics;
@@ -360,34 +400,36 @@ export class ProactiveMonitoring {
   /**
    * Collect system health metrics
    */
-  private async collectSystemHealthMetrics(timestamp: string): Promise<MonitoringMetric[]> {
+  private async collectSystemHealthMetrics(
+    timestamp: string,
+  ): Promise<MonitoringMetric[]> {
     const metrics: MonitoringMetric[] = [];
 
     // Database connection health
     const dbHealth = await this.checkDatabaseHealth();
     metrics.push({
       id: `system-db-${Date.now()}`,
-      name: 'Database Health',
-      type: 'system_health',
+      name: "Database Health",
+      type: "system_health",
       value: dbHealth.score,
       threshold: { warning: 0.8, critical: 0.6 },
-      trend: this.calculateTrend('db_health', dbHealth.score),
+      trend: this.calculateTrend("db_health", dbHealth.score),
       timestamp,
-      source: 'database_check',
-      metadata: dbHealth.details
+      source: "database_check",
+      metadata: dbHealth.details,
     });
 
     // API response times
     const apiResponseTime = await this.checkAPIResponseTime();
     metrics.push({
       id: `system-api-${Date.now()}`,
-      name: 'API Response Time',
-      type: 'system_health',
+      name: "API Response Time",
+      type: "system_health",
       value: apiResponseTime,
       threshold: { warning: 2000, critical: 5000 },
-      trend: this.calculateTrend('api_response', apiResponseTime),
+      trend: this.calculateTrend("api_response", apiResponseTime),
       timestamp,
-      source: 'api_health_check'
+      source: "api_health_check",
     });
 
     return metrics;
@@ -396,33 +438,35 @@ export class ProactiveMonitoring {
   /**
    * Collect business KPI metrics
    */
-  private async collectBusinessMetrics(timestamp: string): Promise<MonitoringMetric[]> {
+  private async collectBusinessMetrics(
+    timestamp: string,
+  ): Promise<MonitoringMetric[]> {
     const metrics: MonitoringMetric[] = [];
 
     // Inspection completion rate
     const completionRate = await this.getInspectionCompletionRate();
     metrics.push({
       id: `business-completion-${Date.now()}`,
-      name: 'Inspection Completion Rate',
-      type: 'business_kpi',
+      name: "Inspection Completion Rate",
+      type: "business_kpi",
       value: completionRate,
       threshold: { warning: 0.7, critical: 0.5 },
-      trend: this.calculateTrend('completion_rate', completionRate),
+      trend: this.calculateTrend("completion_rate", completionRate),
       timestamp,
-      source: 'business_analytics'
+      source: "business_analytics",
     });
 
     // User engagement score
     const engagementScore = await this.calculateUserEngagementScore();
     metrics.push({
       id: `business-engagement-${Date.now()}`,
-      name: 'User Engagement Score',
-      type: 'business_kpi',
+      name: "User Engagement Score",
+      type: "business_kpi",
       value: engagementScore,
       threshold: { warning: 0.6, critical: 0.4 },
-      trend: this.calculateTrend('engagement_score', engagementScore),
+      trend: this.calculateTrend("engagement_score", engagementScore),
       timestamp,
-      source: 'engagement_analytics'
+      source: "engagement_analytics",
     });
 
     return metrics;
@@ -431,7 +475,9 @@ export class ProactiveMonitoring {
   /**
    * Detect anomalies in metrics using AI
    */
-  private async detectAnomalies(metrics: MonitoringMetric[]): Promise<AnomalyDetection[]> {
+  private async detectAnomalies(
+    metrics: MonitoringMetric[],
+  ): Promise<AnomalyDetection[]> {
     const anomalies: AnomalyDetection[] = [];
 
     for (const metric of metrics) {
@@ -460,34 +506,39 @@ export class ProactiveMonitoring {
   /**
    * Detect statistical anomalies using baseline comparison
    */
-  private async detectStatisticalAnomaly(metric: MonitoringMetric): Promise<AnomalyDetection | null> {
+  private async detectStatisticalAnomaly(
+    metric: MonitoringMetric,
+  ): Promise<AnomalyDetection | null> {
     const baseline = this.baselines.get(metric.name);
     if (!baseline) {
       return null;
     }
 
-    const zScore = Math.abs((metric.value - baseline.baseline) / baseline.standardDeviation);
-    
-    if (zScore > 3) { // 3 standard deviations
+    const zScore = Math.abs(
+      (metric.value - baseline.baseline) / baseline.standardDeviation,
+    );
+
+    if (zScore > 3) {
+      // 3 standard deviations
       return {
         id: `anomaly-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         metricId: metric.id,
-        type: 'statistical',
-        severity: zScore > 4 ? 'critical' : 'high',
+        type: "statistical",
+        severity: zScore > 4 ? "critical" : "high",
         description: `${metric.name} deviates significantly from baseline (z-score: ${zScore.toFixed(2)})`,
         confidence: Math.min(95, zScore * 20),
         predictedImpact: {
-          userExperience: 'May experience degraded performance',
-          businessImpact: 'Potential impact on conversion rates',
-          timeToResolution: '15-30 minutes'
+          userExperience: "May experience degraded performance",
+          businessImpact: "Potential impact on conversion rates",
+          timeToResolution: "15-30 minutes",
         },
         recommendations: [
-          'Investigate recent changes',
-          'Check system resources',
-          'Monitor related metrics'
+          "Investigate recent changes",
+          "Check system resources",
+          "Monitor related metrics",
         ],
         relatedMetrics: [metric.name],
-        detectedAt: new Date().toISOString()
+        detectedAt: new Date().toISOString(),
       };
     }
 
@@ -497,13 +548,15 @@ export class ProactiveMonitoring {
   /**
    * Detect threshold-based anomalies
    */
-  private detectThresholdAnomaly(metric: MonitoringMetric): AnomalyDetection | null {
-    let severity: AnomalyDetection['severity'] | null = null;
-    
+  private detectThresholdAnomaly(
+    metric: MonitoringMetric,
+  ): AnomalyDetection | null {
+    let severity: AnomalyDetection["severity"] | null = null;
+
     if (metric.value >= metric.threshold.critical) {
-      severity = 'critical';
+      severity = "critical";
     } else if (metric.value >= metric.threshold.warning) {
-      severity = 'medium';
+      severity = "medium";
     }
 
     if (!severity) {
@@ -513,57 +566,66 @@ export class ProactiveMonitoring {
     return {
       id: `anomaly-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       metricId: metric.id,
-      type: 'threshold',
+      type: "threshold",
       severity,
-      description: `${metric.name} exceeded ${severity} threshold (${metric.value} >= ${severity === 'critical' ? metric.threshold.critical : metric.threshold.warning})`,
+      description: `${metric.name} exceeded ${severity} threshold (${metric.value} >= ${severity === "critical" ? metric.threshold.critical : metric.threshold.warning})`,
       confidence: 90,
       predictedImpact: {
-        userExperience: severity === 'critical' ? 'Severe impact expected' : 'Moderate impact possible',
-        businessImpact: severity === 'critical' ? 'High business impact' : 'Medium business impact',
-        timeToResolution: severity === 'critical' ? '5-15 minutes' : '30-60 minutes'
+        userExperience:
+          severity === "critical"
+            ? "Severe impact expected"
+            : "Moderate impact possible",
+        businessImpact:
+          severity === "critical"
+            ? "High business impact"
+            : "Medium business impact",
+        timeToResolution:
+          severity === "critical" ? "5-15 minutes" : "30-60 minutes",
       },
       recommendations: this.getThresholdRecommendations(metric, severity),
       relatedMetrics: [metric.name],
-      detectedAt: new Date().toISOString()
+      detectedAt: new Date().toISOString(),
     };
   }
 
   /**
    * Detect pattern-based anomalies using AI
    */
-  private async detectPatternAnomaly(metric: MonitoringMetric): Promise<AnomalyDetection | null> {
+  private async detectPatternAnomaly(
+    metric: MonitoringMetric,
+  ): Promise<AnomalyDetection | null> {
     // Simplified pattern detection - in a real system this would use more sophisticated AI
     const recentValues = this.getRecentMetricValues(metric.name, 10);
-    
+
     if (recentValues.length < 5) {
       return null;
     }
 
     // Check for rapid increase pattern
-    const isRapidIncrease = recentValues.every((value, index) => 
-      index === 0 || value > recentValues[index - 1]
+    const isRapidIncrease = recentValues.every(
+      (value, index) => index === 0 || value > recentValues[index - 1],
     );
 
     if (isRapidIncrease && metric.value > recentValues[0] * 1.5) {
       return {
         id: `anomaly-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         metricId: metric.id,
-        type: 'pattern',
-        severity: 'medium',
+        type: "pattern",
+        severity: "medium",
         description: `${metric.name} shows rapid increase pattern`,
         confidence: 75,
         predictedImpact: {
-          userExperience: 'Performance degradation likely',
-          businessImpact: 'Potential user frustration',
-          timeToResolution: '10-30 minutes'
+          userExperience: "Performance degradation likely",
+          businessImpact: "Potential user frustration",
+          timeToResolution: "10-30 minutes",
         },
         recommendations: [
-          'Investigate root cause of increase',
-          'Check for system load or resource constraints',
-          'Consider scaling if necessary'
+          "Investigate root cause of increase",
+          "Check for system load or resource constraints",
+          "Consider scaling if necessary",
         ],
         relatedMetrics: [metric.name],
-        detectedAt: new Date().toISOString()
+        detectedAt: new Date().toISOString(),
       };
     }
 
@@ -573,22 +635,26 @@ export class ProactiveMonitoring {
   /**
    * Calculate trend for a metric
    */
-  private calculateTrend(metricName: string, currentValue: number): 'increasing' | 'decreasing' | 'stable' {
+  private calculateTrend(
+    metricName: string,
+    currentValue: number,
+  ): "increasing" | "decreasing" | "stable" {
     const recentValues = this.getRecentMetricValues(metricName, 5);
-    
+
     if (recentValues.length < 3) {
-      return 'stable';
+      return "stable";
     }
 
-    const average = recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
+    const average =
+      recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
     const threshold = average * 0.1; // 10% threshold
 
     if (currentValue > average + threshold) {
-      return 'increasing';
+      return "increasing";
     } else if (currentValue < average - threshold) {
-      return 'decreasing';
+      return "decreasing";
     } else {
-      return 'stable';
+      return "stable";
     }
   }
 
@@ -597,9 +663,7 @@ export class ProactiveMonitoring {
    */
   private getRecentMetricValues(metricName: string, count: number): number[] {
     const metricHistory = this.metrics.get(metricName) || [];
-    return metricHistory
-      .slice(-count)
-      .map(metric => metric.value);
+    return metricHistory.slice(-count).map((metric) => metric.value);
   }
 
   /**
@@ -607,28 +671,28 @@ export class ProactiveMonitoring {
    */
   private async initializeBaselines(): Promise<void> {
     // Initialize with default baselines - in a real system these would be calculated from historical data
-    this.baselines.set('Page Load Time', {
-      metric: 'Page Load Time',
+    this.baselines.set("Page Load Time", {
+      metric: "Page Load Time",
       baseline: 2000,
       standardDeviation: 500,
       seasonalPatterns: {
         hourly: new Array(24).fill(1),
         daily: new Array(7).fill(1),
-        weekly: new Array(52).fill(1)
+        weekly: new Array(52).fill(1),
       },
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     });
 
-    this.baselines.set('Error Rate', {
-      metric: 'Error Rate',
+    this.baselines.set("Error Rate", {
+      metric: "Error Rate",
       baseline: 0.02,
       standardDeviation: 0.01,
       seasonalPatterns: {
         hourly: new Array(24).fill(1),
         daily: new Array(7).fill(1),
-        weekly: new Array(52).fill(1)
+        weekly: new Array(52).fill(1),
       },
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     });
   }
 
@@ -660,10 +724,10 @@ export class ProactiveMonitoring {
    * Get current session duration
    */
   private getCurrentSessionDuration(): number {
-    const sessionStart = sessionStorage.getItem('session_start');
+    const sessionStart = sessionStorage.getItem("session_start");
     if (!sessionStart) {
       const now = Date.now();
-      sessionStorage.setItem('session_start', now.toString());
+      sessionStorage.setItem("session_start", now.toString());
       return 0;
     }
     return Date.now() - parseInt(sessionStart);
@@ -680,22 +744,25 @@ export class ProactiveMonitoring {
   /**
    * Check database health
    */
-  private async checkDatabaseHealth(): Promise<{ score: number; details: DatabaseHealthDetails }> {
+  private async checkDatabaseHealth(): Promise<{
+    score: number;
+    details: DatabaseHealthDetails;
+  }> {
     try {
       const startTime = Date.now();
       const { data, error } = await supabase
-        .from('properties')
-        .select('id')
+        .from("properties")
+        .select("id")
         .limit(1);
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       if (error) {
         return { score: 0.3, details: { error: error.message, responseTime } };
       }
-      
+
       const score = responseTime < 1000 ? 1.0 : responseTime < 3000 ? 0.8 : 0.5;
-      return { score, details: { responseTime, status: 'ok' } };
+      return { score, details: { responseTime, status: "ok" } };
     } catch (error) {
       return { score: 0.1, details: { error: error.message } };
     }
@@ -707,7 +774,7 @@ export class ProactiveMonitoring {
   private async checkAPIResponseTime(): Promise<number> {
     const startTime = Date.now();
     try {
-      await supabase.from('properties').select('count').limit(1);
+      await supabase.from("properties").select("count").limit(1);
       return Date.now() - startTime;
     } catch (error) {
       return 10000; // High value to indicate failure
@@ -720,13 +787,13 @@ export class ProactiveMonitoring {
   private async getInspectionCompletionRate(): Promise<number> {
     try {
       const { count: totalInspections } = await supabase
-        .from('inspections')
-        .select('*', { count: 'exact', head: true });
+        .from("inspections")
+        .select("*", { count: "exact", head: true });
 
       const { count: completedInspections } = await supabase
-        .from('inspections')
-        .select('*', { count: 'exact', head: true })
-        .eq('completed', true);
+        .from("inspections")
+        .select("*", { count: "exact", head: true })
+        .eq("completed", true);
 
       return totalInspections ? completedInspections / totalInspections : 0;
     } catch (error) {
@@ -751,7 +818,8 @@ export class ProactiveMonitoring {
       if (existing) {
         // Simple exponential moving average update
         const alpha = 0.1;
-        existing.baseline = existing.baseline * (1 - alpha) + metric.value * alpha;
+        existing.baseline =
+          existing.baseline * (1 - alpha) + metric.value * alpha;
         existing.lastUpdated = new Date().toISOString();
       }
     }
@@ -769,7 +837,7 @@ export class ProactiveMonitoring {
       this.anomalies.get(anomaly.metricId)!.push(anomaly);
 
       // Trigger alerts for high-severity anomalies
-      if (anomaly.severity === 'critical' || anomaly.severity === 'high') {
+      if (anomaly.severity === "critical" || anomaly.severity === "high") {
         await this.triggerAlert(anomaly);
       }
     }
@@ -779,17 +847,21 @@ export class ProactiveMonitoring {
    * Trigger alert for anomaly
    */
   private async triggerAlert(anomaly: AnomalyDetection): Promise<void> {
-    log.warn('Anomaly detected', {
-      component: 'ProactiveMonitoring',
-      action: 'triggerAlert',
-      anomalyId: anomaly.id,
-      severity: anomaly.severity,
-      description: anomaly.description,
-      confidence: anomaly.confidence,
-      recommendations: anomaly.recommendations,
-      metricId: anomaly.metricId,
-      type: anomaly.type
-    }, 'ANOMALY_DETECTED');
+    log.warn(
+      "Anomaly detected",
+      {
+        component: "ProactiveMonitoring",
+        action: "triggerAlert",
+        anomalyId: anomaly.id,
+        severity: anomaly.severity,
+        description: anomaly.description,
+        confidence: anomaly.confidence,
+        recommendations: anomaly.recommendations,
+        metricId: anomaly.metricId,
+        type: anomaly.type,
+      },
+      "ANOMALY_DETECTED",
+    );
 
     // In a real system, this would send notifications via email, Slack, etc.
   }
@@ -797,18 +869,33 @@ export class ProactiveMonitoring {
   /**
    * Get threshold recommendations
    */
-  private getThresholdRecommendations(metric: MonitoringMetric, severity: string): string[] {
+  private getThresholdRecommendations(
+    metric: MonitoringMetric,
+    severity: string,
+  ): string[] {
     const recommendations: string[] = [];
 
     switch (metric.type) {
-      case 'performance':
-        recommendations.push('Check system resources', 'Optimize code paths', 'Consider caching');
+      case "performance":
+        recommendations.push(
+          "Check system resources",
+          "Optimize code paths",
+          "Consider caching",
+        );
         break;
-      case 'error_rate':
-        recommendations.push('Review recent deployments', 'Check error logs', 'Rollback if necessary');
+      case "error_rate":
+        recommendations.push(
+          "Review recent deployments",
+          "Check error logs",
+          "Rollback if necessary",
+        );
         break;
-      case 'system_health':
-        recommendations.push('Check service dependencies', 'Verify network connectivity', 'Restart services if needed');
+      case "system_health":
+        recommendations.push(
+          "Check service dependencies",
+          "Verify network connectivity",
+          "Restart services if needed",
+        );
         break;
     }
 
@@ -818,7 +905,9 @@ export class ProactiveMonitoring {
   /**
    * Analyze trends across metrics
    */
-  private async analyzeTrends(metrics: MonitoringMetric[]): Promise<ErrorTrendAnalysis[]> {
+  private async analyzeTrends(
+    metrics: MonitoringMetric[],
+  ): Promise<ErrorTrendAnalysis[]> {
     // Simplified trend analysis - in a real system this would be more sophisticated
     return [];
   }
@@ -826,7 +915,10 @@ export class ProactiveMonitoring {
   /**
    * Generate predictions based on current trends
    */
-  private async generatePredictions(metrics: MonitoringMetric[], trends: ErrorTrendAnalysis[]): Promise<any> {
+  private async generatePredictions(
+    metrics: MonitoringMetric[],
+    trends: ErrorTrendAnalysis[],
+  ): Promise<any> {
     // Mock implementation for predictions
     return {};
   }
@@ -836,23 +928,23 @@ export class ProactiveMonitoring {
    */
   private startPerformanceMonitoring(): void {
     // Monitor Core Web Vitals and other performance metrics
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           this.storeMetric({
             id: `perf-${entry.name}-${Date.now()}`,
             name: entry.name,
-            type: 'performance',
+            type: "performance",
             value: entry.duration || 0,
             threshold: { warning: 1000, critical: 3000 },
-            trend: 'stable',
+            trend: "stable",
             timestamp: new Date().toISOString(),
-            source: 'performance_observer'
+            source: "performance_observer",
           });
         }
       });
-      
-      observer.observe({ entryTypes: ['measure', 'navigation'] });
+
+      observer.observe({ entryTypes: ["measure", "navigation"] });
     }
   }
 
@@ -864,24 +956,25 @@ export class ProactiveMonitoring {
     let clickCount = 0;
     let lastClickTime = Date.now();
 
-    document.addEventListener('click', () => {
+    document.addEventListener("click", () => {
       clickCount++;
       const now = Date.now();
       const timeSinceLastClick = now - lastClickTime;
-      
-      if (timeSinceLastClick < 500) { // Rapid clicking
+
+      if (timeSinceLastClick < 500) {
+        // Rapid clicking
         this.storeMetric({
           id: `behavior-rapid-click-${now}`,
-          name: 'Rapid Click Event',
-          type: 'user_behavior',
+          name: "Rapid Click Event",
+          type: "user_behavior",
           value: timeSinceLastClick,
           threshold: { warning: 1000, critical: 500 },
-          trend: 'stable',
+          trend: "stable",
           timestamp: new Date().toISOString(),
-          source: 'user_interaction'
+          source: "user_interaction",
         });
       }
-      
+
       lastClickTime = now;
     });
   }
@@ -891,29 +984,29 @@ export class ProactiveMonitoring {
    */
   private startSystemHealthMonitoring(): void {
     // Monitor connection status
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.storeMetric({
         id: `system-online-${Date.now()}`,
-        name: 'Connection Status',
-        type: 'system_health',
+        name: "Connection Status",
+        type: "system_health",
         value: 1,
         threshold: { warning: 0.8, critical: 0.5 },
-        trend: 'stable',
+        trend: "stable",
         timestamp: new Date().toISOString(),
-        source: 'network_status'
+        source: "network_status",
       });
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.storeMetric({
         id: `system-offline-${Date.now()}`,
-        name: 'Connection Status',
-        type: 'system_health',
+        name: "Connection Status",
+        type: "system_health",
         value: 0,
         threshold: { warning: 0.8, critical: 0.5 },
-        trend: 'decreasing',
+        trend: "decreasing",
         timestamp: new Date().toISOString(),
-        source: 'network_status'
+        source: "network_status",
       });
     });
   }
@@ -925,10 +1018,10 @@ export class ProactiveMonitoring {
     if (!this.metrics.has(metric.name)) {
       this.metrics.set(metric.name, []);
     }
-    
+
     const metricHistory = this.metrics.get(metric.name)!;
     metricHistory.push(metric);
-    
+
     // Keep only last 100 entries per metric
     if (metricHistory.length > 100) {
       metricHistory.splice(0, metricHistory.length - 100);
@@ -941,18 +1034,24 @@ export class ProactiveMonitoring {
   private logMonitoringSummary(
     metrics: MonitoringMetric[],
     anomalies: AnomalyDetection[],
-    predictions: MonitoringPredictions
+    predictions: MonitoringPredictions,
   ): void {
-    log.debug('Monitoring summary', {
-      component: 'ProactiveMonitoring',
-      action: 'logMonitoringSummary',
-      metricsCollected: metrics.length,
-      anomaliesDetected: anomalies.length,
-      criticalAnomalies: anomalies.filter(a => a.severity === 'critical').length,
-      highAnomalies: anomalies.filter(a => a.severity === 'high').length,
-      mediumAnomalies: anomalies.filter(a => a.severity === 'medium').length,
-      lowAnomalies: anomalies.filter(a => a.severity === 'low').length
-    }, 'MONITORING_SUMMARY');
+    log.debug(
+      "Monitoring summary",
+      {
+        component: "ProactiveMonitoring",
+        action: "logMonitoringSummary",
+        metricsCollected: metrics.length,
+        anomaliesDetected: anomalies.length,
+        criticalAnomalies: anomalies.filter((a) => a.severity === "critical")
+          .length,
+        highAnomalies: anomalies.filter((a) => a.severity === "high").length,
+        mediumAnomalies: anomalies.filter((a) => a.severity === "medium")
+          .length,
+        lowAnomalies: anomalies.filter((a) => a.severity === "low").length,
+      },
+      "MONITORING_SUMMARY",
+    );
   }
 
   /**
@@ -964,14 +1063,20 @@ export class ProactiveMonitoring {
     anomaliesCount: number;
     lastUpdate: string;
   } {
-    const totalMetrics = Array.from(this.metrics.values()).reduce((sum, arr) => sum + arr.length, 0);
-    const totalAnomalies = Array.from(this.anomalies.values()).reduce((sum, arr) => sum + arr.length, 0);
+    const totalMetrics = Array.from(this.metrics.values()).reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
+    const totalAnomalies = Array.from(this.anomalies.values()).reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
 
     return {
       isActive: this.isMonitoring,
       metricsCount: totalMetrics,
       anomaliesCount: totalAnomalies,
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
     };
   }
 }

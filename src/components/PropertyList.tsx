@@ -1,4 +1,3 @@
-
 import { PropertyCard } from "@/components/PropertyCard";
 import { EmptyPropertiesState } from "@/components/EmptyPropertiesState";
 
@@ -39,15 +38,15 @@ interface PropertyListProps {
   onInspectionStart?: (propertyId: string, isResume: boolean) => void;
 }
 
-export const PropertyList = ({ 
-  properties, 
-  inspections, 
-  selectedProperty, 
-  onPropertySelect, 
+export const PropertyList = ({
+  properties,
+  inspections,
+  selectedProperty,
+  onPropertySelect,
   onPropertyDeleted,
   getPropertyStatus,
   showInspectionActions = false,
-  onInspectionStart
+  onInspectionStart,
 }: PropertyListProps) => {
   if (properties.length === 0) {
     return <EmptyPropertiesState />;
@@ -57,15 +56,16 @@ export const PropertyList = ({
     <div id="property-list-container" className="space-y-4">
       {properties.map((property) => {
         // Handle both property formats (property_id vs id, property_name vs name, etc.)
-        const propertyId = property.property_id || property.id || '';
-        const propertyName = property.property_name || property.name || '';
-        const propertyAddress = property.property_address || property.address || '';
+        const propertyId = property.property_id || property.id || "";
+        const propertyName = property.property_name || property.name || "";
+        const propertyAddress =
+          property.property_address || property.address || "";
         const vrboUrl = property.property_vrbo_url || property.vrbo_url;
         const airbnbUrl = property.property_airbnb_url || property.airbnb_url;
-        
+
         const status = getPropertyStatus(propertyId);
         const isSelected = selectedProperty === propertyId;
-        
+
         // Map to the format expected by PropertyCard
         const mappedProperty = {
           id: propertyId,
@@ -73,9 +73,9 @@ export const PropertyList = ({
           address: propertyAddress,
           vrbo_url: vrboUrl,
           airbnb_url: airbnbUrl,
-          status: property.status
+          status: property.status,
         };
-        
+
         return (
           <PropertyCard
             key={propertyId}

@@ -3,8 +3,8 @@
  * Extracted from VideoRecorder.tsx
  */
 
-import React from 'react';
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { Progress } from "@/components/ui/progress";
 
 interface VideoUploadProgressProps {
   isRecording: boolean;
@@ -17,7 +17,7 @@ export const VideoUploadProgress: React.FC<VideoUploadProgressProps> = ({
   isRecording,
   duration,
   maxDuration,
-  formatDuration
+  formatDuration,
 }) => {
   if (!isRecording) {
     return null;
@@ -29,10 +29,7 @@ export const VideoUploadProgress: React.FC<VideoUploadProgressProps> = ({
         <span>{formatDuration(duration)}</span>
         <span className="text-gray-600">{formatDuration(maxDuration)}</span>
       </div>
-      <Progress
-        value={(duration / maxDuration) * 100}
-        className="h-3"
-      />
+      <Progress value={(duration / maxDuration) * 100} className="h-3" />
     </div>
   );
 };

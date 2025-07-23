@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Utility to fix orphaned inspections that have null inspector_id
@@ -6,12 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const fixOrphanedInspections = async (userId: string) => {
   try {
-
     // Get inspections with null inspector_id
     const { data: orphanedInspections, error: fetchError } = await supabase
-      .from('inspections')
-      .select('id, inspector_id, status, start_time')
-      .is('inspector_id', null)
+      .from("inspections")
+      .select("id, inspector_id, status, start_time")
+      .is("inspector_id", null)
       .limit(10);
 
     if (fetchError) {
@@ -22,21 +21,22 @@ export const fixOrphanedInspections = async (userId: string) => {
       return { success: true, updated: 0 };
     }
 
-
     // Update orphaned inspections to assign them to current user
     const { error: updateError } = await supabase
-      .from('inspections')
+      .from("inspections")
       .update({ inspector_id: userId })
-      .is('inspector_id', null);
+      .is("inspector_id", null);
 
     if (updateError) {
       return { success: false, error: updateError.message };
     }
 
     return { success: true, updated: orphanedInspections.length };
-
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };
 
@@ -45,28 +45,27 @@ export const fixOrphanedInspections = async (userId: string) => {
  */
 export const createTestInspection = async (userId: string) => {
   try {
-
     // Get a property to use
     const { data: properties, error: propError } = await supabase
-      .from('properties')
-      .select('id')
+      .from("properties")
+      .select("id")
       .limit(1);
 
     if (propError || !properties || properties.length === 0) {
-      return { success: false, error: 'No properties available' };
+      return { success: false, error: "No properties available" };
     }
 
     const propertyId = properties[0].id;
 
     // Create test inspection
     const { data: inspection, error: inspectionError } = await supabase
-      .from('inspections')
+      .from("inspections")
       .insert({
         property_id: propertyId,
         inspector_id: userId,
-        status: 'in_progress',
+        status: "in_progress",
         start_time: new Date().toISOString(),
-        completed: false
+        completed: false,
       })
       .select()
       .single();
@@ -76,8 +75,10 @@ export const createTestInspection = async (userId: string) => {
     }
 
     return { success: true, inspection };
-
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };

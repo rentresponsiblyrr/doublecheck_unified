@@ -179,8 +179,8 @@ const useInspectionStore = create<InspectionState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('properties')
-        .select('property_id, property_name, street_address')
-        .order('property_name');
+        .select('property_id, name, address')
+        .order('name');
         
       if (error) throw error;
       set({ properties: data, loading: false });
@@ -244,7 +244,7 @@ export const inspectionApi = {
   
   addChecklistItem: async (inspectionId: string, itemData: Partial<ChecklistItem>): Promise<ChecklistItem> => {
     const { data, error } = await supabase
-      .from('logs')
+      .from('checklist_items')
       .insert({
         property_id: itemData.property_id,
         checklist_id: itemData.checklist_id,

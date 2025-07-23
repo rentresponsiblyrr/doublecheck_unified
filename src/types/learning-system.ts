@@ -39,13 +39,13 @@ export interface AIPerformanceAnalysis {
 
 export interface LearningRecommendation {
   id: string;
-  type: 'accuracy' | 'confidence' | 'prompt' | 'dataset' | 'model';
-  priority: 'high' | 'medium' | 'low';
+  type: "accuracy" | "confidence" | "prompt" | "dataset" | "model";
+  priority: "high" | "medium" | "low";
   title: string;
   description: string;
   implementation: string;
   expectedImprovement: number;
-  effort: 'low' | 'medium' | 'high';
+  effort: "low" | "medium" | "high";
   category: string;
 }
 

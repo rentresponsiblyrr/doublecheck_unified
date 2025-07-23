@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, AlertTriangle, RefreshCw } from 'lucide-react';
-import { VideoPlayer } from '../audit/video-review/VideoPlayer';
-import { VideoControls } from '../audit/video-review/VideoControls';
-import { useVideoPlayer } from '../audit/video-review/useVideoPlayer';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, AlertTriangle, RefreshCw } from "lucide-react";
+import { VideoPlayer } from "../audit/video-review/VideoPlayer";
+import { VideoControls } from "../audit/video-review/VideoControls";
+import { useVideoPlayer } from "../audit/video-review/useVideoPlayer";
 
 interface EnhancedVideoPlayerProps {
   videoUrl: string;
@@ -19,12 +19,12 @@ interface EnhancedVideoPlayerProps {
 
 export const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
   videoUrl,
-  title = 'Video Player',
+  title = "Video Player",
   showControls = true,
   showTimestamps = true,
   autoPlay = false,
-  className = '',
-  onVideoError
+  className = "",
+  onVideoError,
 }) => {
   const [retryCount, setRetryCount] = useState(0);
   const [videoError, setVideoError] = useState<string | null>(null);
@@ -38,17 +38,17 @@ export const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     handleDurationChange,
     handleLoadStart,
     handleCanPlay,
-    handleEnded
+    handleEnded,
   } = useVideoPlayer(videoUrl);
 
   const handleVideoError = (error: string) => {
     setVideoError(error);
     onVideoError?.(error);
-    
+
     // Auto-retry logic
     if (retryCount < MAX_RETRIES) {
       setTimeout(() => {
-        setRetryCount(prev => prev + 1);
+        setRetryCount((prev) => prev + 1);
         setVideoError(null);
         if (videoRef.current) {
           videoRef.current.load();
@@ -141,7 +141,9 @@ export const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
             <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
               <div className="text-center text-white">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-                <p>Retrying video load... ({retryCount + 1}/{MAX_RETRIES})</p>
+                <p>
+                  Retrying video load... ({retryCount + 1}/{MAX_RETRIES})
+                </p>
               </div>
             </div>
           )}
@@ -149,8 +151,14 @@ export const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
 
         {showTimestamps && (
           <div className="p-2 bg-gray-50 text-xs text-gray-600 flex justify-between">
-            <span>Duration: {Math.floor(state.duration / 60)}:{(state.duration % 60).toFixed(0).padStart(2, '0')}</span>
-            <span>Current: {Math.floor(state.currentTime / 60)}:{(state.currentTime % 60).toFixed(0).padStart(2, '0')}</span>
+            <span>
+              Duration: {Math.floor(state.duration / 60)}:
+              {(state.duration % 60).toFixed(0).padStart(2, "0")}
+            </span>
+            <span>
+              Current: {Math.floor(state.currentTime / 60)}:
+              {(state.currentTime % 60).toFixed(0).padStart(2, "0")}
+            </span>
           </div>
         )}
       </CardContent>

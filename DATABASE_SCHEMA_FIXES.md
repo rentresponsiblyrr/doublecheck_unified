@@ -69,7 +69,7 @@ checklist_items {
 inspection_checklist_items {
   id: UUID
   inspection_id: UUID
-  static_safety_item_id: UUID  -- Links to template items
+  static_item_id: UUID  -- Links to template items
   status: TEXT
   inspector_notes: TEXT
   is_critical: BOOLEAN

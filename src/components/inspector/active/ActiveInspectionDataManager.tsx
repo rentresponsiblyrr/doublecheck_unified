@@ -1,31 +1,31 @@
 /**
  * ACTIVE INSPECTION DATA MANAGER - ENTERPRISE EXCELLENCE
- * 
+ *
  * Professional data management for active inspections using proven patterns:
  * - Service layer with caching and error handling
  * - Render props pattern for clean data/UI separation
  * - Offline sync detection and management
  * - Production-ready error recovery
- * 
+ *
  * Extracted from MyActiveInspections.tsx as part of architectural excellence
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 1C Excellence
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
-import { logger } from '@/utils/logger';
-import { useAuth } from '@/hooks/useAuth';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
+import { logger } from "@/utils/logger";
+import { useAuth } from "@/hooks/useAuth";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 export interface ActiveInspectionSummary {
   inspectionId: string;
   propertyId: string;
   propertyName: string;
   propertyAddress: string;
-  status: 'draft' | 'in_progress' | 'completed';
+  status: "draft" | "in_progress" | "completed";
   completedItems: number;
   totalItems: number;
   photosRequired: number;
@@ -53,7 +53,9 @@ export interface ActiveInspectionDataActions {
 
 export interface ActiveInspectionDataManagerProps {
   maxItems?: number;
-  children: (state: ActiveInspectionDataState & ActiveInspectionDataActions) => React.ReactNode;
+  children: (
+    state: ActiveInspectionDataState & ActiveInspectionDataActions,
+  ) => React.ReactNode;
 }
 
 /**
@@ -61,7 +63,7 @@ export interface ActiveInspectionDataManagerProps {
  */
 class ActiveInspectionService {
   private static instance: ActiveInspectionService;
-  
+
   public static getInstance(): ActiveInspectionService {
     if (!ActiveInspectionService.instance) {
       ActiveInspectionService.instance = new ActiveInspectionService();
@@ -72,36 +74,51 @@ class ActiveInspectionService {
   /**
    * Fetch active inspections for a user with progress calculation
    */
-  async getActiveInspections(userId: string, maxItems: number = 10): Promise<ActiveInspectionSummary[]> {
+  async getActiveInspections(
+    userId: string,
+    maxItems: number = 10,
+  ): Promise<ActiveInspectionSummary[]> {
     try {
-      logger.debug('Fetching active inspections', { userId, maxItems }, 'ACTIVE_INSPECTIONS');
-      
+      logger.debug(
+        "Fetching active inspections",
+        { userId, maxItems },
+        "ACTIVE_INSPECTIONS",
+      );
+
       // Query active inspections with property data
       // CRITICAL FIX: Handle property_id type conversion (inspections.property_id is TEXT, properties.property_id is INTEGER)
       const { data: inspections, error: inspectionsError } = await supabase
-        .from('inspections')
-        .select(`
+        .from("inspections")
+        .select(
+          `
           id,
           property_id,
           status,
           created_at,
           updated_at
-        `)
-        .eq('inspector_id', userId)
-        .in('status', ['draft', 'in_progress'])
-        .order('updated_at', { ascending: false })
+        `,
+        )
+        .eq("inspector_id", userId)
+        .in("status", ["draft", "in_progress"])
+        .order("updated_at", { ascending: false })
         .limit(maxItems);
 
       if (inspectionsError) {
-        logger.error('Supabase query error for active inspections', {
-          error: inspectionsError,
-          code: inspectionsError.code,
-          message: inspectionsError.message,
-          details: inspectionsError.details,
-          hint: inspectionsError.hint,
-          userId
-        }, 'ACTIVE_INSPECTIONS');
-        throw new Error(`Database query failed: ${inspectionsError.message || 'Unknown database error'}`);
+        logger.error(
+          "Supabase query error for active inspections",
+          {
+            error: inspectionsError,
+            code: inspectionsError.code,
+            message: inspectionsError.message,
+            details: inspectionsError.details,
+            hint: inspectionsError.hint,
+            userId,
+          },
+          "ACTIVE_INSPECTIONS",
+        );
+        throw new Error(
+          `Database query failed: ${inspectionsError.message || "Unknown database error"}`,
+        );
       }
 
       if (!inspections || inspections.length === 0) {
@@ -109,39 +126,49 @@ class ActiveInspectionService {
       }
 
       // Get property data separately using correct schema
-      const propertyIds = [...new Set(inspections.map(i => i.property_id))];
+      const propertyIds = [...new Set(inspections.map((i) => i.property_id))];
       const { data: properties, error: propertiesError } = await supabase
-        .from('properties')
-        .select('id, name, address')
-        .in('id', propertyIds);
+        .from("properties")
+        .select("id, name, address")
+        .in("id", propertyIds);
 
       if (propertiesError) {
-        logger.error('Failed to fetch property data', { error: propertiesError, propertyIds }, 'ACTIVE_INSPECTIONS');
+        logger.error(
+          "Failed to fetch property data",
+          { error: propertiesError, propertyIds },
+          "ACTIVE_INSPECTIONS",
+        );
         throw new Error(`Property query failed: ${propertiesError.message}`);
       }
 
       // Create property lookup map
-      const propertyMap = new Map(properties?.map(p => [p.id, p]) || []);
+      const propertyMap = new Map(properties?.map((p) => [p.id, p]) || []);
 
       // Transform data with progress calculation
       const inspectionSummaries: ActiveInspectionSummary[] = [];
-      
+
       for (const inspection of inspections) {
         const propertyId = inspection.property_id;
         const property = propertyMap.get(propertyId);
-        
+
         if (!property) {
-          logger.warn('Property not found for inspection', { 
-            inspectionId: inspection.id, 
-            propertyId: inspection.property_id 
-          }, 'ACTIVE_INSPECTIONS');
+          logger.warn(
+            "Property not found for inspection",
+            {
+              inspectionId: inspection.id,
+              propertyId: inspection.property_id,
+            },
+            "ACTIVE_INSPECTIONS",
+          );
           continue;
         }
-        
+
         // Get checklist items using correct schema
-        const { data: checklistItemsData, error: checklistError } = await supabase
-          .from('checklist_items')
-          .select(`
+        const { data: checklistItemsData, error: checklistError } =
+          await supabase
+            .from("checklist_items")
+            .select(
+              `
             id,
             status,
             notes,
@@ -150,40 +177,50 @@ class ActiveInspectionService {
               label,
               evidence_type
             )
-          `)
-          .eq('inspection_id', inspection.id);
+          `,
+            )
+            .eq("inspection_id", inspection.id);
 
         const checklistItems = checklistItemsData || [];
-        
+
         if (checklistError) {
-          logger.warn('Error fetching checklist items for inspection', { 
-            error: checklistError, 
-            inspectionId: inspection.id,
-            propertyId: property.id
-          }, 'ACTIVE_INSPECTIONS');
+          logger.warn(
+            "Error fetching checklist items for inspection",
+            {
+              error: checklistError,
+              inspectionId: inspection.id,
+              propertyId: property.id,
+            },
+            "ACTIVE_INSPECTIONS",
+          );
         }
-        
-        const completedItems = checklistItems.filter((item: any) => 
-          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
+
+        const completedItems = checklistItems.filter(
+          (item: any) =>
+            item.status === "completed" || item.status === "failed", // Item has been evaluated
         ).length;
 
-        const photosRequired = checklistItems.filter((item: any) => 
-          item.static_safety_items?.evidence_type === 'photo'
+        const photosRequired = checklistItems.filter(
+          (item: any) => item.static_safety_items?.evidence_type === "photo",
         ).length;
 
         // Check for offline changes
-        const hasOfflineChanges = await this.checkOfflineChanges(property.id, inspection.id);
-        
-        const progressPercentage = checklistItems.length > 0 
-          ? Math.round((completedItems / checklistItems.length) * 100) 
-          : 0;
+        const hasOfflineChanges = await this.checkOfflineChanges(
+          property.id,
+          inspection.id,
+        );
+
+        const progressPercentage =
+          checklistItems.length > 0
+            ? Math.round((completedItems / checklistItems.length) * 100)
+            : 0;
 
         inspectionSummaries.push({
           inspectionId: inspection.id,
           propertyId: property.id,
           propertyName: property.name,
           propertyAddress: property.address,
-          status: inspection.status as 'draft' | 'in_progress' | 'completed',
+          status: inspection.status as "draft" | "in_progress" | "completed",
           completedItems,
           totalItems: checklistItems.length,
           photosRequired,
@@ -191,7 +228,7 @@ class ActiveInspectionService {
           lastActivity: new Date(inspection.updated_at),
           createdAt: new Date(inspection.created_at),
           hasOfflineChanges,
-          progressPercentage
+          progressPercentage,
         });
       }
 
@@ -200,20 +237,29 @@ class ActiveInspectionService {
         // Prioritize inspections with offline changes
         if (a.hasOfflineChanges && !b.hasOfflineChanges) return -1;
         if (!a.hasOfflineChanges && b.hasOfflineChanges) return 1;
-        
+
         // Then by last activity
         return b.lastActivity.getTime() - a.lastActivity.getTime();
       });
 
-      logger.info('Active inspections loaded', {
-        count: inspectionSummaries.length,
-        withOfflineChanges: inspectionSummaries.filter(i => i.hasOfflineChanges).length
-      }, 'ACTIVE_INSPECTIONS');
+      logger.info(
+        "Active inspections loaded",
+        {
+          count: inspectionSummaries.length,
+          withOfflineChanges: inspectionSummaries.filter(
+            (i) => i.hasOfflineChanges,
+          ).length,
+        },
+        "ACTIVE_INSPECTIONS",
+      );
 
       return inspectionSummaries;
-      
     } catch (error) {
-      logger.error('Failed to load active inspections', { error, userId }, 'ACTIVE_INSPECTIONS');
+      logger.error(
+        "Failed to load active inspections",
+        { error, userId },
+        "ACTIVE_INSPECTIONS",
+      );
       throw error;
     }
   }
@@ -221,12 +267,21 @@ class ActiveInspectionService {
   /**
    * Check if inspection has offline changes
    */
-  private async checkOfflineChanges(propertyId: string, inspectionId: string): Promise<boolean> {
+  private async checkOfflineChanges(
+    propertyId: string,
+    inspectionId: string,
+  ): Promise<boolean> {
     try {
-      const recoveryResult = await workflowStatePersistence.recoverState(`property_${propertyId}`);
+      const recoveryResult = await workflowStatePersistence.recoverState(
+        `property_${propertyId}`,
+      );
       return recoveryResult.recovered;
     } catch (error) {
-      logger.warn('Error checking offline changes', { error, inspectionId }, 'ACTIVE_INSPECTIONS');
+      logger.warn(
+        "Error checking offline changes",
+        { error, inspectionId },
+        "ACTIVE_INSPECTIONS",
+      );
       return false;
     }
   }
@@ -235,16 +290,15 @@ class ActiveInspectionService {
 /**
  * Data manager component using render props pattern
  */
-export const ActiveInspectionDataManager: React.FC<ActiveInspectionDataManagerProps> = ({
-  maxItems = 10,
-  children
-}) => {
+export const ActiveInspectionDataManager: React.FC<
+  ActiveInspectionDataManagerProps
+> = ({ maxItems = 10, children }) => {
   const [inspections, setInspections] = useState<ActiveInspectionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   const { user } = useAuth();
   const { isOnline } = useNetworkStatus();
   const service = useMemo(() => ActiveInspectionService.getInstance(), []);
@@ -252,39 +306,49 @@ export const ActiveInspectionDataManager: React.FC<ActiveInspectionDataManagerPr
   /**
    * Load active inspections
    */
-  const loadInspections = useCallback(async (showRefreshing = false) => {
-    if (!user?.id) {
-      logger.warn('Cannot load active inspections: user not authenticated', { 
-        user: user ? 'exists but no id' : 'null',
-        userId: user?.id 
-      }, 'ACTIVE_INSPECTIONS');
-      setLoading(false);
-      setError('Authentication required. Please log in to view your inspections.');
-      return;
-    }
-
-    try {
-      if (showRefreshing) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
+  const loadInspections = useCallback(
+    async (showRefreshing = false) => {
+      if (!user?.id) {
+        logger.warn(
+          "Cannot load active inspections: user not authenticated",
+          {
+            user: user ? "exists but no id" : "null",
+            userId: user?.id,
+          },
+          "ACTIVE_INSPECTIONS",
+        );
+        setLoading(false);
+        setError(
+          "Authentication required. Please log in to view your inspections.",
+        );
+        return;
       }
-      
-      setError(null);
-      
-      const data = await service.getActiveInspections(user.id, maxItems);
-      setInspections(data);
-      setLastUpdated(new Date());
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load active inspections';
-      setError(errorMessage);
-      
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [user, maxItems, service]);
+
+      try {
+        if (showRefreshing) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
+        setError(null);
+
+        const data = await service.getActiveInspections(user.id, maxItems);
+        setInspections(data);
+        setLastUpdated(new Date());
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to load active inspections";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [user, maxItems, service],
+  );
 
   /**
    * Refresh inspections (with visual indicator)
@@ -312,18 +376,14 @@ export const ActiveInspectionDataManager: React.FC<ActiveInspectionDataManagerPr
     refreshing,
     error,
     isOnline,
-    lastUpdated
+    lastUpdated,
   };
 
   const actions: ActiveInspectionDataActions = {
     loadInspections,
     refreshInspections,
-    clearError
+    clearError,
   };
 
-  return (
-    <>
-      {children({ ...state, ...actions })}
-    </>
-  );
+  return <>{children({ ...state, ...actions })}</>;
 };

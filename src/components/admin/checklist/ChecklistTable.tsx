@@ -3,8 +3,8 @@
  * Displays checklist items in a sortable, filterable table
  */
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,8 +20,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   MoreHorizontal,
   Edit,
@@ -32,9 +32,9 @@ import {
   Video,
   Check,
   X,
-  AlertTriangle
-} from 'lucide-react';
-import { ChecklistItem } from './types';
+  AlertTriangle,
+} from "lucide-react";
+import { ChecklistItem } from "./types";
 
 interface ChecklistTableProps {
   items: ChecklistItem[];
@@ -47,22 +47,24 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
   items,
   onEdit,
   onDelete,
-  isLoading = false
+  isLoading = false,
 }) => {
   const getCategoryBadge = (category: string) => {
     const colorMap: Record<string, string> = {
-      'Safety': 'bg-red-100 text-red-800',
-      'Cleanliness': 'bg-blue-100 text-blue-800',
-      'Amenities': 'bg-green-100 text-green-800',
-      'Structure': 'bg-purple-100 text-purple-800',
-      'Compliance': 'bg-orange-100 text-orange-800',
-      'Accessibility': 'bg-pink-100 text-pink-800',
-      'Technology': 'bg-indigo-100 text-indigo-800',
-      'Emergency': 'bg-red-100 text-red-800',
+      Safety: "bg-red-100 text-red-800",
+      Cleanliness: "bg-blue-100 text-blue-800",
+      Amenities: "bg-green-100 text-green-800",
+      Structure: "bg-purple-100 text-purple-800",
+      Compliance: "bg-orange-100 text-orange-800",
+      Accessibility: "bg-pink-100 text-pink-800",
+      Technology: "bg-indigo-100 text-indigo-800",
+      Emergency: "bg-red-100 text-red-800",
     };
 
     return (
-      <Badge className={`${colorMap[category] || 'bg-gray-100 text-gray-800'} text-xs`}>
+      <Badge
+        className={`${colorMap[category] || "bg-gray-100 text-gray-800"} text-xs`}
+      >
         {category}
       </Badge>
     );
@@ -70,10 +72,10 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
 
   const getEvidenceBadge = (evidenceType: string) => {
     const iconMap: Record<string, React.ReactNode> = {
-      'photo': <Camera className="h-3 w-3" />,
-      'video': <Video className="h-3 w-3" />,
-      'inspection': <Shield className="h-3 w-3" />,
-      'documentation': <FileText className="h-3 w-3" />,
+      photo: <Camera className="h-3 w-3" />,
+      video: <Video className="h-3 w-3" />,
+      inspection: <Shield className="h-3 w-3" />,
+      documentation: <FileText className="h-3 w-3" />,
     };
 
     return (
@@ -105,7 +107,10 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
   const getRequiredBadge = (required: boolean) => {
     if (required) {
       return (
-        <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+        <Badge
+          variant="secondary"
+          className="text-xs bg-yellow-100 text-yellow-800"
+        >
           <AlertTriangle className="h-3 w-3 mr-1" />
           Required
         </Badge>
@@ -130,8 +135,12 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
       <div className="w-full h-64 flex items-center justify-center">
         <div className="text-center">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No checklist items found</h3>
-          <p className="text-gray-600">Try adjusting your filters or create a new checklist item.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No checklist items found
+          </h3>
+          <p className="text-gray-600">
+            Try adjusting your filters or create a new checklist item.
+          </p>
         </div>
       </div>
     );
@@ -153,7 +162,10 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
         </TableHeader>
         <TableBody>
           {items.map((item) => (
-            <TableRow key={item.id} className={item.deleted ? 'opacity-60' : ''}>
+            <TableRow
+              key={item.id}
+              className={item.deleted ? "opacity-60" : ""}
+            >
               <TableCell className="font-medium">
                 <div>
                   <div className="font-medium">{item.label}</div>
@@ -164,27 +176,19 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
                   )}
                 </div>
               </TableCell>
-              
-              <TableCell>
-                {getCategoryBadge(item.category)}
-              </TableCell>
-              
-              <TableCell>
-                {getEvidenceBadge(item.evidence_type)}
-              </TableCell>
-              
-              <TableCell>
-                {getStatusBadge(item)}
-              </TableCell>
-              
-              <TableCell>
-                {getRequiredBadge(item.required)}
-              </TableCell>
-              
+
+              <TableCell>{getCategoryBadge(item.category)}</TableCell>
+
+              <TableCell>{getEvidenceBadge(item.evidence_type)}</TableCell>
+
+              <TableCell>{getStatusBadge(item)}</TableCell>
+
+              <TableCell>{getRequiredBadge(item.required)}</TableCell>
+
               <TableCell className="text-sm text-gray-600">
                 {new Date(item.created_at).toLocaleDateString()}
               </TableCell>
-              
+
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -208,7 +212,7 @@ export const ChecklistTable: React.FC<ChecklistTableProps> = ({
                       className="cursor-pointer text-red-600 focus:text-red-600"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      {item.deleted ? 'Permanently Delete' : 'Delete Item'}
+                      {item.deleted ? "Permanently Delete" : "Delete Item"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

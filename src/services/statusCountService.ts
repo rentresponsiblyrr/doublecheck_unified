@@ -3,15 +3,15 @@
  * Provides consistent counting logic across all dashboard components
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  INSPECTION_STATUS, 
-  STATUS_GROUPS, 
+import { supabase } from "@/integrations/supabase/client";
+import {
+  INSPECTION_STATUS,
+  STATUS_GROUPS,
   normalizeStatus,
-  type InspectionStatus 
-} from '@/types/inspection-status';
-import { logger } from '@/utils/logger';
-import type { PropertyWithInspections } from './propertyStatusService';
+  type InspectionStatus,
+} from "@/types/inspection-status";
+import { logger } from "@/utils/logger";
+import type { PropertyWithInspections } from "./propertyStatusService";
 
 // Types for count results
 export interface InspectionCounts {
@@ -56,27 +56,32 @@ export interface AdminDashboardStats {
 }
 
 class StatusCountService {
-  
   /**
    * Get comprehensive inspection counts with normalized status handling
    */
   async getInspectionCounts(userId?: string): Promise<InspectionCounts> {
     try {
-      logger.info('Fetching inspection counts', { userId }, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Fetching inspection counts",
+        { userId },
+        "STATUS_COUNT_SERVICE",
+      );
 
-      let query = supabase
-        .from('inspections')
-        .select('status');
+      let query = supabase.from("inspections").select("status");
 
       // Filter by user if provided (for inspector dashboard)
       if (userId) {
-        query = query.eq('inspector_id', userId);
+        query = query.eq("inspector_id", userId);
       }
 
       const { data: inspections, error } = await query;
 
       if (error) {
-        logger.error('Failed to fetch inspections for counting', error, 'STATUS_COUNT_SERVICE');
+        logger.error(
+          "Failed to fetch inspections for counting",
+          error,
+          "STATUS_COUNT_SERVICE",
+        );
         throw error;
       }
 
@@ -91,13 +96,13 @@ class StatusCountService {
         approved: 0,
         rejected: 0,
         needsRevision: 0,
-        cancelled: 0
+        cancelled: 0,
       };
 
       // Count each inspection with status normalization
-      inspections?.forEach(inspection => {
+      inspections?.forEach((inspection) => {
         const normalizedStatus = normalizeStatus(inspection.status);
-        
+
         counts.total++;
 
         switch (normalizedStatus) {
@@ -129,15 +134,26 @@ class StatusCountService {
             counts.cancelled++;
             break;
           default:
-            logger.warn('Unknown inspection status found', { status: inspection.status }, 'STATUS_COUNT_SERVICE');
+            logger.warn(
+              "Unknown inspection status found",
+              { status: inspection.status },
+              "STATUS_COUNT_SERVICE",
+            );
         }
       });
 
-      logger.info('Inspection counts calculated', counts, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Inspection counts calculated",
+        counts,
+        "STATUS_COUNT_SERVICE",
+      );
       return counts;
-
     } catch (error) {
-      logger.error('Failed to get inspection counts', error, 'STATUS_COUNT_SERVICE');
+      logger.error(
+        "Failed to get inspection counts",
+        error,
+        "STATUS_COUNT_SERVICE",
+      );
       throw error;
     }
   }
@@ -147,15 +163,26 @@ class StatusCountService {
    */
   async getPropertyCounts(userId?: string): Promise<PropertyCounts> {
     try {
-      logger.info('Fetching property counts', { userId }, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Fetching property counts",
+        { userId },
+        "STATUS_COUNT_SERVICE",
+      );
 
       // Use the stored procedure that already calculates inspection counts
-      const { data: properties, error } = await supabase.rpc('get_properties_with_inspections', {
-        _user_id: userId || null
-      });
+      const { data: properties, error } = await supabase.rpc(
+        "get_properties_with_inspections",
+        {
+          _user_id: userId || null,
+        },
+      );
 
       if (error) {
-        logger.error('Failed to fetch properties with inspections', error, 'STATUS_COUNT_SERVICE');
+        logger.error(
+          "Failed to fetch properties with inspections",
+          error,
+          "STATUS_COUNT_SERVICE",
+        );
         throw error;
       }
 
@@ -163,7 +190,7 @@ class StatusCountService {
         total: properties?.length || 0,
         active: 0,
         withInspections: 0,
-        withoutInspections: 0
+        withoutInspections: 0,
       };
 
       properties?.forEach((property: PropertyWithInspections) => {
@@ -181,11 +208,14 @@ class StatusCountService {
         }
       });
 
-      logger.info('Property counts calculated', counts, 'STATUS_COUNT_SERVICE');
+      logger.info("Property counts calculated", counts, "STATUS_COUNT_SERVICE");
       return counts;
-
     } catch (error) {
-      logger.error('Failed to get property counts', error, 'STATUS_COUNT_SERVICE');
+      logger.error(
+        "Failed to get property counts",
+        error,
+        "STATUS_COUNT_SERVICE",
+      );
       throw error;
     }
   }
@@ -193,57 +223,81 @@ class StatusCountService {
   /**
    * Get auditor-specific metrics
    */
-  async getAuditorMetrics(auditorId: string, timeframe: 'today' | 'week' | 'month' = 'today'): Promise<AuditorMetrics> {
+  async getAuditorMetrics(
+    auditorId: string,
+    timeframe: "today" | "week" | "month" = "today",
+  ): Promise<AuditorMetrics> {
     try {
-      logger.info('Fetching auditor metrics', { auditorId, timeframe }, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Fetching auditor metrics",
+        { auditorId, timeframe },
+        "STATUS_COUNT_SERVICE",
+      );
 
       // Calculate date range
       const now = new Date();
       let startDate: Date;
 
       switch (timeframe) {
-        case 'today':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        case "today":
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
           break;
-        case 'week':
+        case "week":
           startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           break;
-        case 'month':
+        case "month":
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
           break;
       }
 
       // Get all inspections that need or have had auditor attention
       const { data: inspections, error } = await supabase
-        .from('inspections')
-        .select('status, created_at, end_time')
-        .in('status', STATUS_GROUPS.REVIEW_PIPELINE.concat(STATUS_GROUPS.FINAL))
-        .gte('created_at', startDate.toISOString());
+        .from("inspections")
+        .select("status, created_at, end_time")
+        .in("status", STATUS_GROUPS.REVIEW_PIPELINE.concat(STATUS_GROUPS.FINAL))
+        .gte("created_at", startDate.toISOString());
 
       if (error) {
-        logger.error('Failed to fetch inspections for auditor metrics', error, 'STATUS_COUNT_SERVICE');
+        logger.error(
+          "Failed to fetch inspections for auditor metrics",
+          error,
+          "STATUS_COUNT_SERVICE",
+        );
         throw error;
       }
 
       // Calculate metrics
       const totalReviews = inspections?.length || 0;
-      const pendingReviews = inspections?.filter(insp => 
-        STATUS_GROUPS.NEEDS_AUDITOR_ACTION.includes(normalizeStatus(insp.status) as InspectionStatus)
-      ).length || 0;
+      const pendingReviews =
+        inspections?.filter((insp) =>
+          STATUS_GROUPS.NEEDS_AUDITOR_ACTION.includes(
+            normalizeStatus(insp.status) as InspectionStatus,
+          ),
+        ).length || 0;
 
-      const completedToday = inspections?.filter(insp => {
-        const normalizedStatus = normalizeStatus(insp.status);
-        const endTime = insp.end_time ? new Date(insp.end_time) : null;
-        const isCompleted = [INSPECTION_STATUS.APPROVED, INSPECTION_STATUS.REJECTED].includes(normalizedStatus as InspectionStatus);
-        const isToday = endTime && endTime >= startDate;
-        return isCompleted && isToday;
-      }).length || 0;
+      const completedToday =
+        inspections?.filter((insp) => {
+          const normalizedStatus = normalizeStatus(insp.status);
+          const endTime = insp.end_time ? new Date(insp.end_time) : null;
+          const isCompleted = [
+            INSPECTION_STATUS.APPROVED,
+            INSPECTION_STATUS.REJECTED,
+          ].includes(normalizedStatus as InspectionStatus);
+          const isToday = endTime && endTime >= startDate;
+          return isCompleted && isToday;
+        }).length || 0;
 
-      const approvedCount = inspections?.filter(insp => 
-        normalizeStatus(insp.status) === INSPECTION_STATUS.APPROVED
-      ).length || 0;
+      const approvedCount =
+        inspections?.filter(
+          (insp) => normalizeStatus(insp.status) === INSPECTION_STATUS.APPROVED,
+        ).length || 0;
 
-      const approvalRate = totalReviews > 0 ? (approvedCount / totalReviews) * 100 : 0;
+      const approvalRate =
+        totalReviews > 0 ? (approvedCount / totalReviews) * 100 : 0;
 
       // TODO: Implement actual AI accuracy calculation
       const aiAccuracyRate = 87.3; // Placeholder
@@ -255,14 +309,21 @@ class StatusCountService {
         completedToday,
         approvalRate: Math.round(approvalRate * 10) / 10,
         avgReviewTime,
-        aiAccuracyRate
+        aiAccuracyRate,
       };
 
-      logger.info('Auditor metrics calculated', metrics, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Auditor metrics calculated",
+        metrics,
+        "STATUS_COUNT_SERVICE",
+      );
       return metrics;
-
     } catch (error) {
-      logger.error('Failed to get auditor metrics', error, 'STATUS_COUNT_SERVICE');
+      logger.error(
+        "Failed to get auditor metrics",
+        error,
+        "STATUS_COUNT_SERVICE",
+      );
       throw error;
     }
   }
@@ -272,37 +333,45 @@ class StatusCountService {
    */
   async getAdminDashboardStats(): Promise<AdminDashboardStats> {
     try {
-      logger.info('Fetching admin dashboard stats', {}, 'STATUS_COUNT_SERVICE');
+      logger.info("Fetching admin dashboard stats", {}, "STATUS_COUNT_SERVICE");
 
       const [inspectionCounts, propertyCounts, users] = await Promise.all([
         this.getInspectionCounts(),
         this.getPropertyCounts(),
-        supabase.from('users').select('role, email')
+        supabase.from("users").select("role, email"),
       ]);
 
       // Calculate user counts
       const userCounts = {
         total: users.data?.length || 0,
-        inspectors: users.data?.filter(u => u.role === 'inspector').length || 0,
-        auditors: users.data?.filter(u => u.role === 'auditor').length || 0,
-        admins: users.data?.filter(u => u.role === 'admin').length || 0
+        inspectors:
+          users.data?.filter((u) => u.role === "inspector").length || 0,
+        auditors: users.data?.filter((u) => u.role === "auditor").length || 0,
+        admins: users.data?.filter((u) => u.role === "admin").length || 0,
       };
 
       // Get auditor metrics (using first admin as fallback)
-      const auditorMetrics = await this.getAuditorMetrics('system', 'today');
+      const auditorMetrics = await this.getAuditorMetrics("system", "today");
 
       const stats: AdminDashboardStats = {
         inspections: inspectionCounts,
         properties: propertyCounts,
         auditor: auditorMetrics,
-        users: userCounts
+        users: userCounts,
       };
 
-      logger.info('Admin dashboard stats calculated', stats, 'STATUS_COUNT_SERVICE');
+      logger.info(
+        "Admin dashboard stats calculated",
+        stats,
+        "STATUS_COUNT_SERVICE",
+      );
       return stats;
-
     } catch (error) {
-      logger.error('Failed to get admin dashboard stats', error, 'STATUS_COUNT_SERVICE');
+      logger.error(
+        "Failed to get admin dashboard stats",
+        error,
+        "STATUS_COUNT_SERVICE",
+      );
       throw error;
     }
   }
@@ -316,19 +385,30 @@ class StatusCountService {
       pendingReview: counts.completed + counts.pendingReview,
       inReview: counts.inReview,
       final: counts.approved + counts.rejected + counts.cancelled,
-      needsAction: counts.needsRevision
+      needsAction: counts.needsRevision,
     };
   }
 
   /**
    * Calculate property-level statistics from inspection data
    */
-  calculatePropertyStats(properties: PropertyWithInspections[]): { totalInspections: number; activeInspections: number; completedInspections: number } {
-    return properties.reduce((stats, property) => ({
-      totalInspections: stats.totalInspections + (property.inspection_count || 0),
-      activeInspections: stats.activeInspections + (property.active_inspection_count || 0),
-      completedInspections: stats.completedInspections + (property.completed_inspection_count || 0)
-    }), { totalInspections: 0, activeInspections: 0, completedInspections: 0 });
+  calculatePropertyStats(properties: PropertyWithInspections[]): {
+    totalInspections: number;
+    activeInspections: number;
+    completedInspections: number;
+  } {
+    return properties.reduce(
+      (stats, property) => ({
+        totalInspections:
+          stats.totalInspections + (property.inspection_count || 0),
+        activeInspections:
+          stats.activeInspections + (property.active_inspection_count || 0),
+        completedInspections:
+          stats.completedInspections +
+          (property.completed_inspection_count || 0),
+      }),
+      { totalInspections: 0, activeInspections: 0, completedInspections: 0 },
+    );
   }
 }
 

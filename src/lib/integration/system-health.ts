@@ -1,11 +1,11 @@
-import { supabase } from '../supabase';
-import { env } from '../config/environment';
-import { errorReporter } from '../monitoring/error-reporter';
-import { performanceTracker } from '../monitoring/performance-tracker';
+import { supabase } from "../supabase";
+import { env } from "../config/environment";
+import { errorReporter } from "../monitoring/error-reporter";
+import { performanceTracker } from "../monitoring/performance-tracker";
 
 export interface SystemHealthCheck {
   component: string;
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   responseTime: number;
   details?: Record<string, any>;
   error?: string;
@@ -13,7 +13,7 @@ export interface SystemHealthCheck {
 }
 
 export interface SystemHealthReport {
-  overall: 'healthy' | 'degraded' | 'unhealthy';
+  overall: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   checks: SystemHealthCheck[];
   summary: {
@@ -51,7 +51,7 @@ export class SystemHealthValidator {
    */
   async performFullHealthCheck(): Promise<SystemHealthReport> {
     const startTime = Date.now();
-    
+
     try {
       // Run all health checks in parallel
       const checks = await Promise.allSettled([
@@ -66,25 +66,25 @@ export class SystemHealthValidator {
       ]);
 
       const healthChecks = checks.map((result, index) => {
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           return result.value;
         } else {
           const componentNames = [
-            'database',
-            'ai_services',
-            'file_upload',
-            'video_processing',
-            'mobile_compatibility',
-            'offline_capabilities',
-            'authentication',
-            'environment_config',
+            "database",
+            "ai_services",
+            "file_upload",
+            "video_processing",
+            "mobile_compatibility",
+            "offline_capabilities",
+            "authentication",
+            "environment_config",
           ];
 
           return {
-            component: componentNames[index] || 'unknown',
-            status: 'unhealthy' as const,
+            component: componentNames[index] || "unknown",
+            status: "unhealthy" as const,
             responseTime: Date.now() - startTime,
-            error: result.reason?.message || 'Unknown error',
+            error: result.reason?.message || "Unknown error",
             lastChecked: new Date().toISOString(),
           };
         }
@@ -93,18 +93,23 @@ export class SystemHealthValidator {
       // Calculate summary
       const summary = {
         totalChecks: healthChecks.length,
-        healthyChecks: healthChecks.filter(c => c.status === 'healthy').length,
-        degradedChecks: healthChecks.filter(c => c.status === 'degraded').length,
-        unhealthyChecks: healthChecks.filter(c => c.status === 'unhealthy').length,
-        avgResponseTime: healthChecks.reduce((sum, c) => sum + c.responseTime, 0) / healthChecks.length,
+        healthyChecks: healthChecks.filter((c) => c.status === "healthy")
+          .length,
+        degradedChecks: healthChecks.filter((c) => c.status === "degraded")
+          .length,
+        unhealthyChecks: healthChecks.filter((c) => c.status === "unhealthy")
+          .length,
+        avgResponseTime:
+          healthChecks.reduce((sum, c) => sum + c.responseTime, 0) /
+          healthChecks.length,
       };
 
       // Determine overall status
-      let overall: SystemHealthReport['overall'] = 'healthy';
+      let overall: SystemHealthReport["overall"] = "healthy";
       if (summary.unhealthyChecks > 0) {
-        overall = 'unhealthy';
+        overall = "unhealthy";
       } else if (summary.degradedChecks > 0) {
-        overall = 'degraded';
+        overall = "degraded";
       }
 
       const report: SystemHealthReport = {
@@ -116,23 +121,30 @@ export class SystemHealthValidator {
       };
 
       // Track performance
-      performanceTracker.trackMetric('system_health_check', Date.now() - startTime, 'ms', {
-        overall: report.overall,
-        unhealthyChecks: summary.unhealthyChecks,
-      });
+      performanceTracker.trackMetric(
+        "system_health_check",
+        Date.now() - startTime,
+        "ms",
+        {
+          overall: report.overall,
+          unhealthyChecks: summary.unhealthyChecks,
+        },
+      );
 
       // Report critical issues
-      if (overall === 'unhealthy') {
-        errorReporter.reportError(new Error('System health check failed'), {
-          category: 'system_health',
-          severity: 'high',
+      if (overall === "unhealthy") {
+        errorReporter.reportError(new Error("System health check failed"), {
+          category: "system_health",
+          severity: "high",
           details: report,
         });
       }
 
       return report;
     } catch (error) {
-      throw new Error(`System health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `System health check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -141,39 +153,41 @@ export class SystemHealthValidator {
    */
   private async checkDatabase(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       // Test basic connectivity
       const { data: connectionTest, error: connectionError } = await supabase
-        .from('properties')
-        .select('id')
+        .from("properties")
+        .select("id")
         .limit(1);
 
       if (connectionError) {
-        throw new Error(`Database connection failed: ${connectionError.message}`);
+        throw new Error(
+          `Database connection failed: ${connectionError.message}`,
+        );
       }
 
       // Test write operations
       const { error: writeError } = await supabase
-        .from('system_health_logs')
+        .from("system_health_logs")
         .insert({
-          component: 'database',
-          status: 'healthy',
+          component: "database",
+          status: "healthy",
           checked_at: new Date().toISOString(),
         });
 
       const responseTime = Date.now() - startTime;
 
       // Determine status based on response time and errors
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (writeError) {
-        status = 'degraded';
+        status = "degraded";
       } else if (responseTime > 1000) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'database',
+        component: "database",
         status,
         responseTime,
         details: {
@@ -186,10 +200,10 @@ export class SystemHealthValidator {
       };
     } catch (error) {
       return {
-        component: 'database',
-        status: 'unhealthy',
+        component: "database",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Database check failed',
+        error: error instanceof Error ? error.message : "Database check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -200,61 +214,68 @@ export class SystemHealthValidator {
    */
   private async checkAIServices(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       const services = [
         {
-          name: 'OpenAI',
-          endpoint: 'https://api.openai.com/v1/models',
+          name: "OpenAI",
+          endpoint: "https://api.openai.com/v1/models",
           apiKey: env.openai.apiKey,
         },
       ];
 
       const results = await Promise.allSettled(
-        services.map(service => this.testAIService(service))
+        services.map((service) => this.testAIService(service)),
       );
 
       const serviceStatuses = results.map((result, index) => {
         const serviceName = services[index].name;
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           return { name: serviceName, ...result.value };
         } else {
           return {
             name: serviceName,
-            status: 'unhealthy',
-            error: result.reason?.message || 'Service check failed',
+            status: "unhealthy",
+            error: result.reason?.message || "Service check failed",
           };
         }
       });
 
       const responseTime = Date.now() - startTime;
-      const unhealthyServices = serviceStatuses.filter(s => s.status === 'unhealthy');
-      
-      let status: SystemHealthCheck['status'] = 'healthy';
+      const unhealthyServices = serviceStatuses.filter(
+        (s) => s.status === "unhealthy",
+      );
+
+      let status: SystemHealthCheck["status"] = "healthy";
       if (unhealthyServices.length === serviceStatuses.length) {
-        status = 'unhealthy';
+        status = "unhealthy";
       } else if (unhealthyServices.length > 0) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'ai_services',
+        component: "ai_services",
         status,
         responseTime,
         details: {
           services: serviceStatuses,
           totalServices: serviceStatuses.length,
-          healthyServices: serviceStatuses.filter(s => s.status === 'healthy').length,
+          healthyServices: serviceStatuses.filter((s) => s.status === "healthy")
+            .length,
         },
-        error: unhealthyServices.length > 0 ? `${unhealthyServices.length} service(s) unhealthy` : undefined,
+        error:
+          unhealthyServices.length > 0
+            ? `${unhealthyServices.length} service(s) unhealthy`
+            : undefined,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'ai_services',
-        status: 'unhealthy',
+        component: "ai_services",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'AI services check failed',
+        error:
+          error instanceof Error ? error.message : "AI services check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -263,15 +284,19 @@ export class SystemHealthValidator {
   /**
    * Test individual AI service
    */
-  private async testAIService(service: { name: string; endpoint: string; apiKey: string }) {
+  private async testAIService(service: {
+    name: string;
+    endpoint: string;
+    apiKey: string;
+  }) {
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(service.endpoint, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${service.apiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${service.apiKey}`,
+          "Content-Type": "application/json",
         },
         signal: AbortSignal.timeout(5000),
       });
@@ -280,22 +305,23 @@ export class SystemHealthValidator {
 
       if (!response.ok) {
         return {
-          status: 'unhealthy' as const,
+          status: "unhealthy" as const,
           responseTime,
           error: `HTTP ${response.status}: ${response.statusText}`,
         };
       }
 
       // Test rate limits
-      const rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
-      const rateLimitTotal = response.headers.get('x-ratelimit-limit');
+      const rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
+      const rateLimitTotal = response.headers.get("x-ratelimit-limit");
 
-      let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+      let status: "healthy" | "degraded" | "unhealthy" = "healthy";
       if (rateLimitRemaining && rateLimitTotal) {
         const remaining = parseInt(rateLimitRemaining);
         const total = parseInt(rateLimitTotal);
-        if (remaining / total < 0.1) { // Less than 10% remaining
-          status = 'degraded';
+        if (remaining / total < 0.1) {
+          // Less than 10% remaining
+          status = "degraded";
         }
       }
 
@@ -310,9 +336,9 @@ export class SystemHealthValidator {
       };
     } catch (error) {
       return {
-        status: 'unhealthy' as const,
+        status: "unhealthy" as const,
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Service test failed',
+        error: error instanceof Error ? error.message : "Service test failed",
       };
     }
   }
@@ -322,43 +348,49 @@ export class SystemHealthValidator {
    */
   private async checkFileUpload(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       // Test storage bucket accessibility
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      const { data: buckets, error: bucketError } =
+        await supabase.storage.listBuckets();
 
       if (bucketError) {
         throw new Error(`Storage bucket check failed: ${bucketError.message}`);
       }
 
-      const requiredBuckets = ['property-photos', 'inspection-videos'];
-      const availableBuckets = buckets?.map(b => b.name) || [];
-      const missingBuckets = requiredBuckets.filter(b => !availableBuckets.includes(b));
+      const requiredBuckets = ["property-photos", "inspection-videos"];
+      const availableBuckets = buckets?.map((b) => b.name) || [];
+      const missingBuckets = requiredBuckets.filter(
+        (b) => !availableBuckets.includes(b),
+      );
 
       // Test file upload with a small test file
-      const testFile = new Blob(['test'], { type: 'text/plain' });
+      const testFile = new Blob(["test"], { type: "text/plain" });
       const testFileName = `health-check-${Date.now()}.txt`;
-      
+
       const { error: uploadError } = await supabase.storage
-        .from('property-photos')
+        .from("property-photos")
         .upload(`test/${testFileName}`, testFile);
 
       // Clean up test file
       if (!uploadError) {
         await supabase.storage
-          .from('property-photos')
+          .from("property-photos")
           .remove([`test/${testFileName}`]);
       }
 
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (missingBuckets.length > 0 || uploadError) {
-        status = missingBuckets.length === requiredBuckets.length ? 'unhealthy' : 'degraded';
+        status =
+          missingBuckets.length === requiredBuckets.length
+            ? "unhealthy"
+            : "degraded";
       }
 
       return {
-        component: 'file_upload',
+        component: "file_upload",
         status,
         responseTime,
         details: {
@@ -367,15 +399,20 @@ export class SystemHealthValidator {
           missingBuckets,
           uploadTest: !uploadError,
         },
-        error: uploadError?.message || (missingBuckets.length > 0 ? `Missing buckets: ${missingBuckets.join(', ')}` : undefined),
+        error:
+          uploadError?.message ||
+          (missingBuckets.length > 0
+            ? `Missing buckets: ${missingBuckets.join(", ")}`
+            : undefined),
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'file_upload',
-        status: 'unhealthy',
+        component: "file_upload",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'File upload check failed',
+        error:
+          error instanceof Error ? error.message : "File upload check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -386,16 +423,21 @@ export class SystemHealthValidator {
    */
   private async checkVideoProcessing(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       // Check if MediaRecorder API is available
-      const mediaRecorderAvailable = typeof MediaRecorder !== 'undefined';
-      
+      const mediaRecorderAvailable = typeof MediaRecorder !== "undefined";
+
       // Check supported video formats
       const supportedFormats: string[] = [];
       if (mediaRecorderAvailable) {
-        const formats = ['video/webm', 'video/mp4', 'video/webm;codecs=vp8', 'video/webm;codecs=vp9'];
-        formats.forEach(format => {
+        const formats = [
+          "video/webm",
+          "video/mp4",
+          "video/webm;codecs=vp8",
+          "video/webm;codecs=vp9",
+        ];
+        formats.forEach((format) => {
           if (MediaRecorder.isTypeSupported(format)) {
             supportedFormats.push(format);
           }
@@ -403,19 +445,21 @@ export class SystemHealthValidator {
       }
 
       // Check getUserMedia availability
-      const getUserMediaAvailable = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      const getUserMediaAvailable = !!(
+        navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+      );
 
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (!mediaRecorderAvailable || !getUserMediaAvailable) {
-        status = 'unhealthy';
+        status = "unhealthy";
       } else if (supportedFormats.length === 0) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'video_processing',
+        component: "video_processing",
         status,
         responseTime,
         details: {
@@ -427,17 +471,24 @@ export class SystemHealthValidator {
             webGL: !!window.WebGLRenderingContext,
           },
         },
-        error: !mediaRecorderAvailable ? 'MediaRecorder API not available' : 
-               !getUserMediaAvailable ? 'getUserMedia not available' :
-               supportedFormats.length === 0 ? 'No supported video formats' : undefined,
+        error: !mediaRecorderAvailable
+          ? "MediaRecorder API not available"
+          : !getUserMediaAvailable
+            ? "getUserMedia not available"
+            : supportedFormats.length === 0
+              ? "No supported video formats"
+              : undefined,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'video_processing',
-        status: 'unhealthy',
+        component: "video_processing",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Video processing check failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Video processing check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -448,21 +499,24 @@ export class SystemHealthValidator {
    */
   private async checkMobileCompatibility(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       const capabilities = {
-        touchSupport: 'ontouchstart' in window,
-        orientationAPI: 'orientation' in window || 'onorientationchange' in window,
-        deviceMotion: 'DeviceMotionEvent' in window,
-        geolocation: 'geolocation' in navigator,
-        vibration: 'vibrate' in navigator,
-        camera: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-        serviceWorker: 'serviceWorker' in navigator,
-        pushNotifications: 'PushManager' in window,
+        touchSupport: "ontouchstart" in window,
+        orientationAPI:
+          "orientation" in window || "onorientationchange" in window,
+        deviceMotion: "DeviceMotionEvent" in window,
+        geolocation: "geolocation" in navigator,
+        vibration: "vibrate" in navigator,
+        camera: !!(
+          navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+        ),
+        serviceWorker: "serviceWorker" in navigator,
+        pushNotifications: "PushManager" in window,
         localStorage: (() => {
           try {
-            localStorage.setItem('test', 'test');
-            localStorage.removeItem('test');
+            localStorage.setItem("test", "test");
+            localStorage.removeItem("test");
             return true;
           } catch {
             return false;
@@ -470,21 +524,22 @@ export class SystemHealthValidator {
         })(),
       };
 
-      const supportedFeatures = Object.values(capabilities).filter(Boolean).length;
+      const supportedFeatures =
+        Object.values(capabilities).filter(Boolean).length;
       const totalFeatures = Object.keys(capabilities).length;
       const supportPercentage = (supportedFeatures / totalFeatures) * 100;
 
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (supportPercentage < 50) {
-        status = 'unhealthy';
+        status = "unhealthy";
       } else if (supportPercentage < 80) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'mobile_compatibility',
+        component: "mobile_compatibility",
         status,
         responseTime,
         details: {
@@ -498,15 +553,19 @@ export class SystemHealthValidator {
             height: window.screen.height,
           },
         },
-        error: supportPercentage < 50 ? 'Low mobile feature support' : undefined,
+        error:
+          supportPercentage < 50 ? "Low mobile feature support" : undefined,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'mobile_compatibility',
-        status: 'unhealthy',
+        component: "mobile_compatibility",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Mobile compatibility check failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Mobile compatibility check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -517,51 +576,55 @@ export class SystemHealthValidator {
    */
   private async checkOfflineCapabilities(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       const offlineCapabilities = {
-        serviceWorker: 'serviceWorker' in navigator,
+        serviceWorker: "serviceWorker" in navigator,
         indexedDB: !!window.indexedDB,
         localStorage: (() => {
           try {
-            localStorage.setItem('test', 'test');
-            localStorage.removeItem('test');
+            localStorage.setItem("test", "test");
+            localStorage.removeItem("test");
             return true;
           } catch {
             return false;
           }
         })(),
-        cacheAPI: 'caches' in window,
-        backgroundSync: !!(navigator.serviceWorker && 'sync' in window.ServiceWorkerRegistration.prototype),
+        cacheAPI: "caches" in window,
+        backgroundSync: !!(
+          navigator.serviceWorker &&
+          "sync" in window.ServiceWorkerRegistration.prototype
+        ),
       };
 
       // Test cache functionality
       let cacheTest = false;
       if (offlineCapabilities.cacheAPI) {
         try {
-          const cache = await caches.open('health-check-test');
-          await cache.put(new Request('/test'), new Response('test'));
-          const cached = await cache.match('/test');
+          const cache = await caches.open("health-check-test");
+          await cache.put(new Request("/test"), new Response("test"));
+          const cached = await cache.match("/test");
           cacheTest = !!cached;
-          await caches.delete('health-check-test');
+          await caches.delete("health-check-test");
         } catch {
           cacheTest = false;
         }
       }
 
-      const supportedFeatures = Object.values(offlineCapabilities).filter(Boolean).length;
+      const supportedFeatures =
+        Object.values(offlineCapabilities).filter(Boolean).length;
       const totalFeatures = Object.keys(offlineCapabilities).length;
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (supportedFeatures < 3) {
-        status = 'unhealthy';
+        status = "unhealthy";
       } else if (supportedFeatures < totalFeatures) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'offline_capabilities',
+        component: "offline_capabilities",
         status,
         responseTime,
         details: {
@@ -571,15 +634,19 @@ export class SystemHealthValidator {
           totalFeatures,
           isOnline: navigator.onLine,
         },
-        error: supportedFeatures < 3 ? 'Insufficient offline support' : undefined,
+        error:
+          supportedFeatures < 3 ? "Insufficient offline support" : undefined,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'offline_capabilities',
-        status: 'unhealthy',
+        component: "offline_capabilities",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Offline capabilities check failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Offline capabilities check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -590,23 +657,26 @@ export class SystemHealthValidator {
    */
   private async checkAuthenticationSystem(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       // Check current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
       // Test auth endpoint responsiveness
       const { data: user, error: userError } = await supabase.auth.getUser();
 
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (sessionError || userError) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'authentication',
+        component: "authentication",
         status,
         responseTime,
         details: {
@@ -614,17 +684,20 @@ export class SystemHealthValidator {
           hasUser: !!user?.user,
           sessionValid: !sessionError,
           userValid: !userError,
-          authMethod: session?.user?.app_metadata?.provider || 'unknown',
+          authMethod: session?.user?.app_metadata?.provider || "unknown",
         },
         error: sessionError?.message || userError?.message,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'authentication',
-        status: 'unhealthy',
+        component: "authentication",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Authentication check failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Authentication check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -635,7 +708,7 @@ export class SystemHealthValidator {
    */
   private async checkEnvironmentConfiguration(): Promise<SystemHealthCheck> {
     const startTime = Date.now();
-    
+
     try {
       const config = {
         hasSupabaseUrl: !!env.supabase.url,
@@ -653,25 +726,22 @@ export class SystemHealthValidator {
         config.validSupabaseConfig,
       ];
 
-      const optionalConfigs = [
-        config.hasOpenAIKey,
-        config.validAIConfig,
-      ];
+      const optionalConfigs = [config.hasOpenAIKey, config.validAIConfig];
 
-      const missingRequired = requiredConfigs.filter(c => !c).length;
-      const missingOptional = optionalConfigs.filter(c => !c).length;
+      const missingRequired = requiredConfigs.filter((c) => !c).length;
+      const missingOptional = optionalConfigs.filter((c) => !c).length;
 
       const responseTime = Date.now() - startTime;
 
-      let status: SystemHealthCheck['status'] = 'healthy';
+      let status: SystemHealthCheck["status"] = "healthy";
       if (missingRequired > 0) {
-        status = 'unhealthy';
+        status = "unhealthy";
       } else if (missingOptional > 0) {
-        status = 'degraded';
+        status = "degraded";
       }
 
       return {
-        component: 'environment_config',
+        component: "environment_config",
         status,
         responseTime,
         details: {
@@ -679,16 +749,23 @@ export class SystemHealthValidator {
           missingRequired,
           missingOptional,
         },
-        error: missingRequired > 0 ? 'Missing required configuration' : 
-               missingOptional > 0 ? 'Missing optional configuration' : undefined,
+        error:
+          missingRequired > 0
+            ? "Missing required configuration"
+            : missingOptional > 0
+              ? "Missing optional configuration"
+              : undefined,
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
       return {
-        component: 'environment_config',
-        status: 'unhealthy',
+        component: "environment_config",
+        status: "unhealthy",
         responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Environment config check failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Environment config check failed",
         lastChecked: new Date().toISOString(),
       };
     }
@@ -699,42 +776,52 @@ export class SystemHealthValidator {
    */
   private generateRecommendations(checks: SystemHealthCheck[]): string[] {
     const recommendations: string[] = [];
-    
-    checks.forEach(check => {
-      if (check.status === 'unhealthy') {
+
+    checks.forEach((check) => {
+      if (check.status === "unhealthy") {
         switch (check.component) {
-          case 'database':
-            recommendations.push('Check database connection and credentials');
+          case "database":
+            recommendations.push("Check database connection and credentials");
             break;
-          case 'ai_services':
-            recommendations.push('Verify AI service API keys and network connectivity');
+          case "ai_services":
+            recommendations.push(
+              "Verify AI service API keys and network connectivity",
+            );
             break;
-          case 'file_upload':
-            recommendations.push('Ensure storage buckets are properly configured');
+          case "file_upload":
+            recommendations.push(
+              "Ensure storage buckets are properly configured",
+            );
             break;
-          case 'video_processing':
-            recommendations.push('Update browser or check camera permissions');
+          case "video_processing":
+            recommendations.push("Update browser or check camera permissions");
             break;
-          case 'mobile_compatibility':
-            recommendations.push('Use a modern mobile browser with full feature support');
+          case "mobile_compatibility":
+            recommendations.push(
+              "Use a modern mobile browser with full feature support",
+            );
             break;
-          case 'offline_capabilities':
-            recommendations.push('Enable service workers and check cache storage');
+          case "offline_capabilities":
+            recommendations.push(
+              "Enable service workers and check cache storage",
+            );
             break;
-          case 'authentication':
-            recommendations.push('Check authentication service configuration');
+          case "authentication":
+            recommendations.push("Check authentication service configuration");
             break;
-          case 'environment_config':
-            recommendations.push('Review environment variables and configuration');
+          case "environment_config":
+            recommendations.push(
+              "Review environment variables and configuration",
+            );
             break;
         }
-      } else if (check.status === 'degraded') {
+      } else if (check.status === "degraded") {
         recommendations.push(`Monitor ${check.component} for potential issues`);
       }
     });
 
     if (recommendations.length === 0) {
-      recommendations.push('All systems are operating normally');
+      recommendations.push("All systems are operating normally");
     }
 
     return recommendations;
@@ -759,5 +846,7 @@ export class SystemHealthValidator {
 export const systemHealthValidator = SystemHealthValidator.getInstance();
 
 // Export convenience functions
-export const performHealthCheck = () => systemHealthValidator.performFullHealthCheck();
-export const checkComponent = (component: string) => systemHealthValidator.getCachedHealthCheck(component);
+export const performHealthCheck = () =>
+  systemHealthValidator.performFullHealthCheck();
+export const checkComponent = (component: string) =>
+  systemHealthValidator.getCachedHealthCheck(component);

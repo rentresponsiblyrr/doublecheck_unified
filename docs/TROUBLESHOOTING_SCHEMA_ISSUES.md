@@ -110,7 +110,7 @@ Application expects UUID property IDs but production uses integer `property_id`.
 #### **Diagnosis:**
 ```sql
 -- Check actual property ID format
-SELECT property_id, property_name FROM properties LIMIT 3;
+SELECT property_id, name FROM properties LIMIT 3;
 
 -- Test UUID conversion
 SELECT int_to_uuid(1), uuid_to_int(int_to_uuid(1));
@@ -153,7 +153,7 @@ Foreign key relationships don't match between compatibility views and base table
 -- Test relationship queries
 SELECT 
   i.id as inspection_id,
-  p.name as property_name,
+  p.name as name,
   COUNT(icl.id) as item_count
 FROM inspections_fixed i
 LEFT JOIN properties_fixed p ON p.id = i.property_id
@@ -414,11 +414,11 @@ WHERE table_name IN ('properties', 'logs', 'profiles', 'inspection_sessions', 'c
 // Emergency queries directly to base tables (TEMPORARY ONLY)
 const { data: properties } = await supabase
   .from('properties')
-  .select('property_id, property_name')
+  .select('property_id, name')
   .limit(10);
 
 const { data: logs } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select('log_id, audit_status, property_id')
   .limit(10);
 ```

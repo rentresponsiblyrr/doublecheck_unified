@@ -13,11 +13,11 @@ export interface ChecklistItem {
 
 export interface UploadItem {
   id: string;
-  type: 'photo' | 'video' | 'data';
+  type: "photo" | "video" | "data";
   name: string;
   size: number;
   progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'failed';
+  status: "pending" | "uploading" | "completed" | "failed";
   error?: string;
 }
 

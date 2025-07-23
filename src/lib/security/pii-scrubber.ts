@@ -1,11 +1,11 @@
 /**
  * PII Scrubbing Service for AI Data Processing
  * Removes sensitive personally identifiable information before sending data to AI services
- * 
+ *
  * SECURITY: This service ensures compliance with GDPR Article 6 and data minimization principles
  */
 
-import { logger } from '../../utils/logger';
+import { logger } from "../../utils/logger";
 
 export interface PIIDetectionResult {
   hasPII: boolean;
@@ -17,16 +17,16 @@ export interface PIIDetectionResult {
 }
 
 export enum PIIType {
-  EMAIL = 'email',
-  PHONE = 'phone',
-  SSN = 'ssn',
-  CREDIT_CARD = 'credit_card',
-  ADDRESS = 'address',
-  NAME = 'name',
-  IP_ADDRESS = 'ip_address',
-  URL_WITH_TOKEN = 'url_with_token',
-  API_KEY = 'api_key',
-  CUSTOM = 'custom'
+  EMAIL = "email",
+  PHONE = "phone",
+  SSN = "ssn",
+  CREDIT_CARD = "credit_card",
+  ADDRESS = "address",
+  NAME = "name",
+  IP_ADDRESS = "ip_address",
+  URL_WITH_TOKEN = "url_with_token",
+  API_KEY = "api_key",
+  CUSTOM = "custom",
 }
 
 interface PIIPattern {
@@ -38,67 +38,72 @@ interface PIIPattern {
 
 export class PIIScrubber {
   private static instance: PIIScrubber;
-  
+
   private patterns: PIIPattern[] = [
     // Email addresses
     {
       type: PIIType.EMAIL,
       regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
-      replacement: '[EMAIL_REDACTED]',
-      confidence: 95
+      replacement: "[EMAIL_REDACTED]",
+      confidence: 95,
     },
-    
+
     // Phone numbers (various formats)
     {
       type: PIIType.PHONE,
-      regex: /(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g,
-      replacement: '[PHONE_REDACTED]',
-      confidence: 90
+      regex:
+        /(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g,
+      replacement: "[PHONE_REDACTED]",
+      confidence: 90,
     },
-    
+
     // SSN patterns
     {
       type: PIIType.SSN,
       regex: /\b\d{3}-?\d{2}-?\d{4}\b/g,
-      replacement: '[SSN_REDACTED]',
-      confidence: 95
+      replacement: "[SSN_REDACTED]",
+      confidence: 95,
     },
-    
+
     // Credit card numbers (basic patterns)
     {
       type: PIIType.CREDIT_CARD,
       regex: /\b(?:\d{4}[-\s]?){3}\d{4}\b/g,
-      replacement: '[CARD_REDACTED]',
-      confidence: 85
+      replacement: "[CARD_REDACTED]",
+      confidence: 85,
     },
-    
+
     // IP addresses
     {
       type: PIIType.IP_ADDRESS,
       regex: /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g,
-      replacement: '[IP_REDACTED]',
-      confidence: 80
+      replacement: "[IP_REDACTED]",
+      confidence: 80,
     },
-    
+
     // URLs with tokens or sensitive parameters
     {
       type: PIIType.URL_WITH_TOKEN,
       regex: /https?:\/\/[^\s]+(?:token|key|secret|auth|api)[^\s]*/gi,
-      replacement: '[URL_WITH_TOKEN_REDACTED]',
-      confidence: 90
+      replacement: "[URL_WITH_TOKEN_REDACTED]",
+      confidence: 90,
     },
-    
+
     // API keys (common patterns)
     {
       type: PIIType.API_KEY,
       regex: /(?:sk-|pk_|rk_)[A-Za-z0-9]{20,}/g,
-      replacement: '[API_KEY_REDACTED]',
-      confidence: 98
-    }
+      replacement: "[API_KEY_REDACTED]",
+      confidence: 98,
+    },
   ];
 
   private constructor() {
-    logger.info('PII Scrubber initialized with security patterns', {}, 'PII_SCRUBBER');
+    logger.info(
+      "PII Scrubber initialized with security patterns",
+      {},
+      "PII_SCRUBBER",
+    );
   }
 
   static getInstance(): PIIScrubber {
@@ -111,15 +116,18 @@ export class PIIScrubber {
   /**
    * Scrub PII from text before sending to AI services
    */
-  scrubText(text: string, context?: { source?: string; userId?: string }): PIIDetectionResult {
-    if (!text || typeof text !== 'string') {
+  scrubText(
+    text: string,
+    context?: { source?: string; userId?: string },
+  ): PIIDetectionResult {
+    if (!text || typeof text !== "string") {
       return {
         hasPII: false,
         detectedTypes: [],
-        scrubbedText: text || '',
+        scrubbedText: text || "",
         confidence: 100,
         originalLength: 0,
-        scrubbedLength: 0
+        scrubbedLength: 0,
       };
     }
 
@@ -135,15 +143,19 @@ export class PIIScrubber {
         detectedTypes.push(pattern.type);
         scrubbedText = scrubbedText.replace(pattern.regex, pattern.replacement);
         maxConfidence = Math.max(maxConfidence, pattern.confidence);
-        
+
         // Log PII detection for security audit
-        logger.warn('PII detected and scrubbed', {
-          type: pattern.type,
-          matchCount: matches.length,
-          source: context?.source,
-          userId: context?.userId,
-          confidence: pattern.confidence
-        }, 'PII_DETECTION');
+        logger.warn(
+          "PII detected and scrubbed",
+          {
+            type: pattern.type,
+            matchCount: matches.length,
+            source: context?.source,
+            userId: context?.userId,
+            confidence: pattern.confidence,
+          },
+          "PII_DETECTION",
+        );
       }
     }
 
@@ -153,16 +165,17 @@ export class PIIScrubber {
       const nameMatches = scrubbedText.match(namePattern);
       if (nameMatches && nameMatches.length > 0) {
         // Only scrub if it looks like a real name (not property names, etc.)
-        const suspiciousNames = nameMatches.filter(name => 
-          !name.includes('Property') && 
-          !name.includes('Rental') &&
-          !name.includes('Suite') &&
-          name.length > 5
+        const suspiciousNames = nameMatches.filter(
+          (name) =>
+            !name.includes("Property") &&
+            !name.includes("Rental") &&
+            !name.includes("Suite") &&
+            name.length > 5,
         );
-        
+
         if (suspiciousNames.length > 0) {
           detectedTypes.push(PIIType.NAME);
-          scrubbedText = scrubbedText.replace(namePattern, '[NAME_REDACTED]');
+          scrubbedText = scrubbedText.replace(namePattern, "[NAME_REDACTED]");
           maxConfidence = Math.max(maxConfidence, 70);
         }
       }
@@ -174,18 +187,26 @@ export class PIIScrubber {
       scrubbedText,
       confidence: maxConfidence,
       originalLength,
-      scrubbedLength: scrubbedText.length
+      scrubbedLength: scrubbedText.length,
     };
 
     // Log scrubbing result for compliance audit
     if (result.hasPII) {
-      logger.info('PII scrubbing completed', {
-        detectedTypes: result.detectedTypes,
-        originalLength: result.originalLength,
-        scrubbedLength: result.scrubbedLength,
-        reductionPercent: ((result.originalLength - result.scrubbedLength) / result.originalLength * 100).toFixed(1),
-        source: context?.source
-      }, 'PII_SCRUBBING');
+      logger.info(
+        "PII scrubbing completed",
+        {
+          detectedTypes: result.detectedTypes,
+          originalLength: result.originalLength,
+          scrubbedLength: result.scrubbedLength,
+          reductionPercent: (
+            ((result.originalLength - result.scrubbedLength) /
+              result.originalLength) *
+            100
+          ).toFixed(1),
+          source: context?.source,
+        },
+        "PII_SCRUBBING",
+      );
     }
 
     return result;
@@ -195,18 +216,18 @@ export class PIIScrubber {
    * Scrub PII from objects (recursive)
    */
   scrubObject(
-    obj: unknown, 
-    context?: { source?: string; userId?: string }
+    obj: unknown,
+    context?: { source?: string; userId?: string },
   ): unknown {
-    if (typeof obj === 'string') {
+    if (typeof obj === "string") {
       return this.scrubText(obj, context).scrubbedText;
     }
-    
+
     if (Array.isArray(obj)) {
-      return obj.map(item => this.scrubObject(item, context));
+      return obj.map((item) => this.scrubObject(item, context));
     }
-    
-    if (obj && typeof obj === 'object') {
+
+    if (obj && typeof obj === "object") {
       const scrubbed: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         // Skip certain fields that should never be scrubbed
@@ -218,7 +239,7 @@ export class PIIScrubber {
       }
       return scrubbed;
     }
-    
+
     return obj;
   }
 
@@ -227,20 +248,20 @@ export class PIIScrubber {
    */
   private isExemptField(fieldName: string): boolean {
     const exemptFields = [
-      'id',
-      'uuid',
-      'timestamp',
-      'created_at',
-      'updated_at',
-      'property_id',
-      'inspection_id',
-      'status',
-      'type',
-      'category',
-      'version',
-      'hash'
+      "id",
+      "uuid",
+      "timestamp",
+      "created_at",
+      "updated_at",
+      "property_id",
+      "inspection_id",
+      "status",
+      "type",
+      "category",
+      "version",
+      "hash",
     ];
-    
+
     return exemptFields.includes(fieldName.toLowerCase());
   }
 
@@ -248,48 +269,52 @@ export class PIIScrubber {
    * Validate that data is safe to send to AI services
    */
   validateDataForAI(
-    data: unknown, 
-    source: string
+    data: unknown,
+    source: string,
   ): { safe: boolean; issues: string[] } {
     const issues: string[] = [];
-    
-    if (typeof data === 'string') {
+
+    if (typeof data === "string") {
       const result = this.scrubText(data, { source });
       if (result.hasPII) {
-        issues.push(`PII detected: ${result.detectedTypes.join(', ')}`);
+        issues.push(`PII detected: ${result.detectedTypes.join(", ")}`);
       }
-    } else if (typeof data === 'object') {
+    } else if (typeof data === "object") {
       // Check for common problematic fields
-      const sensitiveFields = ['password', 'token', 'secret', 'key', 'auth'];
-      const checkObject = (obj: unknown, path: string = '') => {
-        if (typeof obj === 'object' && obj !== null) {
+      const sensitiveFields = ["password", "token", "secret", "key", "auth"];
+      const checkObject = (obj: unknown, path: string = "") => {
+        if (typeof obj === "object" && obj !== null) {
           for (const [key, value] of Object.entries(obj)) {
             const currentPath = path ? `${path}.${key}` : key;
-            
+
             // Check field names
-            if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+            if (
+              sensitiveFields.some((field) => key.toLowerCase().includes(field))
+            ) {
               issues.push(`Sensitive field detected: ${currentPath}`);
             }
-            
+
             // Recursively check values
-            if (typeof value === 'string') {
+            if (typeof value === "string") {
               const result = this.scrubText(value, { source });
               if (result.hasPII) {
-                issues.push(`PII in field ${currentPath}: ${result.detectedTypes.join(', ')}`);
+                issues.push(
+                  `PII in field ${currentPath}: ${result.detectedTypes.join(", ")}`,
+                );
               }
-            } else if (typeof value === 'object') {
+            } else if (typeof value === "object") {
               checkObject(value, currentPath);
             }
           }
         }
       };
-      
+
       checkObject(data);
     }
-    
+
     return {
       safe: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -303,8 +328,8 @@ export class PIIScrubber {
   } {
     return {
       patternsCount: this.patterns.length,
-      supportedTypes: this.patterns.map(p => p.type),
-      lastUpdate: new Date().toISOString()
+      supportedTypes: this.patterns.map((p) => p.type),
+      lastUpdate: new Date().toISOString(),
     };
   }
 }

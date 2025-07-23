@@ -1,30 +1,30 @@
 /**
  * MIGRATION SERVICE - PHASE 2 ARCHITECTURAL TRANSITION
- * 
+ *
  * Handles gradual migration from 23+ scattered services to the unified
  * 5-service architecture while maintaining backward compatibility and
  * zero-downtime operation.
- * 
+ *
  * MIGRATION STRATEGY:
  * - Gradual service replacement with feature flags
  * - Backward compatibility wrappers
  * - Performance comparison between old and new services
  * - Automatic rollback on performance degradation
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
-import { logger } from '@/utils/logger';
-import { performanceMonitor } from './PerformanceMonitor';
-import { 
+import { logger } from "@/utils/logger";
+import { performanceMonitor } from "./PerformanceMonitor";
+import {
   ServiceFactory,
   PropertyService,
   InspectionService,
   ChecklistService,
   MediaService,
-  UserService
-} from './UnifiedServiceLayer';
+  UserService,
+} from "./UnifiedServiceLayer";
 
 // ========================================
 // MIGRATION CONFIGURATION
@@ -74,7 +74,10 @@ export class LegacyPropertyServiceWrapper {
         const result = await this.newService.getProperty(id as any);
         return this.adaptNewServiceResult(result);
       } catch (error) {
-        logger.warn('New service failed, falling back to legacy', { error, id });
+        logger.warn("New service failed, falling back to legacy", {
+          error,
+          id,
+        });
         return this.getLegacyProperty(id);
       }
     } else {
@@ -91,7 +94,10 @@ export class LegacyPropertyServiceWrapper {
         const result = await this.newService.getProperties(options);
         return this.adaptNewServiceResult(result);
       } catch (error) {
-        logger.warn('New service failed, falling back to legacy', { error, options });
+        logger.warn("New service failed, falling back to legacy", {
+          error,
+          options,
+        });
         return this.getLegacyProperties(options);
       }
     } else {
@@ -101,17 +107,17 @@ export class LegacyPropertyServiceWrapper {
 
   private async getLegacyProperty(id: string): Promise<any> {
     // Legacy implementation - would call original propertyService
-    logger.debug('Using legacy property service', { id });
-    
+    logger.debug("Using legacy property service", { id });
+
     // Simulate legacy service call
     const startTime = performance.now();
     try {
       // Would call original service here
-      const result = { id, name: 'Legacy Property', address: 'Legacy Address' };
-      
+      const result = { id, name: "Legacy Property", address: "Legacy Address" };
+
       performanceMonitor.trackQuery({
-        service: 'LegacyPropertyService',
-        operation: 'getProperty',
+        service: "LegacyPropertyService",
+        operation: "getProperty",
         startTime,
         endTime: performance.now(),
         fromCache: false,
@@ -122,8 +128,8 @@ export class LegacyPropertyServiceWrapper {
       return result;
     } catch (error) {
       performanceMonitor.trackQuery({
-        service: 'LegacyPropertyService',
-        operation: 'getProperty',
+        service: "LegacyPropertyService",
+        operation: "getProperty",
         startTime,
         endTime: performance.now(),
         fromCache: false,
@@ -137,18 +143,18 @@ export class LegacyPropertyServiceWrapper {
 
   private async getLegacyProperties(options: any): Promise<any> {
     // Legacy implementation
-    logger.debug('Using legacy properties service', { options });
-    
+    logger.debug("Using legacy properties service", { options });
+
     const startTime = performance.now();
     try {
       const result = [
-        { id: '1', name: 'Legacy Property 1', address: 'Address 1' },
-        { id: '2', name: 'Legacy Property 2', address: 'Address 2' }
+        { id: "1", name: "Legacy Property 1", address: "Address 1" },
+        { id: "2", name: "Legacy Property 2", address: "Address 2" },
       ];
-      
+
       performanceMonitor.trackQuery({
-        service: 'LegacyPropertyService',
-        operation: 'getProperties',
+        service: "LegacyPropertyService",
+        operation: "getProperties",
         startTime,
         endTime: performance.now(),
         fromCache: false,
@@ -159,8 +165,8 @@ export class LegacyPropertyServiceWrapper {
       return result;
     } catch (error) {
       performanceMonitor.trackQuery({
-        service: 'LegacyPropertyService',
-        operation: 'getProperties',
+        service: "LegacyPropertyService",
+        operation: "getProperties",
         startTime,
         endTime: performance.now(),
         fromCache: false,
@@ -190,7 +196,7 @@ export class LegacyPropertyServiceWrapper {
     if (result.success) {
       return result.data;
     } else {
-      throw new Error(result.error?.userMessage || 'Service error');
+      throw new Error(result.error?.userMessage || "Service error");
     }
   }
 }
@@ -201,18 +207,21 @@ export class LegacyPropertyServiceWrapper {
 
 /**
  * MigrationManager - Orchestrates the transition to unified services
- * 
+ *
  * Provides intelligent routing, performance monitoring, and automatic
  * rollback capabilities during the migration process.
  */
 export class MigrationManager {
-  private performanceStats = new Map<string, {
-    legacyAvgTime: number;
-    newAvgTime: number;
-    legacyErrorRate: number;
-    newErrorRate: number;
-    sampleSize: number;
-  }>();
+  private performanceStats = new Map<
+    string,
+    {
+      legacyAvgTime: number;
+      newAvgTime: number;
+      legacyErrorRate: number;
+      newErrorRate: number;
+      sampleSize: number;
+    }
+  >();
 
   private migrationFlags = new Map<string, boolean>();
 
@@ -230,7 +239,7 @@ export class MigrationManager {
    */
   shouldUseNewService(serviceName: string, operation: string): boolean {
     const flagKey = `${serviceName}:${operation}`;
-    
+
     // Check if explicitly disabled
     if (this.migrationFlags.has(flagKey) && !this.migrationFlags.get(flagKey)) {
       return false;
@@ -261,54 +270,54 @@ export class MigrationManager {
     serviceName: string,
     operation: string,
     newServiceFn: () => Promise<T>,
-    legacyServiceFn: () => Promise<T>
+    legacyServiceFn: () => Promise<T>,
   ): Promise<T> {
     const useNewService = this.shouldUseNewService(serviceName, operation);
-    
+
     if (useNewService) {
       try {
         const startTime = performance.now();
         const result = await newServiceFn();
         const duration = performance.now() - startTime;
-        
-        this.recordPerformance(serviceName, 'new', duration, true);
-        
+
+        this.recordPerformance(serviceName, "new", duration, true);
+
         // Check if performance is acceptable
         if (duration > MIGRATION_CONFIG.performanceThreshold) {
-          logger.warn('New service exceeded performance threshold', {
+          logger.warn("New service exceeded performance threshold", {
             serviceName,
             operation,
             duration,
-            threshold: MIGRATION_CONFIG.performanceThreshold
+            threshold: MIGRATION_CONFIG.performanceThreshold,
           });
         }
-        
+
         return result;
       } catch (error) {
-        logger.warn('New service failed, falling back to legacy', { 
-          serviceName, 
-          operation, 
-          error 
+        logger.warn("New service failed, falling back to legacy", {
+          serviceName,
+          operation,
+          error,
         });
-        
-        this.recordPerformance(serviceName, 'new', 0, false);
-        
+
+        this.recordPerformance(serviceName, "new", 0, false);
+
         // Fall back to legacy service
         const startTime = performance.now();
         const result = await legacyServiceFn();
         const duration = performance.now() - startTime;
-        
-        this.recordPerformance(serviceName, 'legacy', duration, true);
-        
+
+        this.recordPerformance(serviceName, "legacy", duration, true);
+
         return result;
       }
     } else {
       const startTime = performance.now();
       const result = await legacyServiceFn();
       const duration = performance.now() - startTime;
-      
-      this.recordPerformance(serviceName, 'legacy', duration, true);
-      
+
+      this.recordPerformance(serviceName, "legacy", duration, true);
+
       return result;
     }
   }
@@ -322,9 +331,9 @@ export class MigrationManager {
    */
   private recordPerformance(
     serviceName: string,
-    serviceType: 'legacy' | 'new',
+    serviceType: "legacy" | "new",
     duration: number,
-    success: boolean
+    success: boolean,
   ): void {
     if (!this.performanceStats.has(serviceName)) {
       this.performanceStats.set(serviceName, {
@@ -339,17 +348,21 @@ export class MigrationManager {
     const stats = this.performanceStats.get(serviceName)!;
     stats.sampleSize++;
 
-    if (serviceType === 'legacy') {
+    if (serviceType === "legacy") {
       const newCount = Math.floor(stats.sampleSize / 2); // Rough estimate
-      stats.legacyAvgTime = ((stats.legacyAvgTime * (newCount - 1)) + duration) / newCount;
+      stats.legacyAvgTime =
+        (stats.legacyAvgTime * (newCount - 1) + duration) / newCount;
       if (!success) {
-        stats.legacyErrorRate = ((stats.legacyErrorRate * (newCount - 1)) + 100) / newCount;
+        stats.legacyErrorRate =
+          (stats.legacyErrorRate * (newCount - 1) + 100) / newCount;
       }
     } else {
       const newCount = Math.ceil(stats.sampleSize / 2);
-      stats.newAvgTime = ((stats.newAvgTime * (newCount - 1)) + duration) / newCount;
+      stats.newAvgTime =
+        (stats.newAvgTime * (newCount - 1) + duration) / newCount;
       if (!success) {
-        stats.newErrorRate = ((stats.newErrorRate * (newCount - 1)) + 100) / newCount;
+        stats.newErrorRate =
+          (stats.newErrorRate * (newCount - 1) + 100) / newCount;
       }
     }
   }
@@ -365,31 +378,34 @@ export class MigrationManager {
 
     // Check error rate threshold
     if (stats.newErrorRate > MIGRATION_CONFIG.errorThreshold) {
-      logger.error('New service error rate exceeded threshold', {
+      logger.error("New service error rate exceeded threshold", {
         serviceName,
         errorRate: stats.newErrorRate,
-        threshold: MIGRATION_CONFIG.errorThreshold
+        threshold: MIGRATION_CONFIG.errorThreshold,
       });
       return true;
     }
 
     // Check performance threshold
     if (stats.newAvgTime > MIGRATION_CONFIG.performanceThreshold) {
-      logger.warn('New service performance exceeded threshold', {
+      logger.warn("New service performance exceeded threshold", {
         serviceName,
         avgTime: stats.newAvgTime,
-        threshold: MIGRATION_CONFIG.performanceThreshold
+        threshold: MIGRATION_CONFIG.performanceThreshold,
       });
       return true;
     }
 
     // Check if new service is significantly slower than legacy
-    if (stats.legacyAvgTime > 0 && stats.newAvgTime > stats.legacyAvgTime * 1.5) {
-      logger.warn('New service significantly slower than legacy', {
+    if (
+      stats.legacyAvgTime > 0 &&
+      stats.newAvgTime > stats.legacyAvgTime * 1.5
+    ) {
+      logger.warn("New service significantly slower than legacy", {
         serviceName,
         legacyAvgTime: stats.legacyAvgTime,
         newAvgTime: stats.newAvgTime,
-        ratio: stats.newAvgTime / stats.legacyAvgTime
+        ratio: stats.newAvgTime / stats.legacyAvgTime,
       });
       return true;
     }
@@ -402,13 +418,16 @@ export class MigrationManager {
    */
   getPerformanceReport(): Record<string, any> {
     const report: Record<string, any> = {};
-    
+
     for (const [serviceName, stats] of this.performanceStats.entries()) {
       report[serviceName] = {
         ...stats,
         recommendation: this.getRecommendation(serviceName, stats),
-        performanceImprovement: stats.legacyAvgTime > 0 ? 
-          ((stats.legacyAvgTime - stats.newAvgTime) / stats.legacyAvgTime * 100) : 0,
+        performanceImprovement:
+          stats.legacyAvgTime > 0
+            ? ((stats.legacyAvgTime - stats.newAvgTime) / stats.legacyAvgTime) *
+              100
+            : 0,
       };
     }
 
@@ -417,22 +436,25 @@ export class MigrationManager {
 
   private getRecommendation(serviceName: string, stats: any): string {
     if (stats.sampleSize < 10) {
-      return 'Need more data for reliable recommendation';
+      return "Need more data for reliable recommendation";
     }
 
     if (this.shouldRollbackService(serviceName)) {
-      return 'Recommend rollback to legacy service';
+      return "Recommend rollback to legacy service";
     }
 
-    if (stats.newAvgTime < stats.legacyAvgTime && stats.newErrorRate < stats.legacyErrorRate) {
-      return 'New service performing better - recommend full migration';
+    if (
+      stats.newAvgTime < stats.legacyAvgTime &&
+      stats.newErrorRate < stats.legacyErrorRate
+    ) {
+      return "New service performing better - recommend full migration";
     }
 
     if (stats.newAvgTime < stats.legacyAvgTime * 0.8) {
-      return 'New service significantly faster - recommend increasing migration percentage';
+      return "New service significantly faster - recommend increasing migration percentage";
     }
 
-    return 'Continue gradual migration with current settings';
+    return "Continue gradual migration with current settings";
   }
 
   // ========================================
@@ -445,7 +467,7 @@ export class MigrationManager {
   enableNewService(serviceName: string, operation?: string): void {
     const key = operation ? `${serviceName}:${operation}` : serviceName;
     this.migrationFlags.set(key, true);
-    logger.info('New service enabled', { serviceName, operation });
+    logger.info("New service enabled", { serviceName, operation });
   }
 
   /**
@@ -454,7 +476,7 @@ export class MigrationManager {
   disableNewService(serviceName: string, operation?: string): void {
     const key = operation ? `${serviceName}:${operation}` : serviceName;
     this.migrationFlags.set(key, false);
-    logger.warn('New service disabled (rollback)', { serviceName, operation });
+    logger.warn("New service disabled (rollback)", { serviceName, operation });
   }
 
   /**
@@ -467,7 +489,7 @@ export class MigrationManager {
     recommendations: string[];
   } {
     const recommendations: string[] = [];
-    
+
     // Generate recommendations based on performance data
     for (const [serviceName, stats] of this.performanceStats.entries()) {
       if (stats.sampleSize >= 10) {
@@ -488,7 +510,7 @@ export class MigrationManager {
    */
   updateMigrationConfig(updates: Partial<MigrationConfig>): void {
     Object.assign(MIGRATION_CONFIG, updates);
-    logger.info('Migration configuration updated', updates);
+    logger.info("Migration configuration updated", updates);
   }
 
   // ========================================
@@ -497,40 +519,49 @@ export class MigrationManager {
 
   private initializeMigrationFlags(): void {
     // Initialize with safe defaults
-    const services = ['property', 'inspection', 'checklist', 'media', 'user'];
-    services.forEach(service => {
+    const services = ["property", "inspection", "checklist", "media", "user"];
+    services.forEach((service) => {
       this.migrationFlags.set(service, MIGRATION_CONFIG.enableNewServices);
     });
   }
 
   private startPerformanceMonitoring(): void {
     // Generate periodic performance reports
-    setInterval(() => {
-      const report = this.getPerformanceReport();
-      logger.info('Migration performance report', { 
-        servicesCount: Object.keys(report).length,
-        summary: this.generatePerformanceSummary(report)
-      });
+    setInterval(
+      () => {
+        const report = this.getPerformanceReport();
+        logger.info("Migration performance report", {
+          servicesCount: Object.keys(report).length,
+          summary: this.generatePerformanceSummary(report),
+        });
 
-      // Auto-rollback services with poor performance
-      for (const serviceName of Object.keys(report)) {
-        if (this.shouldRollbackService(serviceName)) {
-          this.disableNewService(serviceName);
+        // Auto-rollback services with poor performance
+        for (const serviceName of Object.keys(report)) {
+          if (this.shouldRollbackService(serviceName)) {
+            this.disableNewService(serviceName);
+          }
         }
-      }
-    }, 5 * 60 * 1000); // Every 5 minutes
+      },
+      5 * 60 * 1000,
+    ); // Every 5 minutes
   }
 
   private generatePerformanceSummary(report: Record<string, any>): any {
     const services = Object.keys(report);
-    const betterServices = services.filter(s => report[s].performanceImprovement > 0).length;
-    const worseServices = services.filter(s => report[s].performanceImprovement < 0).length;
-    
+    const betterServices = services.filter(
+      (s) => report[s].performanceImprovement > 0,
+    ).length;
+    const worseServices = services.filter(
+      (s) => report[s].performanceImprovement < 0,
+    ).length;
+
     return {
       totalServices: services.length,
       betterServices,
       worseServices,
-      avgImprovement: services.reduce((sum, s) => sum + report[s].performanceImprovement, 0) / services.length
+      avgImprovement:
+        services.reduce((sum, s) => sum + report[s].performanceImprovement, 0) /
+        services.length,
     };
   }
 }
@@ -550,4 +581,5 @@ export const migrationManager = new MigrationManager();
 export const legacyPropertyService = new LegacyPropertyServiceWrapper();
 
 // Convenience function for gradual migration
-export const withMigration = migrationManager.executeWithMigration.bind(migrationManager);
+export const withMigration =
+  migrationManager.executeWithMigration.bind(migrationManager);

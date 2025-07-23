@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { logger } from '@/utils/logger';
+import React, { useEffect, useRef, useState } from "react";
+import { logger } from "@/utils/logger";
 
 interface CameraError {
   message: string;
@@ -17,11 +17,11 @@ export const CameraManager: React.FC<CameraManagerProps> = ({
   onCameraError,
   constraints = {
     video: {
-      facingMode: 'environment',
+      facingMode: "environment",
       width: { ideal: 1920 },
-      height: { ideal: 1080 }
-    }
-  }
+      height: { ideal: 1080 },
+    },
+  },
 }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -35,44 +35,45 @@ export const CameraManager: React.FC<CameraManagerProps> = ({
 
   const initializeCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const mediaStream =
+        await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
-      
+
       onCameraReady(mediaStream);
-      
-      logger.info('Camera initialized successfully', {
-        component: 'CameraManager',
-        action: 'camera_initialization'
+
+      logger.info("Camera initialized successfully", {
+        component: "CameraManager",
+        action: "camera_initialization",
       });
     } catch (error) {
       const cameraError: CameraError = {
-        message: 'Failed to access camera. Please check permissions.',
-        code: (error as DOMException)?.name
+        message: "Failed to access camera. Please check permissions.",
+        code: (error as DOMException)?.name,
       };
-      
-      logger.error('Camera initialization failed', {
-        component: 'CameraManager',
+
+      logger.error("Camera initialization failed", {
+        component: "CameraManager",
         error: (error as Error).message,
         code: cameraError.code,
-        action: 'camera_initialization'
+        action: "camera_initialization",
       });
-      
+
       onCameraError(cameraError);
     }
   };
 
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
-      
-      logger.info('Camera stopped', {
-        component: 'CameraManager',
-        action: 'camera_cleanup'
+
+      logger.info("Camera stopped", {
+        component: "CameraManager",
+        action: "camera_cleanup",
       });
     }
   };

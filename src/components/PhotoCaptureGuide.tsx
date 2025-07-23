@@ -10,83 +10,84 @@ interface PhotoCaptureGuideProps {
 
 export const PhotoCaptureGuide: React.FC<PhotoCaptureGuideProps> = ({
   category,
-  label
+  label,
 }) => {
   const getCategoryIcon = (cat: string) => {
     switch (cat.toLowerCase()) {
-      case 'safety':
-        return '🔒';
-      case 'amenities':
-        return '✨';
-      case 'cleanliness':
-        return '🧽';
-      case 'maintenance':
-        return '🔧';
+      case "safety":
+        return "🔒";
+      case "amenities":
+        return "✨";
+      case "cleanliness":
+        return "🧽";
+      case "maintenance":
+        return "🔧";
       default:
-        return '📋';
+        return "📋";
     }
   };
 
   const getCategoryColor = (cat: string) => {
     switch (cat.toLowerCase()) {
-      case 'safety':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'amenities':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'cleanliness':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'maintenance':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case "safety":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "amenities":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "cleanliness":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "maintenance":
+        return "bg-orange-100 text-orange-800 border-orange-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getPhotoTips = (cat: string) => {
     switch (cat.toLowerCase()) {
-      case 'safety':
+      case "safety":
         return [
           "Capture clear view of safety equipment",
           "Show any damage or wear clearly",
-          "Include surrounding context for location"
+          "Include surrounding context for location",
         ];
-      case 'amenities':
+      case "amenities":
         return [
           "Show the full amenity in operation if possible",
           "Capture quality and condition details",
-          "Include any associated accessories"
+          "Include any associated accessories",
         ];
-      case 'cleanliness':
+      case "cleanliness":
         return [
           "Use good lighting to show true condition",
           "Capture any stains, dirt, or damage",
-          "Show overall area cleanliness"
+          "Show overall area cleanliness",
         ];
-      case 'maintenance':
+      case "maintenance":
         return [
           "Document any visible issues clearly",
           "Show serial numbers or labels if relevant",
-          "Capture before/after if repairs needed"
+          "Capture before/after if repairs needed",
         ];
       default:
         return [
           "Take clear, well-lit photos",
           "Show the item from multiple angles",
-          "Ensure all relevant details are visible"
+          "Ensure all relevant details are visible",
         ];
     }
   };
 
   return (
-    <Card id="photo-capture-guide" className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+    <Card
+      id="photo-capture-guide"
+      className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200"
+    >
       <CardContent className="p-4">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-1">
-                {label}
-              </h3>
+              <h3 className="font-semibold text-gray-900 mb-1">{label}</h3>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={getCategoryColor(category)}>
                   <span className="mr-1">{getCategoryIcon(category)}</span>
@@ -105,7 +106,10 @@ export const PhotoCaptureGuide: React.FC<PhotoCaptureGuideProps> = ({
             </div>
             <ul className="space-y-1">
               {getPhotoTips(category).map((tip, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-blue-700">
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm text-blue-700"
+                >
                   <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
                   {tip}
                 </li>

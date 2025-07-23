@@ -10,11 +10,11 @@ export interface BasePayload {
 }
 
 export interface UploadPayload extends BasePayload {
-  type: 'photo' | 'video' | 'document' | 'data';
+  type: "photo" | "video" | "document" | "data";
   file?: File;
   data?: Record<string, unknown>;
   metadata: UploadMetadata;
-  destination: 'inspection' | 'property' | 'user' | 'system';
+  destination: "inspection" | "property" | "user" | "system";
 }
 
 export interface UploadMetadata {
@@ -26,12 +26,12 @@ export interface UploadMetadata {
   fileSize?: number;
   mimeType?: string;
   tags?: string[];
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
 }
 
 export interface SyncPayload extends BasePayload {
-  operation: 'create' | 'update' | 'delete' | 'sync';
-  entityType: 'inspection' | 'property' | 'user' | 'checklist';
+  operation: "create" | "update" | "delete" | "sync";
+  entityType: "inspection" | "property" | "user" | "checklist";
   entityId: string;
   data: Record<string, unknown>;
   conflicts?: SyncConflict[];
@@ -45,16 +45,16 @@ export interface SyncConflict {
     local: string;
     remote: string;
   };
-  resolution?: 'local' | 'remote' | 'merge';
+  resolution?: "local" | "remote" | "merge";
 }
 
 export interface AuthPayload extends BasePayload {
-  action: 'login' | 'logout' | 'refresh' | 'verify';
+  action: "login" | "logout" | "refresh" | "verify";
   credentials?: {
     email: string;
     password?: string;
     token?: string;
-    provider?: 'email' | 'google' | 'apple';
+    provider?: "email" | "google" | "apple";
   };
   sessionInfo?: {
     deviceId: string;
@@ -92,7 +92,7 @@ export interface WebhookPayload extends BasePayload {
 }
 
 export interface OfflineData extends BasePayload {
-  operation: 'queue' | 'sync' | 'cleanup';
+  operation: "queue" | "sync" | "cleanup";
   data: Record<string, unknown>;
   priority: number;
   retryCount: number;

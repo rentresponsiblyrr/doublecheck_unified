@@ -1,24 +1,24 @@
 /**
  * @fileoverview Enhanced Error Collection Service
  * Comprehensive error monitoring with console, network, and performance tracking
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0
  */
 
-import { logger } from '@/utils/logger';
-import { userActivityService } from './userActivityService';
+import { logger } from "@/utils/logger";
+import { userActivityService } from "./userActivityService";
 
 export interface ConsoleError {
   id: string;
   timestamp: string;
-  level: 'error' | 'warn' | 'info';
+  level: "error" | "warn" | "info";
   message: string;
   stack?: string;
   filename?: string;
   lineno?: number;
   colno?: number;
-  source: 'javascript' | 'promise' | 'resource';
+  source: "javascript" | "promise" | "resource";
 }
 
 export interface NetworkError {
@@ -33,7 +33,7 @@ export interface NetworkError {
   responseBody?: string;
   headers: Record<string, string>;
   isSupabaseCall: boolean;
-  errorType: 'timeout' | 'network' | 'http' | 'cors' | 'parse';
+  errorType: "timeout" | "network" | "http" | "cors" | "parse";
 }
 
 export interface PerformanceMetrics {
@@ -46,16 +46,16 @@ export interface PerformanceMetrics {
     cumulativeLayoutShift?: number;
     firstContentfulPaint?: number;
     timeToFirstByte?: number;
-    
+
     // Memory and Performance
     usedJSHeapSize?: number;
     totalJSHeapSize?: number;
     jsHeapSizeLimit?: number;
-    
+
     // Navigation Timing
     domContentLoaded?: number;
     loadComplete?: number;
-    
+
     // Custom STR Certified Metrics
     databaseQueryTime?: number;
     imageLoadTime?: number;
@@ -109,28 +109,28 @@ class EnhancedErrorCollectionService {
    * Initialize comprehensive error collection
    */
   private initializeErrorCollection() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Capture JavaScript errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       this.collectConsoleError({
-        level: 'error',
+        level: "error",
         message: event.message,
         stack: event.error?.stack,
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno,
-        source: 'javascript'
+        source: "javascript",
       });
     });
 
     // Capture unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       this.collectConsoleError({
-        level: 'error',
+        level: "error",
         message: `Unhandled Promise Rejection: ${event.reason}`,
         stack: event.reason?.stack,
-        source: 'promise'
+        source: "promise",
       });
     });
 
@@ -145,31 +145,35 @@ class EnhancedErrorCollectionService {
    * Intercept console methods to capture all console output
    */
   private interceptConsole() {
-    ['error', 'warn', 'info'].forEach(level => {
+    ["error", "warn", "info"].forEach((level) => {
       this.originalConsole[level] = console[level as keyof Console];
-      
-      (console as Record<string, (...args: unknown[]) => void>)[level] = (...args: unknown[]) => {
+
+      (console as Record<string, (...args: unknown[]) => void>)[level] = (
+        ...args: unknown[]
+      ) => {
         // Call original console method
         this.originalConsole[level].apply(console, args);
-        
+
         // Prevent infinite recursion during error collection
         if (this.isCollectingConsoleError) return;
-        
+
         // Capture for our monitoring
         try {
           this.collectConsoleError({
-            level: level as 'error' | 'warn' | 'info',
-            message: args.map(arg => {
-              if (typeof arg === 'object') {
-                try {
-                  return JSON.stringify(arg);
-                } catch (stringifyError) {
-                  return '[Object - JSON.stringify failed]';
+            level: level as "error" | "warn" | "info",
+            message: args
+              .map((arg) => {
+                if (typeof arg === "object") {
+                  try {
+                    return JSON.stringify(arg);
+                  } catch (stringifyError) {
+                    return "[Object - JSON.stringify failed]";
+                  }
                 }
-              }
-              return String(arg);
-            }).join(' '),
-            source: 'javascript'
+                return String(arg);
+              })
+              .join(" "),
+            source: "javascript",
           });
         } catch (error) {
           // Silently fail to prevent further loops
@@ -182,30 +186,40 @@ class EnhancedErrorCollectionService {
    * Monitor resource loading errors (images, scripts, etc.)
    */
   private monitorResourceErrors() {
-    window.addEventListener('error', (event) => {
-      if (event.target !== window && event.target) {
-        const target = event.target as HTMLElement & { src?: string; href?: string };
-        this.collectConsoleError({
-          level: 'error',
-          message: `Resource failed to load: ${target.src || target.href || 'unknown'}`,
-          source: 'resource'
-        });
-      }
-    }, true);
+    window.addEventListener(
+      "error",
+      (event) => {
+        if (event.target !== window && event.target) {
+          const target = event.target as HTMLElement & {
+            src?: string;
+            href?: string;
+          };
+          this.collectConsoleError({
+            level: "error",
+            message: `Resource failed to load: ${target.src || target.href || "unknown"}`,
+            source: "resource",
+          });
+        }
+      },
+      true,
+    );
   }
 
   /**
    * Initialize network request monitoring
    */
   private initializeNetworkMonitoring() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Intercept fetch requests
-    window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    window.fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
       const startTime = performance.now();
-      const url = typeof input === 'string' ? input : input.toString();
-      const method = init?.method || 'GET';
-      
+      const url = typeof input === "string" ? input : input.toString();
+      const method = init?.method || "GET";
+
       try {
         const response = await this.originalFetch(input, init);
         const duration = performance.now() - startTime;
@@ -219,28 +233,31 @@ class EnhancedErrorCollectionService {
             statusText: response.statusText,
             duration,
             headers: this.extractHeaders(response.headers),
-            isSupabaseCall: url.includes('supabase.co'),
+            isSupabaseCall: url.includes("supabase.co"),
             errorType: this.determineNetworkErrorType(response.status),
             requestBody: init?.body?.toString(),
-            responseBody: await this.safelyExtractResponseBody(response.clone())
+            responseBody: await this.safelyExtractResponseBody(
+              response.clone(),
+            ),
           });
         }
 
         return response;
       } catch (error) {
         const duration = performance.now() - startTime;
-        
+
         this.collectNetworkError({
           url,
           method,
           status: 0,
-          statusText: 'Network Error',
+          statusText: "Network Error",
           duration,
           headers: {},
-          isSupabaseCall: url.includes('supabase.co'),
-          errorType: 'network',
+          isSupabaseCall: url.includes("supabase.co"),
+          errorType: "network",
           requestBody: init?.body?.toString(),
-          responseBody: error instanceof Error ? error.message : 'Unknown error'
+          responseBody:
+            error instanceof Error ? error.message : "Unknown error",
         });
 
         throw error;
@@ -252,44 +269,48 @@ class EnhancedErrorCollectionService {
    * Initialize performance monitoring
    */
   private initializePerformanceMonitoring() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Collect Core Web Vitals when available
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       // Largest Contentful Paint
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1];
-        this.updatePerformanceMetrics({ largestContentfulPaint: lastEntry.startTime });
-      }).observe({ entryTypes: ['largest-contentful-paint'] });
+        this.updatePerformanceMetrics({
+          largestContentfulPaint: lastEntry.startTime,
+        });
+      }).observe({ entryTypes: ["largest-contentful-paint"] });
 
       // First Input Delay
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
-        entries.forEach(entry => {
-          const fidEntry = entry as PerformanceEventTiming & { processingStart: number };
-          this.updatePerformanceMetrics({ 
-            firstInputDelay: fidEntry.processingStart - entry.startTime 
+        entries.forEach((entry) => {
+          const fidEntry = entry as PerformanceEventTiming & {
+            processingStart: number;
+          };
+          this.updatePerformanceMetrics({
+            firstInputDelay: fidEntry.processingStart - entry.startTime,
           });
         });
-      }).observe({ entryTypes: ['first-input'] });
+      }).observe({ entryTypes: ["first-input"] });
 
       // Cumulative Layout Shift
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
-        entryList.getEntries().forEach(entry => {
+        entryList.getEntries().forEach((entry) => {
           const clsEntry = entry as PerformanceEntry & { value: number };
           clsValue += clsEntry.value;
         });
         this.updatePerformanceMetrics({ cumulativeLayoutShift: clsValue });
-      }).observe({ entryTypes: ['layout-shift'] });
+      }).observe({ entryTypes: ["layout-shift"] });
     }
 
     // Memory usage monitoring
     this.monitorMemoryUsage();
 
     // Page load performance
-    window.addEventListener('load', () => {
+    window.addEventListener("load", () => {
       setTimeout(() => this.collectPageLoadMetrics(), 0);
     });
   }
@@ -299,18 +320,20 @@ class EnhancedErrorCollectionService {
    */
   private monitorMemoryUsage() {
     const collectMemory = () => {
-      if ('memory' in performance) {
-        const memory = (performance as Performance & {
-          memory: {
-            usedJSHeapSize: number;
-            totalJSHeapSize: number;
-            jsHeapSizeLimit: number;
+      if ("memory" in performance) {
+        const memory = (
+          performance as Performance & {
+            memory: {
+              usedJSHeapSize: number;
+              totalJSHeapSize: number;
+              jsHeapSizeLimit: number;
+            };
           }
-        }).memory;
+        ).memory;
         this.updatePerformanceMetrics({
           usedJSHeapSize: memory.usedJSHeapSize,
           totalJSHeapSize: memory.totalJSHeapSize,
-          jsHeapSizeLimit: memory.jsHeapSizeLimit
+          jsHeapSizeLimit: memory.jsHeapSizeLimit,
         });
       }
     };
@@ -324,14 +347,17 @@ class EnhancedErrorCollectionService {
    * Collect page load performance metrics
    */
   private collectPageLoadMetrics() {
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    
+    const navigation = performance.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming;
+
     if (navigation) {
       this.updatePerformanceMetrics({
         firstContentfulPaint: navigation.responseStart - navigation.fetchStart,
         timeToFirstByte: navigation.responseStart - navigation.requestStart,
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
-        loadComplete: navigation.loadEventEnd - navigation.fetchStart
+        domContentLoaded:
+          navigation.domContentLoadedEventEnd - navigation.fetchStart,
+        loadComplete: navigation.loadEventEnd - navigation.fetchStart,
       });
     }
   }
@@ -344,8 +370,8 @@ class EnhancedErrorCollectionService {
     const originalConsoleError = console.error;
     console.error = (...args: unknown[]) => {
       originalConsoleError.apply(console, args);
-      
-      const message = args.join(' ');
+
+      const message = args.join(" ");
       if (this.isDatabaseError(message)) {
         this.collectDatabaseError(message);
       }
@@ -355,20 +381,22 @@ class EnhancedErrorCollectionService {
   /**
    * Collect console error with metadata
    */
-  private collectConsoleError(errorData: Omit<ConsoleError, 'id' | 'timestamp'>) {
+  private collectConsoleError(
+    errorData: Omit<ConsoleError, "id" | "timestamp">,
+  ) {
     if (!this.isCollecting || this.isCollectingConsoleError) return;
 
     this.isCollectingConsoleError = true;
-    
+
     try {
       const error: ConsoleError = {
         id: this.generateId(),
         timestamp: new Date().toISOString(),
-        ...errorData
+        ...errorData,
       };
 
       this.consoleErrors.push(error);
-      this.maintainErrorLimit('console');
+      this.maintainErrorLimit("console");
 
       // Track user frustration level
       this.updateUserFrustrationLevel();
@@ -385,17 +413,19 @@ class EnhancedErrorCollectionService {
   /**
    * Collect network error with metadata
    */
-  private collectNetworkError(errorData: Omit<NetworkError, 'id' | 'timestamp'>) {
+  private collectNetworkError(
+    errorData: Omit<NetworkError, "id" | "timestamp">,
+  ) {
     if (!this.isCollecting) return;
 
     const error: NetworkError = {
       id: this.generateId(),
       timestamp: new Date().toISOString(),
-      ...errorData
+      ...errorData,
     };
 
     this.networkErrors.push(error);
-    this.maintainErrorLimit('network');
+    this.maintainErrorLimit("network");
 
     // Special handling for Supabase errors
     if (error.isSupabaseCall) {
@@ -409,9 +439,12 @@ class EnhancedErrorCollectionService {
   /**
    * Update performance metrics
    */
-  private updatePerformanceMetrics(newMetrics: Partial<PerformanceMetrics['metrics']>) {
-    const existing = this.performanceMetrics[this.performanceMetrics.length - 1];
-    
+  private updatePerformanceMetrics(
+    newMetrics: Partial<PerformanceMetrics["metrics"]>,
+  ) {
+    const existing =
+      this.performanceMetrics[this.performanceMetrics.length - 1];
+
     if (existing && this.isRecentMetric(existing.timestamp)) {
       // Update existing recent metric
       existing.metrics = { ...existing.metrics, ...newMetrics };
@@ -420,11 +453,11 @@ class EnhancedErrorCollectionService {
       const metric: PerformanceMetrics = {
         id: this.generateId(),
         timestamp: new Date().toISOString(),
-        metrics: newMetrics
+        metrics: newMetrics,
       };
 
       this.performanceMetrics.push(metric);
-      this.maintainErrorLimit('performance');
+      this.maintainErrorLimit("performance");
     }
   }
 
@@ -439,11 +472,11 @@ class EnhancedErrorCollectionService {
       table: this.extractTableName(errorMessage),
       error: errorMessage,
       isCompatibilityLayerIssue: this.isCompatibilityLayerError(errorMessage),
-      suggestedFix: this.generateDatabaseErrorFix(errorMessage)
+      suggestedFix: this.generateDatabaseErrorFix(errorMessage),
     };
 
     this.databaseErrors.push(error);
-    this.maintainErrorLimit('database');
+    this.maintainErrorLimit("database");
 
     // DISABLED: Database error logging to prevent infinite loops
     // logger.error('Database error collected', { error }, 'ERROR_COLLECTION');
@@ -454,9 +487,12 @@ class EnhancedErrorCollectionService {
    */
   private handleSupabaseError(error: NetworkError) {
     // Check for compatibility layer issues
-    if (error.url.includes('users') || error.url.includes('static_safety_items')) {
+    if (
+      error.url.includes("users") ||
+      error.url.includes("static_safety_items")
+    ) {
       this.collectDatabaseError(
-        `Potential compatibility layer issue: ${error.status} ${error.statusText} on ${error.url}`
+        `Potential compatibility layer issue: ${error.status} ${error.statusText} on ${error.url}`,
       );
     }
   }
@@ -469,14 +505,14 @@ class EnhancedErrorCollectionService {
     const recentThreshold = 5 * 60 * 1000; // 5 minutes
 
     // Filter recent errors
-    const recentConsoleErrors = this.consoleErrors.filter(e => 
-      now - new Date(e.timestamp).getTime() < recentThreshold
+    const recentConsoleErrors = this.consoleErrors.filter(
+      (e) => now - new Date(e.timestamp).getTime() < recentThreshold,
     );
-    const recentNetworkErrors = this.networkErrors.filter(e => 
-      now - new Date(e.timestamp).getTime() < recentThreshold
+    const recentNetworkErrors = this.networkErrors.filter(
+      (e) => now - new Date(e.timestamp).getTime() < recentThreshold,
     );
-    const recentDatabaseErrors = this.databaseErrors.filter(e => 
-      now - new Date(e.timestamp).getTime() < recentThreshold
+    const recentDatabaseErrors = this.databaseErrors.filter(
+      (e) => now - new Date(e.timestamp).getTime() < recentThreshold,
     );
 
     return {
@@ -487,7 +523,7 @@ class EnhancedErrorCollectionService {
       userFrustrationLevel: this.calculateUserFrustrationLevel(),
       errorFrequency: this.calculateErrorFrequency(),
       affectedFeatures: this.identifyAffectedFeatures(),
-      potentialRootCause: this.identifyPotentialRootCauses()
+      potentialRootCause: this.identifyPotentialRootCauses(),
     };
   }
 
@@ -495,23 +531,32 @@ class EnhancedErrorCollectionService {
    * Calculate user frustration level based on error patterns
    */
   private calculateUserFrustrationLevel(): number {
-    const recentErrors = [...this.consoleErrors, ...this.networkErrors, ...this.databaseErrors]
-      .filter(e => Date.now() - new Date(e.timestamp).getTime() < 5 * 60 * 1000);
+    const recentErrors = [
+      ...this.consoleErrors,
+      ...this.networkErrors,
+      ...this.databaseErrors,
+    ].filter(
+      (e) => Date.now() - new Date(e.timestamp).getTime() < 5 * 60 * 1000,
+    );
 
     const errorCount = recentErrors.length;
-    const criticalErrors = recentErrors.filter(e => 
-      ('level' in e && e.level === 'error') || 
-      ('status' in e && e.status >= 500)
+    const criticalErrors = recentErrors.filter(
+      (e) =>
+        ("level" in e && e.level === "error") ||
+        ("status" in e && e.status >= 500),
     ).length;
 
     // Base frustration on error frequency and severity
     let frustration = Math.min(errorCount * 0.5 + criticalErrors * 1.5, 10);
 
     // Increase frustration for rapid consecutive errors
-    const errorTimes = recentErrors.map(e => new Date(e.timestamp).getTime()).sort();
+    const errorTimes = recentErrors
+      .map((e) => new Date(e.timestamp).getTime())
+      .sort();
     let consecutiveErrors = 0;
     for (let i = 1; i < errorTimes.length; i++) {
-      if (errorTimes[i] - errorTimes[i-1] < 10000) { // Within 10 seconds
+      if (errorTimes[i] - errorTimes[i - 1] < 10000) {
+        // Within 10 seconds
         consecutiveErrors++;
       }
     }
@@ -525,8 +570,11 @@ class EnhancedErrorCollectionService {
    */
   private calculateErrorFrequency(): number {
     const oneMinuteAgo = Date.now() - 60 * 1000;
-    const recentErrors = [...this.consoleErrors, ...this.networkErrors, ...this.databaseErrors]
-      .filter(e => new Date(e.timestamp).getTime() > oneMinuteAgo);
+    const recentErrors = [
+      ...this.consoleErrors,
+      ...this.networkErrors,
+      ...this.databaseErrors,
+    ].filter((e) => new Date(e.timestamp).getTime() > oneMinuteAgo);
 
     return recentErrors.length;
   }
@@ -538,20 +586,22 @@ class EnhancedErrorCollectionService {
     const features = new Set<string>();
 
     // Analyze network errors for feature identification
-    this.networkErrors.forEach(error => {
-      if (error.url.includes('properties')) features.add('Property Management');
-      if (error.url.includes('inspection')) features.add('Inspection System');
-      if (error.url.includes('auth')) features.add('Authentication');
-      if (error.url.includes('media')) features.add('Media Upload');
-      if (error.url.includes('checklist')) features.add('Checklist Management');
+    this.networkErrors.forEach((error) => {
+      if (error.url.includes("properties")) features.add("Property Management");
+      if (error.url.includes("inspection")) features.add("Inspection System");
+      if (error.url.includes("auth")) features.add("Authentication");
+      if (error.url.includes("media")) features.add("Media Upload");
+      if (error.url.includes("checklist")) features.add("Checklist Management");
     });
 
     // Analyze console errors for feature identification
-    this.consoleErrors.forEach(error => {
-      if (error.message.includes('Property')) features.add('Property Management');
-      if (error.message.includes('Inspection')) features.add('Inspection System');
-      if (error.message.includes('Auth')) features.add('Authentication');
-      if (error.message.includes('Upload')) features.add('Media Upload');
+    this.consoleErrors.forEach((error) => {
+      if (error.message.includes("Property"))
+        features.add("Property Management");
+      if (error.message.includes("Inspection"))
+        features.add("Inspection System");
+      if (error.message.includes("Auth")) features.add("Authentication");
+      if (error.message.includes("Upload")) features.add("Media Upload");
     });
 
     return Array.from(features);
@@ -564,39 +614,49 @@ class EnhancedErrorCollectionService {
     const causes = new Set<string>();
 
     // Database compatibility layer issues
-    const hasCompatibilityErrors = this.databaseErrors.some(e => e.isCompatibilityLayerIssue);
+    const hasCompatibilityErrors = this.databaseErrors.some(
+      (e) => e.isCompatibilityLayerIssue,
+    );
     if (hasCompatibilityErrors) {
-      causes.add('Database Compatibility Layer Issues');
+      causes.add("Database Compatibility Layer Issues");
     }
 
     // Network connectivity issues
-    const hasNetworkErrors = this.networkErrors.some(e => e.errorType === 'network');
+    const hasNetworkErrors = this.networkErrors.some(
+      (e) => e.errorType === "network",
+    );
     if (hasNetworkErrors) {
-      causes.add('Network Connectivity Problems');
+      causes.add("Network Connectivity Problems");
     }
 
     // Authentication issues
-    const hasAuthErrors = this.networkErrors.some(e => e.status === 401 || e.status === 403);
+    const hasAuthErrors = this.networkErrors.some(
+      (e) => e.status === 401 || e.status === 403,
+    );
     if (hasAuthErrors) {
-      causes.add('Authentication/Authorization Issues');
+      causes.add("Authentication/Authorization Issues");
     }
 
     // Memory issues
-    const hasMemoryIssues = this.performanceMetrics.some(m => 
-      m.metrics.usedJSHeapSize && m.metrics.jsHeapSizeLimit &&
-      m.metrics.usedJSHeapSize > m.metrics.jsHeapSizeLimit * 0.9
+    const hasMemoryIssues = this.performanceMetrics.some(
+      (m) =>
+        m.metrics.usedJSHeapSize &&
+        m.metrics.jsHeapSizeLimit &&
+        m.metrics.usedJSHeapSize > m.metrics.jsHeapSizeLimit * 0.9,
     );
     if (hasMemoryIssues) {
-      causes.add('Memory Usage Issues');
+      causes.add("Memory Usage Issues");
     }
 
     // Performance issues
-    const hasPerformanceIssues = this.performanceMetrics.some(m =>
-      (m.metrics.largestContentfulPaint && m.metrics.largestContentfulPaint > 4000) ||
-      (m.metrics.firstInputDelay && m.metrics.firstInputDelay > 300)
+    const hasPerformanceIssues = this.performanceMetrics.some(
+      (m) =>
+        (m.metrics.largestContentfulPaint &&
+          m.metrics.largestContentfulPaint > 4000) ||
+        (m.metrics.firstInputDelay && m.metrics.firstInputDelay > 300),
     );
     if (hasPerformanceIssues) {
-      causes.add('Performance Degradation');
+      causes.add("Performance Degradation");
     }
 
     return Array.from(causes);
@@ -607,12 +667,14 @@ class EnhancedErrorCollectionService {
     return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private maintainErrorLimit(type: 'console' | 'network' | 'performance' | 'database') {
+  private maintainErrorLimit(
+    type: "console" | "network" | "performance" | "database",
+  ) {
     const arrays = {
       console: this.consoleErrors,
       network: this.networkErrors,
       performance: this.performanceMetrics,
-      database: this.databaseErrors
+      database: this.databaseErrors,
     };
 
     const array = arrays[type];
@@ -632,68 +694,78 @@ class EnhancedErrorCollectionService {
   private async safelyExtractResponseBody(response: Response): Promise<string> {
     try {
       const text = await response.text();
-      return text.length > 1000 ? text.substring(0, 1000) + '...' : text;
+      return text.length > 1000 ? text.substring(0, 1000) + "..." : text;
     } catch {
-      return 'Could not extract response body';
+      return "Could not extract response body";
     }
   }
 
-  private determineNetworkErrorType(status: number): NetworkError['errorType'] {
-    if (status === 0) return 'network';
-    if (status === 408 || status === 504) return 'timeout';
-    if (status >= 400 && status < 500) return 'http';
-    if (status >= 500) return 'http';
-    return 'network';
+  private determineNetworkErrorType(status: number): NetworkError["errorType"] {
+    if (status === 0) return "network";
+    if (status === 408 || status === 504) return "timeout";
+    if (status >= 400 && status < 500) return "http";
+    if (status >= 500) return "http";
+    return "network";
   }
 
   private isDatabaseError(message: string): boolean {
     const dbKeywords = [
-      'relation does not exist',
-      'column does not exist',
-      'permission denied',
-      'invalid input syntax',
-      'connection refused',
-      'timeout',
-      'supabase',
-      'postgresql'
+      "relation does not exist",
+      "column does not exist",
+      "permission denied",
+      "invalid input syntax",
+      "connection refused",
+      "timeout",
+      "supabase",
+      "postgresql",
     ];
-    return dbKeywords.some(keyword => message.toLowerCase().includes(keyword));
+    return dbKeywords.some((keyword) =>
+      message.toLowerCase().includes(keyword),
+    );
   }
 
   private isCompatibilityLayerError(message: string): boolean {
     const compatibilityKeywords = [
-      'users',
-      'static_safety_items',
-      'logs',
-      'properties'
+      "users",
+      "static_safety_items",
+      "logs",
+      "properties",
     ];
-    return compatibilityKeywords.some(keyword => message.includes(keyword));
+    return compatibilityKeywords.some((keyword) => message.includes(keyword));
   }
 
   private extractDatabaseOperation(message: string): string {
-    const operations = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP'];
-    const found = operations.find(op => message.toUpperCase().includes(op));
-    return found || 'UNKNOWN';
+    const operations = [
+      "SELECT",
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "CREATE",
+      "DROP",
+    ];
+    const found = operations.find((op) => message.toUpperCase().includes(op));
+    return found || "UNKNOWN";
   }
 
   private extractTableName(message: string): string {
-    const tableMatch = message.match(/table "([^"]+)"/i) || 
-                      message.match(/relation "([^"]+)"/i) ||
-                      message.match(/from (\w+)/i);
-    return tableMatch ? tableMatch[1] : 'unknown';
+    const tableMatch =
+      message.match(/table "([^"]+)"/i) ||
+      message.match(/relation "([^"]+)"/i) ||
+      message.match(/from (\w+)/i);
+    return tableMatch ? tableMatch[1] : "unknown";
   }
 
   private generateDatabaseErrorFix(message: string): string {
-    if (message.includes('does not exist')) {
-      return 'Check if compatibility views are properly installed. Run database migration script.';
+    if (message.includes("does not exist")) {
+      return "Check if compatibility views are properly installed. Run database migration script.";
     }
-    if (message.includes('permission denied')) {
-      return 'Verify Row Level Security policies and user permissions.';
+    if (message.includes("permission denied")) {
+      return "Verify Row Level Security policies and user permissions.";
     }
-    if (message.includes('compatibility layer')) {
-      return 'The compatibility layer has been removed. Use direct production schema access.';
+    if (message.includes("compatibility layer")) {
+      return "The compatibility layer has been removed. Use direct production schema access.";
     }
-    return 'Review database schema and compatibility layer configuration.';
+    return "Review database schema and compatibility layer configuration.";
   }
 
   private isRecentMetric(timestamp: string): boolean {
@@ -702,9 +774,12 @@ class EnhancedErrorCollectionService {
 
   private updateUserFrustrationLevel() {
     // Track user actions to correlate with errors
-    userActivityService.trackCustomAction('error_occurred', {
+    userActivityService.trackCustomAction("error_occurred", {
       timestamp: new Date().toISOString(),
-      errorCount: this.consoleErrors.length + this.networkErrors.length + this.databaseErrors.length
+      errorCount:
+        this.consoleErrors.length +
+        this.networkErrors.length +
+        this.databaseErrors.length,
     });
   }
 
@@ -734,6 +809,7 @@ class EnhancedErrorCollectionService {
 }
 
 // Export singleton instance
-export const enhancedErrorCollectionService = new EnhancedErrorCollectionService();
+export const enhancedErrorCollectionService =
+  new EnhancedErrorCollectionService();
 
 export default enhancedErrorCollectionService;

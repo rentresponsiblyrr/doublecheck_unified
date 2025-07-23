@@ -3,10 +3,10 @@
  * Extracted from FunctionalChecklistManagement.tsx
  */
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CheckSquare, RefreshCw, Plus } from 'lucide-react';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CheckSquare, RefreshCw, Plus } from "lucide-react";
 
 interface ChecklistHeaderProps {
   itemCount: number;
@@ -19,7 +19,7 @@ export const ChecklistHeader: React.FC<ChecklistHeaderProps> = ({
   itemCount,
   loading,
   onRefresh,
-  onCreateItem
+  onCreateItem,
 }) => {
   return (
     <div id="checklist-header" className="flex items-center justify-between">

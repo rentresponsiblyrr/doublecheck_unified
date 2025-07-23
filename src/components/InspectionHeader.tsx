@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, RefreshCw, Eye } from "lucide-react";
@@ -19,11 +18,12 @@ export const InspectionHeader = ({
   showCompleted,
   onToggleCompleted,
   completedCount,
-  totalCount
+  totalCount,
 }: InspectionHeaderProps) => {
   const navigate = useNavigate();
 
-  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const progressPercentage =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3">
@@ -32,18 +32,16 @@ export const InspectionHeader = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/properties')}
+            onClick={() => navigate("/properties")}
             className="p-2"
             aria-label="Back to properties"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          
+
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-gray-900">
-              Inspection
-            </h1>
-            
+            <h1 className="text-lg font-semibold text-gray-900">Inspection</h1>
+
             {/* Multi-inspector indicator */}
           </div>
         </div>
@@ -55,7 +53,7 @@ export const InspectionHeader = ({
           className="flex items-center gap-2"
         >
           <Eye className="w-4 h-4" />
-          {showCompleted ? 'Hide' : 'Show'} Completed
+          {showCompleted ? "Hide" : "Show"} Completed
         </Button>
       </div>
 
@@ -72,7 +70,7 @@ export const InspectionHeader = ({
             </Badge>
           </div>
         </div>
-        
+
         <div className="bg-gray-200 rounded-full h-2">
           <div
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"

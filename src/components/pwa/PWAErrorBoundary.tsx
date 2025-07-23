@@ -1,5 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '@/utils/logger';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { logger } from "@/utils/logger";
 
 interface PWAErrorBoundaryState {
   hasError: boolean;
@@ -30,7 +30,10 @@ interface PWAErrorFallbackProps {
   isRecovering: boolean;
 }
 
-export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorBoundaryState> {
+export class PWAErrorBoundary extends Component<
+  PWAErrorBoundaryProps,
+  PWAErrorBoundaryState
+> {
   private recoveryTimer: number | null = null;
 
   constructor(props: PWAErrorBoundaryProps) {
@@ -43,18 +46,20 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
       errorId: null,
       recoveryAttempts: 0,
       lastRecoveryTime: 0,
-      isRecovering: false
+      isRecovering: false,
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<PWAErrorBoundaryState> {
+  static getDerivedStateFromError(
+    error: Error,
+  ): Partial<PWAErrorBoundaryState> {
     const errorId = `pwa_error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     return {
       hasError: true,
       error,
       errorId,
-      isRecovering: false
+      isRecovering: false,
     };
   }
 
@@ -62,18 +67,22 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
     const { onError } = this.props;
 
     // Log comprehensive error information
-    logger.error('PWA Error Boundary caught error', {
-      error: {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
+    logger.error(
+      "PWA Error Boundary caught error",
+      {
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+        },
+        componentStack: errorInfo.componentStack,
+        errorId: this.state.errorId,
+        timestamp: Date.now(),
+        url: window.location.href,
+        userAgent: navigator.userAgent,
       },
-      componentStack: errorInfo.componentStack,
-      errorId: this.state.errorId,
-      timestamp: Date.now(),
-      url: window.location.href,
-      userAgent: navigator.userAgent
-    }, 'PWA_ERROR_BOUNDARY');
+      "PWA_ERROR_BOUNDARY",
+    );
 
     this.setState({ errorInfo });
 
@@ -88,7 +97,10 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
     const { maxRecoveryAttempts = 3, recoveryDelay = 1000 } = this.props;
     const { recoveryAttempts } = this.state;
 
-    if (recoveryAttempts < maxRecoveryAttempts && this.isRecoverableError(error)) {
+    if (
+      recoveryAttempts < maxRecoveryAttempts &&
+      this.isRecoverableError(error)
+    ) {
       this.setState({ isRecovering: true });
 
       const delay = Math.pow(2, recoveryAttempts) * recoveryDelay; // Exponential backoff
@@ -101,17 +113,20 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
           errorId: null,
           recoveryAttempts: recoveryAttempts + 1,
           lastRecoveryTime: Date.now(),
-          isRecovering: false
+          isRecovering: false,
         });
 
         this.props.onRecovery?.();
 
-        logger.info('PWA Error Boundary attempted automatic recovery', {
-          attempt: recoveryAttempts + 1,
-          delay,
-          errorType: error.name
-        }, 'PWA_ERROR_BOUNDARY');
-
+        logger.info(
+          "PWA Error Boundary attempted automatic recovery",
+          {
+            attempt: recoveryAttempts + 1,
+            delay,
+            errorType: error.name,
+          },
+          "PWA_ERROR_BOUNDARY",
+        );
       }, delay);
     }
   };
@@ -119,32 +134,33 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
   private isRecoverableError = (error: Error): boolean => {
     // Define which errors are recoverable
     const recoverableErrors = [
-      'ChunkLoadError',
-      'NetworkError',
-      'ServiceWorkerError',
-      'QuotaExceededError',
-      'SecurityError',
-      'NotFoundError'
+      "ChunkLoadError",
+      "NetworkError",
+      "ServiceWorkerError",
+      "QuotaExceededError",
+      "SecurityError",
+      "NotFoundError",
     ];
 
-    const nonRecoverableErrors = [
-      'SyntaxError',
-      'ReferenceError',
-      'TypeError'
-    ];
+    const nonRecoverableErrors = ["SyntaxError", "ReferenceError", "TypeError"];
 
     // Don't recover from syntax/reference errors
-    if (nonRecoverableErrors.some(nonRecoverable =>
-      error.name.includes(nonRecoverable) || error.message.includes(nonRecoverable)
-    )) {
+    if (
+      nonRecoverableErrors.some(
+        (nonRecoverable) =>
+          error.name.includes(nonRecoverable) ||
+          error.message.includes(nonRecoverable),
+      )
+    ) {
       return false;
     }
 
     // Recover from known recoverable errors
-    return recoverableErrors.some(recoverable =>
-      error.name.includes(recoverable) ||
-      error.message.includes(recoverable) ||
-      error.stack?.includes(recoverable)
+    return recoverableErrors.some(
+      (recoverable) =>
+        error.name.includes(recoverable) ||
+        error.message.includes(recoverable) ||
+        error.stack?.includes(recoverable),
     );
   };
 
@@ -154,10 +170,14 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
       error: null,
       errorInfo: null,
       errorId: null,
-      isRecovering: false
+      isRecovering: false,
     });
 
-    logger.info('PWA Error Boundary manual retry initiated', {}, 'PWA_ERROR_BOUNDARY');
+    logger.info(
+      "PWA Error Boundary manual retry initiated",
+      {},
+      "PWA_ERROR_BOUNDARY",
+    );
   };
 
   componentWillUnmount() {
@@ -168,7 +188,11 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
 
   render() {
     const { hasError, error, errorInfo, errorId, isRecovering } = this.state;
-    const { children, fallbackComponent: FallbackComponent = DefaultPWAErrorFallback, className = '' } = this.props;
+    const {
+      children,
+      fallbackComponent: FallbackComponent = DefaultPWAErrorFallback,
+      className = "",
+    } = this.props;
 
     if (hasError && error) {
       return (
@@ -193,7 +217,7 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
       error: {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       },
       errorInfo: errorInfo?.componentStack,
       errorId: this.state.errorId,
@@ -205,28 +229,36 @@ export class PWAErrorBoundary extends Component<PWAErrorBoundaryProps, PWAErrorB
         language: navigator.language,
         cookieEnabled: navigator.cookieEnabled,
         onLine: navigator.onLine,
-        platform: navigator.platform
+        platform: navigator.platform,
       },
       pwaInfo: {
-        serviceWorkerSupported: 'serviceWorker' in navigator,
-        notificationSupported: 'Notification' in window,
-        standalone: window.matchMedia('(display-mode: standalone)').matches
-      }
+        serviceWorkerSupported: "serviceWorker" in navigator,
+        notificationSupported: "Notification" in window,
+        standalone: window.matchMedia("(display-mode: standalone)").matches,
+      },
     };
 
     // Send error report to monitoring service
-    fetch('/api/errors/report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(errorReport)
-    }).catch(reportError => {
-      logger.error('Failed to report PWA error', {
-        reportError: reportError.message,
-        originalError: error.message
-      }, 'PWA_ERROR_BOUNDARY');
+    fetch("/api/errors/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(errorReport),
+    }).catch((reportError) => {
+      logger.error(
+        "Failed to report PWA error",
+        {
+          reportError: reportError.message,
+          originalError: error.message,
+        },
+        "PWA_ERROR_BOUNDARY",
+      );
     });
 
-    logger.info('PWA error report sent', { errorId: this.state.errorId }, 'PWA_ERROR_BOUNDARY');
+    logger.info(
+      "PWA error report sent",
+      { errorId: this.state.errorId },
+      "PWA_ERROR_BOUNDARY",
+    );
   };
 }
 
@@ -236,9 +268,12 @@ const DefaultPWAErrorFallback: React.FC<PWAErrorFallbackProps> = ({
   errorId,
   onRetry,
   onReport,
-  isRecovering
+  isRecovering,
 }) => (
-  <div id="pwa-error-boundary-fallback" className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  <div
+    id="pwa-error-boundary-fallback"
+    className="min-h-screen flex items-center justify-center bg-gray-50 p-4"
+  >
     <div className="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
@@ -260,7 +295,9 @@ const DefaultPWAErrorFallback: React.FC<PWAErrorFallbackProps> = ({
       {/* Error Details */}
       <div className="px-6 py-4">
         <div className="bg-gray-50 rounded-md p-4 mb-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Error Details:</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Error Details:
+          </h4>
           <p className="text-sm text-gray-900 font-mono break-words">
             {error.name}: {error.message}
           </p>
@@ -289,7 +326,9 @@ const DefaultPWAErrorFallback: React.FC<PWAErrorFallbackProps> = ({
 
         {/* Instructions */}
         <div className="text-sm text-gray-600 mb-4">
-          <p className="mb-2">This error has been automatically reported to our team.</p>
+          <p className="mb-2">
+            This error has been automatically reported to our team.
+          </p>
           <p>You can try the following:</p>
           <ul className="list-disc list-inside mt-2 space-y-1 text-xs">
             <li>Click "Try Again" to reload the component</li>
@@ -308,7 +347,7 @@ const DefaultPWAErrorFallback: React.FC<PWAErrorFallbackProps> = ({
           disabled={isRecovering}
           className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isRecovering ? 'Recovering...' : 'Try Again'}
+          {isRecovering ? "Recovering..." : "Try Again"}
         </button>
         <button
           id="pwa-error-report-button"

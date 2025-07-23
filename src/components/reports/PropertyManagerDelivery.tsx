@@ -1,6 +1,6 @@
 /**
  * Property Manager Delivery Component - SURGICALLY REFACTORED
- * 
+ *
  * SURGICAL REFACTORING APPLIED:
  * ✅ Extracted business logic to usePropertyManagerDelivery hook
  * ✅ Decomposed into focused sub-components
@@ -9,23 +9,23 @@
  * ✅ Reduced from 496 lines to <300 lines using composition
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Send } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Send } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 // Extracted business logic hook
-import { usePropertyManagerDelivery } from '@/hooks/usePropertyManagerDelivery';
+import { usePropertyManagerDelivery } from "@/hooks/usePropertyManagerDelivery";
 
 // Extracted UI components
-import { DeliveryStatusBanner } from './DeliveryStatusBanner';
-import { PropertyManagerInfoForm } from './PropertyManagerInfoForm';
-import { DeliveryOptionsForm } from './DeliveryOptionsForm';
-import { CustomMessageForm } from './CustomMessageForm';
-import { DeliverySummaryPanel } from './DeliverySummaryPanel';
-import { DeliveryActionButtons } from './DeliveryActionButtons';
-import { DeliveryHelpText } from './DeliveryHelpText';
+import { DeliveryStatusBanner } from "./DeliveryStatusBanner";
+import { PropertyManagerInfoForm } from "./PropertyManagerInfoForm";
+import { DeliveryOptionsForm } from "./DeliveryOptionsForm";
+import { CustomMessageForm } from "./CustomMessageForm";
+import { DeliverySummaryPanel } from "./DeliverySummaryPanel";
+import { DeliveryActionButtons } from "./DeliveryActionButtons";
+import { DeliveryHelpText } from "./DeliveryHelpText";
 
 interface PropertyManagerDeliveryProps {
   inspectionId: string;
@@ -38,7 +38,7 @@ const PropertyManagerDelivery: React.FC<PropertyManagerDeliveryProps> = ({
   inspectionId,
   propertyId,
   propertyName,
-  className = ''
+  className = "",
 }) => {
   const {
     managerInfo,
@@ -51,7 +51,7 @@ const PropertyManagerDelivery: React.FC<PropertyManagerDeliveryProps> = ({
     handleDelivery,
     updateManagerInfo,
     updateDeliveryOption,
-    resetDeliveryStatus
+    resetDeliveryStatus,
   } = usePropertyManagerDelivery(inspectionId, propertyId, propertyName);
 
   if (isLoadingProperty) {

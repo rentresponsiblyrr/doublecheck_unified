@@ -1,9 +1,9 @@
 /**
  * PROPERTY SELECTION STEP - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade property selection following ZERO_TOLERANCE_STANDARDS
  * Reduced from 342 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (PropertyDataManager, PropertyList, etc.)
@@ -11,14 +11,14 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - PropertyDataManager: Data fetching and state management with render props
  * - PropertySearchInput: Search and filtering interface
  * - PropertyList: Property display and selection
  * - PropertySelectionActions: Action buttons and controls
  * - SelectedPropertyDisplay: Shows currently selected property
- * 
+ *
  * @example
  * ```typescript
  * <PropertySelectionStep
@@ -28,18 +28,18 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Home } from "lucide-react";
 
 // Import focused components
-import { PropertyDataManager } from './PropertyDataManager';
-import { PropertySearchInput } from './PropertySearchInput';
-import { PropertyList } from './PropertyList';
-import { PropertySelectionActions } from './PropertySelectionActions';
-import { SelectedPropertyDisplay } from './SelectedPropertyDisplay';
-import { PropertySelectionLoading } from '@/components/PropertySelectionLoading';
-import { PropertySelectionError } from '@/components/PropertySelectionError';
+import { PropertyDataManager } from "./PropertyDataManager";
+import { PropertySearchInput } from "./PropertySearchInput";
+import { PropertyList } from "./PropertyList";
+import { PropertySelectionActions } from "./PropertySelectionActions";
+import { SelectedPropertyDisplay } from "./SelectedPropertyDisplay";
+import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
+import { PropertySelectionError } from "@/components/PropertySelectionError";
 
 /**
  * Property interface
@@ -74,7 +74,7 @@ interface PropertySelectionStepProps {
 const PropertySelectionStep: React.FC<PropertySelectionStepProps> = ({
   onPropertySelected,
   selectedProperty,
-  className = ''
+  className = "",
 }) => {
   return (
     <Card className={className} id="property-selection-step">
@@ -99,7 +99,7 @@ const PropertySelectionStep: React.FC<PropertySelectionStepProps> = ({
             error,
             onSearch,
             onRefresh,
-            onPropertySelect
+            onPropertySelect,
           }) => (
             <>
               {/* Loading State */}
@@ -142,7 +142,10 @@ const PropertySelectionStep: React.FC<PropertySelectionStepProps> = ({
 
                   {/* Help Text */}
                   <div className="text-xs text-gray-500 pt-2 border-t">
-                    <p>Select a property to begin the inspection process. You can search by property name or address.</p>
+                    <p>
+                      Select a property to begin the inspection process. You can
+                      search by property name or address.
+                    </p>
                   </div>
                 </>
               )}

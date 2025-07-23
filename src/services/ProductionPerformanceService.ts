@@ -1,10 +1,10 @@
 /**
  * PRODUCTION PERFORMANCE SERVICE - ELITE MONITORING & CORRELATION SYSTEM
- * 
+ *
  * Advanced production monitoring service that correlates PWA features with Core Web Vitals
  * in real-world conditions, providing business impact analysis and automated optimization.
  * Designed for Netflix/Meta production monitoring standards with construction site resilience.
- * 
+ *
  * CORE CAPABILITIES:
  * - Real-time PWA + Core Web Vitals correlation tracking
  * - Business impact correlation (inspection completion rates)
@@ -13,7 +13,7 @@
  * - Network quality adaptation effectiveness tracking
  * - Battery usage optimization correlation analysis
  * - Production-ready error tracking and reporting
- * 
+ *
  * MONITORING FEATURES:
  * - Performance budget violation alerting
  * - Cross-system health monitoring
@@ -21,20 +21,24 @@
  * - Business metrics impact tracking
  * - Real-world performance data aggregation
  * - Automated performance reporting
- * 
+ *
  * INTEGRATION POINTS:
  * - Core Web Vitals Monitor for performance data
  * - PWA Managers for system health and cache performance
  * - Business logic for inspection workflow correlation
  * - Backend services for data persistence and alerting
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { logger } from '@/utils/logger';
-import { coreWebVitalsMonitor, CoreWebVitalsMetrics, PerformanceAlert } from '@/lib/performance/CoreWebVitalsMonitor';
-import { serviceWorkerManager } from '@/lib/pwa/ServiceWorkerManager';
-import { offlineStatusManager } from '@/lib/pwa/OfflineStatusManager';
+import { logger } from "@/utils/logger";
+import {
+  coreWebVitalsMonitor,
+  CoreWebVitalsMetrics,
+  PerformanceAlert,
+} from "@/lib/performance/CoreWebVitalsMonitor";
+import { serviceWorkerManager } from "@/lib/pwa/ServiceWorkerManager";
+import { offlineStatusManager } from "@/lib/pwa/OfflineStatusManager";
 
 // Core interfaces for production monitoring
 export interface PerformanceReport {
@@ -88,8 +92,12 @@ export interface BusinessCorrelationData {
 }
 
 export interface SystemAlert {
-  type: 'budget_violation' | 'system_degradation' | 'correlation_anomaly' | 'business_impact';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "budget_violation"
+    | "system_degradation"
+    | "correlation_anomaly"
+    | "business_impact";
+  severity: "low" | "medium" | "high" | "critical";
   message: string;
   context: Record<string, unknown>;
   timestamp: number;
@@ -110,7 +118,8 @@ export class ProductionPerformanceService {
 
   static getInstance(): ProductionPerformanceService {
     if (!ProductionPerformanceService.instance) {
-      ProductionPerformanceService.instance = new ProductionPerformanceService();
+      ProductionPerformanceService.instance =
+        new ProductionPerformanceService();
     }
     return ProductionPerformanceService.instance;
   }
@@ -120,12 +129,20 @@ export class ProductionPerformanceService {
    */
   async initialize(): Promise<boolean> {
     try {
-      logger.info('🚀 Initializing Production Performance Service', {}, 'PRODUCTION_PERF');
+      logger.info(
+        "🚀 Initializing Production Performance Service",
+        {},
+        "PRODUCTION_PERF",
+      );
 
       // Verify unified system is ready
       const unifiedStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
       if (!unifiedStatus?.integration.productionReady) {
-        logger.warn('Unified system not ready - limited monitoring available', {}, 'PRODUCTION_PERF');
+        logger.warn(
+          "Unified system not ready - limited monitoring available",
+          {},
+          "PRODUCTION_PERF",
+        );
       }
 
       // Setup real-time performance correlation
@@ -148,15 +165,22 @@ export class ProductionPerformanceService {
 
       this.isInitialized = true;
 
-      logger.info('✅ Production Performance Service initialized successfully', {
-        sessionId: this.sessionId,
-        unifiedSystemReady: unifiedStatus?.integration.productionReady
-      }, 'PRODUCTION_PERF');
+      logger.info(
+        "✅ Production Performance Service initialized successfully",
+        {
+          sessionId: this.sessionId,
+          unifiedSystemReady: unifiedStatus?.integration.productionReady,
+        },
+        "PRODUCTION_PERF",
+      );
 
       return true;
-
     } catch (error) {
-      logger.error('❌ Production Performance Service initialization failed', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "❌ Production Performance Service initialization failed",
+        { error },
+        "PRODUCTION_PERF",
+      );
       return false;
     }
   }
@@ -173,7 +197,7 @@ export class ProductionPerformanceService {
 
       // Setup PWA performance correlation
       const unsubscribeOffline = offlineStatusManager.subscribe((event) => {
-        if (event.type === 'network_status_changed') {
+        if (event.type === "network_status_changed") {
           this.recordNetworkTransition(event);
         }
       });
@@ -183,10 +207,17 @@ export class ProductionPerformanceService {
         this.recordPerformanceCorrelation();
       }, 60000); // Every minute
 
-      logger.info('Performance correlation monitoring setup complete', {}, 'PRODUCTION_PERF');
-
+      logger.info(
+        "Performance correlation monitoring setup complete",
+        {},
+        "PRODUCTION_PERF",
+      );
     } catch (error) {
-      logger.error('Failed to setup performance correlation', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to setup performance correlation",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -197,24 +228,24 @@ export class ProductionPerformanceService {
     try {
       // Track inspection workflow events
       const inspectionEvents = [
-        'inspection_started',
-        'inspection_completed', 
-        'inspection_abandoned',
-        'property_selected',
-        'checklist_item_completed',
-        'photo_captured',
-        'video_recorded'
+        "inspection_started",
+        "inspection_completed",
+        "inspection_abandoned",
+        "property_selected",
+        "checklist_item_completed",
+        "photo_captured",
+        "video_recorded",
       ];
 
-      inspectionEvents.forEach(eventType => {
+      inspectionEvents.forEach((eventType) => {
         window.addEventListener(eventType, (e: CustomEvent) => {
           this.recordBusinessCorrelation({
             event: eventType,
             performanceMetrics: coreWebVitalsMonitor.getCurrentMetrics(),
-            userFlow: 'inspection_workflow',
-            outcome: e.detail?.outcome || 'unknown',
+            userFlow: "inspection_workflow",
+            outcome: e.detail?.outcome || "unknown",
             timestamp: Date.now(),
-            context: e.detail
+            context: e.detail,
           });
         });
       });
@@ -222,10 +253,17 @@ export class ProductionPerformanceService {
       // Track user engagement correlation
       this.setupUserEngagementTracking();
 
-      logger.info('Business impact tracking setup complete', {}, 'PRODUCTION_PERF');
-
+      logger.info(
+        "Business impact tracking setup complete",
+        {},
+        "PRODUCTION_PERF",
+      );
     } catch (error) {
-      logger.error('Failed to setup business impact tracking', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to setup business impact tracking",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -237,7 +275,7 @@ export class ProductionPerformanceService {
       // Monitor performance budget violations
       coreWebVitalsMonitor.subscribeToAlerts((alert) => {
         this.sendSystemAlert({
-          type: 'budget_violation',
+          type: "budget_violation",
           severity: this.calculateAlertSeverity(alert),
           message: `Performance budget violation: ${alert.metric} = ${alert.value}ms`,
           context: {
@@ -246,9 +284,9 @@ export class ProductionPerformanceService {
             threshold: alert.threshold,
             url: window.location.pathname,
             userAgent: navigator.userAgent,
-            timestamp: alert.timestamp
+            timestamp: alert.timestamp,
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       });
 
@@ -257,10 +295,13 @@ export class ProductionPerformanceService {
         this.checkSystemHealth();
       }, 300000); // Every 5 minutes
 
-      logger.info('Performance alerting setup complete', {}, 'PRODUCTION_PERF');
-
+      logger.info("Performance alerting setup complete", {}, "PRODUCTION_PERF");
     } catch (error) {
-      logger.error('Failed to setup performance alerting', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to setup performance alerting",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -272,42 +313,53 @@ export class ProductionPerformanceService {
       // Monitor network quality changes for construction site adaptation
       const connection = (navigator as any).connection;
       if (connection) {
-        connection.addEventListener('change', () => {
+        connection.addEventListener("change", () => {
           const networkInfo = {
             effectiveType: connection.effectiveType,
             downlink: connection.downlink,
             rtt: connection.rtt,
-            saveData: connection.saveData
+            saveData: connection.saveData,
           };
-          
+
           this.recordConstructionSiteMetrics(networkInfo);
         });
       }
 
       // Monitor battery status for construction site optimization
-      if ('getBattery' in navigator) {
+      if ("getBattery" in navigator) {
         try {
           const battery = await (navigator as any).getBattery();
-          
-          battery.addEventListener('levelchange', () => {
+
+          battery.addEventListener("levelchange", () => {
             this.recordBatteryOptimization(battery.level);
           });
 
-          battery.addEventListener('chargingchange', () => {
-            logger.info('Battery charging state changed', {
-              charging: battery.charging,
-              level: battery.level
-            }, 'PRODUCTION_PERF');
+          battery.addEventListener("chargingchange", () => {
+            logger.info(
+              "Battery charging state changed",
+              {
+                charging: battery.charging,
+                level: battery.level,
+              },
+              "PRODUCTION_PERF",
+            );
           });
         } catch (error) {
-          logger.warn('Battery API not available', {}, 'PRODUCTION_PERF');
+          logger.warn("Battery API not available", {}, "PRODUCTION_PERF");
         }
       }
 
-      logger.info('Construction site monitoring setup complete', {}, 'PRODUCTION_PERF');
-
+      logger.info(
+        "Construction site monitoring setup complete",
+        {},
+        "PRODUCTION_PERF",
+      );
     } catch (error) {
-      logger.error('Failed to setup construction site monitoring', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to setup construction site monitoring",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -319,7 +371,10 @@ export class ProductionPerformanceService {
       const cwvMetrics = coreWebVitalsMonitor.getCurrentMetrics();
       const pwaMetrics = this.getPWAMetrics();
       const businessContext = this.getCurrentBusinessContext();
-      const correlationAnalysis = this.calculateCorrelationAnalysis(cwvMetrics, pwaMetrics);
+      const correlationAnalysis = this.calculateCorrelationAnalysis(
+        cwvMetrics,
+        pwaMetrics,
+      );
 
       const report: PerformanceReport = {
         timestamp: Date.now(),
@@ -329,7 +384,7 @@ export class ProductionPerformanceService {
         coreWebVitals: cwvMetrics,
         pwaMetrics,
         businessContext,
-        correlationAnalysis
+        correlationAnalysis,
       };
 
       this.performanceBuffer.push(report);
@@ -338,9 +393,12 @@ export class ProductionPerformanceService {
       if (this.performanceBuffer.length > 100) {
         this.performanceBuffer = this.performanceBuffer.slice(-50);
       }
-
     } catch (error) {
-      logger.error('Failed to record performance correlation', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to record performance correlation",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -350,26 +408,28 @@ export class ProductionPerformanceService {
   private getPWAMetrics(): PWAPerformanceMetrics {
     try {
       const networkStatus = offlineStatusManager.getNetworkStatus();
-      
+
       return {
-        serviceWorkerActive: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null,
+        serviceWorkerActive:
+          "serviceWorker" in navigator &&
+          navigator.serviceWorker.controller !== null,
         cacheHitRate: 0, // Would get from serviceWorkerManager if available
         offlineCapable: networkStatus.isOnline !== null,
-        installState: 'unknown', // Would get from installPromptHandler if available
-        networkQuality: networkStatus.quality?.category || 'unknown',
+        installState: "unknown", // Would get from installPromptHandler if available
+        networkQuality: networkStatus.quality?.category || "unknown",
         avgResponseTime: 0, // Would calculate from performance data
-        syncQueueSize: 0 // Would get from offlineStatusManager if available
+        syncQueueSize: 0, // Would get from offlineStatusManager if available
       };
     } catch (error) {
-      logger.error('Failed to get PWA metrics', { error }, 'PRODUCTION_PERF');
+      logger.error("Failed to get PWA metrics", { error }, "PRODUCTION_PERF");
       return {
         serviceWorkerActive: false,
         cacheHitRate: 0,
         offlineCapable: false,
-        installState: 'unknown',
-        networkQuality: 'unknown',
+        installState: "unknown",
+        networkQuality: "unknown",
         avgResponseTime: 0,
-        syncQueueSize: 0
+        syncQueueSize: 0,
       };
     }
   }
@@ -379,29 +439,41 @@ export class ProductionPerformanceService {
    */
   private getCurrentBusinessContext(): BusinessContext {
     const connection = (navigator as any).connection;
-    
+
     return {
       currentWorkflow: this.detectCurrentWorkflow(),
       userRole: this.getUserRole(),
       deviceType: this.getDeviceType(),
-      connectionType: connection?.effectiveType || 'unknown',
+      connectionType: connection?.effectiveType || "unknown",
       batteryLevel: undefined, // Would be populated by battery API if available
       inspectionId: this.getCurrentInspectionId(),
-      propertyId: this.getCurrentPropertyId()
+      propertyId: this.getCurrentPropertyId(),
     };
   }
 
   /**
    * Calculate correlation analysis between PWA and performance metrics
    */
-  private calculateCorrelationAnalysis(cwv: CoreWebVitalsMetrics, pwa: PWAPerformanceMetrics): CorrelationAnalysis {
+  private calculateCorrelationAnalysis(
+    cwv: CoreWebVitalsMetrics,
+    pwa: PWAPerformanceMetrics,
+  ): CorrelationAnalysis {
     return {
-      cacheImpactOnLCP: this.calculateCacheImpactOnLCP(cwv.lcp?.value || 0, pwa.cacheHitRate),
-      networkAdaptationEffectiveness: this.calculateNetworkAdaptation(pwa.networkQuality, cwv.lcp?.value || 0),
+      cacheImpactOnLCP: this.calculateCacheImpactOnLCP(
+        cwv.lcp?.value || 0,
+        pwa.cacheHitRate,
+      ),
+      networkAdaptationEffectiveness: this.calculateNetworkAdaptation(
+        pwa.networkQuality,
+        cwv.lcp?.value || 0,
+      ),
       offlineCapabilityScore: pwa.offlineCapable ? 100 : 0,
-      batteryOptimizationScore: pwa.avgResponseTime < 200 ? 100 : Math.max(0, 100 - (pwa.avgResponseTime / 10)),
+      batteryOptimizationScore:
+        pwa.avgResponseTime < 200
+          ? 100
+          : Math.max(0, 100 - pwa.avgResponseTime / 10),
       userEngagementCorrelation: this.calculateUserEngagement(),
-      businessImpactScore: this.calculateBusinessImpact()
+      businessImpactScore: this.calculateBusinessImpact(),
     };
   }
 
@@ -410,7 +482,7 @@ export class ProductionPerformanceService {
    */
   private recordBusinessCorrelation(data: BusinessCorrelationData): void {
     this.correlationBuffer.push(data);
-    
+
     // Keep buffer manageable
     if (this.correlationBuffer.length > 500) {
       this.correlationBuffer = this.correlationBuffer.slice(-250);
@@ -426,7 +498,10 @@ export class ProductionPerformanceService {
   private startPerformanceReporting(): void {
     // Send performance reports to backend every 5 minutes
     this.reportingInterval = window.setInterval(async () => {
-      if (this.performanceBuffer.length > 0 || this.correlationBuffer.length > 0) {
+      if (
+        this.performanceBuffer.length > 0 ||
+        this.correlationBuffer.length > 0
+      ) {
         await this.sendPerformanceReport();
       }
     }, 300000); // 5 minutes
@@ -447,19 +522,19 @@ export class ProductionPerformanceService {
           userAgent: navigator.userAgent,
           url: window.location.pathname,
           sessionDuration: Date.now() - performance.timeOrigin,
-          unifiedSystemStatus: (window as any).__UNIFIED_SYSTEM_STATUS__
-        }
+          unifiedSystemStatus: (window as any).__UNIFIED_SYSTEM_STATUS__,
+        },
       };
 
       // Only send to backend in production
       if (import.meta.env.PROD) {
-        await fetch('/api/performance/unified-report', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'X-Session-ID': this.sessionId
+        await fetch("/api/performance/unified-report", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Session-ID": this.sessionId,
           },
-          body: JSON.stringify(report)
+          body: JSON.stringify(report),
         });
       }
 
@@ -467,13 +542,20 @@ export class ProductionPerformanceService {
       this.performanceBuffer = [];
       this.correlationBuffer = [];
 
-      logger.debug('Unified performance report sent', {
-        performanceReports: report.performanceReports.length,
-        correlationData: report.correlationData.length
-      }, 'PRODUCTION_PERF');
-
+      logger.debug(
+        "Unified performance report sent",
+        {
+          performanceReports: report.performanceReports.length,
+          correlationData: report.correlationData.length,
+        },
+        "PRODUCTION_PERF",
+      );
     } catch (error) {
-      logger.error('Failed to send performance report', { error }, 'PRODUCTION_PERF');
+      logger.error(
+        "Failed to send performance report",
+        { error },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
@@ -486,26 +568,28 @@ export class ProductionPerformanceService {
 
     return {
       performance: {
-        averageLCP: this.calculateAverage(recentReports, 'lcp'),
-        averageFID: this.calculateAverage(recentReports, 'fid'),
-        averageCLS: this.calculateAverage(recentReports, 'cls'),
-        performanceScore: this.calculateAveragePerformanceScore(recentReports)
+        averageLCP: this.calculateAverage(recentReports, "lcp"),
+        averageFID: this.calculateAverage(recentReports, "fid"),
+        averageCLS: this.calculateAverage(recentReports, "cls"),
+        performanceScore: this.calculateAveragePerformanceScore(recentReports),
       },
       pwa: {
         averageCacheHitRate: this.calculateAverageCacheHitRate(recentReports),
-        offlineCapabilityRate: this.calculateOfflineCapabilityRate(recentReports),
-        networkQuality: this.getMostCommonNetworkQuality(recentReports)
+        offlineCapabilityRate:
+          this.calculateOfflineCapabilityRate(recentReports),
+        networkQuality: this.getMostCommonNetworkQuality(recentReports),
       },
       business: {
         completionRate: this.calculateCompletionRate(recentCorrelations),
         averageEngagement: this.calculateAverageEngagement(recentCorrelations),
-        errorRate: this.calculateErrorRate(recentCorrelations)
+        errorRate: this.calculateErrorRate(recentCorrelations),
       },
       correlation: {
         cachePerformanceImpact: this.calculateAverageCacheImpact(recentReports),
-        networkAdaptationScore: this.calculateAverageNetworkAdaptation(recentReports),
-        businessImpactScore: this.calculateAverageBusinessImpact(recentReports)
-      }
+        networkAdaptationScore:
+          this.calculateAverageNetworkAdaptation(recentReports),
+        businessImpactScore: this.calculateAverageBusinessImpact(recentReports),
+      },
     };
   }
 
@@ -517,18 +601,22 @@ export class ProductionPerformanceService {
     const pwaMetrics = this.getPWAMetrics();
     const correlation = this.analyzeAlertCorrelation(alert, pwaMetrics);
 
-    logger.warn('Performance alert with PWA correlation', {
-      alert,
-      pwaMetrics,
-      correlation
-    }, 'PRODUCTION_PERF');
+    logger.warn(
+      "Performance alert with PWA correlation",
+      {
+        alert,
+        pwaMetrics,
+        correlation,
+      },
+      "PRODUCTION_PERF",
+    );
 
     // Trigger adaptive optimizations if needed
     if (correlation.cacheRelated && pwaMetrics.cacheHitRate < 50) {
       this.triggerCacheOptimization();
     }
 
-    if (correlation.networkRelated && pwaMetrics.networkQuality === 'poor') {
+    if (correlation.networkRelated && pwaMetrics.networkQuality === "poor") {
       this.triggerNetworkOptimization();
     }
   }
@@ -539,25 +627,24 @@ export class ProductionPerformanceService {
   private checkSystemHealth(): void {
     try {
       const unifiedStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
-      
+
       if (!unifiedStatus?.integration.productionReady) {
         this.sendSystemAlert({
-          type: 'system_degradation',
-          severity: 'high',
-          message: 'Unified PWA + Performance system not fully operational',
+          type: "system_degradation",
+          severity: "high",
+          message: "Unified PWA + Performance system not fully operational",
           context: {
             unifiedStatus,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
       // Check for correlation anomalies
       this.checkCorrelationAnomalies();
-
     } catch (error) {
-      logger.error('System health check failed', { error }, 'PRODUCTION_PERF');
+      logger.error("System health check failed", { error }, "PRODUCTION_PERF");
     }
   }
 
@@ -565,19 +652,23 @@ export class ProductionPerformanceService {
    * Send system alert
    */
   private sendSystemAlert(alert: SystemAlert): void {
-    logger.warn('System alert generated', alert, 'PRODUCTION_PERF');
+    logger.warn("System alert generated", alert, "PRODUCTION_PERF");
 
     // Store alert for reporting
     if (import.meta.env.PROD) {
-      fetch('/api/performance/alert', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId
+      fetch("/api/performance/alert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-ID": this.sessionId,
         },
-        body: JSON.stringify(alert)
-      }).catch(error => {
-        logger.error('Failed to send system alert', { error }, 'PRODUCTION_PERF');
+        body: JSON.stringify(alert),
+      }).catch((error) => {
+        logger.error(
+          "Failed to send system alert",
+          { error },
+          "PRODUCTION_PERF",
+        );
       });
     }
   }
@@ -586,10 +677,13 @@ export class ProductionPerformanceService {
    * Setup page visibility tracking for accurate performance measurement
    */
   private setupPageVisibilityTracking(): void {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
         // Page hidden - send any pending data
-        if (this.performanceBuffer.length > 0 || this.correlationBuffer.length > 0) {
+        if (
+          this.performanceBuffer.length > 0 ||
+          this.correlationBuffer.length > 0
+        ) {
           this.sendPerformanceReport();
         }
       }
@@ -601,22 +695,29 @@ export class ProductionPerformanceService {
     return `perf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private calculateAlertSeverity(alert: PerformanceAlert): 'low' | 'medium' | 'high' | 'critical' {
-    if (alert.severity === 'critical') return 'critical';
-    if (alert.metric === 'lcp' && alert.value > 4000) return 'high';
-    if (alert.metric === 'fid' && alert.value > 300) return 'high';
-    if (alert.metric === 'cls' && alert.value > 0.25) return 'medium';
-    return 'low';
+  private calculateAlertSeverity(
+    alert: PerformanceAlert,
+  ): "low" | "medium" | "high" | "critical" {
+    if (alert.severity === "critical") return "critical";
+    if (alert.metric === "lcp" && alert.value > 4000) return "high";
+    if (alert.metric === "fid" && alert.value > 300) return "high";
+    if (alert.metric === "cls" && alert.value > 0.25) return "medium";
+    return "low";
   }
 
   private calculateCacheImpactOnLCP(lcp: number, cacheHitRate: number): number {
-    if (cacheHitRate > 80) return Math.max(0, (4000 - lcp) / 4000 * 100);
+    if (cacheHitRate > 80) return Math.max(0, ((4000 - lcp) / 4000) * 100);
     return 0;
   }
 
-  private calculateNetworkAdaptation(networkQuality: string, lcp: number): number {
-    const targetLCP = networkQuality === 'poor' ? 5000 : 2500;
-    return lcp < targetLCP ? 100 : Math.max(0, 100 - ((lcp - targetLCP) / targetLCP * 100));
+  private calculateNetworkAdaptation(
+    networkQuality: string,
+    lcp: number,
+  ): number {
+    const targetLCP = networkQuality === "poor" ? 5000 : 2500;
+    return lcp < targetLCP
+      ? 100
+      : Math.max(0, 100 - ((lcp - targetLCP) / targetLCP) * 100);
   }
 
   private calculateUserEngagement(): number {
@@ -631,22 +732,22 @@ export class ProductionPerformanceService {
 
   private detectCurrentWorkflow(): string {
     const path = window.location.pathname;
-    if (path.includes('inspection')) return 'inspection';
-    if (path.includes('property')) return 'property_selection';
-    if (path.includes('admin')) return 'administration';
-    return 'general';
+    if (path.includes("inspection")) return "inspection";
+    if (path.includes("property")) return "property_selection";
+    if (path.includes("admin")) return "administration";
+    return "general";
   }
 
   private getUserRole(): string {
     // Placeholder - would get from auth system
-    return 'inspector';
+    return "inspector";
   }
 
   private getDeviceType(): string {
     const width = window.innerWidth;
-    if (width < 768) return 'mobile';
-    if (width < 1024) return 'tablet';
-    return 'desktop';
+    if (width < 768) return "mobile";
+    if (width < 1024) return "tablet";
+    return "desktop";
   }
 
   private getCurrentInspectionId(): string | undefined {
@@ -659,38 +760,57 @@ export class ProductionPerformanceService {
     return undefined;
   }
 
-  private calculateAverage(reports: PerformanceReport[], metric: string): number {
+  private calculateAverage(
+    reports: PerformanceReport[],
+    metric: string,
+  ): number {
     // Placeholder for metric calculation
     return 0;
   }
 
-  private calculateAveragePerformanceScore(reports: PerformanceReport[]): number {
+  private calculateAveragePerformanceScore(
+    reports: PerformanceReport[],
+  ): number {
     if (reports.length === 0) return 0;
-    return reports.reduce((sum, report) => sum + (report.coreWebVitals.performanceScore || 0), 0) / reports.length;
+    return (
+      reports.reduce(
+        (sum, report) => sum + (report.coreWebVitals.performanceScore || 0),
+        0,
+      ) / reports.length
+    );
   }
 
   private calculateAverageCacheHitRate(reports: PerformanceReport[]): number {
     if (reports.length === 0) return 0;
-    return reports.reduce((sum, report) => sum + report.pwaMetrics.cacheHitRate, 0) / reports.length;
+    return (
+      reports.reduce((sum, report) => sum + report.pwaMetrics.cacheHitRate, 0) /
+      reports.length
+    );
   }
 
   private calculateOfflineCapabilityRate(reports: PerformanceReport[]): number {
     if (reports.length === 0) return 0;
-    const offlineCapableCount = reports.filter(report => report.pwaMetrics.offlineCapable).length;
+    const offlineCapableCount = reports.filter(
+      (report) => report.pwaMetrics.offlineCapable,
+    ).length;
     return (offlineCapableCount / reports.length) * 100;
   }
 
   private getMostCommonNetworkQuality(reports: PerformanceReport[]): string {
     // Placeholder - would calculate most common network quality
-    return 'good';
+    return "good";
   }
 
-  private calculateCompletionRate(correlations: BusinessCorrelationData[]): number {
+  private calculateCompletionRate(
+    correlations: BusinessCorrelationData[],
+  ): number {
     // Placeholder - would calculate inspection completion rate
     return 85;
   }
 
-  private calculateAverageEngagement(correlations: BusinessCorrelationData[]): number {
+  private calculateAverageEngagement(
+    correlations: BusinessCorrelationData[],
+  ): number {
     // Placeholder - would calculate user engagement metrics
     return 78;
   }
@@ -702,87 +822,143 @@ export class ProductionPerformanceService {
 
   private calculateAverageCacheImpact(reports: PerformanceReport[]): number {
     if (reports.length === 0) return 0;
-    return reports.reduce((sum, report) => sum + report.correlationAnalysis.cacheImpactOnLCP, 0) / reports.length;
+    return (
+      reports.reduce(
+        (sum, report) => sum + report.correlationAnalysis.cacheImpactOnLCP,
+        0,
+      ) / reports.length
+    );
   }
 
-  private calculateAverageNetworkAdaptation(reports: PerformanceReport[]): number {
+  private calculateAverageNetworkAdaptation(
+    reports: PerformanceReport[],
+  ): number {
     if (reports.length === 0) return 0;
-    return reports.reduce((sum, report) => sum + report.correlationAnalysis.networkAdaptationEffectiveness, 0) / reports.length;
+    return (
+      reports.reduce(
+        (sum, report) =>
+          sum + report.correlationAnalysis.networkAdaptationEffectiveness,
+        0,
+      ) / reports.length
+    );
   }
 
   private calculateAverageBusinessImpact(reports: PerformanceReport[]): number {
     if (reports.length === 0) return 0;
-    return reports.reduce((sum, report) => sum + report.correlationAnalysis.businessImpactScore, 0) / reports.length;
+    return (
+      reports.reduce(
+        (sum, report) => sum + report.correlationAnalysis.businessImpactScore,
+        0,
+      ) / reports.length
+    );
   }
 
-  private analyzeAlertCorrelation(alert: PerformanceAlert, pwaMetrics: PWAPerformanceMetrics) {
+  private analyzeAlertCorrelation(
+    alert: PerformanceAlert,
+    pwaMetrics: PWAPerformanceMetrics,
+  ) {
     return {
-      cacheRelated: alert.metric === 'lcp' && pwaMetrics.cacheHitRate < 60,
-      networkRelated: pwaMetrics.networkQuality === 'poor' || pwaMetrics.networkQuality === 'fair'
+      cacheRelated: alert.metric === "lcp" && pwaMetrics.cacheHitRate < 60,
+      networkRelated:
+        pwaMetrics.networkQuality === "poor" ||
+        pwaMetrics.networkQuality === "fair",
     };
   }
 
   private triggerCacheOptimization(): void {
-    logger.info('Triggering cache optimization due to performance alert', {}, 'PRODUCTION_PERF');
+    logger.info(
+      "Triggering cache optimization due to performance alert",
+      {},
+      "PRODUCTION_PERF",
+    );
     // Would implement cache optimization triggers
   }
 
   private triggerNetworkOptimization(): void {
-    logger.info('Triggering network optimization due to performance alert', {}, 'PRODUCTION_PERF');
+    logger.info(
+      "Triggering network optimization due to performance alert",
+      {},
+      "PRODUCTION_PERF",
+    );
     // Would implement network optimization triggers
   }
 
   private setupUserEngagementTracking(): void {
     // Track user interaction patterns for correlation analysis
-    ['click', 'scroll', 'keydown'].forEach(eventType => {
-      document.addEventListener(eventType, () => {
-        // Track engagement metrics
-      }, { passive: true });
+    ["click", "scroll", "keydown"].forEach((eventType) => {
+      document.addEventListener(
+        eventType,
+        () => {
+          // Track engagement metrics
+        },
+        { passive: true },
+      );
     });
   }
 
   private analyzeBusinessCorrelation(data: BusinessCorrelationData): void {
     // Analyze correlation between performance and business outcomes
-    if (data.event === 'inspection_abandoned' && data.performanceMetrics.lcp?.value > 4000) {
-      logger.warn('Inspection abandonment correlated with poor LCP', {
-        lcp: data.performanceMetrics.lcp.value,
-        event: data.event
-      }, 'PRODUCTION_PERF');
+    if (
+      data.event === "inspection_abandoned" &&
+      data.performanceMetrics.lcp?.value > 4000
+    ) {
+      logger.warn(
+        "Inspection abandonment correlated with poor LCP",
+        {
+          lcp: data.performanceMetrics.lcp.value,
+          event: data.event,
+        },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
   private recordNetworkTransition(event: NetworkInformation): void {
-    logger.info('Network transition recorded', {
-      isOnline: event.isOnline,
-      timestamp: Date.now()
-    }, 'PRODUCTION_PERF');
+    logger.info(
+      "Network transition recorded",
+      {
+        isOnline: event.isOnline,
+        timestamp: Date.now(),
+      },
+      "PRODUCTION_PERF",
+    );
   }
 
   private recordConstructionSiteMetrics(networkInfo: NetworkInformation): void {
-    logger.info('Construction site network metrics recorded', networkInfo, 'PRODUCTION_PERF');
+    logger.info(
+      "Construction site network metrics recorded",
+      networkInfo,
+      "PRODUCTION_PERF",
+    );
   }
 
   private recordBatteryOptimization(batteryLevel: number): void {
-    if (batteryLevel < 0.15) { // Below 15%
-      logger.warn('Low battery detected - monitoring performance impact', {
-        batteryLevel
-      }, 'PRODUCTION_PERF');
+    if (batteryLevel < 0.15) {
+      // Below 15%
+      logger.warn(
+        "Low battery detected - monitoring performance impact",
+        {
+          batteryLevel,
+        },
+        "PRODUCTION_PERF",
+      );
     }
   }
 
   private checkCorrelationAnomalies(): void {
     // Check for unusual correlations between PWA and performance metrics
     const recentReports = this.performanceBuffer.slice(-5);
-    
+
     if (recentReports.length >= 3) {
       const avgCacheImpact = this.calculateAverageCacheImpact(recentReports);
       if (avgCacheImpact < 10) {
         this.sendSystemAlert({
-          type: 'correlation_anomaly',
-          severity: 'medium',
-          message: 'Low cache performance impact detected - potential correlation issue',
+          type: "correlation_anomaly",
+          severity: "medium",
+          message:
+            "Low cache performance impact detected - potential correlation issue",
           context: { avgCacheImpact },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     }
@@ -810,21 +986,29 @@ export class ProductionPerformanceService {
       clearInterval(this.reportingInterval);
       this.reportingInterval = null;
     }
-    
+
     // Send final report
-    if (this.performanceBuffer.length > 0 || this.correlationBuffer.length > 0) {
+    if (
+      this.performanceBuffer.length > 0 ||
+      this.correlationBuffer.length > 0
+    ) {
       this.sendPerformanceReport();
     }
-    
+
     this.isInitialized = false;
-    logger.info('Production Performance Service destroyed', {}, 'PRODUCTION_PERF');
+    logger.info(
+      "Production Performance Service destroyed",
+      {},
+      "PRODUCTION_PERF",
+    );
   }
 }
 
 // Initialize in production environment
 if (import.meta.env.PROD) {
-  const productionPerformanceService = ProductionPerformanceService.getInstance();
-  
+  const productionPerformanceService =
+    ProductionPerformanceService.getInstance();
+
   // Initialize after a short delay to ensure other systems are ready
   setTimeout(() => {
     productionPerformanceService.initialize();
@@ -832,5 +1016,6 @@ if (import.meta.env.PROD) {
 }
 
 // Export singleton instance
-export const productionPerformanceService = ProductionPerformanceService.getInstance();
+export const productionPerformanceService =
+  ProductionPerformanceService.getInstance();
 export default productionPerformanceService;

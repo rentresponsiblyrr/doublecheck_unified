@@ -1,9 +1,9 @@
 /**
  * Advanced Threat Detection Service
- * 
+ *
  * Real-time threat detection with behavioral analysis, machine learning patterns,
  * and automated threat response. Built to enterprise security standards.
- * 
+ *
  * Features:
  * - Real-time attack pattern detection
  * - Behavioral anomaly analysis
@@ -12,14 +12,22 @@
  * - SOC 2 compliance monitoring
  */
 
-import { log } from '@/lib/logging/enterprise-logger';
-import { performanceMonitor } from '@/lib/monitoring/performance-monitor';
+import { log } from "@/lib/logging/enterprise-logger";
+import { performanceMonitor } from "@/lib/monitoring/performance-monitor";
 
 export interface ThreatPattern {
   id: string;
   name: string;
-  category: 'injection' | 'xss' | 'csrf' | 'brute_force' | 'data_exfiltration' | 'privilege_escalation' | 'dos' | 'bot';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  category:
+    | "injection"
+    | "xss"
+    | "csrf"
+    | "brute_force"
+    | "data_exfiltration"
+    | "privilege_escalation"
+    | "dos"
+    | "bot";
+  severity: "low" | "medium" | "high" | "critical";
   pattern: RegExp | string;
   behavioralSignatures: BehavioralSignature[];
   riskWeight: number;
@@ -28,7 +36,7 @@ export interface ThreatPattern {
 }
 
 export interface BehavioralSignature {
-  type: 'frequency' | 'sequence' | 'timing' | 'geographic' | 'device';
+  type: "frequency" | "sequence" | "timing" | "geographic" | "device";
   parameters: Record<string, unknown>;
   threshold: number;
   timeWindow: number;
@@ -42,18 +50,27 @@ export interface ThreatEvent {
   userId?: string;
   sessionId: string;
   threatType: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   confidence: number;
   riskScore: number;
   evidences: ThreatEvidence[];
   mitigated: boolean;
   mitigationActions: string[];
   falsePositive: boolean;
-  investigationStatus: 'pending' | 'investigating' | 'resolved' | 'false_positive';
+  investigationStatus:
+    | "pending"
+    | "investigating"
+    | "resolved"
+    | "false_positive";
 }
 
 export interface ThreatEvidence {
-  type: 'pattern_match' | 'behavioral_anomaly' | 'reputation' | 'geographic' | 'rate_limit';
+  type:
+    | "pattern_match"
+    | "behavioral_anomaly"
+    | "reputation"
+    | "geographic"
+    | "rate_limit";
   description: string;
   confidence: number;
   data: Record<string, unknown>;
@@ -69,7 +86,7 @@ export interface ThreatIntelligence {
 
 export interface IPReputationData {
   ip: string;
-  reputation: 'clean' | 'suspicious' | 'malicious';
+  reputation: "clean" | "suspicious" | "malicious";
   riskScore: number;
   lastSeen: number;
   sources: string[];
@@ -84,7 +101,7 @@ export interface AttackSignature {
   type: string;
   pattern: string;
   indicators: string[];
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   firstSeen: number;
   lastSeen: number;
   frequency: number;
@@ -93,7 +110,7 @@ export interface AttackSignature {
 export interface GeographicRisk {
   country: string;
   region: string;
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  riskLevel: "low" | "medium" | "high" | "critical";
   commonThreats: string[];
   lastAssessment: number;
 }
@@ -136,14 +153,19 @@ export class AdvancedThreatDetectionService {
       highThreshold: 70,
       mediumThreshold: 50,
       mitigationActions: {
-        critical: ['block_ip', 'lock_account', 'notify_soc', 'quarantine_session'],
-        high: ['rate_limit', 'challenge_user', 'enhanced_monitoring'],
-        medium: ['log_event', 'flag_for_review'],
-        low: ['log_event']
+        critical: [
+          "block_ip",
+          "lock_account",
+          "notify_soc",
+          "quarantine_session",
+        ],
+        high: ["rate_limit", "challenge_user", "enhanced_monitoring"],
+        medium: ["log_event", "flag_for_review"],
+        low: ["log_event"],
       },
       maxAutoActions: 5,
       cooldownPeriod: 300000, // 5 minutes
-      ...config
+      ...config,
     };
 
     this.threatIntelligence = {
@@ -151,7 +173,7 @@ export class AdvancedThreatDetectionService {
       maliciousPatterns: [],
       attackSignatures: new Map(),
       geographicRisks: new Map(),
-      lastUpdated: 0
+      lastUpdated: 0,
     };
 
     this.initializeDetectionRules();
@@ -166,30 +188,38 @@ export class AdvancedThreatDetectionService {
 
       // Load threat intelligence
       await this.loadThreatIntelligence();
-      
+
       // Initialize behavioral analysis
       this.initializeBehavioralAnalysis();
-      
+
       // Start real-time monitoring
       this.startRealTimeMonitoring();
-      
+
       // Setup intelligence updates
       this.scheduleIntelligenceUpdates();
 
       this.isInitialized = true;
 
-      log.info('Advanced Threat Detection Service initialized', {
-        component: 'AdvancedThreatDetectionService',
-        action: 'initialize',
-        rulesLoaded: this.detectionRules.length,
-        intelligenceAge: Date.now() - this.threatIntelligence.lastUpdated
-      }, 'THREAT_DETECTION_INITIALIZED');
-
+      log.info(
+        "Advanced Threat Detection Service initialized",
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "initialize",
+          rulesLoaded: this.detectionRules.length,
+          intelligenceAge: Date.now() - this.threatIntelligence.lastUpdated,
+        },
+        "THREAT_DETECTION_INITIALIZED",
+      );
     } catch (error) {
-      log.error('Failed to initialize Advanced Threat Detection Service', error as Error, {
-        component: 'AdvancedThreatDetectionService',
-        action: 'initialize'
-      }, 'THREAT_DETECTION_INIT_FAILED');
+      log.error(
+        "Failed to initialize Advanced Threat Detection Service",
+        error as Error,
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "initialize",
+        },
+        "THREAT_DETECTION_INIT_FAILED",
+      );
     }
   }
 
@@ -210,14 +240,17 @@ export class AdvancedThreatDetectionService {
     try {
       const evidences: ThreatEvidence[] = [];
       let totalRiskScore = 0;
-      let highestSeverity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+      let highestSeverity: "low" | "medium" | "high" | "critical" = "low";
 
       // IP reputation analysis
       const ipReputation = await this.analyzeIPReputation(request.ip);
       if (ipReputation.evidence) {
         evidences.push(ipReputation.evidence);
         totalRiskScore += ipReputation.riskScore;
-        if (this.getSeverityWeight(ipReputation.severity) > this.getSeverityWeight(highestSeverity)) {
+        if (
+          this.getSeverityWeight(ipReputation.severity) >
+          this.getSeverityWeight(highestSeverity)
+        ) {
           highestSeverity = ipReputation.severity;
         }
       }
@@ -226,7 +259,10 @@ export class AdvancedThreatDetectionService {
       const patternAnalysis = await this.analyzePatterns(request);
       evidences.push(...patternAnalysis.evidences);
       totalRiskScore += patternAnalysis.riskScore;
-      if (this.getSeverityWeight(patternAnalysis.severity) > this.getSeverityWeight(highestSeverity)) {
+      if (
+        this.getSeverityWeight(patternAnalysis.severity) >
+        this.getSeverityWeight(highestSeverity)
+      ) {
         highestSeverity = patternAnalysis.severity;
       }
 
@@ -235,7 +271,10 @@ export class AdvancedThreatDetectionService {
       if (behaviorAnalysis.evidence) {
         evidences.push(behaviorAnalysis.evidence);
         totalRiskScore += behaviorAnalysis.riskScore;
-        if (this.getSeverityWeight(behaviorAnalysis.severity) > this.getSeverityWeight(highestSeverity)) {
+        if (
+          this.getSeverityWeight(behaviorAnalysis.severity) >
+          this.getSeverityWeight(highestSeverity)
+        ) {
           highestSeverity = behaviorAnalysis.severity;
         }
       }
@@ -245,7 +284,10 @@ export class AdvancedThreatDetectionService {
       if (geoAnalysis.evidence) {
         evidences.push(geoAnalysis.evidence);
         totalRiskScore += geoAnalysis.riskScore;
-        if (this.getSeverityWeight(geoAnalysis.severity) > this.getSeverityWeight(highestSeverity)) {
+        if (
+          this.getSeverityWeight(geoAnalysis.severity) >
+          this.getSeverityWeight(highestSeverity)
+        ) {
           highestSeverity = geoAnalysis.severity;
         }
       }
@@ -255,7 +297,10 @@ export class AdvancedThreatDetectionService {
       if (rateLimitAnalysis.evidence) {
         evidences.push(rateLimitAnalysis.evidence);
         totalRiskScore += rateLimitAnalysis.riskScore;
-        if (this.getSeverityWeight(rateLimitAnalysis.severity) > this.getSeverityWeight(highestSeverity)) {
+        if (
+          this.getSeverityWeight(rateLimitAnalysis.severity) >
+          this.getSeverityWeight(highestSeverity)
+        ) {
           highestSeverity = rateLimitAnalysis.severity;
         }
       }
@@ -281,7 +326,7 @@ export class AdvancedThreatDetectionService {
         mitigated: false,
         mitigationActions: [],
         falsePositive: false,
-        investigationStatus: 'pending'
+        investigationStatus: "pending",
       };
 
       // Store threat event
@@ -297,35 +342,43 @@ export class AdvancedThreatDetectionService {
 
       // Track metrics
       performanceMonitor.trackMetric(
-        'security.threat.detected',
+        "security.threat.detected",
         threatEvent.riskScore,
-        'score',
+        "score",
         {
           threatType: threatEvent.threatType,
           severity: threatEvent.severity,
-          sourceIP: threatEvent.sourceIP
-        }
+          sourceIP: threatEvent.sourceIP,
+        },
       );
 
-      log.warn('Threat detected', {
-        component: 'AdvancedThreatDetectionService',
-        action: 'analyzeRequest',
-        threatId: threatEvent.id,
-        threatType: threatEvent.threatType,
-        severity: threatEvent.severity,
-        riskScore: threatEvent.riskScore,
-        evidenceCount: evidences.length
-      }, 'THREAT_DETECTED');
+      log.warn(
+        "Threat detected",
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "analyzeRequest",
+          threatId: threatEvent.id,
+          threatType: threatEvent.threatType,
+          severity: threatEvent.severity,
+          riskScore: threatEvent.riskScore,
+          evidenceCount: evidences.length,
+        },
+        "THREAT_DETECTED",
+      );
 
       return threatEvent;
-
     } catch (error) {
-      log.error('Error analyzing request for threats', error as Error, {
-        component: 'AdvancedThreatDetectionService',
-        action: 'analyzeRequest',
-        requestPath: request.path,
-        sourceIP: request.ip
-      }, 'THREAT_ANALYSIS_ERROR');
+      log.error(
+        "Error analyzing request for threats",
+        error as Error,
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "analyzeRequest",
+          requestPath: request.path,
+          sourceIP: request.ip,
+        },
+        "THREAT_ANALYSIS_ERROR",
+      );
       return null;
     }
   }
@@ -342,41 +395,53 @@ export class AdvancedThreatDetectionService {
     topThreatTypes: Array<{ type: string; count: number }>;
     recentAlerts: ThreatEvent[];
   } {
-    const recentWindow = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
-    const recentEvents = Array.from(this.threatEvents.values())
-      .filter(event => event.timestamp > recentWindow);
+    const recentWindow = Date.now() - 24 * 60 * 60 * 1000; // 24 hours
+    const recentEvents = Array.from(this.threatEvents.values()).filter(
+      (event) => event.timestamp > recentWindow,
+    );
 
-    const criticalThreats = recentEvents.filter(e => e.severity === 'critical').length;
-    const mitigatedThreats = recentEvents.filter(e => e.mitigated).length;
-    const falsePositives = recentEvents.filter(e => e.falsePositive).length;
+    const criticalThreats = recentEvents.filter(
+      (e) => e.severity === "critical",
+    ).length;
+    const mitigatedThreats = recentEvents.filter((e) => e.mitigated).length;
+    const falsePositives = recentEvents.filter((e) => e.falsePositive).length;
 
-    const threatTypeCounts = recentEvents.reduce((acc, event) => {
-      acc[event.threatType] = (acc[event.threatType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const threatTypeCounts = recentEvents.reduce(
+      (acc, event) => {
+        acc[event.threatType] = (acc[event.threatType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const topThreatTypes = Object.entries(threatTypeCounts)
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    const averageRiskScore = recentEvents.length > 0
-      ? recentEvents.reduce((sum, event) => sum + event.riskScore, 0) / recentEvents.length
-      : 0;
+    const averageRiskScore =
+      recentEvents.length > 0
+        ? recentEvents.reduce((sum, event) => sum + event.riskScore, 0) /
+          recentEvents.length
+        : 0;
 
     const recentAlerts = recentEvents
-      .filter(event => event.severity === 'high' || event.severity === 'critical')
+      .filter(
+        (event) => event.severity === "high" || event.severity === "critical",
+      )
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 10);
 
     return {
-      activeThreats: recentEvents.filter(e => !e.mitigated && !e.falsePositive).length,
+      activeThreats: recentEvents.filter(
+        (e) => !e.mitigated && !e.falsePositive,
+      ).length,
       criticalThreats,
       mitigatedThreats,
       falsePositives,
       averageRiskScore,
       topThreatTypes,
-      recentAlerts
+      recentAlerts,
     };
   }
 
@@ -394,17 +459,21 @@ export class AdvancedThreatDetectionService {
     const threat = this.threatEvents.get(threatId);
     if (threat) {
       threat.falsePositive = true;
-      threat.investigationStatus = 'false_positive';
-      
+      threat.investigationStatus = "false_positive";
+
       // Learn from false positive to improve detection
       this.learnFromFalsePositive(threat, reason);
-      
-      log.info('Threat marked as false positive', {
-        component: 'AdvancedThreatDetectionService',
-        action: 'markAsFalsePositive',
-        threatId,
-        reason
-      }, 'THREAT_FALSE_POSITIVE');
+
+      log.info(
+        "Threat marked as false positive",
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "markAsFalsePositive",
+          threatId,
+          reason,
+        },
+        "THREAT_FALSE_POSITIVE",
+      );
     }
   }
 
@@ -423,7 +492,7 @@ export class AdvancedThreatDetectionService {
       maliciousPatterns: this.threatIntelligence.maliciousPatterns.length,
       attackSignatures: this.threatIntelligence.attackSignatures.size,
       geographicRisks: this.threatIntelligence.geographicRisks.size,
-      lastUpdated: this.threatIntelligence.lastUpdated
+      lastUpdated: this.threatIntelligence.lastUpdated,
     };
   }
 
@@ -434,66 +503,67 @@ export class AdvancedThreatDetectionService {
     this.detectionRules = [
       // SQL Injection patterns
       {
-        id: 'sql_injection_basic',
-        name: 'Basic SQL Injection',
-        category: 'injection',
-        severity: 'high',
-        pattern: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|OR|AND)\b.*['";]|['";]\s*(OR|AND)\s*['";])/i,
+        id: "sql_injection_basic",
+        name: "Basic SQL Injection",
+        category: "injection",
+        severity: "high",
+        pattern:
+          /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|OR|AND)\b.*['";]|['";]\s*(OR|AND)\s*['";])/i,
         behavioralSignatures: [],
         riskWeight: 30,
         falsePositiveRate: 0.1,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       },
       // XSS patterns
       {
-        id: 'xss_script_injection',
-        name: 'XSS Script Injection',
-        category: 'xss',
-        severity: 'high',
+        id: "xss_script_injection",
+        name: "XSS Script Injection",
+        category: "xss",
+        severity: "high",
         pattern: /<script[^>]*>.*?<\/script>|javascript:|on\w+\s*=/i,
         behavioralSignatures: [],
         riskWeight: 25,
         falsePositiveRate: 0.05,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       },
       // Brute force patterns
       {
-        id: 'brute_force_login',
-        name: 'Brute Force Login Attempt',
-        category: 'brute_force',
-        severity: 'medium',
-        pattern: '/login|/auth|/signin',
+        id: "brute_force_login",
+        name: "Brute Force Login Attempt",
+        category: "brute_force",
+        severity: "medium",
+        pattern: "/login|/auth|/signin",
         behavioralSignatures: [
           {
-            type: 'frequency',
-            parameters: { path: '/login' },
+            type: "frequency",
+            parameters: { path: "/login" },
             threshold: 10,
-            timeWindow: 300000 // 5 minutes
-          }
+            timeWindow: 300000, // 5 minutes
+          },
         ],
         riskWeight: 20,
         falsePositiveRate: 0.2,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       },
       // Bot detection
       {
-        id: 'suspicious_bot',
-        name: 'Suspicious Bot Activity',
-        category: 'bot',
-        severity: 'medium',
-        pattern: 'bot|crawler|spider|scraper',
+        id: "suspicious_bot",
+        name: "Suspicious Bot Activity",
+        category: "bot",
+        severity: "medium",
+        pattern: "bot|crawler|spider|scraper",
         behavioralSignatures: [
           {
-            type: 'frequency',
+            type: "frequency",
             parameters: {},
             threshold: 50,
-            timeWindow: 60000 // 1 minute
-          }
+            timeWindow: 60000, // 1 minute
+          },
         ],
         riskWeight: 15,
         falsePositiveRate: 0.3,
-        lastUpdated: Date.now()
-      }
+        lastUpdated: Date.now(),
+      },
     ];
   }
 
@@ -503,10 +573,10 @@ export class AdvancedThreatDetectionService {
   private async analyzeIPReputation(ip: string): Promise<{
     evidence?: ThreatEvidence;
     riskScore: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
   }> {
     const reputation = this.threatIntelligence.ipReputation.get(ip);
-    
+
     if (!reputation) {
       // Unknown IP, perform lookup
       const lookupResult = await this.performIPLookup(ip);
@@ -514,40 +584,40 @@ export class AdvancedThreatDetectionService {
         this.threatIntelligence.ipReputation.set(ip, lookupResult);
         return this.analyzeIPReputation(ip);
       }
-      return { riskScore: 0, severity: 'low' };
+      return { riskScore: 0, severity: "low" };
     }
 
     let riskScore = reputation.riskScore;
-    let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    let severity: "low" | "medium" | "high" | "critical" = "low";
 
-    if (reputation.reputation === 'malicious') {
+    if (reputation.reputation === "malicious") {
       riskScore += 40;
-      severity = 'critical';
-    } else if (reputation.reputation === 'suspicious') {
+      severity = "critical";
+    } else if (reputation.reputation === "suspicious") {
       riskScore += 20;
-      severity = 'high';
+      severity = "high";
     }
 
     // Check attack history
     if (reputation.attackHistory.length > 0) {
       const recentAttacks = reputation.attackHistory.filter(
-        attack => Date.now() - attack.timestamp < 7 * 24 * 60 * 60 * 1000 // 7 days
+        (attack) => Date.now() - attack.timestamp < 7 * 24 * 60 * 60 * 1000, // 7 days
       );
       riskScore += recentAttacks.length * 5;
     }
 
-    if (riskScore < 10) return { riskScore, severity: 'low' };
+    if (riskScore < 10) return { riskScore, severity: "low" };
 
     const evidence: ThreatEvidence = {
-      type: 'reputation',
+      type: "reputation",
       description: `IP ${ip} has ${reputation.reputation} reputation`,
       confidence: 0.9,
       data: {
         reputation: reputation.reputation,
         riskScore: reputation.riskScore,
         attackHistory: reputation.attackHistory.length,
-        sources: reputation.sources
-      }
+        sources: reputation.sources,
+      },
     };
 
     return { evidence, riskScore, severity };
@@ -569,40 +639,45 @@ export class AdvancedThreatDetectionService {
   }): Promise<{
     evidences: ThreatEvidence[];
     riskScore: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
   }> {
     const evidences: ThreatEvidence[] = [];
     let totalRiskScore = 0;
-    let highestSeverity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    let highestSeverity: "low" | "medium" | "high" | "critical" = "low";
 
-    const searchableContent = `${request.path} ${request.userAgent} ${JSON.stringify(request.headers)} ${request.body || ''}`;
+    const searchableContent = `${request.path} ${request.userAgent} ${JSON.stringify(request.headers)} ${request.body || ""}`;
 
     for (const rule of this.detectionRules) {
       let matches = false;
-      
+
       if (rule.pattern instanceof RegExp) {
         matches = rule.pattern.test(searchableContent);
       } else {
-        matches = searchableContent.toLowerCase().includes(rule.pattern.toLowerCase());
+        matches = searchableContent
+          .toLowerCase()
+          .includes(rule.pattern.toLowerCase());
       }
 
       if (matches) {
         const evidence: ThreatEvidence = {
-          type: 'pattern_match',
+          type: "pattern_match",
           description: `Detected ${rule.name}`,
           confidence: 1 - rule.falsePositiveRate,
           data: {
             ruleId: rule.id,
             ruleName: rule.name,
             category: rule.category,
-            pattern: rule.pattern.toString()
-          }
+            pattern: rule.pattern.toString(),
+          },
         };
 
         evidences.push(evidence);
         totalRiskScore += rule.riskWeight;
-        
-        if (this.getSeverityWeight(rule.severity) > this.getSeverityWeight(highestSeverity)) {
+
+        if (
+          this.getSeverityWeight(rule.severity) >
+          this.getSeverityWeight(highestSeverity)
+        ) {
           highestSeverity = rule.severity;
         }
       }
@@ -627,7 +702,7 @@ export class AdvancedThreatDetectionService {
   }): Promise<{
     evidence?: ThreatEvidence;
     riskScore: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
   }> {
     const userId = request.userId || request.ip;
     const profile = this.behaviorProfiles.get(userId);
@@ -639,9 +714,9 @@ export class AdvancedThreatDetectionService {
         requestHistory: [request],
         normalPatterns: new Map(),
         anomalyScore: 0,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       });
-      return { riskScore: 0, severity: 'low' };
+      return { riskScore: 0, severity: "low" };
     }
 
     // Update profile
@@ -649,28 +724,34 @@ export class AdvancedThreatDetectionService {
     profile.lastUpdated = Date.now();
 
     // Keep only recent history (last 24 hours)
-    const recentWindow = Date.now() - (24 * 60 * 60 * 1000);
-    profile.requestHistory = profile.requestHistory.filter(r => r.timestamp > recentWindow);
+    const recentWindow = Date.now() - 24 * 60 * 60 * 1000;
+    profile.requestHistory = profile.requestHistory.filter(
+      (r) => r.timestamp > recentWindow,
+    );
 
     // Analyze for anomalies
     const anomalies = this.detectBehavioralAnomalies(profile, request);
 
     if (anomalies.length === 0) {
-      return { riskScore: 0, severity: 'low' };
+      return { riskScore: 0, severity: "low" };
     }
 
-    const riskScore = anomalies.reduce((sum, anomaly) => sum + anomaly.score, 0);
-    const severity = riskScore > 30 ? 'high' : riskScore > 15 ? 'medium' : 'low';
+    const riskScore = anomalies.reduce(
+      (sum, anomaly) => sum + anomaly.score,
+      0,
+    );
+    const severity =
+      riskScore > 30 ? "high" : riskScore > 15 ? "medium" : "low";
 
     const evidence: ThreatEvidence = {
-      type: 'behavioral_anomaly',
-      description: `Behavioral anomalies detected: ${anomalies.map(a => a.type).join(', ')}`,
+      type: "behavioral_anomaly",
+      description: `Behavioral anomalies detected: ${anomalies.map((a) => a.type).join(", ")}`,
       confidence: 0.7,
       data: {
         anomalies,
         historicalRequests: profile.requestHistory.length,
-        anomalyScore: riskScore
-      }
+        anomalyScore: riskScore,
+      },
     };
 
     return { evidence, riskScore, severity };
@@ -682,55 +763,57 @@ export class AdvancedThreatDetectionService {
   private async analyzeGeographic(ip: string): Promise<{
     evidence?: ThreatEvidence;
     riskScore: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
   }> {
     // This would integrate with actual IP geolocation services
     const geoData = await this.getIPGeolocation(ip);
-    
+
     if (!geoData || !geoData.country) {
-      return { riskScore: 0, severity: 'low' };
+      return { riskScore: 0, severity: "low" };
     }
 
-    const countryRisk = this.threatIntelligence.geographicRisks.get(geoData.country);
-    
+    const countryRisk = this.threatIntelligence.geographicRisks.get(
+      geoData.country,
+    );
+
     if (!countryRisk) {
-      return { riskScore: 0, severity: 'low' };
+      return { riskScore: 0, severity: "low" };
     }
 
     let riskScore = 0;
-    let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    let severity: "low" | "medium" | "high" | "critical" = "low";
 
     switch (countryRisk.riskLevel) {
-      case 'critical':
+      case "critical":
         riskScore = 25;
-        severity = 'critical';
+        severity = "critical";
         break;
-      case 'high':
+      case "high":
         riskScore = 15;
-        severity = 'high';
+        severity = "high";
         break;
-      case 'medium':
+      case "medium":
         riskScore = 10;
-        severity = 'medium';
+        severity = "medium";
         break;
-      case 'low':
+      case "low":
         riskScore = 5;
-        severity = 'low';
+        severity = "low";
         break;
     }
 
-    if (riskScore < 10) return { riskScore, severity: 'low' };
+    if (riskScore < 10) return { riskScore, severity: "low" };
 
     const evidence: ThreatEvidence = {
-      type: 'geographic',
+      type: "geographic",
       description: `Request from ${countryRisk.riskLevel} risk country: ${geoData.country}`,
       confidence: 0.8,
       data: {
         country: geoData.country,
         region: geoData.region,
         riskLevel: countryRisk.riskLevel,
-        commonThreats: countryRisk.commonThreats
-      }
+        commonThreats: countryRisk.commonThreats,
+      },
     };
 
     return { evidence, riskScore, severity };
@@ -752,7 +835,7 @@ export class AdvancedThreatDetectionService {
   }): Promise<{
     evidence?: ThreatEvidence;
     riskScore: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
   }> {
     const key = `${request.ip}:${request.path}`;
     const now = Date.now();
@@ -761,33 +844,32 @@ export class AdvancedThreatDetectionService {
 
     // This is a simplified rate limiting check
     // In production, you'd use a more sophisticated rate limiting system
-    const recentRequests = Array.from(this.threatEvents.values())
-      .filter(event => 
-        event.sourceIP === request.ip && 
-        event.timestamp > now - timeWindow
-      ).length;
+    const recentRequests = Array.from(this.threatEvents.values()).filter(
+      (event) =>
+        event.sourceIP === request.ip && event.timestamp > now - timeWindow,
+    ).length;
 
     if (recentRequests > maxRequests) {
       const evidence: ThreatEvidence = {
-        type: 'rate_limit',
+        type: "rate_limit",
         description: `Rate limit exceeded: ${recentRequests} requests in ${timeWindow}ms`,
         confidence: 0.95,
         data: {
           requestCount: recentRequests,
           timeWindow,
           maxAllowed: maxRequests,
-          sourceIP: request.ip
-        }
+          sourceIP: request.ip,
+        },
       };
 
       return {
         evidence,
         riskScore: 20,
-        severity: 'medium'
+        severity: "medium",
       };
     }
 
-    return { riskScore: 0, severity: 'low' };
+    return { riskScore: 0, severity: "low" };
   }
 
   /**
@@ -798,11 +880,17 @@ export class AdvancedThreatDetectionService {
       let actionsToTake: string[] = [];
 
       // Determine actions based on severity
-      if (threatEvent.riskScore >= this.autoMitigationConfig.criticalThreshold) {
+      if (
+        threatEvent.riskScore >= this.autoMitigationConfig.criticalThreshold
+      ) {
         actionsToTake = this.autoMitigationConfig.mitigationActions.critical;
-      } else if (threatEvent.riskScore >= this.autoMitigationConfig.highThreshold) {
+      } else if (
+        threatEvent.riskScore >= this.autoMitigationConfig.highThreshold
+      ) {
         actionsToTake = this.autoMitigationConfig.mitigationActions.high;
-      } else if (threatEvent.riskScore >= this.autoMitigationConfig.mediumThreshold) {
+      } else if (
+        threatEvent.riskScore >= this.autoMitigationConfig.mediumThreshold
+      ) {
         actionsToTake = this.autoMitigationConfig.mitigationActions.medium;
       } else {
         actionsToTake = this.autoMitigationConfig.mitigationActions.low;
@@ -810,8 +898,11 @@ export class AdvancedThreatDetectionService {
 
       // Execute mitigation actions
       const executedActions: string[] = [];
-      
-      for (const action of actionsToTake.slice(0, this.autoMitigationConfig.maxAutoActions)) {
+
+      for (const action of actionsToTake.slice(
+        0,
+        this.autoMitigationConfig.maxAutoActions,
+      )) {
         const success = await this.executeMitigationAction(action, threatEvent);
         if (success) {
           executedActions.push(action);
@@ -822,108 +913,154 @@ export class AdvancedThreatDetectionService {
       threatEvent.mitigated = executedActions.length > 0;
       threatEvent.mitigationActions = executedActions;
 
-      log.info('Auto-mitigation executed', {
-        component: 'AdvancedThreatDetectionService',
-        action: 'triggerAutoMitigation',
-        threatId: threatEvent.id,
-        actionsExecuted: executedActions,
-        riskScore: threatEvent.riskScore
-      }, 'AUTO_MITIGATION_EXECUTED');
-
+      log.info(
+        "Auto-mitigation executed",
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "triggerAutoMitigation",
+          threatId: threatEvent.id,
+          actionsExecuted: executedActions,
+          riskScore: threatEvent.riskScore,
+        },
+        "AUTO_MITIGATION_EXECUTED",
+      );
     } catch (error) {
-      log.error('Error executing auto-mitigation', error as Error, {
-        component: 'AdvancedThreatDetectionService',
-        action: 'triggerAutoMitigation',
-        threatId: threatEvent.id
-      }, 'AUTO_MITIGATION_ERROR');
+      log.error(
+        "Error executing auto-mitigation",
+        error as Error,
+        {
+          component: "AdvancedThreatDetectionService",
+          action: "triggerAutoMitigation",
+          threatId: threatEvent.id,
+        },
+        "AUTO_MITIGATION_ERROR",
+      );
     }
   }
 
   /**
    * Execute specific mitigation action
    */
-  private async executeMitigationAction(action: string, threatEvent: ThreatEvent): Promise<boolean> {
+  private async executeMitigationAction(
+    action: string,
+    threatEvent: ThreatEvent,
+  ): Promise<boolean> {
     try {
       switch (action) {
-        case 'block_ip':
+        case "block_ip":
           // In production, this would integrate with firewall/WAF
-          log.warn('IP blocked', {
-            action: 'block_ip',
-            ip: threatEvent.sourceIP,
-            threatId: threatEvent.id
-          }, 'IP_BLOCKED');
+          log.warn(
+            "IP blocked",
+            {
+              action: "block_ip",
+              ip: threatEvent.sourceIP,
+              threatId: threatEvent.id,
+            },
+            "IP_BLOCKED",
+          );
           return true;
 
-        case 'lock_account':
+        case "lock_account":
           if (threatEvent.userId) {
             // In production, this would lock the user account
-            log.warn('Account locked', {
-              action: 'lock_account',
-              userId: threatEvent.userId,
-              threatId: threatEvent.id
-            }, 'ACCOUNT_LOCKED');
+            log.warn(
+              "Account locked",
+              {
+                action: "lock_account",
+                userId: threatEvent.userId,
+                threatId: threatEvent.id,
+              },
+              "ACCOUNT_LOCKED",
+            );
             return true;
           }
           return false;
 
-        case 'rate_limit':
+        case "rate_limit":
           // In production, this would implement rate limiting
-          log.info('Rate limit applied', {
-            action: 'rate_limit',
-            ip: threatEvent.sourceIP,
-            threatId: threatEvent.id
-          }, 'RATE_LIMIT_APPLIED');
+          log.info(
+            "Rate limit applied",
+            {
+              action: "rate_limit",
+              ip: threatEvent.sourceIP,
+              threatId: threatEvent.id,
+            },
+            "RATE_LIMIT_APPLIED",
+          );
           return true;
 
-        case 'challenge_user':
+        case "challenge_user":
           // In production, this would trigger CAPTCHA or 2FA
-          log.info('User challenge triggered', {
-            action: 'challenge_user',
-            sessionId: threatEvent.sessionId,
-            threatId: threatEvent.id
-          }, 'USER_CHALLENGE_TRIGGERED');
+          log.info(
+            "User challenge triggered",
+            {
+              action: "challenge_user",
+              sessionId: threatEvent.sessionId,
+              threatId: threatEvent.id,
+            },
+            "USER_CHALLENGE_TRIGGERED",
+          );
           return true;
 
-        case 'enhanced_monitoring':
+        case "enhanced_monitoring":
           // Flag for enhanced monitoring
-          log.info('Enhanced monitoring enabled', {
-            action: 'enhanced_monitoring',
-            ip: threatEvent.sourceIP,
-            threatId: threatEvent.id
-          }, 'ENHANCED_MONITORING_ENABLED');
+          log.info(
+            "Enhanced monitoring enabled",
+            {
+              action: "enhanced_monitoring",
+              ip: threatEvent.sourceIP,
+              threatId: threatEvent.id,
+            },
+            "ENHANCED_MONITORING_ENABLED",
+          );
           return true;
 
-        case 'notify_soc':
+        case "notify_soc":
           // In production, this would notify Security Operations Center
-          log.warn('SOC notification sent', {
-            action: 'notify_soc',
-            threatId: threatEvent.id,
-            severity: threatEvent.severity
-          }, 'SOC_NOTIFICATION_SENT');
+          log.warn(
+            "SOC notification sent",
+            {
+              action: "notify_soc",
+              threatId: threatEvent.id,
+              severity: threatEvent.severity,
+            },
+            "SOC_NOTIFICATION_SENT",
+          );
           return true;
 
-        case 'log_event':
+        case "log_event":
           // Default action - already logged
           return true;
 
         default:
-          log.warn('Unknown mitigation action', {
-            action,
-            threatId: threatEvent.id
-          }, 'UNKNOWN_MITIGATION_ACTION');
+          log.warn(
+            "Unknown mitigation action",
+            {
+              action,
+              threatId: threatEvent.id,
+            },
+            "UNKNOWN_MITIGATION_ACTION",
+          );
           return false;
       }
     } catch (error) {
-      log.error('Error executing mitigation action', error as Error, {
-        action,
-        threatId: threatEvent.id
-      }, 'MITIGATION_ACTION_ERROR');
+      log.error(
+        "Error executing mitigation action",
+        error as Error,
+        {
+          action,
+          threatId: threatEvent.id,
+        },
+        "MITIGATION_ACTION_ERROR",
+      );
       return false;
     }
   }
 
   // Helper methods
-  private getSeverityWeight(severity: 'low' | 'medium' | 'high' | 'critical'): number {
+  private getSeverityWeight(
+    severity: "low" | "medium" | "high" | "critical",
+  ): number {
     const weights = { low: 1, medium: 2, high: 3, critical: 4 };
     return weights[severity];
   }
@@ -934,44 +1071,59 @@ export class AdvancedThreatDetectionService {
 
   private determineThreatType(evidences: ThreatEvidence[]): string {
     // Determine the most likely threat type based on evidences
-    const types = evidences.map(e => e.data.category || e.type);
-    const typeCounts = types.reduce((acc, type) => {
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return Object.entries(typeCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'unknown';
+    const types = evidences.map((e) => e.data.category || e.type);
+    const typeCounts = types.reduce(
+      (acc, type) => {
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    return (
+      Object.entries(typeCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+      "unknown"
+    );
   }
 
   private calculateConfidence(evidences: ThreatEvidence[]): number {
     if (evidences.length === 0) return 0;
-    
-    const avgConfidence = evidences.reduce((sum, e) => sum + e.confidence, 0) / evidences.length;
+
+    const avgConfidence =
+      evidences.reduce((sum, e) => sum + e.confidence, 0) / evidences.length;
     const evidenceWeight = Math.min(evidences.length / 3, 1); // More evidences = higher confidence
-    
+
     return avgConfidence * evidenceWeight;
   }
 
   private notifySubscribers(threatEvent: ThreatEvent): void {
-    this.alertingSubscribers.forEach(callback => {
+    this.alertingSubscribers.forEach((callback) => {
       try {
         callback(threatEvent);
       } catch (error) {
-        log.error('Error notifying threat subscriber', error as Error, {
-          threatId: threatEvent.id
-        }, 'THREAT_SUBSCRIBER_ERROR');
+        log.error(
+          "Error notifying threat subscriber",
+          error as Error,
+          {
+            threatId: threatEvent.id,
+          },
+          "THREAT_SUBSCRIBER_ERROR",
+        );
       }
     });
   }
 
   private learnFromFalsePositive(threat: ThreatEvent, reason: string): void {
     // In production, this would implement machine learning to reduce false positives
-    log.info('Learning from false positive', {
-      threatId: threat.id,
-      threatType: threat.threatType,
-      reason
-    }, 'FALSE_POSITIVE_LEARNING');
+    log.info(
+      "Learning from false positive",
+      {
+        threatId: threat.id,
+        threatType: threat.threatType,
+        reason,
+      },
+      "FALSE_POSITIVE_LEARNING",
+    );
   }
 
   private async loadThreatIntelligence(): Promise<void> {
@@ -990,9 +1142,12 @@ export class AdvancedThreatDetectionService {
 
   private scheduleIntelligenceUpdates(): void {
     // Schedule regular threat intelligence updates
-    setInterval(() => {
-      this.loadThreatIntelligence();
-    }, 4 * 60 * 60 * 1000); // Every 4 hours
+    setInterval(
+      () => {
+        this.loadThreatIntelligence();
+      },
+      4 * 60 * 60 * 1000,
+    ); // Every 4 hours
   }
 
   private async performIPLookup(ip: string): Promise<IPReputationData | null> {
@@ -1000,22 +1155,27 @@ export class AdvancedThreatDetectionService {
     return null;
   }
 
-  private detectBehavioralAnomalies(profile: UserBehaviorProfile, request: {
-    ip: string;
-    userAgent: string;
-    userId?: string;
-    sessionId: string;
-    method: string;
-    path: string;
-    headers: Record<string, string>;
-    body?: string;
-    timestamp: number;
-  }): Array<{ type: string; score: number }> {
+  private detectBehavioralAnomalies(
+    profile: UserBehaviorProfile,
+    request: {
+      ip: string;
+      userAgent: string;
+      userId?: string;
+      sessionId: string;
+      method: string;
+      path: string;
+      headers: Record<string, string>;
+      body?: string;
+      timestamp: number;
+    },
+  ): Array<{ type: string; score: number }> {
     // Implement behavioral anomaly detection
     return [];
   }
 
-  private async getIPGeolocation(ip: string): Promise<{ country: string; region: string } | null> {
+  private async getIPGeolocation(
+    ip: string,
+  ): Promise<{ country: string; region: string } | null> {
     // In production, integrate with geolocation services
     return null;
   }
@@ -1040,4 +1200,5 @@ interface UserBehaviorProfile {
 }
 
 // Global instance
-export const advancedThreatDetectionService = new AdvancedThreatDetectionService();
+export const advancedThreatDetectionService =
+  new AdvancedThreatDetectionService();

@@ -1,33 +1,33 @@
 /**
  * ACTIVE INSPECTIONS LIST - ENTERPRISE EXCELLENCE
- * 
+ *
  * Focused component for displaying list of active inspections:
  * - Virtualized list for performance with large datasets
  * - Empty state handling with clear user guidance
  * - Loading states with skeleton placeholders
  * - Professional error handling with recovery actions
  * - Responsive grid layout for different screen sizes
- * 
+ *
  * Extracted from MyActiveInspections.tsx as part of architectural excellence
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 1C Excellence
  */
 
-import React, { useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Inbox, 
-  RefreshCw, 
-  AlertTriangle, 
+import React, { useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Inbox,
+  RefreshCw,
+  AlertTriangle,
   ArrowRight,
-  PlayCircle
-} from 'lucide-react';
-import { ActiveInspectionCard } from './ActiveInspectionCard';
-import type { ActiveInspectionSummary } from './ActiveInspectionDataManager';
+  PlayCircle,
+} from "lucide-react";
+import { ActiveInspectionCard } from "./ActiveInspectionCard";
+import type { ActiveInspectionSummary } from "./ActiveInspectionDataManager";
 
 export interface ActiveInspectionsListProps {
   inspections: ActiveInspectionSummary[];
@@ -46,10 +46,10 @@ export interface ActiveInspectionsListProps {
 /**
  * Loading skeleton component
  */
-const InspectionListSkeleton: React.FC<{ compact?: boolean; count?: number }> = ({ 
-  compact = false, 
-  count = 3 
-}) => (
+const InspectionListSkeleton: React.FC<{
+  compact?: boolean;
+  count?: number;
+}> = ({ compact = false, count = 3 }) => (
   <div className="space-y-4">
     {Array.from({ length: count }, (_, index) => (
       <Card key={index} className="animate-pulse">
@@ -80,7 +80,7 @@ const InspectionListSkeleton: React.FC<{ compact?: boolean; count?: number }> = 
 /**
  * Empty state component
  */
-const EmptyState: React.FC<{ 
+const EmptyState: React.FC<{
   onCreateNew?: () => void;
   compact?: boolean;
 }> = ({ onCreateNew, compact = false }) => (
@@ -91,7 +91,8 @@ const EmptyState: React.FC<{
         No Active Inspections
       </h3>
       <p className="text-gray-600 mb-6 max-w-md">
-        You don't have any active inspections yet. Start a new inspection to begin your workflow.
+        You don't have any active inspections yet. Start a new inspection to
+        begin your workflow.
       </p>
       {onCreateNew && (
         <Button onClick={onCreateNew} className="flex items-center space-x-2">
@@ -117,17 +118,17 @@ const ErrorState: React.FC<{
     <AlertDescription className="flex items-center justify-between">
       <span>{error}</span>
       <div className="flex items-center space-x-2 ml-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onClearError}
           className="border-red-300 text-red-700 hover:bg-red-50"
         >
           Dismiss
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onRetry}
           className="border-red-300 text-red-700 hover:bg-red-50"
         >
@@ -153,14 +154,17 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
   onRefresh,
   onResume,
   onClearError,
-  className = ''
+  className = "",
 }) => {
   /**
    * Handle inspection resume with logging
    */
-  const handleResume = useCallback((inspectionId: string) => {
-    onResume(inspectionId);
-  }, [onResume]);
+  const handleResume = useCallback(
+    (inspectionId: string) => {
+      onResume(inspectionId);
+    },
+    [onResume],
+  );
 
   /**
    * Handle retry action
@@ -183,10 +187,10 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
     <div className={className}>
       {/* Error state */}
       {error && (
-        <ErrorState 
-          error={error} 
-          onRetry={handleRetry} 
-          onClearError={onClearError} 
+        <ErrorState
+          error={error}
+          onRetry={handleRetry}
+          onClearError={onClearError}
         />
       )}
 
@@ -208,7 +212,9 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
             disabled={refreshing}
             className="flex items-center space-x-2"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
             <span>Refresh</span>
           </Button>
         </div>
@@ -216,7 +222,7 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
 
       {/* Inspections list */}
       {inspections.length > 0 ? (
-        <div className={`space-y-4 ${compact ? 'space-y-3' : ''}`}>
+        <div className={`space-y-4 ${compact ? "space-y-3" : ""}`}>
           {inspections.slice(0, maxItems).map((inspection) => (
             <ActiveInspectionCard
               key={inspection.inspectionId}
@@ -225,7 +231,7 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
               onResume={handleResume}
             />
           ))}
-          
+
           {/* Show "Load More" if there are more items */}
           {inspections.length > maxItems && (
             <Card className="border-dashed">
@@ -244,11 +250,11 @@ export const ActiveInspectionsList: React.FC<ActiveInspectionsListProps> = ({
         </div>
       ) : (
         showEmptyState && (
-          <EmptyState 
+          <EmptyState
             compact={compact}
             onCreateNew={() => {
               // This would navigate to property selection
-              window.location.hash = '/properties';
+              window.location.hash = "/properties";
             }}
           />
         )

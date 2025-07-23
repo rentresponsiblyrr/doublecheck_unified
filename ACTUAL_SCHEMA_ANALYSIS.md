@@ -10,8 +10,8 @@ Based on the actual Supabase schema, our codebase has **fundamental misalignment
 ```sql
 CREATE TABLE public.properties (
   id uuid NOT NULL DEFAULT gen_random_uuid(),           -- ❌ We used: property_id (number)
-  name text,                                           -- ❌ We used: property_name
-  address text,                                        -- ❌ We used: street_address
+  name text,                                           -- ❌ We used: name
+  address text,                                        -- ❌ We used: address
   vrbo_url text,                                       -- ✅ Correct
   added_by uuid NOT NULL,                              -- ❌ We used: created_by
   status text DEFAULT 'active'::text,                  -- ✅ Correct
@@ -108,7 +108,7 @@ media.checklist_item_id → checklist_items.id               -- UUID to UUID
 ```typescript
 // ❌ WRONG (Current Implementation):
 const { data } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select('*')
   .eq('property_id', propertyId);
 
@@ -122,7 +122,7 @@ const { data } = await supabase
 ### 2. **Fix Properties Table Column Names**
 ```typescript
 // ❌ WRONG (Current Implementation):
-.select('property_id, property_name, street_address')
+.select('property_id, name, address')
 
 // ✅ CORRECT (Required Fix):
 .select('id, name, address')
@@ -142,7 +142,7 @@ const { data } = await supabase
 // ❌ WRONG Pattern (Property-based queries):
 // Get checklist items by property_id
 const { data } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .eq('property_id', propertyId);
 
 // ✅ CORRECT Pattern (Inspection-based queries):

@@ -1,4 +1,3 @@
-
 import { MediaUploader } from "@/components/MediaUploader";
 import { UploadedEvidence } from "@/components/UploadedEvidence";
 import { ChecklistItemType } from "@/types/inspection";
@@ -20,14 +19,12 @@ export const ChecklistItemUploadSection = ({
   isDeleting,
   onMediaUpload,
   onUploadComplete,
-  onDeleteMedia
+  onDeleteMedia,
 }: ChecklistItemUploadSectionProps) => {
   return (
     <>
       {/* Show existing uploaded evidence */}
-      {hasUploadedMedia && (
-        <UploadedEvidence checklistItemId={item.id} />
-      )}
+      {hasUploadedMedia && <UploadedEvidence checklistItemId={item.id} />}
 
       {/* Media Upload */}
       <div>

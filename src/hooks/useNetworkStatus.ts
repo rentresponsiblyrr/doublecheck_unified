@@ -1,6 +1,5 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { logger } from '@/utils/logger';
+import { useState, useEffect, useCallback } from "react";
+import { logger } from "@/utils/logger";
 
 interface NetworkStatus {
   isOnline: boolean;
@@ -13,7 +12,7 @@ interface NetworkStatus {
 
 interface UseNetworkStatusReturn extends NetworkStatus {
   retryConnection: () => Promise<boolean>;
-  getConnectionQuality: () => 'good' | 'poor' | 'offline';
+  getConnectionQuality: () => "good" | "poor" | "offline";
 }
 
 /**
@@ -21,10 +20,10 @@ interface UseNetworkStatusReturn extends NetworkStatus {
  */
 export const useNetworkStatus = (): UseNetworkStatusReturn => {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
-    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
     isSlowConnection: false,
-    connectionType: 'unknown',
-    effectiveType: 'unknown',
+    connectionType: "unknown",
+    effectiveType: "unknown",
     wasOffline: false,
     reconnectedAt: null,
   });
@@ -33,32 +32,42 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
    * Updates network status with current connection information
    */
   const updateNetworkStatus = useCallback(() => {
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection;
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
 
     const isOnline = navigator.onLine;
 
-    setNetworkStatus(prevStatus => {
+    setNetworkStatus((prevStatus) => {
       const wasOffline = !prevStatus.isOnline && isOnline;
 
       const newStatus: NetworkStatus = {
         isOnline,
-        isSlowConnection: connection ? connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g' : false,
-        connectionType: connection ? connection.type || 'unknown' : 'unknown',
-        effectiveType: connection ? connection.effectiveType || 'unknown' : 'unknown',
+        isSlowConnection: connection
+          ? connection.effectiveType === "2g" ||
+            connection.effectiveType === "slow-2g"
+          : false,
+        connectionType: connection ? connection.type || "unknown" : "unknown",
+        effectiveType: connection
+          ? connection.effectiveType || "unknown"
+          : "unknown",
         wasOffline,
         reconnectedAt: wasOffline ? new Date() : prevStatus.reconnectedAt,
       };
 
       // Log connection changes
       if (wasOffline) {
-        logger.info('📶 Network connection restored', {
-          connectionType: newStatus.connectionType,
-          effectiveType: newStatus.effectiveType
-        }, 'NETWORK_STATUS');
+        logger.info(
+          "📶 Network connection restored",
+          {
+            connectionType: newStatus.connectionType,
+            effectiveType: newStatus.effectiveType,
+          },
+          "NETWORK_STATUS",
+        );
       } else if (!isOnline && prevStatus.isOnline) {
-        logger.warn('📵 Network connection lost', {}, 'NETWORK_STATUS');
+        logger.warn("📵 Network connection lost", {}, "NETWORK_STATUS");
       }
 
       return newStatus;
@@ -77,16 +86,16 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch('/manifest.webmanifest', {
-        method: 'HEAD',
+      const response = await fetch("/manifest.webmanifest", {
+        method: "HEAD",
         signal: controller.signal,
-        cache: 'no-cache',
+        cache: "no-cache",
       });
 
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
-      logger.warn('Connection test failed', error, 'NETWORK_STATUS');
+      logger.warn("Connection test failed", error, "NETWORK_STATUS");
       return false;
     }
   }, []);
@@ -95,33 +104,33 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
    * Attempts to retry connection
    */
   const retryConnection = useCallback(async (): Promise<boolean> => {
-    logger.info('🔄 Retrying connection...', {}, 'NETWORK_STATUS');
-    
+    logger.info("🔄 Retrying connection...", {}, "NETWORK_STATUS");
+
     const isConnected = await testConnection();
     updateNetworkStatus();
-    
+
     if (isConnected) {
-      logger.info('✅ Connection retry successful', {}, 'NETWORK_STATUS');
+      logger.info("✅ Connection retry successful", {}, "NETWORK_STATUS");
     } else {
-      logger.warn('❌ Connection retry failed', {}, 'NETWORK_STATUS');
+      logger.warn("❌ Connection retry failed", {}, "NETWORK_STATUS");
     }
-    
+
     return isConnected;
   }, [testConnection, updateNetworkStatus]);
 
   /**
    * Gets connection quality assessment
    */
-  const getConnectionQuality = useCallback((): 'good' | 'poor' | 'offline' => {
+  const getConnectionQuality = useCallback((): "good" | "poor" | "offline" => {
     if (!networkStatus.isOnline) {
-      return 'offline';
+      return "offline";
     }
 
     if (networkStatus.isSlowConnection) {
-      return 'poor';
+      return "poor";
     }
 
-    return 'good';
+    return "good";
   }, [networkStatus]);
 
   /**
@@ -129,31 +138,32 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
    */
   useEffect(() => {
     const handleOnline = () => {
-      logger.info('Browser online event', {}, 'NETWORK_STATUS');
+      logger.info("Browser online event", {}, "NETWORK_STATUS");
       updateNetworkStatus();
     };
 
     const handleOffline = () => {
-      logger.warn('Browser offline event', {}, 'NETWORK_STATUS');
+      logger.warn("Browser offline event", {}, "NETWORK_STATUS");
       updateNetworkStatus();
     };
 
     const handleConnectionChange = () => {
-      logger.info('Connection change event', {}, 'NETWORK_STATUS');
+      logger.info("Connection change event", {}, "NETWORK_STATUS");
       updateNetworkStatus();
     };
 
     // Browser online/offline events
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Connection API events
-    const connection = (navigator as any).connection || 
-                      (navigator as any).mozConnection || 
-                      (navigator as any).webkitConnection;
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
 
     if (connection) {
-      connection.addEventListener('change', handleConnectionChange);
+      connection.addEventListener("change", handleConnectionChange);
     }
 
     // Initial status update
@@ -161,11 +171,11 @@ export const useNetworkStatus = (): UseNetworkStatusReturn => {
 
     // Cleanup
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+
       if (connection) {
-        connection.removeEventListener('change', handleConnectionChange);
+        connection.removeEventListener("change", handleConnectionChange);
       }
     };
   }, [updateNetworkStatus]);

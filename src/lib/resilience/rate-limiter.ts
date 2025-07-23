@@ -1,7 +1,7 @@
 /**
  * Enterprise-Grade Rate Limiter Implementation
  * Implements Stripe/GitHub/Auth0 level rate limiting standards
- * 
+ *
  * SECURITY FEATURES:
  * - Token bucket algorithm with burst capacity
  * - Exponential backoff for persistent violators
@@ -11,7 +11,7 @@
  * - Dynamic rate adjustment based on threat level
  */
 
-import { SecurityEvents } from '../security/security-audit-logger';
+import { SecurityEvents } from "../security/security-audit-logger";
 
 export interface RateLimitConfig {
   windowSizeMs: number; // Time window in milliseconds
@@ -42,10 +42,10 @@ export class RateLimitError extends Error {
     message: string,
     public remainingRequests: number,
     public resetTime: number,
-    public totalAttempts: number
+    public totalAttempts: number,
   ) {
     super(message);
-    this.name = 'RateLimitError';
+    this.name = "RateLimitError";
   }
 }
 
@@ -71,7 +71,7 @@ export class RateLimiter {
       blockDurationMs: 60000, // 1 minute default
       enableExponentialBackoff: true,
       enableSecurityLogging: true,
-      ...config
+      ...config,
     };
 
     // Cleanup old entries every minute
@@ -80,13 +80,16 @@ export class RateLimiter {
     }, 60000);
   }
 
-  async checkLimit(key?: string, context?: Record<string, unknown>): Promise<RateLimitResult> {
+  async checkLimit(
+    key?: string,
+    context?: Record<string, unknown>,
+  ): Promise<RateLimitResult> {
     const rateLimitKey = key || this.generateKey(context);
     const now = Date.now();
     const windowStart = now - this.config.windowSizeMs;
 
     let entry = this.records.get(rateLimitKey);
-    
+
     // Check if currently blocked
     if (entry?.blocked && entry.blockUntil && now < entry.blockUntil) {
       return {
@@ -96,7 +99,7 @@ export class RateLimiter {
         totalAttempts: entry.attempts,
         retryAfter: entry.blockUntil - now,
         blocked: true,
-        violationCount: entry.violations
+        violationCount: entry.violations,
       };
     }
 
@@ -108,7 +111,7 @@ export class RateLimiter {
         lastAttempt: now,
         violations: entry?.violations || 0,
         blocked: false,
-        lastViolation: entry?.lastViolation
+        lastViolation: entry?.lastViolation,
       };
     }
 
@@ -138,7 +141,7 @@ export class RateLimiter {
 
       // Log security event
       if (this.config.enableSecurityLogging) {
-        SecurityEvents.rateLimitExceeded('RateLimiter', rateLimitKey);
+        SecurityEvents.rateLimitExceeded("RateLimiter", rateLimitKey);
       }
 
       // Call callback
@@ -152,9 +155,11 @@ export class RateLimiter {
       remainingRequests,
       resetTime,
       totalAttempts: entry.attempts,
-      retryAfter: entry.blockUntil ? Math.max(0, entry.blockUntil - now) : undefined,
+      retryAfter: entry.blockUntil
+        ? Math.max(0, entry.blockUntil - now)
+        : undefined,
       blocked: entry.blocked,
-      violationCount: entry.violations
+      violationCount: entry.violations,
     };
   }
 
@@ -167,46 +172,48 @@ export class RateLimiter {
     }
 
     // Exponential backoff: base * (2 ^ violations), capped at 1 hour
-    const exponentialMs = this.config.blockDurationMs! * Math.pow(2, violations - 1);
+    const exponentialMs =
+      this.config.blockDurationMs! * Math.pow(2, violations - 1);
     const maxBlockMs = 60 * 60 * 1000; // 1 hour
-    
+
     return Math.min(exponentialMs, maxBlockMs);
   }
 
   async attemptRequest<T>(
     operation: () => Promise<T>,
     key?: string,
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<T> {
     const result = await this.checkLimit(key, context);
-    
+
     if (!result.allowed) {
-      const message = this.config.errorMessage || 
+      const message =
+        this.config.errorMessage ||
         `Rate limit exceeded. Try again in ${Math.ceil((result.resetTime - Date.now()) / 1000)} seconds.`;
-      
+
       throw new RateLimitError(
         message,
         result.remainingRequests,
         result.resetTime,
-        result.totalAttempts
+        result.totalAttempts,
       );
     }
 
     try {
       const operationResult = await operation();
-      
+
       // Optionally skip counting successful requests
       if (this.config.skipSuccessfulRequests) {
         this.decrementCount(key || this.generateKey(context));
       }
-      
+
       return operationResult;
     } catch (error) {
       // Optionally skip counting failed requests
       if (this.config.skipFailedRequests) {
         this.decrementCount(key || this.generateKey(context));
       }
-      
+
       throw error;
     }
   }
@@ -215,21 +222,21 @@ export class RateLimiter {
     if (this.config.keyGenerator) {
       return this.config.keyGenerator(context);
     }
-    
+
     // Default key generation based on context
     if (context?.userId) {
       return `user:${context.userId}`;
     }
-    
+
     if (context?.ip) {
       return `ip:${context.ip}`;
     }
-    
-    if (typeof window !== 'undefined') {
+
+    if (typeof window !== "undefined") {
       return `browser:${window.location.origin}`;
     }
-    
-    return 'global';
+
+    return "global";
   }
 
   private decrementCount(key: string): void {
@@ -243,14 +250,14 @@ export class RateLimiter {
   private cleanup(): void {
     const now = Date.now();
     const expiredKeys: string[] = [];
-    
+
     this.records.forEach((entry, key) => {
       if (entry.windowStart + this.config.windowSizeMs < now) {
         expiredKeys.push(key);
       }
     });
-    
-    expiredKeys.forEach(key => {
+
+    expiredKeys.forEach((key) => {
       this.records.delete(key);
     });
   }
@@ -271,14 +278,14 @@ export class RateLimiter {
     const now = Date.now();
     let totalAttempts = 0;
     let activeWindows = 0;
-    
-    this.records.forEach(entry => {
+
+    this.records.forEach((entry) => {
       totalAttempts += entry.attempts;
       if (entry.windowStart + this.config.windowSizeMs > now) {
         activeWindows++;
       }
     });
-    
+
     return {
       totalKeys: this.records.size,
       totalAttempts,
@@ -327,7 +334,7 @@ export class RateLimiterRegistry {
   }
 
   resetAll(): void {
-    this.limiters.forEach(limiter => limiter.reset());
+    this.limiters.forEach((limiter) => limiter.reset());
   }
 
   removeRateLimiter(name: string): boolean {
@@ -339,8 +346,14 @@ export class RateLimiterRegistry {
     return false;
   }
 
-  getStats(): Record<string, { totalKeys: number; totalAttempts: number; activeWindows: number }> {
-    const stats: Record<string, { totalKeys: number; totalAttempts: number; activeWindows: number }> = {};
+  getStats(): Record<
+    string,
+    { totalKeys: number; totalAttempts: number; activeWindows: number }
+  > {
+    const stats: Record<
+      string,
+      { totalKeys: number; totalAttempts: number; activeWindows: number }
+    > = {};
     this.limiters.forEach((limiter, name) => {
       stats[name] = limiter.getStats();
     });
@@ -353,71 +366,78 @@ export const createDefaultRateLimiters = () => {
   const registry = RateLimiterRegistry.getInstance();
 
   // Login attempts - per user
-  registry.createRateLimiter('login', {
+  registry.createRateLimiter("login", {
     windowSizeMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
     burstCapacity: 3, // Lower burst for security
     blockDurationMs: 30 * 60 * 1000, // 30 minute block
     enableExponentialBackoff: true,
     enableSecurityLogging: true,
-    keyGenerator: (context) => `login:${context?.email || context?.ip || 'unknown'}`,
-    errorMessage: 'Too many login attempts. Please try again in 15 minutes.',
+    keyGenerator: (context) =>
+      `login:${context?.email || context?.ip || "unknown"}`,
+    errorMessage: "Too many login attempts. Please try again in 15 minutes.",
     onLimitReached: (key, attempts) => {
-      SecurityEvents.rateLimitExceeded('LoginRateLimiter', key);
+      SecurityEvents.rateLimitExceeded("LoginRateLimiter", key);
     },
   });
 
   // AI API calls - per user
-  registry.createRateLimiter('ai-api', {
+  registry.createRateLimiter("ai-api", {
     windowSizeMs: 60 * 1000, // 1 minute
     maxRequests: 10,
     burstCapacity: 15, // Allow small bursts
     blockDurationMs: 5 * 60 * 1000, // 5 minute block
     enableExponentialBackoff: true,
     enableSecurityLogging: true,
-    keyGenerator: (context) => `ai:${context?.userId || 'anonymous'}`,
-    errorMessage: 'AI service rate limit exceeded. Please wait before making more requests.',
+    keyGenerator: (context) => `ai:${context?.userId || "anonymous"}`,
+    errorMessage:
+      "AI service rate limit exceeded. Please wait before making more requests.",
     skipFailedRequests: true, // Don't count failed AI requests against limit
   });
 
   // File uploads - per user
-  registry.createRateLimiter('file-upload', {
+  registry.createRateLimiter("file-upload", {
     windowSizeMs: 5 * 60 * 1000, // 5 minutes
     maxRequests: 20,
     burstCapacity: 25,
     blockDurationMs: 10 * 60 * 1000, // 10 minute block
     enableExponentialBackoff: true,
     enableSecurityLogging: true,
-    keyGenerator: (context) => `upload:${context?.userId || context?.ip || 'unknown'}`,
-    errorMessage: 'File upload rate limit exceeded. Please wait before uploading more files.',
+    keyGenerator: (context) =>
+      `upload:${context?.userId || context?.ip || "unknown"}`,
+    errorMessage:
+      "File upload rate limit exceeded. Please wait before uploading more files.",
     onLimitReached: (key, attempts) => {
-      SecurityEvents.rateLimitExceeded('FileUploadRateLimiter', key);
+      SecurityEvents.rateLimitExceeded("FileUploadRateLimiter", key);
     },
   });
 
   // Database operations - per user
-  registry.createRateLimiter('database', {
+  registry.createRateLimiter("database", {
     windowSizeMs: 60 * 1000, // 1 minute
     maxRequests: 100,
-    keyGenerator: (context) => `db:${context?.userId || 'anonymous'}`,
-    errorMessage: 'Database operation rate limit exceeded. Please slow down your requests.',
+    keyGenerator: (context) => `db:${context?.userId || "anonymous"}`,
+    errorMessage:
+      "Database operation rate limit exceeded. Please slow down your requests.",
     skipSuccessfulRequests: false,
   });
 
   // Password reset - per email/IP
-  registry.createRateLimiter('password-reset', {
+  registry.createRateLimiter("password-reset", {
     windowSizeMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
-    keyGenerator: (context) => `reset:${context?.email || context?.ip || 'unknown'}`,
-    errorMessage: 'Password reset rate limit exceeded. Please try again in 1 hour.',
+    keyGenerator: (context) =>
+      `reset:${context?.email || context?.ip || "unknown"}`,
+    errorMessage:
+      "Password reset rate limit exceeded. Please try again in 1 hour.",
   });
 
   // Global API rate limit
-  registry.createRateLimiter('global-api', {
+  registry.createRateLimiter("global-api", {
     windowSizeMs: 60 * 1000, // 1 minute
     maxRequests: 1000,
-    keyGenerator: () => 'global',
-    errorMessage: 'Global rate limit exceeded. Please try again later.',
+    keyGenerator: () => "global",
+    errorMessage: "Global rate limit exceeded. Please try again later.",
   });
 
   return registry;
@@ -428,11 +448,11 @@ export function withRateLimit<T extends readonly unknown[], R>(
   limiterName: string,
   fn: (...args: T) => Promise<R>,
   keyExtractor?: (args: T) => string,
-  contextExtractor?: (args: T) => Record<string, unknown>
+  contextExtractor?: (args: T) => Record<string, unknown>,
 ): (...args: T) => Promise<R> {
   const registry = RateLimiterRegistry.getInstance();
   const limiter = registry.getRateLimiter(limiterName);
-  
+
   if (!limiter) {
     throw new Error(`Rate limiter '${limiterName}' not found`);
   }
@@ -440,7 +460,7 @@ export function withRateLimit<T extends readonly unknown[], R>(
   return async (...args: T): Promise<R> => {
     const key = keyExtractor ? keyExtractor(args) : undefined;
     const context = contextExtractor ? contextExtractor(args) : undefined;
-    
+
     return limiter.attemptRequest(() => fn(...args), key, context);
   };
 }
@@ -449,15 +469,19 @@ export function withRateLimit<T extends readonly unknown[], R>(
 export function useRateLimit(limiterName: string) {
   const registry = RateLimiterRegistry.getInstance();
   const limiter = registry.getRateLimiter(limiterName);
-  
+
   if (!limiter) {
     throw new Error(`Rate limiter '${limiterName}' not found`);
   }
 
   return {
-    checkLimit: (key?: string, context?: Record<string, unknown>) => limiter.checkLimit(key, context),
-    attemptRequest: <T>(operation: () => Promise<T>, key?: string, context?: Record<string, unknown>) => 
-      limiter.attemptRequest(operation, key, context),
+    checkLimit: (key?: string, context?: Record<string, unknown>) =>
+      limiter.checkLimit(key, context),
+    attemptRequest: <T>(
+      operation: () => Promise<T>,
+      key?: string,
+      context?: Record<string, unknown>,
+    ) => limiter.attemptRequest(operation, key, context),
     reset: (key?: string) => limiter.reset(key),
     getStats: () => limiter.getStats(),
   };

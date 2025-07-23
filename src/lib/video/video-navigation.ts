@@ -5,8 +5,8 @@ import type {
   VideoTimestamp,
   VideoAnalysisResult,
   SceneType,
-  RoomSequence
-} from '@/types/video';
+  RoomSequence,
+} from "@/types/video";
 
 export interface NavigationChapter {
   id: string;
@@ -23,10 +23,10 @@ export interface NavigationChapter {
 export interface NavigationMarker {
   id: string;
   time: number;
-  type: 'room_entry' | 'key_moment' | 'issue' | 'bookmark' | 'annotation';
+  type: "room_entry" | "key_moment" | "issue" | "bookmark" | "annotation";
   label: string;
   description?: string;
-  severity?: 'low' | 'medium' | 'high';
+  severity?: "low" | "medium" | "high";
   icon?: string;
   color?: string;
 }
@@ -36,7 +36,7 @@ export interface QuickJumpButton {
   label: string;
   icon: string;
   time: number;
-  type: 'room' | 'issue' | 'feature' | 'custom';
+  type: "room" | "issue" | "feature" | "custom";
   description?: string;
 }
 
@@ -73,30 +73,31 @@ export class VideoNavigationManager {
     // Create chapters for each room
     roomSequences.forEach((room, index) => {
       const roomTimestamps = this.video.timestamps.filter(
-        ts => ts.time >= room.startTime && ts.time <= room.endTime
+        (ts) => ts.time >= room.startTime && ts.time <= room.endTime,
       );
 
       const hasIssues = roomTimestamps.some(
-        ts => ts.sceneType === 'issue_documentation' ||
-              ts.features.includes('issue') ||
-              ts.features.includes('damage')
+        (ts) =>
+          ts.sceneType === "issue_documentation" ||
+          ts.features.includes("issue") ||
+          ts.features.includes("damage"),
       );
 
       // Find thumbnail (first key frame in room)
-      const thumbnail = this.analysis.scenes
-        .find(s => s.startTime >= room.startTime && s.endTime <= room.endTime)
-        ?.keyFrames[0]?.frameUrl;
+      const thumbnail = this.analysis.scenes.find(
+        (s) => s.startTime >= room.startTime && s.endTime <= room.endTime,
+      )?.keyFrames[0]?.frameUrl;
 
       // Create sub-chapters for key moments
       const subChapters: NavigationMarker[] = [];
-      
+
       // Add room entry
       subChapters.push({
         id: `${room.roomId}_entry`,
         time: room.startTime,
-        type: 'room_entry',
+        type: "room_entry",
         label: `Enter ${room.roomType}`,
-        description: `Beginning of ${room.roomType} inspection`
+        description: `Beginning of ${room.roomType} inspection`,
       });
 
       // Add key moments
@@ -104,23 +105,23 @@ export class VideoNavigationManager {
         subChapters.push({
           id: `${room.roomId}_moment_${momentIndex}`,
           time: moment.time,
-          type: 'key_moment',
+          type: "key_moment",
           label: moment.description || `Key moment ${momentIndex + 1}`,
-          description: moment.features.join(', ')
+          description: moment.features.join(", "),
         });
       });
 
       // Add issues
       roomTimestamps
-        .filter(ts => ts.sceneType === 'issue_documentation')
+        .filter((ts) => ts.sceneType === "issue_documentation")
         .forEach((issue, issueIndex) => {
           subChapters.push({
             id: `${room.roomId}_issue_${issueIndex}`,
             time: issue.time,
-            type: 'issue',
+            type: "issue",
             label: `Issue: ${issue.description}`,
-            severity: 'medium',
-            color: '#ef4444'
+            severity: "medium",
+            color: "#ef4444",
           });
         });
 
@@ -133,31 +134,31 @@ export class VideoNavigationManager {
         sceneCount: roomTimestamps.length,
         hasIssues,
         thumbnail,
-        subChapters: subChapters.sort((a, b) => a.time - b.time)
+        subChapters: subChapters.sort((a, b) => a.time - b.time),
       });
     });
 
     // Add intro/outro chapters if needed
     if (chapters.length > 0 && chapters[0].startTime > 5) {
       chapters.unshift({
-        id: 'intro',
-        title: 'Introduction',
+        id: "intro",
+        title: "Introduction",
         startTime: 0,
         endTime: chapters[0].startTime,
         sceneCount: 1,
-        hasIssues: false
+        hasIssues: false,
       });
     }
 
     const lastChapter = chapters[chapters.length - 1];
     if (lastChapter && lastChapter.endTime < this.video.duration - 5) {
       chapters.push({
-        id: 'outro',
-        title: 'Conclusion',
+        id: "outro",
+        title: "Conclusion",
         startTime: lastChapter.endTime,
         endTime: this.video.duration,
         sceneCount: 1,
-        hasIssues: false
+        hasIssues: false,
       });
     }
 
@@ -179,14 +180,14 @@ export class VideoNavigationManager {
         label: this.formatRoomTitle(room.roomType),
         icon: this.getRoomIcon(room.roomType),
         time: room.startTime,
-        type: 'room',
-        description: `Jump to ${room.roomType}`
+        type: "room",
+        description: `Jump to ${room.roomType}`,
       });
     });
 
     // Add critical issues
     const criticalIssues = this.analysis.issues
-      .filter(issue => issue.severity === 'high')
+      .filter((issue) => issue.severity === "high")
       .slice(0, 3);
 
     criticalIssues.forEach((issue, index) => {
@@ -194,17 +195,17 @@ export class VideoNavigationManager {
         buttons.push({
           id: `quick_issue_${index}`,
           label: `Issue ${index + 1}`,
-          icon: '⚠️',
+          icon: "⚠️",
           time: issue.affectedTimestamps[0],
-          type: 'issue',
-          description: issue.description
+          type: "issue",
+          description: issue.description,
         });
       }
     });
 
     // Add key features
     const keyFeatures = this.analysis.featureDetection
-      .filter(f => f.detected && f.confidence > 80)
+      .filter((f) => f.detected && f.confidence > 80)
       .slice(0, 3);
 
     keyFeatures.forEach((feature) => {
@@ -212,18 +213,16 @@ export class VideoNavigationManager {
         buttons.push({
           id: `quick_feature_${feature.feature}`,
           label: this.formatFeatureName(feature.feature),
-          icon: '✨',
+          icon: "✨",
           time: feature.timestamps[0],
-          type: 'feature',
-          description: `View ${feature.feature}`
+          type: "feature",
+          description: `View ${feature.feature}`,
         });
       }
     });
 
     // Sort by time and limit
-    return buttons
-      .sort((a, b) => a.time - b.time)
-      .slice(0, maxButtons);
+    return buttons.sort((a, b) => a.time - b.time).slice(0, maxButtons);
   }
 
   /**
@@ -232,15 +231,19 @@ export class VideoNavigationManager {
    * @param label Label for the bookmark
    * @param description Optional description
    */
-  addBookmark(time: number, label: string, description?: string): NavigationMarker {
+  addBookmark(
+    time: number,
+    label: string,
+    description?: string,
+  ): NavigationMarker {
     const bookmark: NavigationMarker = {
       id: `bookmark_${Date.now()}`,
       time,
-      type: 'bookmark',
+      type: "bookmark",
       label,
       description,
-      icon: '🔖',
-      color: '#eab308'
+      icon: "🔖",
+      color: "#eab308",
     };
 
     this.bookmarks.set(time, bookmark);
@@ -259,8 +262,7 @@ export class VideoNavigationManager {
    * Gets all bookmarks sorted by time
    */
   getBookmarks(): NavigationMarker[] {
-    return Array.from(this.bookmarks.values())
-      .sort((a, b) => a.time - b.time);
+    return Array.from(this.bookmarks.values()).sort((a, b) => a.time - b.time);
   }
 
   /**
@@ -268,20 +270,21 @@ export class VideoNavigationManager {
    * @returns VideoMetadata object
    */
   generateVideoMetadata(): VideoMetadata {
-    const roomsCovered = this.analysis.roomSequence.map(r => r.roomType);
+    const roomsCovered = this.analysis.roomSequence.map((r) => r.roomType);
     const issuesFound = this.analysis.issues.length;
     const overallQuality = this.analysis.qualityMetrics.averageQuality;
 
     // Generate tags based on content
     const tags: string[] = [];
-    
-    if (issuesFound > 0) tags.push('Has Issues');
-    if (overallQuality > 80) tags.push('High Quality');
-    if (roomsCovered.length >= 5) tags.push('Comprehensive');
-    if (this.analysis.qualityMetrics.stabilityScore > 85) tags.push('Stable Footage');
-    
+
+    if (issuesFound > 0) tags.push("Has Issues");
+    if (overallQuality > 80) tags.push("High Quality");
+    if (roomsCovered.length >= 5) tags.push("Comprehensive");
+    if (this.analysis.qualityMetrics.stabilityScore > 85)
+      tags.push("Stable Footage");
+
     // Add room tags
-    roomsCovered.forEach(room => {
+    roomsCovered.forEach((room) => {
       tags.push(this.formatRoomTitle(room));
     });
 
@@ -294,7 +297,7 @@ export class VideoNavigationManager {
       roomsCovered,
       issuesFound,
       overallQuality,
-      tags: [...new Set(tags)] // Remove duplicates
+      tags: [...new Set(tags)], // Remove duplicates
     };
   }
 
@@ -308,7 +311,7 @@ export class VideoNavigationManager {
 
     // Collect all markers
     const chapters = this.generateNavigationChapters();
-    chapters.forEach(chapter => {
+    chapters.forEach((chapter) => {
       if (chapter.subChapters) {
         allMarkers.push(...chapter.subChapters);
       }
@@ -321,7 +324,7 @@ export class VideoNavigationManager {
     let nearest: NavigationMarker | null = null;
     let minDistance = Infinity;
 
-    allMarkers.forEach(marker => {
+    allMarkers.forEach((marker) => {
       const distance = Math.abs(marker.time - time);
       if (distance < minDistance) {
         minDistance = distance;
@@ -346,17 +349,19 @@ export class VideoNavigationManager {
     const summary: Array<any> = [];
 
     this.analysis.scenes.forEach((scene, index) => {
-      const roomType = scene.roomType || 'Unknown';
-      const hasIssues = this.analysis.issues.some(issue =>
-        issue.affectedTimestamps.some(t => t >= scene.startTime && t <= scene.endTime)
+      const roomType = scene.roomType || "Unknown";
+      const hasIssues = this.analysis.issues.some((issue) =>
+        issue.affectedTimestamps.some(
+          (t) => t >= scene.startTime && t <= scene.endTime,
+        ),
       );
 
       summary.push({
         start: scene.startTime,
         end: scene.endTime,
-        label: `${roomType} - ${scene.sceneType.replace(/_/g, ' ')}`,
+        label: `${roomType} - ${scene.sceneType.replace(/_/g, " ")}`,
         type: scene.sceneType,
-        hasIssues
+        hasIssues,
       });
     });
 
@@ -368,38 +373,38 @@ export class VideoNavigationManager {
   private formatRoomTitle(roomType: string): string {
     return roomType
       .split(/[-_]/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   }
 
   private getRoomIcon(roomType: string): string {
     const icons: Record<string, string> = {
-      bedroom: '🛏️',
-      bathroom: '🚿',
-      kitchen: '🍳',
-      'living-room': '🛋️',
-      'dining-room': '🍽️',
-      garage: '🚗',
-      exterior: '🏠',
-      basement: '🗺️',
-      attic: '🏠'
+      bedroom: "🛏️",
+      bathroom: "🚿",
+      kitchen: "🍳",
+      "living-room": "🛋️",
+      "dining-room": "🍽️",
+      garage: "🚗",
+      exterior: "🏠",
+      basement: "🗺️",
+      attic: "🏠",
     };
-    return icons[roomType.toLowerCase()] || '📹';
+    return icons[roomType.toLowerCase()] || "📹";
   }
 
   private formatFeatureName(feature: string): string {
     return feature
-      .replace(/_/g, ' ')
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .replace(/_/g, " ")
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   }
 }
 
 // Export factory function
 export const createVideoNavigationManager = (
   video: VideoRecording,
-  analysis: VideoAnalysisResult
+  analysis: VideoAnalysisResult,
 ): VideoNavigationManager => {
   return new VideoNavigationManager(video, analysis);
 };
@@ -410,15 +415,15 @@ export const formatTimestamp = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
-  
+
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 };
 
 export const parseTimestamp = (timestamp: string): number => {
-  const parts = timestamp.split(':').map(Number);
+  const parts = timestamp.split(":").map(Number);
   if (parts.length === 3) {
     return parts[0] * 3600 + parts[1] * 60 + parts[2];
   } else if (parts.length === 2) {
@@ -430,18 +435,18 @@ export const parseTimestamp = (timestamp: string): number => {
 export const generateShareableLink = (
   videoId: string,
   timestamp?: number,
-  annotationId?: string
+  annotationId?: string,
 ): string => {
   const params = new URLSearchParams();
-  params.set('v', videoId);
-  
+  params.set("v", videoId);
+
   if (timestamp !== undefined) {
-    params.set('t', timestamp.toString());
+    params.set("t", timestamp.toString());
   }
-  
+
   if (annotationId) {
-    params.set('a', annotationId);
+    params.set("a", annotationId);
   }
-  
+
   return `/audit/video?${params.toString()}`;
 };

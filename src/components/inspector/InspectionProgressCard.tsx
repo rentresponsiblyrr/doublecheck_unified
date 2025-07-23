@@ -3,18 +3,32 @@
  * Extracted from ProductionInspectionWorkflow.tsx
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface InspectionProgressCardProps {
-  currentStep: 'property-selection' | 'inspection-active' | 'checklist-completion' | 'submission';
+  currentStep:
+    | "property-selection"
+    | "inspection-active"
+    | "checklist-completion"
+    | "submission";
 }
 
 export const InspectionProgressCard: React.FC<InspectionProgressCardProps> = ({
-  currentStep
+  currentStep,
 }) => {
-  const steps = ['Property Selection', 'Inspection Setup', 'Checklist Completion', 'Submission'];
-  const stepKeys = ['property-selection', 'inspection-active', 'checklist-completion', 'submission'];
+  const steps = [
+    "Property Selection",
+    "Inspection Setup",
+    "Checklist Completion",
+    "Submission",
+  ];
+  const stepKeys = [
+    "property-selection",
+    "inspection-active",
+    "checklist-completion",
+    "submission",
+  ];
   const currentStepIndex = stepKeys.indexOf(currentStep);
 
   return (
@@ -31,7 +45,7 @@ export const InspectionProgressCard: React.FC<InspectionProgressCardProps> = ({
             <div
               key={index}
               className={`flex-1 h-2 rounded ${
-                index <= currentStepIndex ? 'bg-blue-500' : 'bg-gray-200'
+                index <= currentStepIndex ? "bg-blue-500" : "bg-gray-200"
               }`}
             />
           ))}

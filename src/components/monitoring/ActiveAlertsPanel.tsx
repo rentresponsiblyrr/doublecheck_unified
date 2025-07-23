@@ -1,25 +1,30 @@
 /**
  * Active Alerts Panel - Enterprise Grade
- * 
+ *
  * Displays active monitoring alerts with severity indicators
  */
 
-import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle } from 'lucide-react';
-import { MonitoringAlert } from '@/lib/monitoring/inspection-error-monitor';
+import React from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle } from "lucide-react";
+import { MonitoringAlert } from "@/lib/monitoring/inspection-error-monitor";
 
 interface ActiveAlertsPanelProps {
   alerts: MonitoringAlert[];
 }
 
-export const ActiveAlertsPanel: React.FC<ActiveAlertsPanelProps> = ({ alerts }) => {
+export const ActiveAlertsPanel: React.FC<ActiveAlertsPanelProps> = ({
+  alerts,
+}) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'destructive';
-      case 'warning': return 'warning';
-      default: return 'default';
+      case "critical":
+        return "destructive";
+      case "warning":
+        return "warning";
+      default:
+        return "default";
     }
   };
 

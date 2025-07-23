@@ -3,9 +3,9 @@
  * Extracted from InspectionWorkflowContainer.tsx
  */
 
-import React from 'react';
-import { InspectionStepsSidebar } from './InspectionStepsSidebar';
-import { InspectionStep } from '@/hooks/useInspectionWorkflow';
+import React from "react";
+import { InspectionStepsSidebar } from "./InspectionStepsSidebar";
+import { InspectionStep } from "@/hooks/useInspectionWorkflow";
 
 interface WorkflowSidebarProps {
   steps: InspectionStep[];
@@ -18,7 +18,7 @@ export const WorkflowSidebar: React.FC<WorkflowSidebarProps> = ({
   steps,
   currentStep,
   onStepClick,
-  isOnline
+  isOnline,
 }) => {
   return (
     <div id="workflow-sidebar" className="lg:col-span-1">

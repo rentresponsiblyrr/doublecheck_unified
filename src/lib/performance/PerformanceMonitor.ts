@@ -58,32 +58,34 @@ export class PerformanceMonitor {
     FID: null,
     CLS: null,
     TTFB: null,
-    INP: null
+    INP: null,
   };
-  
+
   private performanceBudget: PerformanceBudget = {
-    FCP: 1500,      // 1.5s
-    LCP: 2500,      // 2.5s
-    FID: 100,       // 100ms
-    CLS: 0.1,       // 0.1
+    FCP: 1500, // 1.5s
+    LCP: 2500, // 2.5s
+    FID: 100, // 100ms
+    CLS: 0.1, // 0.1
     componentRender: 50, // 50ms
-    bundleSize: 200000,  // 200KB
-    apiResponse: 1000    // 1s
+    bundleSize: 200000, // 200KB
+    apiResponse: 1000, // 1s
   };
 
   private alertCallbacks: Array<(metric: PerformanceMetric) => void> = [];
   private isEnabled: boolean = true;
   private sampling: number = 1.0; // 100% sampling in development
 
-  constructor(options: { 
-    budget?: Partial<PerformanceBudget>;
-    sampling?: number;
-    enableAlerting?: boolean;
-  } = {}) {
+  constructor(
+    options: {
+      budget?: Partial<PerformanceBudget>;
+      sampling?: number;
+      enableAlerting?: boolean;
+    } = {},
+  ) {
     if (options.budget) {
       this.performanceBudget = { ...this.performanceBudget, ...options.budget };
     }
-    
+
     this.sampling = options.sampling ?? 1.0;
     this.isEnabled = options.enableAlerting ?? true;
 
@@ -97,7 +99,7 @@ export class PerformanceMonitor {
    */
   private initializeObserver(): void {
     if (!window.PerformanceObserver) {
-      console.warn('PerformanceObserver not supported');
+      console.warn("PerformanceObserver not supported");
       return;
     }
 
@@ -111,19 +113,19 @@ export class PerformanceMonitor {
       // Observe all performance metrics
       this.observer.observe({
         entryTypes: [
-          'measure',
-          'navigation', 
-          'paint',
-          'largest-contentful-paint',
-          'layout-shift',
-          'first-input',
-          'element'
-        ]
+          "measure",
+          "navigation",
+          "paint",
+          "largest-contentful-paint",
+          "layout-shift",
+          "first-input",
+          "element",
+        ],
       });
 
-      console.log('Performance Monitor initialized successfully');
+      console.log("Performance Monitor initialized successfully");
     } catch (error) {
-      console.warn('Failed to initialize PerformanceObserver:', error);
+      console.warn("Failed to initialize PerformanceObserver:", error);
     }
   }
 
@@ -135,11 +137,14 @@ export class PerformanceMonitor {
 
     const metric: PerformanceMetric = {
       name: entry.name,
-      value: entry.duration || (entry as PerformanceEntry & { value?: number }).value || 0,
+      value:
+        entry.duration ||
+        (entry as PerformanceEntry & { value?: number }).value ||
+        0,
       type: entry.entryType,
       timestamp: Date.now(),
       route: window.location.pathname,
-      buildVersion: process.env.VITE_APP_VERSION || 'unknown'
+      buildVersion: process.env.VITE_APP_VERSION || "unknown",
     };
 
     // Update Core Web Vitals
@@ -162,36 +167,41 @@ export class PerformanceMonitor {
   /**
    * Update Core Web Vitals metrics
    */
-  private updateCoreWebVitals(entry: PerformanceEntry, metric: PerformanceMetric): void {
+  private updateCoreWebVitals(
+    entry: PerformanceEntry,
+    metric: PerformanceMetric,
+  ): void {
     switch (entry.entryType) {
-      case 'paint':
-        if (entry.name === 'first-contentful-paint') {
+      case "paint":
+        if (entry.name === "first-contentful-paint") {
           this.coreWebVitals.FCP = metric.value;
         }
         break;
-      
-      case 'largest-contentful-paint':
+
+      case "largest-contentful-paint":
         this.coreWebVitals.LCP = metric.value;
         break;
-      
-      case 'first-input':
+
+      case "first-input":
         this.coreWebVitals.FID = metric.value;
         break;
-      
-      case 'layout-shift': {
+
+      case "layout-shift": {
         const layoutShift = entry as PerformanceEntry & {
           hadRecentInput?: boolean;
           value: number;
         };
         if (!layoutShift.hadRecentInput) {
-          this.coreWebVitals.CLS = (this.coreWebVitals.CLS || 0) + layoutShift.value;
+          this.coreWebVitals.CLS =
+            (this.coreWebVitals.CLS || 0) + layoutShift.value;
         }
         break;
       }
 
-      case 'navigation': {
+      case "navigation": {
         const navEntry = entry as PerformanceNavigationTiming;
-        this.coreWebVitals.TTFB = navEntry.responseStart - navEntry.requestStart;
+        this.coreWebVitals.TTFB =
+          navEntry.responseStart - navEntry.requestStart;
         break;
       }
     }
@@ -201,42 +211,48 @@ export class PerformanceMonitor {
    * Measure component render performance
    */
   measureComponentRender<T>(
-    componentName: string, 
+    componentName: string,
     renderFn: () => T,
-    props?: Record<string, unknown>
+    props?: Record<string, unknown>,
   ): T {
     if (!this.isEnabled) return renderFn();
 
     const startTime = performance.now();
-    const startMemory = (performance as Performance & {
-      memory?: {
-        usedJSHeapSize: number;
-        totalJSHeapSize: number;
-        jsHeapSizeLimit: number;
-      };
-    }).memory?.usedJSHeapSize || 0;
-    
+    const startMemory =
+      (
+        performance as Performance & {
+          memory?: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }
+      ).memory?.usedJSHeapSize || 0;
+
     performance.mark(`${componentName}-render-start`);
-    
+
     try {
       const result = renderFn();
-      
+
       const endTime = performance.now();
-      const endMemory = (performance as Performance & {
-        memory?: {
-          usedJSHeapSize: number;
-          totalJSHeapSize: number;
-          jsHeapSizeLimit: number;
-        };
-      }).memory?.usedJSHeapSize || 0;
+      const endMemory =
+        (
+          performance as Performance & {
+            memory?: {
+              usedJSHeapSize: number;
+              totalJSHeapSize: number;
+              jsHeapSizeLimit: number;
+            };
+          }
+        ).memory?.usedJSHeapSize || 0;
       const renderTime = endTime - startTime;
       const memoryDelta = endMemory - startMemory;
-      
+
       performance.mark(`${componentName}-render-end`);
       performance.measure(
         `${componentName}-render`,
         `${componentName}-render-start`,
-        `${componentName}-render-end`
+        `${componentName}-render-end`,
       );
 
       // Update component performance data
@@ -257,9 +273,13 @@ export class PerformanceMonitor {
   /**
    * Update component performance statistics
    */
-  private updateComponentData(componentName: string, renderTime: number, memoryDelta: number): void {
+  private updateComponentData(
+    componentName: string,
+    renderTime: number,
+    memoryDelta: number,
+  ): void {
     const existing = this.componentData.get(componentName);
-    
+
     if (existing) {
       existing.renderCount++;
       existing.renderTime += renderTime;
@@ -277,7 +297,7 @@ export class PerformanceMonitor {
         maxRenderTime: renderTime,
         minRenderTime: renderTime,
         memoryUsage: memoryDelta,
-        lastRender: Date.now()
+        lastRender: Date.now(),
       });
     }
   }
@@ -288,41 +308,47 @@ export class PerformanceMonitor {
   async measureAPICall<T>(
     endpoint: string,
     apiCall: () => Promise<T>,
-    options: { timeout?: number; retries?: number } = {}
+    options: { timeout?: number; retries?: number } = {},
   ): Promise<T> {
     const startTime = performance.now();
     const measureName = `api-${endpoint}`;
-    
+
     performance.mark(`${measureName}-start`);
-    
+
     try {
       const result = await apiCall();
-      
+
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       performance.mark(`${measureName}-end`);
-      performance.measure(measureName, `${measureName}-start`, `${measureName}-end`);
-      
+      performance.measure(
+        measureName,
+        `${measureName}-start`,
+        `${measureName}-end`,
+      );
+
       // Log slow API calls
       if (duration > this.performanceBudget.apiResponse) {
-        console.warn(`Slow API call detected: ${endpoint} took ${duration.toFixed(2)}ms`);
+        console.warn(
+          `Slow API call detected: ${endpoint} took ${duration.toFixed(2)}ms`,
+        );
         this.reportMetric({
           name: endpoint,
           value: duration,
-          type: 'api-slow',
-          timestamp: Date.now()
+          type: "api-slow",
+          timestamp: Date.now(),
         });
       }
-      
+
       return result;
     } catch (error) {
       performance.clearMarks(`${measureName}-start`);
       this.reportMetric({
         name: endpoint,
         value: performance.now() - startTime,
-        type: 'api-error',
-        timestamp: Date.now()
+        type: "api-error",
+        timestamp: Date.now(),
       });
       throw error;
     }
@@ -333,38 +359,41 @@ export class PerformanceMonitor {
    */
   private startCoreWebVitalsMonitoring(): void {
     // Monitor INP (Interaction to Next Paint)
-    if ('PerformanceEventTiming' in window) {
+    if ("PerformanceEventTiming" in window) {
       const interactionId = 0;
       const interactionMap = new Map();
 
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (entry.entryType === 'event') {
+          if (entry.entryType === "event") {
             const eventEntry = entry as PerformanceEntry & {
               interactionId?: number;
               processingStart?: number;
             };
             if (eventEntry.interactionId) {
-              interactionMap.set(eventEntry.interactionId, eventEntry.processingStart);
+              interactionMap.set(
+                eventEntry.interactionId,
+                eventEntry.processingStart,
+              );
             }
           }
         }
-      }).observe({ entryTypes: ['event'] });
+      }).observe({ entryTypes: ["event"] });
     }
 
     // Monitor Long Tasks
-    if ('PerformanceLongTaskTiming' in window) {
+    if ("PerformanceLongTaskTiming" in window) {
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           console.warn(`Long task detected: ${entry.duration.toFixed(2)}ms`);
           this.reportMetric({
-            name: 'long-task',
+            name: "long-task",
             value: entry.duration,
-            type: 'performance-issue',
-            timestamp: Date.now()
+            type: "performance-issue",
+            timestamp: Date.now(),
           });
         }
-      }).observe({ entryTypes: ['longtask'] });
+      }).observe({ entryTypes: ["longtask"] });
     }
   }
 
@@ -372,22 +401,29 @@ export class PerformanceMonitor {
    * Monitor memory usage
    */
   private startMemoryMonitoring(): void {
-    if (!(performance as Performance & {
-      memory?: {
-        usedJSHeapSize: number;
-        totalJSHeapSize: number;
-        jsHeapSizeLimit: number;
-      };
-    }).memory) return;
+    if (
+      !(
+        performance as Performance & {
+          memory?: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }
+      ).memory
+    )
+      return;
 
     setInterval(() => {
-      const memory = (performance as Performance & {
-        memory: {
-          usedJSHeapSize: number;
-          totalJSHeapSize: number;
-          jsHeapSizeLimit: number;
-        };
-      }).memory;
+      const memory = (
+        performance as Performance & {
+          memory: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }
+      ).memory;
       const used = memory.usedJSHeapSize;
       const total = memory.totalJSHeapSize;
       const limit = memory.jsHeapSizeLimit;
@@ -396,10 +432,10 @@ export class PerformanceMonitor {
       if (used / limit > 0.8) {
         console.warn(`High memory usage: ${(used / 1024 / 1024).toFixed(2)}MB`);
         this.reportMetric({
-          name: 'memory-usage-high',
+          name: "memory-usage-high",
           value: used,
-          type: 'memory-warning',
-          timestamp: Date.now()
+          type: "memory-warning",
+          timestamp: Date.now(),
         });
       }
     }, 10000); // Check every 10 seconds
@@ -412,28 +448,48 @@ export class PerformanceMonitor {
     const violations: string[] = [];
 
     // Check Core Web Vitals against budget
-    if (this.coreWebVitals.FCP && this.coreWebVitals.FCP > this.performanceBudget.FCP) {
-      violations.push(`FCP: ${this.coreWebVitals.FCP}ms > ${this.performanceBudget.FCP}ms`);
+    if (
+      this.coreWebVitals.FCP &&
+      this.coreWebVitals.FCP > this.performanceBudget.FCP
+    ) {
+      violations.push(
+        `FCP: ${this.coreWebVitals.FCP}ms > ${this.performanceBudget.FCP}ms`,
+      );
     }
 
-    if (this.coreWebVitals.LCP && this.coreWebVitals.LCP > this.performanceBudget.LCP) {
-      violations.push(`LCP: ${this.coreWebVitals.LCP}ms > ${this.performanceBudget.LCP}ms`);
+    if (
+      this.coreWebVitals.LCP &&
+      this.coreWebVitals.LCP > this.performanceBudget.LCP
+    ) {
+      violations.push(
+        `LCP: ${this.coreWebVitals.LCP}ms > ${this.performanceBudget.LCP}ms`,
+      );
     }
 
-    if (this.coreWebVitals.FID && this.coreWebVitals.FID > this.performanceBudget.FID) {
-      violations.push(`FID: ${this.coreWebVitals.FID}ms > ${this.performanceBudget.FID}ms`);
+    if (
+      this.coreWebVitals.FID &&
+      this.coreWebVitals.FID > this.performanceBudget.FID
+    ) {
+      violations.push(
+        `FID: ${this.coreWebVitals.FID}ms > ${this.performanceBudget.FID}ms`,
+      );
     }
 
-    if (this.coreWebVitals.CLS && this.coreWebVitals.CLS > this.performanceBudget.CLS) {
-      violations.push(`CLS: ${this.coreWebVitals.CLS} > ${this.performanceBudget.CLS}`);
+    if (
+      this.coreWebVitals.CLS &&
+      this.coreWebVitals.CLS > this.performanceBudget.CLS
+    ) {
+      violations.push(
+        `CLS: ${this.coreWebVitals.CLS} > ${this.performanceBudget.CLS}`,
+      );
     }
 
     if (violations.length > 0) {
-      console.warn('Performance budget violations:', violations);
+      console.warn("Performance budget violations:", violations);
       this.triggerAlerts({
         ...metric,
-        name: 'performance-budget-violation',
-        type: 'budget-violation'
+        name: "performance-budget-violation",
+        type: "budget-violation",
       });
     }
   }
@@ -443,14 +499,15 @@ export class PerformanceMonitor {
    */
   private logPerformanceIssues(metric: PerformanceMetric): void {
     // Log to external monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       // Would integrate with services like DataDog, NewRelic, etc.
       this.sendToMonitoringService(metric);
     }
 
     // Local development logging
-    if (process.env.NODE_ENV === 'development') {
-      if (metric.value > 1000) { // >1s operations
+    if (process.env.NODE_ENV === "development") {
+      if (metric.value > 1000) {
+        // >1s operations
         console.warn(`Performance issue detected:`, metric);
       }
     }
@@ -459,20 +516,27 @@ export class PerformanceMonitor {
   /**
    * Alert on slow component renders
    */
-  private alertSlowRender(componentName: string, renderTime: number, props?: Record<string, unknown>): void {
-    console.warn(`Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms`, {
-      component: componentName,
-      renderTime,
-      props,
-      budget: this.performanceBudget.componentRender
-    });
+  private alertSlowRender(
+    componentName: string,
+    renderTime: number,
+    props?: Record<string, unknown>,
+  ): void {
+    console.warn(
+      `Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms`,
+      {
+        component: componentName,
+        renderTime,
+        props,
+        budget: this.performanceBudget.componentRender,
+      },
+    );
 
     this.triggerAlerts({
       name: componentName,
       value: renderTime,
-      type: 'slow-render',
+      type: "slow-render",
       timestamp: Date.now(),
-      component: componentName
+      component: componentName,
     });
   }
 
@@ -480,11 +544,11 @@ export class PerformanceMonitor {
    * Trigger performance alerts
    */
   private triggerAlerts(metric: PerformanceMetric): void {
-    this.alertCallbacks.forEach(callback => {
+    this.alertCallbacks.forEach((callback) => {
       try {
         callback(metric);
       } catch (error) {
-        console.error('Alert callback error:', error);
+        console.error("Alert callback error:", error);
       }
     });
   }
@@ -496,12 +560,12 @@ export class PerformanceMonitor {
     // Implementation would depend on monitoring service
     // Example for DataDog, NewRelic, or custom analytics
     if (window.fetch) {
-      fetch('/api/metrics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metric)
-      }).catch(error => {
-        console.warn('Failed to send metric to monitoring service:', error);
+      fetch("/api/metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metric),
+      }).catch((error) => {
+        console.warn("Failed to send metric to monitoring service:", error);
       });
     }
   }
@@ -509,17 +573,19 @@ export class PerformanceMonitor {
   /**
    * Public API methods
    */
-  
-  public reportMetric(metric: Omit<PerformanceMetric, 'timestamp'>): void {
+
+  public reportMetric(metric: Omit<PerformanceMetric, "timestamp">): void {
     this.processPerformanceEntry({
       name: metric.name,
       entryType: metric.type,
       duration: metric.value,
-      startTime: 0
+      startTime: 0,
     } as PerformanceEntry);
   }
 
-  public addAlertCallback(callback: (metric: PerformanceMetric) => void): () => void {
+  public addAlertCallback(
+    callback: (metric: PerformanceMetric) => void,
+  ): () => void {
     this.alertCallbacks.push(callback);
     return () => {
       const index = this.alertCallbacks.indexOf(callback);
@@ -541,14 +607,14 @@ export class PerformanceMonitor {
     if (type) {
       return Array.from(this.metrics.values())
         .flat()
-        .filter(metric => metric.type === type);
+        .filter((metric) => metric.type === type);
     }
     return Array.from(this.metrics.values()).flat();
   }
 
-  public getBudgetStatus(): { 
+  public getBudgetStatus(): {
     violations: string[];
-    grade: 'A' | 'B' | 'C' | 'D' | 'F';
+    grade: "A" | "B" | "C" | "D" | "F";
     score: number;
   } {
     const violations: string[] = [];
@@ -563,22 +629,36 @@ export class PerformanceMonitor {
       }
     });
 
-    const grade = score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F';
-    
+    const grade =
+      score >= 90
+        ? "A"
+        : score >= 80
+          ? "B"
+          : score >= 70
+            ? "C"
+            : score >= 60
+              ? "D"
+              : "F";
+
     return { violations, grade, score: Math.max(0, score) };
   }
 
   private getCurrentValueForBudget(key: string): number {
     switch (key) {
-      case 'FCP': return this.coreWebVitals.FCP || 0;
-      case 'LCP': return this.coreWebVitals.LCP || 0;
-      case 'FID': return this.coreWebVitals.FID || 0;
-      case 'CLS': return this.coreWebVitals.CLS || 0;
-      case 'componentRender': {
+      case "FCP":
+        return this.coreWebVitals.FCP || 0;
+      case "LCP":
+        return this.coreWebVitals.LCP || 0;
+      case "FID":
+        return this.coreWebVitals.FID || 0;
+      case "CLS":
+        return this.coreWebVitals.CLS || 0;
+      case "componentRender": {
         const components = this.getComponentPerformance();
-        return Math.max(...components.map(c => c.maxRenderTime), 0);
+        return Math.max(...components.map((c) => c.maxRenderTime), 0);
       }
-      default: return 0;
+      default:
+        return 0;
     }
   }
 
@@ -607,7 +687,7 @@ export const globalPerformanceMonitor = new PerformanceMonitor({
     CLS: 0.1,
     componentRender: 50,
     bundleSize: 200000,
-    apiResponse: 1000
+    apiResponse: 1000,
   },
-  sampling: process.env.NODE_ENV === 'production' ? 0.1 : 1.0 // 10% sampling in production
+  sampling: process.env.NODE_ENV === "production" ? 0.1 : 1.0, // 10% sampling in production
 });

@@ -1,4 +1,3 @@
-
 import { User, Clock } from "lucide-react";
 import { NotesHistoryEntry } from "@/hooks/useNotesHistory";
 
@@ -7,13 +6,20 @@ interface NotesHistoryListProps {
   isLoading: boolean;
 }
 
-export const NotesHistoryList = ({ notesHistory, isLoading }: NotesHistoryListProps) => {
+export const NotesHistoryList = ({
+  notesHistory,
+  isLoading,
+}: NotesHistoryListProps) => {
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return (
+      date.toLocaleDateString() +
+      " at " +
+      date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
   };
 
   if (notesHistory.length === 0) {
@@ -26,7 +32,7 @@ export const NotesHistoryList = ({ notesHistory, isLoading }: NotesHistoryListPr
         <User className="w-4 h-4" />
         <span>Inspector Notes ({notesHistory.length})</span>
       </div>
-      
+
       {isLoading ? (
         <div className="animate-pulse">
           <div className="h-16 bg-gray-100 rounded-lg"></div>
@@ -34,7 +40,10 @@ export const NotesHistoryList = ({ notesHistory, isLoading }: NotesHistoryListPr
       ) : (
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {notesHistory.map((entry, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div
+              key={index}
+              className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-blue-700">
                   {entry.user_name}

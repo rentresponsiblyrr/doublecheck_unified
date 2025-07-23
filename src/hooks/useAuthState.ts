@@ -1,9 +1,8 @@
-
-import { useState, useRef, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { getCachedRole } from '@/utils/mobileCacheUtils';
-import { useMobileAuthHooks } from '@/hooks/useMobileAuthHooks';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useRef, useCallback } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { getCachedRole } from "@/utils/mobileCacheUtils";
+import { useMobileAuthHooks } from "@/hooks/useMobileAuthHooks";
+import { useToast } from "@/hooks/use-toast";
 
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -11,33 +10,33 @@ export const useAuthState = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const initializationRef = useRef<Promise<void> | null>(null);
   const roleLoadingRef = useRef<Promise<void> | null>(null);
   const { toast } = useToast();
-  const { fetchUserRole, clearSession, signIn, signUp, signOut } = useMobileAuthHooks();
+  const { fetchUserRole, clearSession, signIn, signUp, signOut } =
+    useMobileAuthHooks();
 
   const loadUserRole = useCallback(async () => {
     if (!user?.id) return;
-    
+
     // Prevent concurrent role loading
     if (roleLoadingRef.current) {
       await roleLoadingRef.current;
       return;
     }
-    
-    
+
     const roleLoadingPromise = (async () => {
       try {
         const role = await fetchUserRole(user.id, false);
         setUserRole(role);
       } catch (error) {
-        setUserRole('inspector');
+        setUserRole("inspector");
       } finally {
         roleLoadingRef.current = null;
       }
     })();
-    
+
     roleLoadingRef.current = roleLoadingPromise;
     await roleLoadingPromise;
   }, [user?.id, fetchUserRole]);
@@ -47,14 +46,14 @@ export const useAuthState = () => {
     setUser(null);
     setSession(null);
     setUserRole(null);
-    setError('Session cleared - please sign in again');
+    setError("Session cleared - please sign in again");
   }, [user?.id, clearSession]);
 
   const forceRefresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     initializationRef.current = null;
-    
+
     try {
       // This will be handled by the auth initialization
       toast({
@@ -70,29 +69,35 @@ export const useAuthState = () => {
     }
   }, [toast]);
 
-  const handleSignIn = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await signIn(email, password);
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  }, [signIn]);
+  const handleSignIn = useCallback(
+    async (email: string, password: string) => {
+      setLoading(true);
+      setError(null);
 
-  const handleSignUp = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await signUp(email, password);
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  }, [signUp]);
+      try {
+        const result = await signIn(email, password);
+        return result;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [signIn],
+  );
+
+  const handleSignUp = useCallback(
+    async (email: string, password: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await signUp(email, password);
+        return result;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [signUp],
+  );
 
   const handleSignOut = useCallback(async () => {
     setLoading(true);
@@ -100,7 +105,7 @@ export const useAuthState = () => {
     setSession(null);
     setUser(null);
     setError(null);
-    
+
     try {
       await signOut(user?.id);
     } finally {
@@ -116,14 +121,14 @@ export const useAuthState = () => {
     loading,
     error,
     initializationRef,
-    
+
     // Setters
     setUser,
     setSession,
     setUserRole,
     setLoading,
     setError,
-    
+
     // Actions
     loadUserRole,
     handleClearSession,
@@ -131,8 +136,8 @@ export const useAuthState = () => {
     handleSignIn,
     handleSignUp,
     handleSignOut,
-    
+
     // Utilities
-    fetchUserRole
+    fetchUserRole,
   };
 };

@@ -1,9 +1,9 @@
 /**
  * USER MANAGEMENT DATA MANAGER - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade data manager following ZERO_TOLERANCE_STANDARDS
  * Reduced from 364 lines to <150 lines through service decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused service modules (UserDataService, UserStatisticsService, etc.)
@@ -11,13 +11,13 @@
  * - Performance optimized with proper service separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Service Composition:
  * - UserDataService: Database operations and CRUD functionality
  * - UserStatisticsService: Statistics calculation and analysis
  * - UserFilterService: User filtering and search logic
  * - SystemDiagnosticService: System health checks and diagnostics
- * 
+ *
  * @example
  * ```typescript
  * <UserManagementDataManager>
@@ -28,15 +28,27 @@
  * ```
  */
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { User, UserFormData, UserFilters, SystemDiagnostic, UserStats } from './types';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  User,
+  UserFormData,
+  UserFilters,
+  SystemDiagnostic,
+  UserStats,
+} from "./types";
 
 // Import focused service modules
-import { UserDataService } from './services/UserDataService';
-import { UserStatisticsService } from './services/UserStatisticsService';
-import { UserFilterService } from './services/UserFilterService';
-import { SystemDiagnosticService } from './services/SystemDiagnosticService';
+import { UserDataService } from "./services/UserDataService";
+import { UserStatisticsService } from "./services/UserStatisticsService";
+import { UserFilterService } from "./services/UserFilterService";
+import { SystemDiagnosticService } from "./services/SystemDiagnosticService";
 
 /**
  * Props interface for render props pattern
@@ -69,13 +81,23 @@ interface UserManagementDataManagerProps {
  * Main User Management Data Manager - Orchestration Only
  * Reduced from 364 lines to <150 lines through service decomposition
  */
-export const UserManagementDataManager: React.FC<UserManagementDataManagerProps> = ({ children }) => {
+export const UserManagementDataManager: React.FC<
+  UserManagementDataManagerProps
+> = ({ children }) => {
   // Core state
   const [users, setUsers] = useState<User[]>([]);
-  const [filters, setFilters] = useState<UserFilters>({ search: '', role: '', status: '' });
+  const [filters, setFilters] = useState<UserFilters>({
+    search: "",
+    role: "",
+    status: "",
+  });
   const [diagnostic, setDiagnostic] = useState<SystemDiagnostic>({
-    usersTableExists: false, profilesTableExists: false, authEnabled: false,
-    rlsEnabled: false, hasPermissions: false, lastChecked: new Date()
+    usersTableExists: false,
+    profilesTableExists: false,
+    authEnabled: false,
+    rlsEnabled: false,
+    hasPermissions: false,
+    lastChecked: new Date(),
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,15 +105,21 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  
+
   const { toast } = useToast();
   const mountedRef = useRef(true);
 
   // Initialize services with useMemo to prevent recreation on re-render
-  const userDataService = useMemo(() => new UserDataService(toast, mountedRef), [toast]);
+  const userDataService = useMemo(
+    () => new UserDataService(toast, mountedRef),
+    [toast],
+  );
   const userStatisticsService = useMemo(() => new UserStatisticsService(), []);
   const userFilterService = useMemo(() => new UserFilterService(), []);
-  const systemDiagnosticService = useMemo(() => new SystemDiagnosticService(mountedRef), []);
+  const systemDiagnosticService = useMemo(
+    () => new SystemDiagnosticService(mountedRef),
+    [],
+  );
 
   // Lifecycle cleanup
   useEffect(() => {
@@ -104,7 +132,7 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const usersData = await userDataService.loadUsers();
       if (mountedRef.current) {
@@ -112,7 +140,7 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        setError(err instanceof Error ? err.message : "Unknown error occurred");
       }
     } finally {
       if (mountedRef.current) {
@@ -129,7 +157,7 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
         setDiagnostic(diagnosticResults);
       }
     } catch (error) {
-      console.warn('Diagnostics failed:', error);
+      console.warn("Diagnostics failed:", error);
     }
   }, [systemDiagnosticService]);
 
@@ -197,7 +225,7 @@ export const UserManagementDataManager: React.FC<UserManagementDataManagerProps>
         onRefresh: loadUsers,
         onToggleUserForm: () => setShowUserForm(!showUserForm),
         onToggleDiagnostics: () => setShowDiagnostics(!showDiagnostics),
-        onCloseUserForm: handleCloseUserForm
+        onCloseUserForm: handleCloseUserForm,
       })}
     </div>
   );

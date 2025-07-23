@@ -1,21 +1,21 @@
 /**
  * Key Metrics Grid - Enterprise Grade
- * 
+ *
  * Display key monitoring metrics in a responsive grid layout
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
   AlertTriangle,
   TrendingUp,
-  TrendingDown
-} from 'lucide-react';
-import { ErrorMetrics } from '@/lib/monitoring/inspection-error-monitor';
+  TrendingDown,
+} from "lucide-react";
+import { ErrorMetrics } from "@/lib/monitoring/inspection-error-monitor";
 
 interface KeyMetricsGridProps {
   metrics: ErrorMetrics;
@@ -23,9 +23,9 @@ interface KeyMetricsGridProps {
 
 export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
   const getSuccessRateColor = (rate: number): string => {
-    if (rate >= 0.99) return 'text-green-600';
-    if (rate >= 0.95) return 'text-yellow-600';
-    return 'text-red-600';
+    if (rate >= 0.99) return "text-green-600";
+    if (rate >= 0.95) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const formatDuration = (ms: number): string => {
@@ -35,7 +35,10 @@ export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
   };
 
   return (
-    <div id="key-metrics-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+      id="key-metrics-grid"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+    >
       {/* Success Rate */}
       <Card id="success-rate-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -43,13 +46,13 @@ export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${getSuccessRateColor(metrics.successRate)}`}>
+          <div
+            className={`text-2xl font-bold ${getSuccessRateColor(metrics.successRate)}`}
+          >
             {(metrics.successRate * 100).toFixed(1)}%
           </div>
           <Progress value={metrics.successRate * 100} className="mt-2" />
-          <p className="text-xs text-muted-foreground mt-2">
-            Last 24 hours
-          </p>
+          <p className="text-xs text-muted-foreground mt-2">Last 24 hours</p>
         </CardContent>
       </Card>
 
@@ -67,10 +70,15 @@ export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
             ) : (
               <TrendingDown className="h-4 w-4 text-green-500" />
             )}
-            <span className={`text-xs ${
-              metrics.performanceTrends.errorRateChange > 0 ? 'text-red-500' : 'text-green-500'
-            }`}>
-              {Math.abs(metrics.performanceTrends.errorRateChange).toFixed(1)}% vs previous period
+            <span
+              className={`text-xs ${
+                metrics.performanceTrends.errorRateChange > 0
+                  ? "text-red-500"
+                  : "text-green-500"
+              }`}
+            >
+              {Math.abs(metrics.performanceTrends.errorRateChange).toFixed(1)}%
+              vs previous period
             </span>
           </div>
         </CardContent>
@@ -79,7 +87,9 @@ export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
       {/* Average Response Time */}
       <Card id="response-time-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Avg Response Time
+          </CardTitle>
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -99,9 +109,11 @@ export const KeyMetricsGrid: React.FC<KeyMetricsGridProps> = ({ metrics }) => {
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${
-            metrics.criticalErrors > 0 ? 'text-red-600' : 'text-green-600'
-          }`}>
+          <div
+            className={`text-2xl font-bold ${
+              metrics.criticalErrors > 0 ? "text-red-600" : "text-green-600"
+            }`}
+          >
             {metrics.criticalErrors}
           </div>
           <p className="text-xs text-muted-foreground mt-2">

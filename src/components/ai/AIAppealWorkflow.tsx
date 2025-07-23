@@ -1,18 +1,18 @@
 /**
  * AI Appeal Workflow - Focused Component
- * 
+ *
  * One-click appeal initiation and workflow management
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MessageSquare, FileText, Clock } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MessageSquare, FileText, Clock } from "lucide-react";
 
 interface AIAppealWorkflowProps {
   enabled: boolean;
-  trafficLightStatus: 'green' | 'yellow' | 'red';
+  trafficLightStatus: "green" | "yellow" | "red";
   onInitiateAppeal: () => void;
   className?: string;
 }
@@ -21,9 +21,9 @@ export const AIAppealWorkflow: React.FC<AIAppealWorkflowProps> = ({
   enabled,
   trafficLightStatus,
   onInitiateAppeal,
-  className
+  className,
 }) => {
-  if (!enabled || trafficLightStatus === 'green') {
+  if (!enabled || trafficLightStatus === "green") {
     return null;
   }
 
@@ -39,10 +39,9 @@ export const AIAppealWorkflow: React.FC<AIAppealWorkflowProps> = ({
         <Alert className="border-blue-200 bg-blue-50">
           <FileText className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            {trafficLightStatus === 'yellow' 
-              ? 'If you disagree with this analysis, you can request human review.'
-              : 'This analysis requires human review before proceeding. You can also request additional review if needed.'
-            }
+            {trafficLightStatus === "yellow"
+              ? "If you disagree with this analysis, you can request human review."
+              : "This analysis requires human review before proceeding. You can also request additional review if needed."}
           </AlertDescription>
         </Alert>
 
@@ -64,13 +63,15 @@ export const AIAppealWorkflow: React.FC<AIAppealWorkflowProps> = ({
           </div>
         </div>
 
-        <Button 
-          onClick={onInitiateAppeal} 
-          className="w-full" 
-          variant={trafficLightStatus === 'red' ? 'default' : 'outline'}
+        <Button
+          onClick={onInitiateAppeal}
+          className="w-full"
+          variant={trafficLightStatus === "red" ? "default" : "outline"}
         >
           <MessageSquare className="w-4 h-4 mr-2" />
-          {trafficLightStatus === 'red' ? 'Request Required Review' : 'Request Additional Review'}
+          {trafficLightStatus === "red"
+            ? "Request Required Review"
+            : "Request Additional Review"}
         </Button>
       </CardContent>
     </Card>

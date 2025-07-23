@@ -1,18 +1,18 @@
 // Test Runner for VRBO Browser Scraper
 // Simple validation script to test the scraper implementation
 
-import { scrapeBrowserVRBOProperty } from '../vrbo-browser-scraper';
-import { scrapeVRBOProperty } from '../vrbo-scraper';
-import { logger } from '../../../utils/logger';
+import { scrapeBrowserVRBOProperty } from "../vrbo-browser-scraper";
+import { scrapeVRBOProperty } from "../vrbo-scraper";
+import { logger } from "../../../utils/logger";
 
 // Test configuration
 const TEST_CONFIG = {
   // Use a real VRBO URL for testing (this should be a valid property)
-  testUrl: 'https://www.vrbo.com/1234567/test-property',
-  
+  testUrl: "https://www.vrbo.com/1234567/test-property",
+
   // Mock URL for testing without making real requests
-  mockUrl: 'https://www.vrbo.com/mock-test',
-  
+  mockUrl: "https://www.vrbo.com/mock-test",
+
   // Test options
   options: {
     headless: true,
@@ -20,8 +20,8 @@ const TEST_CONFIG = {
     scrollWaitTime: 2000,
     browserTimeout: 30000,
     useStaticFallback: true,
-    enableScreenshots: false
-  }
+    enableScreenshots: false,
+  },
 };
 
 /**
@@ -30,7 +30,7 @@ const TEST_CONFIG = {
 class VRBOScraperTestRunner {
   private testResults: Array<{
     testName: string;
-    status: 'passed' | 'failed' | 'skipped';
+    status: "passed" | "failed" | "skipped";
     duration: number;
     error?: string;
     details?: any;
@@ -40,14 +40,13 @@ class VRBOScraperTestRunner {
    * Runs all tests
    */
   async runAllTests(): Promise<void> {
-
     // Run individual tests
     await this.testUrlValidation();
     await this.testBrowserScraperCreation();
     await this.testStaticFallback();
     await this.testErrorHandling();
     await this.testMockScraping();
-    
+
     // Skip real scraping test to avoid making actual requests
     // await this.testRealScraping();
 
@@ -58,22 +57,22 @@ class VRBOScraperTestRunner {
    * Test URL validation
    */
   private async testUrlValidation(): Promise<void> {
-    const testName = 'URL Validation';
-    
+    const testName = "URL Validation";
+
     try {
       const startTime = Date.now();
-      
+
       const validUrls = [
-        'https://www.vrbo.com/12345',
-        'https://vrbo.com/12345/test-property',
-        'https://www.homeaway.com/12345'
+        "https://www.vrbo.com/12345",
+        "https://vrbo.com/12345/test-property",
+        "https://www.homeaway.com/12345",
       ];
 
       const invalidUrls = [
-        'https://airbnb.com/rooms/12345',
-        'not-a-url',
-        '',
-        'https://booking.com/hotel/test'
+        "https://airbnb.com/rooms/12345",
+        "not-a-url",
+        "",
+        "https://booking.com/hotel/test",
       ];
 
       // Test valid URLs (should not immediately fail)
@@ -82,17 +81,23 @@ class VRBOScraperTestRunner {
           // Just test that it doesn't throw on URL validation
           const result = await scrapeBrowserVRBOProperty(url, {
             ...TEST_CONFIG.options,
-            browserTimeout: 5000 // Short timeout for validation test
+            browserTimeout: 5000, // Short timeout for validation test
           });
-          
-          // We expect this to potentially fail due to network/page issues, 
+
+          // We expect this to potentially fail due to network/page issues,
           // but not due to URL validation
-          if (!result.success && result.errors.some(e => e.message.includes('Invalid VRBO URL'))) {
+          if (
+            !result.success &&
+            result.errors.some((e) => e.message.includes("Invalid VRBO URL"))
+          ) {
             throw new Error(`Valid URL rejected: ${url}`);
           }
         } catch (error) {
           // Network errors are acceptable for this test
-          if (error instanceof Error && !error.message.includes('Invalid VRBO URL')) {
+          if (
+            error instanceof Error &&
+            !error.message.includes("Invalid VRBO URL")
+          ) {
             // This is fine - network/timeout errors are expected
           } else {
             throw error;
@@ -101,28 +106,25 @@ class VRBOScraperTestRunner {
       }
 
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
           validUrlsTested: validUrls.length,
-          invalidUrlsTested: invalidUrls.length
-        }
+          invalidUrlsTested: invalidUrls.length,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -130,47 +132,49 @@ class VRBOScraperTestRunner {
    * Test browser scraper creation
    */
   private async testBrowserScraperCreation(): Promise<void> {
-    const testName = 'Browser Scraper Creation';
-    
+    const testName = "Browser Scraper Creation";
+
     try {
       const startTime = Date.now();
-      
+
       // Test that scraper can be created with various configurations
-      const { createVRBOBrowserScraper } = await import('../vrbo-browser-scraper');
-      
+      const { createVRBOBrowserScraper } = await import(
+        "../vrbo-browser-scraper"
+      );
+
       const scraper1 = createVRBOBrowserScraper();
-      const scraper2 = createVRBOBrowserScraper({}, {
-        headless: true,
-        scrollCycles: 5,
-        enableStealth: true
-      });
-      
+      const scraper2 = createVRBOBrowserScraper(
+        {},
+        {
+          headless: true,
+          scrollCycles: 5,
+          enableStealth: true,
+        },
+      );
+
       // Test cleanup
       await scraper1.cleanup();
       await scraper2.cleanup();
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
-          scrapersCreated: 2
-        }
+          scrapersCreated: 2,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -178,43 +182,40 @@ class VRBOScraperTestRunner {
    * Test static fallback functionality
    */
   private async testStaticFallback(): Promise<void> {
-    const testName = 'Static Fallback';
-    
+    const testName = "Static Fallback";
+
     try {
       const startTime = Date.now();
-      
+
       // Test static scraping (should work without browser)
       const result = await scrapeVRBOProperty(TEST_CONFIG.mockUrl);
-      
+
       // Should return fallback data
       expect(result).toBeDefined();
       expect(result.title).toBeDefined();
       expect(result.vrboId).toBeDefined();
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
           fallbackDataReturned: true,
           title: result.title,
-          amenitiesCount: result.amenities?.length || 0
-        }
+          amenitiesCount: result.amenities?.length || 0,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -222,45 +223,42 @@ class VRBOScraperTestRunner {
    * Test error handling
    */
   private async testErrorHandling(): Promise<void> {
-    const testName = 'Error Handling';
-    
+    const testName = "Error Handling";
+
     try {
       const startTime = Date.now();
-      
+
       // Test with invalid URL - should handle gracefully
-      const result = await scrapeBrowserVRBOProperty('invalid-url', {
+      const result = await scrapeBrowserVRBOProperty("invalid-url", {
         ...TEST_CONFIG.options,
-        browserTimeout: 5000
+        browserTimeout: 5000,
       });
-      
+
       // Should fail but not crash
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
       expect(result.errors.length).toBeGreaterThan(0);
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
           errorHandledGracefully: true,
-          errorsCount: result.errors.length
-        }
+          errorsCount: result.errors.length,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -268,45 +266,42 @@ class VRBOScraperTestRunner {
    * Test mock scraping (no real network requests)
    */
   private async testMockScraping(): Promise<void> {
-    const testName = 'Mock Scraping';
-    
+    const testName = "Mock Scraping";
+
     try {
       const startTime = Date.now();
-      
+
       // Test the main scraper function with mock data
       const result = await scrapeVRBOProperty(TEST_CONFIG.mockUrl);
-      
+
       // Should return some data (fallback if nothing else)
       expect(result).toBeDefined();
       expect(result.vrboId).toBeDefined();
       expect(result.title).toBeDefined();
       expect(result.sourceUrl).toBe(TEST_CONFIG.mockUrl);
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
           propertyId: result.vrboId,
           title: result.title,
           amenitiesCount: result.amenities?.length || 0,
-          photosCount: result.photos?.length || 0
-        }
+          photosCount: result.photos?.length || 0,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -314,44 +309,44 @@ class VRBOScraperTestRunner {
    * Test real scraping (disabled by default)
    */
   private async testRealScraping(): Promise<void> {
-    const testName = 'Real Scraping';
-    
+    const testName = "Real Scraping";
+
     try {
       const startTime = Date.now();
-      
+
       // This would test with a real VRBO URL
-      const result = await scrapeBrowserVRBOProperty(TEST_CONFIG.testUrl, TEST_CONFIG.options);
-      
+      const result = await scrapeBrowserVRBOProperty(
+        TEST_CONFIG.testUrl,
+        TEST_CONFIG.options,
+      );
+
       // Validate results
       expect(result.success).toBe(true);
       expect(result.data?.propertyData).toBeDefined();
       expect(result.data?.totalImages).toBeGreaterThan(0);
-      
+
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'passed',
+        status: "passed",
         duration,
         details: {
           totalImages: result.data?.totalImages,
           galleryImages: result.data?.galleryImages.length,
           staticImages: result.data?.staticImages.length,
-          scrollCycles: result.data?.galleryLoadingResult.scrollCyclesCompleted
-        }
+          scrollCycles: result.data?.galleryLoadingResult.scrollCyclesCompleted,
+        },
       });
-      
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       this.testResults.push({
         testName,
-        status: 'failed',
+        status: "failed",
         duration,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
-      
     }
   }
 
@@ -359,18 +354,16 @@ class VRBOScraperTestRunner {
    * Print test results summary
    */
   private printTestResults(): void {
-    
-    const passed = this.testResults.filter(r => r.status === 'passed').length;
-    const failed = this.testResults.filter(r => r.status === 'failed').length;
+    const passed = this.testResults.filter((r) => r.status === "passed").length;
+    const failed = this.testResults.filter((r) => r.status === "failed").length;
     const total = this.testResults.length;
-    
-    
-    this.testResults.forEach(result => {
-      const status = result.status === 'passed' ? '✅' : '❌';
-      
+
+    this.testResults.forEach((result) => {
+      const status = result.status === "passed" ? "✅" : "❌";
+
       if (result.error) {
       }
-      
+
       if (result.details) {
       }
     });
@@ -394,7 +387,7 @@ function expect(actual: any) {
       if (actual <= expected) {
         throw new Error(`Expected ${actual} to be greater than ${expected}`);
       }
-    }
+    },
   };
 }
 

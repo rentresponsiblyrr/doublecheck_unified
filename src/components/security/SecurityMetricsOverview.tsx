@@ -3,14 +3,20 @@
  * Displays high-level security metrics and compliance status
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Shield, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Shield, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 interface ComplianceStatus {
-  status: 'compliant' | 'partial' | 'non-compliant';
+  status: "compliant" | "partial" | "non-compliant";
   score: number;
   lastAudit: string;
   nextAudit: string;
@@ -37,29 +43,28 @@ interface SecurityMetricsOverviewProps {
   isLoading?: boolean;
 }
 
-export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = ({
-  metrics,
-  isLoading = false
-}) => {
+export const SecurityMetricsOverview: React.FC<
+  SecurityMetricsOverviewProps
+> = ({ metrics, isLoading = false }) => {
   const getComplianceIcon = (status: ComplianceStatus) => {
     switch (status.status) {
-      case 'compliant':
+      case "compliant":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'partial':
+      case "partial":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'non-compliant':
+      case "non-compliant":
         return <XCircle className="h-4 w-4 text-red-500" />;
     }
   };
 
   const getComplianceBadgeVariant = (status: ComplianceStatus) => {
     switch (status.status) {
-      case 'compliant':
-        return 'default';
-      case 'partial':
-        return 'secondary';
-      case 'non-compliant':
-        return 'destructive';
+      case "compliant":
+        return "default";
+      case "partial":
+        return "secondary";
+      case "non-compliant":
+        return "destructive";
     }
   };
 
@@ -86,7 +91,9 @@ export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = (
       {/* Overall Security Score */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Overall Security Score</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Overall Security Score
+          </CardTitle>
           <Shield className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -110,8 +117,11 @@ export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = (
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{status.score}%</div>
-              <Badge variant={getComplianceBadgeVariant(status)} className="mt-2">
-                {status.status.replace('-', ' ')}
+              <Badge
+                variant={getComplianceBadgeVariant(status)}
+                className="mt-2"
+              >
+                {status.status.replace("-", " ")}
               </Badge>
               <p className="text-xs text-muted-foreground mt-2">
                 Last audit: {new Date(status.lastAudit).toLocaleDateString()}
@@ -125,7 +135,9 @@ export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = (
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Threats</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Threats
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
@@ -139,7 +151,9 @@ export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = (
 
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical Threats</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Critical Threats
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
@@ -153,7 +167,9 @@ export const SecurityMetricsOverview: React.FC<SecurityMetricsOverviewProps> = (
 
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved Threats</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Resolved Threats
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">

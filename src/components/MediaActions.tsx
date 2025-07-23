@@ -1,4 +1,3 @@
-
 import { Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MediaUpload } from "@/types/inspection";
@@ -9,7 +8,11 @@ interface MediaActionsProps {
   onView: (media: MediaUpload) => void;
 }
 
-export const MediaActions = ({ media, onDownload, onView }: MediaActionsProps) => {
+export const MediaActions = ({
+  media,
+  onDownload,
+  onView,
+}: MediaActionsProps) => {
   return (
     <div className="flex items-center gap-1">
       <Button

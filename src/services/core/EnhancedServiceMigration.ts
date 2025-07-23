@@ -1,31 +1,38 @@
 /**
  * ENHANCED SERVICE MIGRATION LAYER
- * 
+ *
  * Provides backward compatibility and gradual migration path for Enhanced services.
  * Prevents breaking changes during the transition period.
- * 
+ *
  * CRITICAL: This layer addresses all breaking changes identified in third-party review:
  * - Async/sync API compatibility
  * - Schema validation before database calls
  * - Import path compatibility
  * - Error handling compatibility
  * - Subscription callback compatibility
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Migration Support
  */
 
-import { logger } from '@/utils/logger';
-import { supabase } from '@/lib/supabase';
-import { z } from 'zod';
+import { logger } from "@/utils/logger";
+import { supabase } from "@/lib/supabase";
+import { z } from "zod";
 
 // Migration Configuration Schema
 const MigrationConfigSchema = z.object({
   version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  enabledServices: z.array(z.enum(['queryCache', 'realTimeSync', 'performanceMonitor', 'unifiedService'])),
+  enabledServices: z.array(
+    z.enum([
+      "queryCache",
+      "realTimeSync",
+      "performanceMonitor",
+      "unifiedService",
+    ]),
+  ),
   rollbackThreshold: z.number().min(0).max(100),
   healthCheckInterval: z.number().positive(),
-  fallbackMode: z.boolean()
+  fallbackMode: z.boolean(),
 });
 
 // Schema Validation Result Schema
@@ -35,7 +42,7 @@ const SchemaValidationResultSchema = z.object({
   errors: z.array(z.string()),
   warnings: z.array(z.string()),
   compatibilityScore: z.number().min(0).max(100),
-  checkedAt: z.number()
+  checkedAt: z.number(),
 });
 
 // Feature Flag Schema
@@ -44,19 +51,22 @@ const FeatureFlagSchema = z.object({
   enabled: z.boolean(),
   rolloutPercentage: z.number().min(0).max(100),
   conditions: z.record(z.any()).optional(),
-  description: z.string().optional()
+  description: z.string().optional(),
 });
 
 // Original service imports (for fallback)
-import { queryCache as originalQueryCache } from './QueryCache';
-import { realTimeSync as originalRealTimeSync } from './RealTimeSync';
-import { performanceMonitor as originalPerformanceMonitor } from './PerformanceMonitor';
+import { queryCache as originalQueryCache } from "./QueryCache";
+import { realTimeSync as originalRealTimeSync } from "./RealTimeSync";
+import { performanceMonitor as originalPerformanceMonitor } from "./PerformanceMonitor";
 
 // Enhanced service imports
-import { enhancedQueryCache } from './EnhancedQueryCache';
-import { enhancedRealTimeSync } from './EnhancedRealTimeSync';
-import { enhancedPerformanceMonitor } from './EnhancedPerformanceMonitor';
-import { enhancedPropertyService, enhancedChecklistService } from './EnhancedUnifiedServiceLayer';
+import { enhancedQueryCache } from "./EnhancedQueryCache";
+import { enhancedRealTimeSync } from "./EnhancedRealTimeSync";
+import { enhancedPerformanceMonitor } from "./EnhancedPerformanceMonitor";
+import {
+  enhancedPropertyService,
+  enhancedChecklistService,
+} from "./EnhancedUnifiedServiceLayer";
 
 // ========================================
 // COMPATIBILITY DETECTION
@@ -92,49 +102,58 @@ class SchemaValidator {
     try {
       // Test 1: Check if static_safety_items.id is UUID
       const { data: safetyItem, error: safetyError } = await supabase
-        .from('static_safety_items')
-        .select('id')
+        .from("static_safety_items")
+        .select("id")
         .limit(1)
         .single();
 
       if (safetyError || !safetyItem) {
         validation.staticSafetyItemsUseUUID = false;
-        validation.errors.push('Cannot access static_safety_items table');
+        validation.errors.push("Cannot access static_safety_items table");
       } else {
         // Check if ID looks like UUID (36 chars with hyphens)
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(safetyItem.id);
+        const isUUID =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            safetyItem.id,
+          );
         if (!isUUID) {
           validation.staticSafetyItemsUseUUID = false;
-          validation.errors.push('static_safety_items.id is not UUID format');
+          validation.errors.push("static_safety_items.id is not UUID format");
         }
       }
 
       // Test 2: Check if checklist_items table has static_item_id column
       const { data: checklistItem, error: checklistError } = await supabase
-        .from('checklist_items')
-        .select('static_item_id')
+        .from("checklist_items")
+        .select("static_item_id")
         .limit(1)
         .single();
 
-      if (checklistError && checklistError.code === 'PGRST116') {
+      if (checklistError && checklistError.code === "PGRST116") {
         // No data is OK, but column should exist
         validation.logsHasChecklistId = true;
-      } else if (checklistError && checklistError.message?.includes('static_item_id')) {
+      } else if (
+        checklistError &&
+        checklistError.message?.includes("static_item_id")
+      ) {
         validation.logsHasChecklistId = false;
-        validation.errors.push('checklist_items.static_item_id column does not exist');
+        validation.errors.push(
+          "checklist_items.static_item_id column does not exist",
+        );
       }
 
       // Test 3: Try a join to test foreign key relationships
       const { error: joinError } = await supabase
-        .from('checklist_items')
-        .select('static_item_id, static_safety_items!static_item_id(id)')
+        .from("checklist_items")
+        .select("static_item_id, static_safety_items!static_item_id(id)")
         .limit(1);
 
       if (joinError) {
         validation.foreignKeysExist = false;
-        validation.errors.push('Foreign key relationship checklist_items.static_item_id -> static_safety_items.id may not exist');
+        validation.errors.push(
+          "Foreign key relationship checklist_items.static_item_id -> static_safety_items.id may not exist",
+        );
       }
-
     } catch (error) {
       validation.isValidated = false;
       validation.errors.push(`Schema validation failed: ${error.message}`);
@@ -144,12 +163,15 @@ class SchemaValidator {
     this.validationResult = validation;
 
     if (validation.errors.length > 0) {
-      logger.warn('Schema validation issues detected', { 
+      logger.warn("Schema validation issues detected", {
         validation,
-        recommendation: 'Run database-validation.sql before using Enhanced services'
+        recommendation:
+          "Run database-validation.sql before using Enhanced services",
       });
     } else {
-      logger.info('Schema validation passed - Enhanced services are compatible');
+      logger.info(
+        "Schema validation passed - Enhanced services are compatible",
+      );
     }
 
     return validation;
@@ -160,10 +182,12 @@ class SchemaValidator {
    */
   static async canUseEnhancedServices(): Promise<boolean> {
     const validation = await this.validateSchema();
-    return validation.isValidated && 
-           validation.staticSafetyItemsUseUUID && 
-           validation.logsHasChecklistId &&
-           validation.foreignKeysExist;
+    return (
+      validation.isValidated &&
+      validation.staticSafetyItemsUseUUID &&
+      validation.logsHasChecklistId &&
+      validation.foreignKeysExist
+    );
   }
 }
 
@@ -181,16 +205,16 @@ interface FeatureFlags {
 
 class FeatureFlagManager {
   private static flags: FeatureFlags = {
-    useEnhancedQueryCache: false,        // Start with Enhanced services disabled
+    useEnhancedQueryCache: false, // Start with Enhanced services disabled
     useEnhancedRealTimeSync: false,
     useEnhancedPerformanceMonitor: false,
     useEnhancedServiceLayer: false,
-    fallbackOnError: true,               // Always fallback on error
+    fallbackOnError: true, // Always fallback on error
   };
 
   static setFlag(flag: keyof FeatureFlags, value: boolean): void {
     this.flags[flag] = value;
-    logger.info('Feature flag updated', { flag, value });
+    logger.info("Feature flag updated", { flag, value });
   }
 
   static getFlag(flag: keyof FeatureFlags): boolean {
@@ -206,19 +230,21 @@ class FeatureFlagManager {
    */
   static async enableEnhancedServices(): Promise<void> {
     const canUse = await SchemaValidator.canUseEnhancedServices();
-    
+
     if (!canUse) {
-      logger.error('Cannot enable Enhanced services - schema validation failed');
-      throw new Error('Enhanced services require database schema corrections');
+      logger.error(
+        "Cannot enable Enhanced services - schema validation failed",
+      );
+      throw new Error("Enhanced services require database schema corrections");
     }
 
     // Enable services gradually
-    this.setFlag('useEnhancedPerformanceMonitor', true);  // Least breaking
-    this.setFlag('useEnhancedQueryCache', true);
-    this.setFlag('useEnhancedServiceLayer', true);
-    this.setFlag('useEnhancedRealTimeSync', true);        // Most breaking
+    this.setFlag("useEnhancedPerformanceMonitor", true); // Least breaking
+    this.setFlag("useEnhancedQueryCache", true);
+    this.setFlag("useEnhancedServiceLayer", true);
+    this.setFlag("useEnhancedRealTimeSync", true); // Most breaking
 
-    logger.info('All Enhanced services enabled');
+    logger.info("All Enhanced services enabled");
   }
 }
 
@@ -234,28 +260,33 @@ export class CompatibleQueryCache {
    * Sync-compatible get method (for existing code)
    */
   get<T>(key: string): T | null {
-    if (FeatureFlagManager.getFlag('useEnhancedQueryCache')) {
+    if (FeatureFlagManager.getFlag("useEnhancedQueryCache")) {
       // Convert async to sync (not ideal but maintains compatibility)
-      logger.warn('Sync cache access with Enhanced services - consider migrating to async', { key });
-      
+      logger.warn(
+        "Sync cache access with Enhanced services - consider migrating to async",
+        { key },
+      );
+
       // Use a promise cache for sync compatibility
       const cached = this.syncPromiseCache.get(key);
       if (cached) {
         return cached as T;
       }
-      
+
       // Trigger async load in background
-      this.getAsync<T>(key).then(data => {
-        if (data) {
-          this.syncPromiseCache.set(key, data);
-        }
-      }).catch(error => {
-        logger.error('Async cache load failed', { error, key });
-      });
-      
+      this.getAsync<T>(key)
+        .then((data) => {
+          if (data) {
+            this.syncPromiseCache.set(key, data);
+          }
+        })
+        .catch((error) => {
+          logger.error("Async cache load failed", { error, key });
+        });
+
       return null; // Return null for sync compatibility
     }
-    
+
     return originalQueryCache.get<T>(key);
   }
 
@@ -263,18 +294,21 @@ export class CompatibleQueryCache {
    * Async get method (for new code)
    */
   async getAsync<T>(key: string): Promise<T | null> {
-    if (FeatureFlagManager.getFlag('useEnhancedQueryCache')) {
+    if (FeatureFlagManager.getFlag("useEnhancedQueryCache")) {
       try {
         return await enhancedQueryCache.get<T>(key);
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
-          logger.warn('Enhanced cache failed, falling back to original', { error, key });
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
+          logger.warn("Enhanced cache failed, falling back to original", {
+            error,
+            key,
+          });
           return originalQueryCache.get<T>(key);
         }
         throw error;
       }
     }
-    
+
     return originalQueryCache.get<T>(key);
   }
 
@@ -282,14 +316,14 @@ export class CompatibleQueryCache {
    * Compatible set method
    */
   set<T>(key: string, value: T, ttl?: number, tags?: string[]): void {
-    if (FeatureFlagManager.getFlag('useEnhancedQueryCache')) {
+    if (FeatureFlagManager.getFlag("useEnhancedQueryCache")) {
       // Set in sync cache immediately
       this.syncPromiseCache.set(key, value);
-      
+
       // Set in enhanced cache async
-      enhancedQueryCache.set(key, value, ttl, tags).catch(error => {
-        logger.error('Enhanced cache set failed', { error, key });
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
+      enhancedQueryCache.set(key, value, ttl, tags).catch((error) => {
+        logger.error("Enhanced cache set failed", { error, key });
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
           originalQueryCache.set(key, value, ttl, tags);
         }
       });
@@ -303,18 +337,18 @@ export class CompatibleQueryCache {
    */
   async delete(key: string): Promise<boolean> {
     this.syncPromiseCache.delete(key);
-    
-    if (FeatureFlagManager.getFlag('useEnhancedQueryCache')) {
+
+    if (FeatureFlagManager.getFlag("useEnhancedQueryCache")) {
       try {
         return await enhancedQueryCache.delete(key);
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
           return originalQueryCache.delete(key);
         }
         throw error;
       }
     }
-    
+
     return originalQueryCache.delete(key);
   }
 
@@ -322,12 +356,12 @@ export class CompatibleQueryCache {
    * Compatible invalidation
    */
   invalidatePattern(pattern: string): number {
-    if (FeatureFlagManager.getFlag('useEnhancedQueryCache')) {
-      enhancedQueryCache.invalidatePattern(pattern).catch(error => {
-        logger.error('Enhanced cache invalidation failed', { error, pattern });
+    if (FeatureFlagManager.getFlag("useEnhancedQueryCache")) {
+      enhancedQueryCache.invalidatePattern(pattern).catch((error) => {
+        logger.error("Enhanced cache invalidation failed", { error, pattern });
       });
     }
-    
+
     return originalQueryCache.invalidatePattern(pattern);
   }
 
@@ -349,9 +383,9 @@ export class CompatibleRealTimeSync {
   subscribe<T>(
     entityType: string,
     entityId: string,
-    callback: (data: T) => void  // Original callback format
+    callback: (data: T) => void, // Original callback format
   ): () => void {
-    if (FeatureFlagManager.getFlag('useEnhancedRealTimeSync')) {
+    if (FeatureFlagManager.getFlag("useEnhancedRealTimeSync")) {
       try {
         // Adapt Enhanced callback to original format
         return enhancedRealTimeSync.subscribe(
@@ -360,18 +394,28 @@ export class CompatibleRealTimeSync {
           (event) => {
             // Extract data from Enhanced event structure
             callback(event.data as T);
-          }
+          },
         );
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
-          logger.warn('Enhanced real-time sync failed, using original', { error });
-          return originalRealTimeSync.subscribe(entityType as any, entityId, callback);
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
+          logger.warn("Enhanced real-time sync failed, using original", {
+            error,
+          });
+          return originalRealTimeSync.subscribe(
+            entityType as any,
+            entityId,
+            callback,
+          );
         }
         throw error;
       }
     }
-    
-    return originalRealTimeSync.subscribe(entityType as any, entityId, callback);
+
+    return originalRealTimeSync.subscribe(
+      entityType as any,
+      entityId,
+      callback,
+    );
   }
 
   /**
@@ -380,38 +424,46 @@ export class CompatibleRealTimeSync {
   subscribeEnhanced<T>(
     entityType: string,
     entityId: string,
-    callback: (event: any) => void  // Enhanced callback format
+    callback: (event: any) => void, // Enhanced callback format
   ): () => void {
-    if (FeatureFlagManager.getFlag('useEnhancedRealTimeSync')) {
-      return enhancedRealTimeSync.subscribe(entityType as any, entityId, callback);
-    }
-    
-    // Adapt original to Enhanced format
-    return originalRealTimeSync.subscribe(entityType as any, entityId, (data) => {
-      callback({
-        id: 'legacy',
-        type: 'updated',
-        entityType,
+    if (FeatureFlagManager.getFlag("useEnhancedRealTimeSync")) {
+      return enhancedRealTimeSync.subscribe(
+        entityType as any,
         entityId,
-        data,
-        userId: 'unknown',
-        timestamp: new Date(),
-      });
-    });
+        callback,
+      );
+    }
+
+    // Adapt original to Enhanced format
+    return originalRealTimeSync.subscribe(
+      entityType as any,
+      entityId,
+      (data) => {
+        callback({
+          id: "legacy",
+          type: "updated",
+          entityType,
+          entityId,
+          data,
+          userId: "unknown",
+          timestamp: new Date(),
+        });
+      },
+    );
   }
 
   /**
    * Compatible publish event
    */
   async publishEvent<T>(event: any): Promise<void> {
-    if (FeatureFlagManager.getFlag('useEnhancedRealTimeSync')) {
+    if (FeatureFlagManager.getFlag("useEnhancedRealTimeSync")) {
       try {
         await enhancedRealTimeSync.publishEvent(event);
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
-          logger.warn('Enhanced publish failed, using original', { error });
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
+          logger.warn("Enhanced publish failed, using original", { error });
           // Original doesn't have publishEvent, so just log
-          logger.info('Event published (original fallback)', { event });
+          logger.info("Event published (original fallback)", { event });
         } else {
           throw error;
         }
@@ -432,7 +484,7 @@ export class CompatiblePerformanceMonitor {
    * Compatible trackQuery with automatic field mapping
    */
   trackQuery(metrics: any): void {
-    if (FeatureFlagManager.getFlag('useEnhancedPerformanceMonitor')) {
+    if (FeatureFlagManager.getFlag("useEnhancedPerformanceMonitor")) {
       try {
         // Add required fields that Enhanced version needs
         const enhancedMetrics = {
@@ -443,13 +495,13 @@ export class CompatiblePerformanceMonitor {
           retryCount: 0,
           ...metrics,
         };
-        
+
         enhancedPerformanceMonitor.trackQuery(enhancedMetrics);
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
           originalPerformanceMonitor.trackQuery(metrics);
         } else {
-          logger.error('Enhanced performance tracking failed', { error });
+          logger.error("Enhanced performance tracking failed", { error });
         }
       }
     } else {
@@ -461,17 +513,17 @@ export class CompatiblePerformanceMonitor {
    * Get metrics with compatibility
    */
   getRealTimeMetrics(): any {
-    if (FeatureFlagManager.getFlag('useEnhancedPerformanceMonitor')) {
+    if (FeatureFlagManager.getFlag("useEnhancedPerformanceMonitor")) {
       try {
         return enhancedPerformanceMonitor.getRealTimeMetrics();
       } catch (error) {
-        if (FeatureFlagManager.getFlag('fallbackOnError')) {
+        if (FeatureFlagManager.getFlag("fallbackOnError")) {
           return originalPerformanceMonitor.getRealTimeMetrics();
         }
         throw error;
       }
     }
-    
+
     return originalPerformanceMonitor.getRealTimeMetrics();
   }
 }
@@ -489,29 +541,33 @@ export class EnhancedServiceMigration {
   static async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    logger.info('Initializing Enhanced Service Migration...');
+    logger.info("Initializing Enhanced Service Migration...");
 
     try {
       // Validate schema compatibility
       const validation = await SchemaValidator.validateSchema();
-      
+
       if (!validation.isValidated) {
-        throw new Error('Schema validation failed - Enhanced services not available');
+        throw new Error(
+          "Schema validation failed - Enhanced services not available",
+        );
       }
 
       if (validation.errors.length > 0) {
-        logger.warn('Schema issues detected - Enhanced services will use fallback mode', {
-          errors: validation.errors,
-          recommendation: 'Run database-validation.sql to fix schema issues'
-        });
+        logger.warn(
+          "Schema issues detected - Enhanced services will use fallback mode",
+          {
+            errors: validation.errors,
+            recommendation: "Run database-validation.sql to fix schema issues",
+          },
+        );
       } else {
-        logger.info('Schema validation passed - Enhanced services available');
+        logger.info("Schema validation passed - Enhanced services available");
       }
 
       this.isInitialized = true;
-
     } catch (error) {
-      logger.error('Migration initialization failed', { error });
+      logger.error("Migration initialization failed", { error });
       throw error;
     }
   }
@@ -524,36 +580,38 @@ export class EnhancedServiceMigration {
 
     const canUse = await SchemaValidator.canUseEnhancedServices();
     if (!canUse) {
-      throw new Error('Cannot enable Enhanced services - schema validation failed');
+      throw new Error(
+        "Cannot enable Enhanced services - schema validation failed",
+      );
     }
 
     // Enable services one by one with delays
-    logger.info('Enabling Enhanced services gradually...');
+    logger.info("Enabling Enhanced services gradually...");
 
-    FeatureFlagManager.setFlag('useEnhancedPerformanceMonitor', true);
+    FeatureFlagManager.setFlag("useEnhancedPerformanceMonitor", true);
     await this.delay(1000);
 
-    FeatureFlagManager.setFlag('useEnhancedQueryCache', true);
+    FeatureFlagManager.setFlag("useEnhancedQueryCache", true);
     await this.delay(1000);
 
-    FeatureFlagManager.setFlag('useEnhancedServiceLayer', true);
+    FeatureFlagManager.setFlag("useEnhancedServiceLayer", true);
     await this.delay(1000);
 
-    FeatureFlagManager.setFlag('useEnhancedRealTimeSync', true);
-    
-    logger.info('All Enhanced services enabled successfully');
+    FeatureFlagManager.setFlag("useEnhancedRealTimeSync", true);
+
+    logger.info("All Enhanced services enabled successfully");
   }
 
   /**
    * Rollback to original services
    */
   static rollbackToOriginal(): void {
-    FeatureFlagManager.setFlag('useEnhancedQueryCache', false);
-    FeatureFlagManager.setFlag('useEnhancedRealTimeSync', false);
-    FeatureFlagManager.setFlag('useEnhancedPerformanceMonitor', false);
-    FeatureFlagManager.setFlag('useEnhancedServiceLayer', false);
-    
-    logger.info('Rolled back to original services');
+    FeatureFlagManager.setFlag("useEnhancedQueryCache", false);
+    FeatureFlagManager.setFlag("useEnhancedRealTimeSync", false);
+    FeatureFlagManager.setFlag("useEnhancedPerformanceMonitor", false);
+    FeatureFlagManager.setFlag("useEnhancedServiceLayer", false);
+
+    logger.info("Rolled back to original services");
   }
 
   /**
@@ -567,17 +625,18 @@ export class EnhancedServiceMigration {
   }> {
     const validation = await SchemaValidator.validateSchema();
     const flags = FeatureFlagManager.getAllFlags();
-    
+
     return {
-      schemaCompatible: validation.isValidated && validation.errors.length === 0,
-      enhancedServicesEnabled: Object.values(flags).some(flag => flag),
+      schemaCompatible:
+        validation.isValidated && validation.errors.length === 0,
+      enhancedServicesEnabled: Object.values(flags).some((flag) => flag),
       validationErrors: validation.errors,
       featureFlags: flags,
     };
   }
 
   private static delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

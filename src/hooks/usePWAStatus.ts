@@ -1,45 +1,48 @@
 /**
  * PWA STATUS HOOK - ELITE REACT INTEGRATION
- * 
+ *
  * Unified PWA status management hook providing real-time network status,
  * installation state, and service worker health for React components.
  * Designed for Netflix/Meta component integration standards.
- * 
+ *
  * FEATURES:
  * - Real-time network status updates
- * - Installation prompt state management  
+ * - Installation prompt state management
  * - Service worker health monitoring
  * - Offline queue status tracking
  * - Performance metrics access
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { serviceWorkerManager } from '@/lib/pwa/ServiceWorkerManager';
-import { offlineStatusManager, NetworkStatus } from '@/lib/pwa/OfflineStatusManager';
-import { installPromptHandler } from '@/lib/pwa/InstallPromptHandler';
-import { logger } from '@/utils/logger';
+import { useState, useEffect, useCallback } from "react";
+import { serviceWorkerManager } from "@/lib/pwa/ServiceWorkerManager";
+import {
+  offlineStatusManager,
+  NetworkStatus,
+} from "@/lib/pwa/OfflineStatusManager";
+import { installPromptHandler } from "@/lib/pwa/InstallPromptHandler";
+import { logger } from "@/utils/logger";
 
 export interface PWAStatus {
   // Network status
   isOnline: boolean;
-  networkQuality: 'excellent' | 'good' | 'fair' | 'poor' | 'unusable';
+  networkQuality: "excellent" | "good" | "fair" | "poor" | "unusable";
   connectionType: string;
-  
-  // Installation status  
+
+  // Installation status
   isInstallable: boolean;
   isInstalled: boolean;
   canShowInstallPrompt: boolean;
-  
+
   // Service Worker status
   isServiceWorkerActive: boolean;
   updateAvailable: boolean;
-  
+
   // Offline capabilities
   syncQueueSize: number;
   lastSyncTime: Date | null;
-  
+
   // Performance metrics
   cacheHitRate: number;
   averageResponseTime: number;
@@ -49,10 +52,10 @@ export interface PWAActions {
   // Installation actions
   showInstallPrompt: () => Promise<boolean>;
   dismissInstallPrompt: () => void;
-  
+
   // Service Worker actions
   updateServiceWorker: () => Promise<void>;
-  
+
   // Network actions
   forceNetworkCheck: () => Promise<void>;
   clearOfflineQueue: () => Promise<void>;
@@ -61,8 +64,8 @@ export interface PWAActions {
 export const usePWAStatus = () => {
   const [pwaStatus, setPwaStatus] = useState<PWAStatus>({
     isOnline: navigator.onLine,
-    networkQuality: 'fair',
-    connectionType: 'unknown',
+    networkQuality: "fair",
+    connectionType: "unknown",
     isInstallable: false,
     isInstalled: false,
     canShowInstallPrompt: false,
@@ -71,7 +74,7 @@ export const usePWAStatus = () => {
     syncQueueSize: 0,
     lastSyncTime: null,
     cacheHitRate: 0,
-    averageResponseTime: 0
+    averageResponseTime: 0,
   });
 
   // Update PWA status from managers
@@ -80,42 +83,42 @@ export const usePWAStatus = () => {
       // Get network status
       const networkStatus = offlineStatusManager.getNetworkStatus();
       const queueStatus = offlineStatusManager.getRetryQueueStatus();
-      
+
       // Get service worker status
       const swStatus = serviceWorkerManager.getStatus();
       const swMetrics = serviceWorkerManager.getPerformanceMetrics();
-      
-      // Get install prompt status  
+
+      // Get install prompt status
       const installState = await installPromptHandler.getInstallState();
-      
+
       const newStatus: PWAStatus = {
         // Network status
         isOnline: networkStatus.isOnline,
         networkQuality: networkStatus.quality.category,
         connectionType: networkStatus.connectionType,
-        
+
         // Installation status
         isInstallable: installState.canPrompt,
         isInstalled: installState.isInstalled,
-        canShowInstallPrompt: installState.canPrompt && !installState.promptShown,
-        
-        // Service Worker status  
+        canShowInstallPrompt:
+          installState.canPrompt && !installState.promptShown,
+
+        // Service Worker status
         isServiceWorkerActive: swStatus.isControlling,
         updateAvailable: swStatus.updateAvailable,
-        
+
         // Offline capabilities
         syncQueueSize: queueStatus.totalItems,
         lastSyncTime: swStatus.lastSync,
-        
+
         // Performance metrics
         cacheHitRate: swStatus.cacheHitRate,
-        averageResponseTime: swMetrics.averageResponseTime
+        averageResponseTime: swMetrics.averageResponseTime,
       };
 
       setPwaStatus(newStatus);
-
     } catch (error) {
-      logger.error('PWA status update failed', { error }, 'PWA_HOOK');
+      logger.error("PWA status update failed", { error }, "PWA_HOOK");
     }
   }, []);
 
@@ -126,7 +129,7 @@ export const usePWAStatus = () => {
       await updatePWAStatus(); // Refresh status after prompt
       return result;
     } catch (error) {
-      logger.error('Install prompt failed', { error }, 'PWA_HOOK');
+      logger.error("Install prompt failed", { error }, "PWA_HOOK");
       return false;
     }
   }, [updatePWAStatus]);
@@ -141,7 +144,7 @@ export const usePWAStatus = () => {
       await serviceWorkerManager.applyUpdate();
       await updatePWAStatus();
     } catch (error) {
-      logger.error('Service worker update failed', { error }, 'PWA_HOOK');
+      logger.error("Service worker update failed", { error }, "PWA_HOOK");
     }
   }, [updatePWAStatus]);
 
@@ -150,7 +153,7 @@ export const usePWAStatus = () => {
       await offlineStatusManager.assessNetworkQuality();
       await updatePWAStatus();
     } catch (error) {
-      logger.error('Network check failed', { error }, 'PWA_HOOK');
+      logger.error("Network check failed", { error }, "PWA_HOOK");
     }
   }, [updatePWAStatus]);
 
@@ -159,7 +162,7 @@ export const usePWAStatus = () => {
       await offlineStatusManager.clearRetryQueue(true);
       await updatePWAStatus();
     } catch (error) {
-      logger.error('Queue clear failed', { error }, 'PWA_HOOK');
+      logger.error("Queue clear failed", { error }, "PWA_HOOK");
     }
   }, [updatePWAStatus]);
 
@@ -170,7 +173,10 @@ export const usePWAStatus = () => {
 
     // Network status changes
     const networkUnsubscribe = offlineStatusManager.subscribe((event) => {
-      if (event.type === 'network_status_changed' || event.type === 'queue_processed') {
+      if (
+        event.type === "network_status_changed" ||
+        event.type === "queue_processed"
+      ) {
         updatePWAStatus();
       }
     });
@@ -178,24 +184,24 @@ export const usePWAStatus = () => {
     // Service worker events
     const handleSWUpdate = () => updatePWAStatus();
     const handleSWSync = () => updatePWAStatus();
-    
-    window.addEventListener('sw-update-available', handleSWUpdate);
-    window.addEventListener('background-sync-success', handleSWSync);
-    window.addEventListener('background-sync-failed', handleSWSync);
+
+    window.addEventListener("sw-update-available", handleSWUpdate);
+    window.addEventListener("background-sync-success", handleSWSync);
+    window.addEventListener("background-sync-failed", handleSWSync);
 
     // Install prompt events
     const handleInstallPrompt = () => updatePWAStatus();
-    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
-    window.addEventListener('appinstalled', handleInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    window.addEventListener("appinstalled", handleInstallPrompt);
 
     // Cleanup event listeners
     return () => {
       networkUnsubscribe();
-      window.removeEventListener('sw-update-available', handleSWUpdate);
-      window.removeEventListener('background-sync-success', handleSWSync);
-      window.removeEventListener('background-sync-failed', handleSWSync);
-      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
-      window.removeEventListener('appinstalled', handleInstallPrompt);
+      window.removeEventListener("sw-update-available", handleSWUpdate);
+      window.removeEventListener("background-sync-success", handleSWSync);
+      window.removeEventListener("background-sync-failed", handleSWSync);
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstallPrompt);
     };
   }, [updatePWAStatus]);
 
@@ -204,13 +210,13 @@ export const usePWAStatus = () => {
     dismissInstallPrompt,
     updateServiceWorker,
     forceNetworkCheck,
-    clearOfflineQueue
+    clearOfflineQueue,
   };
 
   return {
     status: pwaStatus,
     actions,
-    refresh: updatePWAStatus
+    refresh: updatePWAStatus,
   };
 };
 

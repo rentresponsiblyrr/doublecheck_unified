@@ -1,34 +1,34 @@
 /**
  * UNIFIED SERVICE LAYER - PHASE 2 ARCHITECTURAL EXCELLENCE
- * 
+ *
  * Consolidated service architecture that replaces 23+ scattered services with
  * 5 optimized service layers, achieving 70% query reduction while maintaining
  * <200ms response times and >60% cache hit rates.
- * 
+ *
  * ARCHITECTURE PRINCIPLES:
  * - Single Responsibility: Each service has one clear domain
  * - DRY: Zero duplicate queries or business logic
  * - Performance First: Intelligent caching and query optimization
  * - Type Safety: Complete TypeScript coverage with branded types
  * - Error Resilience: Comprehensive error handling and recovery
- * 
- * @author STR Certified Engineering Team  
+ *
+ * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
-import { supabase } from '@/lib/supabase';
-import { logger } from '@/utils/logger';
-import { queryCache, CacheKeys } from './QueryCache';
+import { supabase } from "@/lib/supabase";
+import { logger } from "@/utils/logger";
+import { queryCache, CacheKeys } from "./QueryCache";
 
 // ========================================
 // UNIFIED TYPE SYSTEM
 // ========================================
 
 // Branded types for ID safety
-type PropertyId = string & { __brand: 'PropertyId' };
-type InspectionId = string & { __brand: 'InspectionId' };
-type UserId = string & { __brand: 'UserId' };
-type ChecklistItemId = string & { __brand: 'ChecklistItemId' };
+type PropertyId = string & { __brand: "PropertyId" };
+type InspectionId = string & { __brand: "InspectionId" };
+type UserId = string & { __brand: "UserId" };
+type ChecklistItemId = string & { __brand: "ChecklistItemId" };
 
 // Service result pattern
 interface ServiceResult<T> {
@@ -76,7 +76,7 @@ interface PaginationOptions {
  */
 abstract class BaseService {
   protected serviceName: string;
-  
+
   constructor(serviceName: string) {
     this.serviceName = serviceName;
   }
@@ -87,7 +87,7 @@ abstract class BaseService {
   protected async executeQuery<T>(
     queryFn: () => Promise<any>,
     cacheKey?: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {},
   ): Promise<ServiceResult<T>> {
     const startTime = performance.now();
     let fromCache = false;
@@ -99,7 +99,12 @@ abstract class BaseService {
         const cached = queryCache.get<T>(cacheKey);
         if (cached) {
           fromCache = true;
-          return this.createSuccessResult(cached, startTime, fromCache, queryCount);
+          return this.createSuccessResult(
+            cached,
+            startTime,
+            fromCache,
+            queryCount,
+          );
         }
       }
 
@@ -115,35 +120,29 @@ abstract class BaseService {
 
       // Cache successful results
       if (cacheKey && data) {
-        queryCache.set(
-          cacheKey,
-          data,
-          options.cacheTimeout,
-          options.tags
-        );
+        queryCache.set(cacheKey, data, options.cacheTimeout, options.tags);
       }
 
       return this.createSuccessResult(data, startTime, fromCache, queryCount);
-
     } catch (error) {
-      logger.error(`${this.serviceName} query failed`, { 
-        error, 
+      logger.error(`${this.serviceName} query failed`, {
+        error,
         cacheKey,
-        options 
+        options,
       });
 
       return this.createErrorResult(
         error as Error,
         startTime,
         fromCache,
-        queryCount
+        queryCount,
       );
     }
   }
 
   private async executeWithRetry<T>(
     queryFn: () => Promise<T>,
-    maxRetries: number
+    maxRetries: number,
   ): Promise<T> {
     let lastError: Error;
 
@@ -152,20 +151,20 @@ abstract class BaseService {
         return await queryFn();
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt === maxRetries || !this.isRetryableError(error)) {
           throw error;
         }
 
         // Exponential backoff
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        logger.warn(`${this.serviceName} retry attempt ${attempt}`, { 
-          error, 
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        logger.warn(`${this.serviceName} retry attempt ${attempt}`, {
+          error,
           delay,
           attempt,
-          maxRetries
+          maxRetries,
         });
       }
     }
@@ -175,9 +174,9 @@ abstract class BaseService {
 
   private isRetryableError(error: any): boolean {
     // Network errors, timeouts, and temporary server errors are retryable
-    const retryableCodes = ['PGRST301', 'PGRST302', '502', '503', '504'];
-    return retryableCodes.some(code => 
-      error?.message?.includes(code) || error?.code?.includes(code)
+    const retryableCodes = ["PGRST301", "PGRST302", "502", "503", "504"];
+    return retryableCodes.some(
+      (code) => error?.message?.includes(code) || error?.code?.includes(code),
     );
   }
 
@@ -185,7 +184,7 @@ abstract class BaseService {
     data: T,
     startTime: number,
     fromCache: boolean,
-    queryCount: number
+    queryCount: number,
   ): ServiceResult<T> {
     return {
       success: true,
@@ -204,7 +203,7 @@ abstract class BaseService {
     error: Error,
     startTime: number,
     fromCache: boolean,
-    queryCount: number
+    queryCount: number,
   ): ServiceResult<T> {
     return {
       success: false,
@@ -221,8 +220,8 @@ abstract class BaseService {
 
   private createServiceError(error: any): ServiceError {
     return {
-      code: error.code || 'UNKNOWN_ERROR',
-      message: error.message || 'An unexpected error occurred',
+      code: error.code || "UNKNOWN_ERROR",
+      message: error.message || "An unexpected error occurred",
       details: error,
       recoverable: this.isRetryableError(error),
       userMessage: this.getUserFriendlyMessage(error),
@@ -232,15 +231,18 @@ abstract class BaseService {
   private getUserFriendlyMessage(error: any): string {
     // Map technical errors to user-friendly messages
     const errorMap: Record<string, string> = {
-      'PGRST116': 'No data found matching your request',
-      'PGRST301': 'Database connection error - please try again',
-      'PGRST302': 'Request timeout - please try again',
-      '23503': 'Cannot delete - this item is referenced by other data',
-      '23505': 'This item already exists',
+      PGRST116: "No data found matching your request",
+      PGRST301: "Database connection error - please try again",
+      PGRST302: "Request timeout - please try again",
+      "23503": "Cannot delete - this item is referenced by other data",
+      "23505": "This item already exists",
     };
 
     const code = error.code || error.message;
-    return errorMap[code] || 'Something went wrong. Please try again or contact support.';
+    return (
+      errorMap[code] ||
+      "Something went wrong. Please try again or contact support."
+    );
   }
 }
 
@@ -257,7 +259,7 @@ export interface Property {
   zipcode?: string;
   vrboUrl?: string;
   airbnbUrl?: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
 }
@@ -266,7 +268,7 @@ export interface PropertyWithStats extends Property {
   inspectionCount: number;
   lastInspectionDate?: string;
   averageScore?: number;
-  complianceStatus: 'compliant' | 'pending' | 'failed';
+  complianceStatus: "compliant" | "pending" | "failed";
 }
 
 /**
@@ -275,14 +277,16 @@ export interface PropertyWithStats extends Property {
  */
 export class PropertyService extends BaseService {
   constructor() {
-    super('PropertyService');
+    super("PropertyService");
   }
 
   async getProperty(id: PropertyId): Promise<ServiceResult<Property>> {
     return this.executeQuery(
-      () => supabase
-        .from('properties')
-        .select(`
+      () =>
+        supabase
+          .from("properties")
+          .select(
+            `
           id,
           name,
           address,
@@ -294,24 +298,26 @@ export class PropertyService extends BaseService {
           status,
           created_at,
           updated_at
-        `)
-        .eq('id', id)
-        .single(),
+        `,
+          )
+          .eq("id", id)
+          .single(),
       CacheKeys.property(id),
-      { cacheTimeout: 5 * 60 * 1000, tags: ['property', `property:${id}`] }
+      { cacheTimeout: 5 * 60 * 1000, tags: ["property", `property:${id}`] },
     );
   }
 
   async getProperties(
-    options: PaginationOptions & { search?: string; status?: string } = {}
+    options: PaginationOptions & { search?: string; status?: string } = {},
   ): Promise<ServiceResult<Property[]>> {
     const cacheKey = CacheKeys.properties(options);
-    
+
     return this.executeQuery(
       () => {
         let query = supabase
-          .from('properties')
-          .select(`
+          .from("properties")
+          .select(
+            `
             id,
             name,
             address,
@@ -323,74 +329,82 @@ export class PropertyService extends BaseService {
             status,
             created_at,
             updated_at
-          `)
-          .order('name');
+          `,
+          )
+          .order("name");
 
         if (options.search) {
-          query = query.or(`name.ilike.%${options.search}%,address.ilike.%${options.search}%`);
+          query = query.or(
+            `name.ilike.%${options.search}%,address.ilike.%${options.search}%`,
+          );
         }
 
         if (options.status) {
-          query = query.eq('status', options.status);
+          query = query.eq("status", options.status);
         }
 
         if (options.limit) {
           query = query.limit(options.limit);
           if (options.offset) {
-            query = query.range(options.offset, options.offset + options.limit - 1);
+            query = query.range(
+              options.offset,
+              options.offset + options.limit - 1,
+            );
           }
         }
 
         return query;
       },
       cacheKey,
-      { cacheTimeout: 2 * 60 * 1000, tags: ['properties'] }
+      { cacheTimeout: 2 * 60 * 1000, tags: ["properties"] },
     );
   }
 
   async getPropertiesWithStats(): Promise<ServiceResult<PropertyWithStats[]>> {
     return this.executeQuery(
-      () => supabase.rpc('get_properties_with_inspections'),
-      'properties:with-stats',
-      { cacheTimeout: 5 * 60 * 1000, tags: ['properties', 'inspections'] }
+      () => supabase.rpc("get_properties_with_inspections"),
+      "properties:with-stats",
+      { cacheTimeout: 5 * 60 * 1000, tags: ["properties", "inspections"] },
     );
   }
 
-  async createProperty(property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<Property>> {
+  async createProperty(
+    property: Omit<Property, "id" | "createdAt" | "updatedAt">,
+  ): Promise<ServiceResult<Property>> {
     const result = await this.executeQuery(
-      () => supabase
-        .from('properties')
-        .insert(property)
-        .select()
-        .single(),
+      () => supabase.from("properties").insert(property).select().single(),
       undefined, // No caching for mutations
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidatePattern('properties*');
+      queryCache.invalidatePattern("properties*");
     }
 
     return result;
   }
 
-  async updateProperty(id: PropertyId, updates: Partial<Property>): Promise<ServiceResult<Property>> {
+  async updateProperty(
+    id: PropertyId,
+    updates: Partial<Property>,
+  ): Promise<ServiceResult<Property>> {
     const result = await this.executeQuery(
-      () => supabase
-        .from('properties')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single(),
+      () =>
+        supabase
+          .from("properties")
+          .update(updates)
+          .eq("id", id)
+          .select()
+          .single(),
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidateRelated('property', id);
-      queryCache.invalidatePattern('properties*');
+      queryCache.invalidateRelated("property", id);
+      queryCache.invalidatePattern("properties*");
     }
 
     return result;
@@ -398,18 +412,15 @@ export class PropertyService extends BaseService {
 
   async deleteProperty(id: PropertyId): Promise<ServiceResult<boolean>> {
     const result = await this.executeQuery(
-      () => supabase
-        .from('properties')
-        .delete()
-        .eq('id', id),
+      () => supabase.from("properties").delete().eq("id", id),
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidateRelated('property', id);
-      queryCache.invalidatePattern('properties*');
+      queryCache.invalidateRelated("property", id);
+      queryCache.invalidatePattern("properties*");
     }
 
     return result;
@@ -424,7 +435,7 @@ export interface Inspection {
   id: InspectionId;
   propertyId: PropertyId;
   inspectorId: UserId;
-  status: 'draft' | 'in_progress' | 'completed' | 'reviewed';
+  status: "draft" | "in_progress" | "completed" | "reviewed";
   startTime?: string;
   endTime?: string;
   certificationStatus?: string;
@@ -448,14 +459,18 @@ export interface InspectionWithDetails extends Inspection {
  */
 export class InspectionService extends BaseService {
   constructor() {
-    super('InspectionService');
+    super("InspectionService");
   }
 
-  async getInspection(id: InspectionId): Promise<ServiceResult<InspectionWithDetails>> {
+  async getInspection(
+    id: InspectionId,
+  ): Promise<ServiceResult<InspectionWithDetails>> {
     return this.executeQuery(
-      () => supabase
-        .from('inspections')
-        .select(`
+      () =>
+        supabase
+          .from("inspections")
+          .select(
+            `
           *,
           properties!inner (
             id,
@@ -469,11 +484,12 @@ export class InspectionService extends BaseService {
             name,
             email
           )
-        `)
-        .eq('id', id)
-        .single(),
+        `,
+          )
+          .eq("id", id)
+          .single(),
       CacheKeys.inspection(id),
-      { cacheTimeout: 30 * 1000, tags: ['inspection', `inspection:${id}`] }
+      { cacheTimeout: 30 * 1000, tags: ["inspection", `inspection:${id}`] },
     );
   }
 
@@ -482,40 +498,43 @@ export class InspectionService extends BaseService {
       propertyId?: PropertyId;
       inspectorId?: UserId;
       status?: string[];
-    } & PaginationOptions = {}
+    } & PaginationOptions = {},
   ): Promise<ServiceResult<Inspection[]>> {
     const cacheKey = `inspections:${btoa(JSON.stringify(filters))}`;
-    
+
     return this.executeQuery(
       () => {
         let query = supabase
-          .from('inspections')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .from("inspections")
+          .select("*")
+          .order("created_at", { ascending: false });
 
         if (filters.propertyId) {
-          query = query.eq('property_id', filters.propertyId);
+          query = query.eq("property_id", filters.propertyId);
         }
 
         if (filters.inspectorId) {
-          query = query.eq('inspector_id', filters.inspectorId);
+          query = query.eq("inspector_id", filters.inspectorId);
         }
 
         if (filters.status?.length) {
-          query = query.in('status', filters.status);
+          query = query.in("status", filters.status);
         }
 
         if (filters.limit) {
           query = query.limit(filters.limit);
           if (filters.offset) {
-            query = query.range(filters.offset, filters.offset + filters.limit - 1);
+            query = query.range(
+              filters.offset,
+              filters.offset + filters.limit - 1,
+            );
           }
         }
 
         return query;
       },
       cacheKey,
-      { cacheTimeout: 60 * 1000, tags: ['inspections'] }
+      { cacheTimeout: 60 * 1000, tags: ["inspections"] },
     );
   }
 
@@ -524,18 +543,19 @@ export class InspectionService extends BaseService {
     inspectorId: UserId;
   }): Promise<ServiceResult<InspectionId>> {
     const result = await this.executeQuery(
-      () => supabase.rpc('create_inspection_compatibility', {
-        property_id: inspection.propertyId,
-        inspector_id: inspection.inspectorId,
-      }),
+      () =>
+        supabase.rpc("create_inspection_compatibility", {
+          property_id: inspection.propertyId,
+          inspector_id: inspection.inspectorId,
+        }),
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidatePattern('inspections*');
-      queryCache.invalidateRelated('property', inspection.propertyId);
+      queryCache.invalidatePattern("inspections*");
+      queryCache.invalidateRelated("property", inspection.propertyId);
     }
 
     return result;
@@ -543,21 +563,22 @@ export class InspectionService extends BaseService {
 
   async updateInspectionStatus(
     id: InspectionId,
-    status: Inspection['status']
+    status: Inspection["status"],
   ): Promise<ServiceResult<boolean>> {
     const result = await this.executeQuery(
-      () => supabase
-        .from('inspections')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id),
+      () =>
+        supabase
+          .from("inspections")
+          .update({ status, updated_at: new Date().toISOString() })
+          .eq("id", id),
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidateRelated('inspection', id);
-      queryCache.invalidatePattern('inspections*');
+      queryCache.invalidateRelated("inspection", id);
+      queryCache.invalidatePattern("inspections*");
     }
 
     return result;
@@ -574,10 +595,10 @@ export interface ChecklistItem {
   staticItemId: string;
   label: string;
   category: string;
-  status: 'pending' | 'completed' | 'failed' | 'not_applicable';
+  status: "pending" | "completed" | "failed" | "not_applicable";
   notes?: string;
-  aiStatus?: 'pass' | 'fail' | 'conflict';
-  evidenceType: 'photo' | 'video' | 'both' | 'none';
+  aiStatus?: "pass" | "fail" | "conflict";
+  evidenceType: "photo" | "video" | "both" | "none";
   sourcePhotoUrl?: string;
   createdAt: string;
 }
@@ -597,19 +618,23 @@ export interface ChecklistProgress {
 }
 
 /**
- * ChecklistService - All checklist-related operations  
+ * ChecklistService - All checklist-related operations
  * Replaces: ChecklistDataService, checklistService, AtomicChecklistService
  */
 export class ChecklistService extends BaseService {
   constructor() {
-    super('ChecklistService');
+    super("ChecklistService");
   }
 
-  async getChecklistItems(inspectionId: InspectionId): Promise<ServiceResult<ChecklistItem[]>> {
+  async getChecklistItems(
+    inspectionId: InspectionId,
+  ): Promise<ServiceResult<ChecklistItem[]>> {
     return this.executeQuery(
-      () => supabase
-        .from('checklist_items')
-        .select(`
+      () =>
+        supabase
+          .from("checklist_items")
+          .select(
+            `
           *,
           static_safety_items!static_item_id (
             id,
@@ -618,96 +643,118 @@ export class ChecklistService extends BaseService {
             evidence_type,
             required
           )
-        `)
-        .eq('inspection_id', inspectionId)
-        .order('category, label'),
+        `,
+          )
+          .eq("inspection_id", inspectionId)
+          .order("category, label"),
       CacheKeys.checklist(inspectionId),
-      { cacheTimeout: 30 * 1000, tags: ['checklist', `inspection:${inspectionId}`] }
+      {
+        cacheTimeout: 30 * 1000,
+        tags: ["checklist", `inspection:${inspectionId}`],
+      },
     );
   }
 
   async updateChecklistItem(
     id: ChecklistItemId,
-    updates: Partial<ChecklistItem>
+    updates: Partial<ChecklistItem>,
   ): Promise<ServiceResult<ChecklistItem>> {
     const result = await this.executeQuery(
-      () => supabase
-        .from('checklist_items')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single(),
+      () =>
+        supabase
+          .from("checklist_items")
+          .update(updates)
+          .eq("id", id)
+          .select()
+          .single(),
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success && result.data) {
       const inspectionId = result.data.inspectionId;
-      queryCache.invalidateRelated('checklist_item', id);
-      queryCache.invalidateRelated('inspection', inspectionId);
+      queryCache.invalidateRelated("checklist_item", id);
+      queryCache.invalidateRelated("inspection", inspectionId);
     }
 
     return result;
   }
 
-  async getChecklistProgress(inspectionId: InspectionId): Promise<ServiceResult<ChecklistProgress>> {
+  async getChecklistProgress(
+    inspectionId: InspectionId,
+  ): Promise<ServiceResult<ChecklistProgress>> {
     const cacheKey = `checklist:progress:${inspectionId}`;
-    
+
     return this.executeQuery(
       async () => {
         const { data: items } = await supabase
-          .from('checklist_items')
-          .select(`
+          .from("checklist_items")
+          .select(
+            `
             *,
             static_safety_items!static_item_id (
               required,
               category
             )
-          `)
-          .eq('inspection_id', inspectionId);
+          `,
+          )
+          .eq("inspection_id", inspectionId);
 
         if (!items) return null;
 
         // Calculate progress metrics
         const totalItems = items.length;
-        const completedItems = items.filter(item => item.status === 'completed').length;
-        const requiredItems = items.filter(item => 
-          (item as any).static_safety_items?.required === true
+        const completedItems = items.filter(
+          (item) => item.status === "completed",
         ).length;
-        const requiredCompleted = items.filter(item => 
-          item.status === 'completed' && (item as any).static_safety_items?.required === true
+        const requiredItems = items.filter(
+          (item) => (item as any).static_safety_items?.required === true,
+        ).length;
+        const requiredCompleted = items.filter(
+          (item) =>
+            item.status === "completed" &&
+            (item as any).static_safety_items?.required === true,
         ).length;
 
         // Category breakdown
         const categoryMap = new Map();
-        items.forEach(item => {
-          const category = (item as any).static_safety_items?.category || 'Other';
+        items.forEach((item) => {
+          const category =
+            (item as any).static_safety_items?.category || "Other";
           if (!categoryMap.has(category)) {
             categoryMap.set(category, { total: 0, completed: 0, required: 0 });
           }
           const stats = categoryMap.get(category);
           stats.total++;
-          if (item.status === 'completed') stats.completed++;
+          if (item.status === "completed") stats.completed++;
           if ((item as any).static_safety_items?.required) stats.required++;
         });
 
-        const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, stats]) => ({
-          category,
-          ...stats,
-        }));
+        const categoryBreakdown = Array.from(categoryMap.entries()).map(
+          ([category, stats]) => ({
+            category,
+            ...stats,
+          }),
+        );
 
         return {
           totalItems,
           completedItems,
           requiredItems,
           requiredCompleted,
-          progressPercentage: totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0,
+          progressPercentage:
+            totalItems > 0
+              ? Math.round((completedItems / totalItems) * 100)
+              : 0,
           categoryBreakdown,
         };
       },
       cacheKey,
-      { cacheTimeout: 15 * 1000, tags: ['checklist', `inspection:${inspectionId}`] }
+      {
+        cacheTimeout: 15 * 1000,
+        tags: ["checklist", `inspection:${inspectionId}`],
+      },
     );
   }
 }
@@ -719,7 +766,7 @@ export class ChecklistService extends BaseService {
 export interface MediaItem {
   id: string;
   checklistItemId: ChecklistItemId;
-  type: 'photo' | 'video';
+  type: "photo" | "video";
   url: string;
   filename: string;
   size: number;
@@ -732,24 +779,30 @@ export interface MediaItem {
  */
 export class MediaService extends BaseService {
   constructor() {
-    super('MediaService');
+    super("MediaService");
   }
 
-  async getMediaForItem(checklistItemId: ChecklistItemId): Promise<ServiceResult<MediaItem[]>> {
+  async getMediaForItem(
+    checklistItemId: ChecklistItemId,
+  ): Promise<ServiceResult<MediaItem[]>> {
     return this.executeQuery(
-      () => supabase
-        .from('media')
-        .select('*')
-        .eq('checklist_item_id', checklistItemId)
-        .order('created_at'),
+      () =>
+        supabase
+          .from("media")
+          .select("*")
+          .eq("checklist_item_id", checklistItemId)
+          .order("created_at"),
       CacheKeys.media(checklistItemId),
-      { cacheTimeout: 10 * 60 * 1000, tags: ['media', `checklist_item:${checklistItemId}`] }
+      {
+        cacheTimeout: 10 * 60 * 1000,
+        tags: ["media", `checklist_item:${checklistItemId}`],
+      },
     );
   }
 
   async uploadMedia(
     checklistItemId: ChecklistItemId,
-    file: File
+    file: File,
   ): Promise<ServiceResult<MediaItem>> {
     const result = await this.executeQuery(
       async () => {
@@ -758,22 +811,22 @@ export class MediaService extends BaseService {
         const storagePath = `inspection-media/${checklistItemId}/${filename}`;
 
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('inspection-media')
+          .from("inspection-media")
           .upload(storagePath, file);
 
         if (uploadError) throw uploadError;
 
         // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('inspection-media')
-          .getPublicUrl(storagePath);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("inspection-media").getPublicUrl(storagePath);
 
         // Create media record
         const { data: mediaRecord, error: dbError } = await supabase
-          .from('media')
+          .from("media")
           .insert({
             checklist_item_id: checklistItemId,
-            type: file.type.startsWith('image/') ? 'photo' : 'video',
+            type: file.type.startsWith("image/") ? "photo" : "video",
             url: publicUrl,
             filename,
             size: file.size,
@@ -786,12 +839,12 @@ export class MediaService extends BaseService {
         return mediaRecord;
       },
       undefined,
-      { useCache: false }
+      { useCache: false },
     );
 
     // Invalidate related caches
     if (result.success) {
-      queryCache.invalidateRelated('checklist_item', checklistItemId);
+      queryCache.invalidateRelated("checklist_item", checklistItemId);
       queryCache.invalidatePattern(`media:${checklistItemId}`);
     }
 
@@ -807,8 +860,8 @@ export interface User {
   id: UserId;
   name: string;
   email: string;
-  role: 'inspector' | 'auditor' | 'admin';
-  status: 'active' | 'inactive' | 'suspended';
+  role: "inspector" | "auditor" | "admin";
+  status: "active" | "inactive" | "suspended";
   lastLoginAt?: string;
   phone?: string;
   createdAt: string;
@@ -821,53 +874,51 @@ export interface User {
  */
 export class UserService extends BaseService {
   constructor() {
-    super('UserService');
+    super("UserService");
   }
 
   async getUser(id: UserId): Promise<ServiceResult<User>> {
     return this.executeQuery(
-      () => supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single(),
+      () => supabase.from("users").select("*").eq("id", id).single(),
       CacheKeys.user(id),
-      { cacheTimeout: 5 * 60 * 1000, tags: ['user', `user:${id}`] }
+      { cacheTimeout: 5 * 60 * 1000, tags: ["user", `user:${id}`] },
     );
   }
 
-  async getUsers(filters: {
-    role?: string;
-    status?: string;
-  } & PaginationOptions = {}): Promise<ServiceResult<User[]>> {
+  async getUsers(
+    filters: {
+      role?: string;
+      status?: string;
+    } & PaginationOptions = {},
+  ): Promise<ServiceResult<User[]>> {
     const cacheKey = `users:${btoa(JSON.stringify(filters))}`;
-    
+
     return this.executeQuery(
       () => {
-        let query = supabase
-          .from('users')
-          .select('*')
-          .order('name');
+        let query = supabase.from("users").select("*").order("name");
 
         if (filters.role) {
-          query = query.eq('role', filters.role);
+          query = query.eq("role", filters.role);
         }
 
         if (filters.status) {
-          query = query.eq('status', filters.status);
+          query = query.eq("status", filters.status);
         }
 
         if (filters.limit) {
           query = query.limit(filters.limit);
           if (filters.offset) {
-            query = query.range(filters.offset, filters.offset + filters.limit - 1);
+            query = query.range(
+              filters.offset,
+              filters.offset + filters.limit - 1,
+            );
           }
         }
 
         return query;
       },
       cacheKey,
-      { cacheTimeout: 2 * 60 * 1000, tags: ['users'] }
+      { cacheTimeout: 2 * 60 * 1000, tags: ["users"] },
     );
   }
 }
@@ -884,38 +935,38 @@ export class ServiceFactory {
   private static instances = new Map();
 
   static getPropertyService(): PropertyService {
-    if (!this.instances.has('property')) {
-      this.instances.set('property', new PropertyService());
+    if (!this.instances.has("property")) {
+      this.instances.set("property", new PropertyService());
     }
-    return this.instances.get('property');
+    return this.instances.get("property");
   }
 
   static getInspectionService(): InspectionService {
-    if (!this.instances.has('inspection')) {
-      this.instances.set('inspection', new InspectionService());
+    if (!this.instances.has("inspection")) {
+      this.instances.set("inspection", new InspectionService());
     }
-    return this.instances.get('inspection');
+    return this.instances.get("inspection");
   }
 
   static getChecklistService(): ChecklistService {
-    if (!this.instances.has('checklist')) {
-      this.instances.set('checklist', new ChecklistService());
+    if (!this.instances.has("checklist")) {
+      this.instances.set("checklist", new ChecklistService());
     }
-    return this.instances.get('checklist');
+    return this.instances.get("checklist");
   }
 
   static getMediaService(): MediaService {
-    if (!this.instances.has('media')) {
-      this.instances.set('media', new MediaService());
+    if (!this.instances.has("media")) {
+      this.instances.set("media", new MediaService());
     }
-    return this.instances.get('media');
+    return this.instances.get("media");
   }
 
   static getUserService(): UserService {
-    if (!this.instances.has('user')) {
-      this.instances.set('user', new UserService());
+    if (!this.instances.has("user")) {
+      this.instances.set("user", new UserService());
     }
-    return this.instances.get('user');
+    return this.instances.get("user");
   }
 
   /**

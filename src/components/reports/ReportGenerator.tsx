@@ -1,15 +1,31 @@
 // Report Generator Component - UI for generating and downloading reports
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Download, FileText, Eye, AlertCircle, CheckCircle } from 'lucide-react';
-import { reportService, type ReportOptions, type ReportTemplate } from '@/services/reportService';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  Download,
+  FileText,
+  Eye,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import {
+  reportService,
+  type ReportOptions,
+  type ReportTemplate,
+} from "@/services/reportService";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface ReportGeneratorProps {
   inspectionId: string;
@@ -20,7 +36,7 @@ interface ReportGeneratorProps {
 export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   inspectionId,
   propertyName,
-  onReportGenerated
+  onReportGenerated,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<Blob | null>(null);
@@ -29,11 +45,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     includeAuditTrail: true,
     includeSummary: true,
     includeListingOptimization: true,
-    format: 'pdf',
+    format: "pdf",
     branding: true,
-    photoQuality: 'medium'
+    photoQuality: "medium",
   });
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('standard');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("standard");
   const { toast } = useToast();
 
   const templates = reportService.getReportTemplates();
@@ -41,33 +57,43 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const handleGenerateReport = async () => {
     try {
       setIsGenerating(true);
-      logger.info('Starting report generation', { inspectionId, options: reportOptions }, 'REPORT_GENERATOR');
+      logger.info(
+        "Starting report generation",
+        { inspectionId, options: reportOptions },
+        "REPORT_GENERATOR",
+      );
 
-      const result = await reportService.generateInspectionReport(inspectionId, reportOptions);
-      
+      const result = await reportService.generateInspectionReport(
+        inspectionId,
+        reportOptions,
+      );
+
       if (result.success && result.data) {
         setGeneratedReport(result.data);
         toast({
-          title: 'Report Generated Successfully',
-          description: 'Your inspection report is ready for download.',
+          title: "Report Generated Successfully",
+          description: "Your inspection report is ready for download.",
           duration: 5000,
         });
-        
+
         // Auto-download the report
         await handleDownloadReport(result.data);
-        
+
         if (onReportGenerated) {
           onReportGenerated(`RPT-${inspectionId.slice(-8)}-${Date.now()}`);
         }
       } else {
-        throw new Error(result.error || 'Failed to generate report');
+        throw new Error(result.error || "Failed to generate report");
       }
     } catch (error) {
-      logger.error('Report generation failed', error, 'REPORT_GENERATOR');
+      logger.error("Report generation failed", error, "REPORT_GENERATOR");
       toast({
-        title: 'Report Generation Failed',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Report Generation Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -79,29 +105,29 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       const blob = reportBlob || generatedReport;
       if (!blob) return;
 
-      const fileName = `${propertyName.replace(/[^a-zA-Z0-9]/g, '_')}_Inspection_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `${propertyName.replace(/[^a-zA-Z0-9]/g, "_")}_Inspection_Report_${new Date().toISOString().split("T")[0]}.pdf`;
       await reportService.downloadReport(blob, fileName);
-      
+
       toast({
-        title: 'Report Downloaded',
+        title: "Report Downloaded",
         description: `Report saved as ${fileName}`,
         duration: 3000,
       });
     } catch (error) {
-      logger.error('Report download failed', error, 'REPORT_GENERATOR');
+      logger.error("Report download failed", error, "REPORT_GENERATOR");
       toast({
-        title: 'Download Failed',
-        description: 'Failed to download the report. Please try again.',
-        variant: 'destructive',
+        title: "Download Failed",
+        description: "Failed to download the report. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
   const updateReportOption = (key: keyof ReportOptions, value: any) => {
-    setReportOptions(prev => ({ ...prev, [key]: value }));
+    setReportOptions((prev) => ({ ...prev, [key]: value }));
   };
 
-  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+  const selectedTemplateData = templates.find((t) => t.id === selectedTemplate);
 
   return (
     <Card className="w-full">
@@ -120,23 +146,29 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               <SelectValue placeholder="Select a template" />
             </SelectTrigger>
             <SelectContent>
-              {templates.map(template => (
+              {templates.map((template) => (
                 <SelectItem key={template.id} value={template.id}>
                   <div>
                     <div className="font-medium">{template.name}</div>
-                    <div className="text-sm text-gray-500">{template.description}</div>
+                    <div className="text-sm text-gray-500">
+                      {template.description}
+                    </div>
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
+
           {selectedTemplateData && (
             <div className="mt-2">
               <p className="text-sm text-gray-600 mb-2">Included sections:</p>
               <div className="flex flex-wrap gap-1">
-                {selectedTemplateData.sections.map(section => (
-                  <Badge key={section.id} variant="secondary" className="text-xs">
+                {selectedTemplateData.sections.map((section) => (
+                  <Badge
+                    key={section.id}
+                    variant="secondary"
+                    className="text-xs"
+                  >
                     {section.title}
                   </Badge>
                 ))}
@@ -148,58 +180,74 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         {/* Report Options */}
         <div className="space-y-4">
           <h4 className="font-medium">Report Options</h4>
-          
+
           {/* Content Options */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includeSummary"
                 checked={reportOptions.includeSummary}
-                onCheckedChange={(checked) => updateReportOption('includeSummary', checked)}
+                onCheckedChange={(checked) =>
+                  updateReportOption("includeSummary", checked)
+                }
               />
               <label htmlFor="includeSummary" className="text-sm font-medium">
                 Include Executive Summary
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includePhotos"
                 checked={reportOptions.includePhotos}
-                onCheckedChange={(checked) => updateReportOption('includePhotos', checked)}
+                onCheckedChange={(checked) =>
+                  updateReportOption("includePhotos", checked)
+                }
               />
               <label htmlFor="includePhotos" className="text-sm font-medium">
                 Include Photo Analysis
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includeAuditTrail"
                 checked={reportOptions.includeAuditTrail}
-                onCheckedChange={(checked) => updateReportOption('includeAuditTrail', checked)}
+                onCheckedChange={(checked) =>
+                  updateReportOption("includeAuditTrail", checked)
+                }
               />
-              <label htmlFor="includeAuditTrail" className="text-sm font-medium">
+              <label
+                htmlFor="includeAuditTrail"
+                className="text-sm font-medium"
+              >
                 Include Audit Trail
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includeListingOptimization"
                 checked={reportOptions.includeListingOptimization}
-                onCheckedChange={(checked) => updateReportOption('includeListingOptimization', checked)}
+                onCheckedChange={(checked) =>
+                  updateReportOption("includeListingOptimization", checked)
+                }
               />
-              <label htmlFor="includeListingOptimization" className="text-sm font-medium">
+              <label
+                htmlFor="includeListingOptimization"
+                className="text-sm font-medium"
+              >
                 Include Listing Optimization Suggestions
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="branding"
                 checked={reportOptions.branding}
-                onCheckedChange={(checked) => updateReportOption('branding', checked)}
+                onCheckedChange={(checked) =>
+                  updateReportOption("branding", checked)
+                }
               />
               <label htmlFor="branding" className="text-sm font-medium">
                 Include STR Certified Branding
@@ -210,9 +258,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           {/* Format Options */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Format</label>
-            <Select 
-              value={reportOptions.format} 
-              onValueChange={(value) => updateReportOption('format', value)}
+            <Select
+              value={reportOptions.format}
+              onValueChange={(value) => updateReportOption("format", value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -228,9 +276,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           {reportOptions.includePhotos && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Photo Quality</label>
-              <Select 
-                value={reportOptions.photoQuality} 
-                onValueChange={(value) => updateReportOption('photoQuality', value)}
+              <Select
+                value={reportOptions.photoQuality}
+                onValueChange={(value) =>
+                  updateReportOption("photoQuality", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -266,7 +316,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button 
+          <Button
             onClick={handleGenerateReport}
             disabled={isGenerating}
             className="flex-1"
@@ -283,7 +333,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               </>
             )}
           </Button>
-          
+
           {generatedReport && (
             <Button
               variant="outline"
@@ -301,8 +351,13 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p>Reports include all inspection data, AI analysis results, and audit information.</p>
-              <p className="mt-1">PDF format recommended for sharing with property managers.</p>
+              <p>
+                Reports include all inspection data, AI analysis results, and
+                audit information.
+              </p>
+              <p className="mt-1">
+                PDF format recommended for sharing with property managers.
+              </p>
             </div>
           </div>
         </div>

@@ -108,7 +108,7 @@ a:focus-visible {
 
 .focus-trap::before,
 .focus-trap::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 1px;
   height: 1px;
@@ -190,12 +190,24 @@ a:focus-visible {
   line-height: 1.6 !important;
 }
 
-.large-text h1 { font-size: 3rem !important; }
-.large-text h2 { font-size: 2.5rem !important; }
-.large-text h3 { font-size: 2rem !important; }
-.large-text h4 { font-size: 1.5rem !important; }
-.large-text h5 { font-size: 1.25rem !important; }
-.large-text h6 { font-size: 1.1rem !important; }
+.large-text h1 {
+  font-size: 3rem !important;
+}
+.large-text h2 {
+  font-size: 2.5rem !important;
+}
+.large-text h3 {
+  font-size: 2rem !important;
+}
+.large-text h4 {
+  font-size: 1.5rem !important;
+}
+.large-text h5 {
+  font-size: 1.25rem !important;
+}
+.large-text h6 {
+  font-size: 1.1rem !important;
+}
 
 .large-text button,
 .large-text [role="button"] {
@@ -362,17 +374,27 @@ a:focus-visible {
   position: relative;
   background-color: var(--background);
   border-radius: 0.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-height: 90vh;
   overflow: auto;
   width: 100%;
   max-width: 32rem;
 }
 
-.accessible-modal--sm { max-width: 24rem; }
-.accessible-modal--md { max-width: 32rem; }
-.accessible-modal--lg { max-width: 48rem; }
-.accessible-modal--xl { max-width: 64rem; }
+.accessible-modal--sm {
+  max-width: 24rem;
+}
+.accessible-modal--md {
+  max-width: 32rem;
+}
+.accessible-modal--lg {
+  max-width: 48rem;
+}
+.accessible-modal--xl {
+  max-width: 64rem;
+}
 
 .accessible-modal__header {
   display: flex;
@@ -500,7 +522,7 @@ a:focus-visible {
     max-height: 100vh;
     height: 100vh;
   }
-  
+
   .skip-link:focus {
     position: fixed;
     top: 0;
@@ -528,12 +550,12 @@ a:focus-visible {
     white-space: normal !important;
     border: 0 !important;
   }
-  
+
   .skip-links,
   .accessible-button__spinner {
     display: none !important;
   }
-  
+
   a::after {
     content: " (" attr(href) ")";
     font-size: 0.8em;
@@ -550,7 +572,7 @@ a:focus-visible {
     background-color: hsl(210 40% 98%);
     color: hsl(222.2 84% 4.9%);
   }
-  
+
   .accessible-field__input input,
   .accessible-field__input select,
   .accessible-field__input textarea {

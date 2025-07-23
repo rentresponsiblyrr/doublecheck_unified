@@ -1,34 +1,38 @@
 // AI Module Exports for STR Certified
 
 // Core AI Services
-export { STRCertifiedAIService, createAIService, DEFAULT_AI_CONFIG } from './openai-service';
+export {
+  STRCertifiedAIService,
+  createAIService,
+  DEFAULT_AI_CONFIG,
+} from "./openai-service";
 
 // AI Collaboration Systems
-export { 
-  aiDecisionLogger, 
-  logAIDecision, 
-  logSimpleAIDecision, 
+export {
+  aiDecisionLogger,
+  logAIDecision,
+  logSimpleAIDecision,
   updateDecisionOutcome,
   queryAIDecisions,
   exportAIDecisions,
-  generateDecisionSummary
-} from './decision-logger';
+  generateDecisionSummary,
+} from "./decision-logger";
 
-export { 
-  aiContextHandoffManager, 
-  createHandoff, 
-  createSimpleHandoff, 
+export {
+  aiContextHandoffManager,
+  createHandoff,
+  createSimpleHandoff,
   createEmergencyHandoff,
   getLatestHandoff,
   getHandoffById,
   generateHandoffSummary,
-  exportHandoffs
-} from './context-handoff';
+  exportHandoffs,
+} from "./context-handoff";
 
-export { 
-  adrManager, 
-  createADR, 
-  createSimpleADR, 
+export {
+  adrManager,
+  createADR,
+  createSimpleADR,
   updateADRStatus,
   supersedeADR,
   queryADRs,
@@ -37,13 +41,13 @@ export {
   getAllADRs,
   getActiveADRs,
   generateADRIndex,
-  exportADRs
-} from './adr-manager';
+  exportADRs,
+} from "./adr-manager";
 
-export { 
-  aiSessionManager, 
-  startSession, 
-  endSession, 
+export {
+  aiSessionManager,
+  startSession,
+  endSession,
   getCurrentSession,
   updateObjective,
   addDecisionToSession,
@@ -53,13 +57,13 @@ export {
   getSessionById,
   getSessionSummary,
   generateSessionReport,
-  exportSessions
-} from './session-manager';
+  exportSessions,
+} from "./session-manager";
 
-export { 
-  aiLearningRepository, 
-  addLearning, 
-  addSimpleLearning, 
+export {
+  aiLearningRepository,
+  addLearning,
+  addSimpleLearning,
   validateLearning,
   queryLearnings,
   getLearningById,
@@ -70,8 +74,8 @@ export {
   discoverPatterns,
   getLearningStats,
   generateRecommendations,
-  exportLearnings
-} from './learning-repository';
+  exportLearnings,
+} from "./learning-repository";
 
 // Core AI Types
 export type {
@@ -83,8 +87,8 @@ export type {
   AIAnalysisOptions,
   AIError,
   AIAnalysisStatus,
-  AIAnalysisState
-} from './types';
+  AIAnalysisState,
+} from "./types";
 
 // AI Collaboration Types
 export type {
@@ -93,8 +97,8 @@ export type {
   AIDecisionContext,
   AIDecisionOutcome,
   AIHandoffContext,
-  AIDecisionQuery
-} from './decision-logger';
+  AIDecisionQuery,
+} from "./decision-logger";
 
 export type {
   AIContextHandoff,
@@ -107,8 +111,8 @@ export type {
   Recommendation,
   TechnicalDebt,
   LearningInsight,
-  NextStep
-} from './context-handoff';
+  NextStep,
+} from "./context-handoff";
 
 export type {
   ADRRecord,
@@ -116,8 +120,8 @@ export type {
   ADRConsequences,
   AIAgentInfo,
   ADRQuery,
-  ADRTemplate
-} from './adr-manager';
+  ADRTemplate,
+} from "./adr-manager";
 
 export type {
   AISession,
@@ -127,8 +131,8 @@ export type {
   SessionMetrics,
   SessionOutcome,
   SessionQuery,
-  SessionSummary
-} from './session-manager';
+  SessionSummary,
+} from "./session-manager";
 
 export type {
   LearningEntry,
@@ -144,14 +148,14 @@ export type {
   KnowledgeNode,
   KnowledgeEdge,
   LearningQuery,
-  LearningStats
-} from './learning-repository';
+  LearningStats,
+} from "./learning-repository";
 
 // Constants
 export const AI_MODELS = {
-  VISION: 'gpt-4-vision-preview',
-  TEXT: 'gpt-4-turbo-preview',
-  FAST: 'gpt-3.5-turbo',
+  VISION: "gpt-4-vision-preview",
+  TEXT: "gpt-4-turbo-preview",
+  FAST: "gpt-3.5-turbo",
 } as const;
 
 export const AI_ANALYSIS_DEFAULTS = {

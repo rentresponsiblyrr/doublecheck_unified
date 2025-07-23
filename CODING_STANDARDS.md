@@ -87,9 +87,9 @@ export interface PropertyData {
   /** Unique property identifier (integer from database) */
   property_id: number;
   /** Property name as displayed to users */
-  property_name: string;
+  name: string;
   /** Full street address including city, state */
-  street_address: string;
+  address: string;
   /** Optional VRBO listing URL for data scraping */
   vrbo_url?: string;
   /** Property creation timestamp */
@@ -112,15 +112,15 @@ interface GenericData {
 // ✅ CORRECT: Map database types exactly
 export interface DatabaseProperty {
   property_id: number;        // integer in DB
-  property_name: string;      // text in DB
-  street_address: string | null;  // nullable text in DB
+  name: string;      // text in DB
+  address: string | null;  // nullable text in DB
   created_at: string;         // timestamp with time zone
 }
 
 export interface FrontendProperty {
   id: string;                 // Convert to string for frontend
-  name: string;               // Map from property_name
-  address: string;            // Map from street_address with null handling
+  name: string;               // Map from name
+  address: string;            // Map from address with null handling
   createdAt: Date;            // Convert to Date object
 }
 ```
@@ -158,12 +158,12 @@ if (!result.success) {
 // ✅ CORRECT: Use actual database column names
 const { data, error } = await supabase
   .from('properties')
-  .select('property_id, property_name, street_address')
+  .select('property_id, name, address')
   .eq('property_id', propertyId);
 
 // ✅ CORRECT: Use actual foreign key relationships
 const { data, error } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select(`
     log_id,
     property_id,
@@ -178,9 +178,9 @@ const { data, error } = await supabase
 
 // ❌ WRONG: Assumed column names
 const { data, error } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select('*')
-  .eq('static_safety_item_id', itemId);  // Column doesn't exist
+  .eq('static_item_id', itemId);  // Column doesn't exist
 ```
 
 ### **Repository Pattern**
@@ -190,7 +190,7 @@ export class PropertyRepository {
   static async findById(propertyId: number): Promise<Property | null> {
     const { data, error } = await supabase
       .from('properties')
-      .select('property_id, property_name, street_address, created_at')
+      .select('property_id, name, address, created_at')
       .eq('property_id', propertyId)
       .single();
     
@@ -205,8 +205,8 @@ export class PropertyRepository {
   private static mapToProperty(dbData: DatabaseProperty): Property {
     return {
       id: dbData.property_id.toString(),
-      name: dbData.property_name,
-      address: dbData.street_address || '',
+      name: dbData.name,
+      address: dbData.address || '',
       createdAt: new Date(dbData.created_at)
     };
   }

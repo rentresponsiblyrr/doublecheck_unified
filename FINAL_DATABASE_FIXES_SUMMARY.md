@@ -12,7 +12,7 @@
 
 2. **✅ Database Schema Mismatches FIXED**
    - Updated all queries from non-existent `logs` table → `checklist_items`
-   - Fixed all wrong property field references (`property_id` → `id`, `property_name` → `name`, `street_address` → `address`)
+   - Fixed all wrong property field references (`property_id` → `id`, `name` → `name`, `address` → `address`)
    - Corrected all foreign key relationships
    - Updated TypeScript interfaces to match actual schema
 

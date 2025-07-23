@@ -53,23 +53,23 @@ export interface ChecklistStats {
 }
 
 export const CHECKLIST_CATEGORIES = [
-  'Safety',
-  'Cleanliness',
-  'Amenities',
-  'Structure',
-  'Compliance',
-  'Accessibility',
-  'Technology',
-  'Emergency',
-  'General'
+  "Safety",
+  "Cleanliness",
+  "Amenities",
+  "Structure",
+  "Compliance",
+  "Accessibility",
+  "Technology",
+  "Emergency",
+  "General",
 ] as const;
 
 export const EVIDENCE_TYPES = [
-  'photo',
-  'video',
-  'inspection',
-  'documentation'
+  "photo",
+  "video",
+  "inspection",
+  "documentation",
 ] as const;
 
-export type ChecklistCategory = typeof CHECKLIST_CATEGORIES[number];
-export type EvidenceType = typeof EVIDENCE_TYPES[number];
+export type ChecklistCategory = (typeof CHECKLIST_CATEGORIES)[number];
+export type EvidenceType = (typeof EVIDENCE_TYPES)[number];

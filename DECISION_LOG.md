@@ -110,12 +110,12 @@ Align all database operations with actual Supabase schema after verification rev
 ### **Context**
 - Database queries failing due to wrong column names
 - Code assumed `static_safety_items.id` was integer, but database uses UUID
-- `logs` table queries used non-existent `static_safety_item_id` column
+- `logs` table queries used non-existent `static_item_id` column
 - Multiple compatibility layers masking fundamental schema issues
 
 ### **Critical Issues Found**
 1. `static_safety_items.id` is UUID string, not integer
-2. `logs` table uses `checklist_id`, not `static_safety_item_id`
+2. `logs` table uses `checklist_id`, not `static_item_id`
 3. `logs` table has no `inspection_id` column
 4. Foreign key relationships misunderstood
 

@@ -1,9 +1,9 @@
 /**
  * FUNCTIONAL USER MANAGEMENT - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade user management following ZERO_TOLERANCE_STANDARDS
  * Reduced from 348 lines to <100 lines through pure orchestration pattern
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - pure orchestration only
  * - Uses UserManagementDataManager with render props for clean separation
@@ -11,7 +11,7 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - UserManagementDataManager: Complete data operations with render props
  * - UserStatsCards: Statistics display component
@@ -19,7 +19,7 @@
  * - UserTable: Data table with actions
  * - UserFormDialog: User creation/editing
  * - UserSystemDiagnostic: System health monitoring
- * 
+ *
  * @example
  * ```typescript
  * <FunctionalUserManagement
@@ -29,18 +29,18 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Users, UserPlus, RefreshCw, AlertTriangle } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Users, UserPlus, RefreshCw, AlertTriangle } from "lucide-react";
 
 // Import focused components
-import { UserManagementDataManager } from './users/UserManagementDataManager';
-import { UserFiltersComponent } from './users/UserFilters';
-import { UserTable } from './users/UserTable';
-import { UserFormDialog } from './users/UserFormDialog';
-import { UserSystemDiagnostic } from './users/UserSystemDiagnostic';
+import { UserManagementDataManager } from "./users/UserManagementDataManager";
+import { UserFiltersComponent } from "./users/UserFilters";
+import { UserTable } from "./users/UserTable";
+import { UserFormDialog } from "./users/UserFormDialog";
+import { UserSystemDiagnostic } from "./users/UserSystemDiagnostic";
 
 /**
  * Component props - simplified for orchestration
@@ -93,7 +93,9 @@ const UserStatsCards: React.FC<{ stats: UserStats }> = ({ stats }) => (
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">Recent Sign-ins</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.recentSignIns}</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {stats.recentSignIns}
+            </p>
           </div>
           <RefreshCw className="h-8 w-8 text-blue-600" />
         </div>
@@ -105,7 +107,9 @@ const UserStatsCards: React.FC<{ stats: UserStats }> = ({ stats }) => (
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">Admins</p>
-            <p className="text-2xl font-bold text-orange-600">{stats.byRole.admin || 0}</p>
+            <p className="text-2xl font-bold text-orange-600">
+              {stats.byRole.admin || 0}
+            </p>
           </div>
           <AlertTriangle className="h-8 w-8 text-orange-600" />
         </div>
@@ -118,10 +122,9 @@ const UserStatsCards: React.FC<{ stats: UserStats }> = ({ stats }) => (
  * Main Functional User Management Component - Pure Orchestration Only
  * Reduced from 348 lines to <100 lines through data manager pattern
  */
-export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> = ({
-  showAdvancedOptions = false,
-  enableBulkActions = false
-}) => {
+export const FunctionalUserManagement: React.FC<
+  FunctionalUserManagementProps
+> = ({ showAdvancedOptions = false, enableBulkActions = false }) => {
   return (
     <div className="space-y-6" id="functional-user-management">
       <UserManagementDataManager>
@@ -144,7 +147,7 @@ export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> =
           onRefresh,
           onToggleUserForm,
           onToggleDiagnostics,
-          onCloseUserForm
+          onCloseUserForm,
         }) => (
           <>
             {/* Header */}
@@ -157,7 +160,8 @@ export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> =
                       User Management
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                      Manage system users, roles, and permissions ({stats.total} users)
+                      Manage system users, roles, and permissions ({stats.total}{" "}
+                      users)
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -167,7 +171,7 @@ export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> =
                         onClick={onToggleDiagnostics}
                         className="focus:ring-2 focus:ring-blue-500"
                       >
-                        {showDiagnostics ? 'Hide' : 'Show'} Diagnostics
+                        {showDiagnostics ? "Hide" : "Show"} Diagnostics
                       </Button>
                     )}
                     <Button
@@ -175,7 +179,9 @@ export const FunctionalUserManagement: React.FC<FunctionalUserManagementProps> =
                       disabled={isLoading}
                       className="focus:ring-2 focus:ring-blue-500"
                     >
-                      <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                      />
                       Refresh
                     </Button>
                     <Button onClick={onToggleUserForm}>

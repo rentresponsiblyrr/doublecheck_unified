@@ -1,29 +1,29 @@
 /**
  * INTELLIGENT CACHE INVALIDATION - NETFLIX/META PRODUCTION STANDARDS
- * 
+ *
  * Advanced cache invalidation system with dependency tracking, smart invalidation
  * strategies, and conflict resolution. Integrates with Enhanced cache infrastructure
  * to provide intelligent cache management for optimal performance.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface CacheInvalidationRule {
   id: string;
   name: string;
   pattern: string | RegExp;
   dependencies: string[];
-  strategy: 'immediate' | 'lazy' | 'batched' | 'scheduled';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  strategy: "immediate" | "lazy" | "batched" | "scheduled";
+  priority: "low" | "medium" | "high" | "critical";
   conditions?: {
     dataTypes?: string[];
-    operations?: ('create' | 'update' | 'delete')[];
+    operations?: ("create" | "update" | "delete")[];
     userRoles?: string[];
     timeWindow?: number; // milliseconds
-    conflictResolution?: 'merge' | 'replace' | 'skip';
+    conflictResolution?: "merge" | "replace" | "skip";
   };
   metadata?: {
     tags: string[];
@@ -35,10 +35,10 @@ export interface CacheInvalidationRule {
 
 export interface InvalidationEvent {
   id: string;
-  type: 'data_change' | 'user_action' | 'system_event' | 'scheduled' | 'manual';
+  type: "data_change" | "user_action" | "system_event" | "scheduled" | "manual";
   source: string;
   target: string | string[];
-  operation: 'create' | 'update' | 'delete' | 'bulk' | 'system';
+  operation: "create" | "update" | "delete" | "bulk" | "system";
   timestamp: number;
   metadata: {
     userId?: string;
@@ -79,7 +79,7 @@ class IntelligentCacheInvalidation {
   private processingQueue = false;
   private batchedInvalidations = new Map<string, Set<string>>();
   private scheduledInvalidations = new Map<string, NodeJS.Timeout>();
-  
+
   private stats: CacheInvalidationStats = {
     totalInvalidations: 0,
     successfulInvalidations: 0,
@@ -102,22 +102,22 @@ class IntelligentCacheInvalidation {
    */
   registerRule(rule: CacheInvalidationRule): void {
     this.rules.set(rule.id, rule);
-    
+
     // Build dependency graph
-    rule.dependencies.forEach(dep => {
+    rule.dependencies.forEach((dep) => {
       if (!this.dependencyGraph.has(rule.pattern.toString())) {
         this.dependencyGraph.set(rule.pattern.toString(), new Set());
       }
       this.dependencyGraph.get(rule.pattern.toString())!.add(dep);
-      
+
       // Reverse dependency graph
       if (!this.reverseDependencyGraph.has(dep)) {
         this.reverseDependencyGraph.set(dep, new Set());
       }
       this.reverseDependencyGraph.get(dep)!.add(rule.pattern.toString());
     });
-    
-    logger.debug('Cache invalidation rule registered', {
+
+    logger.debug("Cache invalidation rule registered", {
       ruleId: rule.id,
       pattern: rule.pattern.toString(),
       dependencies: rule.dependencies,
@@ -130,7 +130,10 @@ class IntelligentCacheInvalidation {
    */
   registerStrategy(name: string, strategy: InvalidationStrategy): void {
     this.strategies.set(name, strategy);
-    logger.debug('Cache invalidation strategy registered', { name, priority: strategy.priority });
+    logger.debug("Cache invalidation strategy registered", {
+      name,
+      priority: strategy.priority,
+    });
   }
 
   /**
@@ -143,7 +146,7 @@ class IntelligentCacheInvalidation {
     try {
       // Add to processing queue
       this.invalidationQueue.push(event);
-      
+
       // Process if not already processing
       if (!this.processingQueue) {
         await this.processInvalidationQueue();
@@ -152,17 +155,16 @@ class IntelligentCacheInvalidation {
       // Update stats
       const duration = Date.now() - startTime;
       this.updateStats(duration, true);
-      
-      logger.debug('Cache invalidation triggered', {
+
+      logger.debug("Cache invalidation triggered", {
         eventId: event.id,
         type: event.type,
         target: event.target,
         duration,
       });
-
     } catch (error) {
       this.updateStats(Date.now() - startTime, false);
-      logger.error('Cache invalidation failed', { event, error });
+      logger.error("Cache invalidation failed", { event, error });
       throw error;
     }
   }
@@ -174,17 +176,17 @@ class IntelligentCacheInvalidation {
     pattern: string | RegExp,
     reason: string,
     options: {
-      strategy?: 'immediate' | 'lazy' | 'batched';
+      strategy?: "immediate" | "lazy" | "batched";
       cascade?: boolean;
-      priority?: 'low' | 'medium' | 'high' | 'critical';
-    } = {}
+      priority?: "low" | "medium" | "high" | "critical";
+    } = {},
   ): Promise<void> {
     const event: InvalidationEvent = {
       id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'manual',
-      source: 'system',
+      type: "manual",
+      source: "system",
       target: pattern.toString(),
-      operation: 'system',
+      operation: "system",
       timestamp: Date.now(),
       metadata: {
         reason,
@@ -200,17 +202,17 @@ class IntelligentCacheInvalidation {
    */
   async invalidateRelated(
     dataKey: string,
-    operation: 'create' | 'update' | 'delete',
+    operation: "create" | "update" | "delete",
     options: {
       userId?: string;
       sessionId?: string;
       reason?: string;
       maxCascadeLevel?: number;
-    } = {}
+    } = {},
   ): Promise<void> {
     const event: InvalidationEvent = {
       id: `related_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'data_change',
+      type: "data_change",
       source: dataKey,
       target: dataKey,
       operation,
@@ -237,11 +239,11 @@ class IntelligentCacheInvalidation {
       batchSize?: number;
       delay?: number;
       strategy?: string;
-    } = {}
+    } = {},
   ): Promise<void> {
     const batchSize = options.batchSize || 50;
     const delay = options.delay || 100;
-    const strategy = this.strategies.get(options.strategy || 'batched');
+    const strategy = this.strategies.get(options.strategy || "batched");
 
     if (!strategy) {
       throw new Error(`Unknown invalidation strategy: ${options.strategy}`);
@@ -250,13 +252,13 @@ class IntelligentCacheInvalidation {
     // Process in batches
     for (let i = 0; i < keys.length; i += batchSize) {
       const batch = keys.slice(i, i + batchSize);
-      
+
       const event: InvalidationEvent = {
         id: `batch_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`,
-        type: 'system_event',
-        source: 'batch_invalidation',
+        type: "system_event",
+        source: "batch_invalidation",
         target: batch,
-        operation: 'bulk',
+        operation: "bulk",
         timestamp: Date.now(),
         metadata: {
           reason,
@@ -265,10 +267,10 @@ class IntelligentCacheInvalidation {
       };
 
       await this.invalidate(event);
-      
+
       // Delay between batches if specified
       if (delay > 0 && i + batchSize < keys.length) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
@@ -283,24 +285,31 @@ class IntelligentCacheInvalidation {
     options: {
       recurring?: boolean;
       interval?: number;
-    } = {}
+    } = {},
   ): string {
     const scheduleId = `scheduled_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const execute = async () => {
       try {
-        await this.invalidateByPattern(pattern, reason, { strategy: 'scheduled' });
-        
+        await this.invalidateByPattern(pattern, reason, {
+          strategy: "scheduled",
+        });
+
         // Reschedule if recurring
         if (options.recurring && options.interval) {
-          this.scheduledInvalidations.set(scheduleId, 
-            setTimeout(execute, options.interval)
+          this.scheduledInvalidations.set(
+            scheduleId,
+            setTimeout(execute, options.interval),
           );
         } else {
           this.scheduledInvalidations.delete(scheduleId);
         }
       } catch (error) {
-        logger.error('Scheduled invalidation failed', { scheduleId, pattern, error });
+        logger.error("Scheduled invalidation failed", {
+          scheduleId,
+          pattern,
+          error,
+        });
         this.scheduledInvalidations.delete(scheduleId);
       }
     };
@@ -308,7 +317,7 @@ class IntelligentCacheInvalidation {
     const timeout = setTimeout(execute, delay);
     this.scheduledInvalidations.set(scheduleId, timeout);
 
-    logger.info('Cache invalidation scheduled', {
+    logger.info("Cache invalidation scheduled", {
       scheduleId,
       pattern: pattern.toString(),
       delay,
@@ -360,20 +369,29 @@ class IntelligentCacheInvalidation {
   /**
    * Process single invalidation event
    */
-  private async processInvalidationEvent(event: InvalidationEvent): Promise<void> {
+  private async processInvalidationEvent(
+    event: InvalidationEvent,
+  ): Promise<void> {
     const applicableRules = this.findApplicableRules(event);
-    
+
     for (const rule of applicableRules) {
       try {
         await this.executeRule(rule, event);
         this.stats.rulesExecuted++;
       } catch (error) {
-        logger.error('Rule execution failed', { ruleId: rule.id, event, error });
+        logger.error("Rule execution failed", {
+          ruleId: rule.id,
+          event,
+          error,
+        });
       }
     }
 
     // Handle dependencies if cascading is enabled
-    if (event.metadata.cascadeLevel !== undefined && event.metadata.cascadeLevel >= 0) {
+    if (
+      event.metadata.cascadeLevel !== undefined &&
+      event.metadata.cascadeLevel >= 0
+    ) {
       await this.processDependencies(event);
     }
   }
@@ -381,9 +399,13 @@ class IntelligentCacheInvalidation {
   /**
    * Execute invalidation rule
    */
-  private async executeRule(rule: CacheInvalidationRule, event: InvalidationEvent): Promise<void> {
-    const strategy = this.strategies.get(rule.strategy) || this.strategies.get('immediate')!;
-    
+  private async executeRule(
+    rule: CacheInvalidationRule,
+    event: InvalidationEvent,
+  ): Promise<void> {
+    const strategy =
+      this.strategies.get(rule.strategy) || this.strategies.get("immediate")!;
+
     // Determine target keys
     let targetKeys: string[];
     if (Array.isArray(event.target)) {
@@ -393,8 +415,10 @@ class IntelligentCacheInvalidation {
     }
 
     // Filter keys based on rule pattern
-    const keysToInvalidate = targetKeys.filter(key => this.matchesPattern(key, rule.pattern));
-    
+    const keysToInvalidate = targetKeys.filter((key) =>
+      this.matchesPattern(key, rule.pattern),
+    );
+
     if (keysToInvalidate.length === 0) return;
 
     // Apply conditions if specified
@@ -404,8 +428,8 @@ class IntelligentCacheInvalidation {
 
     // Execute strategy
     await strategy.execute(keysToInvalidate, event);
-    
-    logger.debug('Invalidation rule executed', {
+
+    logger.debug("Invalidation rule executed", {
       ruleId: rule.id,
       strategy: rule.strategy,
       keysInvalidated: keysToInvalidate.length,
@@ -422,7 +446,7 @@ class IntelligentCacheInvalidation {
     const maxCascadeLevel = 5; // Prevent infinite cascades
 
     if (cascadeLevel > maxCascadeLevel) {
-      logger.warn('Max cascade level reached, stopping dependency chain', {
+      logger.warn("Max cascade level reached, stopping dependency chain", {
         eventId: event.id,
         cascadeLevel,
       });
@@ -432,10 +456,10 @@ class IntelligentCacheInvalidation {
     for (const dependency of event.dependencies) {
       const dependencyEvent: InvalidationEvent = {
         id: `dep_${event.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: 'system_event',
+        type: "system_event",
         source: event.target.toString(),
         target: dependency,
-        operation: 'system',
+        operation: "system",
         timestamp: Date.now(),
         metadata: {
           ...event.metadata,
@@ -454,9 +478,11 @@ class IntelligentCacheInvalidation {
   /**
    * Find applicable rules for event
    */
-  private findApplicableRules(event: InvalidationEvent): CacheInvalidationRule[] {
+  private findApplicableRules(
+    event: InvalidationEvent,
+  ): CacheInvalidationRule[] {
     const rules: CacheInvalidationRule[] = [];
-    
+
     for (const rule of this.rules.values()) {
       if (this.isRuleApplicable(rule, event)) {
         rules.push(rule);
@@ -473,11 +499,16 @@ class IntelligentCacheInvalidation {
   /**
    * Check if rule is applicable to event
    */
-  private isRuleApplicable(rule: CacheInvalidationRule, event: InvalidationEvent): boolean {
+  private isRuleApplicable(
+    rule: CacheInvalidationRule,
+    event: InvalidationEvent,
+  ): boolean {
     // Check pattern match
     const targets = Array.isArray(event.target) ? event.target : [event.target];
-    const hasMatchingTarget = targets.some(target => this.matchesPattern(target, rule.pattern));
-    
+    const hasMatchingTarget = targets.some((target) =>
+      this.matchesPattern(target, rule.pattern),
+    );
+
     if (!hasMatchingTarget) return false;
 
     // Check conditions if specified
@@ -495,12 +526,10 @@ class IntelligentCacheInvalidation {
     if (pattern instanceof RegExp) {
       return pattern.test(key);
     }
-    
+
     // Simple glob pattern support
-    const regexPattern = pattern
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
-    
+    const regexPattern = pattern.replace(/\*/g, ".*").replace(/\?/g, ".");
+
     return new RegExp(`^${regexPattern}$`).test(key);
   }
 
@@ -508,13 +537,16 @@ class IntelligentCacheInvalidation {
    * Check if conditions are met
    */
   private meetsConditions(
-    conditions: CacheInvalidationRule['conditions'],
-    event: InvalidationEvent
+    conditions: CacheInvalidationRule["conditions"],
+    event: InvalidationEvent,
   ): boolean {
     if (!conditions) return true;
 
     // Check operations
-    if (conditions.operations && !conditions.operations.includes(event.operation)) {
+    if (
+      conditions.operations &&
+      !conditions.operations.includes(event.operation)
+    ) {
       return false;
     }
 
@@ -554,11 +586,14 @@ class IntelligentCacheInvalidation {
     }
 
     // Update average duration
-    const totalInvalidations = this.stats.successfulInvalidations + this.stats.failedInvalidations;
+    const totalInvalidations =
+      this.stats.successfulInvalidations + this.stats.failedInvalidations;
     const currentAvg = this.stats.averageInvalidationTime;
-    this.stats.averageInvalidationTime = totalInvalidations === 1 
-      ? duration 
-      : (currentAvg * (totalInvalidations - 1) + duration) / totalInvalidations;
+    this.stats.averageInvalidationTime =
+      totalInvalidations === 1
+        ? duration
+        : (currentAvg * (totalInvalidations - 1) + duration) /
+          totalInvalidations;
 
     this.stats.lastInvalidationTime = Date.now();
   }
@@ -568,8 +603,8 @@ class IntelligentCacheInvalidation {
    */
   private initializeDefaultStrategies(): void {
     // Immediate strategy
-    this.strategies.set('immediate', {
-      name: 'immediate',
+    this.strategies.set("immediate", {
+      name: "immediate",
       priority: 1,
       execute: async (keys: string[], event: InvalidationEvent) => {
         // Immediate cache invalidation
@@ -581,8 +616,8 @@ class IntelligentCacheInvalidation {
     });
 
     // Lazy strategy
-    this.strategies.set('lazy', {
-      name: 'lazy',
+    this.strategies.set("lazy", {
+      name: "lazy",
       priority: 2,
       execute: async (keys: string[], event: InvalidationEvent) => {
         // Mark for lazy invalidation - will be invalidated on next access
@@ -596,20 +631,20 @@ class IntelligentCacheInvalidation {
     });
 
     // Batched strategy
-    this.strategies.set('batched', {
-      name: 'batched',
+    this.strategies.set("batched", {
+      name: "batched",
       priority: 3,
       batchSize: 50,
       delay: 1000,
       execute: async (keys: string[], event: InvalidationEvent) => {
         // Add to batch for later processing
         for (const key of keys) {
-          if (!this.batchedInvalidations.has('default')) {
-            this.batchedInvalidations.set('default', new Set());
+          if (!this.batchedInvalidations.has("default")) {
+            this.batchedInvalidations.set("default", new Set());
           }
-          this.batchedInvalidations.get('default')!.add(key);
+          this.batchedInvalidations.get("default")!.add(key);
         }
-        
+
         // Schedule batch processing
         setTimeout(() => this.processBatchedInvalidations(), 1000);
       },
@@ -617,8 +652,8 @@ class IntelligentCacheInvalidation {
     });
 
     // Scheduled strategy
-    this.strategies.set('scheduled', {
-      name: 'scheduled',
+    this.strategies.set("scheduled", {
+      name: "scheduled",
       priority: 4,
       execute: async (keys: string[], event: InvalidationEvent) => {
         // Execute scheduled invalidation
@@ -636,57 +671,57 @@ class IntelligentCacheInvalidation {
   private initializeDefaultRules(): void {
     // User data invalidation
     this.registerRule({
-      id: 'user-data',
-      name: 'User Data Invalidation',
+      id: "user-data",
+      name: "User Data Invalidation",
       pattern: /^user:.*$/,
-      dependencies: ['user:profile:*', 'user:settings:*', 'user:sessions:*'],
-      strategy: 'immediate',
-      priority: 'high',
+      dependencies: ["user:profile:*", "user:settings:*", "user:sessions:*"],
+      strategy: "immediate",
+      priority: "high",
       conditions: {
-        operations: ['update', 'delete'],
+        operations: ["update", "delete"],
       },
       metadata: {
-        tags: ['user', 'profile'],
-        description: 'Invalidates user-related cache entries',
-        createdBy: 'system',
+        tags: ["user", "profile"],
+        description: "Invalidates user-related cache entries",
+        createdBy: "system",
         lastModified: Date.now(),
       },
     });
 
     // Property data invalidation
     this.registerRule({
-      id: 'property-data',
-      name: 'Property Data Invalidation',
+      id: "property-data",
+      name: "Property Data Invalidation",
       pattern: /^property:.*$/,
-      dependencies: ['inspection:*', 'checklist:*'],
-      strategy: 'immediate',
-      priority: 'high',
+      dependencies: ["inspection:*", "checklist:*"],
+      strategy: "immediate",
+      priority: "high",
       conditions: {
-        operations: ['create', 'update', 'delete'],
+        operations: ["create", "update", "delete"],
       },
       metadata: {
-        tags: ['property', 'inspection'],
-        description: 'Invalidates property-related cache entries',
-        createdBy: 'system',
+        tags: ["property", "inspection"],
+        description: "Invalidates property-related cache entries",
+        createdBy: "system",
         lastModified: Date.now(),
       },
     });
 
     // Inspection data invalidation
     this.registerRule({
-      id: 'inspection-data',
-      name: 'Inspection Data Invalidation',
+      id: "inspection-data",
+      name: "Inspection Data Invalidation",
       pattern: /^inspection:.*$/,
-      dependencies: ['property:*', 'user:inspector:*'],
-      strategy: 'batched',
-      priority: 'medium',
+      dependencies: ["property:*", "user:inspector:*"],
+      strategy: "batched",
+      priority: "medium",
       conditions: {
-        operations: ['create', 'update', 'delete'],
+        operations: ["create", "update", "delete"],
       },
       metadata: {
-        tags: ['inspection', 'checklist'],
-        description: 'Invalidates inspection-related cache entries',
-        createdBy: 'system',
+        tags: ["inspection", "checklist"],
+        description: "Invalidates inspection-related cache entries",
+        createdBy: "system",
         lastModified: Date.now(),
       },
     });
@@ -695,17 +730,20 @@ class IntelligentCacheInvalidation {
   /**
    * Invalidate cache key implementation
    */
-  private async invalidateCacheKey(key: string, event: InvalidationEvent): Promise<void> {
+  private async invalidateCacheKey(
+    key: string,
+    event: InvalidationEvent,
+  ): Promise<void> {
     // This would integrate with your actual cache implementation
     // For now, logging the invalidation
-    logger.debug('Cache key invalidated', {
+    logger.debug("Cache key invalidated", {
       key,
       eventId: event.id,
       reason: event.metadata.reason,
     });
-    
+
     // If using localStorage or sessionStorage
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(key);
         sessionStorage.removeItem(key);
@@ -713,7 +751,7 @@ class IntelligentCacheInvalidation {
         // Ignore storage errors
       }
     }
-    
+
     // If using a cache service, call its invalidation method
     // await cacheService.invalidate(key);
   }
@@ -721,16 +759,22 @@ class IntelligentCacheInvalidation {
   /**
    * Mark for lazy invalidation
    */
-  private async markForLazyInvalidation(key: string, event: InvalidationEvent): Promise<void> {
+  private async markForLazyInvalidation(
+    key: string,
+    event: InvalidationEvent,
+  ): Promise<void> {
     // Mark cache entry as stale/invalid but don't remove it yet
     const invalidationMarker = `_invalid_${Date.now()}`;
-    
-    if (typeof window !== 'undefined') {
+
+    if (typeof window !== "undefined") {
       try {
-        localStorage.setItem(`${key}${invalidationMarker}`, JSON.stringify({
-          invalidatedAt: event.timestamp,
-          reason: event.metadata.reason,
-        }));
+        localStorage.setItem(
+          `${key}${invalidationMarker}`,
+          JSON.stringify({
+            invalidatedAt: event.timestamp,
+            reason: event.metadata.reason,
+          }),
+        );
       } catch (error) {
         // Ignore storage errors
       }
@@ -742,10 +786,12 @@ class IntelligentCacheInvalidation {
    */
   private shouldLazyInvalidate(key: string, event: InvalidationEvent): boolean {
     // Check if key is marked for lazy invalidation
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const keys = Object.keys(localStorage);
-        const invalidationMarker = keys.find(k => k.startsWith(key) && k.includes('_invalid_'));
+        const invalidationMarker = keys.find(
+          (k) => k.startsWith(key) && k.includes("_invalid_"),
+        );
         return !!invalidationMarker;
       } catch (error) {
         return false;
@@ -764,27 +810,26 @@ class IntelligentCacheInvalidation {
         for (const key of keysArray) {
           await this.invalidateCacheKey(key, {
             id: `batch_${Date.now()}`,
-            type: 'system_event',
-            source: 'batch_processor',
+            type: "system_event",
+            source: "batch_processor",
             target: key,
-            operation: 'system',
+            operation: "system",
             timestamp: Date.now(),
             metadata: {
-              reason: 'Batched invalidation',
+              reason: "Batched invalidation",
             },
           });
         }
-        
-        logger.info('Batched invalidation processed', {
+
+        logger.info("Batched invalidation processed", {
           batchName,
           keysProcessed: keysArray.length,
         });
-        
       } catch (error) {
-        logger.error('Batched invalidation failed', { batchName, error });
+        logger.error("Batched invalidation failed", { batchName, error });
       }
     }
-    
+
     this.batchedInvalidations.clear();
   }
 

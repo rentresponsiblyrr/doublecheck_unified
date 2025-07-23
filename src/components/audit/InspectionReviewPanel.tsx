@@ -1,6 +1,6 @@
 /**
  * Inspection Review Panel Component - SURGICALLY REFACTORED
- * 
+ *
  * SURGICAL REFACTORING APPLIED:
  * ✅ Extracted business logic to useInspectionReview hook
  * ✅ Decomposed into focused sub-components
@@ -9,20 +9,20 @@
  * ✅ Reduced from 484 lines to <300 lines using composition
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye } from 'lucide-react';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye } from "lucide-react";
 
 // Extracted business logic hook
-import { useInspectionReview, Inspection } from '@/hooks/useInspectionReview';
+import { useInspectionReview, Inspection } from "@/hooks/useInspectionReview";
 
 // Extracted UI components
-import { InspectionHeaderCard } from './InspectionHeaderCard';
-import { InspectionOverviewTab } from './InspectionOverviewTab';
-import { MediaReviewTab } from './MediaReviewTab';
-import { AIAnalysisTab } from './AIAnalysisTab';
-import { ReviewDecisionPanel } from './ReviewDecisionPanel';
+import { InspectionHeaderCard } from "./InspectionHeaderCard";
+import { InspectionOverviewTab } from "./InspectionOverviewTab";
+import { MediaReviewTab } from "./MediaReviewTab";
+import { AIAnalysisTab } from "./AIAnalysisTab";
+import { ReviewDecisionPanel } from "./ReviewDecisionPanel";
 
 interface InspectionReviewPanelProps {
   inspection: Inspection | null;
@@ -37,7 +37,7 @@ export const InspectionReviewPanel: React.FC<InspectionReviewPanelProps> = ({
   isLoading,
   onApprove,
   onReject,
-  onRequestRevision
+  onRequestRevision,
 }) => {
   const {
     activeTab,
@@ -50,7 +50,7 @@ export const InspectionReviewPanel: React.FC<InspectionReviewPanelProps> = ({
     aiAnalysis,
     handleSubmitDecision,
     getScoreColor,
-    getScoreBadgeVariant
+    getScoreBadgeVariant,
   } = useInspectionReview(inspection, onApprove, onReject, onRequestRevision);
 
   if (isLoading) {
@@ -59,7 +59,9 @@ export const InspectionReviewPanel: React.FC<InspectionReviewPanelProps> = ({
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <span className="ml-3 text-gray-600">Loading inspection details...</span>
+            <span className="ml-3 text-gray-600">
+              Loading inspection details...
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -71,8 +73,12 @@ export const InspectionReviewPanel: React.FC<InspectionReviewPanelProps> = ({
       <Card>
         <CardContent className="p-8 text-center">
           <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Inspection Selected</h3>
-          <p className="text-gray-600">Select an inspection from the queue to begin your review.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No Inspection Selected
+          </h3>
+          <p className="text-gray-600">
+            Select an inspection from the queue to begin your review.
+          </p>
         </CardContent>
       </Card>
     );

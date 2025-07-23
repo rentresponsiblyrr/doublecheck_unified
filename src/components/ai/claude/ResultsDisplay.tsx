@@ -1,20 +1,20 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, XCircle, AlertTriangle, Clock } from "lucide-react";
 
 interface ClaudeAnalysisResult {
   confidence: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
     description: string;
     location?: string;
     suggestions: string[];
   }>;
   recommendations: string[];
   processingTime: number;
-  status: 'success' | 'error' | 'processing';
+  status: "success" | "error" | "processing";
 }
 
 interface ClaudeTextResult {
@@ -26,8 +26,13 @@ interface ClaudeTextResult {
 interface ClaudeCodeReview {
   overallRating: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    category: 'security' | 'performance' | 'accessibility' | 'type-safety' | 'style';
+    severity: "low" | "medium" | "high" | "critical";
+    category:
+      | "security"
+      | "performance"
+      | "accessibility"
+      | "type-safety"
+      | "style";
     description: string;
     line?: number;
     suggestion?: string;
@@ -40,12 +45,12 @@ type ClaudeResult = ClaudeAnalysisResult | ClaudeTextResult | ClaudeCodeReview;
 
 interface ResultsDisplayProps {
   result: ClaudeResult | null;
-  activeTab: 'photo' | 'text' | 'code';
+  activeTab: "photo" | "text" | "code";
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   result,
-  activeTab
+  activeTab,
 }) => {
   if (!result) return null;
 
@@ -73,16 +78,26 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <h4 className="font-medium mb-2">Issues Found:</h4>
               <div className="space-y-2">
                 {result.issues.map((issue, index) => (
-                  <div key={index} className="p-3 border rounded-lg" id={`issue-${index}`}>
+                  <div
+                    key={index}
+                    className="p-3 border rounded-lg"
+                    id={`issue-${index}`}
+                  >
                     <div className="flex items-center space-x-2 mb-2">
-                      <Badge variant={
-                        issue.severity === 'high' ? 'destructive' : 
-                        issue.severity === 'medium' ? 'outline' : 
-                        'secondary'
-                      }>
+                      <Badge
+                        variant={
+                          issue.severity === "high"
+                            ? "destructive"
+                            : issue.severity === "medium"
+                              ? "outline"
+                              : "secondary"
+                        }
+                      >
                         {issue.severity}
                       </Badge>
-                      {issue.location && <Badge variant="outline">{issue.location}</Badge>}
+                      {issue.location && (
+                        <Badge variant="outline">{issue.location}</Badge>
+                      )}
                     </div>
                     <p className="text-sm mb-2">{issue.description}</p>
                     {issue.suggestions.length > 0 && (
@@ -106,7 +121,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <h4 className="font-medium mb-2">Recommendations:</h4>
               <ul className="space-y-1">
                 {result.recommendations.map((rec, index) => (
-                  <li key={index} className="text-sm flex items-start space-x-2">
+                  <li
+                    key={index}
+                    className="text-sm flex items-start space-x-2"
+                  >
                     <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                     <span>{rec}</span>
                   </li>
@@ -154,24 +172,37 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       <CardContent id="code-review-content">
         <div className="space-y-4">
           <p className="text-sm">{result.summary}</p>
-          
+
           {result.issues.length > 0 && (
             <div>
-              <h4 className="font-medium mb-2">Issues Found ({result.issues.length}):</h4>
+              <h4 className="font-medium mb-2">
+                Issues Found ({result.issues.length}):
+              </h4>
               <div className="space-y-2">
                 {result.issues.map((issue, index) => (
-                  <div key={index} className="p-3 border rounded-lg" id={`code-issue-${index}`}>
+                  <div
+                    key={index}
+                    className="p-3 border rounded-lg"
+                    id={`code-issue-${index}`}
+                  >
                     <div className="flex items-center space-x-2 mb-2">
-                      <Badge variant={
-                        issue.severity === 'critical' ? 'destructive' :
-                        issue.severity === 'high' ? 'destructive' :
-                        issue.severity === 'medium' ? 'outline' : 
-                        'secondary'
-                      }>
+                      <Badge
+                        variant={
+                          issue.severity === "critical"
+                            ? "destructive"
+                            : issue.severity === "high"
+                              ? "destructive"
+                              : issue.severity === "medium"
+                                ? "outline"
+                                : "secondary"
+                        }
+                      >
                         {issue.severity}
                       </Badge>
                       <Badge variant="outline">{issue.category}</Badge>
-                      {issue.line && <Badge variant="outline">Line {issue.line}</Badge>}
+                      {issue.line && (
+                        <Badge variant="outline">Line {issue.line}</Badge>
+                      )}
                     </div>
                     <p className="text-sm mb-2">{issue.description}</p>
                     {issue.suggestion && (
@@ -195,15 +226,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   );
 
   // Type-safe result rendering
-  if (activeTab === 'photo' && 'confidence' in result) {
+  if (activeTab === "photo" && "confidence" in result) {
     return renderPhotoAnalysisResult(result as ClaudeAnalysisResult);
   }
-  
-  if (activeTab === 'text' && 'text' in result) {
+
+  if (activeTab === "text" && "text" in result) {
     return renderTextResult(result as ClaudeTextResult);
   }
-  
-  if (activeTab === 'code' && 'overallRating' in result) {
+
+  if (activeTab === "code" && "overallRating" in result) {
     return renderCodeReviewResult(result as ClaudeCodeReview);
   }
 

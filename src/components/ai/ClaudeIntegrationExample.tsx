@@ -1,9 +1,9 @@
 /**
  * CLAUDE INTEGRATION EXAMPLE - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade Claude AI integration following ZERO_TOLERANCE_STANDARDS
  * Reduced from 412 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (ClaudeAnalysisManager, ClaudeActionPanel, etc.)
@@ -11,14 +11,14 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - ClaudeAnalysisManager: State management and API operations
  * - ClaudeActionPanel: Action buttons for different analysis types
  * - ClaudeTextGenerator: Text generation interface
  * - ClaudeResultsDisplay: Comprehensive results display
  * - ClaudeSetupInstructions: Setup guidance for real API integration
- * 
+ *
  * @example
  * ```typescript
  * <ClaudeIntegrationExample
@@ -28,15 +28,15 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import { ClaudeAnalysisManager } from './ClaudeAnalysisManager';
-import { ClaudeActionPanel } from './ClaudeActionPanel';
-import { ClaudeTextGenerator } from './ClaudeTextGenerator';
-import { ClaudeResultsDisplay } from './ClaudeResultsDisplay';
-import { ClaudeSetupInstructions } from './ClaudeSetupInstructions';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { ClaudeAnalysisManager } from "./ClaudeAnalysisManager";
+import { ClaudeActionPanel } from "./ClaudeActionPanel";
+import { ClaudeTextGenerator } from "./ClaudeTextGenerator";
+import { ClaudeResultsDisplay } from "./ClaudeResultsDisplay";
+import { ClaudeSetupInstructions } from "./ClaudeSetupInstructions";
 
 /**
  * Component props - simplified for orchestration
@@ -52,12 +52,12 @@ export interface ClaudeExampleProps {
  * Main Claude Integration Example Component - Orchestration Only
  * Reduced from 412 lines to <100 lines through architectural excellence
  */
-export function ClaudeIntegrationExample({ 
-  inspectionId, 
-  onAnalysisComplete 
+export function ClaudeIntegrationExample({
+  inspectionId,
+  onAnalysisComplete,
 }: ClaudeExampleProps) {
   return (
-    <div 
+    <div
       id="claude-integration-example"
       className="max-w-4xl mx-auto p-6 space-y-6"
       role="main"
@@ -70,8 +70,9 @@ export function ClaudeIntegrationExample({
             Claude AI Integration Example
           </CardTitle>
           <p className="text-gray-600">
-            This demonstrates Claude AI integration for the STR Certified platform.
-            Currently showing mock responses - see documentation for full setup.
+            This demonstrates Claude AI integration for the STR Certified
+            platform. Currently showing mock responses - see documentation for
+            full setup.
           </p>
           {inspectionId && (
             <p className="text-sm text-gray-500 mt-2">
@@ -95,7 +96,7 @@ export function ClaudeIntegrationExample({
           handleTextGeneration,
           handlePhotoAnalysis,
           handleCodeReview,
-          clearResults
+          clearResults,
         }) => (
           <>
             {/* Action Panel */}

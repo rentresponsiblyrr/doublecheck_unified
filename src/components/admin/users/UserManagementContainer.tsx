@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, RefreshCw, AlertTriangle, Users } from 'lucide-react';
-import { UserDataManager } from './UserDataManager';
-import { UsersTable } from './UsersTable';
-import { UserFormDialogNew } from './UserFormDialogNew';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, RefreshCw, AlertTriangle, Users } from "lucide-react";
+import { UserDataManager } from "./UserDataManager";
+import { UsersTable } from "./UsersTable";
+import { UserFormDialogNew } from "./UserFormDialogNew";
 
 export const UserManagementContainer: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -12,14 +12,22 @@ export const UserManagementContainer: React.FC = () => {
   return (
     <div id="user-management-container" className="container mx-auto py-6">
       <UserDataManager>
-        {({ users, loading, error, onCreateUser, onUpdateUser, onDeleteUser, onRefresh }) => (
+        {({
+          users,
+          loading,
+          error,
+          onCreateUser,
+          onUpdateUser,
+          onDeleteUser,
+          onRefresh,
+        }) => (
           <>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
                 <Users className="h-6 w-6" />
                 <h1 className="text-2xl font-bold">User Management</h1>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -28,10 +36,12 @@ export const UserManagementContainer: React.FC = () => {
                   disabled={loading}
                   id="refresh-users-button"
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
                   Refresh
                 </Button>
-                
+
                 <Button
                   onClick={() => setCreateDialogOpen(true)}
                   disabled={loading}
@@ -44,7 +54,11 @@ export const UserManagementContainer: React.FC = () => {
             </div>
 
             {error && (
-              <Alert variant="destructive" className="mb-6" id="user-error-alert">
+              <Alert
+                variant="destructive"
+                className="mb-6"
+                id="user-error-alert"
+              >
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>

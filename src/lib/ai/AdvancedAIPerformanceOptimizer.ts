@@ -1,19 +1,19 @@
 /**
  * Advanced AI Performance Optimizer
- * 
+ *
  * Enterprise-grade AI system optimization with cost minimization, accuracy tracking,
  * and batch processing optimization. Built to collision-free standards.
- * 
+ *
  * Features:
  * - Model response time optimization
- * - Cost per request minimization  
+ * - Cost per request minimization
  * - Accuracy vs speed balancing
  * - Batch processing optimization
  * - Usage pattern analysis
  */
 
-import { log } from '@/lib/logging/enterprise-logger';
-import { performanceMonitor } from '@/lib/monitoring/performance-monitor';
+import { log } from "@/lib/logging/enterprise-logger";
+import { performanceMonitor } from "@/lib/monitoring/performance-monitor";
 
 export interface AIOptimizationConfig {
   models: AIModelConfig[];
@@ -26,23 +26,23 @@ export interface AIOptimizationConfig {
 export interface AIModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'local';
+  provider: "openai" | "anthropic" | "google" | "local";
   endpoint: string;
   costPerToken: number;
   maxTokens: number;
   avgResponseTime: number;
   accuracyScore: number;
   capabilities: string[];
-  useCase: 'analysis' | 'generation' | 'classification' | 'comparison';
+  useCase: "analysis" | "generation" | "classification" | "comparison";
 }
 
 export interface CostOptimizationConfig {
   enabled: boolean;
   dailyBudget: number;
   costPerRequestTarget: number;
-  optimizationStrategy: 'cost-first' | 'quality-first' | 'balanced';
+  optimizationStrategy: "cost-first" | "quality-first" | "balanced";
   fallbackModels: string[];
-  cachingStrategy: 'aggressive' | 'conservative' | 'intelligent';
+  cachingStrategy: "aggressive" | "conservative" | "intelligent";
 }
 
 export interface PerformanceTargets {
@@ -65,7 +65,7 @@ export interface AICacheConfig {
   enabled: boolean;
   ttl: number;
   maxSize: number;
-  keyStrategy: 'content-hash' | 'prompt-hash' | 'custom';
+  keyStrategy: "content-hash" | "prompt-hash" | "custom";
   compressionEnabled: boolean;
 }
 
@@ -73,7 +73,7 @@ export interface AIRequest {
   id: string;
   prompt: string;
   model: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: "low" | "medium" | "high" | "critical";
   context: Record<string, any>;
   timestamp: number;
   userId?: string;
@@ -131,7 +131,11 @@ export interface OptimizationResult {
 }
 
 export interface OptimizationAction {
-  type: 'model-switch' | 'batch-optimization' | 'cache-usage' | 'prompt-optimization';
+  type:
+    | "model-switch"
+    | "batch-optimization"
+    | "cache-usage"
+    | "prompt-optimization";
   description: string;
   impact: number;
   implemented: boolean;
@@ -156,32 +160,32 @@ export class AdvancedAIPerformanceOptimizer {
         enabled: true,
         dailyBudget: 100, // $100 per day
         costPerRequestTarget: 0.05, // $0.05 per request
-        optimizationStrategy: 'balanced',
-        fallbackModels: ['gpt-3.5-turbo'],
-        cachingStrategy: 'intelligent'
+        optimizationStrategy: "balanced",
+        fallbackModels: ["gpt-3.5-turbo"],
+        cachingStrategy: "intelligent",
       },
       performanceTargets: {
         maxResponseTime: 5000, // 5 seconds
         minAccuracy: 0.85, // 85%
-        maxCostPerRequest: 0.10, // $0.10
+        maxCostPerRequest: 0.1, // $0.10
         throughputTarget: 100, // requests per minute
-        errorRateThreshold: 0.05 // 5%
+        errorRateThreshold: 0.05, // 5%
       },
       batchProcessing: {
         enabled: true,
         batchSize: 10,
         maxWaitTime: 2000, // 2 seconds
-        priorityLevels: ['low', 'medium', 'high', 'critical'],
-        concurrencyLimit: 5
+        priorityLevels: ["low", "medium", "high", "critical"],
+        concurrencyLimit: 5,
       },
       caching: {
         enabled: true,
         ttl: 3600000, // 1 hour
         maxSize: 1000,
-        keyStrategy: 'content-hash',
-        compressionEnabled: true
+        keyStrategy: "content-hash",
+        compressionEnabled: true,
       },
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -194,7 +198,7 @@ export class AdvancedAIPerformanceOptimizer {
       throughput: 0,
       costEfficiency: 0,
       modelUtilization: new Map(),
-      usagePatterns: []
+      usagePatterns: [],
     };
 
     this.batchProcessor = new BatchProcessor(this.config.batchProcessing);
@@ -212,7 +216,7 @@ export class AdvancedAIPerformanceOptimizer {
       if (this.isInitialized) return;
 
       // Initialize models
-      this.config.models.forEach(model => {
+      this.config.models.forEach((model) => {
         this.models.set(model.id, model);
         this.metrics.modelUtilization.set(model.id, {
           requests: 0,
@@ -220,7 +224,7 @@ export class AdvancedAIPerformanceOptimizer {
           avgResponseTime: 0,
           avgAccuracy: 0,
           errorRate: 0,
-          utilization: 0
+          utilization: 0,
         });
       });
 
@@ -237,19 +241,27 @@ export class AdvancedAIPerformanceOptimizer {
 
       this.isInitialized = true;
 
-      log.info('Advanced AI Performance Optimizer initialized', {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'initialize',
-        modelCount: this.models.size,
-        batchProcessing: this.config.batchProcessing.enabled,
-        costOptimization: this.config.costOptimization.enabled
-      }, 'AI_OPTIMIZER_INITIALIZED');
-
+      log.info(
+        "Advanced AI Performance Optimizer initialized",
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "initialize",
+          modelCount: this.models.size,
+          batchProcessing: this.config.batchProcessing.enabled,
+          costOptimization: this.config.costOptimization.enabled,
+        },
+        "AI_OPTIMIZER_INITIALIZED",
+      );
     } catch (error) {
-      log.error('Failed to initialize AI Performance Optimizer', error as Error, {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'initialize'
-      }, 'AI_OPTIMIZER_INIT_FAILED');
+      log.error(
+        "Failed to initialize AI Performance Optimizer",
+        error as Error,
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "initialize",
+        },
+        "AI_OPTIMIZER_INIT_FAILED",
+      );
     }
   }
 
@@ -265,34 +277,37 @@ export class AdvancedAIPerformanceOptimizer {
   }> {
     try {
       const startTime = performance.now();
-      
+
       // Check cache first
       const cacheKey = this.generateCacheKey(request);
       const cachedResponse = this.getCachedResponse(cacheKey);
-      
+
       if (cachedResponse) {
         performanceMonitor.trackMetric(
-          'ai.cache.hit',
+          "ai.cache.hit",
           performance.now() - startTime,
-          'ms',
-          { requestId: request.id }
+          "ms",
+          { requestId: request.id },
         );
-        
+
         return {
           optimizedRequest: request,
           estimatedCost: 0,
           estimatedResponseTime: 50, // Cache response time
           recommendedModel: cachedResponse.model,
-          optimizations: ['cache-hit']
+          optimizations: ["cache-hit"],
         };
       }
 
       // Select optimal model
       const modelSelection = await this.selectOptimalModel(request);
-      
+
       // Optimize prompt if needed
-      const promptOptimization = await this.optimizePrompt(request.prompt, modelSelection.model);
-      
+      const promptOptimization = await this.optimizePrompt(
+        request.prompt,
+        modelSelection.model,
+      );
+
       // Check if batching is beneficial
       const batchOptimization = this.evaluateBatchingOpportunity(request);
 
@@ -301,13 +316,13 @@ export class AdvancedAIPerformanceOptimizer {
       let estimatedResponseTime = modelSelection.estimatedResponseTime;
 
       if (promptOptimization.optimized) {
-        optimizations.push('prompt-optimization');
+        optimizations.push("prompt-optimization");
         estimatedCost *= promptOptimization.costReduction;
         estimatedResponseTime *= promptOptimization.speedImprovement;
       }
 
       if (batchOptimization.beneficial) {
-        optimizations.push('batch-processing');
+        optimizations.push("batch-processing");
         estimatedCost *= 0.8; // 20% cost reduction for batching
         estimatedResponseTime *= 1.2; // Slight delay for batching
       }
@@ -315,19 +330,19 @@ export class AdvancedAIPerformanceOptimizer {
       const optimizedRequest: AIRequest = {
         ...request,
         prompt: promptOptimization.optimizedPrompt,
-        model: modelSelection.model.id
+        model: modelSelection.model.id,
       };
 
       performanceMonitor.trackMetric(
-        'ai.request.optimized',
+        "ai.request.optimized",
         performance.now() - startTime,
-        'ms',
+        "ms",
         {
           requestId: request.id,
           originalModel: request.model,
           optimizedModel: modelSelection.model.id,
-          optimizations: optimizations.length
-        }
+          optimizations: optimizations.length,
+        },
       );
 
       return {
@@ -335,15 +350,19 @@ export class AdvancedAIPerformanceOptimizer {
         estimatedCost,
         estimatedResponseTime,
         recommendedModel: modelSelection.model.id,
-        optimizations
+        optimizations,
       };
-
     } catch (error) {
-      log.error('AI request optimization error', error as Error, {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'optimizeRequest',
-        requestId: request.id
-      }, 'AI_REQUEST_OPTIMIZATION_ERROR');
+      log.error(
+        "AI request optimization error",
+        error as Error,
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "optimizeRequest",
+          requestId: request.id,
+        },
+        "AI_REQUEST_OPTIMIZATION_ERROR",
+      );
 
       // Return unoptimized request as fallback
       return {
@@ -351,7 +370,7 @@ export class AdvancedAIPerformanceOptimizer {
         estimatedCost: 0.05,
         estimatedResponseTime: 5000,
         recommendedModel: request.model,
-        optimizations: []
+        optimizations: [],
       };
     }
   }
@@ -362,22 +381,26 @@ export class AdvancedAIPerformanceOptimizer {
   async processRequest(request: AIRequest): Promise<AIResponse> {
     try {
       const startTime = Date.now();
-      
+
       // Optimize request
       const optimization = await this.optimizeRequest(request);
-      
+
       // Check if batching is enabled and beneficial
-      if (this.config.batchProcessing.enabled && 
-          optimization.optimizations.includes('batch-processing')) {
-        return await this.batchProcessor.addToBatch(optimization.optimizedRequest);
+      if (
+        this.config.batchProcessing.enabled &&
+        optimization.optimizations.includes("batch-processing")
+      ) {
+        return await this.batchProcessor.addToBatch(
+          optimization.optimizedRequest,
+        );
       }
 
       // Process request directly
       const response = await this.executeRequest(optimization.optimizedRequest);
-      
+
       // Update metrics
       this.updateMetrics(request, response, Date.now() - startTime);
-      
+
       // Cache response if appropriate
       if (this.shouldCacheResponse(request, response)) {
         this.cacheResponse(request, response);
@@ -389,24 +412,28 @@ export class AdvancedAIPerformanceOptimizer {
       }
 
       return response;
-
     } catch (error) {
-      log.error('AI request processing error', error as Error, {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'processRequest',
-        requestId: request.id
-      }, 'AI_REQUEST_PROCESSING_ERROR');
+      log.error(
+        "AI request processing error",
+        error as Error,
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "processRequest",
+          requestId: request.id,
+        },
+        "AI_REQUEST_PROCESSING_ERROR",
+      );
 
       // Return error response
       return {
         requestId: request.id,
-        result: { error: 'Processing failed' },
+        result: { error: "Processing failed" },
         model: request.model,
         tokensUsed: 0,
         responseTime: Date.now() - Date.now(),
         cost: 0,
         cached: false,
-        optimizations: []
+        optimizations: [],
       };
     }
   }
@@ -423,26 +450,31 @@ export class AdvancedAIPerformanceOptimizer {
     try {
       const healthScore = this.calculateHealthScore();
       const recommendations = this.generateRecommendations();
-      const optimizationOpportunities = await this.identifyOptimizationOpportunities();
+      const optimizationOpportunities =
+        await this.identifyOptimizationOpportunities();
 
       return {
         metrics: { ...this.metrics },
         healthScore,
         recommendations,
-        optimizationOpportunities
+        optimizationOpportunities,
       };
-
     } catch (error) {
-      log.error('AI performance analysis error', error as Error, {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'analyzePerformance'
-      }, 'AI_PERFORMANCE_ANALYSIS_ERROR');
+      log.error(
+        "AI performance analysis error",
+        error as Error,
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "analyzePerformance",
+        },
+        "AI_PERFORMANCE_ANALYSIS_ERROR",
+      );
 
       return {
         metrics: this.metrics,
         healthScore: 0,
-        recommendations: ['Performance analysis unavailable'],
-        optimizationOpportunities: []
+        recommendations: ["Performance analysis unavailable"],
+        optimizationOpportunities: [],
       };
     }
   }
@@ -461,7 +493,7 @@ export class AdvancedAIPerformanceOptimizer {
       costTrend: this.costTracker.getCostTrend(),
       accuracyTrend: this.accuracyMonitor.getAccuracyTrend(),
       responseTimes: this.getResponseTimeTrend(),
-      modelPerformance: new Map(this.metrics.modelUtilization)
+      modelPerformance: new Map(this.metrics.modelUtilization),
     };
   }
 
@@ -475,7 +507,7 @@ export class AdvancedAIPerformanceOptimizer {
 
       // Analyze model usage efficiency
       const modelEfficiency = await this.analyzeModelEfficiency();
-      
+
       // Identify cost-reduction opportunities
       const cacheOptimization = this.analyzeCacheOptimization();
       const batchOptimization = this.analyzeBatchOptimization();
@@ -486,30 +518,30 @@ export class AdvancedAIPerformanceOptimizer {
 
       if (cacheOptimization.potential > 0) {
         optimizations.push({
-          type: 'cache-usage',
+          type: "cache-usage",
           description: `Increase cache hit rate by ${cacheOptimization.potential}%`,
           impact: cacheOptimization.savings,
-          implemented: false
+          implemented: false,
         });
         potentialSavings += cacheOptimization.savings;
       }
 
       if (batchOptimization.potential > 0) {
         optimizations.push({
-          type: 'batch-optimization',
+          type: "batch-optimization",
           description: `Batch ${batchOptimization.requests} requests for efficiency`,
           impact: batchOptimization.savings,
-          implemented: false
+          implemented: false,
         });
         potentialSavings += batchOptimization.savings;
       }
 
       if (modelOptimization.potential > 0) {
         optimizations.push({
-          type: 'model-switch',
+          type: "model-switch",
           description: `Switch to more cost-effective models where appropriate`,
           impact: modelOptimization.savings,
-          implemented: false
+          implemented: false,
         });
         potentialSavings += modelOptimization.savings;
       }
@@ -523,21 +555,25 @@ export class AdvancedAIPerformanceOptimizer {
         optimizedCost,
         costSavings,
         performanceImpact,
-        optimizations
+        optimizations,
       };
-
     } catch (error) {
-      log.error('Cost optimization error', error as Error, {
-        component: 'AdvancedAIPerformanceOptimizer',
-        action: 'optimizeCosts'
-      }, 'AI_COST_OPTIMIZATION_ERROR');
+      log.error(
+        "Cost optimization error",
+        error as Error,
+        {
+          component: "AdvancedAIPerformanceOptimizer",
+          action: "optimizeCosts",
+        },
+        "AI_COST_OPTIMIZATION_ERROR",
+      );
 
       return {
         originalCost: this.metrics.totalCost,
         optimizedCost: this.metrics.totalCost,
         costSavings: 0,
         performanceImpact: 0,
-        optimizations: []
+        optimizations: [],
       };
     }
   }
@@ -547,29 +583,29 @@ export class AdvancedAIPerformanceOptimizer {
   private initializeDefaultModels(): void {
     const defaultModels: AIModelConfig[] = [
       {
-        id: 'gpt-4-vision',
-        name: 'GPT-4 Vision',
-        provider: 'openai',
-        endpoint: 'https://api.openai.com/v1/chat/completions',
+        id: "gpt-4-vision",
+        name: "GPT-4 Vision",
+        provider: "openai",
+        endpoint: "https://api.openai.com/v1/chat/completions",
         costPerToken: 0.00003,
         maxTokens: 4096,
         avgResponseTime: 3000,
         accuracyScore: 0.95,
-        capabilities: ['vision', 'analysis', 'reasoning'],
-        useCase: 'analysis'
+        capabilities: ["vision", "analysis", "reasoning"],
+        useCase: "analysis",
       },
       {
-        id: 'gpt-3.5-turbo',
-        name: 'GPT-3.5 Turbo',
-        provider: 'openai',
-        endpoint: 'https://api.openai.com/v1/chat/completions',
+        id: "gpt-3.5-turbo",
+        name: "GPT-3.5 Turbo",
+        provider: "openai",
+        endpoint: "https://api.openai.com/v1/chat/completions",
         costPerToken: 0.000002,
         maxTokens: 4096,
         avgResponseTime: 1500,
         accuracyScore: 0.88,
-        capabilities: ['text', 'analysis', 'generation'],
-        useCase: 'generation'
-      }
+        capabilities: ["text", "analysis", "generation"],
+        useCase: "generation",
+      },
     ];
 
     this.config.models = [...this.config.models, ...defaultModels];
@@ -581,34 +617,35 @@ export class AdvancedAIPerformanceOptimizer {
     estimatedResponseTime: number;
     reasoning: string;
   }> {
-    const candidates = Array.from(this.models.values())
-      .filter(model => this.isModelSuitableForRequest(model, request));
+    const candidates = Array.from(this.models.values()).filter((model) =>
+      this.isModelSuitableForRequest(model, request),
+    );
 
     if (candidates.length === 0) {
-      throw new Error('No suitable models found for request');
+      throw new Error("No suitable models found for request");
     }
 
     // Score models based on optimization strategy
-    const scoredModels = candidates.map(model => {
+    const scoredModels = candidates.map((model) => {
       let score = 0;
       const estimatedTokens = Math.ceil(request.prompt.length / 4); // Rough estimate
       const estimatedCost = estimatedTokens * model.costPerToken;
       const estimatedResponseTime = model.avgResponseTime;
 
       switch (this.config.costOptimization.optimizationStrategy) {
-        case 'cost-first':
-          score = 100 - (estimatedCost * 1000); // Lower cost = higher score
+        case "cost-first":
+          score = 100 - estimatedCost * 1000; // Lower cost = higher score
           break;
-        case 'quality-first':
+        case "quality-first":
           score = model.accuracyScore * 100; // Higher accuracy = higher score
           break;
-        case 'balanced':
-          score = (model.accuracyScore * 50) + ((1 / estimatedCost) * 50);
+        case "balanced":
+          score = model.accuracyScore * 50 + (1 / estimatedCost) * 50;
           break;
       }
 
       // Penalize slow models for high-priority requests
-      if (request.priority === 'critical' && estimatedResponseTime > 2000) {
+      if (request.priority === "critical" && estimatedResponseTime > 2000) {
         score -= 20;
       }
 
@@ -616,7 +653,7 @@ export class AdvancedAIPerformanceOptimizer {
         model,
         score,
         estimatedCost,
-        estimatedResponseTime
+        estimatedResponseTime,
       };
     });
 
@@ -628,34 +665,45 @@ export class AdvancedAIPerformanceOptimizer {
       model: best.model,
       estimatedCost: best.estimatedCost,
       estimatedResponseTime: best.estimatedResponseTime,
-      reasoning: `Selected based on ${this.config.costOptimization.optimizationStrategy} strategy`
+      reasoning: `Selected based on ${this.config.costOptimization.optimizationStrategy} strategy`,
     };
   }
 
-  private isModelSuitableForRequest(model: AIModelConfig, request: AIRequest): boolean {
+  private isModelSuitableForRequest(
+    model: AIModelConfig,
+    request: AIRequest,
+  ): boolean {
     // Check if model supports required capabilities
-    if (request.context.requiresVision && !model.capabilities.includes('vision')) {
+    if (
+      request.context.requiresVision &&
+      !model.capabilities.includes("vision")
+    ) {
       return false;
     }
 
     // Check cost constraints
     const estimatedTokens = Math.ceil(request.prompt.length / 4);
     const estimatedCost = estimatedTokens * model.costPerToken;
-    
+
     if (estimatedCost > this.config.performanceTargets.maxCostPerRequest) {
       return false;
     }
 
     // Check response time constraints for high-priority requests
-    if (request.priority === 'critical' && 
-        model.avgResponseTime > this.config.performanceTargets.maxResponseTime / 2) {
+    if (
+      request.priority === "critical" &&
+      model.avgResponseTime > this.config.performanceTargets.maxResponseTime / 2
+    ) {
       return false;
     }
 
     return true;
   }
 
-  private async optimizePrompt(prompt: string, model: AIModelConfig): Promise<{
+  private async optimizePrompt(
+    prompt: string,
+    model: AIModelConfig,
+  ): Promise<{
     optimizedPrompt: string;
     optimized: boolean;
     costReduction: number;
@@ -666,25 +714,25 @@ export class AdvancedAIPerformanceOptimizer {
     // - Removing redundant instructions
     // - Simplifying language
     // - Using more efficient prompt patterns
-    
+
     const originalLength = prompt.length;
     let optimizedPrompt = prompt;
-    
+
     // Simple optimization: remove excessive whitespace and redundant phrases
     optimizedPrompt = optimizedPrompt
-      .replace(/\s+/g, ' ')
-      .replace(/please\s+/gi, '')
-      .replace(/could you\s+/gi, '')
+      .replace(/\s+/g, " ")
+      .replace(/please\s+/gi, "")
+      .replace(/could you\s+/gi, "")
       .trim();
 
     const optimizedLength = optimizedPrompt.length;
     const lengthReduction = (originalLength - optimizedLength) / originalLength;
-    
+
     return {
       optimizedPrompt,
       optimized: lengthReduction > 0.05, // Only if >5% reduction
       costReduction: 1 - lengthReduction,
-      speedImprovement: 1 - (lengthReduction * 0.5) // Modest speed improvement
+      speedImprovement: 1 - lengthReduction * 0.5, // Modest speed improvement
     };
   }
 
@@ -693,19 +741,25 @@ export class AdvancedAIPerformanceOptimizer {
     estimatedDelay: number;
     costSavings: number;
   } {
-    if (!this.config.batchProcessing.enabled || request.priority === 'critical') {
+    if (
+      !this.config.batchProcessing.enabled ||
+      request.priority === "critical"
+    ) {
       return { beneficial: false, estimatedDelay: 0, costSavings: 0 };
     }
 
     // Check if there are similar pending requests
     const pendingRequests = this.requestQueue.get(request.model) || [];
-    const similarRequests = pendingRequests.filter(r => 
-      r.context.type === request.context.type &&
-      r.priority === request.priority
+    const similarRequests = pendingRequests.filter(
+      (r) =>
+        r.context.type === request.context.type &&
+        r.priority === request.priority,
     );
 
     const beneficial = similarRequests.length >= 3; // Batch if 3+ similar requests
-    const estimatedDelay = beneficial ? this.config.batchProcessing.maxWaitTime : 0;
+    const estimatedDelay = beneficial
+      ? this.config.batchProcessing.maxWaitTime
+      : 0;
     const costSavings = beneficial ? 0.2 : 0; // 20% savings for batching
 
     return { beneficial, estimatedDelay, costSavings };
@@ -713,11 +767,13 @@ export class AdvancedAIPerformanceOptimizer {
 
   private generateCacheKey(request: AIRequest): string {
     switch (this.config.caching.keyStrategy) {
-      case 'content-hash':
-        return this.hashString(request.prompt + JSON.stringify(request.context));
-      case 'prompt-hash':
+      case "content-hash":
+        return this.hashString(
+          request.prompt + JSON.stringify(request.context),
+        );
+      case "prompt-hash":
         return this.hashString(request.prompt);
-      case 'custom':
+      case "custom":
         return `${request.model}:${this.hashString(request.prompt)}`;
       default:
         return this.hashString(request.prompt);
@@ -728,7 +784,7 @@ export class AdvancedAIPerformanceOptimizer {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36);
@@ -741,7 +797,7 @@ export class AdvancedAIPerformanceOptimizer {
     // Check if cache entry is still valid
     const now = Date.now();
     const age = now - cached.responseTime;
-    
+
     if (age > this.config.caching.ttl) {
       this.responseCache.delete(key);
       return null;
@@ -750,23 +806,27 @@ export class AdvancedAIPerformanceOptimizer {
     return cached;
   }
 
-  private shouldCacheResponse(request: AIRequest, response: AIResponse): boolean {
+  private shouldCacheResponse(
+    request: AIRequest,
+    response: AIResponse,
+  ): boolean {
     if (!this.config.caching.enabled) return false;
-    
+
     // Don't cache errors
     if (response.result.error) return false;
-    
+
     // Don't cache user-specific or time-sensitive requests
-    if (request.context.userSpecific || request.context.timesensitive) return false;
-    
+    if (request.context.userSpecific || request.context.timesensitive)
+      return false;
+
     // Cache based on strategy
     switch (this.config.costOptimization.cachingStrategy) {
-      case 'aggressive':
+      case "aggressive":
         return true;
-      case 'conservative':
+      case "conservative":
         return response.cost > 0.01; // Only cache expensive requests
-      case 'intelligent':
-        return response.cost > 0.005 && request.priority !== 'low';
+      case "intelligent":
+        return response.cost > 0.005 && request.priority !== "low";
       default:
         return false;
     }
@@ -774,14 +834,14 @@ export class AdvancedAIPerformanceOptimizer {
 
   private cacheResponse(request: AIRequest, response: AIResponse): void {
     const key = this.generateCacheKey(request);
-    
+
     // Check cache size limit
     if (this.responseCache.size >= this.config.caching.maxSize) {
       // Remove oldest entries (simple LRU)
       const oldestKey = this.responseCache.keys().next().value;
       this.responseCache.delete(oldestKey);
     }
-    
+
     this.responseCache.set(key, { ...response, cached: true });
   }
 
@@ -794,34 +854,40 @@ export class AdvancedAIPerformanceOptimizer {
     }
 
     const startTime = Date.now();
-    
+
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, model.avgResponseTime));
-    
+    await new Promise((resolve) => setTimeout(resolve, model.avgResponseTime));
+
     const responseTime = Date.now() - startTime;
     const tokensUsed = Math.ceil(request.prompt.length / 4);
     const cost = tokensUsed * model.costPerToken;
 
     return {
       requestId: request.id,
-      result: { analysis: 'Simulated AI response', confidence: 0.9 },
+      result: { analysis: "Simulated AI response", confidence: 0.9 },
       model: request.model,
       tokensUsed,
       responseTime,
       cost,
       accuracy: model.accuracyScore + (Math.random() * 0.1 - 0.05), // Add some variance
       cached: false,
-      optimizations: []
+      optimizations: [],
     };
   }
 
-  private updateMetrics(request: AIRequest, response: AIResponse, totalTime: number): void {
+  private updateMetrics(
+    request: AIRequest,
+    response: AIResponse,
+    totalTime: number,
+  ): void {
     this.metrics.totalRequests++;
     this.metrics.totalCost += response.cost;
-    this.metrics.avgResponseTime = (this.metrics.avgResponseTime + totalTime) / 2;
-    
+    this.metrics.avgResponseTime =
+      (this.metrics.avgResponseTime + totalTime) / 2;
+
     if (response.accuracy !== undefined) {
-      this.metrics.avgAccuracy = (this.metrics.avgAccuracy + response.accuracy) / 2;
+      this.metrics.avgAccuracy =
+        (this.metrics.avgAccuracy + response.accuracy) / 2;
     }
 
     // Update model-specific metrics
@@ -829,10 +895,12 @@ export class AdvancedAIPerformanceOptimizer {
     if (modelMetrics) {
       modelMetrics.requests++;
       modelMetrics.cost += response.cost;
-      modelMetrics.avgResponseTime = (modelMetrics.avgResponseTime + response.responseTime) / 2;
-      
+      modelMetrics.avgResponseTime =
+        (modelMetrics.avgResponseTime + response.responseTime) / 2;
+
       if (response.accuracy !== undefined) {
-        modelMetrics.avgAccuracy = (modelMetrics.avgAccuracy + response.accuracy) / 2;
+        modelMetrics.avgAccuracy =
+          (modelMetrics.avgAccuracy + response.accuracy) / 2;
       }
     }
 
@@ -845,53 +913,71 @@ export class AdvancedAIPerformanceOptimizer {
 
   private calculateHealthScore(): number {
     let score = 100;
-    
+
     // Penalize for high costs
-    if (this.metrics.totalCost > this.config.costOptimization.dailyBudget * 0.8) {
+    if (
+      this.metrics.totalCost >
+      this.config.costOptimization.dailyBudget * 0.8
+    ) {
       score -= 20;
     }
-    
+
     // Penalize for slow responses
-    if (this.metrics.avgResponseTime > this.config.performanceTargets.maxResponseTime) {
+    if (
+      this.metrics.avgResponseTime >
+      this.config.performanceTargets.maxResponseTime
+    ) {
       score -= 15;
     }
-    
+
     // Penalize for low accuracy
     if (this.metrics.avgAccuracy < this.config.performanceTargets.minAccuracy) {
       score -= 25;
     }
-    
+
     // Reward good cache performance
     if (this.metrics.cacheHitRate > 0.7) {
       score += 10;
     }
-    
+
     return Math.max(0, score);
   }
 
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
-    
-    if (this.metrics.avgResponseTime > this.config.performanceTargets.maxResponseTime) {
-      recommendations.push('Consider using faster models for time-sensitive requests');
+
+    if (
+      this.metrics.avgResponseTime >
+      this.config.performanceTargets.maxResponseTime
+    ) {
+      recommendations.push(
+        "Consider using faster models for time-sensitive requests",
+      );
     }
-    
-    if (this.metrics.totalCost > this.config.costOptimization.dailyBudget * 0.7) {
-      recommendations.push('Review model selection to optimize costs');
+
+    if (
+      this.metrics.totalCost >
+      this.config.costOptimization.dailyBudget * 0.7
+    ) {
+      recommendations.push("Review model selection to optimize costs");
     }
-    
+
     if (this.metrics.cacheHitRate < 0.5) {
-      recommendations.push('Increase cache TTL to improve hit rate');
+      recommendations.push("Increase cache TTL to improve hit rate");
     }
-    
+
     if (this.metrics.avgAccuracy < this.config.performanceTargets.minAccuracy) {
-      recommendations.push('Consider using higher-accuracy models for critical requests');
+      recommendations.push(
+        "Consider using higher-accuracy models for critical requests",
+      );
     }
-    
+
     return recommendations;
   }
 
-  private async identifyOptimizationOpportunities(): Promise<OptimizationResult[]> {
+  private async identifyOptimizationOpportunities(): Promise<
+    OptimizationResult[]
+  > {
     // Implement optimization opportunity identification
     return [];
   }
@@ -923,8 +1009,13 @@ export class AdvancedAIPerformanceOptimizer {
     return { potential: 0, savings: 0 };
   }
 
-  private calculatePerformanceImpact(optimizations: OptimizationAction[]): number {
-    return optimizations.reduce((total, opt) => total + opt.impact, 0) / optimizations.length;
+  private calculatePerformanceImpact(
+    optimizations: OptimizationAction[],
+  ): number {
+    return (
+      optimizations.reduce((total, opt) => total + opt.impact, 0) /
+      optimizations.length
+    );
   }
 
   private getResponseTimeTrend(): number[] {
@@ -933,37 +1024,48 @@ export class AdvancedAIPerformanceOptimizer {
   }
 
   private startBackgroundOptimization(): void {
-    const taskId = setInterval(() => {
-      this.optimizeCosts().catch(error => {
-        log.error('Background AI optimization error', error as Error, {
-          component: 'AdvancedAIPerformanceOptimizer',
-          action: 'startBackgroundOptimization'
-        }, 'AI_BACKGROUND_OPTIMIZATION_ERROR');
-      });
-    }, 10 * 60 * 1000); // Every 10 minutes
-    
-    this.backgroundTasks.set('optimization', taskId);
+    const taskId = setInterval(
+      () => {
+        this.optimizeCosts().catch((error) => {
+          log.error(
+            "Background AI optimization error",
+            error as Error,
+            {
+              component: "AdvancedAIPerformanceOptimizer",
+              action: "startBackgroundOptimization",
+            },
+            "AI_BACKGROUND_OPTIMIZATION_ERROR",
+          );
+        });
+      },
+      10 * 60 * 1000,
+    ); // Every 10 minutes
+
+    this.backgroundTasks.set("optimization", taskId);
   }
 
   private startMetricsCollection(): void {
     const taskId = setInterval(() => {
       this.updateAggregateMetrics();
     }, 60 * 1000); // Every minute
-    
-    this.backgroundTasks.set('metrics', taskId);
+
+    this.backgroundTasks.set("metrics", taskId);
   }
 
   private updateAggregateMetrics(): void {
     // Update cache hit rate
     const totalCacheRequests = Array.from(this.responseCache.values()).length;
-    this.metrics.cacheHitRate = totalCacheRequests > 0 ? 
-      (totalCacheRequests / this.metrics.totalRequests) * 100 : 0;
+    this.metrics.cacheHitRate =
+      totalCacheRequests > 0
+        ? (totalCacheRequests / this.metrics.totalRequests) * 100
+        : 0;
 
     // Update throughput
     this.metrics.throughput = this.metrics.totalRequests / 60; // Requests per minute
 
     // Update cost efficiency
-    this.metrics.costEfficiency = this.metrics.avgAccuracy / 
+    this.metrics.costEfficiency =
+      this.metrics.avgAccuracy /
       (this.metrics.totalCost / this.metrics.totalRequests || 1);
   }
 
@@ -978,10 +1080,14 @@ export class AdvancedAIPerformanceOptimizer {
 
     this.batchProcessor.stop();
 
-    log.info('Advanced AI Performance Optimizer stopped', {
-      component: 'AdvancedAIPerformanceOptimizer',
-      action: 'stop'
-    }, 'AI_OPTIMIZER_STOPPED');
+    log.info(
+      "Advanced AI Performance Optimizer stopped",
+      {
+        component: "AdvancedAIPerformanceOptimizer",
+        action: "stop",
+      },
+      "AI_OPTIMIZER_STOPPED",
+    );
   }
 }
 
@@ -1004,13 +1110,13 @@ class BatchProcessor {
     // For now, return a simulated response
     return {
       requestId: request.id,
-      result: { analysis: 'Batched response' },
+      result: { analysis: "Batched response" },
       model: request.model,
       tokensUsed: 100,
       responseTime: 2000,
       cost: 0.01,
       cached: false,
-      optimizations: ['batch-processing']
+      optimizations: ["batch-processing"],
     };
   }
 
@@ -1029,7 +1135,7 @@ class CostTracker {
 
   recordCost(cost: number): void {
     this.costHistory.push(cost);
-    
+
     // Keep only recent history
     if (this.costHistory.length > 1000) {
       this.costHistory = this.costHistory.slice(-1000);
@@ -1047,18 +1153,18 @@ class AccuracyMonitor {
   recordAccuracy(model: string, accuracy: number): void {
     const history = this.accuracyHistory.get(model) || [];
     history.push(accuracy);
-    
+
     // Keep only recent history
     if (history.length > 100) {
       history.splice(0, history.length - 100);
     }
-    
+
     this.accuracyHistory.set(model, history);
   }
 
   getAccuracyTrend(): number[] {
     const allAccuracies: number[] = [];
-    this.accuracyHistory.forEach(history => {
+    this.accuracyHistory.forEach((history) => {
       allAccuracies.push(...history);
     });
     return allAccuracies.slice(-100); // Recent 100 accuracy measurements
@@ -1066,4 +1172,5 @@ class AccuracyMonitor {
 }
 
 // Global instance
-export const advancedAIPerformanceOptimizer = new AdvancedAIPerformanceOptimizer();
+export const advancedAIPerformanceOptimizer =
+  new AdvancedAIPerformanceOptimizer();

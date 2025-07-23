@@ -1,14 +1,14 @@
 // Enhanced Video Recording Hook with Camera & Audio Permissions
 // Specifically designed for video walkthrough recording
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { logger } from '@/utils/logger';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/utils/logger";
 
 export interface VideoRecordingOptions {
   video?: boolean | MediaTrackConstraints;
   audio?: boolean | MediaTrackConstraints;
   autoStart?: boolean;
-  facingMode?: 'user' | 'environment';
+  facingMode?: "user" | "environment";
   recordingOptions?: {
     mimeType?: string;
     videoBitsPerSecond?: number;
@@ -17,8 +17,8 @@ export interface VideoRecordingOptions {
 }
 
 export interface PermissionStatus {
-  camera: 'unknown' | 'granted' | 'denied' | 'requesting';
-  microphone: 'unknown' | 'granted' | 'denied' | 'requesting';
+  camera: "unknown" | "granted" | "denied" | "requesting";
+  microphone: "unknown" | "granted" | "denied" | "requesting";
 }
 
 export interface RecordingState {
@@ -43,18 +43,18 @@ export interface UseVideoRecordingReturn extends VideoRecordingState {
   // Permission methods
   requestPermissions: () => Promise<void>;
   checkPermissions: () => Promise<void>;
-  
+
   // Camera methods
   startCamera: () => Promise<void>;
   stopCamera: () => void;
   switchCamera: () => Promise<void>;
-  
+
   // Recording methods
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   pauseRecording: () => void;
   resumeRecording: () => void;
-  
+
   // Utility methods
   getAvailableDevices: () => Promise<void>;
   resetRecording: () => void;
@@ -62,14 +62,14 @@ export interface UseVideoRecordingReturn extends VideoRecordingState {
 }
 
 export const useVideoRecording = (
-  options: VideoRecordingOptions = {}
+  options: VideoRecordingOptions = {},
 ): UseVideoRecordingReturn => {
   const {
     video = true,
     audio = true,
     autoStart = false,
-    facingMode = 'environment',
-    recordingOptions = {}
+    facingMode = "environment",
+    recordingOptions = {},
   } = options;
 
   // State
@@ -78,18 +78,18 @@ export const useVideoRecording = (
     isReady: false,
     error: null,
     permissions: {
-      camera: 'unknown',
-      microphone: 'unknown'
+      camera: "unknown",
+      microphone: "unknown",
     },
     recording: {
       isRecording: false,
       duration: 0,
       isAvailable: false,
-      isPaused: false
+      isPaused: false,
     },
     recordedBlob: null,
     availableDevices: [],
-    currentDeviceId: null
+    currentDeviceId: null,
   });
 
   // Refs
@@ -99,10 +99,10 @@ export const useVideoRecording = (
 
   // Default recording options
   const defaultRecordingOptions = {
-    mimeType: 'video/webm;codecs=vp9,opus',
+    mimeType: "video/webm;codecs=vp9,opus",
     videoBitsPerSecond: 2500000, // 2.5 Mbps for good quality
-    audioBitsPerSecond: 128000,  // 128 kbps for clear audio
-    ...recordingOptions
+    audioBitsPerSecond: 128000, // 128 kbps for clear audio
+    ...recordingOptions,
   };
 
   /**
@@ -111,27 +111,42 @@ export const useVideoRecording = (
   const checkPermissions = useCallback(async () => {
     try {
       const [cameraPermission, microphonePermission] = await Promise.all([
-        navigator.permissions.query({ name: 'camera' as PermissionName }),
-        navigator.permissions.query({ name: 'microphone' as PermissionName })
+        navigator.permissions.query({ name: "camera" as PermissionName }),
+        navigator.permissions.query({ name: "microphone" as PermissionName }),
       ]);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         permissions: {
-          camera: cameraPermission.state === 'granted' ? 'granted' : 
-                  cameraPermission.state === 'denied' ? 'denied' : 'unknown',
-          microphone: microphonePermission.state === 'granted' ? 'granted' : 
-                     microphonePermission.state === 'denied' ? 'denied' : 'unknown'
-        }
+          camera:
+            cameraPermission.state === "granted"
+              ? "granted"
+              : cameraPermission.state === "denied"
+                ? "denied"
+                : "unknown",
+          microphone:
+            microphonePermission.state === "granted"
+              ? "granted"
+              : microphonePermission.state === "denied"
+                ? "denied"
+                : "unknown",
+        },
       }));
 
-      logger.info('Permissions checked', {
-        camera: cameraPermission.state,
-        microphone: microphonePermission.state
-      }, 'VIDEO_RECORDING');
-
+      logger.info(
+        "Permissions checked",
+        {
+          camera: cameraPermission.state,
+          microphone: microphonePermission.state,
+        },
+        "VIDEO_RECORDING",
+      );
     } catch (error) {
-      logger.warn('Permission check not supported', { error }, 'VIDEO_RECORDING');
+      logger.warn(
+        "Permission check not supported",
+        { error },
+        "VIDEO_RECORDING",
+      );
       // Permissions API not supported, permissions will be determined when requesting
     }
   }, []);
@@ -140,62 +155,71 @@ export const useVideoRecording = (
    * Request camera and microphone permissions
    */
   const requestPermissions = useCallback(async () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       permissions: {
-        camera: 'requesting',
-        microphone: 'requesting'
+        camera: "requesting",
+        microphone: "requesting",
       },
-      error: null
+      error: null,
     }));
 
     try {
       const constraints: MediaStreamConstraints = {
-        video: video ? {
-          facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30 }
-        } : false,
-        audio: audio ? {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        } : false
+        video: video
+          ? {
+              facingMode,
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              frameRate: { ideal: 30 },
+            }
+          : false,
+        audio: audio
+          ? {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            }
+          : false,
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         stream,
         isReady: true,
         permissions: {
-          camera: stream.getVideoTracks().length > 0 ? 'granted' : 'denied',
-          microphone: stream.getAudioTracks().length > 0 ? 'granted' : 'denied'
+          camera: stream.getVideoTracks().length > 0 ? "granted" : "denied",
+          microphone: stream.getAudioTracks().length > 0 ? "granted" : "denied",
         },
-        currentDeviceId: stream.getVideoTracks()[0]?.getSettings().deviceId || null
+        currentDeviceId:
+          stream.getVideoTracks()[0]?.getSettings().deviceId || null,
       }));
 
-      logger.info('Permissions granted and stream started', {
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length
-      }, 'VIDEO_RECORDING');
-
+      logger.info(
+        "Permissions granted and stream started",
+        {
+          videoTracks: stream.getVideoTracks().length,
+          audioTracks: stream.getAudioTracks().length,
+        },
+        "VIDEO_RECORDING",
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Permission request failed';
-      
-      setState(prev => ({
+      const errorMessage =
+        error instanceof Error ? error.message : "Permission request failed";
+
+      setState((prev) => ({
         ...prev,
         error: errorMessage,
         permissions: {
-          camera: 'denied',
-          microphone: 'denied'
+          camera: "denied",
+          microphone: "denied",
         },
-        isReady: false
+        isReady: false,
       }));
 
-      logger.error('Permission request failed', { error }, 'VIDEO_RECORDING');
+      logger.error("Permission request failed", { error }, "VIDEO_RECORDING");
       throw error;
     }
   }, [video, audio, facingMode]);
@@ -212,18 +236,18 @@ export const useVideoRecording = (
    */
   const stopCamera = useCallback(() => {
     if (state.stream) {
-      state.stream.getTracks().forEach(track => {
+      state.stream.getTracks().forEach((track) => {
         track.stop();
       });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         stream: null,
         isReady: false,
-        currentDeviceId: null
+        currentDeviceId: null,
       }));
 
-      logger.info('Camera stopped', {}, 'VIDEO_RECORDING');
+      logger.info("Camera stopped", {}, "VIDEO_RECORDING");
     }
   }, [state.stream]);
 
@@ -235,7 +259,7 @@ export const useVideoRecording = (
 
     const currentVideoTrack = state.stream.getVideoTracks()[0];
     const currentFacingMode = currentVideoTrack?.getSettings().facingMode;
-    const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
 
     try {
       // Stop current stream
@@ -246,27 +270,27 @@ export const useVideoRecording = (
         video: {
           facingMode: newFacingMode,
           width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          height: { ideal: 1080 },
         },
-        audio: audio
+        audio: audio,
       };
 
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         stream: newStream,
         isReady: true,
-        currentDeviceId: newStream.getVideoTracks()[0]?.getSettings().deviceId || null
+        currentDeviceId:
+          newStream.getVideoTracks()[0]?.getSettings().deviceId || null,
       }));
 
-      logger.info('Camera switched', { newFacingMode }, 'VIDEO_RECORDING');
-
+      logger.info("Camera switched", { newFacingMode }, "VIDEO_RECORDING");
     } catch (error) {
-      logger.error('Failed to switch camera', { error }, 'VIDEO_RECORDING');
-      setState(prev => ({
+      logger.error("Failed to switch camera", { error }, "VIDEO_RECORDING");
+      setState((prev) => ({
         ...prev,
-        error: 'Failed to switch camera'
+        error: "Failed to switch camera",
       }));
     }
   }, [state.stream, audio, stopCamera]);
@@ -277,17 +301,22 @@ export const useVideoRecording = (
   const getAvailableDevices = useCallback(async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      const videoDevices = devices.filter(
+        (device) => device.kind === "videoinput",
+      );
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        availableDevices: videoDevices
+        availableDevices: videoDevices,
       }));
 
-      logger.info('Available devices enumerated', { count: videoDevices.length }, 'VIDEO_RECORDING');
-
+      logger.info(
+        "Available devices enumerated",
+        { count: videoDevices.length },
+        "VIDEO_RECORDING",
+      );
     } catch (error) {
-      logger.error('Failed to enumerate devices', { error }, 'VIDEO_RECORDING');
+      logger.error("Failed to enumerate devices", { error }, "VIDEO_RECORDING");
     }
   }, []);
 
@@ -296,7 +325,7 @@ export const useVideoRecording = (
    */
   const startRecording = useCallback(async () => {
     if (!state.stream) {
-      throw new Error('Camera stream not available');
+      throw new Error("Camera stream not available");
     }
 
     try {
@@ -304,7 +333,10 @@ export const useVideoRecording = (
       recordedChunksRef.current = [];
 
       // Create MediaRecorder with optimized settings
-      const mediaRecorder = new MediaRecorder(state.stream, defaultRecordingOptions);
+      const mediaRecorder = new MediaRecorder(
+        state.stream,
+        defaultRecordingOptions,
+      );
       mediaRecorderRef.current = mediaRecorder;
 
       // Handle data availability
@@ -317,23 +349,27 @@ export const useVideoRecording = (
       // Handle recording stop
       mediaRecorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, {
-          type: defaultRecordingOptions.mimeType || 'video/webm'
+          type: defaultRecordingOptions.mimeType || "video/webm",
         });
 
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           recordedBlob: blob,
           recording: {
             ...prev.recording,
             isRecording: false,
-            isAvailable: true
-          }
+            isAvailable: true,
+          },
         }));
 
-        logger.info('Recording completed', {
-          duration: state.recording.duration,
-          size: blob.size
-        }, 'VIDEO_RECORDING');
+        logger.info(
+          "Recording completed",
+          {
+            duration: state.recording.duration,
+            size: blob.size,
+          },
+          "VIDEO_RECORDING",
+        );
       };
 
       // Start recording
@@ -341,35 +377,34 @@ export const useVideoRecording = (
 
       // Start timer
       timerRef.current = setInterval(() => {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           recording: {
             ...prev.recording,
-            duration: prev.recording.duration + 1
-          }
+            duration: prev.recording.duration + 1,
+          },
         }));
       }, 1000);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         recording: {
           ...prev.recording,
           isRecording: true,
           duration: 0,
           isAvailable: false,
-          isPaused: false
+          isPaused: false,
         },
         recordedBlob: null,
-        error: null
+        error: null,
       }));
 
-      logger.info('Recording started', {}, 'VIDEO_RECORDING');
-
+      logger.info("Recording started", {}, "VIDEO_RECORDING");
     } catch (error) {
-      logger.error('Failed to start recording', { error }, 'VIDEO_RECORDING');
-      setState(prev => ({
+      logger.error("Failed to start recording", { error }, "VIDEO_RECORDING");
+      setState((prev) => ({
         ...prev,
-        error: 'Failed to start recording'
+        error: "Failed to start recording",
       }));
       throw error;
     }
@@ -388,7 +423,7 @@ export const useVideoRecording = (
         timerRef.current = null;
       }
 
-      logger.info('Recording stopped', {}, 'VIDEO_RECORDING');
+      logger.info("Recording stopped", {}, "VIDEO_RECORDING");
     }
   }, [state.recording.isRecording]);
 
@@ -396,7 +431,11 @@ export const useVideoRecording = (
    * Pause video recording
    */
   const pauseRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.recording.isRecording && !state.recording.isPaused) {
+    if (
+      mediaRecorderRef.current &&
+      state.recording.isRecording &&
+      !state.recording.isPaused
+    ) {
       mediaRecorderRef.current.pause();
 
       // Pause timer
@@ -405,15 +444,15 @@ export const useVideoRecording = (
         timerRef.current = null;
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         recording: {
           ...prev.recording,
-          isPaused: true
-        }
+          isPaused: true,
+        },
       }));
 
-      logger.info('Recording paused', {}, 'VIDEO_RECORDING');
+      logger.info("Recording paused", {}, "VIDEO_RECORDING");
     }
   }, [state.recording.isRecording, state.recording.isPaused]);
 
@@ -421,29 +460,33 @@ export const useVideoRecording = (
    * Resume video recording
    */
   const resumeRecording = useCallback(() => {
-    if (mediaRecorderRef.current && state.recording.isRecording && state.recording.isPaused) {
+    if (
+      mediaRecorderRef.current &&
+      state.recording.isRecording &&
+      state.recording.isPaused
+    ) {
       mediaRecorderRef.current.resume();
 
       // Resume timer
       timerRef.current = setInterval(() => {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           recording: {
             ...prev.recording,
-            duration: prev.recording.duration + 1
-          }
+            duration: prev.recording.duration + 1,
+          },
         }));
       }, 1000);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         recording: {
           ...prev.recording,
-          isPaused: false
-        }
+          isPaused: false,
+        },
       }));
 
-      logger.info('Recording resumed', {}, 'VIDEO_RECORDING');
+      logger.info("Recording resumed", {}, "VIDEO_RECORDING");
     }
   }, [state.recording.isRecording, state.recording.isPaused]);
 
@@ -451,16 +494,16 @@ export const useVideoRecording = (
    * Reset recording state
    */
   const resetRecording = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       recording: {
         isRecording: false,
         duration: 0,
         isAvailable: false,
-        isPaused: false
+        isPaused: false,
       },
       recordedBlob: null,
-      error: null
+      error: null,
     }));
 
     recordedChunksRef.current = [];
@@ -470,32 +513,35 @@ export const useVideoRecording = (
       timerRef.current = null;
     }
 
-    logger.info('Recording reset', {}, 'VIDEO_RECORDING');
+    logger.info("Recording reset", {}, "VIDEO_RECORDING");
   }, []);
 
   /**
    * Download recorded video
    */
-  const downloadRecording = useCallback((filename: string = 'walkthrough-video.webm') => {
-    if (state.recordedBlob) {
-      const url = URL.createObjectURL(state.recordedBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  const downloadRecording = useCallback(
+    (filename: string = "walkthrough-video.webm") => {
+      if (state.recordedBlob) {
+        const url = URL.createObjectURL(state.recordedBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-      logger.info('Recording downloaded', { filename }, 'VIDEO_RECORDING');
-    }
-  }, [state.recordedBlob]);
+        logger.info("Recording downloaded", { filename }, "VIDEO_RECORDING");
+      }
+    },
+    [state.recordedBlob],
+  );
 
   // Auto-start if requested
   useEffect(() => {
     if (autoStart) {
-      requestPermissions().catch(error => {
-        logger.warn('Auto-start failed', { error }, 'VIDEO_RECORDING');
+      requestPermissions().catch((error) => {
+        logger.warn("Auto-start failed", { error }, "VIDEO_RECORDING");
       });
     }
   }, [autoStart, requestPermissions]);
@@ -523,6 +569,6 @@ export const useVideoRecording = (
     resumeRecording,
     getAvailableDevices,
     resetRecording,
-    downloadRecording
+    downloadRecording,
   };
 };

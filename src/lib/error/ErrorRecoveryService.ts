@@ -1,15 +1,15 @@
 /**
  * ERROR RECOVERY SERVICE - NETFLIX/META PRODUCTION STANDARDS
- * 
+ *
  * Comprehensive error recovery system with intelligent error analysis,
- * automated recovery strategies, circuit breaker patterns, and 
+ * automated recovery strategies, circuit breaker patterns, and
  * fallback mechanisms for maximum application resilience.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface RecoveryStrategy {
   id: string;
@@ -25,14 +25,21 @@ export interface RecoveryStrategy {
 }
 
 export interface ErrorContext {
-  operationType: 'read' | 'write' | 'delete' | 'auth' | 'network' | 'render' | 'unknown';
+  operationType:
+    | "read"
+    | "write"
+    | "delete"
+    | "auth"
+    | "network"
+    | "render"
+    | "unknown";
   component?: string;
   userId?: string;
   sessionId?: string;
   timestamp: number;
   retryCount: number;
   previousErrors?: Error[];
-  networkStatus: 'online' | 'offline' | 'slow' | 'unstable';
+  networkStatus: "online" | "offline" | "slow" | "unstable";
   deviceInfo: {
     userAgent: string;
     platform: string;
@@ -58,7 +65,7 @@ export interface RecoveryResult {
 }
 
 export interface CircuitBreakerState {
-  state: 'closed' | 'open' | 'half-open';
+  state: "closed" | "open" | "half-open";
   failures: number;
   lastFailureTime: number;
   nextAttemptTime: number;
@@ -68,7 +75,11 @@ export interface CircuitBreakerState {
 class ErrorRecoveryService {
   private strategies = new Map<string, RecoveryStrategy>();
   private circuitBreakers = new Map<string, CircuitBreakerState>();
-  private errorHistory: Array<{ error: Error; context: ErrorContext; timestamp: number }> = [];
+  private errorHistory: Array<{
+    error: Error;
+    context: ErrorContext;
+    timestamp: number;
+  }> = [];
   private isInitialized = false;
 
   // Configuration
@@ -88,7 +99,7 @@ class ErrorRecoveryService {
     this.startPeriodicCleanup();
     this.isInitialized = true;
 
-    logger.info('Error Recovery Service initialized');
+    logger.info("Error Recovery Service initialized");
   }
 
   /**
@@ -96,22 +107,22 @@ class ErrorRecoveryService {
    */
   async recoverFromError(
     error: Error,
-    context: Partial<ErrorContext> = {}
+    context: Partial<ErrorContext> = {},
   ): Promise<RecoveryResult> {
     const fullContext: ErrorContext = this.buildErrorContext(error, context);
-    
+
     // Record error in history
     this.recordError(error, fullContext);
 
     // Check circuit breaker
     const circuitBreaker = this.getCircuitBreaker(fullContext.operationType);
-    if (circuitBreaker.state === 'open') {
+    if (circuitBreaker.state === "open") {
       return this.handleCircuitBreakerOpen(error, fullContext);
     }
 
     // Find applicable recovery strategies
     const strategies = this.findApplicableStrategies(error, fullContext);
-    
+
     if (strategies.length === 0) {
       return this.handleNoStrategiesAvailable(error, fullContext);
     }
@@ -120,10 +131,10 @@ class ErrorRecoveryService {
     for (const strategy of strategies) {
       try {
         const result = await this.executeStrategy(strategy, error, fullContext);
-        
+
         if (result.success) {
           this.recordSuccess(fullContext.operationType);
-          logger.info('Error recovery successful', {
+          logger.info("Error recovery successful", {
             strategy: strategy.name,
             error: error.message,
             timeTaken: result.timeTaken,
@@ -131,7 +142,7 @@ class ErrorRecoveryService {
           return result;
         }
       } catch (strategyError) {
-        logger.warn('Recovery strategy failed', {
+        logger.warn("Recovery strategy failed", {
           strategy: strategy.name,
           error: strategyError,
         });
@@ -148,7 +159,7 @@ class ErrorRecoveryService {
    */
   registerStrategy(strategy: RecoveryStrategy): void {
     this.strategies.set(strategy.id, strategy);
-    logger.debug('Recovery strategy registered', {
+    logger.debug("Recovery strategy registered", {
       id: strategy.id,
       name: strategy.name,
       priority: strategy.priority,
@@ -167,13 +178,13 @@ class ErrorRecoveryService {
   } {
     const totalErrors = this.errorHistory.length;
     const recoveredErrors = this.errorHistory.filter(
-      entry => entry.context.retryCount === 0 // Successfully recovered on first attempt
+      (entry) => entry.context.retryCount === 0, // Successfully recovered on first attempt
     ).length;
 
     // Analyze common error types
     const errorTypes: Record<string, number> = {};
-    this.errorHistory.forEach(entry => {
-      const type = entry.error.name || 'Unknown';
+    this.errorHistory.forEach((entry) => {
+      const type = entry.error.name || "Unknown";
       errorTypes[type] = (errorTypes[type] || 0) + 1;
     });
 
@@ -185,7 +196,8 @@ class ErrorRecoveryService {
     return {
       totalErrors,
       recoveredErrors,
-      recoveryRate: totalErrors > 0 ? (recoveredErrors / totalErrors) * 100 : 100,
+      recoveryRate:
+        totalErrors > 0 ? (recoveredErrors / totalErrors) * 100 : 100,
       circuitBreakerStates: Object.fromEntries(this.circuitBreakers),
       commonErrorTypes,
     };
@@ -193,7 +205,7 @@ class ErrorRecoveryService {
 
   private buildErrorContext(
     error: Error,
-    partialContext: Partial<ErrorContext>
+    partialContext: Partial<ErrorContext>,
   ): ErrorContext {
     return {
       operationType: this.detectOperationType(error),
@@ -201,62 +213,86 @@ class ErrorRecoveryService {
       retryCount: 0,
       networkStatus: this.getNetworkStatus(),
       deviceInfo: {
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-        platform: typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
+        userAgent:
+          typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        platform:
+          typeof navigator !== "undefined" ? navigator.platform : "unknown",
         memory: (performance as any)?.memory?.usedJSHeapSize,
         connection: (navigator as any)?.connection?.effectiveType,
       },
       applicationState: {
-        route: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+        route:
+          typeof window !== "undefined" ? window.location.pathname : "unknown",
         criticalPath: this.isCriticalPath(),
       },
       ...partialContext,
     };
   }
 
-  private detectOperationType(error: Error): ErrorContext['operationType'] {
+  private detectOperationType(error: Error): ErrorContext["operationType"] {
     const message = error.message.toLowerCase();
-    const stack = error.stack?.toLowerCase() || '';
+    const stack = error.stack?.toLowerCase() || "";
 
-    if (message.includes('auth') || message.includes('unauthorized') || message.includes('forbidden')) {
-      return 'auth';
-    } else if (message.includes('network') || message.includes('fetch') || message.includes('timeout')) {
-      return 'network';
-    } else if (message.includes('render') || stack.includes('react')) {
-      return 'render';
-    } else if (message.includes('delete') || message.includes('remove')) {
-      return 'delete';
-    } else if (message.includes('save') || message.includes('update') || message.includes('create')) {
-      return 'write';
-    } else if (message.includes('load') || message.includes('get') || message.includes('fetch')) {
-      return 'read';
+    if (
+      message.includes("auth") ||
+      message.includes("unauthorized") ||
+      message.includes("forbidden")
+    ) {
+      return "auth";
+    } else if (
+      message.includes("network") ||
+      message.includes("fetch") ||
+      message.includes("timeout")
+    ) {
+      return "network";
+    } else if (message.includes("render") || stack.includes("react")) {
+      return "render";
+    } else if (message.includes("delete") || message.includes("remove")) {
+      return "delete";
+    } else if (
+      message.includes("save") ||
+      message.includes("update") ||
+      message.includes("create")
+    ) {
+      return "write";
+    } else if (
+      message.includes("load") ||
+      message.includes("get") ||
+      message.includes("fetch")
+    ) {
+      return "read";
     }
 
-    return 'unknown';
+    return "unknown";
   }
 
-  private getNetworkStatus(): ErrorContext['networkStatus'] {
-    if (typeof navigator === 'undefined') return 'unknown' as any;
-    
-    if (!navigator.onLine) return 'offline';
-    
+  private getNetworkStatus(): ErrorContext["networkStatus"] {
+    if (typeof navigator === "undefined") return "unknown" as any;
+
+    if (!navigator.onLine) return "offline";
+
     const connection = (navigator as any).connection;
     if (connection) {
-      if (connection.effectiveType === '2g' || connection.downlink < 1) {
-        return 'slow';
-      } else if (connection.effectiveType === '3g' || connection.downlink < 10) {
-        return 'unstable';
+      if (connection.effectiveType === "2g" || connection.downlink < 1) {
+        return "slow";
+      } else if (
+        connection.effectiveType === "3g" ||
+        connection.downlink < 10
+      ) {
+        return "unstable";
       }
     }
-    
-    return 'online';
+
+    return "online";
   }
 
   private isCriticalPath(): boolean {
-    if (typeof window === 'undefined') return false;
-    
-    const criticalPaths = ['/login', '/dashboard', '/inspection', '/audit'];
-    return criticalPaths.some(path => window.location.pathname.startsWith(path));
+    if (typeof window === "undefined") return false;
+
+    const criticalPaths = ["/login", "/dashboard", "/inspection", "/audit"];
+    return criticalPaths.some((path) =>
+      window.location.pathname.startsWith(path),
+    );
   }
 
   private recordError(error: Error, context: ErrorContext): void {
@@ -274,7 +310,7 @@ class ErrorRecoveryService {
 
   private findApplicableStrategies(
     error: Error,
-    context: ErrorContext
+    context: ErrorContext,
   ): RecoveryStrategy[] {
     const applicableStrategies: RecoveryStrategy[] = [];
 
@@ -291,14 +327,17 @@ class ErrorRecoveryService {
   private async executeStrategy(
     strategy: RecoveryStrategy,
     error: Error,
-    context: ErrorContext
+    context: ErrorContext,
   ): Promise<RecoveryResult> {
     const startTime = Date.now();
 
     try {
       // Execute with timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Strategy timeout')), strategy.timeout);
+        setTimeout(
+          () => reject(new Error("Strategy timeout")),
+          strategy.timeout,
+        );
       });
 
       const resultPromise = strategy.execute(error, context);
@@ -322,10 +361,10 @@ class ErrorRecoveryService {
             timeTaken: Date.now() - startTime,
             result: fallbackResult,
             requiresUserAction: false,
-            message: 'Recovered using fallback strategy',
+            message: "Recovered using fallback strategy",
           };
         } catch (fallbackError) {
-          logger.warn('Fallback strategy also failed', { fallbackError });
+          logger.warn("Fallback strategy also failed", { fallbackError });
         }
       }
 
@@ -342,7 +381,7 @@ class ErrorRecoveryService {
   private getCircuitBreaker(operationType: string): CircuitBreakerState {
     if (!this.circuitBreakers.has(operationType)) {
       this.circuitBreakers.set(operationType, {
-        state: 'closed',
+        state: "closed",
         failures: 0,
         lastFailureTime: 0,
         nextAttemptTime: 0,
@@ -351,10 +390,10 @@ class ErrorRecoveryService {
     }
 
     const breaker = this.circuitBreakers.get(operationType)!;
-    
+
     // Check if we should transition from open to half-open
-    if (breaker.state === 'open' && Date.now() >= breaker.nextAttemptTime) {
-      breaker.state = 'half-open';
+    if (breaker.state === "open" && Date.now() >= breaker.nextAttemptTime) {
+      breaker.state = "half-open";
       breaker.successCount = 0;
     }
 
@@ -363,87 +402,87 @@ class ErrorRecoveryService {
 
   private recordSuccess(operationType: string): void {
     const breaker = this.getCircuitBreaker(operationType);
-    
-    if (breaker.state === 'half-open') {
+
+    if (breaker.state === "half-open") {
       breaker.successCount++;
       if (breaker.successCount >= this.CIRCUIT_BREAKER_SUCCESS_THRESHOLD) {
-        breaker.state = 'closed';
+        breaker.state = "closed";
         breaker.failures = 0;
       }
-    } else if (breaker.state === 'closed') {
+    } else if (breaker.state === "closed") {
       breaker.failures = Math.max(0, breaker.failures - 1);
     }
   }
 
   private recordFailure(operationType: string): void {
     const breaker = this.getCircuitBreaker(operationType);
-    
+
     breaker.failures++;
     breaker.lastFailureTime = Date.now();
 
     if (breaker.failures >= this.CIRCUIT_BREAKER_THRESHOLD) {
-      breaker.state = 'open';
+      breaker.state = "open";
       breaker.nextAttemptTime = Date.now() + this.CIRCUIT_BREAKER_TIMEOUT;
     }
   }
 
   private handleCircuitBreakerOpen(
     error: Error,
-    context: ErrorContext
+    context: ErrorContext,
   ): RecoveryResult {
     const breaker = this.getCircuitBreaker(context.operationType);
     const timeUntilRetry = Math.max(0, breaker.nextAttemptTime - Date.now());
 
     return {
       success: false,
-      strategy: 'circuit_breaker_open',
+      strategy: "circuit_breaker_open",
       timeTaken: 0,
       error,
       requiresUserAction: true,
       message: `Service temporarily unavailable. Try again in ${Math.ceil(timeUntilRetry / 1000)} seconds.`,
       nextSteps: [
-        'Wait for the service to recover',
-        'Check your internet connection',
-        'Try refreshing the page',
+        "Wait for the service to recover",
+        "Check your internet connection",
+        "Try refreshing the page",
       ],
     };
   }
 
   private handleNoStrategiesAvailable(
     error: Error,
-    context: ErrorContext
+    context: ErrorContext,
   ): RecoveryResult {
     return {
       success: false,
-      strategy: 'no_strategy',
+      strategy: "no_strategy",
       timeTaken: 0,
       error,
       requiresUserAction: true,
-      message: 'No recovery strategy available for this error.',
+      message: "No recovery strategy available for this error.",
       nextSteps: [
-        'Please try refreshing the page',
-        'Check your internet connection',
-        'Contact support if the problem persists',
+        "Please try refreshing the page",
+        "Check your internet connection",
+        "Contact support if the problem persists",
       ],
     };
   }
 
   private handleAllStrategiesFailed(
     error: Error,
-    context: ErrorContext
+    context: ErrorContext,
   ): RecoveryResult {
     return {
       success: false,
-      strategy: 'all_strategies_failed',
+      strategy: "all_strategies_failed",
       timeTaken: 0,
       error,
       requiresUserAction: true,
-      message: 'All recovery strategies failed. Manual intervention required.',
+      message: "All recovery strategies failed. Manual intervention required.",
       nextSteps: [
-        'Try refreshing the page',
-        'Clear your browser cache',
-        'Try again later',
-        'Contact support with error details',
+        "Try refreshing the page",
+        "Clear your browser cache",
+        "Try again later",
+        "Contact support with error details",
       ],
     };
   }
@@ -451,18 +490,22 @@ class ErrorRecoveryService {
   private registerDefaultStrategies(): void {
     // Network Error Recovery
     this.registerStrategy({
-      id: 'network_retry',
-      name: 'Network Retry',
+      id: "network_retry",
+      name: "Network Retry",
       priority: 90,
       condition: (error) => {
         const message = error.message.toLowerCase();
-        return message.includes('network') || message.includes('fetch') || message.includes('timeout');
+        return (
+          message.includes("network") ||
+          message.includes("fetch") ||
+          message.includes("timeout")
+        );
       },
       execute: async (error, context) => {
         // Wait before retry with exponential backoff
         const delay = Math.min(1000 * Math.pow(2, context.retryCount), 30000);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         // Re-attempt the failed operation
         // This would need to be customized based on your specific needs
         throw error; // Placeholder - implement actual retry logic
@@ -479,12 +522,16 @@ class ErrorRecoveryService {
 
     // Authentication Error Recovery
     this.registerStrategy({
-      id: 'auth_refresh',
-      name: 'Authentication Refresh',
+      id: "auth_refresh",
+      name: "Authentication Refresh",
       priority: 95,
       condition: (error) => {
         const message = error.message.toLowerCase();
-        return message.includes('auth') || message.includes('unauthorized') || message.includes('token');
+        return (
+          message.includes("auth") ||
+          message.includes("unauthorized") ||
+          message.includes("token")
+        );
       },
       execute: async (error, context) => {
         // Attempt to refresh authentication token
@@ -492,8 +539,8 @@ class ErrorRecoveryService {
       },
       fallback: async () => {
         // Redirect to login page
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
         }
         return null;
       },
@@ -505,11 +552,13 @@ class ErrorRecoveryService {
 
     // Render Error Recovery
     this.registerStrategy({
-      id: 'component_remount',
-      name: 'Component Remount',
+      id: "component_remount",
+      name: "Component Remount",
       priority: 80,
       condition: (error, context) => {
-        return context.operationType === 'render' || error.name === 'ChunkLoadError';
+        return (
+          context.operationType === "render" || error.name === "ChunkLoadError"
+        );
       },
       execute: async (error, context) => {
         // Trigger component remount by updating key
@@ -518,7 +567,7 @@ class ErrorRecoveryService {
       },
       fallback: async () => {
         // Reload the page as last resort
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           window.location.reload();
         }
         return null;
@@ -531,17 +580,17 @@ class ErrorRecoveryService {
 
     // Data Operation Recovery
     this.registerStrategy({
-      id: 'data_retry',
-      name: 'Data Operation Retry',
+      id: "data_retry",
+      name: "Data Operation Retry",
       priority: 70,
       condition: (error, context) => {
-        return ['read', 'write', 'delete'].includes(context.operationType);
+        return ["read", "write", "delete"].includes(context.operationType);
       },
       execute: async (error, context) => {
         // Implement optimistic retry with conflict resolution
         const delay = 500 * (context.retryCount + 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         // Re-attempt the operation
         // This would need to be customized based on your data layer
         throw error; // Placeholder
@@ -560,7 +609,7 @@ class ErrorRecoveryService {
   private async getCachedData(): Promise<any> {
     // Implement your cache retrieval logic
     try {
-      const cached = localStorage.getItem('fallback_cache');
+      const cached = localStorage.getItem("fallback_cache");
       return cached ? JSON.parse(cached) : null;
     } catch {
       return null;
@@ -570,43 +619,49 @@ class ErrorRecoveryService {
   private async refreshAuthToken(): Promise<any> {
     // Implement your token refresh logic
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        throw new Error("No refresh token available");
       }
 
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        throw new Error("Token refresh failed");
       }
 
       const tokens = await response.json();
-      localStorage.setItem('access_token', tokens.accessToken);
-      
+      localStorage.setItem("access_token", tokens.accessToken);
+
       return tokens;
     } catch (error) {
-      throw new Error('Authentication refresh failed');
+      throw new Error("Authentication refresh failed");
     }
   }
 
   private async queueForLaterRetry(): Promise<any> {
     // Implement operation queuing for later retry
-    return { queued: true, message: 'Operation queued for retry when connection is restored' };
+    return {
+      queued: true,
+      message: "Operation queued for retry when connection is restored",
+    };
   }
 
   private startPeriodicCleanup(): void {
     // Clean up old error history every hour
-    setInterval(() => {
-      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
-      this.errorHistory = this.errorHistory.filter(
-        entry => entry.timestamp > cutoffTime
-      );
-    }, 60 * 60 * 1000); // 1 hour
+    setInterval(
+      () => {
+        const cutoffTime = Date.now() - 24 * 60 * 60 * 1000; // 24 hours
+        this.errorHistory = this.errorHistory.filter(
+          (entry) => entry.timestamp > cutoffTime,
+        );
+      },
+      60 * 60 * 1000,
+    ); // 1 hour
   }
 }
 

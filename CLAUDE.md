@@ -183,7 +183,7 @@ Deployment: Railway with Docker containerization
 
 **CRITICAL DATABASE FIXES**:
 - ✅ **ALL LOGS TABLE REFERENCES FIXED**: 12 files updated from `logs` to `checklist_items`
-- ✅ **ALL PROPERTY FIELD REFERENCES FIXED**: Updated `property_id` → `id`, `property_name` → `name`
+- ✅ **ALL PROPERTY FIELD REFERENCES FIXED**: Updated `property_id` → `id`, `name` → `name`
 - ✅ **ALL USER FIELD REFERENCES FIXED**: Updated `full_name` → `name`
 - ✅ **TYPE DEFINITIONS UPDATED**: All interfaces now match actual schema
 - ✅ **COMPATIBILITY LAYER REMOVED**: Direct database table access established
@@ -217,13 +217,13 @@ supabase.rpc('get_properties_with_inspections') // Property listings with inspec
 supabase.rpc('create_inspection_compatibility')  // Safe inspection creation
 
 // ❌ REMOVED - No longer exists (compatibility layer eliminated)
-// supabase.from('logs') - ALL REFERENCES FIXED TO checklist_items
-// supabase.from('profiles') - ALL REFERENCES FIXED TO users
+// supabase.from('checklist_items') - ALL REFERENCES FIXED TO checklist_items
+// supabase.from('users') - ALL REFERENCES FIXED TO users
 ```
 
 **❌ CRITICAL WARNINGS - NEVER USE:**
-- `supabase.from('logs')` - Table doesn't exist! Use `checklist_items`
-- Field names: `property_id, property_name, street_address, log_id, pass, inspector_remarks`
+- `supabase.from('checklist_items')` - Table doesn't exist! Use `checklist_items`
+- Field names: `property_id, name, address, log_id, pass, inspector_remarks`
 - Wrong relationships: `static_safety_items!checklist_id`
 
 **REMOVED COMPATIBILITY INFRASTRUCTURE:**
@@ -238,8 +238,8 @@ supabase.rpc('create_inspection_compatibility')  // Safe inspection creation
 ```typescript
 Property {
   id: string                // UUID primary key (NOT property_id!)
-  name: string              // Property name (NOT property_name!)
-  address: string           // Property address (NOT street_address!)
+  name: string              // Property name (NOT name!)
+  address: string           // Property address (NOT address!)
   vrbo_url?: string
   airbnb_url?: string
   added_by: string          // UUID referencing users.id
@@ -257,7 +257,7 @@ Inspection {
 ChecklistItem {
   id: string                // UUID primary key (from checklist_items table, NOT logs!)
   inspection_id: string     // UUID referencing inspections.id
-  static_item_id: string    // UUID referencing static_safety_items.id (NOT static_safety_item_id!)
+  static_item_id: string    // UUID referencing static_safety_items.id (NOT static_item_id!)
   status: string            // 'pending' | 'completed' | 'failed' (NOT boolean pass!)
   notes: string             // Inspector notes (NOT inspector_notes!)
   ai_status?: string        // AI analysis result (NOT ai_result!)
@@ -505,8 +505,8 @@ export class OpenAIService {
 **IMPORTANT:** All code now uses direct production database table access. Compatibility layer has been completely removed.
 
 #### **Production Database Schema (Post-Migration):**
-- **Properties:** `properties` table with integer `property_id`, `property_name`, `street_address`
-- **Checklist Items:** `logs` table with `static_safety_item_id` references
+- **Properties:** `properties` table with integer `property_id`, `name`, `address`
+- **Checklist Items:** `logs` table with `static_item_id` references
 - **Users:** `profiles` table with `full_name`, `email` fields
 - **Inspections:** `inspections` table (standard implementation)
 - **Safety Items:** `static_safety_items` table with `id` as primary key
@@ -514,16 +514,16 @@ export class OpenAIService {
 #### **Key Production Schema Details:**
 - **Property IDs:** Integer primary keys (`property_id`) - converted to strings for frontend
 - **User Data:** Stored in `profiles` table, accessed directly
-- **Checklist References:** `static_safety_item_id` links `logs` to `static_safety_items`
+- **Checklist References:** `static_item_id` links `logs` to `static_safety_items`
 - **Available RPC Functions:** `get_properties_with_inspections`, `create_inspection_compatibility`, `get_user_role`
 
 #### **Direct Schema Usage (Production Tables):**
 ```sql
 -- Production Tables (Direct Access - POST-MIGRATION):
 profiles - User data with full_name, email, role
-properties - Property data with property_id (integer), property_name, street_address  
+properties - Property data with property_id (integer), name, address  
 inspections - Standard inspection records with property_id as string
-logs - Checklist item records linked via static_safety_item_id
+logs - Checklist item records linked via static_item_id
 static_safety_items - Template checklist items with integer id
 media - Media files linked to logs (checklist items)
 
@@ -547,7 +547,7 @@ const { data } = await supabase
   .from('inspections')                 // Direct production table access
   .select(`
     *,
-    properties!inner (property_id, property_name, street_address),
+    properties!inner (property_id, name, address),
     logs!inner (
       *,
       static_safety_items!inner (id, title, category),

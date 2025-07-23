@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   FileText,
   Users,
@@ -9,10 +9,10 @@ import {
   AlertCircle,
   Eye,
   Zap,
-  Timer
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { BusinessKPIs } from './types';
+  Timer,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { BusinessKPIs } from "./types";
 
 interface QuickActionsProps {
   kpis: BusinessKPIs;
@@ -23,53 +23,53 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ kpis }) => {
 
   const actions = [
     {
-      title: 'Review Pending Audits',
-      description: 'Check inspections waiting for review',
+      title: "Review Pending Audits",
+      description: "Check inspections waiting for review",
       count: kpis.pendingAudits,
       icon: Eye,
-      variant: 'default' as const,
-      action: () => navigate('/admin/audit')
+      variant: "default" as const,
+      action: () => navigate("/admin/audit"),
     },
     {
-      title: 'Flagged Inspections',
-      description: 'Review inspections that need attention',
+      title: "Flagged Inspections",
+      description: "Review inspections that need attention",
       count: kpis.flaggedInspections,
       icon: AlertCircle,
-      variant: 'destructive' as const,
-      action: () => navigate('/admin/flagged')
+      variant: "destructive" as const,
+      action: () => navigate("/admin/flagged"),
     },
     {
-      title: 'Manage Users',
-      description: 'Add or modify inspector accounts',
+      title: "Manage Users",
+      description: "Add or modify inspector accounts",
       count: kpis.activeInspectors,
       icon: Users,
-      variant: 'outline' as const,
-      action: () => navigate('/admin/users')
+      variant: "outline" as const,
+      action: () => navigate("/admin/users"),
     },
     {
-      title: 'System Performance',
-      description: 'Monitor AI accuracy and performance',
+      title: "System Performance",
+      description: "Monitor AI accuracy and performance",
       count: Math.round(kpis.aiAccuracy),
       icon: Zap,
-      variant: 'secondary' as const,
-      action: () => navigate('/admin/performance')
+      variant: "secondary" as const,
+      action: () => navigate("/admin/performance"),
     },
     {
-      title: 'Generate Reports',
-      description: 'Create business and performance reports',
+      title: "Generate Reports",
+      description: "Create business and performance reports",
       count: 0,
       icon: FileText,
-      variant: 'outline' as const,
-      action: () => navigate('/admin/reports')
+      variant: "outline" as const,
+      action: () => navigate("/admin/reports"),
     },
     {
-      title: 'System Settings',
-      description: 'Configure system parameters',
+      title: "System Settings",
+      description: "Configure system parameters",
       count: 0,
       icon: Settings,
-      variant: 'outline' as const,
-      action: () => navigate('/admin/settings')
-    }
+      variant: "outline" as const,
+      action: () => navigate("/admin/settings"),
+    },
   ];
 
   return (
@@ -96,10 +96,10 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ kpis }) => {
                   </Badge>
                 )}
               </div>
-              
+
               <h3 className="font-medium text-sm mb-1">{action.title}</h3>
               <p className="text-xs text-gray-600 mb-3">{action.description}</p>
-              
+
               <Button size="sm" variant={action.variant} className="w-full">
                 Open
               </Button>

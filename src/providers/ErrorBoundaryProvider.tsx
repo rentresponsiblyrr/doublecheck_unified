@@ -1,20 +1,26 @@
 /**
  * ERROR BOUNDARY PROVIDER - APPLICATION-WIDE ERROR HANDLING
- * 
+ *
  * Comprehensive error boundary provider that wraps the entire application
- * with layered error boundaries, centralized error handling, and 
+ * with layered error boundaries, centralized error handling, and
  * production-ready error recovery mechanisms.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary';
-import { AsyncErrorBoundary } from '@/components/common/AsyncErrorBoundary';
-import { ErrorMonitoringDashboard } from '@/components/monitoring/ErrorMonitoringDashboard';
-import { errorRecoveryService } from '@/lib/error/ErrorRecoveryService';
-import { logger } from '@/utils/logger';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
+import { GlobalErrorBoundary } from "@/components/common/GlobalErrorBoundary";
+import { AsyncErrorBoundary } from "@/components/common/AsyncErrorBoundary";
+import { ErrorMonitoringDashboard } from "@/components/monitoring/ErrorMonitoringDashboard";
+import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
+import { logger } from "@/utils/logger";
 
 interface ErrorBoundaryContextValue {
   reportError: (error: Error, context?: Record<string, unknown>) => void;
@@ -27,7 +33,9 @@ interface ErrorBoundaryContextValue {
   lastError: Error | null;
 }
 
-const ErrorBoundaryContext = createContext<ErrorBoundaryContextValue | null>(null);
+const ErrorBoundaryContext = createContext<ErrorBoundaryContextValue | null>(
+  null,
+);
 
 interface ErrorBoundaryProviderProps {
   children: ReactNode;
@@ -40,9 +48,9 @@ interface ErrorBoundaryProviderProps {
 
 export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
   children,
-  enableMonitoring = process.env.NODE_ENV === 'development',
+  enableMonitoring = process.env.NODE_ENV === "development",
   enableAsyncErrorHandling = true,
-  developmentMode = process.env.NODE_ENV === 'development',
+  developmentMode = process.env.NODE_ENV === "development",
   errorReportingEndpoint,
   fallbackComponent,
 }) => {
@@ -52,84 +60,95 @@ export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
   const [lastOperation, setLastOperation] = useState<() => void | null>(null);
 
   // Global error handler for the context
-  const handleGlobalError = useCallback(async (error: Error, errorInfo: Record<string, unknown>) => {
-    setErrorCount(prev => prev + 1);
-    setLastError(error);
+  const handleGlobalError = useCallback(
+    async (error: Error, errorInfo: Record<string, unknown>) => {
+      setErrorCount((prev) => prev + 1);
+      setLastError(error);
 
-    logger.error('Global error boundary caught error', {
-      error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      },
-      errorInfo,
-      errorCount: errorCount + 1,
-    });
-
-    // Report to external service if endpoint is provided
-    if (errorReportingEndpoint) {
-      try {
-        await fetch(errorReportingEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            error: {
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            },
-            context: errorInfo,
-            timestamp: Date.now(),
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-          }),
-        });
-      } catch (reportingError) {
-        logger.warn('Failed to report error to external service', { reportingError });
-      }
-    }
-
-    // Attempt recovery using the error recovery service
-    try {
-      const recoveryResult = await errorRecoveryService.recoverFromError(error, {
-        component: errorInfo?.componentStack?.split('\n')[0] || 'unknown',
-        operationType: 'render',
+      logger.error("Global error boundary caught error", {
+        error: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        },
+        errorInfo,
+        errorCount: errorCount + 1,
       });
 
-      if (recoveryResult.success) {
-        logger.info('Error successfully recovered', { 
-          strategy: recoveryResult.strategy,
-          timeTaken: recoveryResult.timeTaken 
-        });
+      // Report to external service if endpoint is provided
+      if (errorReportingEndpoint) {
+        try {
+          await fetch(errorReportingEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              error: {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+              },
+              context: errorInfo,
+              timestamp: Date.now(),
+              url: window.location.href,
+              userAgent: navigator.userAgent,
+            }),
+          });
+        } catch (reportingError) {
+          logger.warn("Failed to report error to external service", {
+            reportingError,
+          });
+        }
       }
-    } catch (recoveryError) {
-      logger.error('Error recovery failed', { recoveryError });
-    }
-  }, [errorReportingEndpoint, errorCount]);
+
+      // Attempt recovery using the error recovery service
+      try {
+        const recoveryResult = await errorRecoveryService.recoverFromError(
+          error,
+          {
+            component: errorInfo?.componentStack?.split("\n")[0] || "unknown",
+            operationType: "render",
+          },
+        );
+
+        if (recoveryResult.success) {
+          logger.info("Error successfully recovered", {
+            strategy: recoveryResult.strategy,
+            timeTaken: recoveryResult.timeTaken,
+          });
+        }
+      } catch (recoveryError) {
+        logger.error("Error recovery failed", { recoveryError });
+      }
+    },
+    [errorReportingEndpoint, errorCount],
+  );
 
   // Context methods
-  const reportError = useCallback((error: Error, context?: Record<string, unknown>) => {
-    handleGlobalError(error, context);
-  }, [handleGlobalError]);
+  const reportError = useCallback(
+    (error: Error, context?: Record<string, unknown>) => {
+      handleGlobalError(error, context);
+    },
+    [handleGlobalError],
+  );
 
   const clearErrors = useCallback(() => {
     setErrorCount(0);
     setLastError(null);
-    logger.info('Error count cleared');
+    logger.info("Error count cleared");
   }, []);
 
   const retryLastOperation = useCallback(() => {
     if (lastOperation) {
       try {
         lastOperation();
-        logger.info('Last operation retried successfully');
+        logger.info("Last operation retried successfully");
       } catch (error) {
-        logger.error('Failed to retry last operation', { error });
+        logger.error("Failed to retry last operation", { error });
       }
     } else {
-      logger.warn('No operation available to retry');
+      logger.warn("No operation available to retry");
     }
   }, [lastOperation]);
 
@@ -189,7 +208,7 @@ export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
 
         {/* Development Mode Error Overlay */}
         {developmentMode && lastError && (
-          <DevelopmentErrorOverlay 
+          <DevelopmentErrorOverlay
             error={lastError}
             onDismiss={() => setLastError(null)}
           />
@@ -204,11 +223,13 @@ export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
  */
 export const useErrorBoundary = () => {
   const context = useContext(ErrorBoundaryContext);
-  
+
   if (!context) {
-    throw new Error('useErrorBoundary must be used within an ErrorBoundaryProvider');
+    throw new Error(
+      "useErrorBoundary must be used within an ErrorBoundaryProvider",
+    );
   }
-  
+
   return context;
 };
 
@@ -217,50 +238,50 @@ export const useErrorBoundary = () => {
  */
 export const useErrorReporting = () => {
   const { reportError } = useErrorBoundary();
-  
-  const reportAsyncError = useCallback(async (
-    operation: () => Promise<unknown>,
-    context?: Record<string, unknown>
-  ) => {
-    try {
-      return await operation();
-    } catch (error) {
-      reportError(error as Error, {
-        ...context,
-        type: 'async_operation',
+
+  const reportAsyncError = useCallback(
+    async (
+      operation: () => Promise<unknown>,
+      context?: Record<string, unknown>,
+    ) => {
+      try {
+        return await operation();
+      } catch (error) {
+        reportError(error as Error, {
+          ...context,
+          type: "async_operation",
+          timestamp: Date.now(),
+        });
+        throw error;
+      }
+    },
+    [reportError],
+  );
+
+  const reportFormError = useCallback(
+    (error: Error, formData?: Record<string, unknown>, fieldName?: string) => {
+      reportError(error, {
+        type: "form_validation",
+        formData: formData ? Object.keys(formData) : undefined, // Don't log actual form data for privacy
+        fieldName,
         timestamp: Date.now(),
       });
-      throw error;
-    }
-  }, [reportError]);
+    },
+    [reportError],
+  );
 
-  const reportFormError = useCallback((
-    error: Error,
-    formData?: Record<string, unknown>,
-    fieldName?: string
-  ) => {
-    reportError(error, {
-      type: 'form_validation',
-      formData: formData ? Object.keys(formData) : undefined, // Don't log actual form data for privacy
-      fieldName,
-      timestamp: Date.now(),
-    });
-  }, [reportError]);
-
-  const reportNetworkError = useCallback((
-    error: Error,
-    url?: string,
-    method?: string,
-    statusCode?: number
-  ) => {
-    reportError(error, {
-      type: 'network_error',
-      url,
-      method,
-      statusCode,
-      timestamp: Date.now(),
-    });
-  }, [reportError]);
+  const reportNetworkError = useCallback(
+    (error: Error, url?: string, method?: string, statusCode?: number) => {
+      reportError(error, {
+        type: "network_error",
+        url,
+        method,
+        statusCode,
+        timestamp: Date.now(),
+      });
+    },
+    [reportError],
+  );
 
   return {
     reportError,
@@ -277,12 +298,12 @@ const DevelopmentErrorOverlay: React.FC<{
   error: Error;
   onDismiss: () => void;
 }> = ({ error, onDismiss }) => {
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== "development") {
     return null;
   }
 
   return (
-    <div 
+    <div
       id="development-error-overlay"
       className="fixed inset-0 z-[9999] bg-black bg-opacity-50 flex items-center justify-center p-4"
     >
@@ -298,7 +319,7 @@ const DevelopmentErrorOverlay: React.FC<{
             </button>
           </div>
         </div>
-        
+
         <div className="p-6 overflow-auto max-h-96">
           <div className="mb-4">
             <h3 className="font-semibold text-gray-800 mb-2">Error Message:</h3>
@@ -338,8 +359,8 @@ const DevelopmentErrorOverlay: React.FC<{
             </button>
             <button
               onClick={() => {
-                console.error('Development Error Details:', error);
-                alert('Error details logged to console');
+                console.error("Development Error Details:", error);
+                alert("Error details logged to console");
               }}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
             >
@@ -362,20 +383,23 @@ export const withErrorBoundary = <P extends object>(
     onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
     enableRetry?: boolean;
     context?: string;
-  } = {}
+  } = {},
 ) => {
   return React.forwardRef<any, P>((props, ref) => {
     const { reportError } = useErrorBoundary();
 
-    const handleError = useCallback((error: Error, errorInfo: Record<string, unknown>) => {
-      reportError(error, {
-        ...errorInfo,
-        component: options.context || Component.displayName || Component.name,
-        wrappedComponent: true,
-      });
-      
-      options.onError?.(error, errorInfo);
-    }, [reportError]);
+    const handleError = useCallback(
+      (error: Error, errorInfo: Record<string, unknown>) => {
+        reportError(error, {
+          ...errorInfo,
+          component: options.context || Component.displayName || Component.name,
+          wrappedComponent: true,
+        });
+
+        options.onError?.(error, errorInfo);
+      },
+      [reportError],
+    );
 
     return (
       <GlobalErrorBoundary

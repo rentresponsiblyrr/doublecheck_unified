@@ -4,15 +4,15 @@
  * Business logic extracted to useFunctionalChecklistManagement hook
  */
 
-import React from 'react';
-import { RefreshCw } from 'lucide-react';
-import { useFunctionalChecklistManagement } from '@/hooks/useFunctionalChecklistManagement';
-import { ChecklistHeader } from '@/components/admin/checklist/ChecklistHeader';
-import { CategoryFilter } from '@/components/admin/checklist/CategoryFilter';
-import { ErrorAlert } from '@/components/admin/checklist/ErrorAlert';
-import { ChecklistItemCard } from '@/components/admin/checklist/ChecklistItemCard';
-import { ChecklistItemDialog } from '@/components/admin/checklist/ChecklistItemDialog';
-import { EmptyStateCard } from '@/components/admin/checklist/EmptyStateCard';
+import React from "react";
+import { RefreshCw } from "lucide-react";
+import { useFunctionalChecklistManagement } from "@/hooks/useFunctionalChecklistManagement";
+import { ChecklistHeader } from "@/components/admin/checklist/ChecklistHeader";
+import { CategoryFilter } from "@/components/admin/checklist/CategoryFilter";
+import { ErrorAlert } from "@/components/admin/checklist/ErrorAlert";
+import { ChecklistItemCard } from "@/components/admin/checklist/ChecklistItemCard";
+import { ChecklistItemDialog } from "@/components/admin/checklist/ChecklistItemDialog";
+import { EmptyStateCard } from "@/components/admin/checklist/EmptyStateCard";
 
 export const FunctionalChecklistManagement: React.FC = () => {
   const {
@@ -31,25 +31,28 @@ export const FunctionalChecklistManagement: React.FC = () => {
     handleCreateItem,
     handleEditItem,
     handleSubmit,
-    handleDeleteItem
+    handleDeleteItem,
   } = useFunctionalChecklistManagement();
 
   const categories = [
-    'Safety',
-    'Compliance',
-    'Cleanliness',
-    'Amenities',
-    'Maintenance',
-    'Accessibility',
-    'Fire Safety',
-    'Security',
-    'Electrical',
-    'Plumbing'
+    "Safety",
+    "Compliance",
+    "Cleanliness",
+    "Amenities",
+    "Maintenance",
+    "Accessibility",
+    "Fire Safety",
+    "Security",
+    "Electrical",
+    "Plumbing",
   ];
 
   if (loading) {
     return (
-      <div id="checklist-loading" className="flex items-center justify-center p-8">
+      <div
+        id="checklist-loading"
+        className="flex items-center justify-center p-8"
+      >
         <RefreshCw className="w-6 h-6 animate-spin mr-2" />
         <span>Loading checklist items...</span>
       </div>
@@ -64,15 +67,15 @@ export const FunctionalChecklistManagement: React.FC = () => {
         onRefresh={loadSafetyItems}
         onCreateItem={handleCreateItem}
       />
-      
+
       <CategoryFilter
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         categories={categories}
       />
-      
+
       {error && <ErrorAlert error={error} />}
-      
+
       {filteredItems.length === 0 ? (
         <EmptyStateCard selectedCategory={selectedCategory} />
       ) : (
@@ -87,7 +90,7 @@ export const FunctionalChecklistManagement: React.FC = () => {
           ))}
         </div>
       )}
-      
+
       <ChecklistItemDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}

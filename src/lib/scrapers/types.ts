@@ -21,22 +21,22 @@ export interface PropertyAmenity {
   category: AmenityCategory;
   icon?: string;
   description?: string;
-  priority: 'essential' | 'important' | 'nice_to_have';
+  priority: "essential" | "important" | "nice_to_have";
 }
 
-export type AmenityCategory = 
-  | 'kitchen'
-  | 'bathroom'
-  | 'bedroom'
-  | 'entertainment'
-  | 'outdoor'
-  | 'safety'
-  | 'accessibility'
-  | 'connectivity'
-  | 'climate'
-  | 'parking'
-  | 'laundry'
-  | 'general';
+export type AmenityCategory =
+  | "kitchen"
+  | "bathroom"
+  | "bedroom"
+  | "entertainment"
+  | "outdoor"
+  | "safety"
+  | "accessibility"
+  | "connectivity"
+  | "climate"
+  | "parking"
+  | "laundry"
+  | "general";
 
 export interface PropertyRoom {
   type: RoomType;
@@ -47,30 +47,37 @@ export interface PropertyRoom {
   specifications?: RoomSpecifications;
 }
 
-export type RoomType = 
-  | 'bedroom'
-  | 'bathroom'
-  | 'kitchen'
-  | 'living_room'
-  | 'dining_room'
-  | 'office'
-  | 'game_room'
-  | 'balcony'
-  | 'patio'
-  | 'garage'
-  | 'basement'
-  | 'attic'
-  | 'other';
+export type RoomType =
+  | "bedroom"
+  | "bathroom"
+  | "kitchen"
+  | "living_room"
+  | "dining_room"
+  | "office"
+  | "game_room"
+  | "balcony"
+  | "patio"
+  | "garage"
+  | "basement"
+  | "attic"
+  | "other";
 
 export interface RoomSpecifications {
-  bedType?: 'king' | 'queen' | 'full' | 'twin' | 'sofa_bed' | 'bunk_bed';
-  bathType?: 'full' | 'half' | 'ensuite' | 'shared';
+  bedType?: "king" | "queen" | "full" | "twin" | "sofa_bed" | "bunk_bed";
+  bathType?: "full" | "half" | "ensuite" | "shared";
   squareFootage?: number;
   features?: string[];
 }
 
 export interface PropertySpecifications {
-  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'cabin' | 'villa' | 'other';
+  propertyType:
+    | "house"
+    | "apartment"
+    | "condo"
+    | "townhouse"
+    | "cabin"
+    | "villa"
+    | "other";
   bedrooms: number;
   bathrooms: number;
   maxGuests: number;
@@ -146,7 +153,7 @@ export interface ScrapingError {
   code: string;
   message: string;
   field?: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   recoverable: boolean;
 }
 
@@ -184,17 +191,17 @@ export interface PhotoData {
   order: number;
 }
 
-export type PhotoCategory = 
-  | 'exterior'
-  | 'interior'
-  | 'bedroom'
-  | 'bathroom'
-  | 'kitchen'
-  | 'living_area'
-  | 'outdoor_space'
-  | 'amenity'
-  | 'view'
-  | 'other';
+export type PhotoCategory =
+  | "exterior"
+  | "interior"
+  | "bedroom"
+  | "bathroom"
+  | "kitchen"
+  | "living_area"
+  | "outdoor_space"
+  | "amenity"
+  | "view"
+  | "other";
 
 export interface PhotoDeduplicationResult {
   originalCount: number;
@@ -204,7 +211,12 @@ export interface PhotoDeduplicationResult {
   roomPhotos: Record<RoomType, PhotoData[]>;
 }
 
-export type ScrapingStatus = 'idle' | 'scraping' | 'completed' | 'error' | 'retrying';
+export type ScrapingStatus =
+  | "idle"
+  | "scraping"
+  | "completed"
+  | "error"
+  | "retrying";
 
 export interface ScrapingState {
   status: ScrapingStatus;

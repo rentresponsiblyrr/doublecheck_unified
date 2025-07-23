@@ -1,11 +1,11 @@
 /**
  * Intelligent AI Response Caching System
  * Reduces costs by up to 80% through smart caching of AI responses
- * 
+ *
  * OPTIMIZATION: Implements semantic similarity, photo hash matching, and context-aware caching
  */
 
-import { logger } from '../../utils/logger';
+import { logger } from "../../utils/logger";
 
 // AI Response types for better type safety
 export type AIResponse = {
@@ -72,25 +72,29 @@ export class AICache {
     misses: 0,
     totalSavings: 0,
     totalResponseTime: 0,
-    requestCount: 0
+    requestCount: 0,
   };
-  
+
   private readonly config: CacheConfig = {
     maxEntries: 1000,
     defaultTTL: 24 * 60 * 60 * 1000, // 24 hours
     similarityThreshold: 0.85,
     enablePhotoHashing: true,
     enableSemanticSimilarity: true,
-    cleanupInterval: 60 * 60 * 1000 // 1 hour
+    cleanupInterval: 60 * 60 * 1000, // 1 hour
   };
-  
+
   private cleanupTimer?: number;
 
   private constructor() {
     this.startCleanupTimer();
-    logger.info('AI Cache initialized', {
-      config: this.config
-    }, 'AI_CACHE');
+    logger.info(
+      "AI Cache initialized",
+      {
+        config: this.config,
+      },
+      "AI_CACHE",
+    );
   }
 
   static getInstance(): AICache {
@@ -110,59 +114,69 @@ export class AICache {
       photoData?: ArrayBuffer;
       context?: Record<string, unknown>;
       similarityCheck?: boolean;
-    } = {}
+    } = {},
   ): Promise<CacheEntry | null> {
     const startTime = Date.now();
-    
+
     try {
       // Generate cache key
       const key = await this.generateCacheKey(prompt, options);
-      
+
       // Direct cache lookup
       let entry = this.cache.get(key);
-      
+
       if (entry && !this.isExpired(entry)) {
         entry.metadata.hit_count++;
         entry.metadata.last_accessed = new Date().toISOString();
         this.stats.hits++;
-        
+
         const responseTime = Date.now() - startTime;
         this.stats.totalResponseTime += responseTime;
         this.stats.requestCount++;
-        
-        logger.info('Cache hit', {
-          key: key.substring(0, 16) + '...',
-          hitCount: entry.metadata.hit_count,
-          age: Date.now() - new Date(entry.metadata.created_at).getTime(),
-          responseTime
-        }, 'AI_CACHE');
-        
+
+        logger.info(
+          "Cache hit",
+          {
+            key: key.substring(0, 16) + "...",
+            hitCount: entry.metadata.hit_count,
+            age: Date.now() - new Date(entry.metadata.created_at).getTime(),
+            responseTime,
+          },
+          "AI_CACHE",
+        );
+
         return entry;
       }
-      
+
       // If no direct hit and similarity checking is enabled
-      if (options.similarityCheck !== false && this.config.enableSemanticSimilarity) {
+      if (
+        options.similarityCheck !== false &&
+        this.config.enableSemanticSimilarity
+      ) {
         entry = await this.findSimilarEntry(prompt, options);
         if (entry) {
           entry.metadata.hit_count++;
           entry.metadata.last_accessed = new Date().toISOString();
           this.stats.hits++;
-          
-          logger.info('Cache similarity hit', {
-            originalKey: key.substring(0, 16) + '...',
-            matchedKey: entry.key.substring(0, 16) + '...',
-            similarity: 'estimated'
-          }, 'AI_CACHE');
-          
+
+          logger.info(
+            "Cache similarity hit",
+            {
+              originalKey: key.substring(0, 16) + "...",
+              matchedKey: entry.key.substring(0, 16) + "...",
+              similarity: "estimated",
+            },
+            "AI_CACHE",
+          );
+
           return entry;
         }
       }
-      
+
       this.stats.misses++;
       return null;
-      
     } catch (error) {
-      logger.error('Cache get error', error, 'AI_CACHE');
+      logger.error("Cache get error", error, "AI_CACHE");
       this.stats.misses++;
       return null;
     }
@@ -182,26 +196,26 @@ export class AICache {
       cost?: number;
       confidence?: number;
       ttl?: number;
-    } = {}
+    } = {},
   ): Promise<void> {
     try {
       // Generate cache key
       const key = await this.generateCacheKey(prompt, options);
-      
+
       // Check if we need to make room
       if (this.cache.size >= this.config.maxEntries) {
         await this.evictOldEntries();
       }
-      
+
       const now = new Date().toISOString();
       const ttl = options.ttl || this.config.defaultTTL;
-      
+
       const entry: CacheEntry = {
         id: crypto.randomUUID(),
         key,
         response,
         metadata: {
-          model: options.model || 'unknown',
+          model: options.model || "unknown",
           tokens: options.tokens || 0,
           cost: options.cost || 0,
           confidence: options.confidence || 0,
@@ -210,23 +224,28 @@ export class AICache {
           hit_count: 0,
           last_accessed: now,
           context_hash: await this.hashObject(options.context || {}),
-          photo_hash: options.photoData ? await this.hashPhoto(options.photoData) : undefined,
-          similarity_threshold: this.config.similarityThreshold
-        }
+          photo_hash: options.photoData
+            ? await this.hashPhoto(options.photoData)
+            : undefined,
+          similarity_threshold: this.config.similarityThreshold,
+        },
       };
-      
+
       this.cache.set(key, entry);
-      
-      logger.info('Cache set', {
-        key: key.substring(0, 16) + '...',
-        tokens: entry.metadata.tokens,
-        cost: entry.metadata.cost,
-        ttl: ttl / 1000 / 60, // minutes
-        cacheSize: this.cache.size
-      }, 'AI_CACHE');
-      
+
+      logger.info(
+        "Cache set",
+        {
+          key: key.substring(0, 16) + "...",
+          tokens: entry.metadata.tokens,
+          cost: entry.metadata.cost,
+          ttl: ttl / 1000 / 60, // minutes
+          cacheSize: this.cache.size,
+        },
+        "AI_CACHE",
+      );
     } catch (error) {
-      logger.error('Cache set error', error, 'AI_CACHE');
+      logger.error("Cache set error", error, "AI_CACHE");
     }
   }
 
@@ -235,21 +254,27 @@ export class AICache {
    */
   private async findSimilarEntry(
     prompt: string,
-    options: { model?: string; photoData?: ArrayBuffer; context?: Record<string, unknown> }
+    options: {
+      model?: string;
+      photoData?: ArrayBuffer;
+      context?: Record<string, unknown>;
+    },
   ): Promise<CacheEntry | null> {
     const targetContextHash = await this.hashObject(options.context || {});
-    const targetPhotoHash = options.photoData ? await this.hashPhoto(options.photoData) : undefined;
-    
+    const targetPhotoHash = options.photoData
+      ? await this.hashPhoto(options.photoData)
+      : undefined;
+
     // Simple similarity check - in production would use embeddings
     for (const [cacheKey, entry] of this.cache.entries()) {
       if (this.isExpired(entry)) continue;
-      
+
       // Check model compatibility
       if (options.model && entry.metadata.model !== options.model) continue;
-      
+
       // Check context similarity
       if (entry.metadata.context_hash !== targetContextHash) continue;
-      
+
       // Check photo similarity if both have photos
       if (targetPhotoHash && entry.metadata.photo_hash) {
         if (entry.metadata.photo_hash === targetPhotoHash) {
@@ -257,15 +282,18 @@ export class AICache {
         }
         continue; // Different photos
       }
-      
+
       // Check prompt similarity (simple word-based for now)
-      const similarity = this.calculateTextSimilarity(prompt, this.extractPromptFromKey(cacheKey));
-      
+      const similarity = this.calculateTextSimilarity(
+        prompt,
+        this.extractPromptFromKey(cacheKey),
+      );
+
       if (similarity >= this.config.similarityThreshold) {
         return entry;
       }
     }
-    
+
     return null;
   }
 
@@ -274,16 +302,20 @@ export class AICache {
    */
   private async generateCacheKey(
     prompt: string,
-    options: { model?: string; photoData?: ArrayBuffer; context?: Record<string, unknown> }
+    options: {
+      model?: string;
+      photoData?: ArrayBuffer;
+      context?: Record<string, unknown>;
+    },
   ): Promise<string> {
     const components = [
       prompt.trim().toLowerCase(),
-      options.model || 'default',
+      options.model || "default",
       await this.hashObject(options.context || {}),
-      options.photoData ? await this.hashPhoto(options.photoData) : 'no-photo'
+      options.photoData ? await this.hashPhoto(options.photoData) : "no-photo",
     ];
-    
-    return await this.hashString(components.join('|'));
+
+    return await this.hashString(components.join("|"));
   }
 
   /**
@@ -292,10 +324,10 @@ export class AICache {
   private calculateTextSimilarity(text1: string, text2: string): number {
     const set1 = new Set(text1.toLowerCase().split(/\s+/));
     const set2 = new Set(text2.toLowerCase().split(/\s+/));
-    
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
+
+    const intersection = new Set([...set1].filter((x) => set2.has(x)));
     const union = new Set([...set1, ...set2]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -305,9 +337,12 @@ export class AICache {
   private async hashString(input: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(input);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+    return hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .substring(0, 16);
   }
 
   /**
@@ -322,9 +357,12 @@ export class AICache {
    * Hash photo data
    */
   private async hashPhoto(photoData: ArrayBuffer): Promise<string> {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', photoData);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", photoData);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+    return hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .substring(0, 16);
   }
 
   /**
@@ -348,25 +386,33 @@ export class AICache {
    */
   private async evictOldEntries(): Promise<void> {
     const entries = Array.from(this.cache.entries());
-    
+
     // Sort by last accessed time and hit count
     entries.sort(([, a], [, b]) => {
-      const aScore = new Date(a.metadata.last_accessed).getTime() + (a.metadata.hit_count * 3600000);
-      const bScore = new Date(b.metadata.last_accessed).getTime() + (b.metadata.hit_count * 3600000);
+      const aScore =
+        new Date(a.metadata.last_accessed).getTime() +
+        a.metadata.hit_count * 3600000;
+      const bScore =
+        new Date(b.metadata.last_accessed).getTime() +
+        b.metadata.hit_count * 3600000;
       return aScore - bScore;
     });
-    
+
     // Remove oldest 10% of entries
     const toRemove = Math.floor(entries.length * 0.1);
     for (let i = 0; i < toRemove; i++) {
       const [key] = entries[i];
       this.cache.delete(key);
     }
-    
-    logger.info('Cache eviction completed', {
-      removedEntries: toRemove,
-      remainingEntries: this.cache.size
-    }, 'AI_CACHE');
+
+    logger.info(
+      "Cache eviction completed",
+      {
+        removedEntries: toRemove,
+        remainingEntries: this.cache.size,
+      },
+      "AI_CACHE",
+    );
   }
 
   /**
@@ -375,20 +421,24 @@ export class AICache {
   private cleanup(): void {
     const beforeSize = this.cache.size;
     let expiredCount = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (this.isExpired(entry)) {
         this.cache.delete(key);
         expiredCount++;
       }
     }
-    
+
     if (expiredCount > 0) {
-      logger.info('Cache cleanup completed', {
-        expiredEntries: expiredCount,
-        remainingEntries: this.cache.size,
-        beforeSize
-      }, 'AI_CACHE');
+      logger.info(
+        "Cache cleanup completed",
+        {
+          expiredEntries: expiredCount,
+          remainingEntries: this.cache.size,
+          beforeSize,
+        },
+        "AI_CACHE",
+      );
     }
   }
 
@@ -407,14 +457,17 @@ export class AICache {
   getStats(): CacheStats {
     const totalRequests = this.stats.hits + this.stats.misses;
     const hitRate = totalRequests > 0 ? this.stats.hits / totalRequests : 0;
-    
+
     return {
       totalEntries: this.cache.size,
       hitRate: hitRate * 100,
       totalSavings: this.stats.totalSavings,
-      avgResponseTime: this.stats.requestCount > 0 ? this.stats.totalResponseTime / this.stats.requestCount : 0,
+      avgResponseTime:
+        this.stats.requestCount > 0
+          ? this.stats.totalResponseTime / this.stats.requestCount
+          : 0,
       lastCleanup: new Date().toISOString(),
-      memoryUsage: this.estimateMemoryUsage()
+      memoryUsage: this.estimateMemoryUsage(),
     };
   }
 
@@ -423,13 +476,13 @@ export class AICache {
    */
   private estimateMemoryUsage(): number {
     let totalSize = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       // Rough estimation
       totalSize += key.length * 2; // UTF-16
       totalSize += JSON.stringify(entry).length * 2;
     }
-    
+
     return totalSize;
   }
 
@@ -443,10 +496,10 @@ export class AICache {
       misses: 0,
       totalSavings: 0,
       totalResponseTime: 0,
-      requestCount: 0
+      requestCount: 0,
     };
-    
-    logger.info('Cache cleared', {}, 'AI_CACHE');
+
+    logger.info("Cache cleared", {}, "AI_CACHE");
   }
 
   /**
@@ -454,20 +507,28 @@ export class AICache {
    */
   updateConfig(newConfig: Partial<CacheConfig>): void {
     Object.assign(this.config, newConfig);
-    
-    logger.info('Cache configuration updated', {
-      config: this.config
-    }, 'AI_CACHE');
+
+    logger.info(
+      "Cache configuration updated",
+      {
+        config: this.config,
+      },
+      "AI_CACHE",
+    );
   }
 
   /**
    * Export cache for backup/analysis
    */
-  exportCache(): { entries: CacheEntry[]; stats: typeof this.stats; config: CacheConfig } {
+  exportCache(): {
+    entries: CacheEntry[];
+    stats: typeof this.stats;
+    config: CacheConfig;
+  } {
     return {
       entries: Array.from(this.cache.values()),
       stats: this.stats,
-      config: this.config
+      config: this.config,
     };
   }
 

@@ -3,9 +3,12 @@
  * Extracted from PropertyManagerDelivery.tsx
  */
 
-import React from 'react';
-import { Mail, FileText, Calendar } from 'lucide-react';
-import { PropertyManagerInfo, DeliveryOptions } from '@/hooks/usePropertyManagerDelivery';
+import React from "react";
+import { Mail, FileText, Calendar } from "lucide-react";
+import {
+  PropertyManagerInfo,
+  DeliveryOptions,
+} from "@/hooks/usePropertyManagerDelivery";
 
 interface DeliverySummaryPanelProps {
   managerInfo: PropertyManagerInfo;
@@ -14,14 +17,18 @@ interface DeliverySummaryPanelProps {
 
 export const DeliverySummaryPanel: React.FC<DeliverySummaryPanelProps> = ({
   managerInfo,
-  deliveryOptions
+  deliveryOptions,
 }) => {
   const getAttachments = () => {
-    return [
-      deliveryOptions.includeReport && 'Inspection Report',
-      deliveryOptions.includePhotos && 'Photos',
-      deliveryOptions.includeRecommendations && 'Recommendations'
-    ].filter(Boolean).join(', ') || 'None selected';
+    return (
+      [
+        deliveryOptions.includeReport && "Inspection Report",
+        deliveryOptions.includePhotos && "Photos",
+        deliveryOptions.includeRecommendations && "Recommendations",
+      ]
+        .filter(Boolean)
+        .join(", ") || "None selected"
+    );
   };
 
   const formatDeliveryMethod = (method: string) => {
@@ -34,7 +41,10 @@ export const DeliverySummaryPanel: React.FC<DeliverySummaryPanelProps> = ({
       <div className="text-sm text-gray-600 space-y-1">
         <div className="flex items-center gap-2">
           <Mail className="w-3 h-3" />
-          <span>Recipient: {managerInfo.name || 'Not specified'} ({managerInfo.email || 'Not specified'})</span>
+          <span>
+            Recipient: {managerInfo.name || "Not specified"} (
+            {managerInfo.email || "Not specified"})
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <FileText className="w-3 h-3" />
@@ -42,7 +52,9 @@ export const DeliverySummaryPanel: React.FC<DeliverySummaryPanelProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <Calendar className="w-3 h-3" />
-          <span>Method: {formatDeliveryMethod(deliveryOptions.deliveryMethod)}</span>
+          <span>
+            Method: {formatDeliveryMethod(deliveryOptions.deliveryMethod)}
+          </span>
         </div>
       </div>
     </div>

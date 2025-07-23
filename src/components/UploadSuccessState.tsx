@@ -20,14 +20,14 @@ export const UploadSuccessState: React.FC<UploadSuccessStateProps> = ({
   uploadedAt,
   onView,
   onDelete,
-  isDeleting = false
+  isDeleting = false,
 }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -47,7 +47,7 @@ export const UploadSuccessState: React.FC<UploadSuccessStateProps> = ({
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2 flex-shrink-0">
             {onView && fileUrl && (
               <Button
@@ -60,7 +60,7 @@ export const UploadSuccessState: React.FC<UploadSuccessStateProps> = ({
                 <Eye className="w-4 h-4" />
               </Button>
             )}
-            
+
             {onDelete && (
               <Button
                 variant="ghost"

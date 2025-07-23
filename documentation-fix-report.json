@@ -1,0 +1,395 @@
+{
+  "totalFiles": 97,
+  "filesWithIssues": 38,
+  "totalIssuesFixed": 176,
+  "fileReports": [
+    {
+      "file": "ACCESSIBILITY_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "ACTUAL_SCHEMA_ANALYSIS.md",
+      "issues": 6
+    },
+    {
+      "file": "ADR/0001-adr-system-introduction.md",
+      "issues": 0
+    },
+    {
+      "file": "ADR/README.md",
+      "issues": 0
+    },
+    {
+      "file": "ADR/template.md",
+      "issues": 0
+    },
+    {
+      "file": "AI_CODING_STANDARDS.md",
+      "issues": 0
+    },
+    {
+      "file": "AI_CONTEXT_MANAGEMENT.md",
+      "issues": 0
+    },
+    {
+      "file": "AI_ONBOARDING.md",
+      "issues": 0
+    },
+    {
+      "file": "AI_PROMPT_TEMPLATES.md",
+      "issues": 0
+    },
+    {
+      "file": "ARCHITECTURAL_PRINCIPLES.md",
+      "issues": 0
+    },
+    {
+      "file": "ARCHITECTURE_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "CHECKLIST_MANAGEMENT_PREMORTEM.md",
+      "issues": 0
+    },
+    {
+      "file": "CLAUDE.md",
+      "issues": 18
+    },
+    {
+      "file": "CLAUDE_CODE_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "CLAUDE_QUICK_START.md",
+      "issues": 0
+    },
+    {
+      "file": "CLAUDE_SETUP_SUMMARY.md",
+      "issues": 0
+    },
+    {
+      "file": "CODEBASE_FIXES_SUMMARY.md",
+      "issues": 2
+    },
+    {
+      "file": "CODE_REVIEW.md",
+      "issues": 0
+    },
+    {
+      "file": "CODING_STANDARDS.md",
+      "issues": 15
+    },
+    {
+      "file": "COLLABORATION_FEATURES_REMOVED.md",
+      "issues": 0
+    },
+    {
+      "file": "COMMON_PATTERNS.md",
+      "issues": 0
+    },
+    {
+      "file": "COMPONENT_PATTERNS.md",
+      "issues": 0
+    },
+    {
+      "file": "CONSOLIDATED_SECURITY_IMPLEMENTATION.md",
+      "issues": 1
+    },
+    {
+      "file": "CONSOLIDATION_COMPLETE.md",
+      "issues": 0
+    },
+    {
+      "file": "CORRECTED_DATABASE_SCHEMA.md",
+      "issues": 13
+    },
+    {
+      "file": "CRITICAL_CODE_VIOLATIONS_FOUND.md",
+      "issues": 0
+    },
+    {
+      "file": "CRITICAL_DATABASE_FIXES.md",
+      "issues": 4
+    },
+    {
+      "file": "CRITICAL_ENVIRONMENT_FIX.md",
+      "issues": 0
+    },
+    {
+      "file": "CRITICAL_FIXES_MANDATE.md",
+      "issues": 4
+    },
+    {
+      "file": "CRITICAL_SCHEMA_DISCOVERY.md",
+      "issues": 3
+    },
+    {
+      "file": "CRITICAL_SCHEMA_FIXES_FINAL.md",
+      "issues": 10
+    },
+    {
+      "file": "DATABASE_ANALYSIS.md",
+      "issues": 4
+    },
+    {
+      "file": "DATABASE_COMPATIBILITY_GUIDE.md",
+      "issues": 5
+    },
+    {
+      "file": "DATABASE_ENTERPRISE_TRANSFORMATION_SUMMARY.md",
+      "issues": 0
+    },
+    {
+      "file": "DATABASE_FIXES_APPLIED.md",
+      "issues": 0
+    },
+    {
+      "file": "DATABASE_MIGRATION_NEEDED.md",
+      "issues": 2
+    },
+    {
+      "file": "DATABASE_SCHEMA_FIXES.md",
+      "issues": 1
+    },
+    {
+      "file": "DATABASE_SCHEMA_FIXES_APPLIED.md",
+      "issues": 4
+    },
+    {
+      "file": "DATABASE_SCHEMA_REFERENCE.md",
+      "issues": 10
+    },
+    {
+      "file": "DEBUGGING_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "DECISION_LOG.md",
+      "issues": 2
+    },
+    {
+      "file": "DEPLOYMENT.md",
+      "issues": 0
+    },
+    {
+      "file": "DEPLOYMENT_NOTES.md",
+      "issues": 0
+    },
+    {
+      "file": "DEPLOYMENT_SUMMARY.md",
+      "issues": 2
+    },
+    {
+      "file": "DEVELOPMENT_PHASES.md",
+      "issues": 0
+    },
+    {
+      "file": "EMERGENCY_CLEANUP_COMPLETE.md",
+      "issues": 4
+    },
+    {
+      "file": "EMERGENCY_DATABASE_FIX.md",
+      "issues": 0
+    },
+    {
+      "file": "ENGINEERING_CONSISTENCY_PREVENTION_SYSTEM.md",
+      "issues": 0
+    },
+    {
+      "file": "ENGINEERING_EXCELLENCE_SUMMARY.md",
+      "issues": 0
+    },
+    {
+      "file": "ENHANCED_ARCHITECTURE_COMPLETE.md",
+      "issues": 5
+    },
+    {
+      "file": "ENTERPRISE_SETUP_INSTRUCTIONS.md",
+      "issues": 0
+    },
+    {
+      "file": "FINAL_DATABASE_FIXES_SUMMARY.md",
+      "issues": 2
+    },
+    {
+      "file": "INVESTIGATION_SUMMARY.md",
+      "issues": 0
+    },
+    {
+      "file": "MIGRATION.md",
+      "issues": 9
+    },
+    {
+      "file": "MIGRATION_COMPLETE.md",
+      "issues": 5
+    },
+    {
+      "file": "MIGRATION_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "PERFORMANCE_STANDARDS.md",
+      "issues": 0
+    },
+    {
+      "file": "PHASE_1_2_COMPLETION_HANDOFF.md",
+      "issues": 1
+    },
+    {
+      "file": "PHASE_1_COMPLETION_EVIDENCE.md",
+      "issues": 4
+    },
+    {
+      "file": "PHASE_1_COMPLETION_PROMPT.md",
+      "issues": 6
+    },
+    {
+      "file": "PHASE_1_COMPLETION_REPORT.md",
+      "issues": 3
+    },
+    {
+      "file": "PHASE_1_FINAL_COMPLETION_INSTRUCTIONS.md",
+      "issues": 0
+    },
+    {
+      "file": "PHASE_1_QUICK_REFERENCE.md",
+      "issues": 1
+    },
+    {
+      "file": "PHASE_4_SYSTEMATIC_FIXES.md",
+      "issues": 1
+    },
+    {
+      "file": "PROPERTY_FORM_FIXES.md",
+      "issues": 0
+    },
+    {
+      "file": "README.md",
+      "issues": 0
+    },
+    {
+      "file": "README_FOR_FUTURE_AI_ENGINEERS.md",
+      "issues": 0
+    },
+    {
+      "file": "REQUIREMENTS.md",
+      "issues": 0
+    },
+    {
+      "file": "SECURITY-PROMPT.md",
+      "issues": 0
+    },
+    {
+      "file": "SECURITY.md",
+      "issues": 0
+    },
+    {
+      "file": "SECURITY_ENTERPRISE.md",
+      "issues": 0
+    },
+    {
+      "file": "SECURITY_GUIDELINES.md",
+      "issues": 1
+    },
+    {
+      "file": "SECURITY_REMEDIATION_PLAN.md",
+      "issues": 0
+    },
+    {
+      "file": "STAGING_SETUP.md",
+      "issues": 0
+    },
+    {
+      "file": "SUPABASE_PRODUCTION_SCHEMA_QUERY.md",
+      "issues": 0
+    },
+    {
+      "file": "TESTING_SCRIPTS.md",
+      "issues": 1
+    },
+    {
+      "file": "TESTING_STANDARDS.md",
+      "issues": 0
+    },
+    {
+      "file": "VIDEO_WALKTHROUGH_IMPLEMENTATION.md",
+      "issues": 0
+    },
+    {
+      "file": "VRBO_SCRAPING_SOLUTION.md",
+      "issues": 0
+    },
+    {
+      "file": "ZERO_TOLERANCE_STANDARDS.md",
+      "issues": 0
+    },
+    {
+      "file": "database/README.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/ADMIN_PORTAL.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/ARCHITECTURAL_EXCELLENCE_PATTERNS.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/CLAUDE_INTEGRATION.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/COMPATIBILITY_LAYER_COMPLETE.md",
+      "issues": 7
+    },
+    {
+      "file": "docs/DATABASE_COMPATIBILITY_ARCHITECTURE.md",
+      "issues": 4
+    },
+    {
+      "file": "docs/DATABASE_SCHEMA_REFERENCE.md",
+      "issues": 3
+    },
+    {
+      "file": "docs/DEVELOPER_DATABASE_QUICKREF.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/PRODUCTION_DEPLOYMENT_GUIDE.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/SESSION_MANAGEMENT.md",
+      "issues": 0
+    },
+    {
+      "file": "docs/TESTING_PROCEDURES.md",
+      "issues": 6
+    },
+    {
+      "file": "docs/TROUBLESHOOTING_SCHEMA_ISSUES.md",
+      "issues": 4
+    },
+    {
+      "file": "docs/VALIDATION_REPORT.md",
+      "issues": 0
+    },
+    {
+      "file": "inspection_creation_bug_report.md",
+      "issues": 0
+    },
+    {
+      "file": "supabase_validation_prompt.md",
+      "issues": 2
+    },
+    {
+      "file": "updated_plan_of_attack.md",
+      "issues": 1
+    },
+    {
+      "file": "vrbo-scraper-test-results.md",
+      "issues": 0
+    }
+  ]
+}

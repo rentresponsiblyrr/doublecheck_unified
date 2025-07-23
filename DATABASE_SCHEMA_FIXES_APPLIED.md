@@ -37,8 +37,8 @@ These files still reference wrong property field names:
 These files have wrong type definitions:
 
 1. **`src/types/branded-types.ts`** (Lines 55-56)
-   - `property_name: string` → should be `name: string`
-   - `street_address: string` → should be `address: string`
+   - `name: string` → should be `name: string`
+   - `address: string` → should be `address: string`
 
 ### **Priority 3: Test Files (LOW)**
 These test files need schema updates:
@@ -67,8 +67,8 @@ sed -i 's/\.property_id/\.id/g' src/services/mobile/PropertyLookupService.ts
 ```typescript
 // In src/types/branded-types.ts
 // Change:
-property_name: string;
-street_address: string;
+name: string;
+address: string;
 // To:
 name: string;
 address: string;

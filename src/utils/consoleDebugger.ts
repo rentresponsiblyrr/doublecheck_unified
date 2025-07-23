@@ -13,7 +13,6 @@ interface QuickDebugResult {
 }
 
 export class ConsoleDebugger {
-  
   /**
    * Quick database status check that logs to console
    */
@@ -22,64 +21,70 @@ export class ConsoleDebugger {
       timestamp: new Date().toISOString(),
       tables: {},
       validStatuses: [],
-      errors: []
+      errors: [],
     };
 
-
     // Check critical tables
-    const tablesToCheck = ['properties', 'inspections', 'logs', 'static_safety_items', 'users'];
-    
+    const tablesToCheck = [
+      "properties",
+      "inspections",
+      "logs",
+      "static_safety_items",
+      "users",
+    ];
+
     for (const table of tablesToCheck) {
       try {
         const { error } = await supabase
           .from(table)
-          .select('*')
+          .select("*")
           .limit(1)
           .maybeSingle();
 
         result.tables[table] = !error;
-        
+
         if (error) {
           result.errors.push(`${table}: ${error.message}`);
         } else {
         }
       } catch (err) {
         result.tables[table] = false;
-        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
         result.errors.push(`${table}: ${errorMsg}`);
       }
     }
 
     // Test inspection status values
-    const statusesToTest = ['draft', 'in_progress', 'pending_review'];
-    
-    const { data: { user } } = await supabase.auth.getUser();
+    const statusesToTest = ["draft", "in_progress", "pending_review"];
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      result.errors.push('No authenticated user');
+      result.errors.push("No authenticated user");
     } else {
       for (const status of statusesToTest) {
         try {
           const { data, error } = await supabase
-            .from('inspections')
+            .from("inspections")
             .insert({
-              property_id: 'test-property-id',
+              property_id: "test-property-id",
               inspector_id: user.id,
               status: status,
               start_time: new Date().toISOString(),
-              completed: false
+              completed: false,
             })
-            .select('id')
+            .select("id")
             .single();
 
           if (!error && data) {
             result.validStatuses.push(status);
-            
+
             // Clean up test record
-            await supabase.from('inspections').delete().eq('id', data.id);
+            await supabase.from("inspections").delete().eq("id", data.id);
           } else {
           }
-        } catch (err) {
-        }
+        } catch (err) {}
       }
     }
 
@@ -90,7 +95,10 @@ export class ConsoleDebugger {
    * Add debugging to window object for easy access
    */
   static addToWindow() {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (
+      typeof window !== "undefined" &&
+      process.env.NODE_ENV === "development"
+    ) {
       (window as any).debugDB = {
         check: this.quickDatabaseCheck,
         tables: async () => {
@@ -100,9 +108,8 @@ export class ConsoleDebugger {
         statuses: async () => {
           const result = await this.quickDatabaseCheck();
           return result.validStatuses;
-        }
+        },
       };
-      
     }
   }
 
@@ -110,8 +117,7 @@ export class ConsoleDebugger {
    * Log critical information about the current state
    */
   static logCurrentState() {
-    if (process.env.NODE_ENV === 'development') {
-      
+    if (process.env.NODE_ENV === "development") {
       // Check if user is authenticated
       supabase.auth.getUser().then(({ data: { user }, error }) => {
         if (error) {
@@ -124,7 +130,7 @@ export class ConsoleDebugger {
 }
 
 // Auto-initialize in development
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   ConsoleDebugger.addToWindow();
   ConsoleDebugger.logCurrentState();
 }

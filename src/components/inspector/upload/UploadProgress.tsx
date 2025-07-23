@@ -1,8 +1,8 @@
-import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Upload, CheckCircle } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import React from "react";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Upload, CheckCircle } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface UploadProgressProps {
   currentStep: string;
@@ -17,7 +17,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
   totalProgress,
   isUploading,
   completedItems,
-  totalItems
+  totalItems,
 }) => (
   <div id="upload-progress-panel" className="bg-blue-50 p-4 rounded-lg">
     <div className="flex items-center justify-between mb-3">
@@ -40,10 +40,12 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
     </div>
 
     <Progress value={totalProgress} className="h-2 mb-2" />
-    
+
     <div className="flex items-center justify-between text-sm">
       <span className="text-gray-600">{currentStep}</span>
-      <span className="text-blue-600 font-medium">{Math.round(totalProgress)}%</span>
+      <span className="text-blue-600 font-medium">
+        {Math.round(totalProgress)}%
+      </span>
     </div>
 
     {totalProgress === 100 && (

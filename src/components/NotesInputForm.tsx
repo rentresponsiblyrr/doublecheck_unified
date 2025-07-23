@@ -19,7 +19,7 @@ interface NotesInputFormProps {
 export const NotesInputForm: React.FC<NotesInputFormProps> = ({
   user,
   onSaveNote,
-  onNotesChange
+  onNotesChange,
 }) => {
   const [note, setNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -70,12 +70,12 @@ export const NotesInputForm: React.FC<NotesInputFormProps> = ({
               disabled={isSaving}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="text-xs text-gray-500">
               Saving as: {user.name || user.email || "Unknown User"}
             </div>
-            <Button 
+            <Button
               onClick={handleSaveNote}
               disabled={!note.trim() || isSaving}
               size="sm"

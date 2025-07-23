@@ -1,9 +1,9 @@
 /**
  * INSPECTION QUEUE MANAGER - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade inspection queue following ZERO_TOLERANCE_STANDARDS
  * Reduced from 342 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (InspectionQueueFilters, InspectionTable, etc.)
@@ -11,14 +11,14 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - InspectionQueueDataManager: Data filtering, sorting, and state management
  * - InspectionQueueFilters: Search and filter controls
  * - InspectionQueueTable: Data table with inspection rows
  * - InspectionQueueActions: Action buttons and controls
  * - InspectionQueueEmpty: Empty state display
- * 
+ *
  * @example
  * ```typescript
  * <InspectionQueueManager
@@ -29,16 +29,22 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BarChart3 } from "lucide-react";
 
 // Import focused components
-import { InspectionQueueDataManager } from './InspectionQueueDataManager';
-import { InspectionQueueFilters } from './InspectionQueueFilters';
-import { InspectionQueueTable } from './InspectionQueueTable';
-import { InspectionQueueEmpty } from './InspectionQueueEmpty';
-import { InspectionQueueLoading } from './InspectionQueueLoading';
+import { InspectionQueueDataManager } from "./InspectionQueueDataManager";
+import { InspectionQueueFilters } from "./InspectionQueueFilters";
+import { InspectionQueueTable } from "./InspectionQueueTable";
+import { InspectionQueueEmpty } from "./InspectionQueueEmpty";
+import { InspectionQueueLoading } from "./InspectionQueueLoading";
 
 /**
  * Inspection interface
@@ -49,9 +55,14 @@ export interface Inspection {
   propertyAddress: string;
   inspectorId: string;
   inspectorName: string;
-  status: 'pending_review' | 'in_review' | 'completed' | 'approved' | 'rejected';
+  status:
+    | "pending_review"
+    | "in_review"
+    | "completed"
+    | "approved"
+    | "rejected";
   submittedAt: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   aiScore: number;
   photoCount: number;
   videoCount: number;
@@ -81,7 +92,7 @@ export const InspectionQueueManager: React.FC<InspectionQueueManagerProps> = ({
   inspections,
   isLoading,
   onSelectInspection,
-  selectedInspectionId
+  selectedInspectionId,
 }) => {
   // Loading state
   if (isLoading) {
@@ -113,7 +124,7 @@ export const InspectionQueueManager: React.FC<InspectionQueueManagerProps> = ({
             onFilterStatusChange,
             onFilterPriorityChange,
             onSortChange,
-            onSortOrderToggle
+            onSortOrderToggle,
           }) => (
             <>
               {/* Update title with filtered count */}
@@ -141,7 +152,9 @@ export const InspectionQueueManager: React.FC<InspectionQueueManagerProps> = ({
               {filteredInspections.length === 0 ? (
                 <InspectionQueueEmpty
                   searchQuery={searchQuery}
-                  hasActiveFilters={filterStatus !== 'all' || filterPriority !== 'all'}
+                  hasActiveFilters={
+                    filterStatus !== "all" || filterPriority !== "all"
+                  }
                 />
               ) : (
                 <InspectionQueueTable

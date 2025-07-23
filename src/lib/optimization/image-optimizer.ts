@@ -22,7 +22,7 @@ export class ImageOptimizer {
    */
   async compressForAI(
     image: File | Blob | string,
-    options: CompressionOptions = {}
+    options: CompressionOptions = {},
   ): Promise<CompressedImage> {
     const startTime = performance.now();
 
@@ -41,7 +41,7 @@ export class ImageOptimizer {
 
     // Validate AI quality maintained
     const qualityScore = await this.validateAIQuality(compressed, img);
-    
+
     if (qualityScore < 0.85 && !options.forceCompression) {
       // Recompress with higher quality
       settings.quality += 0.1;
@@ -59,13 +59,13 @@ export class ImageOptimizer {
         compressionRatio: originalSize / compressed.blob.size,
         dimensions: {
           width: compressed.width,
-          height: compressed.height
+          height: compressed.height,
         },
         quality: settings.quality,
         format: settings.format,
         processingTime: duration,
-        aiQualityScore: qualityScore
-      }
+        aiQualityScore: qualityScore,
+      },
     };
   }
 
@@ -74,22 +74,22 @@ export class ImageOptimizer {
    */
   async generateProgressiveVersions(
     image: File | Blob | string,
-    options: ProgressiveOptions = {}
+    options: ProgressiveOptions = {},
   ): Promise<ProgressiveImage> {
     const img = await this.loadImage(image);
-    
+
     const versions: ImageVersion[] = [];
     const sizes = options.sizes || this.getProgressiveSizes(img);
 
     // Generate placeholder (tiny, blurred)
     const placeholder = await this.generatePlaceholder(img);
     versions.push({
-      name: 'placeholder',
+      name: "placeholder",
       blob: placeholder.blob,
       url: placeholder.url,
       width: placeholder.width,
       height: placeholder.height,
-      quality: 'placeholder'
+      quality: "placeholder",
     });
 
     // Generate progressive versions
@@ -106,21 +106,23 @@ export class ImageOptimizer {
       placeholder: versions[0],
       versions: versions.slice(1),
       final: versions[versions.length - 1],
-      loadingStrategy: this.determineLoadingStrategy(versions)
+      loadingStrategy: this.determineLoadingStrategy(versions),
     };
   }
 
   /**
    * Manages storage optimization for offline support
    */
-  async optimizeStorage(options: StorageOptimizationOptions = {}): Promise<StorageReport> {
+  async optimizeStorage(
+    options: StorageOptimizationOptions = {},
+  ): Promise<StorageReport> {
     const startTime = performance.now();
     const report: StorageReport = {
       freedSpace: 0,
       optimizedImages: 0,
       removedImages: 0,
       duration: 0,
-      suggestions: []
+      suggestions: [],
     };
 
     // Analyze current storage
@@ -135,13 +137,15 @@ export class ImageOptimizer {
     }
 
     // Compress oversized images
-    const oversized = await this.findOversizedImages(options.maxImageSize || 2 * 1024 * 1024);
+    const oversized = await this.findOversizedImages(
+      options.maxImageSize || 2 * 1024 * 1024,
+    );
     for (const image of oversized) {
       const optimized = await this.compressForAI(image.blob, {
         maxSize: options.maxImageSize,
-        preserveQuality: false
+        preserveQuality: false,
       });
-      
+
       if (optimized.metadata.compressedSize < image.size) {
         await this.storageManager.replace(image.hash, optimized);
         report.optimizedImages++;
@@ -152,7 +156,7 @@ export class ImageOptimizer {
     // Clean old cached images
     if (options.cleanCache) {
       const removed = await this.storageManager.cleanOldItems(
-        options.maxCacheAge || 7 * 24 * 60 * 60 * 1000 // 7 days
+        options.maxCacheAge || 7 * 24 * 60 * 60 * 1000, // 7 days
       );
       report.removedImages += removed.count;
       report.freedSpace += removed.size;
@@ -174,8 +178,8 @@ export class ImageOptimizer {
 
     // Determine optimal settings based on device
     let settings: CompressionSettings;
-    
-    if (capabilities.deviceType === 'mobile') {
+
+    if (capabilities.deviceType === "mobile") {
       if (capabilities.memory < 4) {
         // Low-end device
         settings = this.qualityPresets.lowEnd;
@@ -189,10 +193,10 @@ export class ImageOptimizer {
     }
 
     // Adjust for network conditions
-    if (network.effectiveType === '2g' || network.effectiveType === 'slow-2g') {
+    if (network.effectiveType === "2g" || network.effectiveType === "slow-2g") {
       settings.quality *= 0.7;
       settings.maxDimension = Math.min(settings.maxDimension, 800);
-    } else if (network.effectiveType === '3g') {
+    } else if (network.effectiveType === "3g") {
       settings.quality *= 0.85;
       settings.maxDimension = Math.min(settings.maxDimension, 1200);
     }
@@ -202,7 +206,7 @@ export class ImageOptimizer {
 
     // Generate appropriate versions
     const versions = await this.generateProgressiveVersions(image, {
-      sizes: this.getAdaptiveSizes(capabilities, network)
+      sizes: this.getAdaptiveSizes(capabilities, network),
     });
 
     return {
@@ -212,9 +216,9 @@ export class ImageOptimizer {
         type: capabilities.deviceType,
         pixelRatio: capabilities.pixelRatio,
         memory: capabilities.memory,
-        network: network.effectiveType
+        network: network.effectiveType,
       },
-      recommendations: this.getDeviceRecommendations(capabilities, network)
+      recommendations: this.getDeviceRecommendations(capabilities, network),
     };
   }
 
@@ -223,7 +227,7 @@ export class ImageOptimizer {
    */
   async batchOptimize(
     images: Array<File | Blob | string>,
-    options: BatchOptions = {}
+    options: BatchOptions = {},
   ): Promise<BatchResult> {
     const results: CompressedImage[] = [];
     const errors: BatchError[] = [];
@@ -244,8 +248,8 @@ export class ImageOptimizer {
         } catch (error) {
           errors.push({
             index,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            image
+            error: error instanceof Error ? error.message : "Unknown error",
+            image,
           });
         }
       });
@@ -262,95 +266,102 @@ export class ImageOptimizer {
         totalOriginalSize,
         totalCompressedSize,
         averageCompressionRatio: totalOriginalSize / totalCompressedSize,
-        savedSpace: totalOriginalSize - totalCompressedSize
-      }
+        savedSpace: totalOriginalSize - totalCompressedSize,
+      },
     };
   }
 
   // Private helper methods
 
   private initializeCanvas(): void {
-    if (typeof document !== 'undefined') {
-      this.canvas = document.createElement('canvas');
-      this.ctx = this.canvas.getContext('2d', {
+    if (typeof document !== "undefined") {
+      this.canvas = document.createElement("canvas");
+      this.ctx = this.canvas.getContext("2d", {
         willReadFrequently: true,
-        alpha: true
+        alpha: true,
       });
     }
   }
 
   private initializeWorker(): void {
-    if (typeof Worker !== 'undefined') {
+    if (typeof Worker !== "undefined") {
       // In production, would load actual worker script
       // this.worker = new Worker('/workers/image-optimizer.js');
     }
   }
 
   private detectDeviceCapabilities(): DeviceCapabilities {
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
     const isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
-    
+
     return {
-      deviceType: isMobile ? 'mobile' : 'desktop',
-      pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
-      memory: typeof navigator !== 'undefined' && 'deviceMemory' in navigator 
-        ? (navigator as any).deviceMemory : 8,
+      deviceType: isMobile ? "mobile" : "desktop",
+      pixelRatio:
+        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+      memory:
+        typeof navigator !== "undefined" && "deviceMemory" in navigator
+          ? (navigator as any).deviceMemory
+          : 8,
       maxTextureSize: this.getMaxTextureSize(),
       supportedFormats: this.getSupportedFormats(),
       hasWebGL: this.checkWebGLSupport(),
-      hasOffscreenCanvas: typeof OffscreenCanvas !== 'undefined'
+      hasOffscreenCanvas: typeof OffscreenCanvas !== "undefined",
     };
   }
 
-  private initializeQualityPresets(config: ImageOptimizerConfig): QualityPresets {
+  private initializeQualityPresets(
+    config: ImageOptimizerConfig,
+  ): QualityPresets {
     return {
       ai: {
         quality: 0.92,
         maxDimension: 2048,
-        format: 'jpeg',
+        format: "jpeg",
         preserveMetadata: true,
-        sharpening: 0.3
+        sharpening: 0.3,
       },
       desktop: {
         quality: 0.85,
         maxDimension: 1920,
-        format: 'jpeg',
+        format: "jpeg",
         preserveMetadata: false,
-        sharpening: 0.2
+        sharpening: 0.2,
       },
       mobile: {
         quality: 0.75,
         maxDimension: 1280,
-        format: 'jpeg',
+        format: "jpeg",
         preserveMetadata: false,
-        sharpening: 0.1
+        sharpening: 0.1,
       },
       lowEnd: {
         quality: 0.65,
         maxDimension: 800,
-        format: 'jpeg',
+        format: "jpeg",
         preserveMetadata: false,
-        sharpening: 0
+        sharpening: 0,
       },
       thumbnail: {
         quality: 0.7,
         maxDimension: 300,
-        format: 'jpeg',
+        format: "jpeg",
         preserveMetadata: false,
-        sharpening: 0.4
-      }
+        sharpening: 0.4,
+      },
     };
   }
 
-  private async loadImage(source: File | Blob | string): Promise<HTMLImageElement> {
+  private async loadImage(
+    source: File | Blob | string,
+  ): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
+      img.crossOrigin = "anonymous";
+
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Failed to load image'));
-      
-      if (typeof source === 'string') {
+      img.onerror = () => reject(new Error("Failed to load image"));
+
+      if (typeof source === "string") {
         img.src = source;
       } else {
         img.src = URL.createObjectURL(source);
@@ -362,11 +373,11 @@ export class ImageOptimizer {
     if (source instanceof File || source instanceof Blob) {
       return source.size;
     }
-    
+
     // For URL, fetch to get size
     try {
-      const response = await fetch(source, { method: 'HEAD' });
-      const contentLength = response.headers.get('content-length');
+      const response = await fetch(source, { method: "HEAD" });
+      const contentLength = response.headers.get("content-length");
       return contentLength ? parseInt(contentLength) : 0;
     } catch {
       return 0;
@@ -375,47 +386,47 @@ export class ImageOptimizer {
 
   private determineAIOptimalSettings(
     img: HTMLImageElement,
-    options: CompressionOptions
+    options: CompressionOptions,
   ): CompressionSettings {
     const baseSettings = { ...this.qualityPresets.ai };
-    
+
     // Adjust based on image characteristics
     const aspectRatio = img.width / img.height;
     const isPortrait = aspectRatio < 0.8;
     const isLandscape = aspectRatio > 1.2;
     const isLarge = img.width > 3000 || img.height > 3000;
-    
+
     if (isLarge) {
       baseSettings.maxDimension = Math.min(baseSettings.maxDimension, 2048);
     }
-    
+
     if (options.maxSize) {
       // Estimate quality needed for target size
       const currentSize = img.width * img.height * 3; // Rough estimate
       const targetSize = options.maxSize;
       const ratio = targetSize / currentSize;
-      
+
       if (ratio < 0.1) {
         baseSettings.quality = Math.max(0.6, baseSettings.quality * ratio * 10);
       }
     }
-    
+
     return { ...baseSettings, ...options };
   }
 
   private async preprocessForAI(
     img: HTMLImageElement,
-    settings: CompressionSettings
+    settings: CompressionSettings,
   ): Promise<HTMLCanvasElement> {
     if (!this.canvas || !this.ctx) {
-      throw new Error('Canvas not initialized');
+      throw new Error("Canvas not initialized");
     }
 
     // Calculate dimensions
     const { width, height } = this.calculateDimensions(
       img.width,
       img.height,
-      settings.maxDimension
+      settings.maxDimension,
     );
 
     this.canvas.width = width;
@@ -423,7 +434,7 @@ export class ImageOptimizer {
 
     // Enable image smoothing for better quality
     this.ctx.imageSmoothingEnabled = true;
-    this.ctx.imageSmoothingQuality = 'high';
+    this.ctx.imageSmoothingQuality = "high";
 
     // Draw image
     this.ctx.drawImage(img, 0, 0, width, height);
@@ -443,13 +454,13 @@ export class ImageOptimizer {
 
   private async compress(
     canvas: HTMLCanvasElement,
-    settings: CompressionSettings
+    settings: CompressionSettings,
   ): Promise<CompressedResult> {
     return new Promise((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error('Failed to compress image'));
+            reject(new Error("Failed to compress image"));
             return;
           }
 
@@ -457,77 +468,91 @@ export class ImageOptimizer {
             blob,
             url: URL.createObjectURL(blob),
             width: canvas.width,
-            height: canvas.height
+            height: canvas.height,
           });
         },
         `image/${settings.format}`,
-        settings.quality
+        settings.quality,
       );
     });
   }
 
   private async validateAIQuality(
     compressed: CompressedResult,
-    original: HTMLImageElement
+    original: HTMLImageElement,
   ): Promise<number> {
     // Simple quality validation based on compression artifacts
     // In production, would use more sophisticated metrics
-    
-    const compressionRatio = compressed.blob.size / (original.width * original.height * 3);
-    const dimensionRatio = (compressed.width * compressed.height) / (original.width * original.height);
-    
+
+    const compressionRatio =
+      compressed.blob.size / (original.width * original.height * 3);
+    const dimensionRatio =
+      (compressed.width * compressed.height) /
+      (original.width * original.height);
+
     // Score based on compression and dimension preservation
     let score = 1.0;
-    
+
     if (compressionRatio < 0.02) score -= 0.3; // Too compressed
-    if (dimensionRatio < 0.25) score -= 0.2;   // Too small
-    
+    if (dimensionRatio < 0.25) score -= 0.2; // Too small
+
     return Math.max(0, Math.min(1, score));
   }
 
   private calculateDimensions(
     width: number,
     height: number,
-    maxDimension: number
+    maxDimension: number,
   ): { width: number; height: number } {
     if (width <= maxDimension && height <= maxDimension) {
       return { width, height };
     }
 
     const aspectRatio = width / height;
-    
+
     if (width > height) {
       return {
         width: maxDimension,
-        height: Math.round(maxDimension / aspectRatio)
+        height: Math.round(maxDimension / aspectRatio),
       };
     } else {
       return {
         width: Math.round(maxDimension * aspectRatio),
-        height: maxDimension
+        height: maxDimension,
       };
     }
   }
 
   private async applySharpeningFilter(
     ctx: CanvasRenderingContext2D,
-    strength: number
+    strength: number,
   ): Promise<void> {
-    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const imageData = ctx.getImageData(
+      0,
+      0,
+      ctx.canvas.width,
+      ctx.canvas.height,
+    );
     const data = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
 
     // Simple unsharp mask
     const kernel = [
-      0, -strength, 0,
-      -strength, 1 + 4 * strength, -strength,
-      0, -strength, 0
+      0,
+      -strength,
+      0,
+      -strength,
+      1 + 4 * strength,
+      -strength,
+      0,
+      -strength,
+      0,
     ];
 
     // Apply convolution
     const output = new Uint8ClampedArray(data);
-    
+
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
         for (let c = 0; c < 3; c++) {
@@ -548,7 +573,12 @@ export class ImageOptimizer {
   }
 
   private async enhanceContrast(ctx: CanvasRenderingContext2D): Promise<void> {
-    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const imageData = ctx.getImageData(
+      0,
+      0,
+      ctx.canvas.width,
+      ctx.canvas.height,
+    );
     const data = imageData.data;
 
     // Calculate histogram
@@ -561,9 +591,10 @@ export class ImageOptimizer {
     // Find min and max values (excluding outliers)
     const total = data.length / 4;
     const threshold = total * 0.01; // 1% threshold
-    let min = 0, max = 255;
+    let min = 0,
+      max = 255;
     let count = 0;
-    
+
     for (let i = 0; i < 256; i++) {
       count += histogram[i];
       if (count > threshold) {
@@ -571,7 +602,7 @@ export class ImageOptimizer {
         break;
       }
     }
-    
+
     count = 0;
     for (let i = 255; i >= 0; i--) {
       count += histogram[i];
@@ -592,38 +623,43 @@ export class ImageOptimizer {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  private async generatePlaceholder(img: HTMLImageElement): Promise<ImageVersion> {
+  private async generatePlaceholder(
+    img: HTMLImageElement,
+  ): Promise<ImageVersion> {
     const size = 32; // Tiny size for placeholder
-    
+
     if (!this.canvas || !this.ctx) {
-      throw new Error('Canvas not initialized');
+      throw new Error("Canvas not initialized");
     }
 
     this.canvas.width = size;
     this.canvas.height = size;
-    
+
     // Draw tiny version
     this.ctx.drawImage(img, 0, 0, size, size);
-    
+
     // Apply blur effect
-    this.ctx.filter = 'blur(2px)';
+    this.ctx.filter = "blur(2px)";
     this.ctx.drawImage(this.canvas, 0, 0);
-    
+
     const blob = await new Promise<Blob>((resolve, reject) => {
       this.canvas!.toBlob(
-        (blob) => blob ? resolve(blob) : reject(new Error('Failed to create placeholder')),
-        'image/jpeg',
-        0.5
+        (blob) =>
+          blob
+            ? resolve(blob)
+            : reject(new Error("Failed to create placeholder")),
+        "image/jpeg",
+        0.5,
       );
     });
 
     return {
-      name: 'placeholder',
+      name: "placeholder",
       blob,
       url: URL.createObjectURL(blob),
       width: size,
       height: size,
-      quality: 'placeholder'
+      quality: "placeholder",
     };
   }
 
@@ -633,13 +669,13 @@ export class ImageOptimizer {
 
     // Generate sizes: 25%, 50%, 75% of original
     const percentages = [0.25, 0.5, 0.75];
-    
+
     for (const pct of percentages) {
       const size = Math.round(maxDimension * pct);
       sizes.push({
         maxDimension: size,
-        quality: 0.6 + (pct * 0.2), // Quality increases with size
-        name: `${Math.round(pct * 100)}%`
+        quality: 0.6 + pct * 0.2, // Quality increases with size
+        name: `${Math.round(pct * 100)}%`,
       });
     }
 
@@ -648,12 +684,12 @@ export class ImageOptimizer {
 
   private async generateVersion(
     img: HTMLImageElement,
-    size: ProgressiveSize
+    size: ProgressiveSize,
   ): Promise<ImageVersion> {
     const settings: CompressionSettings = {
       maxDimension: size.maxDimension,
       quality: size.quality,
-      format: 'jpeg'
+      format: "jpeg",
     };
 
     const preprocessed = await this.preprocessForAI(img, settings);
@@ -665,74 +701,75 @@ export class ImageOptimizer {
       url: compressed.url,
       width: compressed.width,
       height: compressed.height,
-      quality: 'progressive'
+      quality: "progressive",
     };
   }
 
   private async generateFinalVersion(
     img: HTMLImageElement,
-    options: ProgressiveOptions
+    options: ProgressiveOptions,
   ): Promise<ImageVersion> {
     const settings = this.qualityPresets.ai;
     const preprocessed = await this.preprocessForAI(img, settings);
     const compressed = await this.compress(preprocessed, settings);
 
     return {
-      name: 'final',
+      name: "final",
       blob: compressed.blob,
       url: compressed.url,
       width: compressed.width,
       height: compressed.height,
-      quality: 'high'
+      quality: "high",
     };
   }
 
   private determineLoadingStrategy(versions: ImageVersion[]): LoadingStrategy {
     // Determine optimal loading strategy based on versions
     const totalSize = versions.reduce((sum, v) => sum + v.blob.size, 0);
-    const hasLargeImages = versions.some(v => v.blob.size > 500 * 1024);
+    const hasLargeImages = versions.some((v) => v.blob.size > 500 * 1024);
 
     if (hasLargeImages) {
       return {
-        type: 'progressive',
+        type: "progressive",
         preloadCount: 2,
-        lazyLoadThreshold: 1000 // 1 second
+        lazyLoadThreshold: 1000, // 1 second
       };
     } else {
       return {
-        type: 'eager',
+        type: "eager",
         preloadCount: versions.length,
-        lazyLoadThreshold: 0
+        lazyLoadThreshold: 0,
       };
     }
   }
 
   private async getNetworkConditions(): Promise<NetworkConditions> {
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       const conn = (navigator as any).connection;
       return {
-        effectiveType: conn.effectiveType || '4g',
+        effectiveType: conn.effectiveType || "4g",
         downlink: conn.downlink || 10,
         rtt: conn.rtt || 50,
-        saveData: conn.saveData || false
+        saveData: conn.saveData || false,
       };
     }
 
     // Default to good connection
     return {
-      effectiveType: '4g',
+      effectiveType: "4g",
       downlink: 10,
       rtt: 50,
-      saveData: false
+      saveData: false,
     };
   }
 
   private getMaxTextureSize(): number {
-    if (typeof document === 'undefined') return 4096;
+    if (typeof document === "undefined") return 4096;
 
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+
     if (gl) {
       return gl.getParameter(gl.MAX_TEXTURE_SIZE);
     }
@@ -741,23 +778,23 @@ export class ImageOptimizer {
   }
 
   private getSupportedFormats(): string[] {
-    const formats = ['jpeg', 'png'];
-    
-    if (typeof document !== 'undefined') {
-      const canvas = document.createElement('canvas');
+    const formats = ["jpeg", "png"];
+
+    if (typeof document !== "undefined") {
+      const canvas = document.createElement("canvas");
       canvas.width = 1;
       canvas.height = 1;
-      
+
       // Check WebP support
       try {
-        canvas.toDataURL('image/webp');
-        formats.push('webp');
+        canvas.toDataURL("image/webp");
+        formats.push("webp");
       } catch {}
-      
+
       // Check AVIF support
       try {
-        canvas.toDataURL('image/avif');
-        formats.push('avif');
+        canvas.toDataURL("image/avif");
+        formats.push("avif");
       } catch {}
     }
 
@@ -765,10 +802,11 @@ export class ImageOptimizer {
   }
 
   private checkWebGLSupport(): boolean {
-    if (typeof document === 'undefined') return false;
+    if (typeof document === "undefined") return false;
 
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     return !!gl;
   }
 
@@ -791,20 +829,22 @@ export class ImageOptimizer {
 
   private generateStorageSuggestions(
     analysis: StorageAnalysis,
-    report: StorageReport
+    report: StorageReport,
   ): string[] {
     const suggestions: string[] = [];
 
     if (analysis.totalSize > 100 * 1024 * 1024) {
-      suggestions.push('Consider enabling cloud backup for older images');
+      suggestions.push("Consider enabling cloud backup for older images");
     }
 
     if (analysis.duplicateCount > 10) {
-      suggestions.push('Enable automatic duplicate detection');
+      suggestions.push("Enable automatic duplicate detection");
     }
 
     if (report.freedSpace < analysis.totalSize * 0.1) {
-      suggestions.push('Optimization impact was limited, consider more aggressive compression');
+      suggestions.push(
+        "Optimization impact was limited, consider more aggressive compression",
+      );
     }
 
     return suggestions;
@@ -812,25 +852,25 @@ export class ImageOptimizer {
 
   private getAdaptiveSizes(
     capabilities: DeviceCapabilities,
-    network: NetworkConditions
+    network: NetworkConditions,
   ): ProgressiveSize[] {
     const sizes: ProgressiveSize[] = [];
 
-    if (network.effectiveType === '2g' || network.saveData) {
+    if (network.effectiveType === "2g" || network.saveData) {
       // Very limited sizes
-      sizes.push({ maxDimension: 400, quality: 0.6, name: 'low' });
-      sizes.push({ maxDimension: 800, quality: 0.7, name: 'medium' });
-    } else if (network.effectiveType === '3g') {
+      sizes.push({ maxDimension: 400, quality: 0.6, name: "low" });
+      sizes.push({ maxDimension: 800, quality: 0.7, name: "medium" });
+    } else if (network.effectiveType === "3g") {
       // Moderate sizes
-      sizes.push({ maxDimension: 600, quality: 0.7, name: 'low' });
-      sizes.push({ maxDimension: 1200, quality: 0.8, name: 'medium' });
+      sizes.push({ maxDimension: 600, quality: 0.7, name: "low" });
+      sizes.push({ maxDimension: 1200, quality: 0.8, name: "medium" });
     } else {
       // Full range
-      sizes.push({ maxDimension: 800, quality: 0.75, name: 'low' });
-      sizes.push({ maxDimension: 1600, quality: 0.85, name: 'medium' });
-      
-      if (capabilities.deviceType === 'desktop') {
-        sizes.push({ maxDimension: 2400, quality: 0.9, name: 'high' });
+      sizes.push({ maxDimension: 800, quality: 0.75, name: "low" });
+      sizes.push({ maxDimension: 1600, quality: 0.85, name: "medium" });
+
+      if (capabilities.deviceType === "desktop") {
+        sizes.push({ maxDimension: 2400, quality: 0.9, name: "high" });
       }
     }
 
@@ -839,25 +879,25 @@ export class ImageOptimizer {
 
   private getDeviceRecommendations(
     capabilities: DeviceCapabilities,
-    network: NetworkConditions
+    network: NetworkConditions,
   ): string[] {
     const recommendations: string[] = [];
 
     if (capabilities.memory < 4) {
-      recommendations.push('Limit concurrent image loads to preserve memory');
-      recommendations.push('Use progressive loading for all images');
+      recommendations.push("Limit concurrent image loads to preserve memory");
+      recommendations.push("Use progressive loading for all images");
     }
 
     if (network.saveData) {
-      recommendations.push('Data saver mode detected - using minimal quality');
+      recommendations.push("Data saver mode detected - using minimal quality");
     }
 
     if (!capabilities.hasWebGL) {
-      recommendations.push('WebGL not available - some optimizations disabled');
+      recommendations.push("WebGL not available - some optimizations disabled");
     }
 
-    if (capabilities.supportedFormats.includes('webp')) {
-      recommendations.push('WebP format available for better compression');
+    if (capabilities.supportedFormats.includes("webp")) {
+      recommendations.push("WebP format available for better compression");
     }
 
     return recommendations;
@@ -875,8 +915,8 @@ export class ImageOptimizer {
 // Supporting classes
 
 class StorageManager {
-  private dbName = 'image_optimizer_storage';
-  private storeName = 'images';
+  private dbName = "image_optimizer_storage";
+  private storeName = "images";
   private maxSize: number;
   private db: IDBDatabase | null = null;
 
@@ -912,7 +952,7 @@ class StorageManager {
       imageCount: 0,
       duplicateCount: 0,
       averageSize: 0,
-      largestImage: 0
+      largestImage: 0,
     };
   }
 
@@ -924,7 +964,9 @@ class StorageManager {
     return [];
   }
 
-  async cleanOldItems(maxAge: number): Promise<{ count: number; size: number }> {
+  async cleanOldItems(
+    maxAge: number,
+  ): Promise<{ count: number; size: number }> {
     return { count: 0, size: 0 };
   }
 
@@ -945,7 +987,7 @@ interface CompressionOptions {
   maxSize?: number;
   maxDimension?: number;
   quality?: number;
-  format?: 'jpeg' | 'png' | 'webp' | 'avif';
+  format?: "jpeg" | "png" | "webp" | "avif";
   preserveQuality?: boolean;
   forceCompression?: boolean;
   enhanceContrast?: boolean;
@@ -1002,7 +1044,7 @@ interface ImageVersion {
   url: string;
   width: number;
   height: number;
-  quality: 'placeholder' | 'progressive' | 'high';
+  quality: "placeholder" | "progressive" | "high";
 }
 
 interface ProgressiveImage {
@@ -1013,13 +1055,13 @@ interface ProgressiveImage {
 }
 
 interface LoadingStrategy {
-  type: 'eager' | 'lazy' | 'progressive';
+  type: "eager" | "lazy" | "progressive";
   preloadCount: number;
   lazyLoadThreshold: number;
 }
 
 interface DeviceCapabilities {
-  deviceType: 'mobile' | 'tablet' | 'desktop';
+  deviceType: "mobile" | "tablet" | "desktop";
   pixelRatio: number;
   memory: number; // GB
   maxTextureSize: number;
@@ -1029,7 +1071,7 @@ interface DeviceCapabilities {
 }
 
 interface NetworkConditions {
-  effectiveType: '2g' | 'slow-2g' | '3g' | '4g';
+  effectiveType: "2g" | "slow-2g" | "3g" | "4g";
   downlink: number; // Mbps
   rtt: number; // ms
   saveData: boolean;
@@ -1110,10 +1152,12 @@ interface StorageAnalysis {
 // Default configuration
 const defaultConfig: ImageOptimizerConfig = {
   maxStorageSize: 100 * 1024 * 1024, // 100MB
-  enableWorker: true
+  enableWorker: true,
 };
 
 // Export factory function
-export const createImageOptimizer = (config?: Partial<ImageOptimizerConfig>): ImageOptimizer => {
+export const createImageOptimizer = (
+  config?: Partial<ImageOptimizerConfig>,
+): ImageOptimizer => {
   return new ImageOptimizer({ ...defaultConfig, ...config });
 };

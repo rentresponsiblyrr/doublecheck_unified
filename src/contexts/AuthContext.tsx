@@ -1,6 +1,5 @@
-
-import { createContext } from 'react';
-import { User } from '@supabase/supabase-js';
+import { createContext } from "react";
+import { User } from "@supabase/supabase-js";
 
 export interface AuthContextType {
   user: User | null;
@@ -15,4 +14,6 @@ export interface AuthContextType {
   loadUserRole: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);

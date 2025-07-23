@@ -1,13 +1,13 @@
 /**
  * Camera Controller - Enterprise Grade
- * 
+ *
  * Handles camera access and photo capture functionality
  */
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Camera, AlertTriangle } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Camera, AlertTriangle } from "lucide-react";
 
 interface CameraControllerProps {
   onPhotoCapture: (photoBlob: Blob) => Promise<void>;
@@ -18,7 +18,7 @@ interface CameraControllerProps {
 export const CameraController: React.FC<CameraControllerProps> = ({
   onPhotoCapture,
   onCameraError,
-  isEnabled
+  isEnabled,
 }) => {
   const [isCapturing, setIsCapturing] = useState(false);
 
@@ -26,10 +26,12 @@ export const CameraController: React.FC<CameraControllerProps> = ({
     try {
       setIsCapturing(true);
       // Mock photo capture - in real implementation would access camera
-      const mockBlob = new Blob(['mock photo data'], { type: 'image/jpeg' });
+      const mockBlob = new Blob(["mock photo data"], { type: "image/jpeg" });
       await onPhotoCapture(mockBlob);
     } catch (error) {
-      onCameraError(error instanceof Error ? error : new Error('Camera capture failed'));
+      onCameraError(
+        error instanceof Error ? error : new Error("Camera capture failed"),
+      );
     } finally {
       setIsCapturing(false);
     }
@@ -56,7 +58,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({
             disabled={isCapturing}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {isCapturing ? 'Capturing...' : 'Take Photo'}
+            {isCapturing ? "Capturing..." : "Take Photo"}
           </Button>
         </div>
       </div>

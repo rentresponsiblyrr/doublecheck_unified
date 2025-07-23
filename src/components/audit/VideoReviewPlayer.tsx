@@ -1,19 +1,19 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera } from 'lucide-react';
-import { VideoPlayer } from './video-review/VideoPlayer';
-import { VideoControls } from './video-review/VideoControls';
-import { VideoTimestamps } from './video-review/VideoTimestamps';
-import { VideoBookmarks } from './video-review/VideoBookmarks';
-import { useVideoPlayer } from './video-review/useVideoPlayer';
-import { VideoReviewPlayerProps } from './video-review/types';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Camera } from "lucide-react";
+import { VideoPlayer } from "./video-review/VideoPlayer";
+import { VideoControls } from "./video-review/VideoControls";
+import { VideoTimestamps } from "./video-review/VideoTimestamps";
+import { VideoBookmarks } from "./video-review/VideoBookmarks";
+import { useVideoPlayer } from "./video-review/useVideoPlayer";
+import { VideoReviewPlayerProps } from "./video-review/types";
 
 export const VideoReviewPlayer: React.FC<VideoReviewPlayerProps> = ({
   videoUrl,
   timestamps = [],
   onTimestampClick,
   onBookmarkAdd,
-  className = ''
+  className = "",
 }) => {
   const {
     videoRef,
@@ -27,7 +27,7 @@ export const VideoReviewPlayer: React.FC<VideoReviewPlayerProps> = ({
     handleDurationChange,
     handleLoadStart,
     handleCanPlay,
-    handleEnded
+    handleEnded,
   } = useVideoPlayer(videoUrl);
 
   const handleTimestampClick = (timestamp: any) => {
@@ -41,7 +41,10 @@ export const VideoReviewPlayer: React.FC<VideoReviewPlayerProps> = ({
   };
 
   return (
-    <div id="video-review-player" className={`grid grid-cols-1 lg:grid-cols-4 gap-6 ${className}`}>
+    <div
+      id="video-review-player"
+      className={`grid grid-cols-1 lg:grid-cols-4 gap-6 ${className}`}
+    >
       {/* Main Video Player */}
       <div className="lg:col-span-3">
         <Card>
@@ -63,7 +66,7 @@ export const VideoReviewPlayer: React.FC<VideoReviewPlayerProps> = ({
                 onCanPlay={handleCanPlay}
                 onEnded={handleEnded}
               />
-              
+
               <div className="absolute bottom-0 left-0 right-0">
                 <VideoControls
                   state={state}

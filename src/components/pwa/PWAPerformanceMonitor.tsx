@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { logger } from '@/utils/logger';
+import React, { useEffect, useRef, useState } from "react";
+import { logger } from "@/utils/logger";
 
 interface PerformanceMetrics {
   coreWebVitals: {
@@ -25,7 +25,7 @@ interface PerformanceMetrics {
   userExperience: {
     interactionToNextPaint: number;
     visualStability: number;
-    loadingPerception: 'fast' | 'average' | 'slow';
+    loadingPerception: "fast" | "average" | "slow";
   };
 }
 
@@ -56,10 +56,17 @@ export const PWAPerformanceMonitor: React.FC = () => {
       // Start periodic metrics collection
       startMetricsCollection();
 
-      logger.info('PWA Performance monitoring initialized', {}, 'PWA_PERFORMANCE');
-
+      logger.info(
+        "PWA Performance monitoring initialized",
+        {},
+        "PWA_PERFORMANCE",
+      );
     } catch (error) {
-      logger.error('Failed to initialize performance monitoring', { error }, 'PWA_PERFORMANCE');
+      logger.error(
+        "Failed to initialize performance monitoring",
+        { error },
+        "PWA_PERFORMANCE",
+      );
     }
   };
 
@@ -67,28 +74,28 @@ export const PWAPerformanceMonitor: React.FC = () => {
     // LCP (Largest Contentful Paint)
     const lcpObserver = new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
-        updateMetric('lcp', entry.startTime);
+        updateMetric("lcp", entry.startTime);
       }
     });
 
     try {
-      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] });
     } catch (error) {
       // Fallback for browsers that don't support LCP
-      logger.warn('LCP observation not supported', {}, 'PWA_PERFORMANCE');
+      logger.warn("LCP observation not supported", {}, "PWA_PERFORMANCE");
     }
 
     // FID (First Input Delay)
     const fidObserver = new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries() as any[]) {
-        updateMetric('fid', entry.processingStart - entry.startTime);
+        updateMetric("fid", entry.processingStart - entry.startTime);
       }
     });
 
     try {
-      fidObserver.observe({ entryTypes: ['first-input'] });
+      fidObserver.observe({ entryTypes: ["first-input"] });
     } catch (error) {
-      logger.warn('FID observation not supported', {}, 'PWA_PERFORMANCE');
+      logger.warn("FID observation not supported", {}, "PWA_PERFORMANCE");
     }
 
     // CLS (Cumulative Layout Shift)
@@ -97,15 +104,15 @@ export const PWAPerformanceMonitor: React.FC = () => {
       for (const entry of entryList.getEntries() as any[]) {
         if (!entry.hadRecentInput) {
           clsValue += entry.value;
-          updateMetric('cls', clsValue);
+          updateMetric("cls", clsValue);
         }
       }
     });
 
     try {
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
+      clsObserver.observe({ entryTypes: ["layout-shift"] });
     } catch (error) {
-      logger.warn('CLS observation not supported', {}, 'PWA_PERFORMANCE');
+      logger.warn("CLS observation not supported", {}, "PWA_PERFORMANCE");
     }
 
     observerRef.current = lcpObserver; // Store reference for cleanup
@@ -113,15 +120,15 @@ export const PWAPerformanceMonitor: React.FC = () => {
 
   const initializePWAMetricsTracking = () => {
     // Service Worker metrics
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
         const activationTime = performance.now();
-        updatePWAMetric('serviceWorkerActivation', activationTime);
+        updatePWAMetric("serviceWorkerActivation", activationTime);
       });
     }
 
     // Cache performance tracking
-    if ('caches' in window) {
+    if ("caches" in window) {
       trackCachePerformance();
     }
 
@@ -129,14 +136,14 @@ export const PWAPerformanceMonitor: React.FC = () => {
     const updateNetworkMetrics = () => {
       const connection = (navigator as any).connection;
       if (connection) {
-        updatePWAMetric('effectiveConnectionType', connection.effectiveType);
-        updatePWAMetric('downlink', connection.downlink);
+        updatePWAMetric("effectiveConnectionType", connection.effectiveType);
+        updatePWAMetric("downlink", connection.downlink);
       }
     };
 
     updateNetworkMetrics();
-    window.addEventListener('online', updateNetworkMetrics);
-    window.addEventListener('offline', updateNetworkMetrics);
+    window.addEventListener("online", updateNetworkMetrics);
+    window.addEventListener("offline", updateNetworkMetrics);
   };
 
   const trackCachePerformance = async () => {
@@ -148,10 +155,13 @@ export const PWAPerformanceMonitor: React.FC = () => {
       // This would typically track actual cache performance
       // For now, we'll simulate based on available data
       const hitRate = Math.random() * 100; // Placeholder
-      updatePWAMetric('cacheHitRate', hitRate);
-
+      updatePWAMetric("cacheHitRate", hitRate);
     } catch (error) {
-      logger.error('Cache performance tracking failed', { error }, 'PWA_PERFORMANCE');
+      logger.error(
+        "Cache performance tracking failed",
+        { error },
+        "PWA_PERFORMANCE",
+      );
     }
   };
 
@@ -165,30 +175,33 @@ export const PWAPerformanceMonitor: React.FC = () => {
     try {
       const currentMetrics: PerformanceMetrics = {
         coreWebVitals: {
-          lcp: getCurrentMetric('lcp'),
-          fid: getCurrentMetric('fid'),
-          cls: getCurrentMetric('cls'),
-          fcp: getCurrentMetric('fcp'),
-          ttfb: getCurrentMetric('ttfb')
+          lcp: getCurrentMetric("lcp"),
+          fid: getCurrentMetric("fid"),
+          cls: getCurrentMetric("cls"),
+          fcp: getCurrentMetric("fcp"),
+          ttfb: getCurrentMetric("ttfb"),
         },
         pwaMetrics: {
-          serviceWorkerActivation: getCurrentPWAMetric('serviceWorkerActivation'),
-          cacheHitRate: getCurrentPWAMetric('cacheHitRate'),
-          offlineCapability: navigator.onLine === false && getCurrentPWAMetric('offlineCapable'),
-          installPromptShown: getCurrentPWAMetric('installPromptShown'),
-          backgroundSyncActive: getCurrentPWAMetric('backgroundSyncActive')
+          serviceWorkerActivation: getCurrentPWAMetric(
+            "serviceWorkerActivation",
+          ),
+          cacheHitRate: getCurrentPWAMetric("cacheHitRate"),
+          offlineCapability:
+            navigator.onLine === false && getCurrentPWAMetric("offlineCapable"),
+          installPromptShown: getCurrentPWAMetric("installPromptShown"),
+          backgroundSyncActive: getCurrentPWAMetric("backgroundSyncActive"),
         },
         resourceMetrics: {
-          bundleSize: getCurrentResourceMetric('bundleSize'),
-          imageOptimization: getCurrentResourceMetric('imageOptimization'),
-          lazyLoadEfficiency: getCurrentResourceMetric('lazyLoadEfficiency'),
-          prefetchHitRate: getCurrentResourceMetric('prefetchHitRate')
+          bundleSize: getCurrentResourceMetric("bundleSize"),
+          imageOptimization: getCurrentResourceMetric("imageOptimization"),
+          lazyLoadEfficiency: getCurrentResourceMetric("lazyLoadEfficiency"),
+          prefetchHitRate: getCurrentResourceMetric("prefetchHitRate"),
         },
         userExperience: {
-          interactionToNextPaint: getCurrentMetric('inp'),
-          visualStability: 100 - (getCurrentMetric('cls') * 100),
-          loadingPerception: getLoadingPerception()
-        }
+          interactionToNextPaint: getCurrentMetric("inp"),
+          visualStability: 100 - getCurrentMetric("cls") * 100,
+          loadingPerception: getLoadingPerception(),
+        },
       };
 
       setMetrics(currentMetrics);
@@ -197,22 +210,21 @@ export const PWAPerformanceMonitor: React.FC = () => {
       if (isPerformanceConcerning(currentMetrics)) {
         sendPerformanceAlert(currentMetrics);
       }
-
     } catch (error) {
-      logger.error('Metrics collection failed', { error }, 'PWA_PERFORMANCE');
+      logger.error("Metrics collection failed", { error }, "PWA_PERFORMANCE");
     }
   };
 
   const updateMetric = (metric: string, value: number) => {
     // Store metric in performance storage
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).__PWA_METRICS__ = (window as any).__PWA_METRICS__ || {};
       (window as any).__PWA_METRICS__[metric] = value;
     }
   };
 
   const updatePWAMetric = (metric: string, value: any) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).__PWA_METRICS__ = (window as any).__PWA_METRICS__ || {};
       (window as any).__PWA_METRICS__[`pwa_${metric}`] = value;
     }
@@ -228,64 +240,79 @@ export const PWAPerformanceMonitor: React.FC = () => {
 
   const getCurrentResourceMetric = (metric: string): number => {
     // Calculate resource metrics based on Navigation API and Resource Timing
-    const navigation = performance.getEntriesByType('navigation')[0] as any;
-    const resources = performance.getEntriesByType('resource');
+    const navigation = performance.getEntriesByType("navigation")[0] as any;
+    const resources = performance.getEntriesByType("resource");
 
     switch (metric) {
-      case 'bundleSize': {
-        return resources.reduce((total, resource: any) =>
-          total + (resource.transferSize || 0), 0
+      case "bundleSize": {
+        return resources.reduce(
+          (total, resource: any) => total + (resource.transferSize || 0),
+          0,
         );
       }
-      case 'imageOptimization': {
-        const images = resources.filter((r: any) => r.initiatorType === 'img');
-        return images.length > 0 ? images.reduce((acc: number, img: any) =>
-          acc + ((img.decodedBodySize || 0) / (img.transferSize || 1)), 0
-        ) / images.length * 100 : 100;
+      case "imageOptimization": {
+        const images = resources.filter((r: any) => r.initiatorType === "img");
+        return images.length > 0
+          ? (images.reduce(
+              (acc: number, img: any) =>
+                acc + (img.decodedBodySize || 0) / (img.transferSize || 1),
+              0,
+            ) /
+              images.length) *
+              100
+          : 100;
       }
       default:
         return 0;
     }
   };
 
-  const getLoadingPerception = (): 'fast' | 'average' | 'slow' => {
-    const lcp = getCurrentMetric('lcp');
-    if (lcp < 2500) return 'fast';
-    if (lcp < 4000) return 'average';
-    return 'slow';
+  const getLoadingPerception = (): "fast" | "average" | "slow" => {
+    const lcp = getCurrentMetric("lcp");
+    if (lcp < 2500) return "fast";
+    if (lcp < 4000) return "average";
+    return "slow";
   };
 
   const isPerformanceConcerning = (metrics: PerformanceMetrics): boolean => {
     return (
       metrics.coreWebVitals.lcp > 4000 || // LCP > 4s
-      metrics.coreWebVitals.fid > 300 ||  // FID > 300ms
+      metrics.coreWebVitals.fid > 300 || // FID > 300ms
       metrics.coreWebVitals.cls > 0.25 || // CLS > 0.25
       metrics.pwaMetrics.cacheHitRate < 60 // Cache hit rate < 60%
     );
   };
 
   const sendPerformanceAlert = (metrics: PerformanceMetrics) => {
-    logger.warn('Performance alert triggered', {
-      metrics: {
-        lcp: metrics.coreWebVitals.lcp,
-        fid: metrics.coreWebVitals.fid,
-        cls: metrics.coreWebVitals.cls,
-        cacheHitRate: metrics.pwaMetrics.cacheHitRate
-      }
-    }, 'PWA_PERFORMANCE');
+    logger.warn(
+      "Performance alert triggered",
+      {
+        metrics: {
+          lcp: metrics.coreWebVitals.lcp,
+          fid: metrics.coreWebVitals.fid,
+          cls: metrics.coreWebVitals.cls,
+          cacheHitRate: metrics.pwaMetrics.cacheHitRate,
+        },
+      },
+      "PWA_PERFORMANCE",
+    );
 
     // Send to monitoring service
-    fetch('/api/performance/alert', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/performance/alert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         metrics,
         timestamp: Date.now(),
         url: window.location.href,
-        userAgent: navigator.userAgent
-      })
-    }).catch(error => {
-      logger.error('Failed to send performance alert', { error }, 'PWA_PERFORMANCE');
+        userAgent: navigator.userAgent,
+      }),
+    }).catch((error) => {
+      logger.error(
+        "Failed to send performance alert",
+        { error },
+        "PWA_PERFORMANCE",
+      );
     });
   };
 
@@ -299,7 +326,7 @@ export const PWAPerformanceMonitor: React.FC = () => {
     }
 
     setIsMonitoring(false);
-    logger.info('PWA Performance monitoring cleaned up', {}, 'PWA_PERFORMANCE');
+    logger.info("PWA Performance monitoring cleaned up", {}, "PWA_PERFORMANCE");
   };
 
   // This component doesn't render visible UI - it's a monitoring service

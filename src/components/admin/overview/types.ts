@@ -31,7 +31,7 @@ export interface AdminOverviewProps {
   className?: string;
 }
 
-export type TimeRange = '7d' | '30d' | '90d' | '1y';
+export type TimeRange = "7d" | "30d" | "90d" | "1y";
 
 export interface DashboardData {
   kpis: BusinessKPIs;

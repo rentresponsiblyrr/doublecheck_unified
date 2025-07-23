@@ -1,6 +1,6 @@
 /**
  * Bug Report Dialog - Professional Component Architecture
- * 
+ *
  * ACHIEVEMENT: Reduced from 742 lines to clean composition-based architecture
  * - Massive monolithic component → focused sub-components
  * - Multiple responsibilities → single responsibility principle
@@ -8,188 +8,206 @@
  * - Hard to maintain → easily extensible and testable
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Send, Bug } from 'lucide-react'
+import React, { useState, useCallback, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Send, Bug } from "lucide-react";
 
-import { userActivityService } from '@/services/userActivityService'
-import { screenshotCaptureService } from '@/utils/screenshotCapture'
-import { githubIssuesService } from '@/services/githubIssuesService'
-import { intelligentBugReportService } from '@/services/intelligentBugReportService'
-import { useAuthState } from '@/hooks/useAuthState'
-import { logger } from '@/utils/logger'
+import { userActivityService } from "@/services/userActivityService";
+import { screenshotCaptureService } from "@/utils/screenshotCapture";
+import { githubIssuesService } from "@/services/githubIssuesService";
+import { intelligentBugReportService } from "@/services/intelligentBugReportService";
+import { useAuthState } from "@/hooks/useAuthState";
+import { logger } from "@/utils/logger";
 
-import { BugReportForm } from './BugReportForm'
-import { ScreenshotCapture } from './ScreenshotCapture'
-import { SubmissionProgress } from './SubmissionProgress'
-import { UserActivityDisplay } from './UserActivityDisplay'
-import type { BugReportDialogProps, BugReportFormData, BugReportState, SubmissionStep } from './types'
+import { BugReportForm } from "./BugReportForm";
+import { ScreenshotCapture } from "./ScreenshotCapture";
+import { SubmissionProgress } from "./SubmissionProgress";
+import { UserActivityDisplay } from "./UserActivityDisplay";
+import type {
+  BugReportDialogProps,
+  BugReportFormData,
+  BugReportState,
+  SubmissionStep,
+} from "./types";
 
 export const BugReportDialog: React.FC<BugReportDialogProps> = ({
   isOpen,
   onClose,
-  initialTitle = '',
-  initialDescription = ''
+  initialTitle = "",
+  initialDescription = "",
 }) => {
-  const { user } = useAuthState()
+  const { user } = useAuthState();
 
   // Form data state
   const [formData, setFormData] = useState<BugReportFormData>({
     title: initialTitle,
     description: initialDescription,
-    severity: 'medium',
-    category: 'functionality',
-    steps: [''],
+    severity: "medium",
+    category: "functionality",
+    steps: [""],
     screenshot: null,
-    userActions: []
-  })
+    userActions: [],
+  });
 
   // Submission state
   const [state, setState] = useState<BugReportState>({
-    currentStep: 'form',
+    currentStep: "form",
     uploadProgress: 0,
     submissionError: null,
     createdIssue: null,
     intelligentReport: null,
     reportAnalytics: null,
     isAnalyzing: false,
-    analysisStep: '',
-    isCapturingScreenshot: false
-  })
+    analysisStep: "",
+    isCapturingScreenshot: false,
+  });
 
   // Load user activity on dialog open
   useEffect(() => {
     if (isOpen) {
-      const recentActions = userActivityService.getRecentActions(20)
-      setFormData(prev => ({ ...prev, userActions: recentActions }))
+      const recentActions = userActivityService.getRecentActions(20);
+      setFormData((prev) => ({ ...prev, userActions: recentActions }));
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   // Form update handlers
   const updateFormData = useCallback((updates: Partial<BugReportFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }))
-  }, [])
+    setFormData((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   const updateState = useCallback((updates: Partial<BugReportState>) => {
-    setState(prev => ({ ...prev, ...updates }))
-  }, [])
+    setState((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   // Screenshot handling
   const handleCaptureScreenshot = useCallback(async () => {
     try {
-      updateState({ isCapturingScreenshot: true })
-      const screenshot = await screenshotCaptureService.captureScreen()
-      updateFormData({ screenshot })
+      updateState({ isCapturingScreenshot: true });
+      const screenshot = await screenshotCaptureService.captureScreen();
+      updateFormData({ screenshot });
     } catch (error) {
-      logger.error('Screenshot capture failed:', error)
+      logger.error("Screenshot capture failed:", error);
     } finally {
-      updateState({ isCapturingScreenshot: false })
+      updateState({ isCapturingScreenshot: false });
     }
-  }, [updateFormData, updateState])
+  }, [updateFormData, updateState]);
 
   const handlePreviewScreenshot = useCallback(() => {
     if (formData.screenshot?.dataUrl) {
-      window.open(formData.screenshot.dataUrl, '_blank')
+      window.open(formData.screenshot.dataUrl, "_blank");
     }
-  }, [formData.screenshot])
+  }, [formData.screenshot]);
 
   // Form submission
   const handleSubmit = useCallback(async () => {
     if (!formData.title.trim() || !formData.description.trim()) {
-      updateState({ submissionError: 'Title and description are required' })
-      return
+      updateState({ submissionError: "Title and description are required" });
+      return;
     }
 
     try {
-      updateState({ currentStep: 'uploading', uploadProgress: 0, submissionError: null })
+      updateState({
+        currentStep: "uploading",
+        uploadProgress: 0,
+        submissionError: null,
+      });
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        updateState(prev => ({
-          uploadProgress: Math.min(prev.uploadProgress + 10, 90)
-        }))
-      }, 200)
+        updateState((prev) => ({
+          uploadProgress: Math.min(prev.uploadProgress + 10, 90),
+        }));
+      }, 200);
 
       // Create GitHub issue
-      const issueData = await intelligentBugReportService.createIntelligentReport({
-        title: formData.title,
-        description: formData.description,
-        severity: formData.severity,
-        category: formData.category,
-        steps: formData.steps.filter(step => step.trim()),
-        userActions: formData.userActions,
-        screenshot: formData.screenshot,
-        userEmail: user?.email,
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      })
+      const issueData =
+        await intelligentBugReportService.createIntelligentReport({
+          title: formData.title,
+          description: formData.description,
+          severity: formData.severity,
+          category: formData.category,
+          steps: formData.steps.filter((step) => step.trim()),
+          userActions: formData.userActions,
+          screenshot: formData.screenshot,
+          userEmail: user?.email,
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+        });
 
-      clearInterval(progressInterval)
-      updateState({ 
-        uploadProgress: 100,
-        currentStep: 'success',
-        createdIssue: issueData
-      })
-
-    } catch (error) {
-      logger.error('Bug report submission failed:', error)
+      clearInterval(progressInterval);
       updateState({
-        currentStep: 'error',
-        submissionError: error instanceof Error ? error.message : 'Submission failed'
-      })
+        uploadProgress: 100,
+        currentStep: "success",
+        createdIssue: issueData,
+      });
+    } catch (error) {
+      logger.error("Bug report submission failed:", error);
+      updateState({
+        currentStep: "error",
+        submissionError:
+          error instanceof Error ? error.message : "Submission failed",
+      });
     }
-  }, [formData, user, updateState])
+  }, [formData, user, updateState]);
 
   // Step navigation
-  const canProceedToScreenshot = formData.title.trim() && formData.description.trim()
-  const canSubmit = canProceedToScreenshot
+  const canProceedToScreenshot =
+    formData.title.trim() && formData.description.trim();
+  const canSubmit = canProceedToScreenshot;
 
   const nextStep = useCallback(() => {
-    if (state.currentStep === 'form' && canProceedToScreenshot) {
-      updateState({ currentStep: 'screenshot' })
+    if (state.currentStep === "form" && canProceedToScreenshot) {
+      updateState({ currentStep: "screenshot" });
     }
-  }, [state.currentStep, canProceedToScreenshot, updateState])
+  }, [state.currentStep, canProceedToScreenshot, updateState]);
 
   const prevStep = useCallback(() => {
-    if (state.currentStep === 'screenshot') {
-      updateState({ currentStep: 'form' })
+    if (state.currentStep === "screenshot") {
+      updateState({ currentStep: "form" });
     }
-  }, [state.currentStep, updateState])
+  }, [state.currentStep, updateState]);
 
   const retry = useCallback(() => {
-    updateState({ currentStep: 'form', submissionError: null })
-  }, [updateState])
+    updateState({ currentStep: "form", submissionError: null });
+  }, [updateState]);
 
   // Dialog close handler
   const handleClose = useCallback(() => {
-    if (state.currentStep === 'uploading') return // Prevent close during upload
-    onClose()
+    if (state.currentStep === "uploading") return; // Prevent close during upload
+    onClose();
     // Reset form after a delay to avoid jarring UI changes
     setTimeout(() => {
       setFormData({
-        title: '',
-        description: '',
-        severity: 'medium',
-        category: 'functionality',
-        steps: [''],
+        title: "",
+        description: "",
+        severity: "medium",
+        category: "functionality",
+        steps: [""],
         screenshot: null,
-        userActions: []
-      })
+        userActions: [],
+      });
       setState({
-        currentStep: 'form',
+        currentStep: "form",
         uploadProgress: 0,
         submissionError: null,
         createdIssue: null,
         intelligentReport: null,
         reportAnalytics: null,
         isAnalyzing: false,
-        analysisStep: '',
-        isCapturingScreenshot: false
-      })
-    }, 300)
-  }, [state.currentStep, onClose])
+        analysisStep: "",
+        isCapturingScreenshot: false,
+      });
+    }, 300);
+  }, [state.currentStep, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -199,8 +217,11 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
             <Bug className="h-5 w-5" />
             Report a Bug
             <Badge variant="secondary" className="ml-auto">
-              {state.currentStep === 'form' ? '1/2' : 
-               state.currentStep === 'screenshot' ? '2/2' : 'Complete'}
+              {state.currentStep === "form"
+                ? "1/2"
+                : state.currentStep === "screenshot"
+                  ? "2/2"
+                  : "Complete"}
             </Badge>
           </DialogTitle>
           <DialogDescription>
@@ -209,17 +230,19 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         </DialogHeader>
 
         {/* Form Step */}
-        {state.currentStep === 'form' && (
+        {state.currentStep === "form" && (
           <>
             <BugReportForm
               formData={formData}
               onUpdateTitle={(title) => updateFormData({ title })}
-              onUpdateDescription={(description) => updateFormData({ description })}
+              onUpdateDescription={(description) =>
+                updateFormData({ description })
+              }
               onUpdateSeverity={(severity) => updateFormData({ severity })}
               onUpdateCategory={(category) => updateFormData({ category })}
               onUpdateSteps={(steps) => updateFormData({ steps })}
             />
-            
+
             {formData.userActions.length > 0 && (
               <UserActivityDisplay userActions={formData.userActions} />
             )}
@@ -227,7 +250,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         )}
 
         {/* Screenshot Step */}
-        {state.currentStep === 'screenshot' && (
+        {state.currentStep === "screenshot" && (
           <ScreenshotCapture
             screenshot={formData.screenshot}
             isCapturing={state.isCapturingScreenshot}
@@ -237,9 +260,11 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         )}
 
         {/* Progress Steps */}
-        {(['uploading', 'success', 'error'] as const).includes(state.currentStep) && (
+        {(["uploading", "success", "error"] as const).includes(
+          state.currentStep,
+        ) && (
           <SubmissionProgress
-            step={state.currentStep as 'uploading' | 'success' | 'error'}
+            step={state.currentStep as "uploading" | "success" | "error"}
             progress={state.uploadProgress}
             error={state.submissionError}
             createdIssue={state.createdIssue}
@@ -249,10 +274,10 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         )}
 
         {/* Footer */}
-        {(['form', 'screenshot'] as const).includes(state.currentStep) && (
+        {(["form", "screenshot"] as const).includes(state.currentStep) && (
           <DialogFooter className="flex justify-between">
             <div className="flex gap-2">
-              {state.currentStep === 'screenshot' && (
+              {state.currentStep === "screenshot" && (
                 <Button variant="outline" onClick={prevStep}>
                   Back
                 </Button>
@@ -262,7 +287,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              {state.currentStep === 'form' ? (
+              {state.currentStep === "form" ? (
                 <Button onClick={nextStep} disabled={!canProceedToScreenshot}>
                   Next
                 </Button>
@@ -277,5 +302,5 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
         )}
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

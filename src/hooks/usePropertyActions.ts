@@ -1,20 +1,21 @@
-
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
-import { 
+import {
   inspectionCreationService,
   InspectionCreationRequest,
   createFrontendPropertyId,
-  createInspectorId
-} from '@/lib/database/inspection-creation-service';
+  createInspectorId,
+} from "@/lib/database/inspection-creation-service";
+import { safeNavigateToInspection } from "@/utils/inspectionNavigation";
+import { logger } from "@/utils/logger";
 // Enterprise-grade inspection creation service integrated
 
 interface PropertyActionError {
-  type: 'network' | 'validation' | 'auth' | 'system';
+  type: "network" | "validation" | "auth" | "system";
   message: string;
   action: string;
   retryable: boolean;
@@ -30,204 +31,290 @@ export const usePropertyActions = () => {
   const [actionState, setActionState] = useState<PropertyActionState>({
     isLoading: false,
     error: null,
-    retryCount: 0
+    retryCount: 0,
   });
-  
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const { invalidatePropertyData } = useSmartCache();
 
   const classifyError = (error: any, action: string): PropertyActionError => {
-    const errorMessage = error?.message || 'Unknown error occurred';
-    
-    if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+    const errorMessage = error?.message || "Unknown error occurred";
+
+    if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
       return {
-        type: 'network',
-        message: 'Network connection failed. Please check your internet.',
+        type: "network",
+        message: "Network connection failed. Please check your internet.",
         action,
-        retryable: true
+        retryable: true,
       };
     }
-    
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('forbidden')) {
+
+    if (
+      errorMessage.includes("unauthorized") ||
+      errorMessage.includes("forbidden")
+    ) {
       return {
-        type: 'auth',
-        message: 'You don\'t have permission to perform this action.',
+        type: "auth",
+        message: "You don't have permission to perform this action.",
         action,
-        retryable: false
+        retryable: false,
       };
     }
-    
-    if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
+
+    if (
+      errorMessage.includes("validation") ||
+      errorMessage.includes("invalid")
+    ) {
       return {
-        type: 'validation',
-        message: 'The data provided is invalid. Please check and try again.',
+        type: "validation",
+        message: "The data provided is invalid. Please check and try again.",
         action,
-        retryable: false
+        retryable: false,
       };
     }
-    
+
     return {
-      type: 'system',
+      type: "system",
       message: errorMessage,
       action,
-      retryable: true
+      retryable: true,
     };
   };
 
-  const executeWithRetry = useCallback(async <T>(
-    operation: () => Promise<T>,
-    actionName: string,
-    maxRetries = 3
-  ): Promise<T | null> => {
-    setActionState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await operation();
-        
-        setActionState({
-          isLoading: false,
-          error: null,
-          retryCount: 0
-        });
-        
-        return result;
-      } catch (error) {
-        
-        const classifiedError = classifyError(error, actionName);
-        
-        if (attempt === maxRetries || !classifiedError.retryable) {
+  const executeWithRetry = useCallback(
+    async <T>(
+      operation: () => Promise<T>,
+      actionName: string,
+      maxRetries = 3,
+    ): Promise<T | null> => {
+      setActionState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const result = await operation();
+
           setActionState({
             isLoading: false,
-            error: classifiedError,
-            retryCount: attempt + 1
+            error: null,
+            retryCount: 0,
           });
-          
-          toast({
-            title: `${actionName} Failed`,
-            description: classifiedError.message,
-            variant: "destructive",
-          });
-          
-          return null;
+
+          return result;
+        } catch (error) {
+          const classifiedError = classifyError(error, actionName);
+
+          if (attempt === maxRetries || !classifiedError.retryable) {
+            setActionState({
+              isLoading: false,
+              error: classifiedError,
+              retryCount: attempt + 1,
+            });
+
+            toast({
+              title: `${actionName} Failed`,
+              description: classifiedError.message,
+              variant: "destructive",
+            });
+
+            return null;
+          }
+
+          setActionState((prev) => ({ ...prev, retryCount: attempt + 1 }));
+
+          // Wait before retry (exponential backoff)
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, attempt) * 1000),
+          );
         }
-        
-        setActionState(prev => ({ ...prev, retryCount: attempt + 1 }));
-        
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-      }
-    }
-    
-    return null;
-  }, [toast]);
-
-  const deleteProperty = useCallback(async (propertyId: string) => {
-    
-    return executeWithRetry(async () => {
-      // Use the existing utility which has the full deletion logic
-      await deletePropertyData(propertyId);
-      
-      toast({
-        title: "Property Deleted",
-        description: "The property and all associated data have been permanently removed.",
-      });
-      
-      // Invalidate cache to refresh the UI
-      invalidatePropertyData();
-      
-      return true;
-    }, 'Delete Property');
-  }, [executeWithRetry, toast, invalidatePropertyData]);
-
-  const editProperty = useCallback((propertyId: string) => {
-    try {
-      navigate(`/add-property?edit=${propertyId}`);
-    } catch (error) {
-      toast({
-        title: "Navigation Failed",
-        description: "Could not navigate to edit page. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [navigate, toast]);
-
-  const startInspection = useCallback(async (propertyId: string) => {
-    
-    return executeWithRetry(async () => {
-      // Use property ID directly as UUID string (post-migration database returns UUIDs)
-      const propertyIdForQuery = propertyId;
-
-      // Check if there's already an active inspection
-      const { data: existingInspection, error: checkError } = await supabase
-        .from('inspections')
-        .select('id')
-        .eq('property_id', propertyIdForQuery)
-        .eq('completed', false)
-        .single();
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError;
-      }
-      
-      if (existingInspection) {
-        navigate(`/inspection/${existingInspection.id}`);
-        return existingInspection.id;
-      }
-      
-      // Create new inspection using the secure creation service
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User must be authenticated to create inspections');
       }
 
-      // Use enterprise-grade inspection creation service
-      const request: InspectionCreationRequest = {
-        propertyId: createFrontendPropertyId(propertyIdForQuery),
-        inspectorId: createInspectorId(user.id),
-        status: 'draft'
-      };
+      return null;
+    },
+    [toast],
+  );
 
-      const result = await inspectionCreationService.createInspection(request);
+  const deleteProperty = useCallback(
+    async (propertyId: string) => {
+      return executeWithRetry(async () => {
+        // Use the existing utility which has the full deletion logic
+        await deletePropertyData(propertyId);
 
-      if (!result.success || !result.data || !result.data.inspectionId) {
-        const errorMessage = result.error?.userMessage || result.error?.message || 'Enterprise inspection creation failed';
-        logger.error('Inspection creation failed', { 
-          success: result.success,
-          hasData: !!result.data,
-          inspectionId: result.data?.inspectionId,
-          error: result.error 
-        }, 'PROPERTY_ACTIONS');
-        throw new Error(errorMessage);
+        toast({
+          title: "Property Deleted",
+          description:
+            "The property and all associated data have been permanently removed.",
+        });
+
+        // Invalidate cache to refresh the UI
+        invalidatePropertyData();
+
+        return true;
+      }, "Delete Property");
+    },
+    [executeWithRetry, toast, invalidatePropertyData],
+  );
+
+  const editProperty = useCallback(
+    (propertyId: string) => {
+      try {
+        navigate(`/add-property?edit=${propertyId}`);
+      } catch (error) {
+        toast({
+          title: "Navigation Failed",
+          description: "Could not navigate to edit page. Please try again.",
+          variant: "destructive",
+        });
       }
+    },
+    [navigate, toast],
+  );
 
-      const inspectionId = result.data.inspectionId;
-      
-      // Validate inspection ID before navigation
-      if (!inspectionId || inspectionId === 'undefined' || inspectionId.trim() === '') {
-        logger.error('Invalid inspection ID returned from creation service', { inspectionId }, 'PROPERTY_ACTIONS');
-        throw new Error('Failed to create inspection - invalid ID returned');
-      }
-      
-      navigate(`/inspection/${inspectionId}`);
-      
-      toast({
-        title: "Inspection Started",
-        description: "A new inspection has been created successfully with enterprise-grade reliability.",
-      });
-      
-      return inspectionId;
-    }, 'Start Inspection');
-  }, [executeWithRetry, navigate, toast]);
+  const startInspection = useCallback(
+    async (propertyId: string) => {
+      return executeWithRetry(async () => {
+        // Use property ID directly as UUID string (post-migration database returns UUIDs)
+        const propertyIdForQuery = propertyId;
+
+        // Check if there's already an active inspection
+        const { data: existingInspection, error: checkError } = await supabase
+          .from("inspections")
+          .select("id")
+          .eq("property_id", propertyIdForQuery)
+          .eq("completed", false)
+          .single();
+
+        if (checkError && checkError.code !== "PGRST116") {
+          throw checkError;
+        }
+
+        if (existingInspection) {
+          safeNavigateToInspection(navigate, existingInspection.id);
+          return existingInspection.id;
+        }
+
+        // Create new inspection using the secure creation service
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("User must be authenticated to create inspections");
+        }
+
+        // Use enterprise-grade inspection creation service
+        const request: InspectionCreationRequest = {
+          propertyId: createFrontendPropertyId(propertyIdForQuery),
+          inspectorId: createInspectorId(user.id),
+          status: "draft",
+        };
+
+        logger.info(
+          "Starting inspection creation with enterprise service",
+          {
+            propertyId: propertyIdForQuery,
+            userId: user.id,
+            request: {
+              ...request,
+              inspectorId: "***",
+            },
+          },
+          "PROPERTY_ACTIONS",
+        );
+
+        const result =
+          await inspectionCreationService.createInspection(request);
+
+        logger.info(
+          "Enterprise inspection creation service response",
+          {
+            success: result.success,
+            hasData: !!result.data,
+            dataKeys: result.data ? Object.keys(result.data) : [],
+            inspectionId: result.data?.inspectionId,
+            inspectionIdType: typeof result.data?.inspectionId,
+            error: result.error?.code,
+            errorMessage: result.error?.message,
+          },
+          "PROPERTY_ACTIONS",
+        );
+
+        if (!result.success || !result.data || !result.data.inspectionId) {
+          const errorMessage =
+            result.error?.userMessage ||
+            result.error?.message ||
+            "Enterprise inspection creation failed";
+          logger.error(
+            "Inspection creation failed - detailed analysis",
+            {
+              success: result.success,
+              hasData: !!result.data,
+              dataStructure: result.data,
+              inspectionId: result.data?.inspectionId,
+              inspectionIdType: typeof result.data?.inspectionId,
+              error: result.error,
+              fullResult: result,
+            },
+            "PROPERTY_ACTIONS",
+          );
+          throw new Error(errorMessage);
+        }
+
+        const inspectionId = result.data.inspectionId;
+
+        logger.info(
+          "Extracted inspection ID for navigation",
+          {
+            inspectionId,
+            inspectionIdType: typeof inspectionId,
+            isUndefined: inspectionId === undefined,
+            isNull: inspectionId === null,
+            isEmpty: inspectionId === "",
+            stringValue: String(inspectionId),
+          },
+          "PROPERTY_ACTIONS",
+        );
+
+        // Validate inspection ID before navigation
+        if (
+          !inspectionId ||
+          inspectionId === "undefined" ||
+          inspectionId.trim() === ""
+        ) {
+          logger.error(
+            "Invalid inspection ID returned from creation service",
+            { inspectionId },
+            "PROPERTY_ACTIONS",
+          );
+          throw new Error("Failed to create inspection - invalid ID returned");
+        }
+
+        const navigated = safeNavigateToInspection(navigate, inspectionId);
+
+        if (!navigated) {
+          throw new Error(
+            `Failed to navigate to inspection - invalid ID: ${inspectionId}`,
+          );
+        }
+
+        toast({
+          title: "Inspection Started",
+          description:
+            "A new inspection has been created successfully with enterprise-grade reliability.",
+        });
+
+        return inspectionId;
+      }, "Start Inspection");
+    },
+    [executeWithRetry, navigate, toast],
+  );
 
   const clearError = useCallback(() => {
-    setActionState(prev => ({ ...prev, error: null }));
+    setActionState((prev) => ({ ...prev, error: null }));
   }, []);
 
   const retry = useCallback(() => {
     if (actionState.error?.retryable) {
-      setActionState(prev => ({ ...prev, error: null, retryCount: 0 }));
+      setActionState((prev) => ({ ...prev, error: null, retryCount: 0 }));
     }
   }, [actionState.error]);
 
@@ -240,10 +327,10 @@ export const usePropertyActions = () => {
     actionState,
     clearError,
     retry,
-    
+
     // Backward compatibility aliases for legacy components
     handleDelete: deleteProperty,
     handleEdit: editProperty,
-    handleStartInspection: startInspection
+    handleStartInspection: startInspection,
   };
 };

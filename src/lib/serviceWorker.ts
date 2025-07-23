@@ -1,16 +1,16 @@
 /**
  * STR CERTIFIED SERVICE WORKER MANAGER - PHASE 4A CORE IMPLEMENTATION
- * 
+ *
  * TypeScript service layer for Service Worker registration, lifecycle management,
  * and communication with the main application thread. Provides type-safe
  * interfaces for PWA functionality including background sync and push notifications.
- * 
+ *
  * PERFORMANCE TARGETS:
  * - <500ms Service Worker registration time
  * - 100% reliable message passing
  * - Intelligent update detection and management
  * - Comprehensive error handling and recovery
- * 
+ *
  * @version 1.0.0
  * @author STR Certified Engineering Team
  * @phase Phase 4A - PWA Core Implementation
@@ -23,36 +23,36 @@
 /**
  * Service Worker registration state
  */
-export type ServiceWorkerState = 
-  | 'unsupported'
-  | 'registering'
-  | 'registered'
-  | 'installing'
-  | 'waiting'
-  | 'active'
-  | 'error';
+export type ServiceWorkerState =
+  | "unsupported"
+  | "registering"
+  | "registered"
+  | "installing"
+  | "waiting"
+  | "active"
+  | "error";
 
 /**
  * Background sync tags for different data types
  */
 export interface SyncTags {
-  INSPECTION_DATA: 'inspection-sync';
-  MEDIA_UPLOAD: 'media-sync';
-  USER_PREFERENCES: 'preferences-sync';
-  ANALYTICS: 'analytics-sync';
+  INSPECTION_DATA: "inspection-sync";
+  MEDIA_UPLOAD: "media-sync";
+  USER_PREFERENCES: "preferences-sync";
+  ANALYTICS: "analytics-sync";
 }
 
 /**
  * Service Worker message types
  */
-export type ServiceWorkerMessageType = 
-  | 'SKIP_WAITING'
-  | 'GET_VERSION'
-  | 'CLEAR_CACHE'
-  | 'REGISTER_SYNC'
-  | 'SYNC_REQUEST'
-  | 'NOTIFICATION_ACTION'
-  | 'NAVIGATE';
+export type ServiceWorkerMessageType =
+  | "SKIP_WAITING"
+  | "GET_VERSION"
+  | "CLEAR_CACHE"
+  | "REGISTER_SYNC"
+  | "SYNC_REQUEST"
+  | "NOTIFICATION_ACTION"
+  | "NAVIGATE";
 
 /**
  * Message structure for SW communication
@@ -67,7 +67,7 @@ export interface ServiceWorkerMessage {
  * Service Worker update information
  */
 export interface ServiceWorkerUpdate {
-  type: 'update_available' | 'update_ready';
+  type: "update_available" | "update_ready";
   version: string;
   changes?: string[];
   critical?: boolean;
@@ -79,7 +79,7 @@ export interface ServiceWorkerUpdate {
 export interface SyncRegistrationOptions {
   tag: string;
   minInterval?: number;
-  requiredNetworkType?: 'any' | 'unmetered';
+  requiredNetworkType?: "any" | "unmetered";
 }
 
 /**
@@ -95,7 +95,7 @@ export interface PushSubscriptionOptions {
  */
 export interface ServiceWorkerConfig {
   scope?: string;
-  updateViaCache?: 'imports' | 'all' | 'none';
+  updateViaCache?: "imports" | "all" | "none";
   enableAutoUpdate?: boolean;
   updateCheckInterval?: number;
   enableNotifications?: boolean;
@@ -132,14 +132,14 @@ export interface CacheStats {
 
 /**
  * ServiceWorkerManager - Comprehensive PWA Service Worker management
- * 
+ *
  * Handles all Service Worker lifecycle operations including registration,
  * updates, background sync, push notifications, and message passing.
  * Provides TypeScript interfaces and error handling for enterprise use.
- * 
+ *
  * Key Features:
  * - Automatic Service Worker registration and updates
- * - Type-safe message passing between SW and main thread  
+ * - Type-safe message passing between SW and main thread
  * - Background sync registration and management
  * - Push notification subscription management
  * - Cache management and statistics
@@ -147,19 +147,19 @@ export interface CacheStats {
  */
 export class ServiceWorkerManager {
   private registration: ServiceWorkerRegistration | null = null;
-  private state: ServiceWorkerState = 'unsupported';
+  private state: ServiceWorkerState = "unsupported";
   private eventListeners: Partial<ServiceWorkerEvents> = {};
   private config: ServiceWorkerConfig;
   private updateCheckTimer: NodeJS.Timeout | null = null;
   private messageChannel: MessageChannel | null = null;
 
   // Service Worker script path
-  private readonly SW_PATH = '/sw.js';
+  private readonly SW_PATH = "/sw.js";
 
   // Default configuration
   private readonly DEFAULT_CONFIG: ServiceWorkerConfig = {
-    scope: '/',
-    updateViaCache: 'none',
+    scope: "/",
+    updateViaCache: "none",
     enableAutoUpdate: true,
     updateCheckInterval: 60000, // 1 minute
     enableNotifications: true,
@@ -168,11 +168,11 @@ export class ServiceWorkerManager {
 
   constructor(config: Partial<ServiceWorkerConfig> = {}) {
     this.config = { ...this.DEFAULT_CONFIG, ...config };
-    
+
     // Check for Service Worker support
     if (!this.isSupported()) {
-      this.setState('unsupported');
-      console.warn('Service Workers are not supported in this browser');
+      this.setState("unsupported");
+      console.warn("Service Workers are not supported in this browser");
       return;
     }
 
@@ -187,7 +187,7 @@ export class ServiceWorkerManager {
    * Check if Service Workers are supported
    */
   isSupported(): boolean {
-    return 'serviceWorker' in navigator && 'PushManager' in window;
+    return "serviceWorker" in navigator && "PushManager" in window;
   }
 
   /**
@@ -202,35 +202,41 @@ export class ServiceWorkerManager {
    */
   async register(): Promise<ServiceWorkerRegistration | null> {
     if (!this.isSupported()) {
-      throw new Error('Service Workers not supported');
+      throw new Error("Service Workers not supported");
     }
 
     try {
-      this.setState('registering');
+      this.setState("registering");
 
-      const registration = await navigator.serviceWorker.register(this.SW_PATH, {
-        scope: this.config.scope,
-        updateViaCache: this.config.updateViaCache,
-      });
+      const registration = await navigator.serviceWorker.register(
+        this.SW_PATH,
+        {
+          scope: this.config.scope,
+          updateViaCache: this.config.updateViaCache,
+        },
+      );
 
       this.registration = registration;
       this.setupRegistrationListeners(registration);
-      
+
       // Check for updates immediately and set up periodic checks
       if (this.config.enableAutoUpdate) {
         await this.checkForUpdates();
         this.startUpdateChecker();
       }
 
-      this.setState('registered');
-      console.log('Service Worker registered successfully', { scope: registration.scope });
+      this.setState("registered");
+      console.log("Service Worker registered successfully", {
+        scope: registration.scope,
+      });
 
       return registration;
-
     } catch (error) {
-      this.setState('error');
-      const swError = new Error(`Service Worker registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      this.emitEvent('error', swError);
+      this.setState("error");
+      const swError = new Error(
+        `Service Worker registration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      this.emitEvent("error", swError);
       throw swError;
     }
   }
@@ -245,19 +251,20 @@ export class ServiceWorkerManager {
 
     try {
       const result = await this.registration.unregister();
-      
+
       if (result) {
         this.registration = null;
-        this.setState('unsupported');
+        this.setState("unsupported");
         this.stopUpdateChecker();
-        console.log('Service Worker unregistered successfully');
+        console.log("Service Worker unregistered successfully");
       }
 
       return result;
-
     } catch (error) {
-      const swError = new Error(`Service Worker unregistration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      this.emitEvent('error', swError);
+      const swError = new Error(
+        `Service Worker unregistration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      this.emitEvent("error", swError);
       throw swError;
     }
   }
@@ -272,9 +279,9 @@ export class ServiceWorkerManager {
 
     try {
       await this.registration.update();
-      console.log('Checked for Service Worker updates');
+      console.log("Checked for Service Worker updates");
     } catch (error) {
-      console.warn('Failed to check for updates:', error);
+      console.warn("Failed to check for updates:", error);
     }
   }
 
@@ -287,11 +294,13 @@ export class ServiceWorkerManager {
     }
 
     try {
-      await this.postMessage({ type: 'SKIP_WAITING', timestamp: Date.now() });
-      console.log('Requested Service Worker to skip waiting');
+      await this.postMessage({ type: "SKIP_WAITING", timestamp: Date.now() });
+      console.log("Requested Service Worker to skip waiting");
     } catch (error) {
-      const swError = new Error(`Failed to skip waiting: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      this.emitEvent('error', swError);
+      const swError = new Error(
+        `Failed to skip waiting: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      this.emitEvent("error", swError);
       throw swError;
     }
   }
@@ -301,13 +310,13 @@ export class ServiceWorkerManager {
    */
   async getVersion(): Promise<string | null> {
     try {
-      const response = await this.postMessageWithResponse({ 
-        type: 'GET_VERSION', 
-        timestamp: Date.now() 
+      const response = await this.postMessageWithResponse({
+        type: "GET_VERSION",
+        timestamp: Date.now(),
       });
       return response?.version || null;
     } catch (error) {
-      console.warn('Failed to get Service Worker version:', error);
+      console.warn("Failed to get Service Worker version:", error);
       return null;
     }
   }
@@ -317,13 +326,13 @@ export class ServiceWorkerManager {
    */
   async clearCaches(): Promise<boolean> {
     try {
-      const response = await this.postMessageWithResponse({ 
-        type: 'CLEAR_CACHE', 
-        timestamp: Date.now() 
+      const response = await this.postMessageWithResponse({
+        type: "CLEAR_CACHE",
+        timestamp: Date.now(),
       });
       return response?.success || false;
     } catch (error) {
-      console.warn('Failed to clear caches:', error);
+      console.warn("Failed to clear caches:", error);
       return false;
     }
   }
@@ -332,8 +341,8 @@ export class ServiceWorkerManager {
    * Register background sync
    */
   async registerBackgroundSync(
-    tag: string, 
-    options: Partial<SyncRegistrationOptions> = {}
+    tag: string,
+    options: Partial<SyncRegistrationOptions> = {},
   ): Promise<boolean> {
     if (!this.config.enableBackgroundSync || !this.registration) {
       return false;
@@ -341,19 +350,18 @@ export class ServiceWorkerManager {
 
     try {
       const response = await this.postMessageWithResponse({
-        type: 'REGISTER_SYNC',
+        type: "REGISTER_SYNC",
         data: { tag, ...options },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       const success = response?.success || false;
-      
+
       if (success) {
         console.log(`Background sync registered: ${tag}`);
       }
 
       return success;
-
     } catch (error) {
       console.warn(`Failed to register background sync for ${tag}:`, error);
       return false;
@@ -363,7 +371,9 @@ export class ServiceWorkerManager {
   /**
    * Subscribe to push notifications
    */
-  async subscribeToPush(options: PushSubscriptionOptions): Promise<PushSubscription | null> {
+  async subscribeToPush(
+    options: PushSubscriptionOptions,
+  ): Promise<PushSubscription | null> {
     if (!this.config.enableNotifications || !this.registration) {
       return null;
     }
@@ -371,23 +381,26 @@ export class ServiceWorkerManager {
     try {
       // Request notification permission
       const permission = await Notification.requestPermission();
-      
-      if (permission !== 'granted') {
-        throw new Error('Notification permission denied');
+
+      if (permission !== "granted") {
+        throw new Error("Notification permission denied");
       }
 
       // Subscribe to push notifications
       const subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: options.userVisibleOnly,
-        applicationServerKey: this.urlBase64ToUint8Array(options.applicationServerKey)
+        applicationServerKey: this.urlBase64ToUint8Array(
+          options.applicationServerKey,
+        ),
       });
 
-      console.log('Push notification subscription created');
+      console.log("Push notification subscription created");
       return subscription;
-
     } catch (error) {
-      const pushError = new Error(`Push subscription failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      this.emitEvent('error', pushError);
+      const pushError = new Error(
+        `Push subscription failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      this.emitEvent("error", pushError);
       throw pushError;
     }
   }
@@ -403,7 +416,7 @@ export class ServiceWorkerManager {
     try {
       return await this.registration.pushManager.getSubscription();
     } catch (error) {
-      console.warn('Failed to get push subscription:', error);
+      console.warn("Failed to get push subscription:", error);
       return null;
     }
   }
@@ -414,21 +427,20 @@ export class ServiceWorkerManager {
   async unsubscribeFromPush(): Promise<boolean> {
     try {
       const subscription = await this.getPushSubscription();
-      
+
       if (!subscription) {
         return false;
       }
 
       const result = await subscription.unsubscribe();
-      
+
       if (result) {
-        console.log('Unsubscribed from push notifications');
+        console.log("Unsubscribed from push notifications");
       }
 
       return result;
-
     } catch (error) {
-      console.warn('Failed to unsubscribe from push:', error);
+      console.warn("Failed to unsubscribe from push:", error);
       return false;
     }
   }
@@ -439,7 +451,9 @@ export class ServiceWorkerManager {
   async getCacheStats(): Promise<CacheStats | null> {
     try {
       const cacheNames = await caches.keys();
-      const strCaches = cacheNames.filter(name => name.startsWith('str-certified-'));
+      const strCaches = cacheNames.filter((name) =>
+        name.startsWith("str-certified-"),
+      );
 
       let totalSize = 0;
       let staticCacheSize = 0;
@@ -449,7 +463,7 @@ export class ServiceWorkerManager {
       for (const cacheName of strCaches) {
         const cache = await caches.open(cacheName);
         const requests = await cache.keys();
-        
+
         let cacheSize = 0;
         for (const request of requests) {
           try {
@@ -466,11 +480,11 @@ export class ServiceWorkerManager {
 
         totalSize += cacheSize;
 
-        if (cacheName.includes('static')) {
+        if (cacheName.includes("static")) {
           staticCacheSize = cacheSize;
-        } else if (cacheName.includes('runtime')) {
+        } else if (cacheName.includes("runtime")) {
           runtimeCacheSize = cacheSize;
-        } else if (cacheName.includes('media')) {
+        } else if (cacheName.includes("media")) {
           mediaCacheSize = cacheSize;
         }
       }
@@ -483,9 +497,8 @@ export class ServiceWorkerManager {
         mediaCacheSize,
         lastCleanup: new Date(), // Would be tracked separately in production
       };
-
     } catch (error) {
-      console.warn('Failed to get cache stats:', error);
+      console.warn("Failed to get cache stats:", error);
       return null;
     }
   }
@@ -499,7 +512,7 @@ export class ServiceWorkerManager {
    */
   addEventListener<K extends keyof ServiceWorkerEvents>(
     event: K,
-    listener: ServiceWorkerEvents[K]
+    listener: ServiceWorkerEvents[K],
   ): void {
     this.eventListeners[event] = listener;
   }
@@ -525,56 +538,61 @@ export class ServiceWorkerManager {
   private async setupServiceWorker(): Promise<void> {
     try {
       // Check if there's already a registered Service Worker
-      const existingRegistration = await navigator.serviceWorker.getRegistration();
-      
+      const existingRegistration =
+        await navigator.serviceWorker.getRegistration();
+
       if (existingRegistration) {
         this.registration = existingRegistration;
         this.setupRegistrationListeners(existingRegistration);
-        this.setState('registered');
+        this.setState("registered");
       }
 
       // Set up message handling from Service Worker
-      navigator.serviceWorker.addEventListener('message', this.handleServiceWorkerMessage.bind(this));
+      navigator.serviceWorker.addEventListener(
+        "message",
+        this.handleServiceWorkerMessage.bind(this),
+      );
 
       // Auto-register if no existing registration
       if (!existingRegistration) {
         await this.register();
       }
-
     } catch (error) {
-      console.warn('Service Worker setup failed:', error);
-      this.setState('error');
+      console.warn("Service Worker setup failed:", error);
+      this.setState("error");
     }
   }
 
-  private setupRegistrationListeners(registration: ServiceWorkerRegistration): void {
+  private setupRegistrationListeners(
+    registration: ServiceWorkerRegistration,
+  ): void {
     // Handle installation
     if (registration.installing) {
-      this.setState('installing');
-      registration.installing.addEventListener('statechange', () => {
+      this.setState("installing");
+      registration.installing.addEventListener("statechange", () => {
         this.handleStateChange(registration.installing);
       });
     }
 
     // Handle waiting for activation
     if (registration.waiting) {
-      this.setState('waiting');
-      this.emitEvent('updateReady');
+      this.setState("waiting");
+      this.emitEvent("updateReady");
     }
 
     // Handle active Service Worker
     if (registration.active) {
-      this.setState('active');
+      this.setState("active");
     }
 
     // Listen for updates
-    registration.addEventListener('updatefound', () => {
+    registration.addEventListener("updatefound", () => {
       const newWorker = registration.installing;
-      
+
       if (newWorker) {
-        this.setState('installing');
-        
-        newWorker.addEventListener('statechange', () => {
+        this.setState("installing");
+
+        newWorker.addEventListener("statechange", () => {
           this.handleStateChange(newWorker);
         });
       }
@@ -585,45 +603,45 @@ export class ServiceWorkerManager {
     if (!worker) return;
 
     switch (worker.state) {
-      case 'installed':
+      case "installed":
         if (navigator.serviceWorker.controller) {
           // New update available
-          this.emitEvent('updateAvailable', {
-            type: 'update_available',
-            version: 'unknown', // Would be retrieved from SW
+          this.emitEvent("updateAvailable", {
+            type: "update_available",
+            version: "unknown", // Would be retrieved from SW
           });
         } else {
           // First install
-          this.setState('active');
+          this.setState("active");
         }
         break;
 
-      case 'activated':
-        this.setState('active');
+      case "activated":
+        this.setState("active");
         break;
 
-      case 'redundant':
-        this.setState('error');
-        this.emitEvent('error', new Error('Service Worker became redundant'));
+      case "redundant":
+        this.setState("error");
+        this.emitEvent("error", new Error("Service Worker became redundant"));
         break;
     }
   }
 
   private handleServiceWorkerMessage(event: MessageEvent): void {
     const message: ServiceWorkerMessage = event.data;
-    
-    console.log('Message from Service Worker:', message);
+
+    console.log("Message from Service Worker:", message);
 
     switch (message.type) {
-      case 'SYNC_REQUEST':
-        this.emitEvent('syncComplete', message.data?.tag, true);
+      case "SYNC_REQUEST":
+        this.emitEvent("syncComplete", message.data?.tag, true);
         break;
 
-      case 'NOTIFICATION_ACTION':
-        this.emitEvent('notificationReceived', message.data);
+      case "NOTIFICATION_ACTION":
+        this.emitEvent("notificationReceived", message.data);
         break;
 
-      case 'NAVIGATE':
+      case "NAVIGATE":
         // Handle navigation requests from Service Worker
         if (message.data?.url) {
           window.location.href = message.data.url;
@@ -631,28 +649,30 @@ export class ServiceWorkerManager {
         break;
 
       default:
-        console.log('Unknown message from Service Worker:', message);
+        console.log("Unknown message from Service Worker:", message);
     }
   }
 
   private async postMessage(message: ServiceWorkerMessage): Promise<void> {
     if (!this.registration?.active) {
-      throw new Error('No active Service Worker available');
+      throw new Error("No active Service Worker available");
     }
 
     this.registration.active.postMessage(message);
   }
 
-  private async postMessageWithResponse(message: ServiceWorkerMessage): Promise<any> {
+  private async postMessageWithResponse(
+    message: ServiceWorkerMessage,
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!this.registration?.active) {
-        reject(new Error('No active Service Worker available'));
+        reject(new Error("No active Service Worker available"));
         return;
       }
 
       // Create message channel for response
       const messageChannel = new MessageChannel();
-      
+
       messageChannel.port1.onmessage = (event) => {
         resolve(event.data);
       };
@@ -662,7 +682,7 @@ export class ServiceWorkerManager {
 
       // Timeout after 10 seconds
       setTimeout(() => {
-        reject(new Error('Service Worker response timeout'));
+        reject(new Error("Service Worker response timeout"));
       }, 10000);
     });
   }
@@ -673,8 +693,8 @@ export class ServiceWorkerManager {
     }
 
     this.updateCheckTimer = setInterval(() => {
-      this.checkForUpdates().catch(error => {
-        console.warn('Automatic update check failed:', error);
+      this.checkForUpdates().catch((error) => {
+        console.warn("Automatic update check failed:", error);
       });
     }, this.config.updateCheckInterval);
   }
@@ -690,9 +710,9 @@ export class ServiceWorkerManager {
     if (this.state !== newState) {
       const oldState = this.state;
       this.state = newState;
-      
+
       console.log(`Service Worker state changed: ${oldState} -> ${newState}`);
-      this.emitEvent('stateChange', newState);
+      this.emitEvent("stateChange", newState);
     }
   }
 
@@ -705,16 +725,19 @@ export class ServiceWorkerManager {
       try {
         (listener as any)(...args);
       } catch (error) {
-        console.error(`Error in Service Worker event listener for ${event}:`, error);
+        console.error(
+          `Error in Service Worker event listener for ${event}:`,
+          error,
+        );
       }
     }
   }
 
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
+      .replace(/\-/g, "+")
+      .replace(/_/g, "/");
 
     const rawData = window.atob(base64);
     const outputArray = new Uint8Array(rawData.length);
@@ -722,7 +745,7 @@ export class ServiceWorkerManager {
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);
     }
-    
+
     return outputArray;
   }
 
@@ -736,14 +759,14 @@ export class ServiceWorkerManager {
   destroy(): void {
     this.stopUpdateChecker();
     this.removeAllEventListeners();
-    
+
     if (this.messageChannel) {
       this.messageChannel.port1.close();
       this.messageChannel.port2.close();
       this.messageChannel = null;
     }
 
-    console.log('Service Worker Manager destroyed');
+    console.log("Service Worker Manager destroyed");
   }
 }
 
@@ -755,7 +778,7 @@ export class ServiceWorkerManager {
  * Check if Service Workers are supported in this environment
  */
 export function isServiceWorkerSupported(): boolean {
-  return 'serviceWorker' in navigator && 'PushManager' in window;
+  return "serviceWorker" in navigator && "PushManager" in window;
 }
 
 /**
@@ -769,7 +792,7 @@ export async function getCurrentRegistration(): Promise<ServiceWorkerRegistratio
   try {
     return await navigator.serviceWorker.getRegistration();
   } catch (error) {
-    console.warn('Failed to get Service Worker registration:', error);
+    console.warn("Failed to get Service Worker registration:", error);
     return null;
   }
 }
@@ -785,7 +808,7 @@ export function isOffline(): boolean {
  * Get network information (if available)
  */
 export function getNetworkInfo(): any {
-  if ('connection' in navigator) {
+  if ("connection" in navigator) {
     return (navigator as any).connection;
   }
   return null;
@@ -799,18 +822,18 @@ export function getNetworkInfo(): any {
  * Background sync tags matching Service Worker implementation
  */
 export const SYNC_TAGS: SyncTags = {
-  INSPECTION_DATA: 'inspection-sync',
-  MEDIA_UPLOAD: 'media-sync',  
-  USER_PREFERENCES: 'preferences-sync',
-  ANALYTICS: 'analytics-sync',
+  INSPECTION_DATA: "inspection-sync",
+  MEDIA_UPLOAD: "media-sync",
+  USER_PREFERENCES: "preferences-sync",
+  ANALYTICS: "analytics-sync",
 };
 
 /**
  * Default Service Worker configuration
  */
 export const DEFAULT_SW_CONFIG: ServiceWorkerConfig = {
-  scope: '/',
-  updateViaCache: 'none',
+  scope: "/",
+  updateViaCache: "none",
   enableAutoUpdate: true,
   updateCheckInterval: 60000,
   enableNotifications: true,
@@ -831,7 +854,9 @@ export const serviceWorkerManager = new ServiceWorkerManager();
  * Initialize Service Worker manager
  * Call this early in your app initialization
  */
-export async function initializeServiceWorker(config?: Partial<ServiceWorkerConfig>): Promise<void> {
+export async function initializeServiceWorker(
+  config?: Partial<ServiceWorkerConfig>,
+): Promise<void> {
   try {
     if (config) {
       // Create new instance with custom config
@@ -841,9 +866,9 @@ export async function initializeServiceWorker(config?: Partial<ServiceWorkerConf
       // Use singleton instance
       await serviceWorkerManager.register();
     }
-    
-    console.log('Service Worker Manager initialized successfully');
+
+    console.log("Service Worker Manager initialized successfully");
   } catch (error) {
-    console.error('Service Worker Manager initialization failed:', error);
+    console.error("Service Worker Manager initialization failed:", error);
   }
 }

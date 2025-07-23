@@ -1,18 +1,19 @@
+import React from "react";
+import { AuthContext } from "@/contexts/AuthContext";
+import { MobileAuthLoading } from "@/components/MobileAuthLoading";
+import { useAuthState } from "@/hooks/useAuthState";
+import { useAuthInitialization } from "@/hooks/useAuthInitialization";
+import { useAuthStateListener } from "@/hooks/useAuthStateListener";
 
-import React from 'react';
-import { AuthContext } from '@/contexts/AuthContext';
-import { MobileAuthLoading } from '@/components/MobileAuthLoading';
-import { useAuthState } from '@/hooks/useAuthState';
-import { useAuthInitialization } from '@/hooks/useAuthInitialization';
-import { useAuthStateListener } from '@/hooks/useAuthStateListener';
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const authState = useAuthState();
   const { initializeAuth } = useAuthInitialization(authState);
-  
+
   useAuthStateListener({
     ...authState,
-    initializeAuth
+    initializeAuth,
   });
 
   const value: AuthContextType = {
@@ -30,10 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Mobile-optimized loading screen
   if (authState.loading) {
-    return <MobileAuthLoading onRefresh={() => {
-      authState.handleClearSession();
-      authState.forceRefresh();
-    }} />;
+    return (
+      <MobileAuthLoading
+        onRefresh={() => {
+          authState.handleClearSession();
+          authState.forceRefresh();
+        }}
+      />
+    );
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

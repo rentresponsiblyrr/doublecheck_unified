@@ -1,12 +1,24 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Home, Calendar, Clock, MapPin, FileText } from "lucide-react";
+import {
+  CheckCircle,
+  Home,
+  Calendar,
+  Clock,
+  MapPin,
+  FileText,
+} from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ReportGenerator } from "@/components/reports/ReportGenerator";
 import { PhotoComparisonReport } from "@/components/reports/PhotoComparisonReport";
@@ -44,24 +56,25 @@ const InspectionComplete = () => {
   const [summary, setSummary] = useState<ChecklistSummary | null>(null);
 
   const { data: inspection, isLoading } = useQuery({
-    queryKey: ['inspection-details', inspectionId],
+    queryKey: ["inspection-details", inspectionId],
     queryFn: async () => {
-      if (!inspectionId) throw new Error('No inspection ID provided');
-      
-      
+      if (!inspectionId) throw new Error("No inspection ID provided");
+
       const { data, error } = await supabase
-        .from('inspections')
-        .select(`
+        .from("inspections")
+        .select(
+          `
           *,
           properties (
             name,
             address,
             vrbo_url
           )
-        `)
-        .eq('id', inspectionId)
+        `,
+        )
+        .eq("id", inspectionId)
         .single();
-      
+
       if (error) {
         throw error;
       }
@@ -76,52 +89,56 @@ const InspectionComplete = () => {
 
     const fetchChecklistSummary = async () => {
       try {
-        
         const { data, error } = await supabase
-          .from('checklist_items')
-          .select('status, static_safety_items(category)')
-          .eq('inspection_id', inspectionId);
+          .from("checklist_items")
+          .select("status, static_safety_items(category)")
+          .eq("inspection_id", inspectionId);
 
         if (error) {
           return;
         }
 
         const total = data.length;
-        const completed = data.filter(item => item.status === 'completed').length;
-        
-        const categories = data.reduce((acc, item) => {
-          const category = item.static_safety_items?.category as keyof typeof acc;
-          if (category && acc[category] !== undefined) {
-            acc[category]++;
-          }
-          return acc;
-        }, {
-          safety: 0,
-          amenity: 0,
-          cleanliness: 0,
-          maintenance: 0
-        });
+        const completed = data.filter(
+          (item) => item.status === "completed",
+        ).length;
+
+        const categories = data.reduce(
+          (acc, item) => {
+            const category = item.static_safety_items
+              ?.category as keyof typeof acc;
+            if (category && acc[category] !== undefined) {
+              acc[category]++;
+            }
+            return acc;
+          },
+          {
+            safety: 0,
+            amenity: 0,
+            cleanliness: 0,
+            maintenance: 0,
+          },
+        );
 
         setSummary({ total, completed, categories });
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchChecklistSummary();
   }, [inspectionId]);
 
   const formatDuration = (startTime: string, endTime: string | null) => {
-    if (!endTime) return 'Unknown';
-    
+    if (!endTime) return "Unknown";
+
     const start = new Date(startTime);
     const end = new Date(endTime);
     const diffMs = end.getTime() - start.getTime();
     const diffMins = Math.round(diffMs / (1000 * 60));
-    
+
     if (diffMins < 60) {
       return `${diffMins} minutes`;
     }
-    
+
     const hours = Math.floor(diffMins / 60);
     const minutes = diffMins % 60;
     return `${hours}h ${minutes}m`;
@@ -138,9 +155,7 @@ const InspectionComplete = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Inspection Not Found
           </h2>
-          <Button onClick={() => navigate('/')}>
-            Return Home
-          </Button>
+          <Button onClick={() => navigate("/")}>Return Home</Button>
         </div>
       </div>
     );
@@ -153,7 +168,9 @@ const InspectionComplete = () => {
         <div className="px-4 py-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900">DoubleCheck</h1>
-            <p className="text-sm text-gray-600 mt-1">Powered by Rent Responsibly</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Powered by Rent Responsibly
+            </p>
           </div>
         </div>
       </div>
@@ -179,9 +196,7 @@ const InspectionComplete = () => {
               <MapPin className="w-5 h-5" />
               {inspection.properties.name}
             </CardTitle>
-            <CardDescription>
-              {inspection.properties.address}
-            </CardDescription>
+            <CardDescription>{inspection.properties.address}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -224,9 +239,11 @@ const InspectionComplete = () => {
                     {summary.completed} of {summary.total}
                   </Badge>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-gray-700">By Category</div>
+                  <div className="text-sm font-medium text-gray-700">
+                    By Category
+                  </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex justify-between">
                       <span>Safety</span>
@@ -290,35 +307,34 @@ const InspectionComplete = () => {
         </Card>
 
         {/* Report Generation */}
-        <ReportGenerator 
+        <ReportGenerator
           inspectionId={inspectionId}
           propertyName={inspection.properties.name}
-          onReportGenerated={(reportId) => {
-          }}
+          onReportGenerated={(reportId) => {}}
         />
 
         {/* Photo Comparison Report */}
-        <PhotoComparisonReport 
+        <PhotoComparisonReport
           inspectionId={inspectionId}
           propertyName={inspection.properties.name}
           checklistItems={[]} // Would need to be populated from inspection data
         />
 
         {/* Audit Trail Report */}
-        <AuditTrailReport 
+        <AuditTrailReport
           inspectionId={inspectionId}
           propertyName={inspection.properties.name}
         />
 
         {/* Listing Optimization Suggestions */}
-        <ListingOptimizationSuggestions 
+        <ListingOptimizationSuggestions
           inspectionId={inspectionId}
           inspection={inspection}
           propertyName={inspection.properties.name}
         />
 
         {/* Property Manager Delivery */}
-        <PropertyManagerDelivery 
+        <PropertyManagerDelivery
           inspectionId={inspectionId}
           propertyId={inspection.property_id}
           propertyName={inspection.properties.name}
@@ -326,8 +342,8 @@ const InspectionComplete = () => {
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Button 
-            onClick={() => navigate('/')}
+          <Button
+            onClick={() => navigate("/")}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             size="lg"
           >

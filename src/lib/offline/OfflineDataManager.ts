@@ -1,23 +1,23 @@
 /**
  * STR CERTIFIED OFFLINE DATA MANAGER - PHASE 4A CORE IMPLEMENTATION
- * 
+ *
  * Enterprise-grade IndexedDB wrapper providing complete offline data management
  * for the STR Certified inspection platform. Implements 5 specialized object stores
  * with intelligent sync, conflict resolution, and performance optimization.
- * 
+ *
  * PERFORMANCE TARGETS:
  * - <50ms read operations for cached data (95th percentile)
  * - <200ms write operations with optimistic updates
  * - 100% data integrity during offline/online transitions
  * - Intelligent conflict resolution with user preference preservation
  * - Background sync queue management with exponential backoff
- * 
+ *
  * @version 1.0.0
  * @author STR Certified Engineering Team
  * @phase Phase 4A - PWA Core Implementation
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // ========================================
 // TYPE DEFINITIONS
@@ -58,12 +58,12 @@ export interface IndexConfig {
 export interface SyncQueueItem {
   id: string;
   store: string;
-  operation: 'create' | 'update' | 'delete';
+  operation: "create" | "update" | "delete";
   data: any;
   timestamp: number;
   retryCount: number;
   maxRetries: number;
-  conflictResolution?: 'client' | 'server' | 'merge';
+  conflictResolution?: "client" | "server" | "merge";
 }
 
 /**
@@ -92,7 +92,11 @@ export interface DataStoreStats {
 /**
  * Conflict resolution strategy
  */
-export type ConflictResolutionStrategy = 'client-wins' | 'server-wins' | 'merge' | 'prompt-user';
+export type ConflictResolutionStrategy =
+  | "client-wins"
+  | "server-wins"
+  | "merge"
+  | "prompt-user";
 
 /**
  * Sync configuration options
@@ -102,7 +106,7 @@ export interface SyncOptions {
   retryDelay?: number;
   maxRetries?: number;
   conflictResolution?: ConflictResolutionStrategy;
-  priority?: 'high' | 'medium' | 'low';
+  priority?: "high" | "medium" | "low";
 }
 
 // ========================================
@@ -113,80 +117,80 @@ export interface SyncOptions {
  * STR Certified IndexedDB schema with 5 specialized object stores
  */
 const DATABASE_CONFIG: DatabaseConfig = {
-  name: 'str_certified_offline',
+  name: "str_certified_offline",
   version: 1,
   stores: [
     // Store 1: Inspections with complete inspection data
     {
-      name: 'inspections',
-      keyPath: 'id',
+      name: "inspections",
+      keyPath: "id",
       indexes: [
-        { name: 'property_id', keyPath: 'property_id' },
-        { name: 'inspector_id', keyPath: 'inspector_id' },
-        { name: 'status', keyPath: 'status' },
-        { name: 'created_at', keyPath: 'created_at' },
-        { name: 'updated_at', keyPath: 'updated_at' },
-        { name: 'sync_status', keyPath: 'sync_status' },
-      ]
+        { name: "property_id", keyPath: "property_id" },
+        { name: "inspector_id", keyPath: "inspector_id" },
+        { name: "status", keyPath: "status" },
+        { name: "created_at", keyPath: "created_at" },
+        { name: "updated_at", keyPath: "updated_at" },
+        { name: "sync_status", keyPath: "sync_status" },
+      ],
     },
-    
+
     // Store 2: Checklist items with progress tracking
     {
-      name: 'checklist_items',
-      keyPath: 'id', 
+      name: "checklist_items",
+      keyPath: "id",
       indexes: [
-        { name: 'inspection_id', keyPath: 'inspection_id' },
-        { name: 'static_safety_item_id', keyPath: 'static_safety_item_id' },
-        { name: 'status', keyPath: 'status' },
-        { name: 'category', keyPath: 'category' },
-        { name: 'required', keyPath: 'required' },
-        { name: 'updated_at', keyPath: 'updated_at' },
-      ]
+        { name: "inspection_id", keyPath: "inspection_id" },
+        { name: "static_safety_item_id", keyPath: "static_safety_item_id" },
+        { name: "status", keyPath: "status" },
+        { name: "category", keyPath: "category" },
+        { name: "required", keyPath: "required" },
+        { name: "updated_at", keyPath: "updated_at" },
+      ],
     },
-    
+
     // Store 3: Media files with compression and metadata
     {
-      name: 'media_files',
-      keyPath: 'id',
+      name: "media_files",
+      keyPath: "id",
       indexes: [
-        { name: 'checklist_item_id', keyPath: 'checklist_item_id' },
-        { name: 'inspection_id', keyPath: 'inspection_id' },
-        { name: 'file_type', keyPath: 'file_type' },
-        { name: 'upload_status', keyPath: 'upload_status' },
-        { name: 'created_at', keyPath: 'created_at' },
-        { name: 'file_size', keyPath: 'file_size' },
-      ]
+        { name: "checklist_item_id", keyPath: "checklist_item_id" },
+        { name: "inspection_id", keyPath: "inspection_id" },
+        { name: "file_type", keyPath: "file_type" },
+        { name: "upload_status", keyPath: "upload_status" },
+        { name: "created_at", keyPath: "created_at" },
+        { name: "file_size", keyPath: "file_size" },
+      ],
     },
-    
+
     // Store 4: Properties with inspection context
     {
-      name: 'properties',
-      keyPath: 'property_id',
+      name: "properties",
+      keyPath: "property_id",
       indexes: [
-        { name: 'property_name', keyPath: 'property_name' },
-        { name: 'city', keyPath: 'city' },
-        { name: 'state', keyPath: 'state' },
-        { name: 'last_inspection_date', keyPath: 'last_inspection_date' },
-        { name: 'quality_score', keyPath: 'quality_score' },
-        { name: 'updated_at', keyPath: 'updated_at' },
-      ]
+        { name: "property_name", keyPath: "property_name" },
+        { name: "city", keyPath: "city" },
+        { name: "state", keyPath: "state" },
+        { name: "last_inspection_date", keyPath: "last_inspection_date" },
+        { name: "quality_score", keyPath: "quality_score" },
+        { name: "updated_at", keyPath: "updated_at" },
+      ],
     },
-    
+
     // Store 5: Sync queue for offline operations
     {
-      name: 'sync_queue',
-      keyPath: 'id',
+      name: "sync_queue",
+      keyPath: "id",
       autoIncrement: true,
       indexes: [
-        { name: 'store', keyPath: 'store' },
-        { name: 'operation', keyPath: 'operation' },
-        { name: 'timestamp', keyPath: 'timestamp' },
-        { name: 'priority', keyPath: 'priority' },
-        { name: 'retry_count', keyPath: 'retryCount' },
-        { name: 'status', keyPath: 'status' },
-      ]
-    }
-  ]
+        { name: "store", keyPath: "store" },
+        { name: "operation", keyPath: "operation" },
+        { name: "timestamp", keyPath: "timestamp" },
+        { name: "priority", keyPath: "priority" },
+        { name: "retry_count", keyPath: "retryCount" },
+        { name: "status", keyPath: "status" },
+      ],
+    },
+  ],
 };
 
 // ========================================
@@ -195,11 +199,11 @@ const DATABASE_CONFIG: DatabaseConfig = {
 
 /**
  * OfflineDataManager - Comprehensive IndexedDB management for PWA
- * 
+ *
  * Provides enterprise-grade offline data management with intelligent sync,
  * conflict resolution, and performance optimization. Handles complete
  * inspection workflow data including images, videos, and checklist progress.
- * 
+ *
  * Key Features:
  * - 5 specialized IndexedDB object stores for different data types
  * - Intelligent sync queue with exponential backoff retry logic
@@ -218,7 +222,7 @@ export class OfflineDataManager {
 
   // Configuration
   private readonly MAX_RETRY_DELAY = 300000; // 5 minutes
-  private readonly BASE_RETRY_DELAY = 1000;   // 1 second
+  private readonly BASE_RETRY_DELAY = 1000; // 1 second
   private readonly MAX_STORAGE_SIZE = 500 * 1024 * 1024; // 500MB
   private readonly CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -241,18 +245,19 @@ export class OfflineDataManager {
     try {
       this.db = await this.openDatabase();
       this.isInitialized = true;
-      
+
       // Load pending sync queue
       await this.loadSyncQueue();
-      
-      logger.info('OfflineDataManager initialized successfully', {
-        version: DATABASE_CONFIG.version,
-        stores: DATABASE_CONFIG.stores.length
-      });
 
+      logger.info("OfflineDataManager initialized successfully", {
+        version: DATABASE_CONFIG.version,
+        stores: DATABASE_CONFIG.stores.length,
+      });
     } catch (error) {
-      logger.error('Failed to initialize OfflineDataManager', { error });
-      throw new Error(`Database initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.error("Failed to initialize OfflineDataManager", { error });
+      throw new Error(
+        `Database initialization failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -261,10 +266,17 @@ export class OfflineDataManager {
    */
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DATABASE_CONFIG.name, DATABASE_CONFIG.version);
+      const request = indexedDB.open(
+        DATABASE_CONFIG.name,
+        DATABASE_CONFIG.version,
+      );
 
       request.onerror = () => {
-        reject(new Error(`Database open failed: ${request.error?.message || 'Unknown error'}`));
+        reject(
+          new Error(
+            `Database open failed: ${request.error?.message || "Unknown error"}`,
+          ),
+        );
       };
 
       request.onsuccess = () => {
@@ -277,7 +289,7 @@ export class OfflineDataManager {
       };
 
       request.onblocked = () => {
-        logger.warn('Database upgrade blocked by other tabs');
+        logger.warn("Database upgrade blocked by other tabs");
       };
     });
   }
@@ -294,7 +306,7 @@ export class OfflineDataManager {
 
       const store = db.createObjectStore(storeConfig.name, {
         keyPath: storeConfig.keyPath,
-        autoIncrement: storeConfig.autoIncrement || false
+        autoIncrement: storeConfig.autoIncrement || false,
       });
 
       // Create indexes
@@ -302,14 +314,14 @@ export class OfflineDataManager {
         for (const indexConfig of storeConfig.indexes) {
           store.createIndex(indexConfig.name, indexConfig.keyPath, {
             unique: indexConfig.unique || false,
-            multiEntry: indexConfig.multiEntry || false
+            multiEntry: indexConfig.multiEntry || false,
           });
         }
       }
 
       logger.info(`Created object store: ${storeConfig.name}`, {
         keyPath: storeConfig.keyPath,
-        indexes: storeConfig.indexes?.length || 0
+        indexes: storeConfig.indexes?.length || 0,
       });
     }
   }
@@ -321,36 +333,38 @@ export class OfflineDataManager {
   /**
    * Get single record by key
    */
-  async get<T>(storeName: string, key: any): Promise<OfflineOperationResult<T>> {
+  async get<T>(
+    storeName: string,
+    key: any,
+  ): Promise<OfflineOperationResult<T>> {
     const startTime = performance.now();
-    
+
     try {
       this.ensureInitialized();
-      
-      const transaction = this.db!.transaction([storeName], 'readonly');
+
+      const transaction = this.db!.transaction([storeName], "readonly");
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
       const result = await this.promisifyRequest<T>(request);
-      
+
       return {
         success: true,
         data: result || null,
         fromCache: true,
         syncPending: false,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       logger.error(`Failed to get record from ${storeName}`, { key, error });
-      
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -365,14 +379,14 @@ export class OfflineDataManager {
       query?: IDBKeyRange | any;
       limit?: number;
       direction?: IDBCursorDirection;
-    } = {}
+    } = {},
   ): Promise<OfflineOperationResult<T[]>> {
     try {
       this.ensureInitialized();
-      
-      const transaction = this.db!.transaction([storeName], 'readonly');
+
+      const transaction = this.db!.transaction([storeName], "readonly");
       const store = transaction.objectStore(storeName);
-      
+
       let source: IDBObjectStore | IDBIndex = store;
       if (options.index) {
         source = store.index(options.index);
@@ -384,7 +398,7 @@ export class OfflineDataManager {
       return new Promise((resolve) => {
         request.onsuccess = (event) => {
           const cursor = (event.target as IDBRequest).result;
-          
+
           if (cursor && (!options.limit || results.length < options.limit)) {
             results.push(cursor.value);
             cursor.continue();
@@ -394,34 +408,35 @@ export class OfflineDataManager {
               data: results,
               fromCache: true,
               syncPending: false,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             });
           }
         };
 
         request.onerror = () => {
-          logger.error(`Failed to get all records from ${storeName}`, { error: request.error });
+          logger.error(`Failed to get all records from ${storeName}`, {
+            error: request.error,
+          });
           resolve({
             success: false,
             data: null,
             fromCache: false,
             syncPending: false,
-            error: request.error?.message || 'Unknown error',
-            timestamp: Date.now()
+            error: request.error?.message || "Unknown error",
+            timestamp: Date.now(),
           });
         };
       });
-
     } catch (error) {
       logger.error(`Failed to get all records from ${storeName}`, { error });
-      
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -432,20 +447,20 @@ export class OfflineDataManager {
   async put<T>(
     storeName: string,
     data: T,
-    options: SyncOptions = {}
+    options: SyncOptions = {},
   ): Promise<OfflineOperationResult<T>> {
     try {
       this.ensureInitialized();
-      
+
       // Add sync metadata
       const dataWithSync = {
         ...data,
         updated_at: new Date().toISOString(),
-        sync_status: 'pending',
-        client_updated_at: Date.now()
+        sync_status: "pending",
+        client_updated_at: Date.now(),
       };
 
-      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.put(dataWithSync);
 
@@ -454,13 +469,13 @@ export class OfflineDataManager {
       // Add to sync queue for server synchronization
       await this.addToSyncQueue({
         store: storeName,
-        operation: 'update',
+        operation: "update",
         data: dataWithSync,
-        ...options
+        ...options,
       });
 
-      logger.debug(`Stored record in ${storeName}`, { 
-        key: (dataWithSync as any)[store.keyPath as string] 
+      logger.debug(`Stored record in ${storeName}`, {
+        key: (dataWithSync as any)[store.keyPath as string],
       });
 
       return {
@@ -468,19 +483,18 @@ export class OfflineDataManager {
         data: dataWithSync,
         fromCache: false,
         syncPending: true,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       logger.error(`Failed to store record in ${storeName}`, { error });
-      
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -491,12 +505,12 @@ export class OfflineDataManager {
   async delete(
     storeName: string,
     key: any,
-    options: SyncOptions = {}
+    options: SyncOptions = {},
   ): Promise<OfflineOperationResult<boolean>> {
     try {
       this.ensureInitialized();
 
-      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
       const request = store.delete(key);
 
@@ -505,9 +519,9 @@ export class OfflineDataManager {
       // Add to sync queue for server synchronization
       await this.addToSyncQueue({
         store: storeName,
-        operation: 'delete',
+        operation: "delete",
         data: { [store.keyPath as string]: key },
-        ...options
+        ...options,
       });
 
       logger.debug(`Deleted record from ${storeName}`, { key });
@@ -517,19 +531,18 @@ export class OfflineDataManager {
         data: true,
         fromCache: false,
         syncPending: true,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       logger.error(`Failed to delete record from ${storeName}`, { key, error });
-      
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -545,36 +558,43 @@ export class OfflineDataManager {
     try {
       this.ensureInitialized();
 
-      const transaction = this.db!.transaction(['inspections', 'checklist_items'], 'readwrite');
-      
+      const transaction = this.db!.transaction(
+        ["inspections", "checklist_items"],
+        "readwrite",
+      );
+
       // Store main inspection
-      const inspectionStore = transaction.objectStore('inspections');
-      await this.promisifyRequest(inspectionStore.put({
-        ...inspection,
-        sync_status: 'pending',
-        updated_at: new Date().toISOString()
-      }));
+      const inspectionStore = transaction.objectStore("inspections");
+      await this.promisifyRequest(
+        inspectionStore.put({
+          ...inspection,
+          sync_status: "pending",
+          updated_at: new Date().toISOString(),
+        }),
+      );
 
       // Store associated checklist items
       if (inspection.checklist_items) {
-        const checklistStore = transaction.objectStore('checklist_items');
-        
+        const checklistStore = transaction.objectStore("checklist_items");
+
         for (const item of inspection.checklist_items) {
-          await this.promisifyRequest(checklistStore.put({
-            ...item,
-            inspection_id: inspection.id,
-            sync_status: 'pending',
-            updated_at: new Date().toISOString()
-          }));
+          await this.promisifyRequest(
+            checklistStore.put({
+              ...item,
+              inspection_id: inspection.id,
+              sync_status: "pending",
+              updated_at: new Date().toISOString(),
+            }),
+          );
         }
       }
 
       // Add to sync queue
       await this.addToSyncQueue({
-        store: 'inspections',
-        operation: 'update',
+        store: "inspections",
+        operation: "update",
         data: inspection,
-        priority: 'high'
+        priority: "high",
       });
 
       return {
@@ -582,19 +602,21 @@ export class OfflineDataManager {
         data: inspection,
         fromCache: false,
         syncPending: true,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
-      logger.error('Failed to store inspection', { error, inspectionId: inspection.id });
-      
+      logger.error("Failed to store inspection", {
+        error,
+        inspectionId: inspection.id,
+      });
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -607,15 +629,15 @@ export class OfflineDataManager {
     metadata: {
       checklist_item_id: string;
       inspection_id: string;
-      file_type: 'photo' | 'video' | 'document';
-    }
+      file_type: "photo" | "video" | "document";
+    },
   ): Promise<OfflineOperationResult<any>> {
     try {
       this.ensureInitialized();
 
       // Compress file if needed
       const compressedFile = await this.compressFile(file);
-      
+
       // Convert to base64 for storage
       const base64Data = await this.fileToBase64(compressedFile);
 
@@ -627,33 +649,39 @@ export class OfflineDataManager {
         original_size: file.size,
         mime_type: file.type,
         base64_data: base64Data,
-        upload_status: 'pending',
+        upload_status: "pending",
         created_at: new Date().toISOString(),
-        sync_status: 'pending'
+        sync_status: "pending",
       };
 
-      const result = await this.put('media_files', mediaRecord, { priority: 'medium' });
+      const result = await this.put("media_files", mediaRecord, {
+        priority: "medium",
+      });
 
-      logger.info('Media file stored for offline upload', {
+      logger.info("Media file stored for offline upload", {
         id: mediaRecord.id,
         fileName: file.name,
         originalSize: file.size,
         compressedSize: compressedFile.size,
-        compressionRatio: Math.round((1 - compressedFile.size / file.size) * 100)
+        compressionRatio: Math.round(
+          (1 - compressedFile.size / file.size) * 100,
+        ),
       });
 
       return result;
-
     } catch (error) {
-      logger.error('Failed to store media file', { error, fileName: file.name });
-      
+      logger.error("Failed to store media file", {
+        error,
+        fileName: file.name,
+      });
+
       return {
         success: false,
         data: null,
         fromCache: false,
         syncPending: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        error: error instanceof Error ? error.message : "Unknown error",
+        timestamp: Date.now(),
       };
     }
   }
@@ -667,9 +695,9 @@ export class OfflineDataManager {
    */
   private async addToSyncQueue(options: {
     store: string;
-    operation: 'create' | 'update' | 'delete';
+    operation: "create" | "update" | "delete";
     data: any;
-    priority?: 'high' | 'medium' | 'low';
+    priority?: "high" | "medium" | "low";
     conflictResolution?: ConflictResolutionStrategy;
   }): Promise<void> {
     const queueItem: SyncQueueItem = {
@@ -680,25 +708,27 @@ export class OfflineDataManager {
       timestamp: Date.now(),
       retryCount: 0,
       maxRetries: 3,
-      conflictResolution: options.conflictResolution || 'client-wins'
+      conflictResolution: options.conflictResolution || "client-wins",
     };
 
     // Store in sync queue object store
-    const transaction = this.db!.transaction(['sync_queue'], 'readwrite');
-    const store = transaction.objectStore('sync_queue');
-    await this.promisifyRequest(store.add({
-      ...queueItem,
-      priority: options.priority || 'medium',
-      status: 'pending'
-    }));
+    const transaction = this.db!.transaction(["sync_queue"], "readwrite");
+    const store = transaction.objectStore("sync_queue");
+    await this.promisifyRequest(
+      store.add({
+        ...queueItem,
+        priority: options.priority || "medium",
+        status: "pending",
+      }),
+    );
 
     // Add to in-memory queue
     this.syncQueue.push(queueItem);
-    
+
     // Trigger sync if online
     if (navigator.onLine && !this.syncInProgress) {
-      this.processSyncQueue().catch(error => {
-        logger.error('Sync queue processing failed', { error });
+      this.processSyncQueue().catch((error) => {
+        logger.error("Sync queue processing failed", { error });
       });
     }
   }
@@ -708,18 +738,17 @@ export class OfflineDataManager {
    */
   private async loadSyncQueue(): Promise<void> {
     try {
-      const result = await this.getAll<SyncQueueItem>('sync_queue', {
-        index: 'status',
-        query: IDBKeyRange.only('pending')
+      const result = await this.getAll<SyncQueueItem>("sync_queue", {
+        index: "status",
+        query: IDBKeyRange.only("pending"),
       });
 
       if (result.success && result.data) {
         this.syncQueue = result.data;
         logger.info(`Loaded ${this.syncQueue.length} pending sync items`);
       }
-
     } catch (error) {
-      logger.error('Failed to load sync queue', { error });
+      logger.error("Failed to load sync queue", { error });
     }
   }
 
@@ -727,12 +756,18 @@ export class OfflineDataManager {
    * Process sync queue with server
    */
   async processSyncQueue(): Promise<void> {
-    if (this.syncInProgress || !navigator.onLine || this.syncQueue.length === 0) {
+    if (
+      this.syncInProgress ||
+      !navigator.onLine ||
+      this.syncQueue.length === 0
+    ) {
       return;
     }
 
     this.syncInProgress = true;
-    logger.info('Starting sync queue processing', { items: this.syncQueue.length });
+    logger.info("Starting sync queue processing", {
+      items: this.syncQueue.length,
+    });
 
     try {
       // Sort by priority and timestamp
@@ -740,11 +775,11 @@ export class OfflineDataManager {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
         const aPriority = priorityOrder[(a as any).priority] || 2;
         const bPriority = priorityOrder[(b as any).priority] || 2;
-        
+
         if (aPriority !== bPriority) {
           return bPriority - aPriority;
         }
-        
+
         return a.timestamp - b.timestamp;
       });
 
@@ -755,10 +790,9 @@ export class OfflineDataManager {
         await this.processSyncBatch(batch);
       }
 
-      logger.info('Sync queue processing completed');
-
+      logger.info("Sync queue processing completed");
     } catch (error) {
-      logger.error('Sync queue processing failed', { error });
+      logger.error("Sync queue processing failed", { error });
     } finally {
       this.syncInProgress = false;
     }
@@ -768,7 +802,7 @@ export class OfflineDataManager {
    * Process a batch of sync items
    */
   private async processSyncBatch(batch: SyncQueueItem[]): Promise<void> {
-    const promises = batch.map(item => this.processSyncItem(item));
+    const promises = batch.map((item) => this.processSyncItem(item));
     await Promise.allSettled(promises);
   }
 
@@ -779,23 +813,24 @@ export class OfflineDataManager {
     try {
       // This would integrate with the actual API service
       // For now, we'll simulate the sync operation
-      logger.debug(`Processing sync item: ${item.store}/${item.operation}`, { id: item.id });
+      logger.debug(`Processing sync item: ${item.store}/${item.operation}`, {
+        id: item.id,
+      });
 
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Mark as synced and remove from queue
       await this.removeSyncItem(item.id);
-      
-      // Update record sync status
-      await this.updateSyncStatus(item.store, item.data, 'synced');
 
+      // Update record sync status
+      await this.updateSyncStatus(item.store, item.data, "synced");
     } catch (error) {
       logger.error(`Sync item failed: ${item.id}`, { error });
-      
+
       // Handle retry logic
       item.retryCount++;
-      
+
       if (item.retryCount < item.maxRetries) {
         await this.scheduleRetry(item);
       } else {
@@ -810,30 +845,33 @@ export class OfflineDataManager {
    */
   private async removeSyncItem(itemId: string): Promise<void> {
     // Remove from IndexedDB
-    const transaction = this.db!.transaction(['sync_queue'], 'readwrite');
-    const store = transaction.objectStore('sync_queue');
+    const transaction = this.db!.transaction(["sync_queue"], "readwrite");
+    const store = transaction.objectStore("sync_queue");
     await this.promisifyRequest(store.delete(itemId));
 
     // Remove from in-memory queue
-    this.syncQueue = this.syncQueue.filter(item => item.id !== itemId);
+    this.syncQueue = this.syncQueue.filter((item) => item.id !== itemId);
   }
 
   /**
    * Update sync status of a record
    */
-  private async updateSyncStatus(storeName: string, data: any, status: string): Promise<void> {
+  private async updateSyncStatus(
+    storeName: string,
+    data: any,
+    status: string,
+  ): Promise<void> {
     try {
-      const transaction = this.db!.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
-      
+
       const updatedData = {
         ...data,
         sync_status: status,
-        synced_at: new Date().toISOString()
+        synced_at: new Date().toISOString(),
       };
-      
-      await this.promisifyRequest(store.put(updatedData));
 
+      await this.promisifyRequest(store.put(updatedData));
     } catch (error) {
       logger.warn(`Failed to update sync status for ${storeName}`, { error });
     }
@@ -845,21 +883,21 @@ export class OfflineDataManager {
   private async scheduleRetry(item: SyncQueueItem): Promise<void> {
     const delay = Math.min(
       this.BASE_RETRY_DELAY * Math.pow(2, item.retryCount),
-      this.MAX_RETRY_DELAY
+      this.MAX_RETRY_DELAY,
     );
 
     const timer = setTimeout(() => {
-      this.processSyncItem(item).catch(error => {
+      this.processSyncItem(item).catch((error) => {
         logger.error(`Retry sync item failed: ${item.id}`, { error });
       });
       this.retryTimers.delete(item.id);
     }, delay);
 
     this.retryTimers.set(item.id, timer);
-    
-    logger.debug(`Scheduled retry for sync item: ${item.id}`, { 
+
+    logger.debug(`Scheduled retry for sync item: ${item.id}`, {
       retryCount: item.retryCount,
-      delay 
+      delay,
     });
   }
 
@@ -867,15 +905,15 @@ export class OfflineDataManager {
    * Mark sync item as permanently failed
    */
   private async markSyncItemFailed(itemId: string): Promise<void> {
-    const transaction = this.db!.transaction(['sync_queue'], 'readwrite');
-    const store = transaction.objectStore('sync_queue');
-    
+    const transaction = this.db!.transaction(["sync_queue"], "readwrite");
+    const store = transaction.objectStore("sync_queue");
+
     // Update status to failed instead of deleting
     const getRequest = store.get(itemId);
     const item = await this.promisifyRequest(getRequest);
-    
+
     if (item) {
-      item.status = 'failed';
+      item.status = "failed";
       item.failed_at = new Date().toISOString();
       await this.promisifyRequest(store.put(item));
     }
@@ -900,7 +938,9 @@ export class OfflineDataManager {
    */
   private ensureInitialized(): void {
     if (!this.isInitialized || !this.db) {
-      throw new Error('OfflineDataManager not initialized. Call initialize() first.');
+      throw new Error(
+        "OfflineDataManager not initialized. Call initialize() first.",
+      );
     }
   }
 
@@ -916,10 +956,10 @@ export class OfflineDataManager {
    */
   private async compressFile(file: File): Promise<File> {
     // For images, implement compression logic
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith("image/")) {
       return this.compressImage(file);
     }
-    
+
     // For other files, return as-is for now
     return file;
   }
@@ -927,10 +967,13 @@ export class OfflineDataManager {
   /**
    * Compress image file
    */
-  private async compressImage(file: File, quality: number = 0.8): Promise<File> {
+  private async compressImage(
+    file: File,
+    quality: number = 0.8,
+  ): Promise<File> {
     return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
       const img = new Image();
 
       img.onload = () => {
@@ -947,21 +990,25 @@ export class OfflineDataManager {
 
         canvas.width = width;
         canvas.height = height;
-        
+
         // Draw and compress
         ctx.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: file.type,
-              lastModified: Date.now()
-            });
-            resolve(compressedFile);
-          } else {
-            resolve(file); // Fallback to original
-          }
-        }, file.type, quality);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file); // Fallback to original
+            }
+          },
+          file.type,
+          quality,
+        );
       };
 
       img.onerror = () => resolve(file); // Fallback to original
@@ -977,7 +1024,7 @@ export class OfflineDataManager {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        resolve(result.split(',')[1]); // Remove data:mime;base64, prefix
+        resolve(result.split(",")[1]); // Remove data:mime;base64, prefix
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
@@ -989,8 +1036,8 @@ export class OfflineDataManager {
    */
   private setupMaintenanceScheduler(): void {
     setInterval(() => {
-      this.runMaintenance().catch(error => {
-        logger.error('Maintenance operation failed', { error });
+      this.runMaintenance().catch((error) => {
+        logger.error("Maintenance operation failed", { error });
       });
     }, this.CLEANUP_INTERVAL);
   }
@@ -1002,11 +1049,10 @@ export class OfflineDataManager {
     try {
       await this.cleanupOldSyncItems();
       await this.optimizeStorage();
-      
-      logger.info('Maintenance operations completed');
 
+      logger.info("Maintenance operations completed");
     } catch (error) {
-      logger.error('Maintenance operations failed', { error });
+      logger.error("Maintenance operations failed", { error });
     }
   }
 
@@ -1014,19 +1060,19 @@ export class OfflineDataManager {
    * Clean up old sync items
    */
   private async cleanupOldSyncItems(): Promise<void> {
-    const cutoffDate = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
-    
-    const transaction = this.db!.transaction(['sync_queue'], 'readwrite');
-    const store = transaction.objectStore('sync_queue');
-    const index = store.index('timestamp');
-    
+    const cutoffDate = Date.now() - 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    const transaction = this.db!.transaction(["sync_queue"], "readwrite");
+    const store = transaction.objectStore("sync_queue");
+    const index = store.index("timestamp");
+
     const request = index.openCursor(IDBKeyRange.upperBound(cutoffDate));
-    
+
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest).result;
       if (cursor) {
         const item = cursor.value;
-        if (item.status === 'synced' || item.status === 'failed') {
+        if (item.status === "synced" || item.status === "failed") {
           cursor.delete();
         }
         cursor.continue();
@@ -1040,13 +1086,13 @@ export class OfflineDataManager {
   private async optimizeStorage(): Promise<void> {
     // Calculate total storage usage
     const stats = await this.getStorageStats();
-    
+
     if (stats.storageSize > this.MAX_STORAGE_SIZE) {
-      logger.warn('Storage limit approaching, starting cleanup', {
+      logger.warn("Storage limit approaching, starting cleanup", {
         currentSize: Math.round(stats.storageSize / 1024 / 1024),
-        maxSize: Math.round(this.MAX_STORAGE_SIZE / 1024 / 1024)
+        maxSize: Math.round(this.MAX_STORAGE_SIZE / 1024 / 1024),
       });
-      
+
       // Clean up old media files first
       await this.cleanupOldMediaFiles();
     }
@@ -1056,21 +1102,23 @@ export class OfflineDataManager {
    * Clean up old media files
    */
   private async cleanupOldMediaFiles(): Promise<void> {
-    const cutoffDate = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days
-    
-    const transaction = this.db!.transaction(['media_files'], 'readwrite');
-    const store = transaction.objectStore('media_files');
-    const index = store.index('created_at');
-    
-    const request = index.openCursor(IDBKeyRange.upperBound(new Date(cutoffDate).toISOString()));
-    
+    const cutoffDate = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 days
+
+    const transaction = this.db!.transaction(["media_files"], "readwrite");
+    const store = transaction.objectStore("media_files");
+    const index = store.index("created_at");
+
+    const request = index.openCursor(
+      IDBKeyRange.upperBound(new Date(cutoffDate).toISOString()),
+    );
+
     let deletedCount = 0;
-    
+
     request.onsuccess = (event) => {
       const cursor = (event.target as IDBRequest).result;
       if (cursor) {
         const item = cursor.value;
-        if (item.upload_status === 'completed') {
+        if (item.upload_status === "completed") {
           cursor.delete();
           deletedCount++;
         }
@@ -1100,8 +1148,8 @@ export class OfflineDataManager {
         const storeStats = await this.getStoreStats(storeConfig.name);
         totalRecords += storeStats.totalRecords;
         storageSize += storeStats.storageSize;
-        
-        if (storeConfig.name === 'sync_queue') {
+
+        if (storeConfig.name === "sync_queue") {
           pendingSyncItems = storeStats.totalRecords;
         }
       }
@@ -1111,11 +1159,10 @@ export class OfflineDataManager {
         storageSize,
         lastSync: new Date(), // Would track actual last sync
         pendingSyncItems,
-        conflictCount: 0 // Would track conflicts
+        conflictCount: 0, // Would track conflicts
       };
-
     } catch (error) {
-      logger.error('Failed to get storage stats', { error });
+      logger.error("Failed to get storage stats", { error });
       throw error;
     }
   }
@@ -1124,12 +1171,12 @@ export class OfflineDataManager {
    * Get statistics for specific store
    */
   private async getStoreStats(storeName: string): Promise<DataStoreStats> {
-    const transaction = this.db!.transaction([storeName], 'readonly');
+    const transaction = this.db!.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
-    
+
     const countRequest = store.count();
     const totalRecords = await this.promisifyRequest(countRequest);
-    
+
     // Estimate storage size (rough calculation)
     const getAllRequest = store.getAll();
     const allData = await this.promisifyRequest(getAllRequest);
@@ -1140,7 +1187,7 @@ export class OfflineDataManager {
       storageSize,
       lastSync: null,
       pendingSyncItems: 0,
-      conflictCount: 0
+      conflictCount: 0,
     };
   }
 
@@ -1149,10 +1196,10 @@ export class OfflineDataManager {
    */
   async forceSyncAll(): Promise<void> {
     if (!navigator.onLine) {
-      throw new Error('Cannot sync while offline');
+      throw new Error("Cannot sync while offline");
     }
 
-    logger.info('Starting forced sync of all pending items');
+    logger.info("Starting forced sync of all pending items");
     await this.processSyncQueue();
   }
 
@@ -1164,22 +1211,24 @@ export class OfflineDataManager {
       this.ensureInitialized();
 
       for (const storeConfig of DATABASE_CONFIG.stores) {
-        const transaction = this.db!.transaction([storeConfig.name], 'readwrite');
+        const transaction = this.db!.transaction(
+          [storeConfig.name],
+          "readwrite",
+        );
         const store = transaction.objectStore(storeConfig.name);
         await this.promisifyRequest(store.clear());
       }
 
       // Clear in-memory sync queue
       this.syncQueue = [];
-      
+
       // Clear retry timers
-      this.retryTimers.forEach(timer => clearTimeout(timer));
+      this.retryTimers.forEach((timer) => clearTimeout(timer));
       this.retryTimers.clear();
 
-      logger.info('All offline data cleared');
-
+      logger.info("All offline data cleared");
     } catch (error) {
-      logger.error('Failed to clear offline data', { error });
+      logger.error("Failed to clear offline data", { error });
       throw error;
     }
   }
@@ -1193,43 +1242,48 @@ export class OfflineDataManager {
     try {
       // Check database connection
       if (!this.db) {
-        issues.push('Database not connected');
+        issues.push("Database not connected");
       }
 
       // Check storage quota
-      if ('storage' in navigator && 'estimate' in navigator.storage) {
+      if ("storage" in navigator && "estimate" in navigator.storage) {
         const estimate = await navigator.storage.estimate();
         const usageRatio = (estimate.usage || 0) / (estimate.quota || 1);
-        
+
         if (usageRatio > 0.9) {
-          issues.push('Storage quota nearly exceeded');
+          issues.push("Storage quota nearly exceeded");
         }
       }
 
       // Check sync queue size
       if (this.syncQueue.length > 1000) {
-        issues.push('Sync queue too large');
+        issues.push("Sync queue too large");
       }
 
       // Check for failed sync items
-      const failedItems = await this.getAll<any>('sync_queue', {
-        index: 'status',
-        query: IDBKeyRange.only('failed')
+      const failedItems = await this.getAll<any>("sync_queue", {
+        index: "status",
+        query: IDBKeyRange.only("failed"),
       });
 
-      if (failedItems.success && failedItems.data && failedItems.data.length > 10) {
-        issues.push('Too many failed sync items');
+      if (
+        failedItems.success &&
+        failedItems.data &&
+        failedItems.data.length > 10
+      ) {
+        issues.push("Too many failed sync items");
       }
 
       return {
         healthy: issues.length === 0,
-        issues
+        issues,
       };
-
     } catch (error) {
       return {
         healthy: false,
-        issues: [`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`]
+        issues: [
+          `Health check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        ],
       };
     }
   }
@@ -1239,7 +1293,7 @@ export class OfflineDataManager {
    */
   async close(): Promise<void> {
     // Stop all timers
-    this.retryTimers.forEach(timer => clearTimeout(timer));
+    this.retryTimers.forEach((timer) => clearTimeout(timer));
     this.retryTimers.clear();
 
     // Close database connection
@@ -1249,7 +1303,7 @@ export class OfflineDataManager {
     }
 
     this.isInitialized = false;
-    logger.info('OfflineDataManager closed');
+    logger.info("OfflineDataManager closed");
   }
 }
 
@@ -1270,9 +1324,9 @@ export const offlineDataManager = new OfflineDataManager();
 export async function initializeOfflineDataManager(): Promise<void> {
   try {
     await offlineDataManager.initialize();
-    logger.info('Offline Data Manager initialized successfully');
+    logger.info("Offline Data Manager initialized successfully");
   } catch (error) {
-    logger.error('Offline Data Manager initialization failed', { error });
+    logger.error("Offline Data Manager initialization failed", { error });
     throw error;
   }
 }

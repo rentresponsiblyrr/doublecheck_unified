@@ -5,9 +5,9 @@
  */
 
 // Core context and types
-export { SidebarProvider, useSidebar } from "./context"
-export type { SidebarContext } from "./types"
-export { SIDEBAR_CONSTANTS } from "./types"
+export { SidebarProvider, useSidebar } from "./context";
+export type { SidebarContext } from "./types";
+export { SIDEBAR_CONSTANTS } from "./types";
 
 // Main components
 export {
@@ -15,7 +15,7 @@ export {
   SidebarTrigger,
   SidebarRail,
   SidebarInset,
-} from "./components"
+} from "./components";
 
 // Content components
 export {
@@ -24,7 +24,7 @@ export {
   SidebarFooter,
   SidebarSeparator,
   SidebarContent,
-} from "./content"
+} from "./content";
 
 // Menu components
 export {
@@ -35,7 +35,7 @@ export {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "./menu"
+} from "./menu";
 
 // Menu extras
 export {
@@ -45,4 +45,4 @@ export {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "./menu-extras"
+} from "./menu-extras";

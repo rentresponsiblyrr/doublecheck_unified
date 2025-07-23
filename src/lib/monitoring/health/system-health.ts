@@ -1,10 +1,10 @@
 /**
  * System Health Monitoring - Enterprise Production Grade
  * Comprehensive system health checks with real-time monitoring
- * 
+ *
  * Author: Senior Integration Systems Engineer - Week 5
  * Standards: SOC 2 Type II, Enterprise Compliance
- * 
+ *
  * @fileoverview Production-ready system health monitoring with automated alerts
  */
 
@@ -46,7 +46,7 @@ interface SystemHealthMetrics {
 }
 
 interface SystemHealthStatus {
-  status: 'healthy' | 'warning' | 'critical' | 'down';
+  status: "healthy" | "warning" | "critical" | "down";
   score: number; // 0-100
   metrics: SystemHealthMetrics;
   alerts: SystemAlert[];
@@ -57,8 +57,8 @@ interface SystemHealthStatus {
 
 interface SystemAlert {
   id: string;
-  severity: 'info' | 'warning' | 'error' | 'critical';
-  category: 'memory' | 'cpu' | 'disk' | 'network' | 'process' | 'service';
+  severity: "info" | "warning" | "error" | "critical";
+  category: "memory" | "cpu" | "disk" | "network" | "process" | "service";
   message: string;
   threshold: number;
   current: number;
@@ -68,7 +68,7 @@ interface SystemAlert {
 
 interface ServiceHealthStatus {
   name: string;
-  status: 'up' | 'down' | 'degraded';
+  status: "up" | "down" | "degraded";
   responseTime: number;
   lastCheck: string;
   errorRate: number;
@@ -77,24 +77,24 @@ interface ServiceHealthStatus {
 
 interface HealthCheckThresholds {
   memory: {
-    warning: number;    // 70%
-    critical: number;   // 85%
+    warning: number; // 70%
+    critical: number; // 85%
   };
   cpu: {
-    warning: number;    // 70%
-    critical: number;   // 90%
+    warning: number; // 70%
+    critical: number; // 90%
   };
   disk: {
-    warning: number;    // 80%
-    critical: number;   // 90%
+    warning: number; // 80%
+    critical: number; // 90%
   };
   responseTime: {
-    warning: number;    // 1000ms
-    critical: number;   // 3000ms
+    warning: number; // 1000ms
+    critical: number; // 3000ms
   };
   errorRate: {
-    warning: number;    // 5%
-    critical: number;   // 10%
+    warning: number; // 5%
+    critical: number; // 10%
   };
 }
 
@@ -117,11 +117,11 @@ export class SystemHealthMonitor {
       disk: { warning: 80, critical: 90 },
       responseTime: { warning: 1000, critical: 3000 },
       errorRate: { warning: 5, critical: 10 },
-      ...thresholds
+      ...thresholds,
     };
 
     // Start monitoring immediately in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       this.startMonitoring(30000); // 30 second intervals
     }
   }
@@ -149,7 +149,7 @@ export class SystemHealthMonitor {
         alerts,
         lastCheck: timestamp,
         checkDuration,
-        services
+        services,
       };
 
       // Store in history
@@ -160,26 +160,28 @@ export class SystemHealthMonitor {
 
       return healthStatus;
     } catch (error) {
-      console.error('System health check failed:', error);
-      
+      console.error("System health check failed:", error);
+
       // Return critical status on failure
       return {
-        status: 'critical',
+        status: "critical",
         score: 0,
         metrics: this.getEmptyMetrics(),
-        alerts: [{
-          id: `alert_${Date.now()}`,
-          severity: 'critical',
-          category: 'process',
-          message: `Health check system failure: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          threshold: 0,
-          current: 0,
-          timestamp,
-          resolved: false
-        }],
+        alerts: [
+          {
+            id: `alert_${Date.now()}`,
+            severity: "critical",
+            category: "process",
+            message: `Health check system failure: ${error instanceof Error ? error.message : "Unknown error"}`,
+            threshold: 0,
+            current: 0,
+            timestamp,
+            resolved: false,
+          },
+        ],
         lastCheck: timestamp,
         checkDuration: performance.now() - startTime,
-        services: []
+        services: [],
       };
     }
   }
@@ -196,7 +198,7 @@ export class SystemHealthMonitor {
     const totalMemory = this.getTotalSystemMemory();
     const usedMemory = totalMemory - this.getFreeMemory();
 
-    // CPU metrics  
+    // CPU metrics
     const cpuUsage = await this.getCPUUsage();
     const loadAverage = this.getLoadAverage();
     const cores = this.getCPUCores();
@@ -220,17 +222,17 @@ export class SystemHealthMonitor {
         heap: {
           used: memoryUsage.heapUsed,
           total: memoryUsage.heapTotal,
-          limit: memoryUsage.external
-        }
+          limit: memoryUsage.external,
+        },
       },
       cpu: {
         usage: cpuUsage,
         loadAverage,
-        cores
+        cores,
       },
       disk: diskUsage,
       network: networkStats,
-      processes: processStats
+      processes: processStats,
     };
   }
 
@@ -240,55 +242,55 @@ export class SystemHealthMonitor {
    */
   private async checkServiceHealth(): Promise<ServiceHealthStatus[]> {
     const services = [
-      { name: 'Database', check: () => this.checkDatabaseHealth() },
-      { name: 'Redis Cache', check: () => this.checkRedisHealth() },
-      { name: 'File Storage', check: () => this.checkStorageHealth() },
-      { name: 'API Gateway', check: () => this.checkAPIHealth() },
-      { name: 'Background Jobs', check: () => this.checkJobQueueHealth() }
+      { name: "Database", check: () => this.checkDatabaseHealth() },
+      { name: "Redis Cache", check: () => this.checkRedisHealth() },
+      { name: "File Storage", check: () => this.checkStorageHealth() },
+      { name: "API Gateway", check: () => this.checkAPIHealth() },
+      { name: "Background Jobs", check: () => this.checkJobQueueHealth() },
     ];
 
     const healthChecks = await Promise.allSettled(
-      services.map(async service => {
+      services.map(async (service) => {
         const startTime = performance.now();
-        
+
         try {
           const isHealthy = await service.check();
           const responseTime = performance.now() - startTime;
-          
+
           return {
             name: service.name,
-            status: isHealthy ? 'up' : 'down' as const,
+            status: isHealthy ? "up" : ("down" as const),
             responseTime,
             lastCheck: new Date().toISOString(),
             errorRate: 0,
-            uptime: 100
+            uptime: 100,
           };
         } catch (error) {
           const responseTime = performance.now() - startTime;
-          
+
           return {
             name: service.name,
-            status: 'down' as const,
+            status: "down" as const,
             responseTime,
             lastCheck: new Date().toISOString(),
             errorRate: 100,
-            uptime: 0
+            uptime: 0,
           };
         }
-      })
+      }),
     );
 
     return healthChecks.map((result, index) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         return result.value;
       } else {
         return {
           name: services[index].name,
-          status: 'down' as const,
+          status: "down" as const,
           responseTime: 0,
           lastCheck: new Date().toISOString(),
           errorRate: 100,
-          uptime: 0
+          uptime: 0,
         };
       }
     });
@@ -302,7 +304,7 @@ export class SystemHealthMonitor {
    */
   private analyzeHealthMetrics(
     metrics: SystemHealthMetrics,
-    services: ServiceHealthStatus[]
+    services: ServiceHealthStatus[],
   ): SystemAlert[] {
     const alerts: SystemAlert[] = [];
     const timestamp = new Date().toISOString();
@@ -311,24 +313,24 @@ export class SystemHealthMonitor {
     if (metrics.memory.percentage >= this.thresholds.memory.critical) {
       alerts.push({
         id: `memory_critical_${Date.now()}`,
-        severity: 'critical',
-        category: 'memory',
+        severity: "critical",
+        category: "memory",
         message: `Critical memory usage: ${metrics.memory.percentage.toFixed(1)}%`,
         threshold: this.thresholds.memory.critical,
         current: metrics.memory.percentage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     } else if (metrics.memory.percentage >= this.thresholds.memory.warning) {
       alerts.push({
         id: `memory_warning_${Date.now()}`,
-        severity: 'warning',
-        category: 'memory',
+        severity: "warning",
+        category: "memory",
         message: `High memory usage: ${metrics.memory.percentage.toFixed(1)}%`,
         threshold: this.thresholds.memory.warning,
         current: metrics.memory.percentage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -336,24 +338,24 @@ export class SystemHealthMonitor {
     if (metrics.cpu.usage >= this.thresholds.cpu.critical) {
       alerts.push({
         id: `cpu_critical_${Date.now()}`,
-        severity: 'critical',
-        category: 'cpu',
+        severity: "critical",
+        category: "cpu",
         message: `Critical CPU usage: ${metrics.cpu.usage.toFixed(1)}%`,
         threshold: this.thresholds.cpu.critical,
         current: metrics.cpu.usage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     } else if (metrics.cpu.usage >= this.thresholds.cpu.warning) {
       alerts.push({
         id: `cpu_warning_${Date.now()}`,
-        severity: 'warning',
-        category: 'cpu',
+        severity: "warning",
+        category: "cpu",
         message: `High CPU usage: ${metrics.cpu.usage.toFixed(1)}%`,
         threshold: this.thresholds.cpu.warning,
         current: metrics.cpu.usage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -361,61 +363,63 @@ export class SystemHealthMonitor {
     if (metrics.disk.percentage >= this.thresholds.disk.critical) {
       alerts.push({
         id: `disk_critical_${Date.now()}`,
-        severity: 'critical',
-        category: 'disk',
+        severity: "critical",
+        category: "disk",
         message: `Critical disk usage: ${metrics.disk.percentage.toFixed(1)}%`,
         threshold: this.thresholds.disk.critical,
         current: metrics.disk.percentage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     } else if (metrics.disk.percentage >= this.thresholds.disk.warning) {
       alerts.push({
         id: `disk_warning_${Date.now()}`,
-        severity: 'warning',
-        category: 'disk',
+        severity: "warning",
+        category: "disk",
         message: `High disk usage: ${metrics.disk.percentage.toFixed(1)}%`,
         threshold: this.thresholds.disk.warning,
         current: metrics.disk.percentage,
         timestamp,
-        resolved: false
+        resolved: false,
       });
     }
 
     // Service alerts
-    services.forEach(service => {
-      if (service.status === 'down') {
+    services.forEach((service) => {
+      if (service.status === "down") {
         alerts.push({
           id: `service_down_${service.name}_${Date.now()}`,
-          severity: 'critical',
-          category: 'service',
+          severity: "critical",
+          category: "service",
           message: `Service down: ${service.name}`,
           threshold: 0,
           current: service.uptime,
           timestamp,
-          resolved: false
+          resolved: false,
         });
-      } else if (service.responseTime >= this.thresholds.responseTime.critical) {
+      } else if (
+        service.responseTime >= this.thresholds.responseTime.critical
+      ) {
         alerts.push({
           id: `service_slow_${service.name}_${Date.now()}`,
-          severity: 'critical',
-          category: 'service',
+          severity: "critical",
+          category: "service",
           message: `Service slow response: ${service.name} (${service.responseTime.toFixed(0)}ms)`,
           threshold: this.thresholds.responseTime.critical,
           current: service.responseTime,
           timestamp,
-          resolved: false
+          resolved: false,
         });
       } else if (service.responseTime >= this.thresholds.responseTime.warning) {
         alerts.push({
           id: `service_warning_${service.name}_${Date.now()}`,
-          severity: 'warning',
-          category: 'service',
+          severity: "warning",
+          category: "service",
           message: `Service slow response: ${service.name} (${service.responseTime.toFixed(0)}ms)`,
           threshold: this.thresholds.responseTime.warning,
           current: service.responseTime,
           timestamp,
-          resolved: false
+          resolved: false,
         });
       }
     });
@@ -429,33 +433,41 @@ export class SystemHealthMonitor {
   private calculateHealthStatus(
     metrics: SystemHealthMetrics,
     services: ServiceHealthStatus[],
-    alerts: SystemAlert[]
-  ): 'healthy' | 'warning' | 'critical' | 'down' {
+    alerts: SystemAlert[],
+  ): "healthy" | "warning" | "critical" | "down" {
     // Check for critical alerts
-    const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
+    const criticalAlerts = alerts.filter(
+      (alert) => alert.severity === "critical",
+    );
     if (criticalAlerts.length > 0) {
-      return 'critical';
+      return "critical";
     }
 
     // Check for any services down
-    const servicesDown = services.filter(service => service.status === 'down');
+    const servicesDown = services.filter(
+      (service) => service.status === "down",
+    );
     if (servicesDown.length > 0) {
-      return 'critical';
+      return "critical";
     }
 
     // Check for warning alerts
-    const warningAlerts = alerts.filter(alert => alert.severity === 'warning');
+    const warningAlerts = alerts.filter(
+      (alert) => alert.severity === "warning",
+    );
     if (warningAlerts.length > 0) {
-      return 'warning';
+      return "warning";
     }
 
     // Check for degraded services
-    const degradedServices = services.filter(service => service.status === 'degraded');
+    const degradedServices = services.filter(
+      (service) => service.status === "degraded",
+    );
     if (degradedServices.length > 0) {
-      return 'warning';
+      return "warning";
     }
 
-    return 'healthy';
+    return "healthy";
   }
 
   /**
@@ -464,7 +476,7 @@ export class SystemHealthMonitor {
   private calculateHealthScore(
     metrics: SystemHealthMetrics,
     services: ServiceHealthStatus[],
-    alerts: SystemAlert[]
+    alerts: SystemAlert[],
   ): number {
     let score = 100;
 
@@ -474,28 +486,28 @@ export class SystemHealthMonitor {
     score -= Math.max(0, (metrics.disk.percentage - 50) * 0.3);
 
     // Deduct points for alerts
-    alerts.forEach(alert => {
+    alerts.forEach((alert) => {
       switch (alert.severity) {
-        case 'critical':
+        case "critical":
           score -= 20;
           break;
-        case 'error':
+        case "error":
           score -= 10;
           break;
-        case 'warning':
+        case "warning":
           score -= 5;
           break;
-        case 'info':
+        case "info":
           score -= 1;
           break;
       }
     });
 
     // Deduct points for service issues
-    services.forEach(service => {
-      if (service.status === 'down') {
+    services.forEach((service) => {
+      if (service.status === "down") {
         score -= 25;
-      } else if (service.status === 'degraded') {
+      } else if (service.status === "degraded") {
         score -= 10;
       }
     });
@@ -513,12 +525,12 @@ export class SystemHealthMonitor {
     }
 
     this.isMonitoring = true;
-    
+
     this.monitoringInterval = setInterval(async () => {
       try {
         await this.getSystemHealth();
       } catch (error) {
-        console.error('Health monitoring error:', error);
+        console.error("Health monitoring error:", error);
       }
     }, interval);
 
@@ -533,9 +545,9 @@ export class SystemHealthMonitor {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     this.isMonitoring = false;
-    console.log('System health monitoring stopped');
+    console.log("System health monitoring stopped");
   }
 
   /**
@@ -544,7 +556,7 @@ export class SystemHealthMonitor {
    */
   public onAlert(callback: (alert: SystemAlert) => void): () => void {
     this.alertCallbacks.push(callback);
-    
+
     return () => {
       const index = this.alertCallbacks.indexOf(callback);
       if (index > -1) {
@@ -571,12 +583,12 @@ export class SystemHealthMonitor {
     scoreTrend: number[];
   } {
     const recent = this.healthHistory.slice(-50); // Last 50 checks
-    
+
     return {
-      memoryTrend: recent.map(h => h.metrics.memory.percentage),
-      cpuTrend: recent.map(h => h.metrics.cpu.usage),
-      diskTrend: recent.map(h => h.metrics.disk.percentage),
-      scoreTrend: recent.map(h => h.score)
+      memoryTrend: recent.map((h) => h.metrics.memory.percentage),
+      cpuTrend: recent.map((h) => h.metrics.cpu.usage),
+      diskTrend: recent.map((h) => h.metrics.disk.percentage),
+      scoreTrend: recent.map((h) => h.score),
     };
   }
 
@@ -584,19 +596,19 @@ export class SystemHealthMonitor {
 
   private addToHistory(status: SystemHealthStatus): void {
     this.healthHistory.push(status);
-    
+
     if (this.healthHistory.length > this.maxHistorySize) {
       this.healthHistory.shift();
     }
   }
 
   private processAlerts(alerts: SystemAlert[]): void {
-    alerts.forEach(alert => {
-      this.alertCallbacks.forEach(callback => {
+    alerts.forEach((alert) => {
+      this.alertCallbacks.forEach((callback) => {
         try {
           callback(alert);
         } catch (error) {
-          console.error('Alert callback error:', error);
+          console.error("Alert callback error:", error);
         }
       });
     });
@@ -604,7 +616,9 @@ export class SystemHealthMonitor {
 
   private getTotalSystemMemory(): number {
     // Fallback implementation for Node.js environment
-    return process.env.NODE_ENV === 'production' ? 8 * 1024 * 1024 * 1024 : 4 * 1024 * 1024 * 1024; // 8GB prod, 4GB dev
+    return process.env.NODE_ENV === "production"
+      ? 8 * 1024 * 1024 * 1024
+      : 4 * 1024 * 1024 * 1024; // 8GB prod, 4GB dev
   }
 
   private getFreeMemory(): number {
@@ -616,12 +630,12 @@ export class SystemHealthMonitor {
   private async getCPUUsage(): Promise<number> {
     // Simplified CPU usage calculation
     const startUsage = process.cpuUsage();
-    
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     const endUsage = process.cpuUsage(startUsage);
     const totalUsage = endUsage.user + endUsage.system;
-    
+
     return (totalUsage / 100000) % 100; // Convert to percentage
   }
 
@@ -635,35 +649,49 @@ export class SystemHealthMonitor {
     return 4;
   }
 
-  private async getDiskUsage(): Promise<{ used: number; total: number; percentage: number; available: number }> {
+  private async getDiskUsage(): Promise<{
+    used: number;
+    total: number;
+    percentage: number;
+    available: number;
+  }> {
     // Simplified disk usage
     const total = 100 * 1024 * 1024 * 1024; // 100GB
-    const used = 50 * 1024 * 1024 * 1024;   // 50GB
-    
+    const used = 50 * 1024 * 1024 * 1024; // 50GB
+
     return {
       used,
       total,
       percentage: (used / total) * 100,
-      available: total - used
+      available: total - used,
     };
   }
 
-  private async getNetworkStats(): Promise<{ bytesIn: number; bytesOut: number; connectionsActive: number; connectionsWaiting: number }> {
+  private async getNetworkStats(): Promise<{
+    bytesIn: number;
+    bytesOut: number;
+    connectionsActive: number;
+    connectionsWaiting: number;
+  }> {
     // Simplified network stats
     return {
       bytesIn: Math.random() * 1000000,
       bytesOut: Math.random() * 1000000,
       connectionsActive: Math.floor(Math.random() * 100),
-      connectionsWaiting: Math.floor(Math.random() * 10)
+      connectionsWaiting: Math.floor(Math.random() * 10),
     };
   }
 
-  private getProcessStats(): { active: number; total: number; blocked: number } {
+  private getProcessStats(): {
+    active: number;
+    total: number;
+    blocked: number;
+  } {
     // Simplified process stats
     return {
       active: Math.floor(Math.random() * 50) + 50,
       total: Math.floor(Math.random() * 200) + 100,
-      blocked: Math.floor(Math.random() * 5)
+      blocked: Math.floor(Math.random() * 5),
     };
   }
 
@@ -696,11 +724,21 @@ export class SystemHealthMonitor {
     return {
       timestamp: new Date().toISOString(),
       uptime: 0,
-      memory: { used: 0, total: 0, percentage: 0, heap: { used: 0, total: 0, limit: 0 } },
+      memory: {
+        used: 0,
+        total: 0,
+        percentage: 0,
+        heap: { used: 0, total: 0, limit: 0 },
+      },
       cpu: { usage: 0, loadAverage: [0, 0, 0], cores: 0 },
       disk: { used: 0, total: 0, percentage: 0, available: 0 },
-      network: { bytesIn: 0, bytesOut: 0, connectionsActive: 0, connectionsWaiting: 0 },
-      processes: { active: 0, total: 0, blocked: 0 }
+      network: {
+        bytesIn: 0,
+        bytesOut: 0,
+        connectionsActive: 0,
+        connectionsWaiting: 0,
+      },
+      processes: { active: 0, total: 0, blocked: 0 },
     };
   }
 }
@@ -714,7 +752,8 @@ export const globalSystemHealthMonitor = new SystemHealthMonitor();
  * React hook for system health monitoring
  */
 export function useSystemHealth() {
-  const [healthStatus, setHealthStatus] = React.useState<SystemHealthStatus | null>(null);
+  const [healthStatus, setHealthStatus] =
+    React.useState<SystemHealthStatus | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
 
@@ -725,7 +764,7 @@ export function useSystemHealth() {
       try {
         setIsLoading(true);
         const status = await globalSystemHealthMonitor.getSystemHealth();
-        
+
         if (mounted) {
           setHealthStatus(status);
           setError(null);

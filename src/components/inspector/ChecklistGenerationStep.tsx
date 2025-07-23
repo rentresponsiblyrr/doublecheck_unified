@@ -4,13 +4,17 @@
  * Business logic extracted to useChecklistGeneration hook
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { useChecklistGeneration, Property, ChecklistItem } from '@/hooks/useChecklistGeneration';
-import { GenerationProgress } from './checklist/GenerationProgress';
-import { TemplateSelector } from './checklist/TemplateSelector';
-import { ChecklistPreview } from './checklist/ChecklistPreview';
-import { GenerationControls } from './checklist/GenerationControls';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  useChecklistGeneration,
+  Property,
+  ChecklistItem,
+} from "@/hooks/useChecklistGeneration";
+import { GenerationProgress } from "./checklist/GenerationProgress";
+import { TemplateSelector } from "./checklist/TemplateSelector";
+import { ChecklistPreview } from "./checklist/ChecklistPreview";
+import { GenerationControls } from "./checklist/GenerationControls";
 
 interface ChecklistGenerationStepProps {
   property: Property;
@@ -23,7 +27,7 @@ const ChecklistGenerationStep: React.FC<ChecklistGenerationStepProps> = ({
   property,
   onChecklistGenerated,
   generatedChecklist,
-  className = ''
+  className = "",
 }) => {
   const {
     // State
@@ -33,16 +37,16 @@ const ChecklistGenerationStep: React.FC<ChecklistGenerationStepProps> = ({
     staticItems,
     aiItems,
     totalItems,
-    
+
     // Actions
     handleRegenerateChecklist,
-    
+
     // Utilities
-    getCategoryColor
+    getCategoryColor,
   } = useChecklistGeneration({
     property,
     generatedChecklist,
-    onChecklistGenerated
+    onChecklistGenerated,
   });
 
   if (isGenerating) {
@@ -62,7 +66,7 @@ const ChecklistGenerationStep: React.FC<ChecklistGenerationStepProps> = ({
         property={property}
         onRegenerate={handleRegenerateChecklist}
       />
-      
+
       <CardContent className="space-y-6">
         <ChecklistPreview
           staticItems={staticItems}
@@ -70,11 +74,8 @@ const ChecklistGenerationStep: React.FC<ChecklistGenerationStepProps> = ({
           totalItems={totalItems}
           getCategoryColor={getCategoryColor}
         />
-        
-        <GenerationControls
-          totalItems={totalItems}
-          aiItems={aiItems}
-        />
+
+        <GenerationControls totalItems={totalItems} aiItems={aiItems} />
       </CardContent>
     </Card>
   );

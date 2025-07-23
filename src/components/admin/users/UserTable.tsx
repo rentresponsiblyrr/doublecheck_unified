@@ -3,10 +3,10 @@
  * Displays users in a sortable, filterable table with actions
  */
 
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   MoreHorizontal,
   Edit,
@@ -33,9 +33,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Users
-} from 'lucide-react';
-import { User, USER_ROLES } from './types';
+  Users,
+} from "lucide-react";
+import { User, USER_ROLES } from "./types";
 
 interface UserTableProps {
   users: User[];
@@ -48,18 +48,20 @@ export const UserTable: React.FC<UserTableProps> = ({
   users,
   onEdit,
   onDelete,
-  isLoading = false
+  isLoading = false,
 }) => {
   const getRoleBadge = (role: string) => {
-    const roleConfig = USER_ROLES.find(r => r.value === role);
+    const roleConfig = USER_ROLES.find((r) => r.value === role);
     const colorMap: Record<string, string> = {
-      'admin': 'bg-red-100 text-red-800',
-      'auditor': 'bg-blue-100 text-blue-800',
-      'inspector': 'bg-green-100 text-green-800'
+      admin: "bg-red-100 text-red-800",
+      auditor: "bg-blue-100 text-blue-800",
+      inspector: "bg-green-100 text-green-800",
     };
 
     return (
-      <Badge className={`${colorMap[role] || 'bg-gray-100 text-gray-800'} text-xs`}>
+      <Badge
+        className={`${colorMap[role] || "bg-gray-100 text-gray-800"} text-xs`}
+      >
         <Shield className="h-3 w-3 mr-1" />
         {roleConfig?.label || role}
       </Badge>
@@ -69,7 +71,10 @@ export const UserTable: React.FC<UserTableProps> = ({
   const getStatusBadge = (user: User) => {
     if (user.is_active) {
       return (
-        <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+        <Badge
+          variant="default"
+          className="text-xs bg-green-100 text-green-800"
+        >
           <CheckCircle className="h-3 w-3 mr-1" />
           Active
         </Badge>
@@ -86,26 +91,26 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
+      .split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
   const formatLastSignIn = (lastSignIn?: string) => {
-    if (!lastSignIn) return 'Never';
-    
+    if (!lastSignIn) return "Never";
+
     const date = new Date(lastSignIn);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -125,8 +130,12 @@ export const UserTable: React.FC<UserTableProps> = ({
       <div className="w-full h-64 flex items-center justify-center">
         <div className="text-center">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
-          <p className="text-gray-600">Try adjusting your filters or invite new users to the platform.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No users found
+          </h3>
+          <p className="text-gray-600">
+            Try adjusting your filters or invite new users to the platform.
+          </p>
         </div>
       </div>
     );
@@ -148,7 +157,10 @@ export const UserTable: React.FC<UserTableProps> = ({
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id} className={!user.is_active ? 'opacity-60' : ''}>
+            <TableRow
+              key={user.id}
+              className={!user.is_active ? "opacity-60" : ""}
+            >
               <TableCell>
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">
@@ -156,7 +168,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                   </AvatarFallback>
                 </Avatar>
               </TableCell>
-              
+
               <TableCell>
                 <div className="space-y-1">
                   <div className="font-medium text-sm">{user.full_name}</div>
@@ -169,26 +181,22 @@ export const UserTable: React.FC<UserTableProps> = ({
                   )}
                 </div>
               </TableCell>
-              
-              <TableCell>
-                {getRoleBadge(user.role)}
-              </TableCell>
-              
-              <TableCell>
-                {getStatusBadge(user)}
-              </TableCell>
-              
+
+              <TableCell>{getRoleBadge(user.role)}</TableCell>
+
+              <TableCell>{getStatusBadge(user)}</TableCell>
+
               <TableCell className="text-sm text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Clock className="h-3 w-3" />
                   <span>{formatLastSignIn(user.last_sign_in_at)}</span>
                 </div>
               </TableCell>
-              
+
               <TableCell className="text-sm text-gray-600">
                 {new Date(user.created_at).toLocaleDateString()}
               </TableCell>
-              
+
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -220,7 +228,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                       className="cursor-pointer text-red-600 focus:text-red-600"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      {user.is_active ? 'Deactivate User' : 'Delete User'}
+                      {user.is_active ? "Deactivate User" : "Delete User"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

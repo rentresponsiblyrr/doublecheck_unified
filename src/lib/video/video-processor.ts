@@ -13,8 +13,8 @@ import type {
   VideoStatus,
   VideoRecordingStats,
   RoomSequence,
-  VideoIssue
-} from '@/types/video';
+  VideoIssue,
+} from "@/types/video";
 
 export class VideoProcessor {
   private config: VideoProcessingConfig;
@@ -35,11 +35,11 @@ export class VideoProcessor {
       enableAudioAnalysis: true,
       targetFrameRate: 30,
       compressionQuality: 0.85,
-      ...config
+      ...config,
     };
 
     // Initialize frame extraction worker if available
-    if (typeof Worker !== 'undefined') {
+    if (typeof Worker !== "undefined") {
       // In production, this would be a separate worker file
       // For now, we'll use inline worker simulation
     }
@@ -54,7 +54,7 @@ export class VideoProcessor {
   async recordWalkthrough(
     stream: MediaStream,
     recordingConfig: VideoRecordingConfig,
-    onStats?: (stats: VideoRecordingStats) => void
+    onStats?: (stats: VideoRecordingStats) => void,
   ): Promise<VideoRecording> {
     return new Promise((resolve, reject) => {
       try {
@@ -71,16 +71,19 @@ export class VideoProcessor {
         };
 
         this.mediaRecorder = new MediaRecorder(stream, options);
-        
+
         // Stats tracking
         let frameCount = 0;
         const lastStatsUpdate = Date.now();
         const statsInterval = setInterval(() => {
-          if (this.mediaRecorder?.state === 'recording') {
+          if (this.mediaRecorder?.state === "recording") {
             frameCount++;
             const duration = this.getRecordingDuration();
-            const fileSize = this.recordedChunks.reduce((acc, chunk) => acc + chunk.size, 0);
-            
+            const fileSize = this.recordedChunks.reduce(
+              (acc, chunk) => acc + chunk.size,
+              0,
+            );
+
             const stats: VideoRecordingStats = {
               duration,
               fileSize,
@@ -89,9 +92,9 @@ export class VideoProcessor {
               averageFps: frameCount / (duration || 1),
               storageUsed: fileSize,
               storageAvailable: this.getAvailableStorage(),
-              batteryLevel: this.getBatteryLevel()
+              batteryLevel: this.getBatteryLevel(),
             };
-            
+
             onStats?.(stats);
           }
         }, 1000);
@@ -106,14 +109,14 @@ export class VideoProcessor {
         // Handle recording stop
         this.mediaRecorder.onstop = async () => {
           clearInterval(statsInterval);
-          
+
           const blob = new Blob(this.recordedChunks, { type: mimeType });
           const duration = this.getRecordingDuration();
-          
+
           // Create video file
           const file = new File([blob], `walkthrough_${Date.now()}.webm`, {
             type: mimeType,
-            lastModified: Date.now()
+            lastModified: Date.now(),
           });
 
           // Extract video metadata
@@ -122,8 +125,8 @@ export class VideoProcessor {
 
           const recording: VideoRecording = {
             id: `video_${Date.now()}`,
-            propertyId: '',
-            inspectorId: '',
+            propertyId: "",
+            inspectorId: "",
             file,
             duration,
             size: file.size,
@@ -134,20 +137,20 @@ export class VideoProcessor {
             metadata: {
               deviceInfo: {
                 model: navigator.userAgent,
-                os: this.getOperatingSystem()
+                os: this.getOperatingSystem(),
               },
               propertyDetails: {
-                address: '',
-                propertyType: 'residential'
+                address: "",
+                propertyType: "residential",
               },
               recordingConditions: {
-                lighting: 'indoor',
-                timeOfDay: new Date().getHours() < 12 ? 'morning' : 'afternoon'
+                lighting: "indoor",
+                timeOfDay: new Date().getHours() < 12 ? "morning" : "afternoon",
               },
-              inspectionType: 'standard'
+              inspectionType: "standard",
             },
-            status: 'stopped',
-            createdAt: new Date()
+            status: "stopped",
+            createdAt: new Date(),
           };
 
           resolve(recording);
@@ -156,19 +159,22 @@ export class VideoProcessor {
         // Handle errors
         this.mediaRecorder.onerror = (event: MediaRecorderErrorEvent) => {
           clearInterval(statsInterval);
-          reject(new Error(`Recording error: ${event.error?.message || 'Unknown recording error'}`));
+          reject(
+            new Error(
+              `Recording error: ${event.error?.message || "Unknown recording error"}`,
+            ),
+          );
         };
 
         // Start recording
         this.mediaRecorder.start(1000); // Collect data every second
-        
+
         // Auto-stop after max duration
         setTimeout(() => {
-          if (this.mediaRecorder?.state === 'recording') {
+          if (this.mediaRecorder?.state === "recording") {
             this.stopRecording();
           }
         }, recordingConfig.maxDuration * 1000);
-
       } catch (error) {
         reject(error);
       }
@@ -183,22 +189,22 @@ export class VideoProcessor {
   async processVideoFrames(video: File | Blob): Promise<VideoTimestamp[]> {
     const timestamps: VideoTimestamp[] = [];
     const videoUrl = URL.createObjectURL(video);
-    
+
     try {
-      const videoElement = document.createElement('video');
+      const videoElement = document.createElement("video");
       videoElement.src = videoUrl;
       videoElement.muted = true;
-      
+
       // Wait for metadata
       await new Promise((resolve) => {
         videoElement.onloadedmetadata = resolve;
       });
 
       const duration = videoElement.duration;
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) throw new Error('Failed to get canvas context');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) throw new Error("Failed to get canvas context");
 
       // Set canvas size
       canvas.width = videoElement.videoWidth;
@@ -208,29 +214,38 @@ export class VideoProcessor {
       let sceneStartTime = 0;
 
       // Process frames at intervals
-      for (let time = 0; time < duration; time += this.config.extractFrameInterval) {
+      for (
+        let time = 0;
+        time < duration;
+        time += this.config.extractFrameInterval
+      ) {
         videoElement.currentTime = time;
-        
+
         await new Promise((resolve) => {
           videoElement.onseeked = resolve;
         });
 
         // Draw frame to canvas
         ctx.drawImage(videoElement, 0, 0);
-        const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
+        const currentFrame = ctx.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
+
         // Detect scene changes
-        const isSceneChange = previousFrame 
-          ? this.detectSceneChange(previousFrame, currentFrame) 
+        const isSceneChange = previousFrame
+          ? this.detectSceneChange(previousFrame, currentFrame)
           : true;
 
         if (isSceneChange) {
           // Extract thumbnail
-          const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
-          
+          const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
+
           // Analyze frame content
           const analysis = await this.analyzeFrame(currentFrame, canvas);
-          
+
           const timestamp: VideoTimestamp = {
             id: `ts_${time}_${Date.now()}`,
             time,
@@ -241,9 +256,9 @@ export class VideoProcessor {
             thumbnail,
             confidence: analysis.confidence,
             isKeyFrame: analysis.isKeyFrame,
-            annotations: []
+            annotations: [],
           };
-          
+
           timestamps.push(timestamp);
           sceneStartTime = time;
         }
@@ -252,7 +267,6 @@ export class VideoProcessor {
       }
 
       return timestamps;
-
     } finally {
       URL.revokeObjectURL(videoUrl);
     }
@@ -266,10 +280,10 @@ export class VideoProcessor {
    */
   async analyzeVideoContent(
     video: File | Blob,
-    timestamps: VideoTimestamp[]
+    timestamps: VideoTimestamp[],
   ): Promise<VideoAnalysisResult> {
     const startTime = performance.now();
-    
+
     // Create abort controller for cancellation
     this.analysisAbortController = new AbortController();
 
@@ -279,21 +293,33 @@ export class VideoProcessor {
 
       // Group timestamps into scenes
       const scenes = this.groupTimestampsIntoScenes(timestamps);
-      
+
       // Analyze room sequence
       const roomSequence = this.analyzeRoomSequence(scenes);
-      
+
       // Detect features across video
       const featureDetection = this.detectVideoFeatures(timestamps);
-      
+
       // Calculate quality metrics
-      const qualityMetrics = await this.calculateQualityMetrics(video, timestamps);
-      
+      const qualityMetrics = await this.calculateQualityMetrics(
+        video,
+        timestamps,
+      );
+
       // Identify issues
-      const issues = this.identifyVideoIssues(scenes, roomSequence, qualityMetrics);
-      
+      const issues = this.identifyVideoIssues(
+        scenes,
+        roomSequence,
+        qualityMetrics,
+      );
+
       // Generate summary
-      const summary = this.generateAnalysisSummary(scenes, roomSequence, qualityMetrics, issues);
+      const summary = this.generateAnalysisSummary(
+        scenes,
+        roomSequence,
+        qualityMetrics,
+        issues,
+      );
 
       const result: VideoAnalysisResult = {
         videoId: `analysis_${Date.now()}`,
@@ -304,14 +330,13 @@ export class VideoProcessor {
         issues,
         summary,
         processingTime: performance.now() - startTime,
-        aiConfidence: 85 + Math.random() * 10
+        aiConfidence: 85 + Math.random() * 10,
       };
 
       return result;
-
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Analysis cancelled');
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("Analysis cancelled");
       }
       throw error;
     } finally {
@@ -332,12 +357,12 @@ export class VideoProcessor {
       navigationTimestamps.push({
         id: `nav_room_${index}`,
         time: room.startTime,
-        sceneType: 'room_entry',
+        sceneType: "room_entry",
         roomDetected: room.roomType,
         features: [],
         description: `${room.roomType} - Entry`,
         confidence: 90,
-        isKeyFrame: true
+        isKeyFrame: true,
       });
 
       // Add key moments within room
@@ -345,7 +370,7 @@ export class VideoProcessor {
         navigationTimestamps.push({
           ...moment,
           id: `nav_moment_${index}_${moment.time}`,
-          description: `${room.roomType} - ${moment.description}`
+          description: `${room.roomType} - ${moment.description}`,
         });
       });
     });
@@ -356,20 +381,22 @@ export class VideoProcessor {
         navigationTimestamps.push({
           id: `nav_issue_${index}_${time}`,
           time,
-          sceneType: 'issue_documentation',
+          sceneType: "issue_documentation",
           features: [issue.type],
           description: issue.description,
           confidence: 80,
           isKeyFrame: true,
-          annotations: [{
-            type: 'text',
-            content: issue.description,
-            position: { x: 10, y: 10 },
-            style: {
-              color: issue.severity === 'high' ? '#ff0000' : '#ffaa00',
-              fontSize: 16
-            }
-          }]
+          annotations: [
+            {
+              type: "text",
+              content: issue.description,
+              position: { x: 10, y: 10 },
+              style: {
+                color: issue.severity === "high" ? "#ff0000" : "#ffaa00",
+                fontSize: 16,
+              },
+            },
+          ],
         });
       });
     });
@@ -381,22 +408,25 @@ export class VideoProcessor {
   // Control methods
 
   pauseRecording(): void {
-    if (this.mediaRecorder?.state === 'recording') {
+    if (this.mediaRecorder?.state === "recording") {
       this.mediaRecorder.pause();
       this.lastPauseTime = Date.now();
     }
   }
 
   resumeRecording(): void {
-    if (this.mediaRecorder?.state === 'paused') {
+    if (this.mediaRecorder?.state === "paused") {
       this.pausedDuration += Date.now() - this.lastPauseTime;
       this.mediaRecorder.resume();
     }
   }
 
   stopRecording(): void {
-    if (this.mediaRecorder && 
-        (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
+    if (
+      this.mediaRecorder &&
+      (this.mediaRecorder.state === "recording" ||
+        this.mediaRecorder.state === "paused")
+    ) {
       this.mediaRecorder.stop();
     }
   }
@@ -411,10 +441,10 @@ export class VideoProcessor {
 
   private getSupportedMimeType(): string {
     const types = [
-      'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
-      'video/webm',
-      'video/mp4'
+      "video/webm;codecs=vp9,opus",
+      "video/webm;codecs=vp8,opus",
+      "video/webm",
+      "video/mp4",
     ];
 
     for (const type of types) {
@@ -423,7 +453,7 @@ export class VideoProcessor {
       }
     }
 
-    return 'video/webm';
+    return "video/webm";
   }
 
   private getRecordingDuration(): number {
@@ -434,7 +464,7 @@ export class VideoProcessor {
   private async analyzeVideoQuality(video: File): Promise<VideoQuality> {
     // Mock quality analysis
     await this.simulateProcessing(500);
-    
+
     return {
       overall: 75 + Math.random() * 20,
       stability: 80 + Math.random() * 15,
@@ -442,7 +472,7 @@ export class VideoProcessor {
       focus: 85 + Math.random() * 10,
       audioQuality: 90 + Math.random() * 10,
       bitrate: 2500 + Math.random() * 1500,
-      fps: 29 + Math.random() * 2
+      fps: 29 + Math.random() * 2,
     };
   }
 
@@ -452,14 +482,14 @@ export class VideoProcessor {
     aspectRatio: string;
   }> {
     return new Promise((resolve) => {
-      const videoElement = document.createElement('video');
+      const videoElement = document.createElement("video");
       videoElement.src = URL.createObjectURL(video);
-      
+
       videoElement.onloadedmetadata = () => {
         resolve({
           width: videoElement.videoWidth,
           height: videoElement.videoHeight,
-          aspectRatio: `${videoElement.videoWidth}:${videoElement.videoHeight}`
+          aspectRatio: `${videoElement.videoWidth}:${videoElement.videoHeight}`,
         });
         URL.revokeObjectURL(videoElement.src);
       };
@@ -470,20 +500,23 @@ export class VideoProcessor {
     // Simple scene change detection using pixel difference
     let diff = 0;
     const pixels = prev.data.length / 4;
-    
+
     for (let i = 0; i < prev.data.length; i += 4) {
       const dr = Math.abs(prev.data[i] - current.data[i]);
       const dg = Math.abs(prev.data[i + 1] - current.data[i + 1]);
       const db = Math.abs(prev.data[i + 2] - current.data[i + 2]);
-      
+
       diff += (dr + dg + db) / 3;
     }
-    
+
     const averageDiff = diff / pixels / 255;
     return averageDiff > this.config.sceneChangeThreshold;
   }
 
-  private async analyzeFrame(frame: ImageData, canvas: HTMLCanvasElement): Promise<{
+  private async analyzeFrame(
+    frame: ImageData,
+    canvas: HTMLCanvasElement,
+  ): Promise<{
     sceneType: SceneType;
     roomType: string;
     features: string[];
@@ -493,24 +526,35 @@ export class VideoProcessor {
   }> {
     // Mock frame analysis - in production, this would use AI
     await this.simulateProcessing(100);
-    
+
     const sceneTypes: SceneType[] = [
-      'room_overview', 'detail_shot', 'amenity_focus', 'transition'
+      "room_overview",
+      "detail_shot",
+      "amenity_focus",
+      "transition",
     ];
-    const roomTypes = ['bedroom', 'bathroom', 'kitchen', 'living-room', 'exterior'];
-    const features = ['bed', 'tv', 'window', 'door', 'furniture', 'appliances'];
-    
+    const roomTypes = [
+      "bedroom",
+      "bathroom",
+      "kitchen",
+      "living-room",
+      "exterior",
+    ];
+    const features = ["bed", "tv", "window", "door", "furniture", "appliances"];
+
     return {
       sceneType: sceneTypes[Math.floor(Math.random() * sceneTypes.length)],
       roomType: roomTypes[Math.floor(Math.random() * roomTypes.length)],
       features: features.filter(() => Math.random() > 0.7),
-      description: 'Automated scene detection',
+      description: "Automated scene detection",
       confidence: 70 + Math.random() * 25,
-      isKeyFrame: Math.random() > 0.6
+      isKeyFrame: Math.random() > 0.6,
     };
   }
 
-  private groupTimestampsIntoScenes(timestamps: VideoTimestamp[]): SceneAnalysis[] {
+  private groupTimestampsIntoScenes(
+    timestamps: VideoTimestamp[],
+  ): SceneAnalysis[] {
     const scenes: SceneAnalysis[] = [];
     let currentScene: SceneAnalysis | null = null;
 
@@ -519,7 +563,7 @@ export class VideoProcessor {
         if (currentScene) {
           scenes.push(currentScene);
         }
-        
+
         currentScene = {
           startTime: ts.time,
           endTime: ts.time,
@@ -532,12 +576,12 @@ export class VideoProcessor {
             stability: 75 + Math.random() * 20,
             lighting: 70 + Math.random() * 25,
             framing: 85 + Math.random() * 10,
-            overall: 78 + Math.random() * 17
+            overall: 78 + Math.random() * 17,
           },
-          transitions: []
+          transitions: [],
         };
       }
-      
+
       if (currentScene) {
         currentScene.endTime = ts.time;
         if (ts.isKeyFrame && ts.thumbnail) {
@@ -546,7 +590,7 @@ export class VideoProcessor {
             frameUrl: ts.thumbnail,
             quality: 85 + Math.random() * 10,
             isRepresentative: ts.isKeyFrame,
-            features: ts.features
+            features: ts.features,
           });
         }
       }
@@ -561,32 +605,34 @@ export class VideoProcessor {
 
   private analyzeRoomSequence(scenes: SceneAnalysis[]): RoomSequence[] {
     const roomMap = new Map<string, RoomSequence>();
-    
+
     scenes.forEach((scene) => {
       if (scene.roomType) {
         const existing = roomMap.get(scene.roomType);
-        
+
         if (existing) {
           existing.endTime = scene.endTime;
-          existing.keyMoments.push(...scene.keyFrames.map(kf => ({
-            id: `moment_${kf.timestamp}`,
-            time: kf.timestamp,
-            sceneType: scene.sceneType,
-            roomDetected: scene.roomType,
-            features: kf.features,
-            description: 'Key moment',
-            thumbnail: kf.frameUrl,
-            confidence: kf.quality,
-            isKeyFrame: true
-          })));
+          existing.keyMoments.push(
+            ...scene.keyFrames.map((kf) => ({
+              id: `moment_${kf.timestamp}`,
+              time: kf.timestamp,
+              sceneType: scene.sceneType,
+              roomDetected: scene.roomType,
+              features: kf.features,
+              description: "Key moment",
+              thumbnail: kf.frameUrl,
+              confidence: kf.quality,
+              isKeyFrame: true,
+            })),
+          );
         } else {
           roomMap.set(scene.roomType, {
             roomId: `room_${scene.roomType}_${Date.now()}`,
             roomType: scene.roomType,
             startTime: scene.startTime,
             endTime: scene.endTime,
-            coverage: 'partial',
-            keyMoments: []
+            coverage: "partial",
+            keyMoments: [],
           });
         }
       }
@@ -602,14 +648,17 @@ export class VideoProcessor {
     timestamps: number[];
     evidence: string[];
   }> {
-    const featureMap = new Map<string, {
-      feature: string;
-      detected: boolean;
-      confidence: number;
-      timestamps: number[];
-      evidence: string[];
-    }>();
-    
+    const featureMap = new Map<
+      string,
+      {
+        feature: string;
+        detected: boolean;
+        confidence: number;
+        timestamps: number[];
+        evidence: string[];
+      }
+    >();
+
     timestamps.forEach((ts) => {
       ts.features.forEach((feature) => {
         if (!featureMap.has(feature)) {
@@ -618,7 +667,7 @@ export class VideoProcessor {
             detected: true,
             confidence: 80 + Math.random() * 15,
             timestamps: [ts.time],
-            evidence: [`Detected at ${ts.time}s`]
+            evidence: [`Detected at ${ts.time}s`],
           });
         } else {
           featureMap.get(feature).timestamps.push(ts.time);
@@ -629,7 +678,10 @@ export class VideoProcessor {
     return Array.from(featureMap.values());
   }
 
-  private async calculateQualityMetrics(video: File, timestamps: VideoTimestamp[]): Promise<{
+  private async calculateQualityMetrics(
+    video: File,
+    timestamps: VideoTimestamp[],
+  ): Promise<{
     averageQuality: number;
     stabilityScore: number;
     consistencyScore: number;
@@ -638,7 +690,7 @@ export class VideoProcessor {
     recommendations: string[];
   }> {
     await this.simulateProcessing(1000);
-    
+
     return {
       averageQuality: 78 + Math.random() * 15,
       stabilityScore: 82 + Math.random() * 12,
@@ -646,10 +698,10 @@ export class VideoProcessor {
       coverageScore: 75 + Math.random() * 20,
       technicalIssues: [],
       recommendations: [
-        'Consider using a gimbal for smoother footage',
-        'Ensure all rooms are well-lit before recording',
-        'Take time to focus on key features'
-      ]
+        "Consider using a gimbal for smoother footage",
+        "Ensure all rooms are well-lit before recording",
+        "Take time to focus on key features",
+      ],
     };
   }
 
@@ -663,33 +715,33 @@ export class VideoProcessor {
       coverageScore: number;
       technicalIssues: string[];
       recommendations: string[];
-    }
+    },
   ): VideoIssue[] {
     const issues: VideoIssue[] = [];
-    
+
     // Check for quality issues
     if (qualityMetrics.averageQuality < 70) {
       issues.push({
-        type: 'poor_quality',
-        severity: 'medium',
-        description: 'Overall video quality is below acceptable threshold',
-        affectedTimestamps: scenes.map(s => s.startTime),
-        suggestedAction: 'Re-record with better lighting and stability'
+        type: "poor_quality",
+        severity: "medium",
+        description: "Overall video quality is below acceptable threshold",
+        affectedTimestamps: scenes.map((s) => s.startTime),
+        suggestedAction: "Re-record with better lighting and stability",
       });
     }
-    
+
     // Check for missing rooms (mock)
-    const expectedRooms = ['bedroom', 'bathroom', 'kitchen', 'living-room'];
-    const coveredRooms = roomSequence.map(r => r.roomType);
-    const missingRooms = expectedRooms.filter(r => !coveredRooms.includes(r));
-    
+    const expectedRooms = ["bedroom", "bathroom", "kitchen", "living-room"];
+    const coveredRooms = roomSequence.map((r) => r.roomType);
+    const missingRooms = expectedRooms.filter((r) => !coveredRooms.includes(r));
+
     if (missingRooms.length > 0) {
       issues.push({
-        type: 'missing_room',
-        severity: 'high',
-        description: `Missing coverage for: ${missingRooms.join(', ')}`,
+        type: "missing_room",
+        severity: "high",
+        description: `Missing coverage for: ${missingRooms.join(", ")}`,
         affectedTimestamps: [],
-        suggestedAction: 'Record additional footage of missing areas'
+        suggestedAction: "Record additional footage of missing areas",
       });
     }
 
@@ -707,7 +759,7 @@ export class VideoProcessor {
       technicalIssues: string[];
       recommendations: string[];
     },
-    issues: VideoIssue[]
+    issues: VideoIssue[],
   ): {
     totalDuration: number;
     roomsCovered: string[];
@@ -718,10 +770,10 @@ export class VideoProcessor {
     readyForSubmission: boolean;
   } {
     const totalDuration = scenes[scenes.length - 1]?.endTime || 0;
-    const roomsCovered = roomSequence.map(r => r.roomType);
-    const expectedRooms = ['bedroom', 'bathroom', 'kitchen', 'living-room'];
-    const roomsMissing = expectedRooms.filter(r => !roomsCovered.includes(r));
-    
+    const roomsCovered = roomSequence.map((r) => r.roomType);
+    const expectedRooms = ["bedroom", "bathroom", "kitchen", "living-room"];
+    const roomsMissing = expectedRooms.filter((r) => !roomsCovered.includes(r));
+
     return {
       totalDuration,
       roomsCovered,
@@ -730,21 +782,24 @@ export class VideoProcessor {
       keyFindings: [
         `Recorded ${scenes.length} scenes across ${roomsCovered.length} rooms`,
         `Average quality score: ${Math.round(qualityMetrics.averageQuality)}%`,
-        issues.length > 0 ? `${issues.length} issues identified` : 'No major issues found'
+        issues.length > 0
+          ? `${issues.length} issues identified`
+          : "No major issues found",
       ],
       recommendedActions: qualityMetrics.recommendations,
-      readyForSubmission: issues.filter(i => i.severity === 'high').length === 0
+      readyForSubmission:
+        issues.filter((i) => i.severity === "high").length === 0,
     };
   }
 
   private getOperatingSystem(): string {
     const userAgent = navigator.userAgent;
-    if (userAgent.includes('Windows')) return 'Windows';
-    if (userAgent.includes('Mac')) return 'macOS';
-    if (userAgent.includes('Linux')) return 'Linux';
-    if (userAgent.includes('Android')) return 'Android';
-    if (userAgent.includes('iOS')) return 'iOS';
-    return 'Unknown';
+    if (userAgent.includes("Windows")) return "Windows";
+    if (userAgent.includes("Mac")) return "macOS";
+    if (userAgent.includes("Linux")) return "Linux";
+    if (userAgent.includes("Android")) return "Android";
+    if (userAgent.includes("iOS")) return "iOS";
+    return "Unknown";
   }
 
   private getAvailableStorage(): number {
@@ -764,7 +819,7 @@ export class VideoProcessor {
 
 // Export factory function
 export const createVideoProcessor = (
-  config?: Partial<VideoProcessingConfig>
+  config?: Partial<VideoProcessingConfig>,
 ): VideoProcessor => {
   return new VideoProcessor(config);
 };

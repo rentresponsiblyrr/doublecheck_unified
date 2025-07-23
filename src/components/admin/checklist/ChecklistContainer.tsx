@@ -1,9 +1,9 @@
-import React from 'react';
-import { ChecklistDataManager } from './ChecklistDataManager';
-import { ChecklistActionsPanel } from './ChecklistActionsPanel';
-import { ChecklistStatsPanel } from './ChecklistStatsPanel';
-import { ChecklistSystemHealth } from './ChecklistSystemHealth';
-import { ChecklistTable } from './ChecklistTable';
+import React from "react";
+import { ChecklistDataManager } from "./ChecklistDataManager";
+import { ChecklistActionsPanel } from "./ChecklistActionsPanel";
+import { ChecklistStatsPanel } from "./ChecklistStatsPanel";
+import { ChecklistSystemHealth } from "./ChecklistSystemHealth";
+import { ChecklistTable } from "./ChecklistTable";
 
 export const ChecklistContainer: React.FC = () => {
   return (
@@ -20,7 +20,7 @@ export const ChecklistContainer: React.FC = () => {
           onItemCreate,
           onItemUpdate,
           onItemDelete,
-          onFiltersChange
+          onFiltersChange,
         }) => (
           <>
             <ChecklistActionsPanel

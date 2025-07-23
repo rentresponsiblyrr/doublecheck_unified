@@ -12,8 +12,13 @@ export class QueueProcessor<T> {
    */
   async processItem(
     itemId: string,
-    processor: () => Promise<T>
-  ): Promise<{ success: boolean; result?: T; error?: string; wasAlreadyProcessing?: boolean }> {
+    processor: () => Promise<T>,
+  ): Promise<{
+    success: boolean;
+    result?: T;
+    error?: string;
+    wasAlreadyProcessing?: boolean;
+  }> {
     // Check if item is already being processed
     if (this.processing.has(itemId)) {
       // Wait for the existing processing to complete
@@ -43,7 +48,10 @@ export class QueueProcessor<T> {
     }
   }
 
-  private async executeProcessor<T>(itemId: string, processor: () => Promise<T>): Promise<T> {
+  private async executeProcessor<T>(
+    itemId: string,
+    processor: () => Promise<T>,
+  ): Promise<T> {
     try {
       return await processor();
     } catch (error) {
@@ -59,35 +67,42 @@ export class QueueProcessor<T> {
    */
   async processBatch<T>(
     items: Array<{ id: string; processor: () => Promise<T> }>,
-    concurrencyLimit: number = 3
-  ): Promise<Array<{ id: string; success: boolean; result?: T; error?: string }>> {
-    const results: Array<{ id: string; success: boolean; result?: T; error?: string }> = [];
-    
+    concurrencyLimit: number = 3,
+  ): Promise<
+    Array<{ id: string; success: boolean; result?: T; error?: string }>
+  > {
+    const results: Array<{
+      id: string;
+      success: boolean;
+      result?: T;
+      error?: string;
+    }> = [];
+
     // Process items in chunks to respect concurrency limit
     for (let i = 0; i < items.length; i += concurrencyLimit) {
       const chunk = items.slice(i, i + concurrencyLimit);
-      
+
       const chunkPromises = chunk.map(async (item) => {
         const result = await this.processItem(item.id, item.processor);
         return {
           id: item.id,
           success: result.success,
           result: result.result,
-          error: result.error
+          error: result.error,
         };
       });
 
       const chunkResults = await Promise.allSettled(chunkPromises);
-      
+
       // Extract results from settled promises
       chunkResults.forEach((settled, index) => {
-        if (settled.status === 'fulfilled') {
+        if (settled.status === "fulfilled") {
           results.push(settled.value);
         } else {
           results.push({
             id: chunk[index].id,
             success: false,
-            error: settled.reason?.message || 'Unknown error'
+            error: settled.reason?.message || "Unknown error",
           });
         }
       });

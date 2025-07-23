@@ -9,9 +9,9 @@ This document marks the successful completion of the STR Certified platform migr
 ### Critical Fixes Applied:
 1. **Database Schema Mapping** ✅
    - **Table Name Corrections**: `users`→`profiles`, `static_safety_items`→`checklist`
-   - **Property Schema**: `id`→`property_id` (integer), `name`→`property_name`, `address`→`street_address`
+   - **Property Schema**: `id`→`property_id` (integer), `name`→`name`, `address`→`address`
    - **User Schema**: `name`→`full_name` in profiles table
-   - **Column Mappings**: `static_safety_item_id`→`checklist_id` in inspection_checklist_items
+   - **Column Mappings**: `static_item_id`→`checklist_id` in inspection_checklist_items
    - Standardized storage bucket usage to 'inspection-media'
 
 2. **Database Function Creation** ✅
@@ -38,7 +38,7 @@ This document marks the successful completion of the STR Certified platform migr
 ## 📊 Database Verification Results
 
 **Confirmed Working:**
-- ✅ 9 Properties (using `property_id` integer keys, `property_name`, `street_address`)
+- ✅ 9 Properties (using `property_id` integer keys, `name`, `address`)
 - ✅ 15 Inspections (linked to `properties.property_id`)
 - ✅ 3,762 Checklist Items (using `checklist.checklist_id` references)
 - ✅ 21 Media Files (linked to `inspection_checklist_items`)

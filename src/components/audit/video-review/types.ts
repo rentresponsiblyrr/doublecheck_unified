@@ -9,7 +9,7 @@ export interface VideoReviewPlayerProps {
 export interface VideoTimestamp {
   time: number;
   description: string;
-  category: 'issue' | 'note' | 'highlight';
+  category: "issue" | "note" | "highlight";
   inspector?: string;
 }
 

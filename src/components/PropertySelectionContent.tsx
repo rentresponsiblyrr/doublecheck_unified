@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PropertyHeader } from "@/components/PropertyHeader";
 import { PropertyList } from "@/components/PropertyList";
 import { AddPropertyButton } from "@/components/AddPropertyButton";
@@ -9,12 +8,7 @@ import { MyActiveInspections } from "@/components/MyActiveInspections";
 import { usePropertyActions } from "@/hooks/usePropertyActions";
 import { useInspectorDashboard } from "@/hooks/useInspectorDashboard";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  TrendingUp, 
-  Clock, 
-  CheckCircle, 
-  Play 
-} from "lucide-react";
+import { TrendingUp, Clock, CheckCircle, Play } from "lucide-react";
 
 interface PropertyData {
   property_id: string;
@@ -71,12 +65,12 @@ export const PropertySelectionContent = ({
   isCreatingInspection,
   inspectionError,
   onPropertyDeleted,
-  isLoading = false
+  isLoading = false,
 }: PropertySelectionContentProps) => {
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [activeSortId, setActiveSortId] = useState('name-asc');
+  const [activeSortId, setActiveSortId] = useState("name-asc");
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { actionState, clearError } = usePropertyActions();
@@ -85,80 +79,110 @@ export const PropertySelectionContent = ({
   // Render logging removed to prevent infinite console loops
   // PropertySelectionContent rendering with consolidated auth
 
-  const selectedPropertyStatus = selectedProperty ? getPropertyStatus(selectedProperty) : null;
-  const buttonText = selectedProperty ? getButtonText(selectedProperty) : "Start Inspection";
-  const isJoining = selectedPropertyStatus?.status === 'in-progress';
-  const pendingInspections = inspections.filter(i => !i.completed).length;
+  const selectedPropertyStatus = selectedProperty
+    ? getPropertyStatus(selectedProperty)
+    : null;
+  const buttonText = selectedProperty
+    ? getButtonText(selectedProperty)
+    : "Start Inspection";
+  const isJoining = selectedPropertyStatus?.status === "in-progress";
+  const pendingInspections = inspections.filter((i) => !i.completed).length;
 
   // Filter and sort properties - hide approved properties from inspector view
-  const filteredProperties = properties.filter(property => {
-    const propertyStatus = getPropertyStatus(property.property_id);
-    
-    // Hide approved properties from inspector list
-    if (propertyStatus.shouldHide) {
-      return false;
-    }
-    
-    const matchesSearch = !searchValue || 
-      property.property_name?.toLowerCase().includes(searchValue.toLowerCase()) ||
-      property.property_address?.toLowerCase().includes(searchValue.toLowerCase());
-    
-    const matchesFilters = activeFilters.length === 0 || 
-      activeFilters.some(filter => {
-        const status = getPropertyStatus(property.property_id);
-        return filter === status.status;
-      });
+  const filteredProperties = properties
+    .filter((property) => {
+      const propertyStatus = getPropertyStatus(property.property_id);
 
-    return matchesSearch && matchesFilters;
-  }).sort((a, b) => {
-    switch (activeSortId) {
-      case 'name-asc':
-        return (a.property_name || '').localeCompare(b.property_name || '');
-      case 'name-desc':
-        return (b.property_name || '').localeCompare(a.property_name || '');
-      case 'status-asc':
-        return getPropertyStatus(a.property_id).status.localeCompare(getPropertyStatus(b.property_id).status);
-      case 'status-desc':
-        return getPropertyStatus(b.property_id).status.localeCompare(getPropertyStatus(a.property_id).status);
-      default:
-        return 0;
-    }
-  });
+      // Hide approved properties from inspector list
+      if (propertyStatus.shouldHide) {
+        return false;
+      }
+
+      const matchesSearch =
+        !searchValue ||
+        property.property_name
+          ?.toLowerCase()
+          .includes(searchValue.toLowerCase()) ||
+        property.property_address
+          ?.toLowerCase()
+          .includes(searchValue.toLowerCase());
+
+      const matchesFilters =
+        activeFilters.length === 0 ||
+        activeFilters.some((filter) => {
+          const status = getPropertyStatus(property.property_id);
+          return filter === status.status;
+        });
+
+      return matchesSearch && matchesFilters;
+    })
+    .sort((a, b) => {
+      switch (activeSortId) {
+        case "name-asc":
+          return (a.property_name || "").localeCompare(b.property_name || "");
+        case "name-desc":
+          return (b.property_name || "").localeCompare(a.property_name || "");
+        case "status-asc":
+          return getPropertyStatus(a.property_id).status.localeCompare(
+            getPropertyStatus(b.property_id).status,
+          );
+        case "status-desc":
+          return getPropertyStatus(b.property_id).status.localeCompare(
+            getPropertyStatus(a.property_id).status,
+          );
+        default:
+          return 0;
+      }
+    });
 
   const filterOptions = [
-    { id: 'pending', label: 'Available', count: properties.filter(p => {
-      const status = getPropertyStatus(p.property_id);
-      return status.status === 'pending' && !status.shouldHide;
-    }).length },
-    { id: 'in-progress', label: 'In Progress', count: properties.filter(p => {
-      const status = getPropertyStatus(p.property_id);
-      return status.status === 'in-progress' && !status.shouldHide;
-    }).length },
-    { id: 'completed', label: 'Under Review', count: properties.filter(p => {
-      const status = getPropertyStatus(p.property_id);
-      return status.status === 'completed' && !status.shouldHide;
-    }).length }
+    {
+      id: "pending",
+      label: "Available",
+      count: properties.filter((p) => {
+        const status = getPropertyStatus(p.property_id);
+        return status.status === "pending" && !status.shouldHide;
+      }).length,
+    },
+    {
+      id: "in-progress",
+      label: "In Progress",
+      count: properties.filter((p) => {
+        const status = getPropertyStatus(p.property_id);
+        return status.status === "in-progress" && !status.shouldHide;
+      }).length,
+    },
+    {
+      id: "completed",
+      label: "Under Review",
+      count: properties.filter((p) => {
+        const status = getPropertyStatus(p.property_id);
+        return status.status === "completed" && !status.shouldHide;
+      }).length,
+    },
   ];
 
   const sortOptions = [
-    { id: 'name-asc', label: 'Name A-Z', direction: 'asc' as const },
-    { id: 'name-desc', label: 'Name Z-A', direction: 'desc' as const },
-    { id: 'status-asc', label: 'Status A-Z', direction: 'asc' as const },
-    { id: 'status-desc', label: 'Status Z-A', direction: 'desc' as const }
+    { id: "name-asc", label: "Name A-Z", direction: "asc" as const },
+    { id: "name-desc", label: "Name Z-A", direction: "desc" as const },
+    { id: "status-asc", label: "Status A-Z", direction: "asc" as const },
+    { id: "status-desc", label: "Status Z-A", direction: "desc" as const },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PropertyHeader 
-        title="Choose a Property to Inspect" 
-        subtitle="Select a property below to begin your inspection" 
+      <PropertyHeader
+        title="Choose a Property to Inspect"
+        subtitle="Select a property below to begin your inspection"
       />
 
       <div className="px-4 py-6 space-y-6">
         {/* Active Inspections - Priority Section */}
-        <MyActiveInspections 
-          maxItems={5} 
-          onInspectionResume={(inspectionId) => navigate(`/inspection/${inspectionId}`)}
+        <MyActiveInspections
+          maxItems={5}
+          onInspectionResume={(inspectionId) =>
+            navigate(`/inspection/${inspectionId}`)
+          }
         />
 
         {/* Inspection Statistics */}
@@ -174,31 +198,35 @@ export const PropertySelectionContent = ({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <Play className="h-5 w-5 text-orange-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">In Progress</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    In Progress
+                  </p>
                   <p className="text-2xl font-bold">{summary.in_progress}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-yellow-600" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Pending Review
+                  </p>
                   <p className="text-2xl font-bold">{summary.pending_review}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -237,15 +265,21 @@ export const PropertySelectionContent = ({
         </div>
 
         {selectedProperty && (
-          <Button 
+          <Button
             onClick={handleStartInspection}
-            disabled={isCreatingInspection || actionState.isLoading || selectedPropertyStatus?.status === 'completed' || selectedPropertyStatus?.shouldHide}
+            disabled={
+              isCreatingInspection ||
+              actionState.isLoading ||
+              selectedPropertyStatus?.status === "completed" ||
+              selectedPropertyStatus?.shouldHide
+            }
             className="w-full mt-4"
           >
-            {isCreatingInspection || actionState.isLoading 
-              ? (isJoining ? "Joining Inspection..." : "Starting Inspection...") 
-              : buttonText
-            }
+            {isCreatingInspection || actionState.isLoading
+              ? isJoining
+                ? "Joining Inspection..."
+                : "Starting Inspection..."
+              : buttonText}
           </Button>
         )}
       </div>

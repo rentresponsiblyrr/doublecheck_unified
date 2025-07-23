@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { uploadMedia, updateChecklistItemStatus } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -7,17 +6,17 @@ import { useFileValidation } from "@/utils/fileValidation";
 import { useMediaRecordService } from "@/services/mediaRecordService";
 
 interface UseFileUploadProps {
-  evidenceType: 'photo' | 'video';
+  evidenceType: "photo" | "video";
   checklistItemId: string;
   inspectionId: string;
   onComplete: () => void;
 }
 
-export const useFileUpload = ({ 
-  evidenceType, 
-  checklistItemId, 
-  inspectionId, 
-  onComplete 
+export const useFileUpload = ({
+  evidenceType,
+  checklistItemId,
+  inspectionId,
+  onComplete,
 }: UseFileUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -31,10 +30,10 @@ export const useFileUpload = ({
     if (!validation.isValid) return;
 
     setIsUploading(true);
-    
+
     try {
       // If offline and it's a photo, save locally
-      if (!isOnline && validation.detectedType === 'photo') {
+      if (!isOnline && validation.detectedType === "photo") {
         await savePhotoOffline(file, checklistItemId, inspectionId);
         setUploadSuccess(true);
         toast({
@@ -44,24 +43,28 @@ export const useFileUpload = ({
         onComplete();
         return;
       }
-      
+
       // Upload to Supabase Storage
-      const uploadResult = await uploadMedia(file, inspectionId, checklistItemId);
-      
+      const uploadResult = await uploadMedia(
+        file,
+        inspectionId,
+        checklistItemId,
+      );
+
       if (uploadResult.error) {
-        
         // If upload fails and it's a photo, try saving offline
-        if (validation.detectedType === 'photo') {
+        if (validation.detectedType === "photo") {
           await savePhotoOffline(file, checklistItemId, inspectionId);
           setUploadSuccess(true);
           toast({
             title: "Saved offline",
-            description: "Upload failed, but photo saved locally for later sync.",
+            description:
+              "Upload failed, but photo saved locally for later sync.",
           });
           onComplete();
           return;
         }
-        
+
         toast({
           title: "Upload failed",
           description: uploadResult.error,
@@ -80,41 +83,43 @@ export const useFileUpload = ({
       }
 
       // Save media record to database with user attribution and detected type
-      await saveMediaRecordWithAttribution(checklistItemId, validation.detectedType, uploadResult.url);
-      
+      await saveMediaRecordWithAttribution(
+        checklistItemId,
+        validation.detectedType,
+        uploadResult.url,
+      );
+
       // Note: Status will be updated when user explicitly marks Pass/Fail/NA
       // This preserves the evidence-note pairing requirement
-      
+
       setUploadSuccess(true);
       toast({
         title: "Upload successful",
         description: `${validation.detectedType} evidence uploaded successfully.`,
       });
-      
+
       // Trigger refresh of the checklist
       onComplete();
-      
-      
     } catch (error) {
-      
       // If error and it's a photo, try saving offline as fallback
-      if (validation.detectedType === 'photo') {
+      if (validation.detectedType === "photo") {
         try {
           await savePhotoOffline(file, checklistItemId, inspectionId);
           setUploadSuccess(true);
           toast({
             title: "Saved offline",
-            description: "Upload failed, but photo saved locally for later sync.",
+            description:
+              "Upload failed, but photo saved locally for later sync.",
           });
           onComplete();
           return;
-        } catch (offlineError) {
-        }
+        } catch (offlineError) {}
       }
-      
+
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
     } finally {
@@ -130,6 +135,6 @@ export const useFileUpload = ({
     isUploading,
     uploadSuccess,
     handleFileUpload,
-    resetUpload
+    resetUpload,
   };
 };

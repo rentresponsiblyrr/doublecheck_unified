@@ -1,18 +1,18 @@
 /**
  * INTELLIGENT CACHE SERVICE - ENTERPRISE EXCELLENCE
- * 
+ *
  * High-performance caching with intelligent invalidation patterns:
  * - Memory-efficient LRU cache with TTL support
  * - Pattern-based cache invalidation
  * - Performance metrics and monitoring
  * - Configurable cache strategies per data type
  * - Automatic memory pressure handling
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Service Layer Excellence
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // Cache entry interface
 interface CacheEntry<T> {
@@ -60,7 +60,7 @@ export class CacheService {
       defaultTTL: 300, // 5 minutes
       cleanupInterval: 60000, // 1 minute
       maxEntries: 10000,
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -71,11 +71,11 @@ export class CacheService {
       entryCount: 0,
       oldestEntry: Date.now(),
       cleanupRuns: 0,
-      evictions: 0
+      evictions: 0,
     };
 
     this.startCleanupTimer();
-    logger.debug('CacheService initialized', { config: this.config });
+    logger.debug("CacheService initialized", { config: this.config });
   }
 
   /**
@@ -83,7 +83,7 @@ export class CacheService {
    */
   async get<T>(key: string): Promise<T | null> {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.metrics.misses++;
       this.updateHitRate();
@@ -107,7 +107,7 @@ export class CacheService {
     this.metrics.hits++;
     this.updateHitRate();
 
-    logger.debug('Cache hit', { key, accessCount: entry.accessCount });
+    logger.debug("Cache hit", { key, accessCount: entry.accessCount });
     return entry.data;
   }
 
@@ -116,7 +116,7 @@ export class CacheService {
    */
   async set<T>(key: string, data: T, ttlSeconds?: number): Promise<void> {
     const ttl = ttlSeconds || this.config.defaultTTL;
-    const expiresAt = Date.now() + (ttl * 1000);
+    const expiresAt = Date.now() + ttl * 1000;
     const size = this.estimateSize(data);
 
     // Check memory pressure before adding
@@ -127,14 +127,14 @@ export class CacheService {
       expiresAt,
       accessCount: 1,
       lastAccessed: Date.now(),
-      size
+      size,
     };
 
     this.cache.set(key, entry);
     this.accessOrder.set(key, ++this.accessCounter);
 
     this.updateMetrics();
-    logger.debug('Cache set', { key, ttl, size });
+    logger.debug("Cache set", { key, ttl, size });
   }
 
   /**
@@ -143,12 +143,12 @@ export class CacheService {
   async invalidate(key: string): Promise<boolean> {
     const deleted = this.cache.delete(key);
     this.accessOrder.delete(key);
-    
+
     if (deleted) {
       this.updateMetrics();
-      logger.debug('Cache invalidated', { key });
+      logger.debug("Cache invalidated", { key });
     }
-    
+
     return deleted;
   }
 
@@ -156,7 +156,7 @@ export class CacheService {
    * Invalidate all keys matching a pattern
    */
   async invalidatePattern(pattern: string): Promise<number> {
-    const regex = new RegExp(pattern.replace('*', '.*'));
+    const regex = new RegExp(pattern.replace("*", ".*"));
     const keysToDelete: string[] = [];
 
     for (const key of this.cache.keys()) {
@@ -171,8 +171,11 @@ export class CacheService {
     }
 
     this.updateMetrics();
-    logger.debug('Pattern invalidation', { pattern, deletedCount: keysToDelete.length });
-    
+    logger.debug("Pattern invalidation", {
+      pattern,
+      deletedCount: keysToDelete.length,
+    });
+
     return keysToDelete.length;
   }
 
@@ -184,9 +187,9 @@ export class CacheService {
     this.cache.clear();
     this.accessOrder.clear();
     this.accessCounter = 0;
-    
+
     this.updateMetrics();
-    logger.debug('Cache cleared', { clearedEntries: entryCount });
+    logger.debug("Cache cleared", { clearedEntries: entryCount });
   }
 
   /**
@@ -217,9 +220,11 @@ export class CacheService {
 
     this.metrics.cleanupRuns++;
     this.updateMetrics();
-    
+
     if (expiredKeys.length > 0) {
-      logger.debug('Cache cleanup completed', { expiredCount: expiredKeys.length });
+      logger.debug("Cache cleanup completed", {
+        expiredCount: expiredKeys.length,
+      });
     }
 
     return expiredKeys.length;
@@ -233,17 +238,17 @@ export class CacheService {
       clearInterval(this.cleanupTimer);
       this.cleanupTimer = null;
     }
-    
+
     await this.clear();
-    logger.info('CacheService shutdown completed');
+    logger.info("CacheService shutdown completed");
   }
 
   // Private methods
 
   private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
-      this.cleanup().catch(error => {
-        logger.error('Cache cleanup failed', error);
+      this.cleanup().catch((error) => {
+        logger.error("Cache cleanup failed", error);
       });
     }, this.config.cleanupInterval);
   }
@@ -257,9 +262,9 @@ export class CacheService {
     // Check memory usage
     const memoryUsage = this.calculateMemoryUsage();
     const maxMemoryBytes = this.config.maxMemoryMB * 1024 * 1024;
-    
+
     if (memoryUsage > maxMemoryBytes) {
-      const targetReduction = memoryUsage - (maxMemoryBytes * 0.8); // Target 80% of max
+      const targetReduction = memoryUsage - maxMemoryBytes * 0.8; // Target 80% of max
       await this.evictBySize(targetReduction);
     }
   }
@@ -276,7 +281,7 @@ export class CacheService {
       this.metrics.evictions++;
     }
 
-    logger.debug('LRU eviction completed', { evictedCount: count });
+    logger.debug("LRU eviction completed", { evictedCount: count });
   }
 
   private async evictBySize(targetBytes: number): Promise<void> {
@@ -284,8 +289,9 @@ export class CacheService {
     let evictedCount = 0;
 
     // Sort by access order and evict until target is reached
-    const sortedEntries = Array.from(this.accessOrder.entries())
-      .sort(([, a], [, b]) => a - b);
+    const sortedEntries = Array.from(this.accessOrder.entries()).sort(
+      ([, a], [, b]) => a - b,
+    );
 
     for (const [key] of sortedEntries) {
       const entry = this.cache.get(key);
@@ -302,18 +308,18 @@ export class CacheService {
       }
     }
 
-    logger.debug('Size-based eviction completed', { 
-      evictedCount, 
-      evictedBytes: `${(evictedBytes / 1024).toFixed(1)}KB` 
+    logger.debug("Size-based eviction completed", {
+      evictedCount,
+      evictedBytes: `${(evictedBytes / 1024).toFixed(1)}KB`,
     });
   }
 
   private estimateSize(data: any): number {
     if (data === null || data === undefined) return 8;
-    if (typeof data === 'boolean') return 4;
-    if (typeof data === 'number') return 8;
-    if (typeof data === 'string') return data.length * 2; // UTF-16
-    
+    if (typeof data === "boolean") return 4;
+    if (typeof data === "number") return 8;
+    if (typeof data === "string") return data.length * 2; // UTF-16
+
     try {
       return JSON.stringify(data).length * 2; // Rough estimate
     } catch {
@@ -332,7 +338,7 @@ export class CacheService {
   private updateMetrics(): void {
     this.metrics.entryCount = this.cache.size;
     this.metrics.memoryUsage = this.calculateMemoryUsage();
-    
+
     // Find oldest entry
     let oldest = Date.now();
     for (const entry of this.cache.values()) {

@@ -4,9 +4,9 @@
  */
 
 export enum CircuitState {
-  CLOSED = 'closed',
-  OPEN = 'open',
-  HALF_OPEN = 'half_open',
+  CLOSED = "closed",
+  OPEN = "open",
+  HALF_OPEN = "half_open",
 }
 
 export interface CircuitBreakerConfig {
@@ -33,10 +33,10 @@ export class CircuitBreakerError extends Error {
   constructor(
     message: string,
     public state: CircuitState,
-    public metrics: CircuitBreakerMetrics
+    public metrics: CircuitBreakerMetrics,
   ) {
     super(message);
-    this.name = 'CircuitBreakerError';
+    this.name = "CircuitBreakerError";
   }
 }
 
@@ -50,11 +50,12 @@ export class CircuitBreaker {
   private totalRequests = 0;
   private totalFailures = 0;
   private totalSuccesses = 0;
-  private readonly listeners: Array<(metrics: CircuitBreakerMetrics) => void> = [];
+  private readonly listeners: Array<(metrics: CircuitBreakerMetrics) => void> =
+    [];
 
   constructor(
     private name: string,
-    private config: CircuitBreakerConfig
+    private config: CircuitBreakerConfig,
   ) {}
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
@@ -67,7 +68,7 @@ export class CircuitBreaker {
         throw new CircuitBreakerError(
           `Circuit breaker '${this.name}' is OPEN`,
           this.state,
-          this.getMetrics()
+          this.getMetrics(),
         );
       }
     }
@@ -121,9 +122,10 @@ export class CircuitBreaker {
 
   private isExpectedError(error: Error): boolean {
     if (!this.config.expectedErrors) return false;
-    
-    return this.config.expectedErrors.some(expectedType => 
-      error.name === expectedType || error.message.includes(expectedType)
+
+    return this.config.expectedErrors.some(
+      (expectedType) =>
+        error.name === expectedType || error.message.includes(expectedType),
     );
   }
 
@@ -153,11 +155,10 @@ export class CircuitBreaker {
 
   private notifyListeners(): void {
     const metrics = this.getMetrics();
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(metrics);
-      } catch (error) {
-      }
+      } catch (error) {}
     });
   }
 
@@ -179,7 +180,9 @@ export class CircuitBreaker {
     this.listeners.push(listener);
   }
 
-  public removeListener(listener: (metrics: CircuitBreakerMetrics) => void): void {
+  public removeListener(
+    listener: (metrics: CircuitBreakerMetrics) => void,
+  ): void {
     const index = this.listeners.indexOf(listener);
     if (index > -1) {
       this.listeners.splice(index, 1);
@@ -231,7 +234,10 @@ export class CircuitBreakerRegistry {
     return CircuitBreakerRegistry.instance;
   }
 
-  createCircuitBreaker(name: string, config: CircuitBreakerConfig): CircuitBreaker {
+  createCircuitBreaker(
+    name: string,
+    config: CircuitBreakerConfig,
+  ): CircuitBreaker {
     if (this.breakers.has(name)) {
       throw new Error(`Circuit breaker '${name}' already exists`);
     }
@@ -258,7 +264,7 @@ export class CircuitBreakerRegistry {
   }
 
   resetAll(): void {
-    this.breakers.forEach(breaker => breaker.reset());
+    this.breakers.forEach((breaker) => breaker.reset());
   }
 
   removeCircuitBreaker(name: string): boolean {
@@ -271,39 +277,39 @@ export const createDefaultCircuitBreakers = () => {
   const registry = CircuitBreakerRegistry.getInstance();
 
   // Database operations circuit breaker
-  registry.createCircuitBreaker('database', {
+  registry.createCircuitBreaker("database", {
     failureThreshold: 5,
     successThreshold: 3,
     timeout: 30000, // 30 seconds
     monitoringPeriod: 60000, // 1 minute
-    expectedErrors: ['ValidationError', 'NotFoundError'],
+    expectedErrors: ["ValidationError", "NotFoundError"],
   });
 
   // AI service circuit breaker
-  registry.createCircuitBreaker('ai-service', {
+  registry.createCircuitBreaker("ai-service", {
     failureThreshold: 3,
     successThreshold: 2,
     timeout: 60000, // 1 minute
     monitoringPeriod: 300000, // 5 minutes
-    expectedErrors: ['RateLimitError', 'InvalidInputError'],
+    expectedErrors: ["RateLimitError", "InvalidInputError"],
   });
 
   // File upload circuit breaker
-  registry.createCircuitBreaker('file-upload', {
+  registry.createCircuitBreaker("file-upload", {
     failureThreshold: 10,
     successThreshold: 5,
     timeout: 15000, // 15 seconds
     monitoringPeriod: 60000, // 1 minute
-    expectedErrors: ['FileTooLargeError', 'InvalidFileTypeError'],
+    expectedErrors: ["FileTooLargeError", "InvalidFileTypeError"],
   });
 
   // External API circuit breaker
-  registry.createCircuitBreaker('external-api', {
+  registry.createCircuitBreaker("external-api", {
     failureThreshold: 5,
     successThreshold: 3,
     timeout: 45000, // 45 seconds
     monitoringPeriod: 120000, // 2 minutes
-    expectedErrors: ['TimeoutError', 'AuthenticationError'],
+    expectedErrors: ["TimeoutError", "AuthenticationError"],
   });
 
   return registry;
@@ -313,17 +319,19 @@ export const createDefaultCircuitBreakers = () => {
 export function withCircuitBreaker<T extends any[], R>(
   name: string,
   fn: (...args: T) => Promise<R>,
-  config?: CircuitBreakerConfig
+  config?: CircuitBreakerConfig,
 ): (...args: T) => Promise<R> {
   const registry = CircuitBreakerRegistry.getInstance();
-  
+
   let breaker = registry.getCircuitBreaker(name);
   if (!breaker && config) {
     breaker = registry.createCircuitBreaker(name, config);
   }
-  
+
   if (!breaker) {
-    throw new Error(`Circuit breaker '${name}' not found and no config provided`);
+    throw new Error(
+      `Circuit breaker '${name}' not found and no config provided`,
+    );
   }
 
   return async (...args: T): Promise<R> => {

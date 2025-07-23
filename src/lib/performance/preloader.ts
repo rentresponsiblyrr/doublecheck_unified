@@ -1,6 +1,6 @@
 /**
  * BLEEDING EDGE PERFORMANCE: Advanced Preloading System
- * 
+ *
  * Professional-grade preloading that exceeds Meta/Netflix/Stripe standards
  * - Predictive route preloading based on user behavior
  * - Resource hints with priority management
@@ -15,11 +15,11 @@
 
 export interface PreloadResource {
   href: string;
-  as: 'script' | 'style' | 'image' | 'font' | 'fetch' | 'document';
-  crossorigin?: 'anonymous' | 'use-credentials';
+  as: "script" | "style" | "image" | "font" | "fetch" | "document";
+  crossorigin?: "anonymous" | "use-credentials";
   integrity?: string;
-  priority?: 'high' | 'medium' | 'low';
-  fetchPriority?: 'high' | 'low' | 'auto';
+  priority?: "high" | "medium" | "low";
+  fetchPriority?: "high" | "low" | "auto";
   media?: string;
   type?: string;
 }
@@ -36,8 +36,8 @@ export interface UserBehaviorPattern {
   timeOnPage: number;
   scrollDepth: number;
   clickPatterns: string[];
-  deviceType: 'mobile' | 'desktop' | 'tablet';
-  networkSpeed: 'slow' | 'medium' | 'fast';
+  deviceType: "mobile" | "desktop" | "tablet";
+  networkSpeed: "slow" | "medium" | "fast";
 }
 
 export interface PreloadConfig {
@@ -70,9 +70,9 @@ export class AdvancedPreloader {
       enableIntersectionObserver: true,
       prefetchThreshold: 0.7,
       maxConcurrentPreloads: 6,
-      criticalRoutes: ['/', '/inspections', '/properties'],
+      criticalRoutes: ["/", "/inspections", "/properties"],
       networkAware: true,
-      ...config
+      ...config,
     };
 
     this.userBehavior = {
@@ -81,7 +81,7 @@ export class AdvancedPreloader {
       scrollDepth: 0,
       clickPatterns: [],
       deviceType: this.detectDeviceType(),
-      networkSpeed: this.detectNetworkSpeed()
+      networkSpeed: this.detectNetworkSpeed(),
     };
 
     this.initializeNetworkMonitoring();
@@ -100,37 +100,37 @@ export class AdvancedPreloader {
     const criticalResources: PreloadResource[] = [
       // Core application bundle (highest priority)
       {
-        href: '/assets/js/index-*.js',
-        as: 'script',
-        priority: 'high',
-        fetchPriority: 'high'
+        href: "/assets/js/index-*.js",
+        as: "script",
+        priority: "high",
+        fetchPriority: "high",
       },
       // Essential UI components
       {
-        href: '/assets/js/ui-core-*.js',
-        as: 'script',
-        priority: 'high',
-        fetchPriority: 'high'
+        href: "/assets/js/ui-core-*.js",
+        as: "script",
+        priority: "high",
+        fetchPriority: "high",
       },
       // Critical fonts
       {
-        href: '/assets/fonts/inter-*.woff2',
-        as: 'font',
-        crossorigin: 'anonymous',
-        priority: 'high',
-        fetchPriority: 'high'
+        href: "/assets/fonts/inter-*.woff2",
+        as: "font",
+        crossorigin: "anonymous",
+        priority: "high",
+        fetchPriority: "high",
       },
       // Critical CSS
       {
-        href: '/assets/index-*.css',
-        as: 'style',
-        priority: 'high',
-        fetchPriority: 'high'
-      }
+        href: "/assets/index-*.css",
+        as: "style",
+        priority: "high",
+        fetchPriority: "high",
+      },
     ];
 
     // Parallel preload with network awareness
-    await this.batchPreload(criticalResources, 'critical');
+    await this.batchPreload(criticalResources, "critical");
   }
 
   /**
@@ -140,7 +140,9 @@ export class AdvancedPreloader {
     if (!this.config.enablePredictive) return;
 
     const predictions = await this.analyzeUserBehavior();
-    const highProbabilityRoutes = predictions.filter(p => p.probability > this.config.prefetchThreshold);
+    const highProbabilityRoutes = predictions.filter(
+      (p) => p.probability > this.config.prefetchThreshold,
+    );
 
     for (const prediction of highProbabilityRoutes) {
       if (prediction.route) {
@@ -156,27 +158,31 @@ export class AdvancedPreloader {
     if (!this.config.enableResourceHints) return;
 
     // DNS prefetch for external domains
-    this.addResourceHint('dns-prefetch', 'https://fonts.googleapis.com');
-    this.addResourceHint('dns-prefetch', 'https://fonts.gstatic.com');
-    this.addResourceHint('dns-prefetch', 'https://cdn.jsdelivr.net');
+    this.addResourceHint("dns-prefetch", "https://fonts.googleapis.com");
+    this.addResourceHint("dns-prefetch", "https://fonts.gstatic.com");
+    this.addResourceHint("dns-prefetch", "https://cdn.jsdelivr.net");
 
     // Preconnect to critical origins
-    this.addResourceHint('preconnect', 'https://api.openai.com', true);
-    this.addResourceHint('preconnect', 'https://supabase.co', true);
+    this.addResourceHint("preconnect", "https://api.openai.com", true);
+    this.addResourceHint("preconnect", "https://supabase.co", true);
 
     // Module preload for critical chunks
-    this.addModulePreload('/assets/js/react-core-*.js');
-    this.addModulePreload('/assets/js/ui-core-*.js');
-    this.addModulePreload('/assets/js/vendor-su-*.js');
+    this.addModulePreload("/assets/js/react-core-*.js");
+    this.addModulePreload("/assets/js/ui-core-*.js");
+    this.addModulePreload("/assets/js/vendor-su-*.js");
   }
 
   /**
    * BLEEDING EDGE: Advanced intersection observer for component preloading
    */
-  public observeComponentPreload(element: Element, componentName: string): void {
-    if (!this.config.enableIntersectionObserver || !this.intersectionObserver) return;
+  public observeComponentPreload(
+    element: Element,
+    componentName: string,
+  ): void {
+    if (!this.config.enableIntersectionObserver || !this.intersectionObserver)
+      return;
 
-    element.setAttribute('data-preload-component', componentName);
+    element.setAttribute("data-preload-component", componentName);
     this.intersectionObserver.observe(element);
   }
 
@@ -193,14 +199,14 @@ export class AdvancedPreloader {
 
     // Route prediction based on navigation patterns
     const routePredictions = this.predictNextRoutes(patterns.pageViews);
-    
+
     for (const [route, probability] of routePredictions) {
       if (probability > 0.3) {
         strategies.push({
           probability,
           userBehavior: patterns,
           resources: await this.getRouteResources(route),
-          route
+          route,
         });
       }
     }
@@ -217,20 +223,20 @@ export class AdvancedPreloader {
    */
   private predictNextRoutes(pageViews: string[]): Map<string, number> {
     const predictions = new Map<string, number>();
-    
+
     if (pageViews.length < 2) return predictions;
 
     // Markov chain analysis for route prediction
     const transitions = new Map<string, Map<string, number>>();
-    
+
     for (let i = 0; i < pageViews.length - 1; i++) {
       const current = pageViews[i];
       const next = pageViews[i + 1];
-      
+
       if (!transitions.has(current)) {
         transitions.set(current, new Map());
       }
-      
+
       const nextMap = transitions.get(current)!;
       nextMap.set(next, (nextMap.get(next) || 0) + 1);
     }
@@ -238,10 +244,13 @@ export class AdvancedPreloader {
     // Calculate probabilities for current page
     const currentPage = pageViews[pageViews.length - 1];
     const currentTransitions = transitions.get(currentPage);
-    
+
     if (currentTransitions) {
-      const total = Array.from(currentTransitions.values()).reduce((sum, count) => sum + count, 0);
-      
+      const total = Array.from(currentTransitions.values()).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
+
       for (const [route, count] of currentTransitions) {
         predictions.set(route, count / total);
       }
@@ -256,41 +265,44 @@ export class AdvancedPreloader {
   /**
    * BLEEDING EDGE: Component need prediction based on behavior
    */
-  private predictComponentNeeds(behavior: UserBehaviorPattern): PrefetchStrategy[] {
+  private predictComponentNeeds(
+    behavior: UserBehaviorPattern,
+  ): PrefetchStrategy[] {
     const strategies: PrefetchStrategy[] = [];
 
     // Admin components prediction
-    if (behavior.pageViews.some(p => p.includes('/admin'))) {
+    if (behavior.pageViews.some((p) => p.includes("/admin"))) {
       strategies.push({
         probability: 0.8,
         userBehavior: behavior,
         resources: [
           {
-            href: '/assets/js/admin-features-*.js',
-            as: 'script',
-            priority: 'medium'
+            href: "/assets/js/admin-features-*.js",
+            as: "script",
+            priority: "medium",
           },
           {
-            href: '/assets/js/charts-admin-only-*.js',
-            as: 'script',
-            priority: 'low'
-          }
-        ]
+            href: "/assets/js/charts-admin-only-*.js",
+            as: "script",
+            priority: "low",
+          },
+        ],
       });
     }
 
     // Form components for long page visits
-    if (behavior.timeOnPage > 30000) { // 30 seconds
+    if (behavior.timeOnPage > 30000) {
+      // 30 seconds
       strategies.push({
         probability: 0.6,
         userBehavior: behavior,
         resources: [
           {
-            href: '/assets/js/forms-*.js',
-            as: 'script',
-            priority: 'medium'
-          }
-        ]
+            href: "/assets/js/forms-*.js",
+            as: "script",
+            priority: "medium",
+          },
+        ],
       });
     }
 
@@ -304,24 +316,29 @@ export class AdvancedPreloader {
   /**
    * BLEEDING EDGE: Network-aware preloading with adaptive strategies
    */
-  private async batchPreload(resources: PreloadResource[], priority: 'critical' | 'important' | 'optional'): Promise<void> {
+  private async batchPreload(
+    resources: PreloadResource[],
+    priority: "critical" | "important" | "optional",
+  ): Promise<void> {
     // Network-aware batching
     const connectionSpeed = this.getConnectionSpeed();
     const batchSize = this.calculateOptimalBatchSize(connectionSpeed, priority);
-    
+
     // Split resources into priority batches
     const batches = this.chunkArray(resources, batchSize);
-    
+
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
       const delay = i > 0 ? this.calculateBatchDelay(connectionSpeed, i) : 0;
-      
+
       if (delay > 0) {
         await this.sleep(delay);
       }
-      
+
       // Parallel preload within batch
-      await Promise.all(batch.map(resource => this.preloadResource(resource)));
+      await Promise.all(
+        batch.map((resource) => this.preloadResource(resource)),
+      );
     }
   }
 
@@ -330,23 +347,23 @@ export class AdvancedPreloader {
    */
   private async preloadResource(resource: PreloadResource): Promise<void> {
     const resourceKey = `${resource.href}-${resource.as}`;
-    
+
     if (this.activePreloads.has(resourceKey)) return;
     if (this.activePreloads.size >= this.config.maxConcurrentPreloads) {
       await this.waitForPreloadSlot();
     }
 
     this.activePreloads.add(resourceKey);
-    
+
     try {
       const startTime = performance.now();
-      
+
       // Create optimized link element
-      const link = document.createElement('link');
-      link.rel = 'preload';
+      const link = document.createElement("link");
+      link.rel = "preload";
       link.href = resource.href;
       link.as = resource.as;
-      
+
       if (resource.crossorigin) link.crossOrigin = resource.crossorigin;
       if (resource.integrity) link.integrity = resource.integrity;
       if (resource.fetchPriority) link.fetchPriority = resource.fetchPriority;
@@ -363,7 +380,7 @@ export class AdvancedPreloader {
           clearTimeout(timeout);
           resolve();
         };
-        
+
         link.onerror = () => {
           clearTimeout(timeout);
           reject(new Error(`Preload failed: ${resource.href}`));
@@ -375,7 +392,6 @@ export class AdvancedPreloader {
       // Track performance metrics
       const loadTime = performance.now() - startTime;
       this.performanceMetrics.set(resourceKey, loadTime);
-      
     } catch (error) {
     } finally {
       this.activePreloads.delete(resourceKey);
@@ -386,44 +402,48 @@ export class AdvancedPreloader {
   // UTILITY METHODS
   // ============================================================================
 
-  private addResourceHint(rel: string, href: string, crossorigin = false): void {
-    const link = document.createElement('link');
+  private addResourceHint(
+    rel: string,
+    href: string,
+    crossorigin = false,
+  ): void {
+    const link = document.createElement("link");
     link.rel = rel;
     link.href = href;
-    if (crossorigin) link.crossOrigin = 'anonymous';
+    if (crossorigin) link.crossOrigin = "anonymous";
     document.head.appendChild(link);
   }
 
   private addModulePreload(href: string): void {
-    const link = document.createElement('link');
-    link.rel = 'modulepreload';
+    const link = document.createElement("link");
+    link.rel = "modulepreload";
     link.href = href;
-    link.crossOrigin = 'anonymous';
+    link.crossOrigin = "anonymous";
     document.head.appendChild(link);
   }
 
-  private detectDeviceType(): 'mobile' | 'desktop' | 'tablet' {
+  private detectDeviceType(): "mobile" | "desktop" | "tablet" {
     const userAgent = navigator.userAgent;
-    if (/tablet|ipad|playbook|silk/i.test(userAgent)) return 'tablet';
-    if (/mobile|phone|android|iphone/i.test(userAgent)) return 'mobile';
-    return 'desktop';
+    if (/tablet|ipad|playbook|silk/i.test(userAgent)) return "tablet";
+    if (/mobile|phone|android|iphone/i.test(userAgent)) return "mobile";
+    return "desktop";
   }
 
-  private detectNetworkSpeed(): 'slow' | 'medium' | 'fast' {
+  private detectNetworkSpeed(): "slow" | "medium" | "fast" {
     const connection = (navigator as any).connection;
-    if (!connection) return 'medium';
-    
+    if (!connection) return "medium";
+
     const effectiveType = connection.effectiveType;
-    if (effectiveType === 'slow-2g' || effectiveType === '2g') return 'slow';
-    if (effectiveType === '3g') return 'medium';
-    return 'fast';
+    if (effectiveType === "slow-2g" || effectiveType === "2g") return "slow";
+    if (effectiveType === "3g") return "medium";
+    return "fast";
   }
 
   private initializeNetworkMonitoring(): void {
     this.networkInfo = (navigator as any).connection;
-    
+
     if (this.networkInfo) {
-      this.networkInfo.addEventListener('change', () => {
+      this.networkInfo.addEventListener("change", () => {
         this.userBehavior.networkSpeed = this.detectNetworkSpeed();
       });
     }
@@ -434,9 +454,11 @@ export class AdvancedPreloader {
 
     this.intersectionObserver = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const componentName = entry.target.getAttribute('data-preload-component');
+            const componentName = entry.target.getAttribute(
+              "data-preload-component",
+            );
             if (componentName) {
               this.preloadComponent(componentName);
             }
@@ -444,32 +466,36 @@ export class AdvancedPreloader {
         });
       },
       {
-        rootMargin: '50px',
-        threshold: 0.1
-      }
+        rootMargin: "50px",
+        threshold: 0.1,
+      },
     );
   }
 
   private startBehaviorTracking(): void {
     // Track page views
     this.userBehavior.pageViews.push(window.location.pathname);
-    
+
     // Track time on page
     const startTime = Date.now();
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       this.userBehavior.timeOnPage = Date.now() - startTime;
     });
 
     // Track scroll depth
     let maxScrollDepth = 0;
-    window.addEventListener('scroll', () => {
-      const scrollDepth = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+    window.addEventListener("scroll", () => {
+      const scrollDepth =
+        (window.scrollY + window.innerHeight) / document.body.scrollHeight;
       maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
       this.userBehavior.scrollDepth = maxScrollDepth;
     });
   }
 
-  private async preloadRoute(route: string, probability: number): Promise<void> {
+  private async preloadRoute(
+    route: string,
+    probability: number,
+  ): Promise<void> {
     // Implementation for route preloading
   }
 
@@ -486,14 +512,17 @@ export class AdvancedPreloader {
     // Adjust predictions based on current behavior patterns
   }
 
-  private getConnectionSpeed(): 'slow' | 'medium' | 'fast' {
+  private getConnectionSpeed(): "slow" | "medium" | "fast" {
     return this.userBehavior.networkSpeed;
   }
 
   private calculateOptimalBatchSize(speed: string, priority: string): number {
     const baseSize = { slow: 2, medium: 4, fast: 6 };
     const priorityMultiplier = { critical: 1.5, important: 1, optional: 0.5 };
-    return Math.ceil((baseSize[speed as keyof typeof baseSize] || 4) * (priorityMultiplier[priority as keyof typeof priorityMultiplier] || 1));
+    return Math.ceil(
+      (baseSize[speed as keyof typeof baseSize] || 4) *
+        (priorityMultiplier[priority as keyof typeof priorityMultiplier] || 1),
+    );
   }
 
   private calculateBatchDelay(speed: string, batchIndex: number): number {
@@ -516,7 +545,7 @@ export class AdvancedPreloader {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // ============================================================================
@@ -549,7 +578,9 @@ export class AdvancedPreloader {
 // FACTORY FUNCTION
 // ============================================================================
 
-export function createAdvancedPreloader(config?: Partial<PreloadConfig>): AdvancedPreloader {
+export function createAdvancedPreloader(
+  config?: Partial<PreloadConfig>,
+): AdvancedPreloader {
   return new AdvancedPreloader(config);
 }
 
@@ -557,10 +588,12 @@ export function createAdvancedPreloader(config?: Partial<PreloadConfig>): Advanc
 // PRELOADER INTEGRATION HOOK
 // ============================================================================
 
-import React from 'react';
+import React from "react";
 
 export function useAdvancedPreloader(config?: Partial<PreloadConfig>) {
-  const [preloader, setPreloader] = React.useState<AdvancedPreloader | null>(null);
+  const [preloader, setPreloader] = React.useState<AdvancedPreloader | null>(
+    null,
+  );
   const [metrics, setMetrics] = React.useState<Record<string, number>>({});
 
   React.useEffect(() => {
@@ -584,6 +617,6 @@ export function useAdvancedPreloader(config?: Partial<PreloadConfig>) {
     preloader,
     metrics,
     observeComponent: preloader?.observeComponentPreload.bind(preloader),
-    startPreloading: preloader?.startOptimizedPreloading.bind(preloader)
+    startPreloading: preloader?.startOptimizedPreloading.bind(preloader),
   };
 }

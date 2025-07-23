@@ -1,9 +1,9 @@
 /**
  * BULLETPROOF UPLOAD QUEUE - ELITE LEVEL MEDIA MANAGEMENT
- * 
+ *
  * Bulletproof media upload system that NEVER loses files or fails silently.
  * Implements intelligent retry logic, offline queueing, and progress tracking.
- * 
+ *
  * Features:
  * - Persistent upload queue with offline support
  * - Intelligent retry with exponential backoff
@@ -12,12 +12,12 @@
  * - Network failure resilience with automatic resume
  * - Storage quota monitoring and cleanup
  * - Comprehensive error handling and user feedback
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface UploadTask {
   id: string;
@@ -27,8 +27,8 @@ export interface UploadTask {
   checklistItemId?: string;
   inspectionId: string;
   metadata?: Record<string, any>;
-  priority: 'low' | 'normal' | 'high' | 'critical';
-  status: 'pending' | 'uploading' | 'completed' | 'failed' | 'paused';
+  priority: "low" | "normal" | "high" | "critical";
+  status: "pending" | "uploading" | "completed" | "failed" | "paused";
   progress: number;
   attempts: number;
   maxAttempts: number;
@@ -67,7 +67,7 @@ export interface QueueMetrics {
 }
 
 export interface UploadOptions {
-  priority?: 'low' | 'normal' | 'high' | 'critical';
+  priority?: "low" | "normal" | "high" | "critical";
   maxAttempts?: number;
   chunkSize?: number;
   generateThumbnail?: boolean;
@@ -84,7 +84,7 @@ export class BulletproofUploadQueue {
   private readonly maxConcurrency: number = 3;
   private readonly defaultMaxAttempts: number = 5;
   private readonly chunkSize: number = 1024 * 1024; // 1MB chunks
-  private readonly persistenceKey = 'str_upload_queue';
+  private readonly persistenceKey = "str_upload_queue";
   private storageQuotaLimit: number = 500 * 1024 * 1024; // 500MB default
   private metrics: QueueMetrics;
   private isProcessing: boolean = false;
@@ -105,11 +105,11 @@ export class BulletproofUploadQueue {
       currentConcurrency: 0,
       maxConcurrency: this.maxConcurrency,
       storageQuotaUsed: 0,
-      storageQuotaLimit: this.storageQuotaLimit
+      storageQuotaLimit: this.storageQuotaLimit,
     };
 
     this.initializeQueue();
-    logger.info('Bulletproof upload queue initialized', {}, 'UPLOAD_QUEUE');
+    logger.info("Bulletproof upload queue initialized", {}, "UPLOAD_QUEUE");
   }
 
   /**
@@ -129,8 +129,8 @@ export class BulletproofUploadQueue {
     this.initializeStorageMonitoring();
 
     // Handle page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
         this.resumeQueue();
       } else {
         this.pauseQueue();
@@ -138,7 +138,7 @@ export class BulletproofUploadQueue {
     });
 
     // Handle beforeunload to persist queue
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       this.persistQueue();
     });
   }
@@ -149,8 +149,8 @@ export class BulletproofUploadQueue {
   public async addToQueue(
     file: File,
     filePath: string,
-    bucket: string = 'inspection-media',
-    options: UploadOptions = {}
+    bucket: string = "inspection-media",
+    options: UploadOptions = {},
   ): Promise<string> {
     try {
       // Validate file
@@ -169,25 +169,25 @@ export class BulletproofUploadQueue {
         filePath,
         bucket,
         checklistItemId: options.metadata?.checklistItemId,
-        inspectionId: options.metadata?.inspectionId || 'unknown',
+        inspectionId: options.metadata?.inspectionId || "unknown",
         metadata: options.metadata,
-        priority: options.priority || 'normal',
-        status: 'pending',
+        priority: options.priority || "normal",
+        status: "pending",
         progress: 0,
         attempts: 0,
         maxAttempts: options.maxAttempts || this.defaultMaxAttempts,
         createdAt: new Date(),
         fileSize: file.size,
-        fileType: file.type
+        fileType: file.type,
       };
 
       // Generate thumbnail for images
-      if (options.generateThumbnail && file.type.startsWith('image/')) {
+      if (options.generateThumbnail && file.type.startsWith("image/")) {
         task.thumbnail = await this.generateThumbnail(file);
       }
 
       // Compress image if requested
-      if (options.compressImage && file.type.startsWith('image/')) {
+      if (options.compressImage && file.type.startsWith("image/")) {
         task.file = await this.compressImage(file);
         task.fileSize = task.file.size;
       }
@@ -197,13 +197,17 @@ export class BulletproofUploadQueue {
       this.updateMetrics();
       this.persistQueue();
 
-      logger.info('File added to upload queue', {
-        taskId,
-        fileName: file.name,
-        fileSize: file.size,
-        priority: task.priority,
-        queueSize: this.queue.size
-      }, 'UPLOAD_QUEUE');
+      logger.info(
+        "File added to upload queue",
+        {
+          taskId,
+          fileName: file.name,
+          fileSize: file.size,
+          priority: task.priority,
+          queueSize: this.queue.size,
+        },
+        "UPLOAD_QUEUE",
+      );
 
       // Start processing if not already running
       if (!this.isProcessing) {
@@ -211,9 +215,8 @@ export class BulletproofUploadQueue {
       }
 
       return taskId;
-
     } catch (error) {
-      logger.error('Failed to add file to upload queue', error, 'UPLOAD_QUEUE');
+      logger.error("Failed to add file to upload queue", error, "UPLOAD_QUEUE");
       throw error;
     }
   }
@@ -229,7 +232,7 @@ export class BulletproofUploadQueue {
       this.processQueue();
     }, 1000);
 
-    logger.info('Upload queue processing started', {}, 'UPLOAD_QUEUE');
+    logger.info("Upload queue processing started", {}, "UPLOAD_QUEUE");
   }
 
   /**
@@ -259,9 +262,8 @@ export class BulletproofUploadQueue {
       if (this.queue.size > 0) {
         this.persistQueue();
       }
-
     } catch (error) {
-      logger.error('Error processing upload queue', error, 'UPLOAD_QUEUE');
+      logger.error("Error processing upload queue", error, "UPLOAD_QUEUE");
     }
   }
 
@@ -270,11 +272,11 @@ export class BulletproofUploadQueue {
    */
   private getReadyTasks(): UploadTask[] {
     const now = new Date();
-    
+
     return Array.from(this.queue.values())
-      .filter(task => {
+      .filter((task) => {
         // Must be pending or failed with retry available
-        if (task.status !== 'pending' && task.status !== 'failed') {
+        if (task.status !== "pending" && task.status !== "failed") {
           return false;
         }
 
@@ -284,9 +286,11 @@ export class BulletproofUploadQueue {
         }
 
         // Respect backoff delay for failed tasks
-        if (task.status === 'failed' && task.lastAttemptAt) {
+        if (task.status === "failed" && task.lastAttemptAt) {
           const backoffDelay = this.calculateBackoffDelay(task.attempts);
-          const nextAttemptTime = new Date(task.lastAttemptAt.getTime() + backoffDelay);
+          const nextAttemptTime = new Date(
+            task.lastAttemptAt.getTime() + backoffDelay,
+          );
           if (now < nextAttemptTime) {
             return false;
           }
@@ -297,7 +301,8 @@ export class BulletproofUploadQueue {
       .sort((a, b) => {
         // Sort by priority first
         const priorityOrder = { critical: 4, high: 3, normal: 2, low: 1 };
-        const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+        const priorityDiff =
+          priorityOrder[b.priority] - priorityOrder[a.priority];
         if (priorityDiff !== 0) return priorityDiff;
 
         // Then by creation time (oldest first)
@@ -314,69 +319,87 @@ export class BulletproofUploadQueue {
       this.activeUploads.set(task.id, abortController);
 
       // Update task status
-      task.status = 'uploading';
+      task.status = "uploading";
       task.attempts++;
       task.lastAttemptAt = new Date();
       task.progress = 0;
 
-      logger.info('Starting upload', {
-        taskId: task.id,
-        fileName: task.file.name,
-        attempt: task.attempts,
-        maxAttempts: task.maxAttempts
-      }, 'UPLOAD_QUEUE');
+      logger.info(
+        "Starting upload",
+        {
+          taskId: task.id,
+          fileName: task.file.name,
+          attempt: task.attempts,
+          maxAttempts: task.maxAttempts,
+        },
+        "UPLOAD_QUEUE",
+      );
 
       // Perform upload with progress tracking
       const result = await this.performUpload(task, abortController);
 
       // Handle result
       if (result.success) {
-        task.status = 'completed';
+        task.status = "completed";
         task.progress = 100;
         task.completedAt = new Date();
         task.uploadUrl = result.uploadUrl;
         task.error = undefined;
 
-        logger.info('Upload completed successfully', {
-          taskId: task.id,
-          uploadUrl: result.uploadUrl,
-          bytesUploaded: result.bytesUploaded
-        }, 'UPLOAD_QUEUE');
-
+        logger.info(
+          "Upload completed successfully",
+          {
+            taskId: task.id,
+            uploadUrl: result.uploadUrl,
+            bytesUploaded: result.bytesUploaded,
+          },
+          "UPLOAD_QUEUE",
+        );
       } else {
-        task.status = 'failed';
+        task.status = "failed";
         task.error = result.error;
 
-        logger.warn('Upload failed', {
-          taskId: task.id,
-          attempt: task.attempts,
-          error: result.error
-        }, 'UPLOAD_QUEUE');
+        logger.warn(
+          "Upload failed",
+          {
+            taskId: task.id,
+            attempt: task.attempts,
+            error: result.error,
+          },
+          "UPLOAD_QUEUE",
+        );
 
         // Check if should retry
         if (task.attempts >= task.maxAttempts) {
-          logger.error('Upload permanently failed after max attempts', {
-            taskId: task.id,
-            maxAttempts: task.maxAttempts,
-            finalError: task.error
-          }, 'UPLOAD_QUEUE');
+          logger.error(
+            "Upload permanently failed after max attempts",
+            {
+              taskId: task.id,
+              maxAttempts: task.maxAttempts,
+              finalError: task.error,
+            },
+            "UPLOAD_QUEUE",
+          );
         } else {
           // Will retry on next queue processing cycle
-          task.status = 'pending';
+          task.status = "pending";
         }
       }
 
       // Cleanup
       this.activeUploads.delete(task.id);
-
     } catch (error) {
-      logger.error('Unexpected error during upload', {
-        taskId: task.id,
-        error
-      }, 'UPLOAD_QUEUE');
+      logger.error(
+        "Unexpected error during upload",
+        {
+          taskId: task.id,
+          error,
+        },
+        "UPLOAD_QUEUE",
+      );
 
-      task.status = 'failed';
-      task.error = error instanceof Error ? error.message : 'Unexpected error';
+      task.status = "failed";
+      task.error = error instanceof Error ? error.message : "Unexpected error";
       this.activeUploads.delete(task.id);
     }
   }
@@ -384,7 +407,10 @@ export class BulletproofUploadQueue {
   /**
    * Perform actual file upload
    */
-  private async performUpload(task: UploadTask, abortController: AbortController): Promise<UploadResult> {
+  private async performUpload(
+    task: UploadTask,
+    abortController: AbortController,
+  ): Promise<UploadResult> {
     try {
       const startTime = Date.now();
       let uploadedBytes = 0;
@@ -393,15 +419,15 @@ export class BulletproofUploadQueue {
       const { data, error } = await supabase.storage
         .from(task.bucket)
         .upload(task.filePath, task.file, {
-          cacheControl: '3600',
-          upsert: false
+          cacheControl: "3600",
+          upsert: false,
         });
 
       if (error) {
         return {
           success: false,
           taskId: task.id,
-          error: `Upload failed: ${error.message}`
+          error: `Upload failed: ${error.message}`,
         };
       }
 
@@ -427,14 +453,13 @@ export class BulletproofUploadQueue {
         taskId: task.id,
         uploadUrl: publicUrlData.publicUrl,
         bytesUploaded: uploadedBytes,
-        totalBytes: task.fileSize
+        totalBytes: task.fileSize,
       };
-
     } catch (error) {
       return {
         success: false,
         taskId: task.id,
-        error: error instanceof Error ? error.message : 'Upload failed'
+        error: error instanceof Error ? error.message : "Upload failed",
       };
     }
   }
@@ -442,31 +467,39 @@ export class BulletproofUploadQueue {
   /**
    * Create media record in database
    */
-  private async createMediaRecord(task: UploadTask, publicUrl: string): Promise<void> {
+  private async createMediaRecord(
+    task: UploadTask,
+    publicUrl: string,
+  ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('media')
-        .insert({
-          checklist_item_id: task.checklistItemId,
-          type: task.fileType.startsWith('image/') ? 'photo' : 'video',
-          url: publicUrl,
-          file_path: task.filePath,
-          file_size: task.fileSize,
-          created_at: new Date().toISOString()
-        });
+      const { error } = await supabase.from("media").insert({
+        checklist_item_id: task.checklistItemId,
+        type: task.fileType.startsWith("image/") ? "photo" : "video",
+        url: publicUrl,
+        file_path: task.filePath,
+        file_size: task.fileSize,
+        created_at: new Date().toISOString(),
+      });
 
       if (error) {
-        logger.warn('Failed to create media record', {
-          taskId: task.id,
-          error: error.message
-        }, 'UPLOAD_QUEUE');
+        logger.warn(
+          "Failed to create media record",
+          {
+            taskId: task.id,
+            error: error.message,
+          },
+          "UPLOAD_QUEUE",
+        );
       }
-
     } catch (error) {
-      logger.warn('Error creating media record', {
-        taskId: task.id,
-        error
-      }, 'UPLOAD_QUEUE');
+      logger.warn(
+        "Error creating media record",
+        {
+          taskId: task.id,
+          error,
+        },
+        "UPLOAD_QUEUE",
+      );
     }
   }
 
@@ -477,7 +510,7 @@ export class BulletproofUploadQueue {
     const baseDelay = 1000; // 1 second
     const maxDelay = 60000; // 60 seconds
     const delay = Math.min(baseDelay * Math.pow(2, attempts - 1), maxDelay);
-    
+
     // Add jitter to prevent thundering herd
     const jitter = Math.random() * 0.3; // ±30% jitter
     return delay * (1 + jitter);
@@ -490,22 +523,29 @@ export class BulletproofUploadQueue {
     // Check file size (max 100MB)
     const maxFileSize = 100 * 1024 * 1024;
     if (file.size > maxFileSize) {
-      throw new Error(`File too large. Maximum size: ${maxFileSize / 1024 / 1024}MB`);
+      throw new Error(
+        `File too large. Maximum size: ${maxFileSize / 1024 / 1024}MB`,
+      );
     }
 
     // Check file type
     const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/webp', 'image/heic',
-      'video/mp4', 'video/quicktime', 'video/webm'
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "video/mp4",
+      "video/quicktime",
+      "video/webm",
     ];
-    
+
     if (!allowedTypes.includes(file.type)) {
       throw new Error(`Unsupported file type: ${file.type}`);
     }
 
     // Check file name
     if (!file.name || file.name.length > 255) {
-      throw new Error('Invalid file name');
+      throw new Error("Invalid file name");
     }
   }
 
@@ -516,13 +556,14 @@ export class BulletproofUploadQueue {
     try {
       // Get current storage usage (simplified - in practice would query actual usage)
       const currentUsage = this.metrics.storageQuotaUsed;
-      
-      if (currentUsage + fileSize > this.storageQuotaLimit) {
-        throw new Error(`Storage quota exceeded. Available: ${(this.storageQuotaLimit - currentUsage) / 1024 / 1024}MB`);
-      }
 
+      if (currentUsage + fileSize > this.storageQuotaLimit) {
+        throw new Error(
+          `Storage quota exceeded. Available: ${(this.storageQuotaLimit - currentUsage) / 1024 / 1024}MB`,
+        );
+      }
     } catch (error) {
-      logger.error('Storage quota check failed', error, 'UPLOAD_QUEUE');
+      logger.error("Storage quota check failed", error, "UPLOAD_QUEUE");
       throw error;
     }
   }
@@ -532,15 +573,15 @@ export class BulletproofUploadQueue {
    */
   private async generateThumbnail(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       const img = new Image();
 
       img.onload = () => {
         // Calculate thumbnail dimensions (max 200x200)
         const maxSize = 200;
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxSize) {
             height = (height * maxSize) / width;
@@ -558,11 +599,11 @@ export class BulletproofUploadQueue {
 
         // Draw and compress
         ctx?.drawImage(img, 0, 0, width, height);
-        const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.8);
         resolve(thumbnailDataUrl);
       };
 
-      img.onerror = () => reject(new Error('Failed to generate thumbnail'));
+      img.onerror = () => reject(new Error("Failed to generate thumbnail"));
       img.src = URL.createObjectURL(file);
     });
   }
@@ -572,8 +613,8 @@ export class BulletproofUploadQueue {
    */
   private async compressImage(file: File): Promise<File> {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       const img = new Image();
 
       img.onload = () => {
@@ -581,7 +622,7 @@ export class BulletproofUploadQueue {
         const maxWidth = 1920;
         const maxHeight = 1080;
         let { width, height } = img;
-        
+
         if (width > maxWidth || height > maxHeight) {
           if (width / maxWidth > height / maxHeight) {
             height = (height * maxWidth) / width;
@@ -601,20 +642,20 @@ export class BulletproofUploadQueue {
           (blob) => {
             if (blob) {
               const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now()
+                type: "image/jpeg",
+                lastModified: Date.now(),
               });
               resolve(compressedFile);
             } else {
-              reject(new Error('Failed to compress image'));
+              reject(new Error("Failed to compress image"));
             }
           },
-          'image/jpeg',
-          0.8 // 80% quality
+          "image/jpeg",
+          0.8, // 80% quality
         );
       };
 
-      img.onerror = () => reject(new Error('Failed to compress image'));
+      img.onerror = () => reject(new Error("Failed to compress image"));
       img.src = URL.createObjectURL(file);
     });
   }
@@ -624,15 +665,15 @@ export class BulletproofUploadQueue {
    */
   private startNetworkMonitoring(): void {
     // Listen for online/offline events
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.isOnline = true;
-      logger.info('Network connection restored', {}, 'UPLOAD_QUEUE');
+      logger.info("Network connection restored", {}, "UPLOAD_QUEUE");
       this.resumeQueue();
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.isOnline = false;
-      logger.warn('Network connection lost', {}, 'UPLOAD_QUEUE');
+      logger.warn("Network connection lost", {}, "UPLOAD_QUEUE");
       this.pauseQueue();
     });
 
@@ -648,28 +689,27 @@ export class BulletproofUploadQueue {
   private async checkNetworkStatus(): Promise<void> {
     try {
       // Simple connectivity check
-      const response = await fetch('/api/health', { 
-        method: 'HEAD',
-        cache: 'no-cache'
+      const response = await fetch("/api/health", {
+        method: "HEAD",
+        cache: "no-cache",
       });
-      
+
       const wasOnline = this.isOnline;
       this.isOnline = response.ok;
-      
+
       if (!wasOnline && this.isOnline) {
-        logger.info('Network connectivity restored', {}, 'UPLOAD_QUEUE');
+        logger.info("Network connectivity restored", {}, "UPLOAD_QUEUE");
         this.resumeQueue();
       } else if (wasOnline && !this.isOnline) {
-        logger.warn('Network connectivity lost', {}, 'UPLOAD_QUEUE');
+        logger.warn("Network connectivity lost", {}, "UPLOAD_QUEUE");
         this.pauseQueue();
       }
-
     } catch (error) {
       const wasOnline = this.isOnline;
       this.isOnline = false;
-      
+
       if (wasOnline) {
-        logger.warn('Network connectivity lost', {}, 'UPLOAD_QUEUE');
+        logger.warn("Network connectivity lost", {}, "UPLOAD_QUEUE");
         this.pauseQueue();
       }
     }
@@ -684,12 +724,12 @@ export class BulletproofUploadQueue {
       controller.abort();
       const task = this.queue.get(taskId);
       if (task) {
-        task.status = 'paused';
+        task.status = "paused";
       }
     }
     this.activeUploads.clear();
 
-    logger.info('Upload queue paused', {}, 'UPLOAD_QUEUE');
+    logger.info("Upload queue paused", {}, "UPLOAD_QUEUE");
   }
 
   /**
@@ -698,12 +738,12 @@ export class BulletproofUploadQueue {
   public resumeQueue(): void {
     // Reset paused tasks to pending
     for (const task of this.queue.values()) {
-      if (task.status === 'paused') {
-        task.status = 'pending';
+      if (task.status === "paused") {
+        task.status = "pending";
       }
     }
 
-    logger.info('Upload queue resumed', {}, 'UPLOAD_QUEUE');
+    logger.info("Upload queue resumed", {}, "UPLOAD_QUEUE");
   }
 
   /**
@@ -711,16 +751,27 @@ export class BulletproofUploadQueue {
    */
   private updateMetrics(): void {
     const tasks = Array.from(this.queue.values());
-    
+
     this.metrics.totalTasks = tasks.length;
-    this.metrics.pendingTasks = tasks.filter(t => t.status === 'pending').length;
-    this.metrics.uploadingTasks = tasks.filter(t => t.status === 'uploading').length;
-    this.metrics.completedTasks = tasks.filter(t => t.status === 'completed').length;
-    this.metrics.failedTasks = tasks.filter(t => t.status === 'failed' && t.attempts >= t.maxAttempts).length;
+    this.metrics.pendingTasks = tasks.filter(
+      (t) => t.status === "pending",
+    ).length;
+    this.metrics.uploadingTasks = tasks.filter(
+      (t) => t.status === "uploading",
+    ).length;
+    this.metrics.completedTasks = tasks.filter(
+      (t) => t.status === "completed",
+    ).length;
+    this.metrics.failedTasks = tasks.filter(
+      (t) => t.status === "failed" && t.attempts >= t.maxAttempts,
+    ).length;
     this.metrics.currentConcurrency = this.activeUploads.size;
-    this.metrics.totalBytesQueued = tasks.reduce((sum, t) => sum + t.fileSize, 0);
+    this.metrics.totalBytesQueued = tasks.reduce(
+      (sum, t) => sum + t.fileSize,
+      0,
+    );
     this.metrics.totalBytesUploaded = tasks
-      .filter(t => t.status === 'completed')
+      .filter((t) => t.status === "completed")
       .reduce((sum, t) => sum + t.fileSize, 0);
   }
 
@@ -729,7 +780,8 @@ export class BulletproofUploadQueue {
    */
   private updateUploadSpeed(speed: number): void {
     // Simple moving average
-    this.metrics.averageUploadSpeed = (this.metrics.averageUploadSpeed * 0.8) + (speed * 0.2);
+    this.metrics.averageUploadSpeed =
+      this.metrics.averageUploadSpeed * 0.8 + speed * 0.2;
   }
 
   /**
@@ -740,7 +792,11 @@ export class BulletproofUploadQueue {
       // In a real implementation, this would query actual storage usage
       this.metrics.storageQuotaUsed = 0;
     } catch (error) {
-      logger.error('Failed to initialize storage monitoring', error, 'UPLOAD_QUEUE');
+      logger.error(
+        "Failed to initialize storage monitoring",
+        error,
+        "UPLOAD_QUEUE",
+      );
     }
   }
 
@@ -759,15 +815,15 @@ export class BulletproofUploadQueue {
             // Convert dates to strings
             createdAt: task.createdAt.toISOString(),
             lastAttemptAt: task.lastAttemptAt?.toISOString(),
-            completedAt: task.completedAt?.toISOString()
-          }
+            completedAt: task.completedAt?.toISOString(),
+          },
         ]),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       localStorage.setItem(this.persistenceKey, JSON.stringify(queueData));
     } catch (error) {
-      logger.error('Failed to persist upload queue', error, 'UPLOAD_QUEUE');
+      logger.error("Failed to persist upload queue", error, "UPLOAD_QUEUE");
     }
   }
 
@@ -780,31 +836,42 @@ export class BulletproofUploadQueue {
       if (!stored) return;
 
       const queueData = JSON.parse(stored);
-      
+
       // Only load incomplete tasks (files will need to be re-added by user)
       for (const [id, taskData] of queueData.tasks) {
-        if (taskData.status === 'completed') continue;
-        
+        if (taskData.status === "completed") continue;
+
         // Skip tasks without files (can't be resumed)
         if (!taskData.file) continue;
 
         const task: UploadTask = {
           ...taskData,
           createdAt: new Date(taskData.createdAt),
-          lastAttemptAt: taskData.lastAttemptAt ? new Date(taskData.lastAttemptAt) : undefined,
-          completedAt: taskData.completedAt ? new Date(taskData.completedAt) : undefined,
-          status: 'pending' // Reset to pending for resume
+          lastAttemptAt: taskData.lastAttemptAt
+            ? new Date(taskData.lastAttemptAt)
+            : undefined,
+          completedAt: taskData.completedAt
+            ? new Date(taskData.completedAt)
+            : undefined,
+          status: "pending", // Reset to pending for resume
         };
 
         this.queue.set(id, task);
       }
 
-      logger.info('Persisted upload queue loaded', {
-        tasksRestored: this.queue.size
-      }, 'UPLOAD_QUEUE');
-
+      logger.info(
+        "Persisted upload queue loaded",
+        {
+          tasksRestored: this.queue.size,
+        },
+        "UPLOAD_QUEUE",
+      );
     } catch (error) {
-      logger.error('Failed to load persisted upload queue', error, 'UPLOAD_QUEUE');
+      logger.error(
+        "Failed to load persisted upload queue",
+        error,
+        "UPLOAD_QUEUE",
+      );
     }
   }
 
@@ -818,9 +885,11 @@ export class BulletproofUploadQueue {
   /**
    * Get all tasks with optional status filter
    */
-  public getTasks(statusFilter?: UploadTask['status']): UploadTask[] {
+  public getTasks(statusFilter?: UploadTask["status"]): UploadTask[] {
     const tasks = Array.from(this.queue.values());
-    return statusFilter ? tasks.filter(t => t.status === statusFilter) : tasks;
+    return statusFilter
+      ? tasks.filter((t) => t.status === statusFilter)
+      : tasks;
   }
 
   /**
@@ -842,7 +911,7 @@ export class BulletproofUploadQueue {
     this.updateMetrics();
     this.persistQueue();
 
-    logger.info('Upload task cancelled', { taskId }, 'UPLOAD_QUEUE');
+    logger.info("Upload task cancelled", { taskId }, "UPLOAD_QUEUE");
     return true;
   }
 
@@ -851,13 +920,13 @@ export class BulletproofUploadQueue {
    */
   public retryTask(taskId: string): boolean {
     const task = this.queue.get(taskId);
-    if (!task || task.status !== 'failed') return false;
+    if (!task || task.status !== "failed") return false;
 
-    task.status = 'pending';
+    task.status = "pending";
     task.error = undefined;
     task.attempts = 0; // Reset attempts for manual retry
 
-    logger.info('Upload task queued for retry', { taskId }, 'UPLOAD_QUEUE');
+    logger.info("Upload task queued for retry", { taskId }, "UPLOAD_QUEUE");
     return true;
   }
 
@@ -865,9 +934,10 @@ export class BulletproofUploadQueue {
    * Clear completed tasks
    */
   public clearCompleted(): number {
-    const completedTasks = Array.from(this.queue.entries())
-      .filter(([, task]) => task.status === 'completed');
-    
+    const completedTasks = Array.from(this.queue.entries()).filter(
+      ([, task]) => task.status === "completed",
+    );
+
     for (const [taskId] of completedTasks) {
       this.queue.delete(taskId);
     }
@@ -875,7 +945,11 @@ export class BulletproofUploadQueue {
     this.updateMetrics();
     this.persistQueue();
 
-    logger.info('Cleared completed tasks', { count: completedTasks.length }, 'UPLOAD_QUEUE');
+    logger.info(
+      "Cleared completed tasks",
+      { count: completedTasks.length },
+      "UPLOAD_QUEUE",
+    );
     return completedTasks.length;
   }
 
@@ -912,7 +986,7 @@ export class BulletproofUploadQueue {
     this.persistQueue();
 
     this.isProcessing = false;
-    logger.info('Upload queue cleanup completed', {}, 'UPLOAD_QUEUE');
+    logger.info("Upload queue cleanup completed", {}, "UPLOAD_QUEUE");
   }
 }
 

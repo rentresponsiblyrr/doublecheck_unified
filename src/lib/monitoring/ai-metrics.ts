@@ -23,7 +23,7 @@ export class AIMetricsCollector {
    */
   destroy(): void {
     this.isDestroyed = true;
-    this.intervalIds.forEach(id => clearInterval(id));
+    this.intervalIds.forEach((id) => clearInterval(id));
     this.intervalIds.clear();
   }
 
@@ -33,12 +33,12 @@ export class AIMetricsCollector {
   async trackPredictionAccuracy(
     prediction: PredictionResult,
     groundTruth?: GroundTruth,
-    feedback?: UserFeedback
+    feedback?: UserFeedback,
   ): Promise<void> {
     const timestamp = new Date();
-    
+
     // Calculate accuracy metrics
-    const accuracy = groundTruth 
+    const accuracy = groundTruth
       ? this.calculateAccuracy(prediction, groundTruth)
       : undefined;
 
@@ -52,31 +52,33 @@ export class AIMetricsCollector {
       confidence: prediction.confidence,
       accuracy,
       isCorrect: accuracy ? accuracy >= 0.8 : undefined,
-      feedback: feedback ? {
-        rating: feedback.rating,
-        wasHelpful: feedback.wasHelpful,
-        correctedValue: feedback.correctedValue
-      } : undefined,
+      feedback: feedback
+        ? {
+            rating: feedback.rating,
+            wasHelpful: feedback.wasHelpful,
+            correctedValue: feedback.correctedValue,
+          }
+        : undefined,
       metadata: {
         processingTime: prediction.processingTime,
         inputSize: prediction.inputSize,
-        features: prediction.features
-      }
+        features: prediction.features,
+      },
     };
 
     // Store metric
-    await this.metrics.store('accuracy', metric);
-    
+    await this.metrics.store("accuracy", metric);
+
     // Update accuracy tracker
     this.accuracyTracker.addMetric(metric);
 
     // Check for accuracy degradation
     const recentAccuracy = await this.accuracyTracker.getRecentAccuracy();
     if (recentAccuracy < 0.7) {
-      await this.triggerAlert('accuracy_degradation', {
+      await this.triggerAlert("accuracy_degradation", {
         currentAccuracy: recentAccuracy,
         threshold: 0.7,
-        category: prediction.category
+        category: prediction.category,
       });
     }
   }
@@ -87,7 +89,7 @@ export class AIMetricsCollector {
   async measureResponseTimes(
     operation: AIOperation,
     duration: number,
-    metadata?: OperationMetadata
+    metadata?: OperationMetadata,
   ): Promise<void> {
     const timestamp = new Date();
 
@@ -103,35 +105,35 @@ export class AIMetricsCollector {
         modelUsed: operation.modelUsed,
         inputTokens: operation.inputTokens,
         outputTokens: operation.outputTokens,
-        cached: operation.cached || false
-      }
+        cached: operation.cached || false,
+      },
     };
 
     // Store metric
-    await this.metrics.store('response_time', responseMetric);
+    await this.metrics.store("response_time", responseMetric);
 
     // Update performance monitor
     this.performanceMonitor.recordResponseTime(responseMetric);
 
     // Check for performance issues
     if (duration > this.getThreshold(operation.type)) {
-      await this.triggerAlert('slow_response', {
+      await this.triggerAlert("slow_response", {
         operation: operation.type,
         duration,
-        threshold: this.getThreshold(operation.type)
+        threshold: this.getThreshold(operation.type),
       });
     }
 
     // Track percentiles
     const p95 = await this.performanceMonitor.getPercentile(95);
     const p99 = await this.performanceMonitor.getPercentile(99);
-    
-    await this.metrics.store('percentiles', {
+
+    await this.metrics.store("percentiles", {
       timestamp,
       p50: await this.performanceMonitor.getPercentile(50),
       p95,
       p99,
-      operation: operation.type
+      operation: operation.type,
     });
   }
 
@@ -140,7 +142,7 @@ export class AIMetricsCollector {
    */
   async monitorAPIUsage(
     apiCall: APICall,
-    response: APIResponse
+    response: APIResponse,
   ): Promise<void> {
     const timestamp = new Date();
 
@@ -159,31 +161,37 @@ export class AIMetricsCollector {
       cost,
       duration: response.duration,
       statusCode: response.statusCode,
-      rateLimitInfo: response.headers ? {
-        remaining: parseInt(response.headers['x-ratelimit-remaining'] || '0'),
-        limit: parseInt(response.headers['x-ratelimit-limit'] || '0'),
-        reset: new Date(response.headers['x-ratelimit-reset'] || Date.now())
-      } : undefined,
-      error: response.error
+      rateLimitInfo: response.headers
+        ? {
+            remaining: parseInt(
+              response.headers["x-ratelimit-remaining"] || "0",
+            ),
+            limit: parseInt(response.headers["x-ratelimit-limit"] || "0"),
+            reset: new Date(
+              response.headers["x-ratelimit-reset"] || Date.now(),
+            ),
+          }
+        : undefined,
+      error: response.error,
     };
 
     // Store metric
-    await this.metrics.store('api_usage', usageMetric);
+    await this.metrics.store("api_usage", usageMetric);
 
     // Update trackers
     this.apiUsageTracker.recordUsage(usageMetric);
-    
+
     // Check rate limits
     if (usageMetric.rateLimitInfo) {
       const { remaining, limit } = usageMetric.rateLimitInfo;
       const usagePercent = ((limit - remaining) / limit) * 100;
-      
+
       if (usagePercent > 80) {
-        await this.triggerAlert('rate_limit_warning', {
+        await this.triggerAlert("rate_limit_warning", {
           endpoint: apiCall.endpoint,
           remaining,
           limit,
-          usagePercent
+          usagePercent,
         });
       }
     }
@@ -191,18 +199,20 @@ export class AIMetricsCollector {
     // Check costs
     const dailyCost = await this.apiUsageTracker.getDailyCost();
     const monthlyCost = await this.apiUsageTracker.getMonthlyCost();
-    
-    if (dailyCost > 100) { // $100 daily limit
-      await this.triggerAlert('cost_threshold_daily', {
+
+    if (dailyCost > 100) {
+      // $100 daily limit
+      await this.triggerAlert("cost_threshold_daily", {
         cost: dailyCost,
-        threshold: 100
+        threshold: 100,
       });
     }
 
-    if (monthlyCost > 2000) { // $2000 monthly limit
-      await this.triggerAlert('cost_threshold_monthly', {
+    if (monthlyCost > 2000) {
+      // $2000 monthly limit
+      await this.triggerAlert("cost_threshold_monthly", {
         cost: monthlyCost,
-        threshold: 2000
+        threshold: 2000,
       });
     }
   }
@@ -213,26 +223,38 @@ export class AIMetricsCollector {
   async generatePerformanceReport(
     startDate: Date,
     endDate: Date,
-    options: ReportOptions = {}
+    options: ReportOptions = {},
   ): Promise<PerformanceReport> {
     // Gather all metrics
-    const accuracyMetrics = await this.metrics.query('accuracy', startDate, endDate);
-    const responseMetrics = await this.metrics.query('response_time', startDate, endDate);
-    const apiUsageMetrics = await this.metrics.query('api_usage', startDate, endDate);
+    const accuracyMetrics = await this.metrics.query(
+      "accuracy",
+      startDate,
+      endDate,
+    );
+    const responseMetrics = await this.metrics.query(
+      "response_time",
+      startDate,
+      endDate,
+    );
+    const apiUsageMetrics = await this.metrics.query(
+      "api_usage",
+      startDate,
+      endDate,
+    );
 
     // Calculate summary statistics
     const summary = {
       accuracy: this.calculateAccuracySummary(accuracyMetrics),
       performance: this.calculatePerformanceSummary(responseMetrics),
       usage: this.calculateUsageSummary(apiUsageMetrics),
-      costs: this.calculateCostSummary(apiUsageMetrics)
+      costs: this.calculateCostSummary(apiUsageMetrics),
     };
 
     // Identify trends
     const trends = {
-      accuracyTrend: this.analyzeTrend(accuracyMetrics, 'accuracy'),
-      performanceTrend: this.analyzeTrend(responseMetrics, 'duration'),
-      costTrend: this.analyzeTrend(apiUsageMetrics, 'cost')
+      accuracyTrend: this.analyzeTrend(accuracyMetrics, "accuracy"),
+      performanceTrend: this.analyzeTrend(responseMetrics, "duration"),
+      costTrend: this.analyzeTrend(apiUsageMetrics, "cost"),
     };
 
     // Generate recommendations
@@ -254,29 +276,29 @@ export class AIMetricsCollector {
         accuracy: {
           byCategory: this.groupByCategory(accuracyMetrics),
           byModel: this.groupByModel(accuracyMetrics),
-          errorAnalysis: this.analyzeErrors(accuracyMetrics)
+          errorAnalysis: this.analyzeErrors(accuracyMetrics),
         },
         performance: {
           byOperation: this.groupByOperation(responseMetrics),
           percentiles: await this.performanceMonitor.getPercentiles(),
-          slowestOperations: this.findSlowestOperations(responseMetrics)
+          slowestOperations: this.findSlowestOperations(responseMetrics),
         },
         usage: {
           byEndpoint: this.groupByEndpoint(apiUsageMetrics),
           byModel: this.groupByModel(apiUsageMetrics),
-          rateLimitStatus: this.analyzeRateLimits(apiUsageMetrics)
+          rateLimitStatus: this.analyzeRateLimits(apiUsageMetrics),
         },
         costs: {
           byModel: this.calculateCostsByModel(apiUsageMetrics),
           byDay: this.calculateDailyCosts(apiUsageMetrics),
-          projections: this.projectFutureCosts(apiUsageMetrics)
-        }
+          projections: this.projectFutureCosts(apiUsageMetrics),
+        },
       },
-      alerts: await this.getActiveAlerts()
+      alerts: await this.getActiveAlerts(),
     };
 
     // Store report
-    await this.metrics.store('reports', report);
+    await this.metrics.store("reports", report);
 
     return report;
   }
@@ -289,7 +311,8 @@ export class AIMetricsCollector {
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
     const recentAccuracy = await this.accuracyTracker.getRecentAccuracy();
-    const avgResponseTime = await this.performanceMonitor.getAverageResponseTime(fiveMinutesAgo);
+    const avgResponseTime =
+      await this.performanceMonitor.getAverageResponseTime(fiveMinutesAgo);
     const currentCost = await this.apiUsageTracker.getHourlyCost();
     const apiHealth = await this.checkAPIHealth();
 
@@ -298,22 +321,22 @@ export class AIMetricsCollector {
       accuracy: {
         current: recentAccuracy,
         trend: await this.accuracyTracker.getTrend(),
-        byCategory: await this.accuracyTracker.getByCategory()
+        byCategory: await this.accuracyTracker.getByCategory(),
       },
       performance: {
         avgResponseTime,
         p95ResponseTime: await this.performanceMonitor.getPercentile(95),
         slowOperations: await this.performanceMonitor.getSlowOperations(),
-        errorRate: await this.performanceMonitor.getErrorRate()
+        errorRate: await this.performanceMonitor.getErrorRate(),
       },
       usage: {
         requestsPerMinute: await this.apiUsageTracker.getRequestRate(),
         tokensPerMinute: await this.apiUsageTracker.getTokenRate(),
         costPerHour: currentCost,
-        remainingQuota: await this.apiUsageTracker.getRemainingQuota()
+        remainingQuota: await this.apiUsageTracker.getRemainingQuota(),
       },
       health: apiHealth,
-      alerts: await this.getActiveAlerts()
+      alerts: await this.getActiveAlerts(),
     };
   }
 
@@ -324,29 +347,34 @@ export class AIMetricsCollector {
     if (this.isDestroyed) return;
 
     // Monitor accuracy every 5 minutes
-    const accuracyInterval = setInterval(async () => {
-      if (this.isDestroyed) return;
-      try {
-        const accuracy = await this.accuracyTracker.getRecentAccuracy();
-        if (accuracy < 0.75) {
-          await this.triggerAlert('low_accuracy', { accuracy });
-        }
-      } catch (error) {
-      }
-    }, 5 * 60 * 1000);
+    const accuracyInterval = setInterval(
+      async () => {
+        if (this.isDestroyed) return;
+        try {
+          const accuracy = await this.accuracyTracker.getRecentAccuracy();
+          if (accuracy < 0.75) {
+            await this.triggerAlert("low_accuracy", { accuracy });
+          }
+        } catch (error) {}
+      },
+      5 * 60 * 1000,
+    );
     this.intervalIds.add(accuracyInterval);
 
     // Monitor costs every hour
-    const costInterval = setInterval(async () => {
-      if (this.isDestroyed) return;
-      try {
-        const hourlyCost = await this.apiUsageTracker.getHourlyCost();
-        if (hourlyCost > 10) { // $10/hour threshold
-          await this.triggerAlert('high_hourly_cost', { cost: hourlyCost });
-        }
-      } catch (error) {
-      }
-    }, 60 * 60 * 1000);
+    const costInterval = setInterval(
+      async () => {
+        if (this.isDestroyed) return;
+        try {
+          const hourlyCost = await this.apiUsageTracker.getHourlyCost();
+          if (hourlyCost > 10) {
+            // $10/hour threshold
+            await this.triggerAlert("high_hourly_cost", { cost: hourlyCost });
+          }
+        } catch (error) {}
+      },
+      60 * 60 * 1000,
+    );
     this.intervalIds.add(costInterval);
 
     // Monitor performance every minute
@@ -354,29 +382,37 @@ export class AIMetricsCollector {
       if (this.isDestroyed) return;
       try {
         const p95 = await this.performanceMonitor.getPercentile(95);
-        if (p95 > 5000) { // 5 second threshold
-          await this.triggerAlert('slow_p95_response', { p95 });
+        if (p95 > 5000) {
+          // 5 second threshold
+          await this.triggerAlert("slow_p95_response", { p95 });
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }, 60 * 1000);
     this.intervalIds.add(performanceInterval);
   }
 
   // Private helper methods
 
-  private calculateAccuracy(prediction: PredictionResult, groundTruth: GroundTruth): number {
-    if (prediction.category === 'object_detection') {
+  private calculateAccuracy(
+    prediction: PredictionResult,
+    groundTruth: GroundTruth,
+  ): number {
+    if (prediction.category === "object_detection") {
       return this.calculateIOUAccuracy(prediction.value, groundTruth.value);
-    } else if (prediction.category === 'classification') {
+    } else if (prediction.category === "classification") {
       return prediction.value === groundTruth.value ? 1 : 0;
-    } else if (prediction.category === 'measurement') {
-      return 1 - Math.abs(prediction.value - groundTruth.value) / groundTruth.value;
+    } else if (prediction.category === "measurement") {
+      return (
+        1 - Math.abs(prediction.value - groundTruth.value) / groundTruth.value
+      );
     }
     return 0;
   }
 
-  private calculateIOUAccuracy(predicted: DetectionBox, actual: DetectionBox): number {
+  private calculateIOUAccuracy(
+    predicted: DetectionBox,
+    actual: DetectionBox,
+  ): number {
     // Intersection over Union calculation for object detection
     // Simplified implementation
     return 0.85; // Mock value
@@ -384,11 +420,11 @@ export class AIMetricsCollector {
 
   private getThreshold(operationType: string): number {
     const thresholds: Record<string, number> = {
-      'image_analysis': 3000,
-      'text_generation': 2000,
-      'embedding': 500,
-      'classification': 1000,
-      'object_detection': 4000
+      image_analysis: 3000,
+      text_generation: 2000,
+      embedding: 500,
+      classification: 1000,
+      object_detection: 4000,
     };
     return thresholds[operationType] || 2000;
   }
@@ -400,41 +436,47 @@ export class AIMetricsCollector {
       severity: this.getAlertSeverity(type),
       timestamp: new Date(),
       data,
-      status: 'active'
+      status: "active",
     };
 
-    await this.metrics.store('alerts', alert);
-    
+    await this.metrics.store("alerts", alert);
+
     // In production, would send notifications
   }
 
-  private getAlertSeverity(type: string): 'low' | 'medium' | 'high' | 'critical' {
-    const severities: Record<string, Alert['severity']> = {
-      'accuracy_degradation': 'high',
-      'slow_response': 'medium',
-      'rate_limit_warning': 'high',
-      'cost_threshold_daily': 'critical',
-      'cost_threshold_monthly': 'high',
-      'low_accuracy': 'high',
-      'high_hourly_cost': 'medium',
-      'slow_p95_response': 'medium'
+  private getAlertSeverity(
+    type: string,
+  ): "low" | "medium" | "high" | "critical" {
+    const severities: Record<string, Alert["severity"]> = {
+      accuracy_degradation: "high",
+      slow_response: "medium",
+      rate_limit_warning: "high",
+      cost_threshold_daily: "critical",
+      cost_threshold_monthly: "high",
+      low_accuracy: "high",
+      high_hourly_cost: "medium",
+      slow_p95_response: "medium",
     };
-    return severities[type] || 'medium';
+    return severities[type] || "medium";
   }
 
   private calculateAccuracySummary(metrics: AccuracyMetric[]): AccuracySummary {
-    const accuracies = metrics.filter(m => m.accuracy !== undefined).map(m => m.accuracy!);
+    const accuracies = metrics
+      .filter((m) => m.accuracy !== undefined)
+      .map((m) => m.accuracy!);
     return {
       average: accuracies.reduce((a, b) => a + b, 0) / accuracies.length,
       min: Math.min(...accuracies),
       max: Math.max(...accuracies),
       count: metrics.length,
-      correctPredictions: metrics.filter(m => m.isCorrect).length
+      correctPredictions: metrics.filter((m) => m.isCorrect).length,
     };
   }
 
-  private calculatePerformanceSummary(metrics: ResponseTimeMetric[]): PerformanceSummary {
-    const durations = metrics.map(m => m.duration);
+  private calculatePerformanceSummary(
+    metrics: ResponseTimeMetric[],
+  ): PerformanceSummary {
+    const durations = metrics.map((m) => m.duration);
     return {
       average: durations.reduce((a, b) => a + b, 0) / durations.length,
       min: Math.min(...durations),
@@ -442,7 +484,7 @@ export class AIMetricsCollector {
       p50: this.calculatePercentile(durations, 50),
       p95: this.calculatePercentile(durations, 95),
       p99: this.calculatePercentile(durations, 99),
-      errorRate: metrics.filter(m => !m.success).length / metrics.length
+      errorRate: metrics.filter((m) => !m.success).length / metrics.length,
     };
   }
 
@@ -451,30 +493,32 @@ export class AIMetricsCollector {
       totalRequests: metrics.length,
       totalTokens: metrics.reduce((sum, m) => sum + m.totalTokens, 0),
       totalCost: metrics.reduce((sum, m) => sum + m.cost, 0),
-      averageTokensPerRequest: metrics.reduce((sum, m) => sum + m.totalTokens, 0) / metrics.length,
-      rateLimitHits: metrics.filter(m => m.rateLimitInfo?.remaining === 0).length
+      averageTokensPerRequest:
+        metrics.reduce((sum, m) => sum + m.totalTokens, 0) / metrics.length,
+      rateLimitHits: metrics.filter((m) => m.rateLimitInfo?.remaining === 0)
+        .length,
     };
   }
 
   private calculateCostSummary(metrics: APIUsageMetric[]): CostSummary {
-    const costs = metrics.map(m => m.cost);
+    const costs = metrics.map((m) => m.cost);
     const costsByModel = this.calculateCostsByModel(metrics);
-    
+
     return {
       total: costs.reduce((a, b) => a + b, 0),
       average: costs.reduce((a, b) => a + b, 0) / costs.length,
       byModel: costsByModel,
-      projectedMonthly: this.projectMonthlyCost(metrics)
+      projectedMonthly: this.projectMonthlyCost(metrics),
     };
   }
 
   private analyzeTrend(metrics: TrendableMetric[], field: string): Trend {
     if (metrics.length < 2) {
-      return { direction: 'stable', change: 0, confidence: 0 };
+      return { direction: "stable", change: 0, confidence: 0 };
     }
 
     // Simple linear regression
-    const values = metrics.map(m => m[field]).filter(v => v !== undefined);
+    const values = metrics.map((m) => m[field]).filter((v) => v !== undefined);
     const n = values.length;
     const sumX = values.reduce((_, __, i) => _ + i, 0);
     const sumY = values.reduce((a, b) => a + b, 0);
@@ -485,57 +529,61 @@ export class AIMetricsCollector {
     const change = slope * n;
 
     return {
-      direction: slope > 0.01 ? 'improving' : slope < -0.01 ? 'declining' : 'stable',
+      direction:
+        slope > 0.01 ? "improving" : slope < -0.01 ? "declining" : "stable",
       change: Math.abs(change),
-      confidence: Math.min(0.95, n / 100) // Confidence based on sample size
+      confidence: Math.min(0.95, n / 100), // Confidence based on sample size
     };
   }
 
-  private generateRecommendations(summary: MetricsSummary, trends: TrendAnalysis): Recommendation[] {
+  private generateRecommendations(
+    summary: MetricsSummary,
+    trends: TrendAnalysis,
+  ): Recommendation[] {
     const recommendations: Recommendation[] = [];
 
     // Accuracy recommendations
     if (summary.accuracy.average < 0.8) {
       recommendations.push({
-        type: 'model_improvement',
-        priority: 'high',
-        title: 'Low Accuracy Detected',
+        type: "model_improvement",
+        priority: "high",
+        title: "Low Accuracy Detected",
         description: `Average accuracy is ${(summary.accuracy.average * 100).toFixed(1)}%, below target of 80%`,
         actions: [
-          'Review and expand training data',
-          'Consider fine-tuning the model',
-          'Analyze error patterns for specific categories'
-        ]
+          "Review and expand training data",
+          "Consider fine-tuning the model",
+          "Analyze error patterns for specific categories",
+        ],
       });
     }
 
     // Performance recommendations
     if (summary.performance.p95 > 3000) {
       recommendations.push({
-        type: 'performance_optimization',
-        priority: 'medium',
-        title: 'Slow Response Times',
+        type: "performance_optimization",
+        priority: "medium",
+        title: "Slow Response Times",
         description: `95th percentile response time is ${summary.performance.p95}ms`,
         actions: [
-          'Enable response caching',
-          'Optimize image sizes before processing',
-          'Consider using faster model variants'
-        ]
+          "Enable response caching",
+          "Optimize image sizes before processing",
+          "Consider using faster model variants",
+        ],
       });
     }
 
     // Cost recommendations
     if (summary.costs.projectedMonthly > 1500) {
       recommendations.push({
-        type: 'cost_optimization',
-        priority: 'high',
-        title: 'High Projected Costs',
+        type: "cost_optimization",
+        priority: "high",
+        title: "High Projected Costs",
         description: `Projected monthly cost is $${summary.costs.projectedMonthly.toFixed(2)}`,
         actions: [
-          'Implement aggressive caching',
-          'Use smaller models where appropriate',
-          'Batch similar requests together'
-        ]
+          "Implement aggressive caching",
+          "Use smaller models where appropriate",
+          "Batch similar requests together",
+        ],
       });
     }
 
@@ -544,50 +592,81 @@ export class AIMetricsCollector {
 
   private evaluateBenchmarks(summary: MetricsSummary): BenchmarkResult[] {
     const benchmarks: BenchmarkConfig[] = [
-      { name: 'Accuracy Target', target: 0.85, actual: summary.accuracy.average, unit: '%', multiplier: 100 },
-      { name: 'Response Time (p95)', target: 2000, actual: summary.performance.p95, unit: 'ms' },
-      { name: 'Error Rate', target: 0.01, actual: summary.performance.errorRate, unit: '%', multiplier: 100 },
-      { name: 'Daily Cost', target: 50, actual: summary.costs.total, unit: '$' }
+      {
+        name: "Accuracy Target",
+        target: 0.85,
+        actual: summary.accuracy.average,
+        unit: "%",
+        multiplier: 100,
+      },
+      {
+        name: "Response Time (p95)",
+        target: 2000,
+        actual: summary.performance.p95,
+        unit: "ms",
+      },
+      {
+        name: "Error Rate",
+        target: 0.01,
+        actual: summary.performance.errorRate,
+        unit: "%",
+        multiplier: 100,
+      },
+      {
+        name: "Daily Cost",
+        target: 50,
+        actual: summary.costs.total,
+        unit: "$",
+      },
     ];
 
-    return benchmarks.map(b => ({
+    return benchmarks.map((b) => ({
       name: b.name,
       target: b.target,
       actual: b.actual,
       unit: b.unit,
-      status: b.actual <= b.target ? 'pass' : 'fail',
+      status: b.actual <= b.target ? "pass" : "fail",
       variance: ((b.actual - b.target) / b.target) * 100,
-      displayValue: b.multiplier ? (b.actual * b.multiplier).toFixed(1) : b.actual.toFixed(2)
+      displayValue: b.multiplier
+        ? (b.actual * b.multiplier).toFixed(1)
+        : b.actual.toFixed(2),
     }));
   }
 
   private calculatePercentile(values: number[], percentile: number): number {
     if (values.length === 0) return 0;
-    
+
     const sorted = [...values].sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
     return sorted[Math.max(0, index)];
   }
 
-  private groupByCategory(metrics: AccuracyMetric[]): Record<string, AccuracySummary> {
+  private groupByCategory(
+    metrics: AccuracyMetric[],
+  ): Record<string, AccuracySummary> {
     const groups: Record<string, AccuracyMetric[]> = {};
-    
-    metrics.forEach(m => {
+
+    metrics.forEach((m) => {
       if (!groups[m.category]) groups[m.category] = [];
       groups[m.category].push(m);
     });
 
-    return Object.entries(groups).reduce((acc, [category, metrics]) => {
-      acc[category] = this.calculateAccuracySummary(metrics);
-      return acc;
-    }, {} as Record<string, AccuracySummary>);
+    return Object.entries(groups).reduce(
+      (acc, [category, metrics]) => {
+        acc[category] = this.calculateAccuracySummary(metrics);
+        return acc;
+      },
+      {} as Record<string, AccuracySummary>,
+    );
   }
 
-  private groupByModel(metrics: ModelableMetric[]): Record<string, ModelableMetric[]> {
+  private groupByModel(
+    metrics: ModelableMetric[],
+  ): Record<string, ModelableMetric[]> {
     const groups: Record<string, ModelableMetric[]> = {};
-    
-    metrics.forEach(m => {
-      const model = m.modelVersion || m.model || 'unknown';
+
+    metrics.forEach((m) => {
+      const model = m.modelVersion || m.model || "unknown";
       if (!groups[model]) groups[model] = [];
       groups[model].push(m);
     });
@@ -595,39 +674,49 @@ export class AIMetricsCollector {
     return groups;
   }
 
-  private groupByOperation(metrics: ResponseTimeMetric[]): Record<string, PerformanceSummary> {
+  private groupByOperation(
+    metrics: ResponseTimeMetric[],
+  ): Record<string, PerformanceSummary> {
     const groups: Record<string, ResponseTimeMetric[]> = {};
-    
-    metrics.forEach(m => {
+
+    metrics.forEach((m) => {
       if (!groups[m.operation]) groups[m.operation] = [];
       groups[m.operation].push(m);
     });
 
-    return Object.entries(groups).reduce((acc, [operation, metrics]) => {
-      acc[operation] = this.calculatePerformanceSummary(metrics);
-      return acc;
-    }, {} as Record<string, PerformanceSummary>);
+    return Object.entries(groups).reduce(
+      (acc, [operation, metrics]) => {
+        acc[operation] = this.calculatePerformanceSummary(metrics);
+        return acc;
+      },
+      {} as Record<string, PerformanceSummary>,
+    );
   }
 
-  private groupByEndpoint(metrics: APIUsageMetric[]): Record<string, UsageSummary> {
+  private groupByEndpoint(
+    metrics: APIUsageMetric[],
+  ): Record<string, UsageSummary> {
     const groups: Record<string, APIUsageMetric[]> = {};
-    
-    metrics.forEach(m => {
+
+    metrics.forEach((m) => {
       if (!groups[m.endpoint]) groups[m.endpoint] = [];
       groups[m.endpoint].push(m);
     });
 
-    return Object.entries(groups).reduce((acc, [endpoint, metrics]) => {
-      acc[endpoint] = this.calculateUsageSummary(metrics);
-      return acc;
-    }, {} as Record<string, UsageSummary>);
+    return Object.entries(groups).reduce(
+      (acc, [endpoint, metrics]) => {
+        acc[endpoint] = this.calculateUsageSummary(metrics);
+        return acc;
+      },
+      {} as Record<string, UsageSummary>,
+    );
   }
 
   private analyzeErrors(metrics: AccuracyMetric[]): ErrorAnalysis {
-    const errors = metrics.filter(m => !m.isCorrect);
+    const errors = metrics.filter((m) => !m.isCorrect);
     const errorsByCategory: Record<string, number> = {};
-    
-    errors.forEach(e => {
+
+    errors.forEach((e) => {
       errorsByCategory[e.category] = (errorsByCategory[e.category] || 0) + 1;
     });
 
@@ -635,39 +724,41 @@ export class AIMetricsCollector {
       totalErrors: errors.length,
       errorRate: errors.length / metrics.length,
       byCategory: errorsByCategory,
-      commonPatterns: this.findCommonErrorPatterns(errors)
+      commonPatterns: this.findCommonErrorPatterns(errors),
     };
   }
 
   private findCommonErrorPatterns(errors: AccuracyMetric[]): string[] {
     // Simplified pattern detection
     const patterns: string[] = [];
-    
-    const lowConfidenceErrors = errors.filter(e => e.confidence < 0.5);
+
+    const lowConfidenceErrors = errors.filter((e) => e.confidence < 0.5);
     if (lowConfidenceErrors.length > errors.length * 0.3) {
-      patterns.push('High error rate for low-confidence predictions');
+      patterns.push("High error rate for low-confidence predictions");
     }
 
     return patterns;
   }
 
-  private findSlowestOperations(metrics: ResponseTimeMetric[]): SlowOperation[] {
+  private findSlowestOperations(
+    metrics: ResponseTimeMetric[],
+  ): SlowOperation[] {
     return metrics
       .sort((a, b) => b.duration - a.duration)
       .slice(0, 10)
-      .map(m => ({
+      .map((m) => ({
         operation: m.operation,
         duration: m.duration,
         timestamp: m.timestamp,
-        metadata: m.metadata
+        metadata: m.metadata,
       }));
   }
 
   private analyzeRateLimits(metrics: APIUsageMetric[]): RateLimitAnalysis {
-    const withRateLimits = metrics.filter(m => m.rateLimitInfo);
-    
+    const withRateLimits = metrics.filter((m) => m.rateLimitInfo);
+
     if (withRateLimits.length === 0) {
-      return { status: 'healthy', utilizationPercent: 0 };
+      return { status: "healthy", utilizationPercent: 0 };
     }
 
     const latest = withRateLimits[withRateLimits.length - 1];
@@ -675,18 +766,20 @@ export class AIMetricsCollector {
     const utilizationPercent = ((limit - remaining) / limit) * 100;
 
     return {
-      status: utilizationPercent > 80 ? 'warning' : 'healthy',
+      status: utilizationPercent > 80 ? "warning" : "healthy",
       utilizationPercent,
       remaining,
       limit,
-      resetAt: latest.rateLimitInfo!.reset
+      resetAt: latest.rateLimitInfo!.reset,
     };
   }
 
-  private calculateCostsByModel(metrics: APIUsageMetric[]): Record<string, number> {
+  private calculateCostsByModel(
+    metrics: APIUsageMetric[],
+  ): Record<string, number> {
     const costs: Record<string, number> = {};
-    
-    metrics.forEach(m => {
+
+    metrics.forEach((m) => {
       costs[m.model] = (costs[m.model] || 0) + m.cost;
     });
 
@@ -695,9 +788,9 @@ export class AIMetricsCollector {
 
   private calculateDailyCosts(metrics: APIUsageMetric[]): DailyCost[] {
     const dailyCosts: Record<string, number> = {};
-    
-    metrics.forEach(m => {
-      const date = m.timestamp.toISOString().split('T')[0];
+
+    metrics.forEach((m) => {
+      const date = m.timestamp.toISOString().split("T")[0];
       dailyCosts[date] = (dailyCosts[date] || 0) + m.cost;
     });
 
@@ -707,17 +800,18 @@ export class AIMetricsCollector {
   private projectFutureCosts(metrics: APIUsageMetric[]): CostProjection {
     const recentDays = 7;
     const now = Date.now();
-    const recentMetrics = metrics.filter(m => 
-      now - m.timestamp.getTime() < recentDays * 24 * 60 * 60 * 1000
+    const recentMetrics = metrics.filter(
+      (m) => now - m.timestamp.getTime() < recentDays * 24 * 60 * 60 * 1000,
     );
 
-    const dailyAverage = recentMetrics.reduce((sum, m) => sum + m.cost, 0) / recentDays;
+    const dailyAverage =
+      recentMetrics.reduce((sum, m) => sum + m.cost, 0) / recentDays;
 
     return {
       daily: dailyAverage,
       weekly: dailyAverage * 7,
       monthly: dailyAverage * 30,
-      confidence: Math.min(0.9, recentMetrics.length / 100)
+      confidence: Math.min(0.9, recentMetrics.length / 100),
     };
   }
 
@@ -727,18 +821,18 @@ export class AIMetricsCollector {
 
   private async checkAPIHealth(): Promise<APIHealth> {
     // Check various health indicators
-    const endpoints = ['openai', 'anthropic', 'custom'];
+    const endpoints = ["openai", "anthropic", "custom"];
     const health: APIHealth = {
-      status: 'healthy',
-      endpoints: {}
+      status: "healthy",
+      endpoints: {},
     };
 
     for (const endpoint of endpoints) {
       // Mock health check
       health.endpoints[endpoint] = {
-        status: 'operational',
+        status: "operational",
         latency: Math.random() * 100 + 50,
-        lastChecked: new Date()
+        lastChecked: new Date(),
       };
     }
 
@@ -746,12 +840,13 @@ export class AIMetricsCollector {
   }
 
   private async getActiveAlerts(): Promise<Alert[]> {
-    const alerts = await this.metrics.query('alerts', 
-      new Date(Date.now() - 24 * 60 * 60 * 1000), 
-      new Date()
+    const alerts = await this.metrics.query(
+      "alerts",
+      new Date(Date.now() - 24 * 60 * 60 * 1000),
+      new Date(),
     );
 
-    return alerts.filter((a: Alert) => a.status === 'active');
+    return alerts.filter((a: Alert) => a.status === "active");
   }
 }
 
@@ -771,9 +866,7 @@ class MetricsStore {
 
   async query(type: string, start: Date, end: Date): Promise<StorableMetric[]> {
     const metrics = this.data.get(type) || [];
-    return metrics.filter(m => 
-      m.timestamp >= start && m.timestamp <= end
-    );
+    return metrics.filter((m) => m.timestamp >= start && m.timestamp <= end);
   }
 }
 
@@ -791,34 +884,36 @@ class APIUsageTracker {
   async getDailyCost(): Promise<number> {
     const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
     return this.recentUsage
-      .filter(m => m.timestamp.getTime() > dayAgo)
+      .filter((m) => m.timestamp.getTime() > dayAgo)
       .reduce((sum, m) => sum + m.cost, 0);
   }
 
   async getMonthlyCost(): Promise<number> {
     const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     return this.recentUsage
-      .filter(m => m.timestamp.getTime() > monthAgo)
+      .filter((m) => m.timestamp.getTime() > monthAgo)
       .reduce((sum, m) => sum + m.cost, 0);
   }
 
   async getHourlyCost(): Promise<number> {
     const hourAgo = Date.now() - 60 * 60 * 1000;
     return this.recentUsage
-      .filter(m => m.timestamp.getTime() > hourAgo)
+      .filter((m) => m.timestamp.getTime() > hourAgo)
       .reduce((sum, m) => sum + m.cost, 0);
   }
 
   async getRequestRate(): Promise<number> {
     const minuteAgo = Date.now() - 60 * 1000;
-    const recentRequests = this.recentUsage.filter(m => m.timestamp.getTime() > minuteAgo);
+    const recentRequests = this.recentUsage.filter(
+      (m) => m.timestamp.getTime() > minuteAgo,
+    );
     return recentRequests.length;
   }
 
   async getTokenRate(): Promise<number> {
     const minuteAgo = Date.now() - 60 * 1000;
     return this.recentUsage
-      .filter(m => m.timestamp.getTime() > minuteAgo)
+      .filter((m) => m.timestamp.getTime() > minuteAgo)
       .reduce((sum, m) => sum + m.totalTokens, 0);
   }
 
@@ -830,7 +925,7 @@ class APIUsageTracker {
 
     return {
       requests: latest.rateLimitInfo.remaining,
-      tokens: -1 // Would need token limit info
+      tokens: -1, // Would need token limit info
     };
   }
 }
@@ -847,15 +942,17 @@ class PerformanceMonitor {
   }
 
   async getAverageResponseTime(since: Date): Promise<number> {
-    const recent = this.responseTimes.filter(m => m.timestamp > since);
+    const recent = this.responseTimes.filter((m) => m.timestamp > since);
     if (recent.length === 0) return 0;
     return recent.reduce((sum, m) => sum + m.duration, 0) / recent.length;
   }
 
   async getPercentile(percentile: number): Promise<number> {
     if (this.responseTimes.length === 0) return 0;
-    
-    const durations = this.responseTimes.map(m => m.duration).sort((a, b) => a - b);
+
+    const durations = this.responseTimes
+      .map((m) => m.duration)
+      .sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * durations.length) - 1;
     return durations[Math.max(0, index)];
   }
@@ -866,22 +963,24 @@ class PerformanceMonitor {
       p75: await this.getPercentile(75),
       p90: await this.getPercentile(90),
       p95: await this.getPercentile(95),
-      p99: await this.getPercentile(99)
+      p99: await this.getPercentile(99),
     };
   }
 
   async getSlowOperations(): Promise<string[]> {
     const threshold = await this.getPercentile(90);
-    return [...new Set(
-      this.responseTimes
-        .filter(m => m.duration > threshold)
-        .map(m => m.operation)
-    )];
+    return [
+      ...new Set(
+        this.responseTimes
+          .filter((m) => m.duration > threshold)
+          .map((m) => m.operation),
+      ),
+    ];
   }
 
   async getErrorRate(): Promise<number> {
     if (this.responseTimes.length === 0) return 0;
-    const errors = this.responseTimes.filter(m => !m.success).length;
+    const errors = this.responseTimes.filter((m) => !m.success).length;
     return errors / this.responseTimes.length;
   }
 }
@@ -899,30 +998,38 @@ class AccuracyTracker {
 
   async getRecentAccuracy(): Promise<number> {
     const recent = this.accuracyMetrics.slice(-100);
-    const withAccuracy = recent.filter(m => m.accuracy !== undefined);
+    const withAccuracy = recent.filter((m) => m.accuracy !== undefined);
     if (withAccuracy.length === 0) return 0;
-    return withAccuracy.reduce((sum, m) => sum + m.accuracy!, 0) / withAccuracy.length;
+    return (
+      withAccuracy.reduce((sum, m) => sum + m.accuracy!, 0) /
+      withAccuracy.length
+    );
   }
 
-  async getTrend(): Promise<'improving' | 'declining' | 'stable'> {
-    if (this.accuracyMetrics.length < 20) return 'stable';
-    
-    const firstHalf = this.accuracyMetrics.slice(0, this.accuracyMetrics.length / 2);
-    const secondHalf = this.accuracyMetrics.slice(this.accuracyMetrics.length / 2);
-    
+  async getTrend(): Promise<"improving" | "declining" | "stable"> {
+    if (this.accuracyMetrics.length < 20) return "stable";
+
+    const firstHalf = this.accuracyMetrics.slice(
+      0,
+      this.accuracyMetrics.length / 2,
+    );
+    const secondHalf = this.accuracyMetrics.slice(
+      this.accuracyMetrics.length / 2,
+    );
+
     const firstAvg = this.calculateAverage(firstHalf);
     const secondAvg = this.calculateAverage(secondHalf);
-    
+
     const diff = secondAvg - firstAvg;
-    if (diff > 0.05) return 'improving';
-    if (diff < -0.05) return 'declining';
-    return 'stable';
+    if (diff > 0.05) return "improving";
+    if (diff < -0.05) return "declining";
+    return "stable";
   }
 
   async getByCategory(): Promise<Record<string, number>> {
     const byCategory: Record<string, AccuracyMetric[]> = {};
-    
-    this.accuracyMetrics.forEach(m => {
+
+    this.accuracyMetrics.forEach((m) => {
       if (!byCategory[m.category]) byCategory[m.category] = [];
       byCategory[m.category].push(m);
     });
@@ -936,26 +1043,29 @@ class AccuracyTracker {
   }
 
   private calculateAverage(metrics: AccuracyMetric[]): number {
-    const withAccuracy = metrics.filter(m => m.accuracy !== undefined);
+    const withAccuracy = metrics.filter((m) => m.accuracy !== undefined);
     if (withAccuracy.length === 0) return 0;
-    return withAccuracy.reduce((sum, m) => sum + m.accuracy!, 0) / withAccuracy.length;
+    return (
+      withAccuracy.reduce((sum, m) => sum + m.accuracy!, 0) /
+      withAccuracy.length
+    );
   }
 }
 
 class CostCalculator {
   private pricing: Record<string, PricingModel> = {
-    'gpt-4-vision': {
-      input: 0.01 / 1000,  // $0.01 per 1K tokens
+    "gpt-4-vision": {
+      input: 0.01 / 1000, // $0.01 per 1K tokens
       output: 0.03 / 1000, // $0.03 per 1K tokens
-      image: 0.00765       // Per image
+      image: 0.00765, // Per image
     },
-    'gpt-3.5-turbo': {
+    "gpt-3.5-turbo": {
       input: 0.0005 / 1000,
-      output: 0.0015 / 1000
+      output: 0.0015 / 1000,
     },
-    'text-embedding-ada-002': {
-      input: 0.0001 / 1000
-    }
+    "text-embedding-ada-002": {
+      input: 0.0001 / 1000,
+    },
   };
 
   calculate(apiCall: APICall, response: APIResponse): number {
@@ -963,15 +1073,15 @@ class CostCalculator {
     if (!pricing) return 0;
 
     let cost = 0;
-    
+
     if (apiCall.inputTokens && pricing.input) {
       cost += apiCall.inputTokens * pricing.input;
     }
-    
+
     if (response.outputTokens && pricing.output) {
       cost += response.outputTokens * pricing.output;
     }
-    
+
     if (apiCall.images && pricing.image) {
       cost += apiCall.images * pricing.image;
     }
@@ -982,7 +1092,13 @@ class CostCalculator {
 
 // Additional Types for Type Safety
 
-type PredictionValue = string | number | boolean | DetectionBox | ClassificationResult | MeasurementResult;
+type PredictionValue =
+  | string
+  | number
+  | boolean
+  | DetectionBox
+  | ClassificationResult
+  | MeasurementResult;
 
 interface DetectionBox {
   x: number;
@@ -1079,7 +1195,13 @@ interface ReportDetails {
   };
 }
 
-type StorableMetric = AccuracyMetric | ResponseTimeMetric | APIUsageMetric | PerformanceReport | Alert | Record<string, unknown>;
+type StorableMetric =
+  | AccuracyMetric
+  | ResponseTimeMetric
+  | APIUsageMetric
+  | PerformanceReport
+  | Alert
+  | Record<string, unknown>;
 
 // Types
 
@@ -1182,7 +1304,7 @@ interface APIUsageMetric {
 
 interface ReportOptions {
   includeDetails?: boolean;
-  format?: 'json' | 'html' | 'pdf';
+  format?: "json" | "html" | "pdf";
 }
 
 interface PerformanceReport {
@@ -1199,7 +1321,7 @@ interface PerformanceReport {
 
 interface Recommendation {
   type: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   title: string;
   description: string;
   actions: string[];
@@ -1218,7 +1340,7 @@ interface BenchmarkResult {
   target: number;
   actual: number;
   unit: string;
-  status: 'pass' | 'fail';
+  status: "pass" | "fail";
   variance: number;
   displayValue: string;
 }
@@ -1226,17 +1348,17 @@ interface BenchmarkResult {
 interface Alert {
   id: string;
   type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   timestamp: Date;
   data: AlertData;
-  status: 'active' | 'resolved';
+  status: "active" | "resolved";
 }
 
 interface RealTimeMetrics {
   timestamp: Date;
   accuracy: {
     current: number;
-    trend: 'improving' | 'declining' | 'stable';
+    trend: "improving" | "declining" | "stable";
     byCategory: Record<string, number>;
   };
   performance: {
@@ -1261,12 +1383,15 @@ interface RemainingQuota {
 }
 
 interface APIHealth {
-  status: 'healthy' | 'degraded' | 'down';
-  endpoints: Record<string, {
-    status: 'operational' | 'degraded' | 'down';
-    latency: number;
-    lastChecked: Date;
-  }>;
+  status: "healthy" | "degraded" | "down";
+  endpoints: Record<
+    string,
+    {
+      status: "operational" | "degraded" | "down";
+      latency: number;
+      lastChecked: Date;
+    }
+  >;
 }
 
 interface AccuracySummary {
@@ -1303,7 +1428,7 @@ interface CostSummary {
 }
 
 interface Trend {
-  direction: 'improving' | 'declining' | 'stable';
+  direction: "improving" | "declining" | "stable";
   change: number;
   confidence: number;
 }
@@ -1323,7 +1448,7 @@ interface SlowOperation {
 }
 
 interface RateLimitAnalysis {
-  status: 'healthy' | 'warning' | 'critical';
+  status: "healthy" | "warning" | "critical";
   utilizationPercent: number;
   remaining?: number;
   limit?: number;

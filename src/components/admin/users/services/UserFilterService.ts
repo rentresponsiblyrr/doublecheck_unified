@@ -1,22 +1,24 @@
 /**
  * User Filter Service - Enterprise Grade
- * 
+ *
  * Handles user filtering, searching, and sorting logic
  */
 
-import { User, UserFilters } from '../types';
+import { User, UserFilters } from "../types";
 
 export class UserFilterService {
   /**
    * Filter users based on search criteria
    */
   filterUsers(users: User[], filters: UserFilters): User[] {
-    return users.filter(user => {
+    return users.filter((user) => {
       // Search filter
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
-        if (!user.name.toLowerCase().includes(searchTerm) && 
-            !user.email.toLowerCase().includes(searchTerm)) {
+        if (
+          !user.name.toLowerCase().includes(searchTerm) &&
+          !user.email.toLowerCase().includes(searchTerm)
+        ) {
           return false;
         }
       }
@@ -42,8 +44,8 @@ export class UserFilterService {
     if (!searchTerm.trim()) return users;
 
     const term = searchTerm.toLowerCase().trim();
-    
-    return users.filter(user => {
+
+    return users.filter((user) => {
       return (
         user.name.toLowerCase().includes(term) ||
         user.email.toLowerCase().includes(term) ||
@@ -57,13 +59,17 @@ export class UserFilterService {
   /**
    * Sort users by various criteria
    */
-  sortUsers(users: User[], sortBy: 'name' | 'email' | 'role' | 'status' | 'created_at', order: 'asc' | 'desc' = 'asc'): User[] {
+  sortUsers(
+    users: User[],
+    sortBy: "name" | "email" | "role" | "status" | "created_at",
+    order: "asc" | "desc" = "asc",
+  ): User[] {
     const sorted = [...users].sort((a, b) => {
       let aValue: string | Date;
       let bValue: string | Date;
 
       switch (sortBy) {
-        case 'created_at':
+        case "created_at":
           aValue = new Date(a.created_at);
           bValue = new Date(b.created_at);
           break;
@@ -73,11 +79,15 @@ export class UserFilterService {
       }
 
       if (aValue instanceof Date && bValue instanceof Date) {
-        return order === 'asc' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
+        return order === "asc"
+          ? aValue.getTime() - bValue.getTime()
+          : bValue.getTime() - aValue.getTime();
       }
 
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return order === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return order === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
       }
 
       return 0;
@@ -93,8 +103,8 @@ export class UserFilterService {
     roles: string[];
     statuses: string[];
   } {
-    const roles = [...new Set(users.map(user => user.role))].sort();
-    const statuses = [...new Set(users.map(user => user.status))].sort();
+    const roles = [...new Set(users.map((user) => user.role))].sort();
+    const statuses = [...new Set(users.map((user) => user.status))].sort();
 
     return { roles, statuses };
   }

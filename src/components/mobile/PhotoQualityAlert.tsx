@@ -1,11 +1,11 @@
 /**
  * Photo Quality Alert - Focused Component
- * 
+ *
  * Displays quality warnings and guidance messages
  */
 
-import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PhotoQualityAlertProps {
   hasQualityIssues: boolean;
@@ -16,14 +16,18 @@ interface PhotoQualityAlertProps {
 export const PhotoQualityAlert: React.FC<PhotoQualityAlertProps> = ({
   hasQualityIssues,
   qualityScore,
-  className
+  className,
 }) => {
   if (!hasQualityIssues) return null;
 
   return (
-    <Alert className={`border-yellow-200 bg-yellow-50 ${className}`} id="photo-quality-alert">
+    <Alert
+      className={`border-yellow-200 bg-yellow-50 ${className}`}
+      id="photo-quality-alert"
+    >
       <AlertDescription className="text-yellow-800">
-        Photo quality issues detected (Score: {qualityScore}%). Consider following the guidance above before capturing.
+        Photo quality issues detected (Score: {qualityScore}%). Consider
+        following the guidance above before capturing.
       </AlertDescription>
     </Alert>
   );

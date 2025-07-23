@@ -3,28 +3,37 @@
  * High-level AI learning metrics, insights, and performance indicators
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Brain, 
-  TrendingUp, 
-  TrendingDown, 
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Brain,
+  TrendingUp,
+  TrendingDown,
   AlertCircle,
   CheckCircle,
   Clock,
   Users,
   Database,
-  Target
-} from 'lucide-react';
-import type { LearningInsight, ModelPerformanceMetrics } from '@/types/ai-database';
+  Target,
+} from "lucide-react";
+import type {
+  LearningInsight,
+  ModelPerformanceMetrics,
+} from "@/types/ai-database";
 
 interface AILearningOverviewProps {
   learningInsights: LearningInsight[];
   modelPerformance: ModelPerformanceMetrics | null;
-  selectedTimeframe: 'daily' | 'weekly' | 'monthly';
+  selectedTimeframe: "daily" | "weekly" | "monthly";
   isLoading?: boolean;
 }
 
@@ -32,11 +41,14 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
   learningInsights,
   modelPerformance,
   selectedTimeframe,
-  isLoading = false
+  isLoading = false,
 }) => {
   const getOverallAccuracy = () => {
     if (!modelPerformance || !learningInsights.length) return 0;
-    return learningInsights.reduce((sum, insight) => sum + insight.confidence, 0) / learningInsights.length;
+    return (
+      learningInsights.reduce((sum, insight) => sum + insight.confidence, 0) /
+      learningInsights.length
+    );
   };
 
   const getTrendIcon = (trend: number) => {
@@ -45,10 +57,14 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
     return <Clock className="w-4 h-4 text-blue-500" />;
   };
 
-  const getStatusColor = (value: number, goodThreshold: number, warningThreshold: number) => {
-    if (value >= goodThreshold) return 'text-green-600 bg-green-100';
-    if (value >= warningThreshold) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+  const getStatusColor = (
+    value: number,
+    goodThreshold: number,
+    warningThreshold: number,
+  ) => {
+    if (value >= goodThreshold) return "text-green-600 bg-green-100";
+    if (value >= warningThreshold) return "text-yellow-600 bg-yellow-100";
+    return "text-red-600 bg-red-100";
   };
 
   if (isLoading) {
@@ -73,9 +89,12 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
 
   const overallAccuracy = getOverallAccuracy();
   const totalInsights = learningInsights.length;
-  const highConfidenceInsights = learningInsights.filter(insight => insight.confidence > 0.8).length;
-  const recentInsights = learningInsights.filter(insight => 
-    new Date(insight.timestamp).getTime() > Date.now() - (24 * 60 * 60 * 1000)
+  const highConfidenceInsights = learningInsights.filter(
+    (insight) => insight.confidence > 0.8,
+  ).length;
+  const recentInsights = learningInsights.filter(
+    (insight) =>
+      new Date(insight.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000,
   ).length;
 
   return (
@@ -85,8 +104,8 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>AI accuracy below 70%</strong> - Model performance needs attention. 
-            Consider retraining or adjusting parameters.
+            <strong>AI accuracy below 70%</strong> - Model performance needs
+            attention. Consider retraining or adjusting parameters.
           </AlertDescription>
         </Alert>
       )}
@@ -95,7 +114,8 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertCircle className="w-4 h-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            <strong>No recent learning insights</strong> - The AI hasn't processed new feedback in 24 hours.
+            <strong>No recent learning insights</strong> - The AI hasn't
+            processed new feedback in 24 hours.
           </AlertDescription>
         </Alert>
       )}
@@ -104,7 +124,9 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overall Accuracy</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Overall Accuracy
+            </CardTitle>
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -113,8 +135,11 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
             </div>
             <div className="flex items-center mt-2">
               <Badge className={getStatusColor(overallAccuracy, 0.9, 0.7)}>
-                {overallAccuracy >= 0.9 ? 'Excellent' : 
-                 overallAccuracy >= 0.7 ? 'Good' : 'Needs Attention'}
+                {overallAccuracy >= 0.9
+                  ? "Excellent"
+                  : overallAccuracy >= 0.7
+                    ? "Good"
+                    : "Needs Attention"}
               </Badge>
             </div>
             <Progress value={overallAccuracy * 100} className="mt-2" />
@@ -123,11 +148,15 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Insights</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Insights
+            </CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalInsights.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {totalInsights.toLocaleString()}
+            </div>
             <div className="flex items-center mt-2">
               {getTrendIcon(0.1)}
               <span className="text-xs text-muted-foreground ml-2">
@@ -139,7 +168,9 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High Confidence</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              High Confidence
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -147,18 +178,27 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
               {highConfidenceInsights}
             </div>
             <div className="text-xs text-muted-foreground">
-              {totalInsights > 0 ? ((highConfidenceInsights / totalInsights) * 100).toFixed(1) : 0}% of insights
+              {totalInsights > 0
+                ? ((highConfidenceInsights / totalInsights) * 100).toFixed(1)
+                : 0}
+              % of insights
             </div>
-            <Progress 
-              value={totalInsights > 0 ? (highConfidenceInsights / totalInsights) * 100 : 0} 
-              className="mt-2" 
+            <Progress
+              value={
+                totalInsights > 0
+                  ? (highConfidenceInsights / totalInsights) * 100
+                  : 0
+              }
+              className="mt-2"
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Recent Activity
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -196,20 +236,25 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
                 </div>
                 <Progress value={overallAccuracy * 100} className="h-2" />
               </div>
-              
+
               {modelPerformance && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Processing Speed</span>
-                    <span>{modelPerformance.avgResponseTime?.toFixed(0) || 0}ms</span>
+                    <span>
+                      {modelPerformance.avgResponseTime?.toFixed(0) || 0}ms
+                    </span>
                   </div>
-                  <Progress 
-                    value={Math.min(100, (3000 - (modelPerformance.avgResponseTime || 3000)) / 30)} 
-                    className="h-2" 
+                  <Progress
+                    value={Math.min(
+                      100,
+                      (3000 - (modelPerformance.avgResponseTime || 3000)) / 30,
+                    )}
+                    className="h-2"
                   />
                 </div>
               )}
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Knowledge Base Coverage</span>
@@ -242,7 +287,7 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
-                    {learningInsights.filter(i => i.confidence > 0.8).length}
+                    {learningInsights.filter((i) => i.confidence > 0.8).length}
                   </div>
                   <div className="text-xs text-muted-foreground">entries</div>
                 </div>
@@ -257,7 +302,7 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-blue-600">
-                    {learningInsights.filter(i => i.confidence <= 0.5).length}
+                    {learningInsights.filter((i) => i.confidence <= 0.5).length}
                   </div>
                   <div className="text-xs text-muted-foreground">entries</div>
                 </div>
@@ -292,10 +337,13 @@ export const AILearningOverview: React.FC<AILearningOverviewProps> = ({
           <CardContent>
             <div className="space-y-3">
               {learningInsights
-                .filter(insight => insight.confidence > 0.8)
+                .filter((insight) => insight.confidence > 0.8)
                 .slice(0, 5)
                 .map((insight, index) => (
-                  <div key={index} className="flex items-start justify-between p-3 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-start justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-start space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                       <div>

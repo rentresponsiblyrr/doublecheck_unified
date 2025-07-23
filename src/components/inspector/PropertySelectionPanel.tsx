@@ -3,12 +3,12 @@
  * Extracted from ProductionInspectionWorkflow.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, RefreshCw, PlayCircle } from 'lucide-react';
-import { ProductionProperty } from '@/services/productionDatabaseService';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Building, MapPin, RefreshCw, PlayCircle } from "lucide-react";
+import { ProductionProperty } from "@/services/productionDatabaseService";
 
 interface PropertySelectionPanelProps {
   properties: ProductionProperty[];
@@ -21,7 +21,7 @@ export const PropertySelectionPanel: React.FC<PropertySelectionPanelProps> = ({
   properties,
   loading,
   onPropertySelect,
-  onRefresh
+  onRefresh,
 }) => {
   return (
     <Card>
@@ -44,11 +44,16 @@ export const PropertySelectionPanel: React.FC<PropertySelectionPanelProps> = ({
         ) : (
           <div className="grid gap-4">
             {properties.map((property) => (
-              <Card key={property.property_id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card
+                key={property.property_id}
+                className="hover:shadow-md transition-shadow cursor-pointer"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-lg">{property.property_name}</h3>
+                      <h3 className="font-medium text-lg">
+                        {property.property_name}
+                      </h3>
                       <div className="flex items-center text-gray-600 mt-1">
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{property.property_address}</span>
@@ -57,14 +62,18 @@ export const PropertySelectionPanel: React.FC<PropertySelectionPanelProps> = ({
                         <Badge variant="outline">
                           {property.inspection_count} inspections
                         </Badge>
-                        <Badge className={
-                          property.property_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }>
+                        <Badge
+                          className={
+                            property.property_status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }
+                        >
                           {property.property_status}
                         </Badge>
                       </div>
                     </div>
-                    <Button 
+                    <Button
                       onClick={() => onPropertySelect(property)}
                       disabled={loading}
                     >

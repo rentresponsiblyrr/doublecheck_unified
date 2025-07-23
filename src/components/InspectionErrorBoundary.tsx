@@ -1,8 +1,8 @@
-import React from 'react';
-import { ErrorBoundary } from '@/lib/error/error-boundary';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from "react";
+import { ErrorBoundary } from "@/lib/error/error-boundary";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface InspectionErrorFallbackProps {
   error: Error;
@@ -10,7 +10,11 @@ interface InspectionErrorFallbackProps {
   errorId?: string;
 }
 
-function InspectionErrorFallback({ error, resetError, errorId }: InspectionErrorFallbackProps) {
+function InspectionErrorFallback({
+  error,
+  resetError,
+  errorId,
+}: InspectionErrorFallbackProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -26,19 +30,15 @@ function InspectionErrorFallback({ error, resetError, errorId }: InspectionError
             </div>
           </AlertDescription>
         </Alert>
-        
+
         <div className="space-y-3">
-          <Button 
-            onClick={resetError}
-            className="w-full"
-            variant="outline"
-          >
+          <Button onClick={resetError} className="w-full" variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Retry Inspection
           </Button>
-          
-          <Button 
-            onClick={() => window.location.href = '/'}
+
+          <Button
+            onClick={() => (window.location.href = "/")}
             className="w-full"
             variant="secondary"
           >
@@ -54,14 +54,16 @@ interface InspectionErrorBoundaryProps {
   children: React.ReactNode;
 }
 
-export function InspectionErrorBoundary({ children }: InspectionErrorBoundaryProps) {
+export function InspectionErrorBoundary({
+  children,
+}: InspectionErrorBoundaryProps) {
   return (
     <ErrorBoundary
       level="component"
       fallback={({ error, resetError, errorId }) => (
-        <InspectionErrorFallback 
-          error={error} 
-          resetError={resetError} 
+        <InspectionErrorFallback
+          error={error}
+          resetError={resetError}
           errorId={errorId}
         />
       )}

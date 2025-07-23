@@ -1,20 +1,20 @@
 /**
  * PWA-ENHANCED SERVICES INTEGRATION BRIDGE
- * 
+ *
  * Coordinates between Enhanced Services and PWA components for seamless operation
  * Ensures zero conflicts and unified system behavior across all components
- * 
+ *
  * CRITICAL: This bridge addresses all integration issues identified in Phase 4C
  * - Cache coordination between PWA and Enhanced services
  * - Sync operation sequencing and conflict resolution
  * - Data integrity across offline/online states
  * - Health monitoring and automatic recovery
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Integration Bridge
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // Service type definitions
 interface CacheManager {
@@ -27,7 +27,11 @@ interface CacheManager {
 
 interface SyncManager {
   sync(data: Record<string, unknown>): Promise<void>;
-  queue(task: { id: string; data: Record<string, unknown>; priority: number }): Promise<void>;
+  queue(task: {
+    id: string;
+    data: Record<string, unknown>;
+    priority: number;
+  }): Promise<void>;
   getStatus(): { pending: number; syncing: boolean; lastSync: Date };
   pause(): Promise<void>;
   resume(): Promise<void>;
@@ -43,7 +47,10 @@ interface OfflineStore {
 
 interface ServiceLayer {
   execute<T>(operation: string, params: Record<string, unknown>): Promise<T>;
-  getHealth(): { status: 'healthy' | 'degraded' | 'unhealthy'; details: Record<string, unknown> };
+  getHealth(): {
+    status: "healthy" | "degraded" | "unhealthy";
+    details: Record<string, unknown>;
+  };
   reset(): Promise<void>;
 }
 
@@ -51,7 +58,7 @@ interface IntegrationState {
   servicesReady: boolean;
   pwaReady: boolean;
   bridgeActive: boolean;
-  conflictResolution: 'enhanced' | 'pwa' | 'hybrid';
+  conflictResolution: "enhanced" | "pwa" | "hybrid";
   lastSync: number;
 }
 
@@ -59,17 +66,17 @@ interface ServicePWAMapping {
   cache: {
     pwaCache: CacheManager; // PWA Service Worker cache
     enhancedCache: CacheManager; // Enhanced Query Cache
-    strategy: 'pwa-first' | 'enhanced-first' | 'hybrid';
+    strategy: "pwa-first" | "enhanced-first" | "hybrid";
   };
   sync: {
     backgroundSync: SyncManager; // PWA Background Sync Manager
     enhancedSync: SyncManager; // Enhanced Real-Time Sync
-    coordination: 'sequential' | 'parallel' | 'primary-secondary';
+    coordination: "sequential" | "parallel" | "primary-secondary";
   };
   data: {
     serviceLayer: ServiceLayer; // Enhanced Unified Service Layer
     pwaOfflineStore: OfflineStore; // PWA Offline Store
-    conflictResolution: 'enhanced-wins' | 'pwa-wins' | 'merge-strategy';
+    conflictResolution: "enhanced-wins" | "pwa-wins" | "merge-strategy";
   };
 }
 
@@ -81,19 +88,24 @@ export class PWAEnhancedServicesBridge {
   private state: IntegrationState;
   private mapping: ServicePWAMapping;
   private healthCheckTimer: number | null = null;
-  private conflictQueue: Array<{ type: string; data: any; timestamp: number }> = [];
+  private conflictQueue: Array<{ type: string; data: any; timestamp: number }> =
+    [];
 
   constructor() {
     this.state = {
       servicesReady: false,
       pwaReady: false,
       bridgeActive: false,
-      conflictResolution: 'hybrid',
-      lastSync: 0
+      conflictResolution: "hybrid",
+      lastSync: 0,
     };
 
     this.initializeMapping();
-    logger.info('🔗 PWA-Enhanced Services Bridge initializing', {}, 'INTEGRATION_BRIDGE');
+    logger.info(
+      "🔗 PWA-Enhanced Services Bridge initializing",
+      {},
+      "INTEGRATION_BRIDGE",
+    );
   }
 
   private initializeMapping(): void {
@@ -101,18 +113,18 @@ export class PWAEnhancedServicesBridge {
       cache: {
         pwaCache: null,
         enhancedCache: null,
-        strategy: 'hybrid' // Use both, Enhanced for data, PWA for assets
+        strategy: "hybrid", // Use both, Enhanced for data, PWA for assets
       },
       sync: {
         backgroundSync: null,
         enhancedSync: null,
-        coordination: 'sequential' // PWA handles offline, Enhanced handles real-time
+        coordination: "sequential", // PWA handles offline, Enhanced handles real-time
       },
       data: {
         serviceLayer: null,
         pwaOfflineStore: null,
-        conflictResolution: 'enhanced-wins' // Enhanced Services handle data operations
-      }
+        conflictResolution: "enhanced-wins", // Enhanced Services handle data operations
+      },
     };
   }
 
@@ -122,7 +134,11 @@ export class PWAEnhancedServicesBridge {
    */
   async initialize(): Promise<void> {
     try {
-      logger.info('🚀 Initializing PWA-Enhanced Services integration', {}, 'INTEGRATION_BRIDGE');
+      logger.info(
+        "🚀 Initializing PWA-Enhanced Services integration",
+        {},
+        "INTEGRATION_BRIDGE",
+      );
 
       // Step 1: Wait for Enhanced Services to be ready
       await this.waitForEnhancedServices();
@@ -144,14 +160,21 @@ export class PWAEnhancedServicesBridge {
       this.state.bridgeActive = true;
       this.state.lastSync = Date.now();
 
-      logger.info('✅ PWA-Enhanced Services bridge active', {
-        servicesReady: this.state.servicesReady,
-        pwaReady: this.state.pwaReady,
-        bridgeActive: this.state.bridgeActive
-      }, 'INTEGRATION_BRIDGE');
-
+      logger.info(
+        "✅ PWA-Enhanced Services bridge active",
+        {
+          servicesReady: this.state.servicesReady,
+          pwaReady: this.state.pwaReady,
+          bridgeActive: this.state.bridgeActive,
+        },
+        "INTEGRATION_BRIDGE",
+      );
     } catch (error) {
-      logger.error('❌ PWA-Enhanced Services bridge initialization failed', { error }, 'INTEGRATION_BRIDGE');
+      logger.error(
+        "❌ PWA-Enhanced Services bridge initialization failed",
+        { error },
+        "INTEGRATION_BRIDGE",
+      );
       throw new Error(`Integration bridge failed: ${error.message}`);
     }
   }
@@ -165,14 +188,22 @@ export class PWAEnhancedServicesBridge {
     while (Date.now() - startTime < maxWaitTime) {
       const enhancedServices = (window as any).__ENHANCED_SERVICES__;
       if (enhancedServices?.initialized) {
-        logger.info('Enhanced Services detected and ready', {}, 'INTEGRATION_BRIDGE');
+        logger.info(
+          "Enhanced Services detected and ready",
+          {},
+          "INTEGRATION_BRIDGE",
+        );
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     // GRACEFUL DEGRADATION: Don't fail if Enhanced Services aren't ready
-    logger.warn('Enhanced Services not ready, continuing with basic functionality', {}, 'INTEGRATION_BRIDGE');
+    logger.warn(
+      "Enhanced Services not ready, continuing with basic functionality",
+      {},
+      "INTEGRATION_BRIDGE",
+    );
   }
 
   private async waitForPWAComponents(): Promise<void> {
@@ -186,14 +217,22 @@ export class PWAEnhancedServicesBridge {
       const pushNotifications = (window as any).__PUSH_NOTIFICATION_MANAGER__;
 
       if (pwaStatus?.allSystemsReady && backgroundSync && pushNotifications) {
-        logger.info('PWA Components detected and ready', {}, 'INTEGRATION_BRIDGE');
+        logger.info(
+          "PWA Components detected and ready",
+          {},
+          "INTEGRATION_BRIDGE",
+        );
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     // GRACEFUL DEGRADATION: Don't fail if PWA Components aren't ready
-    logger.warn('PWA Components not ready, continuing with basic functionality', {}, 'INTEGRATION_BRIDGE');
+    logger.warn(
+      "PWA Components not ready, continuing with basic functionality",
+      {},
+      "INTEGRATION_BRIDGE",
+    );
   }
 
   private async createServiceMapping(): Promise<void> {
@@ -201,32 +240,38 @@ export class PWAEnhancedServicesBridge {
     const pwaComponents = {
       backgroundSync: (window as any).__BACKGROUND_SYNC_MANAGER__,
       pushNotifications: (window as any).__PUSH_NOTIFICATION_MANAGER__,
-      serviceWorker: navigator.serviceWorker
+      serviceWorker: navigator.serviceWorker,
     };
 
+    // FIXED: Graceful handling of missing Enhanced Services
     this.mapping = {
       cache: {
         pwaCache: pwaComponents.serviceWorker,
-        enhancedCache: enhancedServices.queryCache,
-        strategy: 'hybrid' // Use both, Enhanced for data, PWA for assets
+        enhancedCache: enhancedServices?.queryCache || null,
+        strategy: "hybrid", // Use both, Enhanced for data, PWA for assets
       },
       sync: {
         backgroundSync: pwaComponents.backgroundSync,
-        enhancedSync: enhancedServices.realTimeSync,
-        coordination: 'sequential' // PWA handles offline, Enhanced handles real-time
+        enhancedSync: enhancedServices?.realTimeSync || null,
+        coordination: "sequential", // PWA handles offline, Enhanced handles real-time
       },
       data: {
-        serviceLayer: enhancedServices.unifiedService,
+        serviceLayer: enhancedServices?.unifiedService || null,
         pwaOfflineStore: pwaComponents.serviceWorker,
-        conflictResolution: 'enhanced-wins' // Enhanced Services handle data operations
-      }
+        conflictResolution: "enhanced-wins", // Enhanced Services handle data operations
+      },
     };
 
-    logger.info('Service mapping created', {
-      cacheStrategy: this.mapping.cache.strategy,
-      syncCoordination: this.mapping.sync.coordination,
-      dataResolution: this.mapping.data.conflictResolution
-    }, 'INTEGRATION_BRIDGE');
+    logger.info(
+      "Service mapping created",
+      {
+        cacheStrategy: this.mapping.cache.strategy,
+        syncCoordination: this.mapping.sync.coordination,
+        dataResolution: this.mapping.data.conflictResolution,
+        enhancedServicesAvailable: !!enhancedServices,
+      },
+      "INTEGRATION_BRIDGE",
+    );
   }
 
   private async resolveInitialConflicts(): Promise<void> {
@@ -236,21 +281,25 @@ export class PWAEnhancedServicesBridge {
     // Cache conflicts
     if (this.mapping.cache.pwaCache && this.mapping.cache.enhancedCache) {
       conflicts.push({
-        type: 'cache-overlap',
-        resolution: 'Enhanced handles data, PWA handles assets'
+        type: "cache-overlap",
+        resolution: "Enhanced handles data, PWA handles assets",
       });
     }
 
     // Sync conflicts
     if (this.mapping.sync.backgroundSync && this.mapping.sync.enhancedSync) {
       conflicts.push({
-        type: 'sync-overlap',
-        resolution: 'Sequential coordination established'
+        type: "sync-overlap",
+        resolution: "Sequential coordination established",
       });
     }
 
     if (conflicts.length > 0) {
-      logger.info('Initial conflicts resolved', { conflicts }, 'INTEGRATION_BRIDGE');
+      logger.info(
+        "Initial conflicts resolved",
+        { conflicts },
+        "INTEGRATION_BRIDGE",
+      );
     }
   }
 
@@ -270,21 +319,24 @@ export class PWAEnhancedServicesBridge {
         pwaComponentsHealthy: pwaComponents?.allSystemsReady || false,
         bridgeActive: this.state.bridgeActive,
         conflictQueueSize: this.conflictQueue.length,
-        lastSync: this.state.lastSync
+        lastSync: this.state.lastSync,
       };
 
       // Report unhealthy state
       if (!health.enhancedServicesHealthy || !health.pwaComponentsHealthy) {
-        logger.warn('Health check detected issues', { health }, 'INTEGRATION_BRIDGE');
+        logger.warn(
+          "Health check detected issues",
+          { health },
+          "INTEGRATION_BRIDGE",
+        );
       } else {
-        logger.debug('Health check passed', { health }, 'INTEGRATION_BRIDGE');
+        logger.debug("Health check passed", { health }, "INTEGRATION_BRIDGE");
       }
 
       // Expose health to global scope for monitoring
       (window as any).__INTEGRATION_BRIDGE_HEALTH__ = health;
-
     } catch (error) {
-      logger.error('Health check failed', { error }, 'INTEGRATION_BRIDGE');
+      logger.error("Health check failed", { error }, "INTEGRATION_BRIDGE");
     }
   }
 
@@ -292,40 +344,56 @@ export class PWAEnhancedServicesBridge {
    * COORDINATE CACHE OPERATIONS
    * Ensures PWA and Enhanced caches work together without conflicts
    */
-  async coordinateCache(operation: string, key: string, data?: any): Promise<any> {
+  async coordinateCache(
+    operation: string,
+    key: string,
+    data?: any,
+  ): Promise<any> {
     switch (operation) {
-      case 'get':
+      case "get":
         // Try Enhanced cache first for data, PWA cache for assets
-        if (key.includes('/api/')) {
+        if (key.includes("/api/")) {
           return await this.mapping.cache.enhancedCache?.get(key);
         } else {
           // Try PWA cache for assets
           try {
-            const cache = await caches.open('pwa-assets');
+            const cache = await caches.open("pwa-assets");
             const response = await cache.match(key);
             return response ? await response.json() : null;
           } catch (error) {
-            logger.warn('PWA cache access failed', { error, key }, 'INTEGRATION_BRIDGE');
+            logger.warn(
+              "PWA cache access failed",
+              { error, key },
+              "INTEGRATION_BRIDGE",
+            );
             return null;
           }
         }
 
-      case 'set':
+      case "set":
         // Route to appropriate cache
-        if (key.includes('/api/')) {
+        if (key.includes("/api/")) {
           await this.mapping.cache.enhancedCache?.set(key, data);
         } else {
           try {
-            const cache = await caches.open('pwa-assets');
+            const cache = await caches.open("pwa-assets");
             await cache.put(key, new Response(JSON.stringify(data)));
           } catch (error) {
-            logger.warn('PWA cache set failed', { error, key }, 'INTEGRATION_BRIDGE');
+            logger.warn(
+              "PWA cache set failed",
+              { error, key },
+              "INTEGRATION_BRIDGE",
+            );
           }
         }
         break;
 
       default:
-        logger.warn('Unknown cache operation', { operation, key }, 'INTEGRATION_BRIDGE');
+        logger.warn(
+          "Unknown cache operation",
+          { operation, key },
+          "INTEGRATION_BRIDGE",
+        );
     }
   }
 
@@ -333,13 +401,13 @@ export class PWAEnhancedServicesBridge {
    * COORDINATE SYNC OPERATIONS
    * Manages sequential coordination between PWA Background Sync and Enhanced Real-Time Sync
    */
-  async coordinateSync(type: 'offline' | 'realtime', data: any): Promise<void> {
-    if (type === 'offline') {
+  async coordinateSync(type: "offline" | "realtime", data: any): Promise<void> {
+    if (type === "offline") {
       // Use PWA Background Sync for offline operations
       if (this.mapping.sync.backgroundSync) {
         await this.mapping.sync.backgroundSync.queueSync(data);
       }
-    } else if (type === 'realtime') {
+    } else if (type === "realtime") {
       // Use Enhanced Real-Time Sync for live updates
       if (this.mapping.sync.enhancedSync) {
         await this.mapping.sync.enhancedSync.broadcastChange(data);
@@ -353,7 +421,7 @@ export class PWAEnhancedServicesBridge {
    */
   async resolveDataConflict(localData: any, remoteData: any): Promise<any> {
     // Enhanced Services wins for data integrity
-    if (this.mapping.data.conflictResolution === 'enhanced-wins') {
+    if (this.mapping.data.conflictResolution === "enhanced-wins") {
       return remoteData;
     }
 
@@ -362,7 +430,7 @@ export class PWAEnhancedServicesBridge {
       ...localData,
       ...remoteData,
       _conflictResolved: true,
-      _resolvedAt: Date.now()
+      _resolvedAt: Date.now(),
     };
   }
 
@@ -382,7 +450,11 @@ export class PWAEnhancedServicesBridge {
       clearInterval(this.healthCheckTimer);
     }
     this.state.bridgeActive = false;
-    logger.info('PWA-Enhanced Services bridge destroyed', {}, 'INTEGRATION_BRIDGE');
+    logger.info(
+      "PWA-Enhanced Services bridge destroyed",
+      {},
+      "INTEGRATION_BRIDGE",
+    );
   }
 }
 
@@ -390,6 +462,6 @@ export class PWAEnhancedServicesBridge {
 export const pwaEnhancedBridge = new PWAEnhancedServicesBridge();
 
 // Export for global access
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).__PWA_ENHANCED_BRIDGE__ = pwaEnhancedBridge;
 }

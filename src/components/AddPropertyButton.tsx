@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,7 @@ export const AddPropertyButton = () => {
   const navigate = useNavigate();
 
   const handleAddProperty = () => {
-    navigate('/add-property');
+    navigate("/add-property");
   };
 
   return (

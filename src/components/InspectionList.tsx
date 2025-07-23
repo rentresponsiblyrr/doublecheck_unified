@@ -19,20 +19,24 @@ export const InspectionList: React.FC<InspectionListProps> = ({
   selectedCategory,
   onComplete,
   onCategoryChange,
-  inspectionId
+  inspectionId,
 }) => {
   // If no items, show empty state
   if (items.length === 0) {
     return (
-      <Card id="inspection-list-empty-state" className="bg-gray-50 border-gray-200">
+      <Card
+        id="inspection-list-empty-state"
+        className="bg-gray-50 border-gray-200"
+      >
         <CardContent className="p-8 text-center">
           <ClipboardList className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No items to display</h3>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            No items to display
+          </h3>
           <p className="text-gray-500">
-            {selectedCategory 
-              ? `No items found in the "${selectedCategory}" category${showCompleted ? '' : ' that need completion'}.`
-              : `No checklist items${showCompleted ? '' : ' that need completion'}.`
-            }
+            {selectedCategory
+              ? `No items found in the "${selectedCategory}" category${showCompleted ? "" : " that need completion"}.`
+              : `No checklist items${showCompleted ? "" : " that need completion"}.`}
           </p>
           {selectedCategory && (
             <button

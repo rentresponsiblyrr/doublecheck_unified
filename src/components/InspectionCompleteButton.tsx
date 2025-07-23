@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,11 +12,11 @@ interface InspectionCompleteButtonProps {
   failedCount: number;
 }
 
-export const InspectionCompleteButton = ({ 
-  inspectionId, 
-  isAllCompleted, 
-  passedCount, 
-  failedCount 
+export const InspectionCompleteButton = ({
+  inspectionId,
+  isAllCompleted,
+  passedCount,
+  failedCount,
 }: InspectionCompleteButtonProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,18 +24,17 @@ export const InspectionCompleteButton = ({
 
   const handleCompleteInspection = async () => {
     if (isCompleting) return;
-    
+
     setIsCompleting(true);
     try {
-      
       const { error } = await supabase
-        .from('inspections')
-        .update({ 
-          status: 'completed',
+        .from("inspections")
+        .update({
+          status: "completed",
           completed: true,
-          end_time: new Date().toISOString()
+          end_time: new Date().toISOString(),
         })
-        .eq('id', inspectionId);
+        .eq("id", inspectionId);
 
       if (error) {
         toast({
@@ -51,7 +49,7 @@ export const InspectionCompleteButton = ({
         title: "Inspection Complete!",
         description: `Inspection submitted with ${passedCount} passed and ${failedCount} failed items.`,
       });
-      
+
       navigate(`/inspection-complete/${inspectionId}`);
     } catch (error) {
       toast({
@@ -72,16 +70,20 @@ export const InspectionCompleteButton = ({
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
       <div className="mb-3 text-center">
         <div className="text-sm text-gray-600">
-          <span className="text-green-600 font-medium">✓ {passedCount} Passed</span>
+          <span className="text-green-600 font-medium">
+            ✓ {passedCount} Passed
+          </span>
           {failedCount > 0 && (
             <>
               <span className="mx-2">•</span>
-              <span className="text-red-600 font-medium">✗ {failedCount} Failed</span>
+              <span className="text-red-600 font-medium">
+                ✗ {failedCount} Failed
+              </span>
             </>
           )}
         </div>
       </div>
-      <Button 
+      <Button
         onClick={handleCompleteInspection}
         disabled={isCompleting}
         className="w-full bg-green-600 hover:bg-green-700 text-white py-3"

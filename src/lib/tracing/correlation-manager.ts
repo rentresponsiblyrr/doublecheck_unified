@@ -1,31 +1,32 @@
 /**
  * @fileoverview Enterprise Correlation Manager
  * Distributed tracing system with correlation IDs for microservices-grade observability
- * 
+ *
  * Features:
  * - Automatic correlation ID generation and propagation
  * - Request context isolation with AsyncLocalStorage
  * - Distributed tracing across service boundaries
  * - Performance timing and metric collection
  * - Memory-efficient trace buffering with sampling
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
 // Browser-compatible implementations
-const performance = globalThis.performance || window.performance || {
-  now: () => Date.now()
-};
+const performance = globalThis.performance ||
+  window.performance || {
+    now: () => Date.now(),
+  };
 
 // Simple context storage for browser (fallback for AsyncLocalStorage)
 class BrowserAsyncLocalStorage<T> {
   private store: T | undefined;
-  
+
   getStore(): T | undefined {
     return this.store;
   }
-  
+
   run<R>(store: T, callback: () => R): R {
     const previousStore = this.store;
     this.store = store;
@@ -57,7 +58,7 @@ export interface CorrelationContext {
 
 export interface TraceLog {
   timestamp: number;
-  level: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+  level: "debug" | "info" | "warn" | "error" | "fatal";
   message: string;
   context: Record<string, unknown>;
   eventType?: string;
@@ -86,7 +87,7 @@ export interface TraceSpan {
   duration?: number;
   tags: Record<string, unknown>;
   logs: TraceLog[];
-  status: 'ok' | 'error' | 'timeout' | 'cancelled';
+  status: "ok" | "error" | "timeout" | "cancelled";
   error?: {
     type: string;
     message: string;
@@ -96,7 +97,8 @@ export interface TraceSpan {
 
 class CorrelationManager {
   private static instance: CorrelationManager;
-  private asyncLocalStorage = new BrowserAsyncLocalStorage<CorrelationContext>();
+  private asyncLocalStorage =
+    new BrowserAsyncLocalStorage<CorrelationContext>();
   private activeSpans = new Map<string, TraceSpan>();
   private completedTraces: TraceSpan[] = [];
   private maxTraceBuffer = 10000;
@@ -129,9 +131,9 @@ class CorrelationManager {
    * Generate a new trace ID (UUID v4 format)
    */
   generateTraceId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -157,11 +159,12 @@ class CorrelationManager {
       ipAddress?: string;
       tags?: Record<string, string | number | boolean>;
       parentContext?: Partial<CorrelationContext>;
-    } = {}
+    } = {},
   ): CorrelationContext {
     const traceId = options.parentContext?.traceId || this.generateTraceId();
     const spanId = this.generateSpanId();
-    const correlationId = options.parentContext?.correlationId || this.generateCorrelationId();
+    const correlationId =
+      options.parentContext?.correlationId || this.generateCorrelationId();
 
     const context: CorrelationContext = {
       correlationId,
@@ -198,7 +201,7 @@ class CorrelationManager {
       startTime: context.startTime,
       tags: { ...context.tags },
       logs: [],
-      status: 'ok',
+      status: "ok",
     };
 
     this.activeSpans.set(spanId, span);
@@ -211,16 +214,16 @@ class CorrelationManager {
    */
   async withCorrelation<T>(
     context: CorrelationContext,
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       this.asyncLocalStorage.run(context, async () => {
         try {
           const result = await operation();
-          this.finishTrace(context, 'ok');
+          this.finishTrace(context, "ok");
           resolve(result);
         } catch (error) {
-          this.finishTrace(context, 'error', error as Error);
+          this.finishTrace(context, "error", error as Error);
           reject(error);
         }
       });
@@ -238,10 +241,10 @@ class CorrelationManager {
    * Add log entry to current trace
    */
   addLog(
-    level: TraceLog['level'],
+    level: TraceLog["level"],
     message: string,
     context: Record<string, unknown> = {},
-    eventType?: string
+    eventType?: string,
   ): void {
     const currentContext = this.getCurrentContext();
     if (!currentContext) return;
@@ -263,10 +266,11 @@ class CorrelationManager {
     }
 
     // Update metrics
-    if (level === 'error') {
+    if (level === "error") {
       currentContext.metrics.errors = (currentContext.metrics.errors || 0) + 1;
-    } else if (level === 'warn') {
-      currentContext.metrics.warnings = (currentContext.metrics.warnings || 0) + 1;
+    } else if (level === "warn") {
+      currentContext.metrics.warnings =
+        (currentContext.metrics.warnings || 0) + 1;
     }
   }
 
@@ -293,7 +297,7 @@ class CorrelationManager {
     const currentContext = this.getCurrentContext();
     if (!currentContext || !this.metricsCollectionEnabled) return;
 
-    const currentValue = currentContext.metrics[metric] as number || 0;
+    const currentValue = (currentContext.metrics[metric] as number) || 0;
     (currentContext.metrics as any)[metric] = currentValue + increment;
   }
 
@@ -304,11 +308,11 @@ class CorrelationManager {
     const currentContext = this.getCurrentContext();
     if (!currentContext || !this.metricsCollectionEnabled) return;
 
-    if (typeof process !== 'undefined' && process.memoryUsage) {
+    if (typeof process !== "undefined" && process.memoryUsage) {
       currentContext.metrics.memoryUsage = process.memoryUsage();
     }
 
-    if (typeof process !== 'undefined' && process.cpuUsage) {
+    if (typeof process !== "undefined" && process.cpuUsage) {
       currentContext.metrics.cpuUsage = process.cpuUsage();
     }
   }
@@ -318,8 +322,8 @@ class CorrelationManager {
    */
   finishTrace(
     context: CorrelationContext,
-    status: TraceSpan['status'] = 'ok',
-    error?: Error
+    status: TraceSpan["status"] = "ok",
+    error?: Error,
   ): void {
     const endTime = performance.now();
     const duration = endTime - context.startTime;
@@ -343,7 +347,7 @@ class CorrelationManager {
 
       // Move to completed traces
       this.activeSpans.delete(context.spanId);
-      
+
       // Apply sampling
       if (Math.random() <= this.samplingRate) {
         this.completedTraces.push(span);
@@ -355,7 +359,10 @@ class CorrelationManager {
   /**
    * Create child span from current context
    */
-  createChildSpan(operationName: string, component: string): CorrelationContext | null {
+  createChildSpan(
+    operationName: string,
+    component: string,
+  ): CorrelationContext | null {
     const parentContext = this.getCurrentContext();
     if (!parentContext) return null;
 
@@ -375,21 +382,25 @@ class CorrelationManager {
     if (!context) return {};
 
     return {
-      'X-Correlation-ID': context.correlationId,
-      'X-Trace-ID': context.traceId,
-      'X-Span-ID': context.spanId,
-      'X-Parent-Span-ID': context.parentSpanId || '',
+      "X-Correlation-ID": context.correlationId,
+      "X-Trace-ID": context.traceId,
+      "X-Span-ID": context.spanId,
+      "X-Parent-Span-ID": context.parentSpanId || "",
     };
   }
 
   /**
    * Extract tracing context from HTTP headers
    */
-  extractFromHeaders(headers: Record<string, string>): Partial<CorrelationContext> | null {
-    const correlationId = headers['x-correlation-id'] || headers['X-Correlation-ID'];
-    const traceId = headers['x-trace-id'] || headers['X-Trace-ID'];
-    const spanId = headers['x-span-id'] || headers['X-Span-ID'];
-    const parentSpanId = headers['x-parent-span-id'] || headers['X-Parent-Span-ID'];
+  extractFromHeaders(
+    headers: Record<string, string>,
+  ): Partial<CorrelationContext> | null {
+    const correlationId =
+      headers["x-correlation-id"] || headers["X-Correlation-ID"];
+    const traceId = headers["x-trace-id"] || headers["X-Trace-ID"];
+    const spanId = headers["x-span-id"] || headers["X-Span-ID"];
+    const parentSpanId =
+      headers["x-parent-span-id"] || headers["X-Parent-Span-ID"];
 
     if (!correlationId || !traceId) return null;
 

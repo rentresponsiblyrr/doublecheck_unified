@@ -1,19 +1,19 @@
 /**
  * ENHANCED PERFORMANCE MONITOR - PRODUCTION-HARDENED VERSION
- * 
+ *
  * Addresses critical memory leak and resource exhaustion issues identified in third-party review:
  * - Memory leak prevention with bounded collections and cleanup
  * - Resource exhaustion protection with circuit breakers
  * - Streaming data processing with constant memory footprint
  * - Real-time monitoring with automatic scaling thresholds
  * - Thread-safe operations with proper synchronization
- * 
+ *
  * @author STR Certified Engineering Team - Hardened Edition
  * @version 2.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
-import { z } from 'zod';
+import { logger } from "@/utils/logger";
+import { z } from "zod";
 
 // Performance Metrics Validation Schema
 const PerformanceMetricsSchema = z.object({
@@ -21,13 +21,15 @@ const PerformanceMetricsSchema = z.object({
   duration: z.number().nonnegative(),
   success: z.boolean(),
   errorType: z.string().optional(),
-  resourcesUsed: z.object({
-    memory: z.number().nonnegative().optional(),
-    cpu: z.number().nonnegative().optional(),
-    network: z.number().nonnegative().optional()
-  }).optional(),
+  resourcesUsed: z
+    .object({
+      memory: z.number().nonnegative().optional(),
+      cpu: z.number().nonnegative().optional(),
+      network: z.number().nonnegative().optional(),
+    })
+    .optional(),
   timestamp: z.number(),
-  userId: z.string().uuid().optional()
+  userId: z.string().uuid().optional(),
 });
 
 // Health Status Schema
@@ -36,7 +38,7 @@ const HealthStatusSchema = z.object({
   score: z.number().min(0).max(100),
   issues: z.array(z.string()),
   lastChecked: z.number(),
-  uptime: z.number().nonnegative()
+  uptime: z.number().nonnegative(),
 });
 
 // Resource Threshold Schema
@@ -44,7 +46,7 @@ const ResourceThresholdSchema = z.object({
   memory: z.number().positive(),
   cpu: z.number().min(0).max(100),
   diskSpace: z.number().positive(),
-  networkLatency: z.number().positive()
+  networkLatency: z.number().positive(),
 });
 
 // ========================================
@@ -66,10 +68,10 @@ export interface HardenedQueryMetrics {
   errorCode?: string;
   userAgent?: string;
   connectionType?: string;
-  memoryBefore: number;  // Memory usage before operation
-  memoryAfter: number;   // Memory usage after operation
-  cpuUsage: number;      // CPU usage during operation
-  retryCount: number;    // Number of retries
+  memoryBefore: number; // Memory usage before operation
+  memoryAfter: number; // Memory usage after operation
+  cpuUsage: number; // CPU usage during operation
+  retryCount: number; // Number of retries
 }
 
 export interface ResourceMetrics {
@@ -112,15 +114,15 @@ export interface CircuitBreakerState {
 // ========================================
 
 const MONITORING_CONFIG = {
-  maxMetricsInMemory: 50000,        // Bounded metrics storage
-  metricsRotationInterval: 60000,    // Rotate metrics every minute
-  resourceSampleInterval: 5000,     // Sample resources every 5 seconds
-  alertCooldownMs: 300000,          // 5 minute cooldown between alerts
-  memoryThresholdMB: 512,           // Memory threshold for alerts
-  cpuThresholdPercent: 80,          // CPU threshold for alerts
-  gcThresholdMs: 100,               // GC pause threshold
-  streamingBatchSize: 1000,         // Process metrics in batches
-  maxConcurrentProcessing: 10,      // Max concurrent metric processing
+  maxMetricsInMemory: 50000, // Bounded metrics storage
+  metricsRotationInterval: 60000, // Rotate metrics every minute
+  resourceSampleInterval: 5000, // Sample resources every 5 seconds
+  alertCooldownMs: 300000, // 5 minute cooldown between alerts
+  memoryThresholdMB: 512, // Memory threshold for alerts
+  cpuThresholdPercent: 80, // CPU threshold for alerts
+  gcThresholdMs: 100, // GC pause threshold
+  streamingBatchSize: 1000, // Process metrics in batches
+  maxConcurrentProcessing: 10, // Max concurrent metric processing
 } as const;
 
 const DEFAULT_THRESHOLDS: AlertThresholds = {
@@ -138,7 +140,7 @@ const DEFAULT_THRESHOLDS: AlertThresholds = {
 
 /**
  * EnhancedPerformanceMonitor - Production-hardened performance tracking
- * 
+ *
  * Features:
  * - Bounded memory usage with automatic cleanup
  * - Stream processing of metrics to prevent memory accumulation
@@ -153,34 +155,37 @@ export class EnhancedPerformanceMonitor {
   private circuitBreakers = new Map<string, CircuitBreakerState>();
   private lastAlerts = new Map<string, number>();
   private processingQueue: HardenedQueryMetrics[] = [];
-  
+
   // Resource monitoring
   private resourceTimer?: NodeJS.Timeout;
   private cleanupTimer?: NodeJS.Timeout;
   private processingTimer?: NodeJS.Timeout;
   private destroyed = false;
-  
+
   // Concurrency control
   private readonly processingLock = new Set<string>();
   private activeProcessing = 0;
-  
+
   // Memory tracking
   private startMemory: number;
   private peakMemory = 0;
   private gcWatcher?: PerformanceObserver;
-  
+
   // Statistics with bounded memory
-  private serviceStats = new Map<string, {
-    totalQueries: number;
-    totalDuration: number;
-    errorCount: number;
-    lastReset: number;
-  }>();
+  private serviceStats = new Map<
+    string,
+    {
+      totalQueries: number;
+      totalDuration: number;
+      errorCount: number;
+      lastReset: number;
+    }
+  >();
 
   constructor(thresholds: Partial<AlertThresholds> = {}) {
     this.alertThresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
     this.startMemory = this.getCurrentMemoryUsage().heapUsed;
-    
+
     this.initializeHardenedMonitoring();
     this.startResourceMonitoring();
     this.startBackgroundProcessing();
@@ -194,13 +199,23 @@ export class EnhancedPerformanceMonitor {
   /**
    * Track query with bounded memory and resource monitoring
    */
-  trackQuery(rawMetrics: Omit<HardenedQueryMetrics, 'queryId' | 'duration' | 'memoryBefore' | 'memoryAfter' | 'cpuUsage' | 'retryCount'>): void {
+  trackQuery(
+    rawMetrics: Omit<
+      HardenedQueryMetrics,
+      | "queryId"
+      | "duration"
+      | "memoryBefore"
+      | "memoryAfter"
+      | "cpuUsage"
+      | "retryCount"
+    >,
+  ): void {
     if (this.destroyed) return;
 
     // Check circuit breaker
     const serviceKey = `${rawMetrics.service}:${rawMetrics.operation}`;
     if (this.isCircuitOpen(serviceKey)) {
-      logger.warn('Circuit breaker open, rejecting metric', { serviceKey });
+      logger.warn("Circuit breaker open, rejecting metric", { serviceKey });
       return;
     }
 
@@ -220,7 +235,7 @@ export class EnhancedPerformanceMonitor {
 
     // Add to processing queue instead of direct processing to prevent blocking
     this.processingQueue.push(metrics);
-    
+
     // Trigger background processing if queue is getting large
     if (this.processingQueue.length > MONITORING_CONFIG.streamingBatchSize) {
       this.processMetricsQueue();
@@ -228,7 +243,7 @@ export class EnhancedPerformanceMonitor {
 
     // Update circuit breaker
     this.updateCircuitBreaker(serviceKey, metrics.success);
-    
+
     // Check for immediate alerts
     this.checkImmediateThresholds(metrics);
   }
@@ -237,8 +252,10 @@ export class EnhancedPerformanceMonitor {
    * Stream-process metrics queue with memory bounds
    */
   private async processMetricsQueue(): Promise<void> {
-    if (this.activeProcessing >= MONITORING_CONFIG.maxConcurrentProcessing || 
-        this.processingQueue.length === 0) {
+    if (
+      this.activeProcessing >= MONITORING_CONFIG.maxConcurrentProcessing ||
+      this.processingQueue.length === 0
+    ) {
       return;
     }
 
@@ -248,22 +265,23 @@ export class EnhancedPerformanceMonitor {
       // Process in batches to prevent memory spikes
       const batchSize = Math.min(
         MONITORING_CONFIG.streamingBatchSize,
-        this.processingQueue.length
+        this.processingQueue.length,
       );
-      
+
       const batch = this.processingQueue.splice(0, batchSize);
-      
+
       // Process batch without blocking
       await this.processBatchAsync(batch);
-      
     } catch (error) {
-      logger.error('Metrics processing error', { error });
+      logger.error("Metrics processing error", { error });
     } finally {
       this.activeProcessing--;
     }
   }
 
-  private async processBatchAsync(batch: HardenedQueryMetrics[]): Promise<void> {
+  private async processBatchAsync(
+    batch: HardenedQueryMetrics[],
+  ): Promise<void> {
     return new Promise((resolve) => {
       // Use setImmediate to prevent blocking the main thread
       setImmediate(() => {
@@ -273,7 +291,7 @@ export class EnhancedPerformanceMonitor {
           }
           resolve();
         } catch (error) {
-          logger.error('Batch processing error', { error });
+          logger.error("Batch processing error", { error });
           resolve();
         }
       });
@@ -286,15 +304,15 @@ export class EnhancedPerformanceMonitor {
       if (this.metrics.size >= MONITORING_CONFIG.maxMetricsInMemory) {
         this.rotateMetrics();
       }
-      
+
       this.metrics.set(metrics.queryId, metrics);
-      
+
       // Update bounded service statistics
       this.updateServiceStatsBounded(metrics);
-      
+
       // Log significant events
       if (metrics.duration > this.alertThresholds.maxResponseTimeMs) {
-        logger.warn('Slow query detected', {
+        logger.warn("Slow query detected", {
           queryId: metrics.queryId,
           service: metrics.service,
           operation: metrics.operation,
@@ -302,14 +320,16 @@ export class EnhancedPerformanceMonitor {
           memoryImpact: metrics.memoryAfter - metrics.memoryBefore,
         });
       }
-      
+
       // Track peak memory
       if (metrics.memoryAfter > this.peakMemory) {
         this.peakMemory = metrics.memoryAfter;
       }
-      
     } catch (error) {
-      logger.error('Metric processing error', { error, queryId: metrics.queryId });
+      logger.error("Metric processing error", {
+        error,
+        queryId: metrics.queryId,
+      });
     }
   }
 
@@ -323,23 +343,23 @@ export class EnhancedPerformanceMonitor {
     // Remove oldest 25% of metrics to make room
     const metricsArray = Array.from(this.metrics.entries());
     metricsArray.sort((a, b) => a[1].startTime - b[1].startTime);
-    
+
     const removeCount = Math.floor(metricsArray.length * 0.25);
     for (let i = 0; i < removeCount; i++) {
       this.metrics.delete(metricsArray[i][0]);
     }
 
-    logger.debug('Metrics rotated', { 
-      removed: removeCount, 
+    logger.debug("Metrics rotated", {
+      removed: removeCount,
       remaining: this.metrics.size,
-      memoryUsage: this.getCurrentMemoryUsage().heapUsed
+      memoryUsage: this.getCurrentMemoryUsage().heapUsed,
     });
   }
 
   private updateServiceStatsBounded(metrics: HardenedQueryMetrics): void {
     const serviceKey = metrics.service;
     const now = Date.now();
-    
+
     let stats = this.serviceStats.get(serviceKey);
     if (!stats) {
       stats = {
@@ -350,15 +370,16 @@ export class EnhancedPerformanceMonitor {
       };
       this.serviceStats.set(serviceKey, stats);
     }
-    
+
     // Reset stats if they're too old (prevent unbounded growth)
-    if (now - stats.lastReset > 3600000) { // 1 hour
+    if (now - stats.lastReset > 3600000) {
+      // 1 hour
       stats.totalQueries = 0;
       stats.totalDuration = 0;
       stats.errorCount = 0;
       stats.lastReset = now;
     }
-    
+
     stats.totalQueries++;
     stats.totalDuration += metrics.duration;
     if (!metrics.success) {
@@ -392,45 +413,48 @@ export class EnhancedPerformanceMonitor {
 
       // Bounded resource history
       this.resourceHistory.push(resourceMetrics);
-      if (this.resourceHistory.length > 720) { // Keep 1 hour of 5s samples
+      if (this.resourceHistory.length > 720) {
+        // Keep 1 hour of 5s samples
         this.resourceHistory.shift();
       }
 
       // Check resource thresholds
       this.checkResourceThresholds(resourceMetrics);
-      
     } catch (error) {
-      logger.error('Resource sampling error', { error });
+      logger.error("Resource sampling error", { error });
     }
   }
 
   private checkResourceThresholds(metrics: ResourceMetrics): void {
     const memoryMB = metrics.memoryUsage.heapUsed / (1024 * 1024);
-    
+
     // Memory threshold check
     if (memoryMB > this.alertThresholds.maxMemoryMB) {
-      this.sendAlert('memory_high', {
+      this.sendAlert("memory_high", {
         current: memoryMB,
         threshold: this.alertThresholds.maxMemoryMB,
-        recommendation: 'Consider increasing heap size or optimizing memory usage',
+        recommendation:
+          "Consider increasing heap size or optimizing memory usage",
       });
     }
-    
+
     // CPU threshold check
     if (metrics.cpuUsage > this.alertThresholds.maxCpuPercent) {
-      this.sendAlert('cpu_high', {
+      this.sendAlert("cpu_high", {
         current: metrics.cpuUsage,
         threshold: this.alertThresholds.maxCpuPercent,
-        recommendation: 'Consider scaling up or optimizing CPU-intensive operations',
+        recommendation:
+          "Consider scaling up or optimizing CPU-intensive operations",
       });
     }
-    
+
     // GC pause threshold check
     if (metrics.gcStats.pauseTime > MONITORING_CONFIG.gcThresholdMs) {
-      this.sendAlert('gc_pause_high', {
+      this.sendAlert("gc_pause_high", {
         current: metrics.gcStats.pauseTime,
         threshold: MONITORING_CONFIG.gcThresholdMs,
-        recommendation: 'Consider tuning garbage collection or reducing memory allocation',
+        recommendation:
+          "Consider tuning garbage collection or reducing memory allocation",
       });
     }
   }
@@ -438,13 +462,14 @@ export class EnhancedPerformanceMonitor {
   private checkImmediateThresholds(metrics: HardenedQueryMetrics): void {
     // Memory leak detection
     const memoryGrowth = metrics.memoryAfter - metrics.memoryBefore;
-    if (memoryGrowth > 10 * 1024 * 1024) { // 10MB growth in single operation
-      this.sendAlert('memory_leak_suspected', {
+    if (memoryGrowth > 10 * 1024 * 1024) {
+      // 10MB growth in single operation
+      this.sendAlert("memory_leak_suspected", {
         queryId: metrics.queryId,
         service: metrics.service,
         operation: metrics.operation,
         memoryGrowth,
-        recommendation: 'Investigate potential memory leak in this operation',
+        recommendation: "Investigate potential memory leak in this operation",
       });
     }
   }
@@ -456,16 +481,16 @@ export class EnhancedPerformanceMonitor {
   private isCircuitOpen(serviceKey: string): boolean {
     const state = this.circuitBreakers.get(serviceKey);
     if (!state) return false;
-    
+
     if (!state.isOpen) return false;
-    
+
     // Check if circuit should be closed (half-open state)
     if (state.nextRetryTime && Date.now() > state.nextRetryTime) {
       state.isOpen = false;
       state.successCount = 0;
-      logger.info('Circuit breaker half-open', { serviceKey });
+      logger.info("Circuit breaker half-open", { serviceKey });
     }
-    
+
     return state.isOpen;
   }
 
@@ -479,7 +504,7 @@ export class EnhancedPerformanceMonitor {
       };
       this.circuitBreakers.set(serviceKey, state);
     }
-    
+
     if (success) {
       state.successCount++;
       if (state.successCount >= 5) {
@@ -493,16 +518,16 @@ export class EnhancedPerformanceMonitor {
       state.failures++;
       state.successCount = 0;
       state.lastFailure = Date.now();
-      
+
       // Open circuit after 5 failures
       if (state.failures >= 5) {
         state.isOpen = true;
         state.nextRetryTime = Date.now() + 60000; // 1 minute
-        
-        this.sendAlert('circuit_breaker_open', {
+
+        this.sendAlert("circuit_breaker_open", {
           serviceKey,
           failures: state.failures,
-          recommendation: 'Service is experiencing high failure rate',
+          recommendation: "Service is experiencing high failure rate",
         });
       }
     }
@@ -515,42 +540,42 @@ export class EnhancedPerformanceMonitor {
   private sendAlert(alertType: string, data: any): void {
     const now = Date.now();
     const lastAlert = this.lastAlerts.get(alertType);
-    
+
     // Alert cooldown to prevent spam
-    if (lastAlert && (now - lastAlert) < MONITORING_CONFIG.alertCooldownMs) {
+    if (lastAlert && now - lastAlert < MONITORING_CONFIG.alertCooldownMs) {
       return;
     }
-    
+
     this.lastAlerts.set(alertType, now);
-    
+
     const alert = {
       type: alertType,
       timestamp: new Date().toISOString(),
       severity: this.getAlertSeverity(alertType),
       data,
-      service: 'EnhancedPerformanceMonitor',
+      service: "EnhancedPerformanceMonitor",
     };
-    
+
     // Log alert
-    if (alert.severity === 'critical') {
+    if (alert.severity === "critical") {
       logger.error(`Performance Alert: ${alertType}`, alert);
-    } else if (alert.severity === 'warning') {
+    } else if (alert.severity === "warning") {
       logger.warn(`Performance Alert: ${alertType}`, alert);
     } else {
       logger.info(`Performance Alert: ${alertType}`, alert);
     }
-    
+
     // Could integrate with external alerting systems here
     // e.g., Slack, PagerDuty, email notifications
   }
 
-  private getAlertSeverity(alertType: string): 'critical' | 'warning' | 'info' {
-    const criticalAlerts = ['memory_leak_suspected', 'circuit_breaker_open'];
-    const warningAlerts = ['memory_high', 'cpu_high', 'gc_pause_high'];
-    
-    if (criticalAlerts.includes(alertType)) return 'critical';
-    if (warningAlerts.includes(alertType)) return 'warning';
-    return 'info';
+  private getAlertSeverity(alertType: string): "critical" | "warning" | "info" {
+    const criticalAlerts = ["memory_leak_suspected", "circuit_breaker_open"];
+    const warningAlerts = ["memory_high", "cpu_high", "gc_pause_high"];
+
+    if (criticalAlerts.includes(alertType)) return "critical";
+    if (warningAlerts.includes(alertType)) return "warning";
+    return "info";
   }
 
   // ========================================
@@ -564,7 +589,7 @@ export class EnhancedPerformanceMonitor {
         this.processMetricsQueue();
       }
     }, 100); // Process every 100ms
-    
+
     // Cleanup old data periodically
     this.cleanupTimer = setInterval(() => {
       if (!this.destroyed) {
@@ -576,49 +601,52 @@ export class EnhancedPerformanceMonitor {
   private performCleanup(): void {
     try {
       const startTime = performance.now();
-      
+
       // Cleanup expired circuit breakers
       const now = Date.now();
       for (const [key, state] of this.circuitBreakers.entries()) {
-        if (state.lastFailure && (now - state.lastFailure) > 3600000) { // 1 hour
+        if (state.lastFailure && now - state.lastFailure > 3600000) {
+          // 1 hour
           this.circuitBreakers.delete(key);
         }
       }
-      
+
       // Cleanup old service stats
       for (const [key, stats] of this.serviceStats.entries()) {
-        if ((now - stats.lastReset) > 7200000) { // 2 hours
+        if (now - stats.lastReset > 7200000) {
+          // 2 hours
           this.serviceStats.delete(key);
         }
       }
-      
+
       // Force garbage collection if available
       if (global.gc && this.shouldForceGC()) {
         global.gc();
-        logger.debug('Forced garbage collection');
+        logger.debug("Forced garbage collection");
       }
-      
+
       const duration = performance.now() - startTime;
-      logger.debug('Cleanup completed', { 
+      logger.debug("Cleanup completed", {
         duration,
         circuitBreakers: this.circuitBreakers.size,
         serviceStats: this.serviceStats.size,
         metrics: this.metrics.size,
         processingQueue: this.processingQueue.length,
       });
-      
     } catch (error) {
-      logger.error('Cleanup error', { error });
+      logger.error("Cleanup error", { error });
     }
   }
 
   private shouldForceGC(): boolean {
     const memoryUsage = this.getCurrentMemoryUsage();
     const memoryMB = memoryUsage.heapUsed / (1024 * 1024);
-    
+
     // Force GC if memory usage is high and growing
-    return memoryMB > MONITORING_CONFIG.memoryThresholdMB && 
-           memoryUsage.heapUsed > this.peakMemory * 0.9;
+    return (
+      memoryMB > MONITORING_CONFIG.memoryThresholdMB &&
+      memoryUsage.heapUsed > this.peakMemory * 0.9
+    );
   }
 
   // ========================================
@@ -626,13 +654,13 @@ export class EnhancedPerformanceMonitor {
   // ========================================
 
   private setupGCMonitoring(): void {
-    if (typeof PerformanceObserver === 'undefined') return;
-    
+    if (typeof PerformanceObserver === "undefined") return;
+
     try {
       this.gcWatcher = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (entry.entryType === 'gc') {
-            logger.debug('GC event', {
+          if (entry.entryType === "gc") {
+            logger.debug("GC event", {
               kind: (entry as any).kind,
               duration: entry.duration,
               startTime: entry.startTime,
@@ -640,10 +668,10 @@ export class EnhancedPerformanceMonitor {
           }
         }
       });
-      
-      this.gcWatcher.observe({ entryTypes: ['gc'] });
+
+      this.gcWatcher.observe({ entryTypes: ["gc"] });
     } catch (error) {
-      logger.debug('GC monitoring not available', { error });
+      logger.debug("GC monitoring not available", { error });
     }
   }
 
@@ -651,11 +679,11 @@ export class EnhancedPerformanceMonitor {
   // SYSTEM METRICS UTILITIES
   // ========================================
 
-  private getCurrentMemoryUsage(): ResourceMetrics['memoryUsage'] {
-    if (typeof process !== 'undefined' && process.memoryUsage) {
+  private getCurrentMemoryUsage(): ResourceMetrics["memoryUsage"] {
+    if (typeof process !== "undefined" && process.memoryUsage) {
       return process.memoryUsage();
     }
-    
+
     // Fallback for browser environment
     return {
       heapUsed: (performance as any).memory?.usedJSHeapSize || 0,
@@ -666,11 +694,11 @@ export class EnhancedPerformanceMonitor {
   }
 
   private getCurrentCpuUsage(): number {
-    if (typeof process !== 'undefined' && process.cpuUsage) {
+    if (typeof process !== "undefined" && process.cpuUsage) {
       const usage = process.cpuUsage();
       return (usage.user + usage.system) / 1000; // Convert to milliseconds
     }
-    
+
     return 0; // Not available in browser
   }
 
@@ -684,7 +712,7 @@ export class EnhancedPerformanceMonitor {
     return 0;
   }
 
-  private getGCStats(): ResourceMetrics['gcStats'] {
+  private getGCStats(): ResourceMetrics["gcStats"] {
     // Simple placeholder - would be more sophisticated in production
     return {
       collections: 0,
@@ -709,17 +737,20 @@ export class EnhancedPerformanceMonitor {
     processingQueueLength: number;
   } {
     const recentMetrics = Array.from(this.metrics.values())
-      .filter(m => Date.now() - m.endTime < 60000) // Last minute
+      .filter((m) => Date.now() - m.endTime < 60000) // Last minute
       .slice(-1000); // Limit to prevent memory issues
-    
+
     const totalQueries = recentMetrics.length;
-    const errors = recentMetrics.filter(m => !m.success).length;
+    const errors = recentMetrics.filter((m) => !m.success).length;
     const totalDuration = recentMetrics.reduce((sum, m) => sum + m.duration, 0);
-    const openCircuitBreakers = Array.from(this.circuitBreakers.values())
-      .filter(state => state.isOpen).length;
-    
+    const openCircuitBreakers = Array.from(
+      this.circuitBreakers.values(),
+    ).filter((state) => state.isOpen).length;
+
     return {
-      currentMemoryMB: Math.round(this.getCurrentMemoryUsage().heapUsed / (1024 * 1024)),
+      currentMemoryMB: Math.round(
+        this.getCurrentMemoryUsage().heapUsed / (1024 * 1024),
+      ),
       peakMemoryMB: Math.round(this.peakMemory / (1024 * 1024)),
       activeQueries: this.metrics.size,
       averageResponseTime: totalQueries > 0 ? totalDuration / totalQueries : 0,
@@ -742,12 +773,13 @@ export class EnhancedPerformanceMonitor {
     maxMetrics: number;
   } {
     const memoryUsageMB = this.getCurrentMemoryUsage().heapUsed / (1024 * 1024);
-    
+
     return {
-      healthy: !this.destroyed && 
-               memoryUsageMB < this.alertThresholds.maxMemoryMB &&
-               this.activeProcessing < MONITORING_CONFIG.maxConcurrentProcessing &&
-               this.metrics.size < MONITORING_CONFIG.maxMetricsInMemory,
+      healthy:
+        !this.destroyed &&
+        memoryUsageMB < this.alertThresholds.maxMemoryMB &&
+        this.activeProcessing < MONITORING_CONFIG.maxConcurrentProcessing &&
+        this.metrics.size < MONITORING_CONFIG.maxMetricsInMemory,
       memoryUsageMB: Math.round(memoryUsageMB),
       memoryThresholdMB: this.alertThresholds.maxMemoryMB,
       activeProcessing: this.activeProcessing,
@@ -768,7 +800,7 @@ export class EnhancedPerformanceMonitor {
   }
 
   private initializeHardenedMonitoring(): void {
-    logger.info('Enhanced PerformanceMonitor initialized', {
+    logger.info("Enhanced PerformanceMonitor initialized", {
       maxMetrics: MONITORING_CONFIG.maxMetricsInMemory,
       memoryThresholdMB: this.alertThresholds.maxMemoryMB,
       initialMemoryMB: Math.round(this.startMemory / (1024 * 1024)),
@@ -784,53 +816,55 @@ export class EnhancedPerformanceMonitor {
    */
   destroy(): void {
     if (this.destroyed) return;
-    
+
     this.destroyed = true;
-    
-    logger.info('Destroying Enhanced PerformanceMonitor...');
-    
+
+    logger.info("Destroying Enhanced PerformanceMonitor...");
+
     // Stop timers
     if (this.resourceTimer) {
       clearInterval(this.resourceTimer);
       this.resourceTimer = undefined;
     }
-    
+
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
       this.cleanupTimer = undefined;
     }
-    
+
     if (this.processingTimer) {
       clearInterval(this.processingTimer);
       this.processingTimer = undefined;
     }
-    
+
     // Stop GC monitoring
     if (this.gcWatcher) {
       this.gcWatcher.disconnect();
       this.gcWatcher = undefined;
     }
-    
+
     // Process remaining queue
     const remainingItems = this.processingQueue.length;
     if (remainingItems > 0) {
       logger.info(`Processing ${remainingItems} remaining metrics...`);
-      
+
       // Process synchronously for cleanup
       for (const metrics of this.processingQueue) {
         this.processMetricsSafely(metrics);
       }
     }
-    
+
     // Clear all data
     const finalStats = {
       totalMetrics: this.metrics.size,
       peakMemoryMB: Math.round(this.peakMemory / (1024 * 1024)),
-      finalMemoryMB: Math.round(this.getCurrentMemoryUsage().heapUsed / (1024 * 1024)),
+      finalMemoryMB: Math.round(
+        this.getCurrentMemoryUsage().heapUsed / (1024 * 1024),
+      ),
       circuitBreakers: this.circuitBreakers.size,
       serviceStats: this.serviceStats.size,
     };
-    
+
     this.metrics.clear();
     this.resourceHistory.length = 0;
     this.circuitBreakers.clear();
@@ -838,8 +872,8 @@ export class EnhancedPerformanceMonitor {
     this.processingQueue.length = 0;
     this.lastAlerts.clear();
     this.processingLock.clear();
-    
-    logger.info('Enhanced PerformanceMonitor destroyed', finalStats);
+
+    logger.info("Enhanced PerformanceMonitor destroyed", finalStats);
   }
 }
 

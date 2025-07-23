@@ -1,6 +1,12 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Building2,
   Users,
@@ -15,9 +21,9 @@ import {
   CheckCircle,
   Clock,
   ArrowUpRight,
-  ArrowDownRight
-} from 'lucide-react';
-import { BusinessKPIs } from './types';
+  ArrowDownRight,
+} from "lucide-react";
+import { BusinessKPIs } from "./types";
 
 interface KPICardsProps {
   kpis: BusinessKPIs;
@@ -25,9 +31,9 @@ interface KPICardsProps {
 
 export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -45,15 +51,22 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
   };
 
   return (
-    <div id="kpi-cards-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div
+      id="kpi-cards-grid"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+    >
       {/* Properties KPI */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Total Properties
+          </CardTitle>
           <Building2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{kpis.totalProperties.toLocaleString()}</div>
+          <div className="text-2xl font-bold">
+            {kpis.totalProperties.toLocaleString()}
+          </div>
           <p className="text-xs text-muted-foreground">Properties in system</p>
         </CardContent>
       </Card>
@@ -65,7 +78,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{kpis.totalInspections.toLocaleString()}</div>
+          <div className="text-2xl font-bold">
+            {kpis.totalInspections.toLocaleString()}
+          </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             {getTrendIcon(kpis.growthRate)}
             <span>{formatPercentage(kpis.growthRate)} vs last month</span>
@@ -80,7 +95,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(kpis.monthlyRevenue)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(kpis.monthlyRevenue)}
+          </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             {getTrendIcon(kpis.growthRate)}
             <span>+{formatPercentage(Math.abs(kpis.growthRate))} growth</span>
@@ -95,7 +112,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatPercentage(kpis.completionRate)}</div>
+          <div className="text-2xl font-bold">
+            {formatPercentage(kpis.completionRate)}
+          </div>
           <p className="text-xs text-muted-foreground">Inspections completed</p>
         </CardContent>
       </Card>
@@ -107,8 +126,13 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
           <Brain className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatPercentage(kpis.aiAccuracy)}</div>
-          <Badge variant={kpis.aiAccuracy >= 90 ? "default" : "secondary"} className="text-xs">
+          <div className="text-2xl font-bold">
+            {formatPercentage(kpis.aiAccuracy)}
+          </div>
+          <Badge
+            variant={kpis.aiAccuracy >= 90 ? "default" : "secondary"}
+            className="text-xs"
+          >
             {kpis.aiAccuracy >= 90 ? "Excellent" : "Good"}
           </Badge>
         </CardContent>
@@ -121,7 +145,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{kpis.customerSatisfaction.toFixed(1)}/5</div>
+          <div className="text-2xl font-bold">
+            {kpis.customerSatisfaction.toFixed(1)}/5
+          </div>
           <p className="text-xs text-muted-foreground">Average rating</p>
         </CardContent>
       </Card>
@@ -129,7 +155,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
       {/* Active Inspectors KPI */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Inspectors</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Active Inspectors
+          </CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

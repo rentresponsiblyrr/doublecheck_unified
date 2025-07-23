@@ -1,22 +1,22 @@
-import React, { useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Bell, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
+import React, { useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Bell,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
   Clock,
   Eye,
-  X
-} from 'lucide-react';
+  X,
+} from "lucide-react";
 
 interface SecurityAlert {
   id: string;
-  type: 'system' | 'threat' | 'performance' | 'maintenance';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "system" | "threat" | "performance" | "maintenance";
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   message: string;
   timestamp: Date;
@@ -40,38 +40,55 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
   isLoading,
   onAcknowledge,
   onDismiss,
-  onAlertAction
+  onAlertAction,
 }) => {
-  const unacknowledgedAlerts = alerts.filter(alert => !alert.acknowledged);
-  const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
+  const unacknowledgedAlerts = alerts.filter((alert) => !alert.acknowledged);
+  const criticalAlerts = alerts.filter(
+    (alert) => alert.severity === "critical",
+  );
 
   const getSeverityIcon = useCallback((severity: string) => {
     switch (severity) {
-      case 'critical': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'high': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      case 'medium': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'low': return <CheckCircle className="h-4 w-4 text-blue-500" />;
-      default: return <Bell className="h-4 w-4 text-gray-500" />;
+      case "critical":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case "high":
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case "medium":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case "low":
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
     }
   }, []);
 
   const getSeverityColor = useCallback((severity: string) => {
     switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'outline';
-      case 'low': return 'secondary';
-      default: return 'secondary';
+      case "critical":
+        return "destructive";
+      case "high":
+        return "destructive";
+      case "medium":
+        return "outline";
+      case "low":
+        return "secondary";
+      default:
+        return "secondary";
     }
   }, []);
 
   const getTypeColor = useCallback((type: string) => {
     switch (type) {
-      case 'threat': return 'text-red-600';
-      case 'system': return 'text-blue-600';
-      case 'performance': return 'text-orange-600';
-      case 'maintenance': return 'text-green-600';
-      default: return 'text-gray-600';
+      case "threat":
+        return "text-red-600";
+      case "system":
+        return "text-blue-600";
+      case "performance":
+        return "text-orange-600";
+      case "maintenance":
+        return "text-green-600";
+      default:
+        return "text-gray-600";
     }
   }, []);
 
@@ -99,18 +116,23 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
               <Badge variant="destructive">{unacknowledgedAlerts.length}</Badge>
             )}
           </CardTitle>
-          
+
           {criticalAlerts.length > 0 && (
-            <Alert variant="destructive" className="py-2 px-3 border-2" id="critical-alerts-banner">
+            <Alert
+              variant="destructive"
+              className="py-2 px-3 border-2"
+              id="critical-alerts-banner"
+            >
               <XCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
-                {criticalAlerts.length} critical alerts require immediate attention
+                {criticalAlerts.length} critical alerts require immediate
+                attention
               </AlertDescription>
             </Alert>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="space-y-3" id="alerts-list">
           {alerts.length === 0 ? (
@@ -123,8 +145,10 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
               <div
                 key={alert.id}
                 className={`p-4 border rounded-lg transition-colors ${
-                  alert.acknowledged ? 'bg-muted/30' : 'bg-background hover:bg-muted/50'
-                } ${alert.severity === 'critical' ? 'border-red-300' : 'border-border'}`}
+                  alert.acknowledged
+                    ? "bg-muted/30"
+                    : "bg-background hover:bg-muted/50"
+                } ${alert.severity === "critical" ? "border-red-300" : "border-border"}`}
                 id={`alert-${alert.id}`}
               >
                 <div className="flex items-start justify-between">
@@ -136,7 +160,10 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                         <Badge variant={getSeverityColor(alert.severity)}>
                           {alert.severity}
                         </Badge>
-                        <Badge variant="outline" className={getTypeColor(alert.type)}>
+                        <Badge
+                          variant="outline"
+                          className={getTypeColor(alert.type)}
+                        >
                           {alert.type}
                         </Badge>
                         {alert.acknowledged && (
@@ -146,7 +173,9 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{alert.message}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {alert.message}
+                      </p>
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                         <span className="flex items-center space-x-1">
                           <Clock className="h-3 w-3" />
@@ -155,7 +184,7 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -166,7 +195,7 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                       <Eye className="h-4 w-4 mr-1" />
                       View Details
                     </Button>
-                    
+
                     {!alert.acknowledged && (
                       <Button
                         variant="outline"
@@ -178,7 +207,7 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                         Acknowledge
                       </Button>
                     )}
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -189,11 +218,13 @@ export const SecurityAlertsManager: React.FC<SecurityAlertsManagerProps> = ({
                     </Button>
                   </div>
                 </div>
-                
+
                 {alert.actions && alert.actions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-muted">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">Quick Actions:</span>
+                      <span className="text-sm font-medium">
+                        Quick Actions:
+                      </span>
                       {alert.actions.map((action, index) => (
                         <Button
                           key={index}

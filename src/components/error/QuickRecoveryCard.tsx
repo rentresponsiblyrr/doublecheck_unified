@@ -3,11 +3,11 @@
  * Extracted from MobileErrorRecovery.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface QuickRecoveryCardProps {
   isRecovering: boolean;
@@ -16,7 +16,7 @@ interface QuickRecoveryCardProps {
 
 export const QuickRecoveryCard: React.FC<QuickRecoveryCardProps> = ({
   isRecovering,
-  onAutoRecovery
+  onAutoRecovery,
 }) => {
   return (
     <Card className="mb-6">
@@ -24,7 +24,7 @@ export const QuickRecoveryCard: React.FC<QuickRecoveryCardProps> = ({
         <CardTitle className="text-sm">Quick Recovery</CardTitle>
       </CardHeader>
       <CardContent>
-        <Button 
+        <Button
           onClick={onAutoRecovery}
           disabled={isRecovering}
           className="w-full"

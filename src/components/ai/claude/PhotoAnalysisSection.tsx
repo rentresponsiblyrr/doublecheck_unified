@@ -1,21 +1,24 @@
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Camera, Upload } from 'lucide-react';
-import { createClaudeService, ClaudeAnalysisRequest } from '@/lib/ai/claude-service';
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Camera, Upload } from "lucide-react";
+import {
+  createClaudeService,
+  ClaudeAnalysisRequest,
+} from "@/lib/ai/claude-service";
 
 interface ClaudeAnalysisResult {
   confidence: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
     description: string;
     location?: string;
     suggestions: string[];
   }>;
   recommendations: string[];
   processingTime: number;
-  status: 'success' | 'error' | 'processing';
+  status: "success" | "error" | "processing";
 }
 
 interface PhotoAnalysisSectionProps {
@@ -37,7 +40,7 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
   result,
   onAnalysisStart,
   onAnalysisComplete,
-  onError
+  onError,
 }) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -45,12 +48,12 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
   const claudeService = createClaudeService();
 
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      onError('Please select a valid image file');
+    if (!file.type.startsWith("image/")) {
+      onError("Please select a valid image file");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      onError('Image file must be less than 10MB');
+      onError("Image file must be less than 10MB");
       return;
     }
     setImageFile(file);
@@ -58,7 +61,7 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
 
   const handlePhotoAnalysis = useCallback(async () => {
     if (!imageFile) {
-      onError('Please select an image file');
+      onError("Please select an image file");
       return;
     }
 
@@ -68,16 +71,17 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64 = e.target?.result as string;
-        
+
         const request: ClaudeAnalysisRequest = {
           imageBase64: base64,
-          prompt: 'Analyze this property inspection photo for compliance and safety issues',
+          prompt:
+            "Analyze this property inspection photo for compliance and safety issues",
           inspectionId,
           checklistItemId,
           context: {
-            propertyType: 'vacation_rental',
-            inspectionType: 'safety_compliance'
-          }
+            propertyType: "vacation_rental",
+            inspectionType: "safety_compliance",
+          },
         };
 
         const response = await claudeService.analyzeInspectionPhoto(request);
@@ -85,9 +89,17 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
       };
       reader.readAsDataURL(imageFile);
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Photo analysis failed');
+      onError(err instanceof Error ? err.message : "Photo analysis failed");
     }
-  }, [imageFile, inspectionId, checklistItemId, claudeService, onAnalysisStart, onAnalysisComplete, onError]);
+  }, [
+    imageFile,
+    inspectionId,
+    checklistItemId,
+    claudeService,
+    onAnalysisStart,
+    onAnalysisComplete,
+    onError,
+  ]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -108,10 +120,15 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
         <CardContent id="photo-upload-content">
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragOver ? 'border-primary bg-primary/10' : 'border-muted-foreground'
+              dragOver
+                ? "border-primary bg-primary/10"
+                : "border-muted-foreground"
             }`}
             onDrop={handleDrop}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
             onDragLeave={() => setDragOver(false)}
             id="photo-drop-zone"
           >
@@ -136,7 +153,9 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+              onChange={(e) =>
+                e.target.files?.[0] && handleFileSelect(e.target.files[0])
+              }
               className="hidden"
               id="photo-file-input"
             />
@@ -144,13 +163,15 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
               variant="outline"
               size="sm"
               className="mt-2"
-              onClick={() => document.getElementById('photo-file-input')?.click()}
+              onClick={() =>
+                document.getElementById("photo-file-input")?.click()
+              }
               id="select-photo-button"
             >
               Select Photo
             </Button>
           </div>
-          
+
           <Button
             onClick={handlePhotoAnalysis}
             disabled={!imageFile || isLoading}
@@ -163,7 +184,7 @@ export const PhotoAnalysisSection: React.FC<PhotoAnalysisSectionProps> = ({
                 Analyzing...
               </>
             ) : (
-              'Analyze Photo'
+              "Analyze Photo"
             )}
           </Button>
         </CardContent>

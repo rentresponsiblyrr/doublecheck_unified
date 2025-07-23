@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 import { InspectionHeader } from "@/components/InspectionHeader";
 import { ChecklistItemType } from "@/types/inspection";
@@ -21,9 +20,11 @@ export const InspectionLayout = ({
   onToggleCompleted,
   children,
   currentItemIndex = 0,
-  onNavigateToItem
+  onNavigateToItem,
 }: InspectionLayoutProps) => {
-  const completedCount = checklistItems.filter(item => item.status === 'completed').length;
+  const completedCount = checklistItems.filter(
+    (item) => item.status === "completed",
+  ).length;
   const totalCount = checklistItems.length;
 
   // Keyboard navigation for accessibility
@@ -38,14 +39,14 @@ export const InspectionLayout = ({
         onNavigateToItem(currentItemIndex + 1);
       }
     },
-    enabled: !!onNavigateToItem
+    enabled: !!onNavigateToItem,
   });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Sticky header for better mobile UX */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-        <InspectionHeader 
+        <InspectionHeader
           inspectionId={inspectionId}
           showCompleted={showCompleted}
           onToggleCompleted={onToggleCompleted}
@@ -54,9 +55,9 @@ export const InspectionLayout = ({
           checklistItems={checklistItems}
         />
       </div>
-      
+
       {/* Main content area with proper mobile spacing */}
-      <main 
+      <main
         className="flex-1 pb-6 overflow-auto"
         role="main"
         aria-label="Inspection checklist content"
@@ -71,9 +72,11 @@ export const InspectionLayout = ({
               </span>
             </div>
             <div className="mt-2 bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+                style={{
+                  width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
+                }}
                 role="progressbar"
                 aria-valuenow={completedCount}
                 aria-valuemin={0}
@@ -82,15 +85,15 @@ export const InspectionLayout = ({
               />
             </div>
           </div>
-          
+
           {children}
         </div>
       </main>
 
       {/* Skip links for accessibility */}
       <div className="sr-only">
-        <a 
-          href="#main-content" 
+        <a
+          href="#main-content"
           className="absolute top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded focus:not-sr-only focus:z-50"
         >
           Skip to main content

@@ -3,12 +3,12 @@
  * Extracted from ChecklistGenerationStep.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Zap } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Property } from '@/hooks/useChecklistGeneration';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Zap } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Property } from "@/hooks/useChecklistGeneration";
 
 interface GenerationProgressProps {
   property: Property;
@@ -21,7 +21,7 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
   property,
   generationProgress,
   generationStage,
-  className = ''
+  className = "",
 }) => {
   return (
     <Card id="generation-progress" className={className}>
@@ -45,8 +45,12 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
         </div>
 
         <div className="text-center space-y-2">
-          <p className="text-sm font-medium">Creating customized inspection checklist for:</p>
-          <p className="text-lg font-semibold text-blue-600">{property.property_name}</p>
+          <p className="text-sm font-medium">
+            Creating customized inspection checklist for:
+          </p>
+          <p className="text-lg font-semibold text-blue-600">
+            {property.property_name}
+          </p>
           <p className="text-sm text-gray-600">{property.street_address}</p>
         </div>
       </CardContent>

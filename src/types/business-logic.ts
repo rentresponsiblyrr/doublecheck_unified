@@ -7,7 +7,7 @@ export interface User {
   id: string;
   email: string;
   name: string; // FIXED: Changed from full_name to name to match database schema
-  role: 'inspector' | 'auditor' | 'admin';
+  role: "inspector" | "auditor" | "admin";
   created_at?: string;
   updated_at?: string;
 }
@@ -17,9 +17,9 @@ export interface ChecklistItem {
   static_item_id: string; // CORRECTED: checklist_items.static_item_id -> static_safety_items.id
   title: string;
   category: string;
-  status: 'pending' | 'completed' | 'failed' | 'not_applicable';
+  status: "pending" | "completed" | "failed" | "not_applicable";
   inspector_notes?: string;
-  evidence_type: 'photo' | 'video' | 'none';
+  evidence_type: "photo" | "video" | "none";
   required: boolean;
   ai_result?: string;
   pass?: boolean;
@@ -29,7 +29,7 @@ export interface ChecklistItem {
 
 export interface AIAnalysisResult {
   confidence: number;
-  status: 'pass' | 'fail' | 'needs_review';
+  status: "pass" | "fail" | "needs_review";
   reasoning: string;
   suggestions?: string[];
   quality_score?: number;
@@ -52,7 +52,7 @@ export interface InspectionRecord {
   id: string;
   property_id: string;
   inspector_id: string;
-  status: 'draft' | 'in_progress' | 'completed' | 'auditing';
+  status: "draft" | "in_progress" | "completed" | "auditing";
   created_at: string;
   updated_at?: string;
   checklist_items?: ChecklistItem[];
@@ -67,8 +67,8 @@ export interface UploadResult {
 }
 
 export interface SecurityEvent {
-  type: 'upload' | 'validation' | 'access' | 'auth';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "upload" | "validation" | "access" | "auth";
+  severity: "low" | "medium" | "high" | "critical";
   user_id?: string;
   details: Record<string, unknown>;
   timestamp: string;
@@ -76,6 +76,6 @@ export interface SecurityEvent {
 }
 
 export interface UploadError extends Error {
-  code: 'INVALID_FILE' | 'SIZE_LIMIT' | 'NETWORK_ERROR' | 'SECURITY_VIOLATION';
+  code: "INVALID_FILE" | "SIZE_LIMIT" | "NETWORK_ERROR" | "SECURITY_VIOLATION";
   details: Record<string, unknown>;
 }

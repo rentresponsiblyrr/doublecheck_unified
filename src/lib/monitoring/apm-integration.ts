@@ -1,7 +1,7 @@
 /**
  * @fileoverview Enterprise APM Integration
  * Advanced Application Performance Monitoring with multiple provider support
- * 
+ *
  * Features:
  * - DataDog APM integration
  * - New Relic compatibility
@@ -11,17 +11,17 @@
  * - Performance profiling
  * - Memory leak detection
  * - Database query optimization insights
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import DistributedTracer from '../tracing/distributed-tracer';
-import { correlationManager } from '../tracing/correlation-manager';
-import { log } from '../logging/enterprise-logger';
+import DistributedTracer from "../tracing/distributed-tracer";
+import { correlationManager } from "../tracing/correlation-manager";
+import { log } from "../logging/enterprise-logger";
 
 export interface APMConfig {
-  provider: 'datadog' | 'newrelic' | 'xray' | 'elastic' | 'custom';
+  provider: "datadog" | "newrelic" | "xray" | "elastic" | "custom";
   apiKey?: string;
   serviceName: string;
   environment: string;
@@ -38,7 +38,7 @@ export interface APMConfig {
 export interface CustomMetric {
   name: string;
   value: number;
-  type: 'counter' | 'gauge' | 'histogram' | 'timer';
+  type: "counter" | "gauge" | "histogram" | "timer";
   tags: Record<string, string>;
   timestamp: number;
   unit?: string;
@@ -48,10 +48,10 @@ export interface Alert {
   id: string;
   name: string;
   description: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   metric: string;
   threshold: number;
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+  operator: "gt" | "lt" | "eq" | "gte" | "lte";
   duration: number; // seconds
   cooldown: number; // seconds
   enabled: boolean;
@@ -139,7 +139,9 @@ class APMIntegration {
 
   static getInstance(): APMIntegration {
     if (!APMIntegration.instance) {
-      throw new Error('APMIntegration not initialized. Call initialize() first.');
+      throw new Error(
+        "APMIntegration not initialized. Call initialize() first.",
+      );
     }
     return APMIntegration.instance;
   }
@@ -150,9 +152,9 @@ class APMIntegration {
   recordMetric(
     name: string,
     value: number,
-    type: CustomMetric['type'] = 'gauge',
+    type: CustomMetric["type"] = "gauge",
     tags: Record<string, string> = {},
-    unit?: string
+    unit?: string,
   ): void {
     const metric: CustomMetric = {
       name,
@@ -176,35 +178,51 @@ class APMIntegration {
   /**
    * Increment counter metric
    */
-  incrementCounter(name: string, value: number = 1, tags: Record<string, string> = {}): void {
-    this.recordMetric(name, value, 'counter', tags);
+  incrementCounter(
+    name: string,
+    value: number = 1,
+    tags: Record<string, string> = {},
+  ): void {
+    this.recordMetric(name, value, "counter", tags);
   }
 
   /**
    * Record timing metric
    */
-  recordTiming(name: string, duration: number, tags: Record<string, string> = {}): void {
-    this.recordMetric(name, duration, 'timer', tags, 'ms');
+  recordTiming(
+    name: string,
+    duration: number,
+    tags: Record<string, string> = {},
+  ): void {
+    this.recordMetric(name, duration, "timer", tags, "ms");
   }
 
   /**
    * Record gauge metric
    */
-  recordGauge(name: string, value: number, tags: Record<string, string> = {}): void {
-    this.recordMetric(name, value, 'gauge', tags);
+  recordGauge(
+    name: string,
+    value: number,
+    tags: Record<string, string> = {},
+  ): void {
+    this.recordMetric(name, value, "gauge", tags);
   }
 
   /**
    * Record histogram metric
    */
-  recordHistogram(name: string, value: number, tags: Record<string, string> = {}): void {
-    this.recordMetric(name, value, 'histogram', tags);
+  recordHistogram(
+    name: string,
+    value: number,
+    tags: Record<string, string> = {},
+  ): void {
+    this.recordMetric(name, value, "histogram", tags);
   }
 
   /**
    * Create performance alert
    */
-  createAlert(alert: Omit<Alert, 'id'>): string {
+  createAlert(alert: Omit<Alert, "id">): string {
     const id = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const fullAlert: Alert = { id, ...alert };
     this.alerts.set(id, fullAlert);
@@ -216,7 +234,7 @@ class APMIntegration {
    */
   async startProfiling(duration: number = 60000): Promise<string> {
     if (this.isProfilingActive) {
-      throw new Error('Profiling session already active');
+      throw new Error("Profiling session already active");
     }
 
     this.isProfilingActive = true;
@@ -239,7 +257,7 @@ class APMIntegration {
 
     // Start CPU profiling
     this.startCPUProfiling(profile);
-    
+
     // Start memory profiling
     this.startMemoryProfiling(profile);
 
@@ -277,21 +295,21 @@ class APMIntegration {
       slowestOperations: spanMetrics
         .sort((a, b) => b.avgDuration - a.avgDuration)
         .slice(0, 10)
-        .map(m => ({
+        .map((m) => ({
           name: `${m.component}.${m.operationName}`,
           avgDuration: m.avgDuration,
           count: m.count,
           errorRate: m.errorRate,
         })),
-      
+
       memoryLeaks: this.detectMemoryLeaks(),
-      
+
       databaseBottlenecks: Array.from(this.databaseInsights.values())
         .sort((a, b) => b.avgDuration - a.avgDuration)
         .slice(0, 10),
-      
-      alerts: Array.from(this.alerts.values()).filter(a => a.enabled),
-      
+
+      alerts: Array.from(this.alerts.values()).filter((a) => a.enabled),
+
       recommendations: this.generateRecommendations(),
     };
   }
@@ -307,16 +325,22 @@ class APMIntegration {
       apdex: number; // Application Performance Index
     };
     breakdown: {
-      byOperation: Record<string, {
-        throughput: number;
-        latency: number;
-        errors: number;
-      }>;
-      byComponent: Record<string, {
-        requests: number;
-        avgDuration: number;
-        errorRate: number;
-      }>;
+      byOperation: Record<
+        string,
+        {
+          throughput: number;
+          latency: number;
+          errors: number;
+        }
+      >;
+      byComponent: Record<
+        string,
+        {
+          requests: number;
+          avgDuration: number;
+          errorRate: number;
+        }
+      >;
     };
     infrastructure: {
       memoryUsage: number;
@@ -331,13 +355,18 @@ class APMIntegration {
     // Calculate Apdex score (Application Performance Index)
     const satisfiedThreshold = 1000; // 1 second
     const toleratingThreshold = 4000; // 4 seconds
-    const apdex = this.calculateApdex(spanMetrics, satisfiedThreshold, toleratingThreshold);
+    const apdex = this.calculateApdex(
+      spanMetrics,
+      satisfiedThreshold,
+      toleratingThreshold,
+    );
 
     const breakdown = this.calculateBreakdown(spanMetrics);
 
     return {
       overview: {
-        requestRate: serviceMetrics.requestCount / (serviceMetrics.uptime / 1000),
+        requestRate:
+          serviceMetrics.requestCount / (serviceMetrics.uptime / 1000),
         errorRate: serviceMetrics.errorCount / serviceMetrics.requestCount,
         avgResponseTime: serviceMetrics.avgResponseTime,
         apdex,
@@ -360,16 +389,16 @@ class APMIntegration {
 
     try {
       switch (this.config.provider) {
-        case 'datadog':
+        case "datadog":
           await this.exportToDataDog();
           break;
-        case 'newrelic':
+        case "newrelic":
           await this.exportToNewRelic();
           break;
-        case 'xray':
+        case "xray":
           await this.exportToXRay();
           break;
-        case 'elastic':
+        case "elastic":
           await this.exportToElastic();
           break;
         default:
@@ -379,15 +408,14 @@ class APMIntegration {
       // Clear buffer after successful export
       this.metricsBuffer = [];
 
-      log.debug('APM metrics exported successfully', {
-        component: 'APMIntegration',
+      log.debug("APM metrics exported successfully", {
+        component: "APMIntegration",
         provider: this.config.provider,
         metricsCount: this.metricsBuffer.length,
       });
-
     } catch (error) {
-      log.error('Failed to export APM metrics', error as Error, {
-        component: 'APMIntegration',
+      log.error("Failed to export APM metrics", error as Error, {
+        component: "APMIntegration",
         provider: this.config.provider,
         metricsCount: this.metricsBuffer.length,
       });
@@ -399,16 +427,16 @@ class APMIntegration {
    */
   private initializeAPMProvider(): void {
     switch (this.config.provider) {
-      case 'datadog':
+      case "datadog":
         this.initializeDataDog();
         break;
-      case 'newrelic':
+      case "newrelic":
         this.initializeNewRelic();
         break;
-      case 'xray':
+      case "xray":
         this.initializeXRay();
         break;
-      case 'elastic':
+      case "elastic":
         this.initializeElastic();
         break;
       default:
@@ -422,12 +450,12 @@ class APMIntegration {
   private setupDefaultAlerts(): void {
     // High response time alert
     this.createAlert({
-      name: 'High Response Time',
-      description: 'Average response time exceeds 2 seconds',
-      severity: 'warning',
-      metric: 'response_time_avg',
+      name: "High Response Time",
+      description: "Average response time exceeds 2 seconds",
+      severity: "warning",
+      metric: "response_time_avg",
       threshold: 2000,
-      operator: 'gt',
+      operator: "gt",
       duration: 300, // 5 minutes
       cooldown: 1800, // 30 minutes
       enabled: true,
@@ -435,12 +463,12 @@ class APMIntegration {
 
     // High error rate alert
     this.createAlert({
-      name: 'High Error Rate',
-      description: 'Error rate exceeds 5%',
-      severity: 'critical',
-      metric: 'error_rate',
+      name: "High Error Rate",
+      description: "Error rate exceeds 5%",
+      severity: "critical",
+      metric: "error_rate",
       threshold: 0.05,
-      operator: 'gt',
+      operator: "gt",
       duration: 120, // 2 minutes
       cooldown: 900, // 15 minutes
       enabled: true,
@@ -448,12 +476,12 @@ class APMIntegration {
 
     // High memory usage alert
     this.createAlert({
-      name: 'High Memory Usage',
-      description: 'Memory usage exceeds 85%',
-      severity: 'warning',
-      metric: 'memory_usage_percent',
+      name: "High Memory Usage",
+      description: "Memory usage exceeds 85%",
+      severity: "warning",
+      metric: "memory_usage_percent",
       threshold: 85,
-      operator: 'gt',
+      operator: "gt",
       duration: 600, // 10 minutes
       cooldown: 3600, // 1 hour
       enabled: true,
@@ -466,7 +494,7 @@ class APMIntegration {
   private checkMetricAlerts(metric: CustomMetric): void {
     for (const alert of this.alerts.values()) {
       if (!alert.enabled) continue;
-      
+
       // Check cooldown
       const lastCooldown = this.alertCooldowns.get(alert.id);
       if (lastCooldown && Date.now() - lastCooldown < alert.cooldown * 1000) {
@@ -487,12 +515,18 @@ class APMIntegration {
     if (metric.name !== alert.metric) return false;
 
     switch (alert.operator) {
-      case 'gt': return metric.value > alert.threshold;
-      case 'gte': return metric.value >= alert.threshold;
-      case 'lt': return metric.value < alert.threshold;
-      case 'lte': return metric.value <= alert.threshold;
-      case 'eq': return metric.value === alert.threshold;
-      default: return false;
+      case "gt":
+        return metric.value > alert.threshold;
+      case "gte":
+        return metric.value >= alert.threshold;
+      case "lt":
+        return metric.value < alert.threshold;
+      case "lte":
+        return metric.value <= alert.threshold;
+      case "eq":
+        return metric.value === alert.threshold;
+      default:
+        return false;
     }
   }
 
@@ -501,16 +535,20 @@ class APMIntegration {
    */
   private triggerAlert(alert: Alert, metric: CustomMetric): void {
     this.alertCooldowns.set(alert.id, Date.now());
-    
-    log.warn('Performance alert triggered', {
-      component: 'APMIntegration',
-      alertId: alert.id,
-      alertName: alert.name,
-      severity: alert.severity,
-      metricValue: metric.value,
-      threshold: alert.threshold,
-      operator: alert.operator,
-    }, 'PERFORMANCE_ALERT');
+
+    log.warn(
+      "Performance alert triggered",
+      {
+        component: "APMIntegration",
+        alertId: alert.id,
+        alertName: alert.name,
+        severity: alert.severity,
+        metricValue: metric.value,
+        threshold: alert.threshold,
+        operator: alert.operator,
+      },
+      "PERFORMANCE_ALERT",
+    );
 
     // In production, send to:
     // - PagerDuty
@@ -539,7 +577,7 @@ class APMIntegration {
         stackTrace: this.getCurrentStackTrace(),
         duration: Math.random() * 10, // Simplified
       };
-      
+
       profile.cpuProfile.samples.push(sample);
       profile.cpuProfile.totalTime += sample.duration;
     }, 100); // Sample every 100ms
@@ -555,7 +593,7 @@ class APMIntegration {
    */
   private startMemoryProfiling(profile: PerformanceProfile): void {
     const interval = setInterval(() => {
-      if (typeof process !== 'undefined' && process.memoryUsage) {
+      if (typeof process !== "undefined" && process.memoryUsage) {
         const memory = process.memoryUsage();
         profile.memoryProfile.heapSnapshots.push({
           timestamp: Date.now(),
@@ -578,9 +616,9 @@ class APMIntegration {
   private stopProfiling(profile: PerformanceProfile): void {
     this.isProfilingActive = false;
     this.performanceProfiles.push(profile);
-    
-    log.info('Performance profiling completed', {
-      component: 'APMIntegration',
+
+    log.info("Performance profiling completed", {
+      component: "APMIntegration",
       profileId: profile.id,
       duration: profile.duration,
       cpuSamples: profile.cpuProfile.samples.length,
@@ -593,11 +631,18 @@ class APMIntegration {
    */
   private analyzeCPUProfile(profile: PerformanceProfile): void {
     // Simplified analysis - in production use proper profiling analysis
-    const functionTimes = new Map<string, { selfTime: number; totalTime: number; calls: number }>();
-    
-    profile.cpuProfile.samples.forEach(sample => {
-      sample.stackTrace.forEach(func => {
-        const existing = functionTimes.get(func) || { selfTime: 0, totalTime: 0, calls: 0 };
+    const functionTimes = new Map<
+      string,
+      { selfTime: number; totalTime: number; calls: number }
+    >();
+
+    profile.cpuProfile.samples.forEach((sample) => {
+      sample.stackTrace.forEach((func) => {
+        const existing = functionTimes.get(func) || {
+          selfTime: 0,
+          totalTime: 0,
+          calls: 0,
+        };
         existing.selfTime += sample.duration;
         existing.totalTime += sample.duration;
         existing.calls++;
@@ -624,9 +669,10 @@ class APMIntegration {
     const growth = lastSnapshot.usedSize - firstSnapshot.usedSize;
     const growthRate = growth / profile.duration;
 
-    if (growthRate > 1024 * 1024) { // 1MB per second growth
+    if (growthRate > 1024 * 1024) {
+      // 1MB per second growth
       profile.memoryProfile.leaks.push({
-        type: 'memory_growth',
+        type: "memory_growth",
         size: lastSnapshot.usedSize,
         growth: growthRate,
         suspected: true,
@@ -637,11 +683,15 @@ class APMIntegration {
   /**
    * Detect memory leaks from profiling data
    */
-  private detectMemoryLeaks(): Array<{ type: string; size: number; growth: number }> {
+  private detectMemoryLeaks(): Array<{
+    type: string;
+    size: number;
+    growth: number;
+  }> {
     return this.performanceProfiles
-      .flatMap(p => p.memoryProfile.leaks)
-      .filter(leak => leak.suspected)
-      .map(leak => ({
+      .flatMap((p) => p.memoryProfile.leaks)
+      .filter((leak) => leak.suspected)
+      .map((leak) => ({
         type: leak.type,
         size: leak.size,
         growth: leak.growth,
@@ -659,19 +709,19 @@ class APMIntegration {
     // Check for slow operations
     if (insights.topSlowestOperations.length > 0) {
       recommendations.push(
-        `Optimize slow operations: ${insights.topSlowestOperations[0].operationName} (${Math.round(insights.topSlowestOperations[0].avgDuration)}ms avg)`
+        `Optimize slow operations: ${insights.topSlowestOperations[0].operationName} (${Math.round(insights.topSlowestOperations[0].avgDuration)}ms avg)`,
       );
     }
 
     // Check memory usage
     if (serviceMetrics.memoryUsage.percentage > 80) {
-      recommendations.push('Consider memory optimization - usage above 80%');
+      recommendations.push("Consider memory optimization - usage above 80%");
     }
 
     // Check error rates
     if (insights.topErrorProneOperations.length > 0) {
       recommendations.push(
-        `Fix error-prone operations: ${insights.topErrorProneOperations[0].operationName} (${Math.round(insights.topErrorProneOperations[0].errorRate * 100)}% error rate)`
+        `Fix error-prone operations: ${insights.topErrorProneOperations[0].operationName} (${Math.round(insights.topErrorProneOperations[0].errorRate * 100)}% error rate)`,
       );
     }
 
@@ -687,7 +737,7 @@ class APMIntegration {
       avgDuration: number;
     }>,
     satisfiedThreshold: number,
-    toleratingThreshold: number
+    toleratingThreshold: number,
   ): number {
     if (metrics.length === 0) return 1.0;
 
@@ -695,7 +745,7 @@ class APMIntegration {
     let tolerating = 0;
     let total = 0;
 
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       total += metric.count;
       if (metric.avgDuration <= satisfiedThreshold) {
         satisfied += metric.count;
@@ -710,37 +760,51 @@ class APMIntegration {
   /**
    * Calculate performance breakdown
    */
-  private calculateBreakdown(metrics: Array<{
-    operationName: string;
-    component: string;
-    throughput: number;
-    avgDuration: number;
-    errorRate: number;
-    count: number;
-  }>): {
-    byOperation: Record<string, {
+  private calculateBreakdown(
+    metrics: Array<{
+      operationName: string;
+      component: string;
       throughput: number;
-      latency: number;
-      errors: number;
-    }>;
-    byComponent: Record<string, {
-      requests: number;
       avgDuration: number;
       errorRate: number;
-    }>;
+      count: number;
+    }>,
+  ): {
+    byOperation: Record<
+      string,
+      {
+        throughput: number;
+        latency: number;
+        errors: number;
+      }
+    >;
+    byComponent: Record<
+      string,
+      {
+        requests: number;
+        avgDuration: number;
+        errorRate: number;
+      }
+    >;
   } {
-    const byOperation: Record<string, {
-      throughput: number;
-      latency: number;
-      errors: number;
-    }> = {};
-    const byComponent: Record<string, {
-      requests: number;
-      avgDuration: number;
-      errorRate: number;
-    }> = {};
+    const byOperation: Record<
+      string,
+      {
+        throughput: number;
+        latency: number;
+        errors: number;
+      }
+    > = {};
+    const byComponent: Record<
+      string,
+      {
+        requests: number;
+        avgDuration: number;
+        errorRate: number;
+      }
+    > = {};
 
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       // By operation
       byOperation[metric.operationName] = {
         throughput: metric.throughput,
@@ -757,8 +821,10 @@ class APMIntegration {
         };
       }
       byComponent[metric.component].requests += metric.count;
-      byComponent[metric.component].avgDuration += metric.avgDuration * metric.count;
-      byComponent[metric.component].errorRate += metric.errorRate * metric.count;
+      byComponent[metric.component].avgDuration +=
+        metric.avgDuration * metric.count;
+      byComponent[metric.component].errorRate +=
+        metric.errorRate * metric.count;
     });
 
     // Normalize averages
@@ -774,8 +840,11 @@ class APMIntegration {
    * Get current stack trace
    */
   private getCurrentStackTrace(): string[] {
-    const stack = new Error().stack || '';
-    return stack.split('\n').slice(2, 12).map(line => line.trim());
+    const stack = new Error().stack || "";
+    return stack
+      .split("\n")
+      .slice(2, 12)
+      .map((line) => line.trim());
   }
 
   /**
@@ -784,18 +853,24 @@ class APMIntegration {
   private startMetricsCollection(): void {
     setInterval(() => {
       const serviceMetrics = this.tracer.getServiceMetrics();
-      
+
       // Record system metrics
-      this.recordGauge('memory.usage.percent', serviceMetrics.memoryUsage.percentage);
-      this.recordGauge('memory.usage.bytes', serviceMetrics.memoryUsage.used);
-      this.recordGauge('cpu.usage.percent', serviceMetrics.cpuUsage.percentage);
-      this.recordGauge('gc.time.avg', serviceMetrics.gcMetrics.avgTime);
-      this.recordGauge('uptime.seconds', serviceMetrics.uptime / 1000);
-      
+      this.recordGauge(
+        "memory.usage.percent",
+        serviceMetrics.memoryUsage.percentage,
+      );
+      this.recordGauge("memory.usage.bytes", serviceMetrics.memoryUsage.used);
+      this.recordGauge("cpu.usage.percent", serviceMetrics.cpuUsage.percentage);
+      this.recordGauge("gc.time.avg", serviceMetrics.gcMetrics.avgTime);
+      this.recordGauge("uptime.seconds", serviceMetrics.uptime / 1000);
+
       // Record application metrics
-      this.recordGauge('spans.active', correlationManager.getActiveSpansCount());
-      this.recordCounter('requests.total', serviceMetrics.requestCount);
-      this.recordCounter('errors.total', serviceMetrics.errorCount);
+      this.recordGauge(
+        "spans.active",
+        correlationManager.getActiveSpansCount(),
+      );
+      this.recordCounter("requests.total", serviceMetrics.requestCount);
+      this.recordCounter("errors.total", serviceMetrics.errorCount);
     }, 10000); // Every 10 seconds
   }
 
@@ -810,8 +885,8 @@ class APMIntegration {
       try {
         await this.startProfiling(60000); // 1 minute profile
       } catch (error) {
-        log.error('Failed to start scheduled profiling', error as Error, {
-          component: 'APMIntegration',
+        log.error("Failed to start scheduled profiling", error as Error, {
+          component: "APMIntegration",
         });
       }
     }, 3600000); // Every hour
@@ -819,37 +894,37 @@ class APMIntegration {
 
   // APM Provider initialization methods (simplified implementations)
   private initializeDataDog(): void {
-    log.info('Initializing DataDog APM integration', {
-      component: 'APMIntegration',
-      provider: 'datadog',
+    log.info("Initializing DataDog APM integration", {
+      component: "APMIntegration",
+      provider: "datadog",
     });
   }
 
   private initializeNewRelic(): void {
-    log.info('Initializing New Relic APM integration', {
-      component: 'APMIntegration',
-      provider: 'newrelic',
+    log.info("Initializing New Relic APM integration", {
+      component: "APMIntegration",
+      provider: "newrelic",
     });
   }
 
   private initializeXRay(): void {
-    log.info('Initializing AWS X-Ray integration', {
-      component: 'APMIntegration',
-      provider: 'xray',
+    log.info("Initializing AWS X-Ray integration", {
+      component: "APMIntegration",
+      provider: "xray",
     });
   }
 
   private initializeElastic(): void {
-    log.info('Initializing Elastic APM integration', {
-      component: 'APMIntegration',
-      provider: 'elastic',
+    log.info("Initializing Elastic APM integration", {
+      component: "APMIntegration",
+      provider: "elastic",
     });
   }
 
   private initializeCustomProvider(): void {
-    log.info('Initializing custom APM integration', {
-      component: 'APMIntegration',
-      provider: 'custom',
+    log.info("Initializing custom APM integration", {
+      component: "APMIntegration",
+      provider: "custom",
     });
   }
 

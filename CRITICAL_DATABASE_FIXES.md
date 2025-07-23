@@ -37,14 +37,14 @@ interface StaticSafetyItem {
 
 ### **2. Logs Table - Column Name Mismatches**
 
-**PROBLEM**: Our code assumes `logs.static_safety_item_id` exists, but actual database uses `logs.checklist_id`.
+**PROBLEM**: Our code assumes `logs.static_item_id` exists, but actual database uses `logs.checklist_id`.
 
 **ACTUAL DATABASE**:
 ```sql
 logs:
   log_id: integer (primary key)
   property_id: integer
-  checklist_id: integer  -- NOT static_safety_item_id
+  checklist_id: integer  -- NOT static_item_id
   ai_result: text
   inspector_remarks: text
   pass: boolean
@@ -57,7 +57,7 @@ logs:
 interface ChecklistItem {
   id: string;
   inspection_id: string;  // This column doesn't exist!
-  static_safety_item_id: number;  // This column doesn't exist!
+  static_item_id: number;  // This column doesn't exist!
 }
 
 // ✅ CORRECT - What matches actual database
@@ -155,7 +155,7 @@ The `ChecklistManagement.tsx` component needs major updates:
 
 ### **Step 3: Fix Service Layer**
 All database services need column name corrections:
-- `static_safety_item_id` → `checklist_id`
+- `static_item_id` → `checklist_id`
 - Update join relationships
 - Fix foreign key references
 

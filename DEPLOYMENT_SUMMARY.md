@@ -103,7 +103,7 @@ AND table_name IN ('users', 'properties', 'inspections', 'inspection_checklist_i
 -- Test query that was failing before
 SELECT ici.id, ici.status, ssi.label 
 FROM inspection_checklist_items ici 
-LEFT JOIN static_safety_items ssi ON ici.static_safety_item_id = ssi.id 
+LEFT JOIN static_safety_items ssi ON ici.static_item_id = ssi.id 
 LIMIT 5;
 
 -- Verify no orphaned references
@@ -126,7 +126,7 @@ SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE
 
 SELECT 'users' as table_name, COUNT(*) as record_count FROM users UNION ALL SELECT 'properties', COUNT(*) FROM properties UNION ALL SELECT 'inspections', COUNT(*) FROM inspections UNION ALL SELECT 'inspection_checklist_items', COUNT(*) FROM inspection_checklist_items UNION ALL SELECT 'media', COUNT(*) FROM media;
 
-SELECT ici.id, ici.inspection_id, ici.status, ssi.label FROM inspection_checklist_items ici LEFT JOIN static_safety_items ssi ON ici.static_safety_item_id = ssi.id LIMIT 5;
+SELECT ici.id, ici.inspection_id, ici.status, ssi.label FROM inspection_checklist_items ici LEFT JOIN static_safety_items ssi ON ici.static_item_id = ssi.id LIMIT 5;
 ```
 
 ---

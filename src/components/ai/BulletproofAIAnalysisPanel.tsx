@@ -1,23 +1,23 @@
 /**
  * BULLETPROOF AI ANALYSIS PANEL - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored AI analysis panel following ZERO_TOLERANCE_STANDARDS
  * Reduced from 613 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - pure orchestration only
  * - Uses AIAnalysisDataManager with render props for clean separation
  * - Professional error handling and accessibility compliance
  * - Mobile-first responsive design maintained
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - AIAnalysisDataManager: Complete AI analysis orchestration with render props
  * - AITrafficLightStatus: Decision confidence display (Green/Yellow/Red)
  * - AIAnalysisProgress: Progress tracking and error handling
  * - AIExplanationTabs: Multi-level explanations (Basic → Technical → Legal)
  * - AIAppealWorkflow: Appeal initiation and workflow management
- * 
+ *
  * INTEGRATED SYSTEMS:
  * - AI Reliability Orchestrator (27 failure mode mitigations)
  * - AI Confidence Validator (multi-dimensional validation)
@@ -25,7 +25,7 @@
  * - Real-time reliability monitoring and alerts
  * - Complete audit trail visualization
  * - Appeals and review workflow integration
- * 
+ *
  * @example
  * ```typescript
  * <BulletproofAIAnalysisPanel
@@ -37,16 +37,16 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ReliabilityAnalysis } from '@/services/AIReliabilityOrchestrator';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ReliabilityAnalysis } from "@/services/AIReliabilityOrchestrator";
 
 // Import focused components
-import { AIAnalysisDataManager } from './AIAnalysisDataManager';
-import { AITrafficLightStatus } from './AITrafficLightStatus';
-import { AIAnalysisProgress } from './AIAnalysisProgress';
-import { AIExplanationTabs } from './AIExplanationTabs';
-import { AIAppealWorkflow } from './AIAppealWorkflow';
+import { AIAnalysisDataManager } from "./AIAnalysisDataManager";
+import { AITrafficLightStatus } from "./AITrafficLightStatus";
+import { AIAnalysisProgress } from "./AIAnalysisProgress";
+import { AIExplanationTabs } from "./AIExplanationTabs";
+import { AIAppealWorkflow } from "./AIAppealWorkflow";
 
 /**
  * Component props - simplified for orchestration
@@ -65,7 +65,7 @@ interface BulletproofAIAnalysisPanelProps {
   /** Enable appeal workflow */
   enableAppealWorkflow?: boolean;
   /** Panel size variant */
-  size?: 'compact' | 'standard' | 'detailed';
+  size?: "compact" | "standard" | "detailed";
   /** Custom CSS classes */
   className?: string;
 }
@@ -74,24 +74,29 @@ interface BulletproofAIAnalysisPanelProps {
  * Main Bulletproof AI Analysis Panel Component - Pure Orchestration Only
  * Reduced from 613 lines to <100 lines through data manager pattern
  */
-export const BulletproofAIAnalysisPanel: React.FC<BulletproofAIAnalysisPanelProps> = ({
+export const BulletproofAIAnalysisPanel: React.FC<
+  BulletproofAIAnalysisPanelProps
+> = ({
   photo,
   checklistItem,
   analysisContext,
   onAnalysisComplete,
   showTechnicalDetails = false,
   enableAppealWorkflow = true,
-  size = 'standard',
-  className = ''
+  size = "standard",
+  className = "",
 }) => {
   const sizeClasses = {
-    compact: 'max-w-md',
-    standard: 'max-w-2xl',
-    detailed: 'max-w-4xl'
+    compact: "max-w-md",
+    standard: "max-w-2xl",
+    detailed: "max-w-4xl",
   };
 
   return (
-    <div className={`space-y-6 ${sizeClasses[size]} ${className}`} id="bulletproof-ai-analysis-panel">
+    <div
+      className={`space-y-6 ${sizeClasses[size]} ${className}`}
+      id="bulletproof-ai-analysis-panel"
+    >
       {/* Data Manager with Render Props Pattern */}
       <AIAnalysisDataManager
         photo={photo}
@@ -110,7 +115,7 @@ export const BulletproofAIAnalysisPanel: React.FC<BulletproofAIAnalysisPanelProp
           errorMessage,
           onStartAnalysis,
           onRetryAnalysis,
-          onInitiateAppeal
+          onInitiateAppeal,
         }) => (
           <>
             {/* Analysis Progress and Controls */}
@@ -127,7 +132,7 @@ export const BulletproofAIAnalysisPanel: React.FC<BulletproofAIAnalysisPanelProp
             </Card>
 
             {/* Traffic Light Status - Only show when analysis is complete */}
-            {analysisState === 'complete' && (
+            {analysisState === "complete" && (
               <AITrafficLightStatus
                 status={trafficLightStatus}
                 reliabilityResult={reliabilityResult}
@@ -136,7 +141,7 @@ export const BulletproofAIAnalysisPanel: React.FC<BulletproofAIAnalysisPanelProp
             )}
 
             {/* Detailed Explanations */}
-            {analysisState === 'complete' && explainabilityResult && (
+            {analysisState === "complete" && explainabilityResult && (
               <AIExplanationTabs
                 explainabilityResult={explainabilityResult}
                 reliabilityResult={reliabilityResult}
@@ -146,7 +151,7 @@ export const BulletproofAIAnalysisPanel: React.FC<BulletproofAIAnalysisPanelProp
             )}
 
             {/* Appeal Workflow */}
-            {analysisState === 'complete' && (
+            {analysisState === "complete" && (
               <AIAppealWorkflow
                 enabled={enableAppealWorkflow}
                 trafficLightStatus={trafficLightStatus}

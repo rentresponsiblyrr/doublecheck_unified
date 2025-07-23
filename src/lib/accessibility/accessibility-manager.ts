@@ -1,9 +1,9 @@
 /**
  * ACCESSIBILITY MANAGER - WEEK 3 ARCHITECTURAL EXCELLENCE
- * 
+ *
  * Enterprise-grade accessibility framework implementing WCAG 2.1 AA compliance
  * Built with the same architectural quality as Week 2's ImageOptimizer and PropertyIdConverter
- * 
+ *
  * Features:
  * - Complete WCAG 2.1 AA compliance validation
  * - Real-time accessibility auditing
@@ -15,14 +15,14 @@
  * - Keyboard navigation testing
  * - Color contrast validation
  * - Focus management system
- * 
+ *
  * Architectural Principles:
  * - Inclusive design first approach
  * - Performance-optimized validation
  * - Comprehensive error recovery
  * - Professional logging and monitoring
  * - Memory-efficient DOM manipulation
- * 
+ *
  * @example
  * ```typescript
  * const accessibilityManager = new AccessibilityManager(config);
@@ -33,14 +33,16 @@
  * ```
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 /**
  * Branded types for accessibility ID management - matches PropertyIdConverter patterns
  */
-export type AccessibilityAuditId = string & { readonly __brand: 'AccessibilityAuditId' };
-export type WCAGViolationId = string & { readonly __brand: 'WCAGViolationId' };
-export type ARIAAttributeId = string & { readonly __brand: 'ARIAAttributeId' };
+export type AccessibilityAuditId = string & {
+  readonly __brand: "AccessibilityAuditId";
+};
+export type WCAGViolationId = string & { readonly __brand: "WCAGViolationId" };
+export type ARIAAttributeId = string & { readonly __brand: "ARIAAttributeId" };
 
 /**
  * Accessibility error with context - matches Week 2 error handling quality
@@ -49,10 +51,10 @@ export class AccessibilityError extends Error {
   constructor(
     message: string,
     public readonly code: AccessibilityErrorCode,
-    public readonly context?: AccessibilityErrorContext
+    public readonly context?: AccessibilityErrorContext,
   ) {
     super(message);
-    this.name = 'AccessibilityError';
+    this.name = "AccessibilityError";
   }
 }
 
@@ -63,57 +65,61 @@ export class WCAGViolationError extends AccessibilityError {
   constructor(
     message: string,
     public readonly violations: WCAGViolation[],
-    context?: AccessibilityErrorContext
+    context?: AccessibilityErrorContext,
   ) {
-    super(message, 'WCAG_VIOLATION', context);
-    this.name = 'WCAGViolationError';
+    super(message, "WCAG_VIOLATION", context);
+    this.name = "WCAGViolationError";
   }
 }
 
 /**
  * Accessibility error codes for categorization
  */
-export type AccessibilityErrorCode = 
-  | 'WCAG_VIOLATION'
-  | 'ARIA_INVALID'
-  | 'COLOR_CONTRAST_FAILED'
-  | 'KEYBOARD_NAV_BLOCKED'
-  | 'SCREEN_READER_INCOMPATIBLE'
-  | 'FOCUS_MANAGEMENT_FAILED'
-  | 'ACCESSIBILITY_CONFIG_ERROR'
-  | 'AUTO_FIX_FAILED';
+export type AccessibilityErrorCode =
+  | "WCAG_VIOLATION"
+  | "ARIA_INVALID"
+  | "COLOR_CONTRAST_FAILED"
+  | "KEYBOARD_NAV_BLOCKED"
+  | "SCREEN_READER_INCOMPATIBLE"
+  | "FOCUS_MANAGEMENT_FAILED"
+  | "ACCESSIBILITY_CONFIG_ERROR"
+  | "AUTO_FIX_FAILED";
 
-export type WCAGLevel = 'A' | 'AA' | 'AAA';
-export type WCAGPrinciple = 'perceivable' | 'operable' | 'understandable' | 'robust';
+export type WCAGLevel = "A" | "AA" | "AAA";
+export type WCAGPrinciple =
+  | "perceivable"
+  | "operable"
+  | "understandable"
+  | "robust";
 
 /**
  * WCAG Success Criteria mapping
  */
-export type WCAGSuccessCriteria = 
-  | '1.1.1' // Non-text Content
-  | '1.2.1' // Audio-only and Video-only (Prerecorded)
-  | '1.3.1' // Info and Relationships
-  | '1.3.2' // Meaningful Sequence
-  | '1.3.3' // Sensory Characteristics
-  | '1.4.1' // Use of Color
-  | '1.4.2' // Audio Control
-  | '1.4.3' // Contrast (Minimum)
-  | '1.4.4' // Resize text
-  | '2.1.1' // Keyboard
-  | '2.1.2' // No Keyboard Trap
-  | '2.2.1' // Timing Adjustable
-  | '2.2.2' // Pause, Stop, Hide
-  | '2.4.1' // Bypass Blocks
-  | '2.4.2' // Page Titled
-  | '2.4.3' // Focus Order
-  | '2.4.4' // Link Purpose
-  | '3.1.1' // Language of Page
-  | '3.2.1' // On Focus
-  | '3.2.2' // On Input
-  | '3.3.1' // Error Identification
-  | '3.3.2' // Labels or Instructions
-  | '4.1.1' // Parsing
-  | '4.1.2'; // Name, Role, Value
+export type WCAGSuccessCriteria =
+  | "1.1.1" // Non-text Content
+  | "1.2.1" // Audio-only and Video-only (Prerecorded)
+  | "1.3.1" // Info and Relationships
+  | "1.3.2" // Meaningful Sequence
+  | "1.3.3" // Sensory Characteristics
+  | "1.4.1" // Use of Color
+  | "1.4.2" // Audio Control
+  | "1.4.3" // Contrast (Minimum)
+  | "1.4.4" // Resize text
+  | "2.1.1" // Keyboard
+  | "2.1.2" // No Keyboard Trap
+  | "2.2.1" // Timing Adjustable
+  | "2.2.2" // Pause, Stop, Hide
+  | "2.4.1" // Bypass Blocks
+  | "2.4.2" // Page Titled
+  | "2.4.3" // Focus Order
+  | "2.4.4" // Link Purpose
+  | "3.1.1" // Language of Page
+  | "3.2.1" // On Focus
+  | "3.2.2" // On Input
+  | "3.3.1" // Error Identification
+  | "3.3.2" // Labels or Instructions
+  | "4.1.1" // Parsing
+  | "4.1.2"; // Name, Role, Value
 
 /**
  * Accessibility configuration interface
@@ -173,14 +179,14 @@ export interface WCAGConfig {
   strictMode: boolean;
   customRules: WCAGRule[];
   skipRules: WCAGSuccessCriteria[];
-  reportingLevel: 'error' | 'warning' | 'info';
+  reportingLevel: "error" | "warning" | "info";
 }
 
 export interface AutoFixConfig {
   enabled: boolean;
   safeFixesOnly: boolean;
   backupOriginal: boolean;
-  fixPriority: ('aria' | 'contrast' | 'keyboard' | 'structure')[];
+  fixPriority: ("aria" | "contrast" | "keyboard" | "structure")[];
   maxFixesPerElement: number;
 }
 
@@ -203,11 +209,11 @@ export interface WCAGViolation {
   successCriteria: WCAGSuccessCriteria;
   level: WCAGLevel;
   principle: WCAGPrinciple;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
   description: string;
   element: string; // CSS selector or element description
   fix: AccessibilityFix;
-  impact: 'minor' | 'moderate' | 'serious' | 'critical';
+  impact: "minor" | "moderate" | "serious" | "critical";
 }
 
 export interface AccessibilityWarning {
@@ -215,15 +221,15 @@ export interface AccessibilityWarning {
   description: string;
   element: string;
   recommendation: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
 }
 
 export interface AccessibilityRecommendation {
-  type: 'immediate' | 'suggested' | 'enhancement';
+  type: "immediate" | "suggested" | "enhancement";
   action: string;
   description: string;
   priority: number; // 1-5
-  estimatedEffort: 'low' | 'medium' | 'high';
+  estimatedEffort: "low" | "medium" | "high";
 }
 
 export interface AccessibilityAuditMetadata {
@@ -236,9 +242,14 @@ export interface AccessibilityAuditMetadata {
 }
 
 export interface AccessibilityFix {
-  type: 'aria-label' | 'color-contrast' | 'keyboard-navigation' | 'structure' | 'focus-management';
+  type:
+    | "aria-label"
+    | "color-contrast"
+    | "keyboard-navigation"
+    | "structure"
+    | "focus-management";
   applied: unknown;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
   description: string;
   beforeValue: unknown;
   afterValue: unknown;
@@ -265,7 +276,11 @@ export interface KeyboardNavigationResult {
 
 export interface KeyboardViolation {
   element: HTMLElement;
-  issue: 'no-tabindex' | 'focus-trap-broken' | 'skip-link-missing' | 'custom-binding-failed';
+  issue:
+    | "no-tabindex"
+    | "focus-trap-broken"
+    | "skip-link-missing"
+    | "custom-binding-failed";
   description: string;
   fix: string;
 }
@@ -304,7 +319,7 @@ export interface WCAGRule {
 
 /**
  * ACCESSIBILITY MANAGER - Main Class
- * 
+ *
  * Central orchestrator for all accessibility operations with performance optimization
  */
 export class AccessibilityManager {
@@ -318,31 +333,42 @@ export class AccessibilityManager {
   constructor(config: AccessibilityConfig) {
     this.config = config;
     this.auditCache = new Map();
-    
+
     // Initialize accessibility services with same quality as ImageOptimizer
     this.ariaManager = new ARIAAttributeManager(config.aria);
     this.keyboardNavigator = new KeyboardNavigationManager(config.keyboard);
-    this.screenReaderSupport = new ScreenReaderSupportManager(config.screenReader);
+    this.screenReaderSupport = new ScreenReaderSupportManager(
+      config.screenReader,
+    );
     this.contrastValidator = new ColorContrastValidator(config.contrast);
 
-    logger.info('AccessibilityManager initialized', {
-      wcagLevel: config.wcag.targetLevel,
-      ariaValidation: config.aria.validateAttributes,
-      autoFixEnabled: config.autoFix.enabled
-    }, 'ACCESSIBILITY_MANAGER');
+    logger.info(
+      "AccessibilityManager initialized",
+      {
+        wcagLevel: config.wcag.targetLevel,
+        ariaValidation: config.aria.validateAttributes,
+        autoFixEnabled: config.autoFix.enabled,
+      },
+      "ACCESSIBILITY_MANAGER",
+    );
   }
 
   /**
    * Comprehensive accessibility audit - match validation quality of PropertyIdConverter
    */
-  async auditComponent(element: HTMLElement): Promise<AccessibilityAuditResult> {
+  async auditComponent(
+    element: HTMLElement,
+  ): Promise<AccessibilityAuditResult> {
     const startTime = performance.now();
     const auditId = this.generateAuditId();
 
     try {
       // Check cache first for performance optimization
       const cacheKey = this.generateCacheKey(element);
-      if (this.config.performance.cachingEnabled && this.auditCache.has(cacheKey)) {
+      if (
+        this.config.performance.cachingEnabled &&
+        this.auditCache.has(cacheKey)
+      ) {
         const cached = this.auditCache.get(cacheKey)!;
         // Return cached result if less than 5 minutes old
         if (Date.now() - cached.metadata.lastAudit.getTime() < 5 * 60 * 1000) {
@@ -354,13 +380,16 @@ export class AccessibilityManager {
       const ariaResults = await this.ariaManager.validateARIA(element);
 
       // Keyboard navigation testing
-      const keyboardResults = await this.keyboardNavigator.testNavigation(element);
+      const keyboardResults =
+        await this.keyboardNavigator.testNavigation(element);
 
       // Screen reader compatibility
-      const screenReaderResults = await this.screenReaderSupport.testCompatibility(element);
+      const screenReaderResults =
+        await this.screenReaderSupport.testCompatibility(element);
 
-      // Color contrast validation  
-      const contrastResults = await this.contrastValidator.validateContrast(element);
+      // Color contrast validation
+      const contrastResults =
+        await this.contrastValidator.validateContrast(element);
 
       // Focus management
       const focusResults = await this.testFocusManagement(element);
@@ -371,17 +400,24 @@ export class AccessibilityManager {
       // Compile all violations
       const allViolations = [
         ...ariaResults.violations,
-        ...keyboardResults.violations.map(v => this.convertKeyboardViolation(v)),
-        ...contrastResults.violations.map(v => this.convertContrastViolation(v)),
+        ...keyboardResults.violations.map((v) =>
+          this.convertKeyboardViolation(v),
+        ),
+        ...contrastResults.violations.map((v) =>
+          this.convertContrastViolation(v),
+        ),
         ...focusResults,
-        ...wcagViolations
+        ...wcagViolations,
       ];
 
       // Calculate accessibility score
       const score = this.calculateAccessibilityScore(allViolations, element);
 
       // Generate recommendations
-      const recommendations = this.generateRecommendations(allViolations, score);
+      const recommendations = this.generateRecommendations(
+        allViolations,
+        score,
+      );
 
       const result: AccessibilityAuditResult = {
         auditId,
@@ -395,10 +431,11 @@ export class AccessibilityManager {
           processingTime: performance.now() - startTime,
           elementsScanned: this.countDescendants(element) + 1,
           wcagRulesCovered: this.getApplicableWCAGRules(element).length,
-          autoFixesAvailable: allViolations.filter(v => this.canAutoFix(v)).length,
+          autoFixesAvailable: allViolations.filter((v) => this.canAutoFix(v))
+            .length,
           browserSupport: this.getBrowserSupport(),
-          lastAudit: new Date()
-        }
+          lastAudit: new Date(),
+        },
       };
 
       // Cache result for performance
@@ -407,21 +444,28 @@ export class AccessibilityManager {
       }
 
       // Log audit results
-      logger.info('Accessibility audit completed', {
-        auditId,
-        score,
-        violationCount: allViolations.length,
-        processingTime: result.metadata.processingTime
-      }, 'ACCESSIBILITY_MANAGER');
+      logger.info(
+        "Accessibility audit completed",
+        {
+          auditId,
+          score,
+          violationCount: allViolations.length,
+          processingTime: result.metadata.processingTime,
+        },
+        "ACCESSIBILITY_MANAGER",
+      );
 
       return result;
-
     } catch (error) {
-      logger.error('Accessibility audit failed', { error, auditId }, 'ACCESSIBILITY_MANAGER');
+      logger.error(
+        "Accessibility audit failed",
+        { error, auditId },
+        "ACCESSIBILITY_MANAGER",
+      );
       throw new AccessibilityError(
-        'Accessibility audit failed',
-        'ACCESSIBILITY_CONFIG_ERROR',
-        { auditId, element, timestamp: new Date() }
+        "Accessibility audit failed",
+        "ACCESSIBILITY_CONFIG_ERROR",
+        { auditId, element, timestamp: new Date() },
       );
     }
   }
@@ -429,10 +473,13 @@ export class AccessibilityManager {
   /**
    * Auto-fix accessibility issues - professional implementation with rollback capability
    */
-  async autoFixAccessibility(element: HTMLElement): Promise<AccessibilityFixResult> {
+  async autoFixAccessibility(
+    element: HTMLElement,
+  ): Promise<AccessibilityFixResult> {
     const fixes: AccessibilityFix[] = [];
-    const originalState = this.config.autoFix.backupOriginal ? 
-      this.backupElementState(element) : null;
+    const originalState = this.config.autoFix.backupOriginal
+      ? this.backupElementState(element)
+      : null;
 
     try {
       // Auto-add missing ARIA labels
@@ -460,27 +507,34 @@ export class AccessibilityManager {
         originalState,
         remainingIssues: await this.findRemainingIssues(element),
         accessibilityScore: await this.calculatePostFixScore(element),
-        success: true
+        success: true,
       };
 
-      logger.info('Accessibility auto-fix completed', {
-        fixesApplied: fixes.length,
-        accessibilityScore: result.accessibilityScore
-      }, 'ACCESSIBILITY_MANAGER');
+      logger.info(
+        "Accessibility auto-fix completed",
+        {
+          fixesApplied: fixes.length,
+          accessibilityScore: result.accessibilityScore,
+        },
+        "ACCESSIBILITY_MANAGER",
+      );
 
       return result;
-
     } catch (error) {
       // Rollback changes if backup exists
       if (originalState) {
         this.restoreElementState(element, originalState);
       }
 
-      logger.error('Accessibility auto-fix failed', { error }, 'ACCESSIBILITY_MANAGER');
+      logger.error(
+        "Accessibility auto-fix failed",
+        { error },
+        "ACCESSIBILITY_MANAGER",
+      );
       throw new AccessibilityError(
-        'Auto-fix accessibility failed',
-        'AUTO_FIX_FAILED',
-        { element, timestamp: new Date() }
+        "Auto-fix accessibility failed",
+        "AUTO_FIX_FAILED",
+        { element, timestamp: new Date() },
       );
     }
   }
@@ -490,21 +544,22 @@ export class AccessibilityManager {
    */
   async generateAccessibleLabel(element: HTMLElement): Promise<string> {
     const tagName = element.tagName.toLowerCase();
-    const existingLabel = element.getAttribute('aria-label') || 
-                         element.getAttribute('aria-labelledby') ||
-                         element.textContent?.trim();
+    const existingLabel =
+      element.getAttribute("aria-label") ||
+      element.getAttribute("aria-labelledby") ||
+      element.textContent?.trim();
 
     if (existingLabel) return existingLabel;
 
     // Generate contextual labels based on element type
     switch (tagName) {
-      case 'button':
+      case "button":
         return this.generateButtonLabel(element);
-      case 'input':
+      case "input":
         return this.generateInputLabel(element);
-      case 'img':
+      case "img":
         return this.generateImageLabel(element);
-      case 'a':
+      case "a":
         return this.generateLinkLabel(element);
       default:
         return this.generateGenericLabel(element);
@@ -514,14 +569,18 @@ export class AccessibilityManager {
   /**
    * Test keyboard navigation capability
    */
-  async testKeyboardNavigation(element: HTMLElement): Promise<KeyboardNavigationResult> {
+  async testKeyboardNavigation(
+    element: HTMLElement,
+  ): Promise<KeyboardNavigationResult> {
     return this.keyboardNavigator.testNavigation(element);
   }
 
   /**
    * Validate color contrast for element
    */
-  async validateColorContrast(element: HTMLElement): Promise<ColorContrastResult> {
+  async validateColorContrast(
+    element: HTMLElement,
+  ): Promise<ColorContrastResult> {
     return this.contrastValidator.validateContrast(element);
   }
 
@@ -538,50 +597,54 @@ export class AccessibilityManager {
   private generateCacheKey(element: HTMLElement): string {
     // Generate cache key based on element characteristics
     const tagName = element.tagName.toLowerCase();
-    const classList = Array.from(element.classList).sort().join('.');
+    const classList = Array.from(element.classList).sort().join(".");
     const attributes = Array.from(element.attributes)
-      .map(attr => `${attr.name}=${attr.value}`)
+      .map((attr) => `${attr.name}=${attr.value}`)
       .sort()
-      .join(',');
-    
+      .join(",");
+
     return `${tagName}:${classList}:${attributes}`;
   }
 
-  private async testFocusManagement(element: HTMLElement): Promise<WCAGViolation[]> {
+  private async testFocusManagement(
+    element: HTMLElement,
+  ): Promise<WCAGViolation[]> {
     const violations: WCAGViolation[] = [];
 
     // Test if element can receive focus when it should
     if (this.shouldReceiveFocus(element) && !this.canReceiveFocus(element)) {
       violations.push({
         id: this.generateViolationId(),
-        successCriteria: '2.4.3',
-        level: 'A',
-        principle: 'operable',
-        severity: 'error',
-        description: 'Interactive element cannot receive keyboard focus',
+        successCriteria: "2.4.3",
+        level: "A",
+        principle: "operable",
+        severity: "error",
+        description: "Interactive element cannot receive keyboard focus",
         element: element.tagName.toLowerCase(),
         fix: {
-          type: 'keyboard-navigation',
-          applied: { tabindex: '0' },
-          severity: 'error',
-          description: 'Add tabindex=0 to make element focusable',
-          beforeValue: element.getAttribute('tabindex'),
-          afterValue: '0'
+          type: "keyboard-navigation",
+          applied: { tabindex: "0" },
+          severity: "error",
+          description: "Add tabindex=0 to make element focusable",
+          beforeValue: element.getAttribute("tabindex"),
+          afterValue: "0",
         },
-        impact: 'serious'
+        impact: "serious",
       });
     }
 
     return violations;
   }
 
-  private async validateWCAGRules(element: HTMLElement): Promise<WCAGViolation[]> {
+  private async validateWCAGRules(
+    element: HTMLElement,
+  ): Promise<WCAGViolation[]> {
     const violations: WCAGViolation[] = [];
     const applicableRules = this.getApplicableWCAGRules(element);
 
     for (const rule of applicableRules) {
       if (this.config.wcag.skipRules.includes(rule.successCriteria)) continue;
-      
+
       const ruleViolations = rule.validate(element);
       violations.push(...ruleViolations);
     }
@@ -589,49 +652,68 @@ export class AccessibilityManager {
     return violations;
   }
 
-  private calculateAccessibilityScore(violations: WCAGViolation[], element: HTMLElement): number {
+  private calculateAccessibilityScore(
+    violations: WCAGViolation[],
+    element: HTMLElement,
+  ): number {
     const totalChecks = this.getApplicableWCAGRules(element).length;
-    const errorViolations = violations.filter(v => v.severity === 'error').length;
-    const warningViolations = violations.filter(v => v.severity === 'warning').length;
+    const errorViolations = violations.filter(
+      (v) => v.severity === "error",
+    ).length;
+    const warningViolations = violations.filter(
+      (v) => v.severity === "warning",
+    ).length;
 
     // Calculate score: errors are weighted more heavily than warnings
     const errorPenalty = errorViolations * 0.15; // Each error reduces score by 15%
     const warningPenalty = warningViolations * 0.05; // Each warning reduces score by 5%
-    
+
     const score = Math.max(0, 1 - errorPenalty - warningPenalty);
     return Math.round(score * 100) / 100; // Round to 2 decimal places
   }
 
-  private determineWCAGLevel(score: number, violations: WCAGViolation[]): WCAGLevel {
-    const hasLevelAViolations = violations.some(v => v.level === 'A' && v.severity === 'error');
-    const hasLevelAAViolations = violations.some(v => v.level === 'AA' && v.severity === 'error');
-    
-    if (hasLevelAViolations) return 'A';
-    if (hasLevelAAViolations || score < 0.95) return 'A';
-    return 'AA';
+  private determineWCAGLevel(
+    score: number,
+    violations: WCAGViolation[],
+  ): WCAGLevel {
+    const hasLevelAViolations = violations.some(
+      (v) => v.level === "A" && v.severity === "error",
+    );
+    const hasLevelAAViolations = violations.some(
+      (v) => v.level === "AA" && v.severity === "error",
+    );
+
+    if (hasLevelAViolations) return "A";
+    if (hasLevelAAViolations || score < 0.95) return "A";
+    return "AA";
   }
 
-  private generateRecommendations(violations: WCAGViolation[], score: number): AccessibilityRecommendation[] {
+  private generateRecommendations(
+    violations: WCAGViolation[],
+    score: number,
+  ): AccessibilityRecommendation[] {
     const recommendations: AccessibilityRecommendation[] = [];
 
     if (score < 0.95) {
       recommendations.push({
-        type: 'immediate',
-        action: 'Fix critical accessibility violations',
+        type: "immediate",
+        action: "Fix critical accessibility violations",
         description: `Current score (${Math.round(score * 100)}%) is below WCAG 2.1 AA compliance threshold (95%)`,
         priority: 5,
-        estimatedEffort: 'medium'
+        estimatedEffort: "medium",
       });
     }
 
-    const criticalViolations = violations.filter(v => v.impact === 'critical');
+    const criticalViolations = violations.filter(
+      (v) => v.impact === "critical",
+    );
     if (criticalViolations.length > 0) {
       recommendations.push({
-        type: 'immediate',
-        action: 'Address critical accessibility issues',
+        type: "immediate",
+        action: "Address critical accessibility issues",
         description: `${criticalViolations.length} critical violations require immediate attention`,
         priority: 5,
-        estimatedEffort: 'high'
+        estimatedEffort: "high",
       });
     }
 
@@ -642,33 +724,36 @@ export class AccessibilityManager {
     const warnings: AccessibilityWarning[] = [];
 
     // Check for potential accessibility improvements
-    if (element.tagName.toLowerCase() === 'div' && element.onclick) {
+    if (element.tagName.toLowerCase() === "div" && element.onclick) {
       warnings.push({
-        type: 'semantic-html',
-        description: 'Consider using semantic HTML element instead of div with click handler',
-        element: 'div',
-        recommendation: 'Use button or other semantic element',
-        severity: 'medium'
+        type: "semantic-html",
+        description:
+          "Consider using semantic HTML element instead of div with click handler",
+        element: "div",
+        recommendation: "Use button or other semantic element",
+        severity: "medium",
       });
     }
 
     return warnings;
   }
 
-  private async fixMissingARIALabels(element: HTMLElement): Promise<AccessibilityFix[]> {
+  private async fixMissingARIALabels(
+    element: HTMLElement,
+  ): Promise<AccessibilityFix[]> {
     const fixes: AccessibilityFix[] = [];
 
     if (this.needsARIALabel(element) && !this.hasARIALabel(element)) {
       const label = await this.generateAccessibleLabel(element);
-      element.setAttribute('aria-label', label);
-      
+      element.setAttribute("aria-label", label);
+
       fixes.push({
-        type: 'aria-label',
+        type: "aria-label",
         applied: label,
-        severity: 'error',
-        description: 'Added missing ARIA label',
+        severity: "error",
+        description: "Added missing ARIA label",
         beforeValue: null,
-        afterValue: label
+        afterValue: label,
       });
     }
 
@@ -677,11 +762,11 @@ export class AccessibilityManager {
 
   // Additional helper methods would be implemented here...
   private countDescendants(element: HTMLElement): number {
-    return element.querySelectorAll('*').length;
+    return element.querySelectorAll("*").length;
   }
 
   private getBrowserSupport(): string[] {
-    return ['Chrome', 'Firefox', 'Safari', 'Edge'];
+    return ["Chrome", "Firefox", "Safari", "Edge"];
   }
 
   private getApplicableWCAGRules(element: HTMLElement): WCAGRule[] {
@@ -697,51 +782,60 @@ export class AccessibilityManager {
     return `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` as WCAGViolationId;
   }
 
-  private convertKeyboardViolation(violation: KeyboardViolation): WCAGViolation {
+  private convertKeyboardViolation(
+    violation: KeyboardViolation,
+  ): WCAGViolation {
     return {
       id: this.generateViolationId(),
-      successCriteria: '2.1.1',
-      level: 'A',
-      principle: 'operable',
-      severity: 'error',
+      successCriteria: "2.1.1",
+      level: "A",
+      principle: "operable",
+      severity: "error",
       description: violation.description,
       element: violation.element.tagName.toLowerCase(),
       fix: {
-        type: 'keyboard-navigation',
+        type: "keyboard-navigation",
         applied: violation.fix,
-        severity: 'error',
+        severity: "error",
         description: violation.fix,
         beforeValue: null,
-        afterValue: violation.fix
+        afterValue: violation.fix,
       },
-      impact: 'serious'
+      impact: "serious",
     };
   }
 
-  private convertContrastViolation(violation: ContrastViolation): WCAGViolation {
+  private convertContrastViolation(
+    violation: ContrastViolation,
+  ): WCAGViolation {
     return {
       id: this.generateViolationId(),
-      successCriteria: '1.4.3',
-      level: 'AA',
-      principle: 'perceivable',
-      severity: 'error',
+      successCriteria: "1.4.3",
+      level: "AA",
+      principle: "perceivable",
+      severity: "error",
       description: `Color contrast ratio ${violation.ratio.toFixed(2)} is below required ${violation.requiredRatio}`,
       element: violation.element.tagName.toLowerCase(),
       fix: {
-        type: 'color-contrast',
+        type: "color-contrast",
         applied: violation.suggestion,
-        severity: 'error',
+        severity: "error",
         description: violation.suggestion,
-        beforeValue: { fg: violation.foregroundColor, bg: violation.backgroundColor },
-        afterValue: violation.suggestion
+        beforeValue: {
+          fg: violation.foregroundColor,
+          bg: violation.backgroundColor,
+        },
+        afterValue: violation.suggestion,
       },
-      impact: 'moderate'
+      impact: "moderate",
     };
   }
 
   // Placeholder methods for service implementations
   private shouldReceiveFocus(element: HTMLElement): boolean {
-    return ['button', 'input', 'select', 'textarea', 'a'].includes(element.tagName.toLowerCase());
+    return ["button", "input", "select", "textarea", "a"].includes(
+      element.tagName.toLowerCase(),
+    );
   }
 
   private canReceiveFocus(element: HTMLElement): boolean {
@@ -753,27 +847,32 @@ export class AccessibilityManager {
   }
 
   private hasARIALabel(element: HTMLElement): boolean {
-    return !!(element.getAttribute('aria-label') || element.getAttribute('aria-labelledby'));
+    return !!(
+      element.getAttribute("aria-label") ||
+      element.getAttribute("aria-labelledby")
+    );
   }
 
   private generateButtonLabel(element: HTMLElement): string {
-    return element.textContent?.trim() || 'Button';
+    return element.textContent?.trim() || "Button";
   }
 
   private generateInputLabel(element: HTMLElement): string {
-    const type = element.getAttribute('type') || 'text';
-    const placeholder = element.getAttribute('placeholder');
+    const type = element.getAttribute("type") || "text";
+    const placeholder = element.getAttribute("placeholder");
     return placeholder || `${type} input`;
   }
 
   private generateImageLabel(element: HTMLElement): string {
-    const alt = element.getAttribute('alt');
-    const src = element.getAttribute('src');
-    return alt || `Image: ${src?.split('/').pop() || 'unnamed'}`;
+    const alt = element.getAttribute("alt");
+    const src = element.getAttribute("src");
+    return alt || `Image: ${src?.split("/").pop() || "unnamed"}`;
   }
 
   private generateLinkLabel(element: HTMLElement): string {
-    return element.textContent?.trim() || element.getAttribute('href') || 'Link';
+    return (
+      element.textContent?.trim() || element.getAttribute("href") || "Link"
+    );
   }
 
   private generateGenericLabel(element: HTMLElement): string {
@@ -783,9 +882,12 @@ export class AccessibilityManager {
   // Additional implementation methods...
   private backupElementState(element: HTMLElement): ElementState {
     return {
-      attributes: Array.from(element.attributes).map(attr => ({ name: attr.name, value: attr.value })),
+      attributes: Array.from(element.attributes).map((attr) => ({
+        name: attr.name,
+        value: attr.value,
+      })),
       textContent: element.textContent,
-      innerHTML: element.innerHTML
+      innerHTML: element.innerHTML,
     };
   }
 
@@ -794,12 +896,34 @@ export class AccessibilityManager {
     element.textContent = state.textContent;
   }
 
-  private async fixColorContrast(element: HTMLElement): Promise<AccessibilityFix[]> { return []; }
-  private async fixKeyboardNavigation(element: HTMLElement): Promise<AccessibilityFix[]> { return []; }
-  private async fixHeadingStructure(element: HTMLElement): Promise<AccessibilityFix[]> { return []; }
-  private async fixFocusManagement(element: HTMLElement): Promise<AccessibilityFix[]> { return []; }
-  private async findRemainingIssues(element: HTMLElement): Promise<WCAGViolation[]> { return []; }
-  private async calculatePostFixScore(element: HTMLElement): Promise<number> { return 0.95; }
+  private async fixColorContrast(
+    element: HTMLElement,
+  ): Promise<AccessibilityFix[]> {
+    return [];
+  }
+  private async fixKeyboardNavigation(
+    element: HTMLElement,
+  ): Promise<AccessibilityFix[]> {
+    return [];
+  }
+  private async fixHeadingStructure(
+    element: HTMLElement,
+  ): Promise<AccessibilityFix[]> {
+    return [];
+  }
+  private async fixFocusManagement(
+    element: HTMLElement,
+  ): Promise<AccessibilityFix[]> {
+    return [];
+  }
+  private async findRemainingIssues(
+    element: HTMLElement,
+  ): Promise<WCAGViolation[]> {
+    return [];
+  }
+  private async calculatePostFixScore(element: HTMLElement): Promise<number> {
+    return 0.95;
+  }
 }
 
 /**
@@ -807,29 +931,35 @@ export class AccessibilityManager {
  */
 export class ARIAAttributeManager {
   constructor(config: ARIAConfig) {}
-  async validateARIA(element: HTMLElement): Promise<{ violations: WCAGViolation[] }> { 
-    return { violations: [] }; 
+  async validateARIA(
+    element: HTMLElement,
+  ): Promise<{ violations: WCAGViolation[] }> {
+    return { violations: [] };
   }
 }
 
 export class KeyboardNavigationManager {
   constructor(config: KeyboardNavigationConfig) {}
-  async testNavigation(element: HTMLElement): Promise<KeyboardNavigationResult> {
+  async testNavigation(
+    element: HTMLElement,
+  ): Promise<KeyboardNavigationResult> {
     return {
       canNavigateToAllElements: true,
       focusTrapWorks: true,
       tabOrder: [],
       violations: [],
       skipLinksPresent: false,
-      customKeyBindingsWork: true
+      customKeyBindingsWork: true,
     };
   }
 }
 
 export class ScreenReaderSupportManager {
   constructor(config: ScreenReaderConfig) {}
-  async testCompatibility(element: HTMLElement): Promise<{ violations: WCAGViolation[] }> { 
-    return { violations: [] }; 
+  async testCompatibility(
+    element: HTMLElement,
+  ): Promise<{ violations: WCAGViolation[] }> {
+    return { violations: [] };
   }
 }
 
@@ -841,11 +971,15 @@ export class ColorContrastValidator {
       minimumRatio: 4.5,
       averageRatio: 7.0,
       wcagCompliant: true,
-      elementsChecked: 1
+      elementsChecked: 1,
     };
   }
-  async findIssues(element: HTMLElement): Promise<ContrastViolation[]> { return []; }
-  async suggestColors(issue: ContrastViolation): Promise<string> { return '#000000'; }
+  async findIssues(element: HTMLElement): Promise<ContrastViolation[]> {
+    return [];
+  }
+  async suggestColors(issue: ContrastViolation): Promise<string> {
+    return "#000000";
+  }
 }
 
 // Supporting interfaces
@@ -866,7 +1000,9 @@ export interface ElementState {
 /**
  * Factory functions - matches PropertyIdConverter patterns
  */
-export const createAccessibilityAuditId = (prefix: string = 'audit'): AccessibilityAuditId => {
+export const createAccessibilityAuditId = (
+  prefix: string = "audit",
+): AccessibilityAuditId => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 10);
   return `${prefix}_${timestamp}_${random}` as AccessibilityAuditId;
@@ -875,14 +1011,24 @@ export const createAccessibilityAuditId = (prefix: string = 'audit'): Accessibil
 /**
  * Type guards for accessibility validation
  */
-export const isAccessibilityCompliant = (result: AccessibilityAuditResult): boolean => {
-  return result.score >= 0.95 && result.violations.filter(v => v.severity === 'error').length === 0;
+export const isAccessibilityCompliant = (
+  result: AccessibilityAuditResult,
+): boolean => {
+  return (
+    result.score >= 0.95 &&
+    result.violations.filter((v) => v.severity === "error").length === 0
+  );
 };
 
 export const isHighImpactViolation = (violation: WCAGViolation): boolean => {
-  return violation.impact === 'critical' || violation.impact === 'serious';
+  return violation.impact === "critical" || violation.impact === "serious";
 };
 
-export const isCriticalAccessibilityError = (error: AccessibilityError): boolean => {
-  return error.code === 'WCAG_VIOLATION' || error.code === 'SCREEN_READER_INCOMPATIBLE';
+export const isCriticalAccessibilityError = (
+  error: AccessibilityError,
+): boolean => {
+  return (
+    error.code === "WCAG_VIOLATION" ||
+    error.code === "SCREEN_READER_INCOMPATIBLE"
+  );
 };

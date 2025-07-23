@@ -1,26 +1,42 @@
-import { ErrorReporter } from '../monitoring/error-reporter';
-import { env } from '../config/environment';
-import { log } from '@/lib/logging/enterprise-logger';
+import { ErrorReporter } from "../monitoring/error-reporter";
+import { env } from "../config/environment";
+import { log } from "@/lib/logging/enterprise-logger";
 
 // Type definitions for error handling
 type ErrorDetails = Record<string, unknown>;
-type RequestBody = string | object | FormData | ArrayBuffer | Blob | null | undefined;
-type UnknownError = Error | {
-  message?: string;
-  status?: number;
-  response?: {
-    status?: number;
-    data?: unknown;
-  };
-  data?: unknown;
-  code?: string;
-  details?: unknown;
-  [key: string]: unknown;
-};
+type RequestBody =
+  | string
+  | object
+  | FormData
+  | ArrayBuffer
+  | Blob
+  | null
+  | undefined;
+type UnknownError =
+  | Error
+  | {
+      message?: string;
+      status?: number;
+      response?: {
+        status?: number;
+        data?: unknown;
+      };
+      data?: unknown;
+      code?: string;
+      details?: unknown;
+      [key: string]: unknown;
+    };
 type LoggingData = Record<string, unknown>;
 
-export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
-export type ErrorCategory = 'network' | 'validation' | 'authentication' | 'authorization' | 'server' | 'client' | 'unknown';
+export type ErrorSeverity = "low" | "medium" | "high" | "critical";
+export type ErrorCategory =
+  | "network"
+  | "validation"
+  | "authentication"
+  | "authorization"
+  | "server"
+  | "client"
+  | "unknown";
 
 export interface ApiError extends Error {
   status?: number;
@@ -58,7 +74,12 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxDelay: 30000,
   backoffMultiplier: 2,
   retryableStatuses: [408, 429, 500, 502, 503, 504],
-  retryableErrors: ['NetworkError', 'TimeoutError', 'ECONNREFUSED', 'ENOTFOUND'],
+  retryableErrors: [
+    "NetworkError",
+    "TimeoutError",
+    "ECONNREFUSED",
+    "ENOTFOUND",
+  ],
 };
 
 export class ApiErrorHandler {
@@ -84,10 +105,10 @@ export class ApiErrorHandler {
   async handleError(
     error: UnknownError,
     context: ApiErrorContext,
-    retryConfig?: RetryConfig
+    retryConfig?: RetryConfig,
   ): Promise<ApiError> {
     const apiError = this.normalizeError(error, context);
-    
+
     // Report error to monitoring
     this.errorReporter.reportError(apiError, {
       api: true,
@@ -97,17 +118,22 @@ export class ApiErrorHandler {
     });
 
     // Log all API errors with enterprise logger
-    log.error('API Error occurred', apiError, {
-      component: 'ApiErrorHandler',
-      action: 'handleError',
-      url: context.url,
-      method: context.method,
-      userId: context.userId,
-      category: apiError.category,
-      severity: apiError.severity,
-      status: apiError.status,
-      code: apiError.code
-    }, 'API_ERROR_HANDLED');
+    log.error(
+      "API Error occurred",
+      apiError,
+      {
+        component: "ApiErrorHandler",
+        action: "handleError",
+        url: context.url,
+        method: context.method,
+        userId: context.userId,
+        category: apiError.category,
+        severity: apiError.severity,
+        status: apiError.status,
+        code: apiError.code,
+      },
+      "API_ERROR_HANDLED",
+    );
 
     return apiError;
   }
@@ -118,7 +144,7 @@ export class ApiErrorHandler {
   async executeWithRetry<T>(
     request: () => Promise<T>,
     context: ApiErrorContext,
-    customRetryConfig?: RetryConfig
+    customRetryConfig?: RetryConfig,
   ): Promise<T> {
     const config = { ...this.retryConfig, ...customRetryConfig };
     let lastError: ApiError | null = null;
@@ -136,44 +162,54 @@ export class ApiErrorHandler {
         }
 
         const delay = this.calculateDelay(attempt, config);
-        
-        log.debug('API retry attempt scheduled', {
-          component: 'ApiErrorHandler',
-          action: 'executeWithRetry',
-          attempt,
-          maxAttempts: config.maxAttempts,
-          delayMs: delay,
-          url: context.url,
-          method: context.method,
-          errorCategory: lastError.category,
-          errorStatus: lastError.status
-        }, 'API_RETRY_SCHEDULED');
+
+        log.debug(
+          "API retry attempt scheduled",
+          {
+            component: "ApiErrorHandler",
+            action: "executeWithRetry",
+            attempt,
+            maxAttempts: config.maxAttempts,
+            delayMs: delay,
+            url: context.url,
+            method: context.method,
+            errorCategory: lastError.category,
+            errorStatus: lastError.status,
+          },
+          "API_RETRY_SCHEDULED",
+        );
 
         await this.delay(delay);
       }
     }
 
-    throw lastError || new Error('Maximum retry attempts reached');
+    throw lastError || new Error("Maximum retry attempts reached");
   }
 
   /**
    * Normalize various error types into ApiError
    */
-  private normalizeError(error: UnknownError, context: ApiErrorContext): ApiError {
+  private normalizeError(
+    error: UnknownError,
+    context: ApiErrorContext,
+  ): ApiError {
     // Already an ApiError
-    if (error instanceof Error && 'category' in error) {
+    if (error instanceof Error && "category" in error) {
       return error as ApiError;
     }
 
-    const apiError: ApiError = new Error(error.message || 'Unknown error') as ApiError;
+    const apiError: ApiError = new Error(
+      error.message || "Unknown error",
+    ) as ApiError;
     apiError.timestamp = new Date().toISOString();
 
     // Handle fetch/network errors
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      apiError.category = 'network';
-      apiError.severity = 'high';
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      apiError.category = "network";
+      apiError.severity = "high";
       apiError.retry = true;
-      apiError.userMessage = 'Network connection error. Please check your internet connection.';
+      apiError.userMessage =
+        "Network connection error. Please check your internet connection.";
       return apiError;
     }
 
@@ -182,27 +218,28 @@ export class ApiErrorHandler {
       const status = error.status || error.response.status;
       apiError.status = status;
       apiError.details = error.response?.data || error.data;
-      
+
       // Categorize by status code
       if (status >= 400 && status < 500) {
         apiError.category = this.categorizeClientError(status);
-        apiError.severity = status === 401 || status === 403 ? 'high' : 'medium';
+        apiError.severity =
+          status === 401 || status === 403 ? "high" : "medium";
         apiError.retry = status === 429; // Retry rate limit errors
         apiError.userMessage = this.getUserMessage(status, error);
       } else if (status >= 500) {
-        apiError.category = 'server';
-        apiError.severity = 'high';
+        apiError.category = "server";
+        apiError.severity = "high";
         apiError.retry = true;
-        apiError.userMessage = 'Server error. Please try again later.';
+        apiError.userMessage = "Server error. Please try again later.";
       }
     }
 
     // Handle timeout errors
-    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      apiError.category = 'network';
-      apiError.severity = 'medium';
+    if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      apiError.category = "network";
+      apiError.severity = "medium";
       apiError.retry = true;
-      apiError.userMessage = 'Request timed out. Please try again.';
+      apiError.userMessage = "Request timed out. Please try again.";
     }
 
     // Handle Supabase errors
@@ -215,10 +252,11 @@ export class ApiErrorHandler {
     }
 
     // Default values
-    apiError.category = apiError.category || 'unknown';
-    apiError.severity = apiError.severity || 'medium';
+    apiError.category = apiError.category || "unknown";
+    apiError.severity = apiError.severity || "medium";
     apiError.retry = apiError.retry ?? false;
-    apiError.userMessage = apiError.userMessage || 'An unexpected error occurred. Please try again.';
+    apiError.userMessage =
+      apiError.userMessage || "An unexpected error occurred. Please try again.";
 
     return apiError;
   }
@@ -226,7 +264,11 @@ export class ApiErrorHandler {
   /**
    * Determine if error should trigger a retry
    */
-  private shouldRetry(error: ApiError, attempt: number, config: RetryConfig): boolean {
+  private shouldRetry(
+    error: ApiError,
+    attempt: number,
+    config: RetryConfig,
+  ): boolean {
     // Don't retry if explicitly set to false
     if (error.retry === false) return false;
 
@@ -241,7 +283,11 @@ export class ApiErrorHandler {
     // Check retryable error messages
     if (config.retryableErrors) {
       const errorMessage = error.message.toLowerCase();
-      if (config.retryableErrors.some(msg => errorMessage.includes(msg.toLowerCase()))) {
+      if (
+        config.retryableErrors.some((msg) =>
+          errorMessage.includes(msg.toLowerCase()),
+        )
+      ) {
         return true;
       }
     }
@@ -254,13 +300,18 @@ export class ApiErrorHandler {
    * Calculate delay for retry with exponential backoff
    */
   private calculateDelay(attempt: number, config: RetryConfig): number {
-    const { initialDelay = 1000, maxDelay = 30000, backoffMultiplier = 2 } = config;
-    
+    const {
+      initialDelay = 1000,
+      maxDelay = 30000,
+      backoffMultiplier = 2,
+    } = config;
+
     // Exponential backoff with jitter
-    const exponentialDelay = initialDelay * Math.pow(backoffMultiplier, attempt - 1);
+    const exponentialDelay =
+      initialDelay * Math.pow(backoffMultiplier, attempt - 1);
     const jitter = Math.random() * 0.3 * exponentialDelay; // 30% jitter
     const delay = Math.min(exponentialDelay + jitter, maxDelay);
-    
+
     return Math.round(delay);
   }
 
@@ -270,14 +321,14 @@ export class ApiErrorHandler {
   private categorizeClientError(status: number): ErrorCategory {
     switch (status) {
       case 401:
-        return 'authentication';
+        return "authentication";
       case 403:
-        return 'authorization';
+        return "authorization";
       case 400:
       case 422:
-        return 'validation';
+        return "validation";
       default:
-        return 'client';
+        return "client";
     }
   }
 
@@ -285,20 +336,20 @@ export class ApiErrorHandler {
    * Categorize Supabase errors
    */
   private categorizeSupabaseError(code: string): ErrorCategory {
-    if (code.startsWith('AUTH_')) return 'authentication';
-    if (code.startsWith('PGRST')) return 'server';
-    if (code.includes('NETWORK')) return 'network';
-    return 'unknown';
+    if (code.startsWith("AUTH_")) return "authentication";
+    if (code.startsWith("PGRST")) return "server";
+    if (code.includes("NETWORK")) return "network";
+    return "unknown";
   }
 
   /**
    * Get severity from Supabase error
    */
   private getSeverityFromSupabaseError(code: string): ErrorSeverity {
-    if (code.startsWith('AUTH_')) return 'high';
-    if (code.includes('RATE_LIMIT')) return 'medium';
-    if (code.includes('NETWORK')) return 'high';
-    return 'medium';
+    if (code.startsWith("AUTH_")) return "high";
+    if (code.includes("RATE_LIMIT")) return "medium";
+    if (code.includes("NETWORK")) return "high";
+    return "medium";
   }
 
   /**
@@ -310,27 +361,27 @@ export class ApiErrorHandler {
 
     switch (status) {
       case 400:
-        return 'Invalid request. Please check your input and try again.';
+        return "Invalid request. Please check your input and try again.";
       case 401:
-        return 'Please sign in to continue.';
+        return "Please sign in to continue.";
       case 403:
-        return 'You don\'t have permission to access this resource.';
+        return "You don't have permission to access this resource.";
       case 404:
-        return 'The requested resource was not found.';
+        return "The requested resource was not found.";
       case 409:
-        return 'This action conflicts with existing data.';
+        return "This action conflicts with existing data.";
       case 422:
-        return 'The provided data is invalid. Please check and try again.';
+        return "The provided data is invalid. Please check and try again.";
       case 429:
-        return 'Too many requests. Please wait a moment and try again.';
+        return "Too many requests. Please wait a moment and try again.";
       case 500:
-        return 'Server error. Our team has been notified.';
+        return "Server error. Our team has been notified.";
       case 502:
       case 503:
       case 504:
-        return 'Service temporarily unavailable. Please try again later.';
+        return "Service temporarily unavailable. Please try again later.";
       default:
-        return 'An error occurred. Please try again.';
+        return "An error occurred. Please try again.";
     }
   }
 
@@ -338,32 +389,35 @@ export class ApiErrorHandler {
    * Get user-friendly message for Supabase errors
    */
   private getSupabaseUserMessage(error: UnknownError): string {
-    if (error.message.includes('Invalid login credentials')) {
-      return 'Invalid email or password. Please try again.';
+    if (error.message.includes("Invalid login credentials")) {
+      return "Invalid email or password. Please try again.";
     }
-    if (error.message.includes('User already registered')) {
-      return 'An account with this email already exists.';
+    if (error.message.includes("User already registered")) {
+      return "An account with this email already exists.";
     }
-    if (error.message.includes('Email not confirmed')) {
-      return 'Please verify your email address to continue.';
+    if (error.message.includes("Email not confirmed")) {
+      return "Please verify your email address to continue.";
     }
-    if (error.message.includes('Invalid token')) {
-      return 'Your session has expired. Please sign in again.';
+    if (error.message.includes("Invalid token")) {
+      return "Your session has expired. Please sign in again.";
     }
-    return error.message || 'An error occurred with the database.';
+    return error.message || "An error occurred with the database.";
   }
 
   /**
    * Utility function to delay execution
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Format error for logging
    */
-  formatErrorForLogging(error: ApiError, context?: ApiErrorContext): LoggingData {
+  formatErrorForLogging(
+    error: ApiError,
+    context?: ApiErrorContext,
+  ): LoggingData {
     return {
       message: error.message,
       status: error.status,
@@ -373,12 +427,14 @@ export class ApiErrorHandler {
       timestamp: error.timestamp,
       stack: error.stack,
       details: error.details,
-      context: context ? {
-        url: context.url,
-        method: context.method,
-        userId: context.userId,
-        sessionId: context.sessionId,
-      } : undefined,
+      context: context
+        ? {
+            url: context.url,
+            method: context.method,
+            userId: context.userId,
+            sessionId: context.sessionId,
+          }
+        : undefined,
     };
   }
 
@@ -386,9 +442,14 @@ export class ApiErrorHandler {
    * Check if error is retryable
    */
   isRetryableError(error: ApiError): boolean {
-    return error.retry === true || 
-           (error.status !== undefined && DEFAULT_RETRY_CONFIG.retryableStatuses!.includes(error.status)) ||
-           DEFAULT_RETRY_CONFIG.retryableErrors!.some(msg => error.message.includes(msg));
+    return (
+      error.retry === true ||
+      (error.status !== undefined &&
+        DEFAULT_RETRY_CONFIG.retryableStatuses!.includes(error.status)) ||
+      DEFAULT_RETRY_CONFIG.retryableErrors!.some((msg) =>
+        error.message.includes(msg),
+      )
+    );
   }
 
   /**
@@ -398,28 +459,28 @@ export class ApiErrorHandler {
     const suggestions: string[] = [];
 
     switch (error.category) {
-      case 'network':
-        suggestions.push('Check your internet connection');
-        suggestions.push('Try refreshing the page');
-        suggestions.push('Disable VPN or proxy if active');
+      case "network":
+        suggestions.push("Check your internet connection");
+        suggestions.push("Try refreshing the page");
+        suggestions.push("Disable VPN or proxy if active");
         break;
-      case 'authentication':
-        suggestions.push('Sign in to your account');
-        suggestions.push('Check your credentials');
-        suggestions.push('Reset your password if forgotten');
+      case "authentication":
+        suggestions.push("Sign in to your account");
+        suggestions.push("Check your credentials");
+        suggestions.push("Reset your password if forgotten");
         break;
-      case 'authorization':
-        suggestions.push('Contact support for access');
-        suggestions.push('Check your subscription status');
+      case "authorization":
+        suggestions.push("Contact support for access");
+        suggestions.push("Check your subscription status");
         break;
-      case 'validation':
-        suggestions.push('Review the form for errors');
-        suggestions.push('Check required fields');
-        suggestions.push('Ensure data formats are correct');
+      case "validation":
+        suggestions.push("Review the form for errors");
+        suggestions.push("Check required fields");
+        suggestions.push("Ensure data formats are correct");
         break;
-      case 'server':
-        suggestions.push('Wait a few minutes and try again');
-        suggestions.push('Contact support if the issue persists');
+      case "server":
+        suggestions.push("Wait a few minutes and try again");
+        suggestions.push("Contact support if the issue persists");
         break;
     }
 
@@ -437,5 +498,5 @@ export const handleApiError = (error: UnknownError, context: ApiErrorContext) =>
 export const executeWithRetry = <T>(
   request: () => Promise<T>,
   context: ApiErrorContext,
-  retryConfig?: RetryConfig
+  retryConfig?: RetryConfig,
 ) => apiErrorHandler.executeWithRetry(request, context, retryConfig);

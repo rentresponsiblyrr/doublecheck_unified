@@ -1,9 +1,9 @@
 /**
  * @fileoverview Supabase Error Type Definitions
  * Professional TypeScript interfaces for Supabase error handling
- * 
+ *
  * Eliminates amateur 'any' error casting patterns with proper typing
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
@@ -44,7 +44,7 @@ export interface AuthError extends SupabaseError {
  * RLS (Row Level Security) error details
  */
 export interface RLSError extends SupabaseError {
-  code: '42501' | 'PGRST116';
+  code: "42501" | "PGRST116";
   details: string;
   hint: string;
 }
@@ -53,7 +53,7 @@ export interface RLSError extends SupabaseError {
  * Network/Connection error details
  */
 export interface NetworkError extends SupabaseError {
-  code: 'NETWORK_ERROR' | 'TIMEOUT' | 'ABORT';
+  code: "NETWORK_ERROR" | "TIMEOUT" | "ABORT";
   details: string;
   status?: number;
 }
@@ -62,10 +62,7 @@ export interface NetworkError extends SupabaseError {
  * Type guard to check if error is a SupabaseError
  */
 export function isSupabaseError(error: unknown): error is SupabaseError {
-  return (
-    error instanceof Error &&
-    (error as SupabaseError).code !== undefined
-  );
+  return error instanceof Error && (error as SupabaseError).code !== undefined;
 }
 
 /**
@@ -74,8 +71,8 @@ export function isSupabaseError(error: unknown): error is SupabaseError {
 export function isPostgreSQLError(error: unknown): error is PostgreSQLError {
   return (
     isSupabaseError(error) &&
-    typeof (error as PostgreSQLError).code === 'string' &&
-    typeof (error as PostgreSQLError).details === 'string'
+    typeof (error as PostgreSQLError).code === "string" &&
+    typeof (error as PostgreSQLError).details === "string"
   );
 }
 
@@ -85,7 +82,8 @@ export function isPostgreSQLError(error: unknown): error is PostgreSQLError {
 export function isRLSError(error: unknown): error is RLSError {
   return (
     isSupabaseError(error) &&
-    ((error as RLSError).code === '42501' || (error as RLSError).code === 'PGRST116')
+    ((error as RLSError).code === "42501" ||
+      (error as RLSError).code === "PGRST116")
   );
 }
 
@@ -93,10 +91,16 @@ export function isRLSError(error: unknown): error is RLSError {
  * Type guard to check if error is a network error
  */
 export function isNetworkError(error: unknown): error is NetworkError {
-  const networkCodes = ['NETWORK_ERROR', 'TIMEOUT', 'ABORT', 'ERR_INTERNET_DISCONNECTED', 'ERR_NETWORK'];
+  const networkCodes = [
+    "NETWORK_ERROR",
+    "TIMEOUT",
+    "ABORT",
+    "ERR_INTERNET_DISCONNECTED",
+    "ERR_NETWORK",
+  ];
   return (
     error instanceof Error &&
-    networkCodes.some(code => error.message.includes(code))
+    networkCodes.some((code) => error.message.includes(code))
   );
 }
 
@@ -117,13 +121,13 @@ export function extractErrorInfo(error: unknown): {
       message: error.message,
     };
   }
-  
+
   if (error instanceof Error) {
     return {
       message: error.message,
     };
   }
-  
+
   return {
     message: String(error),
   };
@@ -134,20 +138,20 @@ export function extractErrorInfo(error: unknown): {
  */
 export function formatSupabaseError(error: unknown): string {
   const info = extractErrorInfo(error);
-  
+
   let formatted = info.message;
-  
+
   if (info.code) {
     formatted += ` (Code: ${info.code})`;
   }
-  
+
   if (info.details) {
     formatted += ` - Details: ${info.details}`;
   }
-  
+
   if (info.hint) {
     formatted += ` - Hint: ${info.hint}`;
   }
-  
+
   return formatted;
 }

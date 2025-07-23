@@ -1,4 +1,3 @@
-
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,8 +6,10 @@ interface PropertySelectionErrorProps {
   onRetry: () => void;
 }
 
-export const PropertySelectionError = ({ error, onRetry }: PropertySelectionErrorProps) => {
-  
+export const PropertySelectionError = ({
+  error,
+  onRetry,
+}: PropertySelectionErrorProps) => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
@@ -17,7 +18,7 @@ export const PropertySelectionError = ({ error, onRetry }: PropertySelectionErro
           Error Loading Data
         </h2>
         <p className="text-gray-600 mb-4">
-          {error?.message || 'Failed to load properties and inspections.'}
+          {error?.message || "Failed to load properties and inspections."}
         </p>
         <Button onClick={onRetry} className="w-full">
           Try Again

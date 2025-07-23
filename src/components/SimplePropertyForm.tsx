@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PropertyFormFields } from "@/components/PropertyFormFields";
 import { PropertyFormAlerts } from "@/components/PropertyFormAlerts";
@@ -15,36 +14,41 @@ import { ScrapedPropertyData } from "@/types/scraped-data";
 export const SimplePropertyForm = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
   const isOnline = useNetworkStatus();
-  const { isLoading, submitProperty, isEditing } = useSimplePropertySubmission();
-  
+  const { isLoading, submitProperty, isEditing } =
+    useSimplePropertySubmission();
+
   const [formData, setFormData] = useState<PropertyFormData>({
-    name: '',
-    address: '',
-    vrbo_url: '',
-    airbnb_url: ''
+    name: "",
+    address: "",
+    vrbo_url: "",
+    airbnb_url: "",
   });
-  
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoadingProperty, setIsLoadingProperty] = useState(false);
-  const [scrapedVRBOData, setScrapedVRBOData] = useState<{ name?: string; address?: string; amenities?: string[] } | null>(null);
+  const [scrapedVRBOData, setScrapedVRBOData] = useState<{
+    name?: string;
+    address?: string;
+    amenities?: string[];
+  } | null>(null);
 
   // Load property data for editing
   useEffect(() => {
     const loadPropertyForEdit = async () => {
       if (!isEditing) return;
-      
+
       const urlParams = new URLSearchParams(window.location.search);
-      const editId = urlParams.get('edit');
-      
+      const editId = urlParams.get("edit");
+
       if (!editId) return;
 
       setIsLoadingProperty(true);
 
       try {
         const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('id', editId)
+          .from("properties")
+          .select("*")
+          .eq("id", editId)
           .single();
 
         if (error) {
@@ -53,14 +57,14 @@ export const SimplePropertyForm = () => {
 
         if (data) {
           setFormData({
-            name: data.name || '',
-            address: data.address || '',
-            vrbo_url: data.vrbo_url || '',
-            airbnb_url: data.airbnb_url || ''
+            name: data.name || "",
+            address: data.address || "",
+            vrbo_url: data.vrbo_url || "",
+            airbnb_url: data.airbnb_url || "",
           });
         }
       } catch (error) {
-        console.warn('Failed to load property for editing:', error);
+        console.warn("Failed to load property for editing:", error);
       } finally {
         setIsLoadingProperty(false);
       }
@@ -70,10 +74,10 @@ export const SimplePropertyForm = () => {
   }, [isEditing]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear field error when user starts typing
     if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }));
+      setFormErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -83,19 +87,19 @@ export const SimplePropertyForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear previous errors
     setFormErrors({});
-    
+
     // Include scraped VRBO data in submission
     const submissionData = {
       ...formData,
-      scraped_vrbo_data: scrapedVRBOData
+      scraped_vrbo_data: scrapedVRBOData,
     };
-    
+
     const success = await submitProperty(submissionData);
     if (!success) {
-      console.warn('Property submission failed');
+      console.warn("Property submission failed");
     }
   };
 
@@ -112,9 +116,13 @@ export const SimplePropertyForm = () => {
     );
   }
 
-  const submitButtonText = isLoading 
-    ? (isEditing ? "Updating..." : "Adding...")
-    : (isEditing ? "Update Property" : "Add Property");
+  const submitButtonText = isLoading
+    ? isEditing
+      ? "Updating..."
+      : "Adding..."
+    : isEditing
+      ? "Update Property"
+      : "Add Property";
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -127,7 +135,7 @@ export const SimplePropertyForm = () => {
           </CardHeader>
           <CardContent>
             <PropertyFormAlerts isOnline={isOnline} user={user} />
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <PropertyFormFields
                 formData={formData}
@@ -135,7 +143,7 @@ export const SimplePropertyForm = () => {
                 onInputChange={handleInputChange}
                 onVRBODataScraped={handleVRBODataScraped}
               />
-              
+
               {/* Show scraped data preview */}
               {scrapedVRBOData && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -143,21 +151,33 @@ export const SimplePropertyForm = () => {
                     📊 Imported Property Details
                   </h3>
                   <div className="text-xs text-blue-800 space-y-1">
-                    <div>• {scrapedVRBOData.specifications?.bedrooms || 0} bedrooms, {scrapedVRBOData.specifications?.bathrooms || 0} bathrooms</div>
-                    <div>• Max guests: {scrapedVRBOData.specifications?.maxGuests || 'N/A'}</div>
-                    <div>• {scrapedVRBOData.amenities?.length || 0} amenities detected</div>
+                    <div>
+                      • {scrapedVRBOData.specifications?.bedrooms || 0}{" "}
+                      bedrooms, {scrapedVRBOData.specifications?.bathrooms || 0}{" "}
+                      bathrooms
+                    </div>
+                    <div>
+                      • Max guests:{" "}
+                      {scrapedVRBOData.specifications?.maxGuests || "N/A"}
+                    </div>
+                    <div>
+                      • {scrapedVRBOData.amenities?.length || 0} amenities
+                      detected
+                    </div>
                     <div>• Ready for AI checklist generation</div>
                   </div>
                 </div>
               )}
-              
+
               <div className="flex gap-3 pt-4">
                 <Button
                   type="submit"
                   disabled={isLoading || !isAuthenticated || !isOnline}
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                 >
-                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
                   {submitButtonText}
                 </Button>
               </div>

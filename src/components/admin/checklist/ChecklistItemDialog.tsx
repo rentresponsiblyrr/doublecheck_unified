@@ -3,17 +3,28 @@
  * Extracted from FunctionalChecklistManagement.tsx
  */
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { RefreshCw, Camera, Video, CheckSquare, FileText } from 'lucide-react';
-import { ProductionSafetyItem } from '@/services/productionDatabaseService';
-import { SafetyItemFormData } from '@/hooks/useFunctionalChecklistManagement';
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { RefreshCw, Camera, Video, CheckSquare, FileText } from "lucide-react";
+import { ProductionSafetyItem } from "@/services/productionDatabaseService";
+import { SafetyItemFormData } from "@/hooks/useFunctionalChecklistManagement";
 
 interface ChecklistItemDialogProps {
   isOpen: boolean;
@@ -27,10 +38,10 @@ interface ChecklistItemDialogProps {
 }
 
 const evidenceTypes = [
-  { value: 'photo', label: 'Photo', icon: Camera },
-  { value: 'video', label: 'Video', icon: Video },
-  { value: 'none', label: 'Visual Check Only', icon: CheckSquare },
-  { value: 'documentation', label: 'Documentation', icon: FileText }
+  { value: "photo", label: "Photo", icon: Camera },
+  { value: "video", label: "Video", icon: Video },
+  { value: "none", label: "Visual Check Only", icon: CheckSquare },
+  { value: "documentation", label: "Documentation", icon: FileText },
 ];
 
 export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
@@ -41,14 +52,14 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
   setFormData,
   onSubmit,
   submitLoading,
-  categories
+  categories,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingItem ? 'Edit Checklist Item' : 'Create New Checklist Item'}
+            {editingItem ? "Edit Checklist Item" : "Create New Checklist Item"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -57,7 +68,9 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
             <Input
               id="label"
               value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, label: e.target.value })
+              }
               required
               placeholder="Enter descriptive label for this checklist item"
             />
@@ -65,7 +78,12 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
 
           <div>
             <Label htmlFor="category">Category *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <Select
+              value={formData.category}
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -81,7 +99,12 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
 
           <div>
             <Label htmlFor="evidence_type">Evidence Type *</Label>
-            <Select value={formData.evidence_type} onValueChange={(value) => setFormData({ ...formData, evidence_type: value })}>
+            <Select
+              value={formData.evidence_type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, evidence_type: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select evidence type" />
               </SelectTrigger>
@@ -102,7 +125,9 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
             <Switch
               id="required"
               checked={formData.required}
-              onCheckedChange={(checked) => setFormData({ ...formData, required: checked })}
+              onCheckedChange={(checked) =>
+                setFormData({ ...formData, required: checked })
+              }
             />
             <Label htmlFor="required">Required Item</Label>
           </div>
@@ -112,7 +137,9 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               placeholder="Additional notes or instructions for inspectors"
               rows={3}
             />
@@ -123,12 +150,15 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
             <Textarea
               id="gpt_prompt"
               value={formData.gpt_prompt}
-              onChange={(e) => setFormData({ ...formData, gpt_prompt: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, gpt_prompt: e.target.value })
+              }
               placeholder="Prompt for AI analysis of photos/videos for this item"
               rows={4}
             />
             <p className="text-xs text-gray-500 mt-1">
-              This prompt will be used by AI to analyze evidence captured for this checklist item.
+              This prompt will be used by AI to analyze evidence captured for
+              this checklist item.
             </p>
           </div>
 
@@ -142,8 +172,10 @@ export const ChecklistItemDialog: React.FC<ChecklistItemDialogProps> = ({
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                   Saving...
                 </>
+              ) : editingItem ? (
+                "Update Item"
               ) : (
-                editingItem ? 'Update Item' : 'Create Item'
+                "Create Item"
               )}
             </Button>
           </div>

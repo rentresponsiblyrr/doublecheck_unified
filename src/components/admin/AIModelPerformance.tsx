@@ -1,9 +1,9 @@
 /**
  * AI MODEL PERFORMANCE - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade AI model performance following ZERO_TOLERANCE_STANDARDS
  * Reduced from 376 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (AIPerformanceOverview, AIModelAnalytics, etc.)
@@ -11,13 +11,13 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - AIPerformanceOverview: High-level metrics and health indicators
  * - AIModelAnalytics: Detailed model performance comparison
  * - AIModelTrendsChart: Performance trends visualization
  * - AIPerformanceInsights: AI-generated recommendations
- * 
+ *
  * @example
  * ```typescript
  * <AIModelPerformance
@@ -29,15 +29,21 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Activity } from 'lucide-react';
-import type { ModelPerformanceMetrics } from '@/types/ai-database';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Activity } from "lucide-react";
+import type { ModelPerformanceMetrics } from "@/types/ai-database";
 
 // Import focused components
-import { AIPerformanceOverview } from '../ai/AIPerformanceOverview';
-import { AIModelAnalytics } from '../ai/AIModelAnalytics';
+import { AIPerformanceOverview } from "../ai/AIPerformanceOverview";
+import { AIModelAnalytics } from "../ai/AIModelAnalytics";
 
 /**
  * Model comparison data interface
@@ -60,7 +66,7 @@ interface AIModelPerformanceProps {
   /** Model comparison data */
   modelComparison: ModelComparisonData[];
   /** Selected timeframe for analysis */
-  selectedTimeframe: 'daily' | 'weekly' | 'monthly';
+  selectedTimeframe: "daily" | "weekly" | "monthly";
   /** Refresh state indicator */
   isRefreshing: boolean;
   /** Refresh callback */
@@ -79,7 +85,7 @@ export const AIModelPerformance: React.FC<AIModelPerformanceProps> = ({
   selectedTimeframe,
   isRefreshing,
   onRefresh,
-  isLoading = false
+  isLoading = false,
 }) => {
   // Loading state
   if (isLoading) {
@@ -115,9 +121,17 @@ export const AIModelPerformance: React.FC<AIModelPerformanceProps> = ({
           </CardHeader>
           <CardContent className="text-center py-8">
             <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-muted-foreground">No performance data available yet</p>
-            <Button onClick={onRefresh} disabled={isRefreshing} className="mt-4">
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <p className="text-muted-foreground">
+              No performance data available yet
+            </p>
+            <Button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="mt-4"
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Check for Data
             </Button>
           </CardContent>
@@ -133,7 +147,7 @@ export const AIModelPerformance: React.FC<AIModelPerformanceProps> = ({
     avgResponseTime: modelPerformance.avgResponseTime || 0,
     avgAccuracy: (modelPerformance.accuracy || 0) * 100,
     costEfficiency: 85, // Mock data
-    healthScore: 92 // Mock data
+    healthScore: 92, // Mock data
   };
 
   const performanceData = {
@@ -142,7 +156,7 @@ export const AIModelPerformance: React.FC<AIModelPerformanceProps> = ({
     costTrend: [],
     throughput: 45,
     errorRate: 2.1,
-    cacheHitRate: 87.3
+    cacheHitRate: 87.3,
   };
 
   const modelAnalyticsData = modelComparison.map((model, index) => ({
@@ -154,14 +168,14 @@ export const AIModelPerformance: React.FC<AIModelPerformanceProps> = ({
     avgAccuracy: model.accuracy * 100,
     errorRate: 1.5 + Math.random() * 2,
     utilization: 70 + Math.random() * 25,
-    efficiency: 80 + Math.random() * 15
+    efficiency: 80 + Math.random() * 15,
   }));
 
   const usageData = {
     hourlyDistribution: [],
     userSegments: [],
     contentTypes: [],
-    geographicDistribution: []
+    geographicDistribution: [],
   };
 
   return (

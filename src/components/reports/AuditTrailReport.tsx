@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  FileText, 
-  Clock, 
-  User, 
-  Camera, 
-  CheckCircle, 
-  AlertTriangle, 
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  FileText,
+  Clock,
+  User,
+  Camera,
+  CheckCircle,
+  AlertTriangle,
   XCircle,
   Eye,
-  Download
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
+  Download,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface AuditTrailEntry {
   id: string;
@@ -27,8 +27,8 @@ interface AuditTrailEntry {
   user_id: string;
   user_name: string;
   details: string;
-  category: 'inspection' | 'photo' | 'ai_analysis' | 'review' | 'system';
-  status: 'completed' | 'failed' | 'pending';
+  category: "inspection" | "photo" | "ai_analysis" | "review" | "system";
+  status: "completed" | "failed" | "pending";
   metadata?: Record<string, any>;
 }
 
@@ -45,7 +45,7 @@ interface AuditTrailReportProps {
 export const AuditTrailReport: React.FC<AuditTrailReportProps> = ({
   inspectionId,
   propertyName,
-  className = ''
+  className = "",
 }) => {
   return (
     <Card id="audit-trail-report" className={className}>
@@ -60,7 +60,7 @@ export const AuditTrailReport: React.FC<AuditTrailReportProps> = ({
           isExporting,
           error,
           onRefresh,
-          onExport
+          onExport,
         }) => (
           <>
             {/* Loading State */}
@@ -85,7 +85,7 @@ export const AuditTrailReport: React.FC<AuditTrailReportProps> = ({
                   hasEntries={auditTrail.length > 0}
                   onExport={onExport}
                 />
-                
+
                 {/* Content */}
                 <CardContent>
                   {auditTrail.length === 0 ? (

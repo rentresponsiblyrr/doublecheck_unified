@@ -1,12 +1,14 @@
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Wifi, WifiOff } from 'lucide-react';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Wifi, WifiOff } from "lucide-react";
 
 interface ConnectionStatusProps {
   isOnline: boolean;
 }
 
-export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isOnline }) => (
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
+  isOnline,
+}) => (
   <div id="connection-status" className="flex items-center gap-2">
     {isOnline ? (
       <>

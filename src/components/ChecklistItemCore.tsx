@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ChecklistItemType } from "@/types/inspection";
 import { ChecklistItemUploadSection } from "@/components/ChecklistItemUploadSection";
@@ -17,18 +16,19 @@ interface ChecklistItemCoreProps {
   onUploadingChange: (isUploading: boolean) => void;
 }
 
-export const ChecklistItemCore = ({ 
-  item, 
-  onComplete, 
+export const ChecklistItemCore = ({
+  item,
+  onComplete,
   onNotesChange,
-  onUploadingChange 
+  onUploadingChange,
 }: ChecklistItemCoreProps) => {
   const [currentNotes, setCurrentNotes] = useState(item.notes || "");
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const { toast } = useToast();
-  const { data: mediaItems = [], refetch: refetchMedia } = useChecklistItemMedia(item.id);
+  const { data: mediaItems = [], refetch: refetchMedia } =
+    useChecklistItemMedia(item.id);
   const { saveNote } = useNotesHistory(item.id);
 
   const hasUploadedMedia = mediaItems.length > 0;
@@ -36,9 +36,8 @@ export const ChecklistItemCore = ({
   const handleMediaUpload = async (file: File) => {
     setIsUploading(true);
     onUploadingChange(true);
-    
+
     try {
-      
       toast({
         title: "Upload started",
         description: `Uploading ${item.evidence_type}...`,
@@ -57,28 +56,29 @@ export const ChecklistItemCore = ({
 
   const handleDeleteMedia = async () => {
     if (mediaItems.length === 0) return;
-    
+
     setIsDeleting(true);
     try {
       // Delete all media items for this checklist item
       const { error: mediaError } = await supabase
-        .from('media')
+        .from("media")
         .delete()
-        .eq('checklist_item_id', item.id);
+        .eq("checklist_item_id", item.id);
 
       if (mediaError) throw mediaError;
 
       // Update checklist item status back to null (incomplete)
       const { error: statusError } = await supabase
-        .from('checklist_items')
-        .update({ status: 'pending' })
-        .eq('id', item.id);
+        .from("checklist_items")
+        .update({ status: "pending" })
+        .eq("id", item.id);
 
       if (statusError) throw statusError;
 
       toast({
         title: "Media deleted",
-        description: "Evidence has been removed. You can now upload new evidence.",
+        description:
+          "Evidence has been removed. You can now upload new evidence.",
       });
 
       // Refresh media and trigger parent refresh
@@ -99,7 +99,7 @@ export const ChecklistItemCore = ({
     setIsUploading(false);
     onUploadingChange(false);
     await refetchMedia();
-    
+
     // DO NOT auto-complete - user must still mark pass/fail/NA
   };
 
@@ -126,21 +126,20 @@ export const ChecklistItemCore = ({
         />
 
         {/* Notes */}
-        <ChecklistItemNotes 
-          itemId={item.id} 
-          initialNotes={item.notes || ""} 
+        <ChecklistItemNotes
+          itemId={item.id}
+          initialNotes={item.notes || ""}
           onNotesChange={handleNotesChange}
         />
 
         {/* Pass/Fail/N/A Actions */}
-        <ChecklistItemActions 
-          itemId={item.id} 
-          currentNotes={currentNotes} 
-          onComplete={onComplete} 
+        <ChecklistItemActions
+          itemId={item.id}
+          currentNotes={currentNotes}
+          onComplete={onComplete}
           inspectionId={item.inspection_id}
         />
       </div>
-
     </>
   );
 };

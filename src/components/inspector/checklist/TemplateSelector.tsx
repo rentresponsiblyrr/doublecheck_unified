@@ -3,11 +3,11 @@
  * Extracted from ChecklistGenerationStep.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, FileText } from 'lucide-react';
-import { Property } from '@/hooks/useChecklistGeneration';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, FileText } from "lucide-react";
+import { Property } from "@/hooks/useChecklistGeneration";
 
 interface TemplateSelectorProps {
   property: Property;
@@ -16,7 +16,7 @@ interface TemplateSelectorProps {
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   property,
-  onRegenerate
+  onRegenerate,
 }) => {
   return (
     <CardHeader>
@@ -25,11 +25,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           <FileText className="w-5 h-5" />
           Inspection Checklist Generated
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRegenerate}
-        >
+        <Button variant="outline" size="sm" onClick={onRegenerate}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Regenerate
         </Button>

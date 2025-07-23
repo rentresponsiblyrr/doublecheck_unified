@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { ClaudeIntegrationExample } from '@/components/ai/ClaudeIntegrationExample';
-import { logger } from '@/utils/logger';
+import * as React from "react";
+import { ClaudeIntegrationExample } from "@/components/ai/ClaudeIntegrationExample";
+import { logger } from "@/utils/logger";
 
 export default function ClaudeDemo() {
   return (
@@ -11,18 +11,18 @@ export default function ClaudeDemo() {
             Claude AI Demo
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Experience Claude AI integration for property inspection workflows. 
+            Experience Claude AI integration for property inspection workflows.
             Test photo analysis, text generation, and code review capabilities.
           </p>
         </div>
-        
-        <ClaudeIntegrationExample 
+
+        <ClaudeIntegrationExample
           inspectionId="demo-inspection-123"
           onAnalysisComplete={(result) => {
-            logger.info('Claude analysis completed', {
-              component: 'ClaudeDemo',
-              result: result ? 'success' : 'null',
-              action: 'analysis_completion'
+            logger.info("Claude analysis completed", {
+              component: "ClaudeDemo",
+              result: result ? "success" : "null",
+              action: "analysis_completion",
             });
             // You can handle the results here
           }}
@@ -30,4 +30,4 @@ export default function ClaudeDemo() {
       </div>
     </div>
   );
-} 
+}

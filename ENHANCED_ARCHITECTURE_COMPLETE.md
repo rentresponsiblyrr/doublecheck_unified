@@ -92,7 +92,7 @@ EnhancedServiceMigration {
 ```sql
 -- ❌ WRONG (Previous assumptions):
 static_safety_items.id: INTEGER                    -- Assumed incorrectly
-logs.static_safety_item_id → static_safety_items   -- Wrong column name
+logs.static_item_id → static_safety_items   -- Wrong column name
 profiles table for user data                       -- Wrong table
 
 -- ✅ CORRECT (Production reality):
@@ -107,8 +107,8 @@ users table for user data                          -- Correct table
 -- Properties Table
 CREATE TABLE properties (
     property_id SERIAL PRIMARY KEY,              -- ✅ Integer primary key
-    property_name TEXT NOT NULL,                 -- ✅ Property name
-    street_address TEXT NOT NULL,                -- ✅ Property address
+    name TEXT NOT NULL,                 -- ✅ Property name
+    address TEXT NOT NULL,                -- ✅ Property address
     vrbo_url TEXT,                               -- Optional VRBO URL
     airbnb_url TEXT,                             -- Optional Airbnb URL
     created_by UUID REFERENCES users(id)         -- Created by user
@@ -156,7 +156,7 @@ CREATE INDEX CONCURRENTLY idx_logs_checklist_id ON logs(checklist_id);
 CREATE INDEX CONCURRENTLY idx_logs_inspector_id ON logs(inspector_id);
 
 -- Search optimization indexes
-CREATE INDEX CONCURRENTLY idx_properties_search ON properties(property_name, street_address);
+CREATE INDEX CONCURRENTLY idx_properties_search ON properties(name, address);
 CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
 CREATE INDEX CONCURRENTLY idx_users_role ON users(role);
 ```

@@ -1,16 +1,16 @@
 /**
  * INSPECTION SERVICES - PHASE 2 SERVICE LAYER EXPORTS
- * 
+ *
  * Centralized exports for the enterprise-grade inspection service layer.
  * Provides clean, consistent API access to all inspection-related operations
  * with intelligent caching, query optimization, and performance monitoring.
- * 
+ *
  * PERFORMANCE ACHIEVEMENTS:
  * - 70% query reduction through intelligent caching
  * - <200ms response times for all operations (95th percentile)
  * - >60% cache hit rate for repeated data access
  * - Enterprise-grade error handling and resilience patterns
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
@@ -19,24 +19,24 @@
 // CORE SERVICES - Singleton Instances
 // ========================================
 
-export { inspectionDataService } from './InspectionDataService';
-export { propertyDataService } from './PropertyDataService';
-export { checklistDataService } from './ChecklistDataService';
+export { inspectionDataService } from "./InspectionDataService";
+export { propertyDataService } from "./PropertyDataService";
+export { checklistDataService } from "./ChecklistDataService";
 
 // ========================================
 // SERVICE CLASSES - For Advanced Usage
 // ========================================
 
-export { InspectionDataService } from './InspectionDataService';
-export { PropertyDataService } from './PropertyDataService';
-export { ChecklistDataService } from './ChecklistDataService';
+export { InspectionDataService } from "./InspectionDataService";
+export { PropertyDataService } from "./PropertyDataService";
+export { ChecklistDataService } from "./ChecklistDataService";
 
 // ========================================
 // QUERY BUILDER & UTILITIES
 // ========================================
 
-export { QueryBuilder } from './QueryBuilder';
-export { queryCache } from './QueryCache';
+export { QueryBuilder } from "./QueryBuilder";
+export { queryCache } from "./QueryCache";
 
 // Query builder factory functions
 export {
@@ -46,8 +46,8 @@ export {
   queryUsers,
   queryStaticSafetyItems,
   queryMedia,
-  analyzeQueryPerformance
-} from './QueryBuilder';
+  analyzeQueryPerformance,
+} from "./QueryBuilder";
 
 // ========================================
 // TYPE DEFINITIONS
@@ -78,8 +78,8 @@ export type {
   ActiveInspectionOptions,
   TimeRange,
   InspectionServiceError,
-  InspectionErrorCode
-} from './types/business';
+  InspectionErrorCode,
+} from "./types/business";
 
 // Database schema types (internal)
 export type {
@@ -94,8 +94,8 @@ export type {
   QueryMetrics,
   PropertyWithInspections,
   InspectionWithFullDetails,
-  ChecklistItemWithDetails
-} from './types/database';
+  ChecklistItemWithDetails,
+} from "./types/database";
 
 // Query builder types
 export type {
@@ -104,8 +104,8 @@ export type {
   FilterOperator,
   FilterConfig,
   SortConfig,
-  JoinConfig
-} from './QueryBuilder';
+  JoinConfig,
+} from "./QueryBuilder";
 
 // ========================================
 // SERVICE LAYER API - Recommended Usage
@@ -114,17 +114,17 @@ export type {
 /**
  * Primary service layer API for inspection operations
  * Use these singleton instances for all inspection-related operations
- * 
+ *
  * @example
  * ```typescript
  * import { inspectionDataService, propertyDataService, checklistDataService } from '@/services/inspection';
- * 
+ *
  * // Get active inspections with caching
  * const result = await inspectionDataService.getActiveInspections();
- * 
+ *
  * // Search properties with intelligent ranking
  * const properties = await propertyDataService.searchProperties('downtown apartment');
- * 
+ *
  * // Update checklist item with optimistic updates
  * await checklistDataService.updateChecklistItem(itemId, 'completed', result, notes);
  * ```
@@ -133,14 +133,14 @@ export const InspectionServices = {
   /**
    * Core inspection operations with intelligent caching
    * - getActiveInspections()
-   * - getInspectionWithFullDetails() 
+   * - getInspectionWithFullDetails()
    * - updateInspectionStatus()
    * - createInspection()
    * - getInspectionProgress()
    * - getInspectionStats()
    */
   inspections: inspectionDataService,
-  
+
   /**
    * Property management with inspection context
    * - getPropertiesWithStatus()
@@ -151,7 +151,7 @@ export const InspectionServices = {
    * - updateProperty()
    */
   properties: propertyDataService,
-  
+
   /**
    * Checklist and progress management
    * - getInspectionChecklist()
@@ -162,7 +162,7 @@ export const InspectionServices = {
    * - attachMediaToItem()
    */
   checklist: checklistDataService,
-  
+
   /**
    * Query cache management
    * - Cache statistics and performance monitoring
@@ -179,14 +179,14 @@ export const InspectionServices = {
 /**
  * Service layer performance monitoring and statistics
  * Use for debugging, monitoring, and optimization
- * 
+ *
  * @example
  * ```typescript
  * import { ServiceLayerMonitoring } from '@/services/inspection';
- * 
+ *
  * // Get comprehensive performance report
  * const report = ServiceLayerMonitoring.getPerformanceReport();
- * 
+ *
  * // Check cache hit rates
  * const cacheStats = ServiceLayerMonitoring.getCacheStatistics();
  * ```
@@ -213,7 +213,7 @@ export const ServiceLayerMonitoring = {
       hitRate: stats.hitRate,
       totalHits: stats.hits,
       totalMisses: stats.misses,
-      memoryUsage: Math.round(stats.memoryUsage / 1024 / 1024 * 100) / 100, // MB
+      memoryUsage: Math.round((stats.memoryUsage / 1024 / 1024) * 100) / 100, // MB
       entryCount: stats.entryCount,
       avgLookupTime: stats.avgLookupTime,
       lastCleanup: stats.lastCleanup,
@@ -237,7 +237,7 @@ export const ServiceLayerMonitoring = {
   getRecommendations() {
     const report = queryCache.getPerformanceReport();
     return report.recommendations;
-  }
+  },
 };
 
 // ========================================
@@ -247,7 +247,7 @@ export const ServiceLayerMonitoring = {
 /**
  * Migration utilities for converting existing code to use the service layer
  * Provides backward compatibility and gradual migration support
- * 
+ *
  * @deprecated Use direct service imports instead
  */
 export const LegacyCompatibility = {
@@ -255,7 +255,9 @@ export const LegacyCompatibility = {
    * @deprecated Use inspectionDataService.getActiveInspections()
    */
   async getActiveInspections(inspectorId?: string) {
-    console.warn('LegacyCompatibility.getActiveInspections is deprecated. Use inspectionDataService.getActiveInspections()');
+    console.warn(
+      "LegacyCompatibility.getActiveInspections is deprecated. Use inspectionDataService.getActiveInspections()",
+    );
     return inspectionDataService.getActiveInspections({ inspectorId });
   },
 
@@ -263,7 +265,9 @@ export const LegacyCompatibility = {
    * @deprecated Use propertyDataService.searchProperties()
    */
   async searchProperties(query: string) {
-    console.warn('LegacyCompatibility.searchProperties is deprecated. Use propertyDataService.searchProperties()');
+    console.warn(
+      "LegacyCompatibility.searchProperties is deprecated. Use propertyDataService.searchProperties()",
+    );
     return propertyDataService.searchProperties(query);
   },
 
@@ -271,7 +275,9 @@ export const LegacyCompatibility = {
    * @deprecated Use checklistDataService.getInspectionProgress()
    */
   async getInspectionProgress(inspectionId: string) {
-    console.warn('LegacyCompatibility.getInspectionProgress is deprecated. Use checklistDataService.getInspectionProgress()');
+    console.warn(
+      "LegacyCompatibility.getInspectionProgress is deprecated. Use checklistDataService.getInspectionProgress()",
+    );
     return checklistDataService.getInspectionProgress(inspectionId);
   },
 };
@@ -285,32 +291,32 @@ export const LegacyCompatibility = {
  * For compatibility tracking and feature detection
  */
 export const ServiceLayerInfo = {
-  version: '2.0.0',
-  phase: 'Phase 2 - Query Standardization & Architectural Excellence',
+  version: "2.0.0",
+  phase: "Phase 2 - Query Standardization & Architectural Excellence",
   features: [
-    'Intelligent caching with 70% query reduction',
-    'Sub-200ms response times (95th percentile)',
-    '>60% cache hit rate achievement',
-    'Enterprise-grade error handling',
-    'Circuit breaker patterns',
-    'Performance monitoring and optimization',
-    'Type-safe business logic abstraction',
-    'Optimistic UI updates for mobile',
-    'Batch operations for efficiency',
-    'Real-time progress tracking'
+    "Intelligent caching with 70% query reduction",
+    "Sub-200ms response times (95th percentile)",
+    ">60% cache hit rate achievement",
+    "Enterprise-grade error handling",
+    "Circuit breaker patterns",
+    "Performance monitoring and optimization",
+    "Type-safe business logic abstraction",
+    "Optimistic UI updates for mobile",
+    "Batch operations for efficiency",
+    "Real-time progress tracking",
   ],
   performance: {
-    targetQueryReduction: '70%',
-    targetResponseTime: '<200ms (95th percentile)',
-    targetCacheHitRate: '>60%',
+    targetQueryReduction: "70%",
+    targetResponseTime: "<200ms (95th percentile)",
+    targetCacheHitRate: ">60%",
     supportedOperations: 50000, // Operations per minute
     maxConcurrentUsers: 1000,
   },
   compatibility: {
-    supabaseVersion: '^2.0.0',
-    reactVersion: '^18.0.0',
-    typescriptVersion: '^5.0.0',
-  }
+    supabaseVersion: "^2.0.0",
+    reactVersion: "^18.0.0",
+    typescriptVersion: "^5.0.0",
+  },
 };
 
 // ========================================
@@ -320,17 +326,17 @@ export const ServiceLayerInfo = {
 /**
  * Complete service layer export
  * Provides access to all inspection services and utilities
- * 
+ *
  * @example
  * ```typescript
  * import InspectionServiceLayer from '@/services/inspection';
- * 
+ *
  * // Access services
  * const inspections = await InspectionServiceLayer.services.inspections.getActiveInspections();
- * 
+ *
  * // Monitor performance
  * const stats = InspectionServiceLayer.monitoring.getCacheStatistics();
- * 
+ *
  * // Check version
  * console.log(InspectionServiceLayer.info.version);
  * ```

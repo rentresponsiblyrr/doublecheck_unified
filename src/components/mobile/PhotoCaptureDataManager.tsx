@@ -1,11 +1,11 @@
 /**
  * Photo Capture Data Manager - Focused Component
- * 
+ *
  * Handles all photo capture state management and canvas operations with render props pattern
  */
 
-import React, { useState, useRef, useCallback } from 'react';
-import type { PhotoGuidance, ChecklistItem } from '@/types/photo';
+import React, { useState, useRef, useCallback } from "react";
+import type { PhotoGuidance, ChecklistItem } from "@/types/photo";
 
 export interface PhotoCaptureMetadata {
   checklistItemId: string;
@@ -37,93 +37,113 @@ interface PhotoCaptureDataManagerProps {
   }) => React.ReactNode;
 }
 
-export const PhotoCaptureDataManager: React.FC<PhotoCaptureDataManagerProps> = ({
+export const PhotoCaptureDataManager: React.FC<
+  PhotoCaptureDataManagerProps
+> = ({
   checklistItem,
   videoStream,
   currentQuality,
   onPhotoCapture,
-  children
+  children,
 }) => {
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const calculateQualityScore = useCallback((guidance: PhotoGuidance): number => {
-    const maxScore = 100;
-    const errorCount = guidance.messages.filter(m => m.type === 'error').length;
-    const warningCount = guidance.messages.filter(m => m.type === 'warning').length;
-    
-    return Math.max(0, maxScore - (errorCount * 30) - (warningCount * 10));
-  }, []);
+  const calculateQualityScore = useCallback(
+    (guidance: PhotoGuidance): number => {
+      const maxScore = 100;
+      const errorCount = guidance.messages.filter(
+        (m) => m.type === "error",
+      ).length;
+      const warningCount = guidance.messages.filter(
+        (m) => m.type === "warning",
+      ).length;
+
+      return Math.max(0, maxScore - errorCount * 30 - warningCount * 10);
+    },
+    [],
+  );
 
   const handleCapture = useCallback(async () => {
     if (!videoStream || !currentQuality) return;
 
     // Check for quality issues
     const qualityIssues = currentQuality.messages
-      .filter(m => m.type === 'error')
-      .map(m => m.message);
+      .filter((m) => m.type === "error")
+      .map((m) => m.message);
 
     if (qualityIssues.length > 0) {
-      console.warn('Quality issues detected:', qualityIssues);
+      console.warn("Quality issues detected:", qualityIssues);
     }
 
     setIsProcessing(true);
 
     try {
       // Create video element to capture frame
-      const video = document.createElement('video');
+      const video = document.createElement("video");
       video.srcObject = videoStream;
       video.play();
 
       // Wait for video to be ready
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         video.onloadedmetadata = resolve;
       });
 
       // Create canvas and capture frame
-      const canvas = canvasRef.current || document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
+      const canvas = canvasRef.current || document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       if (!ctx) {
-        throw new Error('Could not get canvas context');
+        throw new Error("Could not get canvas context");
       }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       // Flip horizontally for mirror effect
       ctx.scale(-1, 1);
       ctx.drawImage(video, -canvas.width, 0);
-      
+
       // Convert to blob
       const photoBlob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(blob => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create photo blob'));
-          }
-        }, 'image/jpeg', 0.9);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("Failed to create photo blob"));
+            }
+          },
+          "image/jpeg",
+          0.9,
+        );
       });
 
       // Create file from blob
-      const photoFile = new File([photoBlob], `inspection-${checklistItem.id}-${Date.now()}.jpg`, {
-        type: 'image/jpeg'
-      });
+      const photoFile = new File(
+        [photoBlob],
+        `inspection-${checklistItem.id}-${Date.now()}.jpg`,
+        {
+          type: "image/jpeg",
+        },
+      );
 
       // Create capture metadata
       const metadata: PhotoCaptureMetadata = {
         checklistItemId: checklistItem.id,
-        roomName: checklistItem.roomName || 'Unknown',
+        roomName: checklistItem.roomName || "Unknown",
         captureTime: new Date(),
         deviceInfo: {
           userAgent: navigator.userAgent,
           screenResolution: `${screen.width}x${screen.height}`,
-          cameraCapabilities: videoStream.getVideoTracks()[0]?.getCapabilities() || null
+          cameraCapabilities:
+            videoStream.getVideoTracks()[0]?.getCapabilities() || null,
         },
-        qualityScore: currentQuality ? calculateQualityScore(currentQuality) : 0,
-        guidanceFollowed: qualityIssues.length === 0
+        qualityScore: currentQuality
+          ? calculateQualityScore(currentQuality)
+          : 0,
+        guidanceFollowed: qualityIssues.length === 0,
       };
 
       // Create preview URL
@@ -132,14 +152,19 @@ export const PhotoCaptureDataManager: React.FC<PhotoCaptureDataManagerProps> = (
 
       // Call the onPhotoCapture callback
       onPhotoCapture(photoFile, metadata);
-
     } catch (error) {
-      console.error('Photo capture failed:', error);
-      alert('Failed to capture photo. Please try again.');
+      console.error("Photo capture failed:", error);
+      alert("Failed to capture photo. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  }, [videoStream, currentQuality, checklistItem, onPhotoCapture, calculateQualityScore]);
+  }, [
+    videoStream,
+    currentQuality,
+    checklistItem,
+    onPhotoCapture,
+    calculateQualityScore,
+  ]);
 
   const handleRetake = useCallback(() => {
     if (capturedPhoto) {
@@ -154,8 +179,11 @@ export const PhotoCaptureDataManager: React.FC<PhotoCaptureDataManagerProps> = (
   }, []);
 
   const canCapture = videoStream && currentQuality && !isProcessing;
-  const hasQualityIssues = currentQuality?.messages.some(m => m.type === 'error') || false;
-  const qualityScore = currentQuality ? calculateQualityScore(currentQuality) : 0;
+  const hasQualityIssues =
+    currentQuality?.messages.some((m) => m.type === "error") || false;
+  const qualityScore = currentQuality
+    ? calculateQualityScore(currentQuality)
+    : 0;
 
   return (
     <>
@@ -167,7 +195,7 @@ export const PhotoCaptureDataManager: React.FC<PhotoCaptureDataManagerProps> = (
         qualityScore,
         onCapture: handleCapture,
         onRetake: handleRetake,
-        onConfirm: handleConfirm
+        onConfirm: handleConfirm,
       })}
       {/* Hidden canvas for photo capture */}
       <canvas ref={canvasRef} className="hidden" />

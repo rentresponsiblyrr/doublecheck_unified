@@ -1,19 +1,34 @@
 /**
  * @fileoverview Comprehensive Component Tests for Property List
  * Enterprise-grade React component testing with RTL and user interactions
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PropertyFactory, InspectionFactory, ProfileFactory } from '../factories';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  PropertyFactory,
+  InspectionFactory,
+  ProfileFactory,
+} from "../factories";
 
 // Mock the PropertyList component (we'll need to create this)
-const MockPropertyList = ({ properties, onPropertySelect, selectedPropertyId, isLoading }: any) => {
+const MockPropertyList = ({
+  properties,
+  onPropertySelect,
+  selectedPropertyId,
+  isLoading,
+}: any) => {
   if (isLoading) {
     return <div data-testid="loading-spinner">Loading properties...</div>;
   }
@@ -28,7 +43,11 @@ const MockPropertyList = ({ properties, onPropertySelect, selectedPropertyId, is
         <div
           key={property.property_id}
           data-testid={`property-item-${property.property_id}`}
-          className={selectedPropertyId === property.property_id.toString() ? 'selected' : ''}
+          className={
+            selectedPropertyId === property.property_id.toString()
+              ? "selected"
+              : ""
+          }
           onClick={() => onPropertySelect(property.property_id.toString())}
         >
           <h3 data-testid={`property-name-${property.property_id}`}>
@@ -52,18 +71,16 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
-describe('PropertyList Component', () => {
+describe("PropertyList Component", () => {
   let mockOnPropertySelect: ReturnType<typeof vi.fn>;
   let testProperties: any[];
 
@@ -76,8 +93,8 @@ describe('PropertyList Component', () => {
     vi.clearAllMocks();
   });
 
-  describe('Rendering and Data Display', () => {
-    it('should render loading state correctly', () => {
+  describe("Rendering and Data Display", () => {
+    it("should render loading state correctly", () => {
       render(
         <TestWrapper>
           <MockPropertyList
@@ -85,14 +102,14 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={true}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-      expect(screen.getByText('Loading properties...')).toBeInTheDocument();
+      expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
+      expect(screen.getByText("Loading properties...")).toBeInTheDocument();
     });
 
-    it('should render empty state when no properties exist', () => {
+    it("should render empty state when no properties exist", () => {
       render(
         <TestWrapper>
           <MockPropertyList
@@ -100,14 +117,14 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
-      expect(screen.getByText('No properties found')).toBeInTheDocument();
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+      expect(screen.getByText("No properties found")).toBeInTheDocument();
     });
 
-    it('should render property list with all properties', () => {
+    it("should render property list with all properties", () => {
       render(
         <TestWrapper>
           <MockPropertyList
@@ -115,19 +132,25 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-list')).toBeInTheDocument();
-      
-      testProperties.forEach(property => {
-        expect(screen.getByTestId(`property-item-${property.property_id}`)).toBeInTheDocument();
-        expect(screen.getByTestId(`property-name-${property.property_id}`)).toHaveTextContent(property.property_name);
-        expect(screen.getByTestId(`property-address-${property.property_id}`)).toHaveTextContent(property.street_address);
+      expect(screen.getByTestId("property-list")).toBeInTheDocument();
+
+      testProperties.forEach((property) => {
+        expect(
+          screen.getByTestId(`property-item-${property.property_id}`),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId(`property-name-${property.property_id}`),
+        ).toHaveTextContent(property.property_name);
+        expect(
+          screen.getByTestId(`property-address-${property.property_id}`),
+        ).toHaveTextContent(property.street_address);
       });
     });
 
-    it('should display property information correctly', () => {
+    it("should display property information correctly", () => {
       const property = testProperties[0];
 
       render(
@@ -137,19 +160,25 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const propertyItem = screen.getByTestId(`property-item-${property.property_id}`);
+      const propertyItem = screen.getByTestId(
+        `property-item-${property.property_id}`,
+      );
       expect(propertyItem).toBeInTheDocument();
 
-      expect(within(propertyItem).getByText(property.property_name)).toBeInTheDocument();
-      expect(within(propertyItem).getByText(property.street_address)).toBeInTheDocument();
+      expect(
+        within(propertyItem).getByText(property.property_name),
+      ).toBeInTheDocument();
+      expect(
+        within(propertyItem).getByText(property.street_address),
+      ).toBeInTheDocument();
     });
   });
 
-  describe('User Interactions', () => {
-    it('should call onPropertySelect when property is clicked', async () => {
+  describe("User Interactions", () => {
+    it("should call onPropertySelect when property is clicked", async () => {
       const user = userEvent.setup();
       const property = testProperties[0];
 
@@ -160,17 +189,21 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const propertyItem = screen.getByTestId(`property-item-${property.property_id}`);
+      const propertyItem = screen.getByTestId(
+        `property-item-${property.property_id}`,
+      );
       await user.click(propertyItem);
 
-      expect(mockOnPropertySelect).toHaveBeenCalledWith(property.property_id.toString());
+      expect(mockOnPropertySelect).toHaveBeenCalledWith(
+        property.property_id.toString(),
+      );
       expect(mockOnPropertySelect).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle multiple property selections correctly', async () => {
+    it("should handle multiple property selections correctly", async () => {
       const user = userEvent.setup();
 
       render(
@@ -180,21 +213,29 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Click on first property
-      await user.click(screen.getByTestId(`property-item-${testProperties[0].property_id}`));
-      expect(mockOnPropertySelect).toHaveBeenCalledWith(testProperties[0].property_id.toString());
+      await user.click(
+        screen.getByTestId(`property-item-${testProperties[0].property_id}`),
+      );
+      expect(mockOnPropertySelect).toHaveBeenCalledWith(
+        testProperties[0].property_id.toString(),
+      );
 
       // Click on second property
-      await user.click(screen.getByTestId(`property-item-${testProperties[1].property_id}`));
-      expect(mockOnPropertySelect).toHaveBeenCalledWith(testProperties[1].property_id.toString());
+      await user.click(
+        screen.getByTestId(`property-item-${testProperties[1].property_id}`),
+      );
+      expect(mockOnPropertySelect).toHaveBeenCalledWith(
+        testProperties[1].property_id.toString(),
+      );
 
       expect(mockOnPropertySelect).toHaveBeenCalledTimes(2);
     });
 
-    it('should highlight selected property correctly', () => {
+    it("should highlight selected property correctly", () => {
       const selectedProperty = testProperties[0];
 
       render(
@@ -205,22 +246,26 @@ describe('PropertyList Component', () => {
             selectedPropertyId={selectedProperty.property_id.toString()}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const selectedItem = screen.getByTestId(`property-item-${selectedProperty.property_id}`);
-      expect(selectedItem).toHaveClass('selected');
+      const selectedItem = screen.getByTestId(
+        `property-item-${selectedProperty.property_id}`,
+      );
+      expect(selectedItem).toHaveClass("selected");
 
       // Other properties should not be selected
-      testProperties.slice(1).forEach(property => {
-        const item = screen.getByTestId(`property-item-${property.property_id}`);
-        expect(item).not.toHaveClass('selected');
+      testProperties.slice(1).forEach((property) => {
+        const item = screen.getByTestId(
+          `property-item-${property.property_id}`,
+        );
+        expect(item).not.toHaveClass("selected");
       });
     });
   });
 
-  describe('Accessibility', () => {
-    it('should have proper ARIA attributes', () => {
+  describe("Accessibility", () => {
+    it("should have proper ARIA attributes", () => {
       render(
         <TestWrapper>
           <MockPropertyList
@@ -228,20 +273,22 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const propertyList = screen.getByTestId('property-list');
+      const propertyList = screen.getByTestId("property-list");
       expect(propertyList).toBeInTheDocument();
 
       // Each property item should be keyboard accessible
-      testProperties.forEach(property => {
-        const item = screen.getByTestId(`property-item-${property.property_id}`);
+      testProperties.forEach((property) => {
+        const item = screen.getByTestId(
+          `property-item-${property.property_id}`,
+        );
         expect(item).toBeInTheDocument();
       });
     });
 
-    it('should support keyboard navigation', async () => {
+    it("should support keyboard navigation", async () => {
       const user = userEvent.setup();
 
       render(
@@ -251,19 +298,23 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const firstItem = screen.getByTestId(`property-item-${testProperties[0].property_id}`);
-      
+      const firstItem = screen.getByTestId(
+        `property-item-${testProperties[0].property_id}`,
+      );
+
       // Focus and press Enter
       firstItem.focus();
-      await user.keyboard('{Enter}');
+      await user.keyboard("{Enter}");
 
-      expect(mockOnPropertySelect).toHaveBeenCalledWith(testProperties[0].property_id.toString());
+      expect(mockOnPropertySelect).toHaveBeenCalledWith(
+        testProperties[0].property_id.toString(),
+      );
     });
 
-    it('should have semantic HTML structure', () => {
+    it("should have semantic HTML structure", () => {
       render(
         <TestWrapper>
           <MockPropertyList
@@ -271,21 +322,25 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Check that property names are in heading elements
-      testProperties.forEach(property => {
-        const heading = screen.getByTestId(`property-name-${property.property_id}`);
-        expect(heading.tagName).toBe('H3');
+      testProperties.forEach((property) => {
+        const heading = screen.getByTestId(
+          `property-name-${property.property_id}`,
+        );
+        expect(heading.tagName).toBe("H3");
       });
     });
   });
 
-  describe('Performance', () => {
-    it('should handle large numbers of properties efficiently', () => {
+  describe("Performance", () => {
+    it("should handle large numbers of properties efficiently", () => {
       // Create 1000 properties for performance testing
-      const manyProperties = Array.from({ length: 1000 }, () => PropertyFactory.build());
+      const manyProperties = Array.from({ length: 1000 }, () =>
+        PropertyFactory.build(),
+      );
 
       const startTime = performance.now();
 
@@ -296,7 +351,7 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       const endTime = performance.now();
@@ -306,10 +361,10 @@ describe('PropertyList Component', () => {
       expect(renderTime).toBeLessThan(1000);
 
       // Should render all properties
-      expect(screen.getByTestId('property-list')).toBeInTheDocument();
+      expect(screen.getByTestId("property-list")).toBeInTheDocument();
     });
 
-    it('should not cause memory leaks with frequent re-renders', () => {
+    it("should not cause memory leaks with frequent re-renders", () => {
       const { rerender } = render(
         <TestWrapper>
           <MockPropertyList
@@ -317,12 +372,15 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Simulate frequent updates
       for (let i = 0; i < 100; i++) {
-        const updatedProperties = testProperties.map(p => ({ ...p, updated: i }));
+        const updatedProperties = testProperties.map((p) => ({
+          ...p,
+          updated: i,
+        }));
         rerender(
           <TestWrapper>
             <MockPropertyList
@@ -330,21 +388,21 @@ describe('PropertyList Component', () => {
               onPropertySelect={mockOnPropertySelect}
               isLoading={false}
             />
-          </TestWrapper>
+          </TestWrapper>,
         );
       }
 
       // Component should still be functional
-      expect(screen.getByTestId('property-list')).toBeInTheDocument();
+      expect(screen.getByTestId("property-list")).toBeInTheDocument();
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle malformed property data gracefully', () => {
+  describe("Error Handling", () => {
+    it("should handle malformed property data gracefully", () => {
       const malformedProperties = [
-        { property_id: null, property_name: '', street_address: undefined },
-        { property_id: 'invalid', property_name: null, street_address: '' },
-        {} // Empty object
+        { property_id: null, property_name: "", street_address: undefined },
+        { property_id: "invalid", property_name: null, street_address: "" },
+        {}, // Empty object
       ];
 
       expect(() => {
@@ -355,12 +413,12 @@ describe('PropertyList Component', () => {
               onPropertySelect={mockOnPropertySelect}
               isLoading={false}
             />
-          </TestWrapper>
+          </TestWrapper>,
         );
       }).not.toThrow();
     });
 
-    it('should handle undefined properties prop gracefully', () => {
+    it("should handle undefined properties prop gracefully", () => {
       expect(() => {
         render(
           <TestWrapper>
@@ -369,14 +427,14 @@ describe('PropertyList Component', () => {
               onPropertySelect={mockOnPropertySelect}
               isLoading={false}
             />
-          </TestWrapper>
+          </TestWrapper>,
         );
       }).not.toThrow();
 
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     });
 
-    it('should handle missing onPropertySelect prop gracefully', () => {
+    it("should handle missing onPropertySelect prop gracefully", () => {
       expect(() => {
         render(
           <TestWrapper>
@@ -385,18 +443,18 @@ describe('PropertyList Component', () => {
               onPropertySelect={undefined}
               isLoading={false}
             />
-          </TestWrapper>
+          </TestWrapper>,
         );
       }).not.toThrow();
     });
   });
 
-  describe('Integration with Property Status', () => {
-    it('should display correct status based on inspections', () => {
+  describe("Integration with Property Status", () => {
+    it("should display correct status based on inspections", () => {
       const propertyWithInspections = PropertyFactory.build();
       const completedInspection = InspectionFactory.build({
         property_id: propertyWithInspections.property_id.toString(),
-        status: 'completed'
+        status: "completed",
       });
 
       // This would normally be calculated by the component
@@ -408,21 +466,23 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      const statusElement = screen.getByTestId(`property-status-${propertyWithInspections.property_id}`);
+      const statusElement = screen.getByTestId(
+        `property-status-${propertyWithInspections.property_id}`,
+      );
       expect(statusElement).toBeInTheDocument();
     });
   });
 
-  describe('Responsive Design', () => {
-    it('should adapt to different screen sizes', () => {
+  describe("Responsive Design", () => {
+    it("should adapt to different screen sizes", () => {
       // Mock window.innerWidth for responsive testing
-      Object.defineProperty(window, 'innerWidth', {
+      Object.defineProperty(window, "innerWidth", {
         writable: true,
         configurable: true,
-        value: 320 // Mobile width
+        value: 320, // Mobile width
       });
 
       render(
@@ -432,14 +492,16 @@ describe('PropertyList Component', () => {
             onPropertySelect={mockOnPropertySelect}
             isLoading={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
-      expect(screen.getByTestId('property-list')).toBeInTheDocument();
-      
+      expect(screen.getByTestId("property-list")).toBeInTheDocument();
+
       // Should still render all properties on mobile
-      testProperties.forEach(property => {
-        expect(screen.getByTestId(`property-item-${property.property_id}`)).toBeInTheDocument();
+      testProperties.forEach((property) => {
+        expect(
+          screen.getByTestId(`property-item-${property.property_id}`),
+        ).toBeInTheDocument();
       });
     });
   });

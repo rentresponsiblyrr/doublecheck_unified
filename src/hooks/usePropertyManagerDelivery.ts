@@ -3,17 +3,17 @@
  * Extracted from PropertyManagerDelivery.tsx for surgical refactoring
  */
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 export interface PropertyManagerInfo {
   name: string;
   email: string;
   phone?: string;
   company?: string;
-  preferred_contact: 'email' | 'phone' | 'both';
+  preferred_contact: "email" | "phone" | "both";
 }
 
 export interface DeliveryOptions {
@@ -22,20 +22,20 @@ export interface DeliveryOptions {
   includeRecommendations: boolean;
   urgentIssues: boolean;
   followUpRequired: boolean;
-  deliveryMethod: 'email' | 'portal' | 'both';
+  deliveryMethod: "email" | "portal" | "both";
 }
 
 export const usePropertyManagerDelivery = (
   inspectionId: string,
   propertyId: string,
-  propertyName: string
+  propertyName: string,
 ) => {
   const [managerInfo, setManagerInfo] = useState<PropertyManagerInfo>({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    preferred_contact: 'email'
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    preferred_contact: "email",
   });
 
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptions>({
@@ -44,12 +44,14 @@ export const usePropertyManagerDelivery = (
     includeRecommendations: true,
     urgentIssues: false,
     followUpRequired: false,
-    deliveryMethod: 'email'
+    deliveryMethod: "email",
   });
 
-  const [customMessage, setCustomMessage] = useState('');
+  const [customMessage, setCustomMessage] = useState("");
   const [isDelivering, setIsDelivering] = useState(false);
-  const [deliveryStatus, setDeliveryStatus] = useState<'pending' | 'sent' | 'failed'>('pending');
+  const [deliveryStatus, setDeliveryStatus] = useState<
+    "pending" | "sent" | "failed"
+  >("pending");
   const [isLoadingProperty, setIsLoadingProperty] = useState(true);
   const { toast } = useToast();
 
@@ -60,24 +62,28 @@ export const usePropertyManagerDelivery = (
   const fetchPropertyManagerInfo = async () => {
     try {
       setIsLoadingProperty(true);
-      logger.info('Fetching property manager info', { propertyId }, 'PROPERTY_MANAGER_DELIVERY');
+      logger.info(
+        "Fetching property manager info",
+        { propertyId },
+        "PROPERTY_MANAGER_DELIVERY",
+      );
 
       const { data: property, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('property_id', propertyId)
+        .from("properties")
+        .select("*")
+        .eq("property_id", propertyId)
         .single();
 
       if (error) {
         throw error;
       }
 
-      setManagerInfo(prev => ({
+      setManagerInfo((prev) => ({
         ...prev,
-        name: property?.manager_name || '',
-        email: property?.manager_email || '',
-        phone: property?.manager_phone || '',
-        company: property?.management_company || ''
+        name: property?.manager_name || "",
+        email: property?.manager_email || "",
+        phone: property?.manager_phone || "",
+        company: property?.management_company || "",
       }));
 
       setCustomMessage(`Hello,
@@ -94,13 +100,17 @@ If you have any questions about the findings or need clarification on any recomm
 
 Best regards,
 STR Certified Team`);
-
     } catch (error) {
-      logger.error('Failed to fetch property manager info', error, 'PROPERTY_MANAGER_DELIVERY');
+      logger.error(
+        "Failed to fetch property manager info",
+        error,
+        "PROPERTY_MANAGER_DELIVERY",
+      );
       toast({
-        title: 'Error Loading Property Data',
-        description: 'Failed to load property manager information. You can still enter details manually.',
-        variant: 'destructive',
+        title: "Error Loading Property Data",
+        description:
+          "Failed to load property manager information. You can still enter details manually.",
+        variant: "destructive",
       });
     } finally {
       setIsLoadingProperty(false);
@@ -110,18 +120,22 @@ STR Certified Team`);
   const handleDelivery = async () => {
     try {
       setIsDelivering(true);
-      logger.info('Starting delivery to property manager', { 
-        inspectionId, 
-        propertyId, 
-        managerEmail: managerInfo.email 
-      }, 'PROPERTY_MANAGER_DELIVERY');
+      logger.info(
+        "Starting delivery to property manager",
+        {
+          inspectionId,
+          propertyId,
+          managerEmail: managerInfo.email,
+        },
+        "PROPERTY_MANAGER_DELIVERY",
+      );
 
       if (!managerInfo.name || !managerInfo.email) {
-        throw new Error('Property manager name and email are required');
+        throw new Error("Property manager name and email are required");
       }
 
       if (!customMessage.trim()) {
-        throw new Error('Custom message is required');
+        throw new Error("Custom message is required");
       }
 
       const deliveryData = {
@@ -131,59 +145,75 @@ STR Certified Team`);
         manager_info: managerInfo,
         delivery_options: deliveryOptions,
         custom_message: customMessage,
-        delivery_timestamp: new Date().toISOString()
+        delivery_timestamp: new Date().toISOString(),
       };
 
       // Simulate delivery process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Log delivery to database - using report_deliveries table for proper schema
       const { error: logError } = await supabase
-        .from('report_deliveries')
+        .from("report_deliveries")
         .insert({
           inspection_id: inspectionId,
-          delivery_method: 'email',
+          delivery_method: "email",
           recipient_email: managerInfo.email,
           recipient_name: managerInfo.name,
-          delivery_status: 'completed',
+          delivery_status: "completed",
           delivery_data: JSON.stringify(deliveryData),
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
 
       if (logError) {
-        logger.warn('Failed to log delivery', logError, 'PROPERTY_MANAGER_DELIVERY');
+        logger.warn(
+          "Failed to log delivery",
+          logError,
+          "PROPERTY_MANAGER_DELIVERY",
+        );
       }
 
-      setDeliveryStatus('sent');
+      setDeliveryStatus("sent");
       toast({
-        title: 'Report Delivered Successfully',
+        title: "Report Delivered Successfully",
         description: `Inspection report has been sent to ${managerInfo.name} at ${managerInfo.email}`,
         duration: 5000,
       });
-
     } catch (error) {
-      logger.error('Failed to deliver report', error, 'PROPERTY_MANAGER_DELIVERY');
-      setDeliveryStatus('failed');
+      logger.error(
+        "Failed to deliver report",
+        error,
+        "PROPERTY_MANAGER_DELIVERY",
+      );
+      setDeliveryStatus("failed");
       toast({
-        title: 'Delivery Failed',
-        description: error instanceof Error ? error.message : 'Failed to deliver report. Please try again.',
-        variant: 'destructive',
+        title: "Delivery Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to deliver report. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsDelivering(false);
     }
   };
 
-  const updateManagerInfo = (field: keyof PropertyManagerInfo, value: string) => {
-    setManagerInfo(prev => ({ ...prev, [field]: value }));
+  const updateManagerInfo = (
+    field: keyof PropertyManagerInfo,
+    value: string,
+  ) => {
+    setManagerInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  const updateDeliveryOption = (field: keyof DeliveryOptions, value: boolean | string) => {
-    setDeliveryOptions(prev => ({ ...prev, [field]: value }));
+  const updateDeliveryOption = (
+    field: keyof DeliveryOptions,
+    value: boolean | string,
+  ) => {
+    setDeliveryOptions((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetDeliveryStatus = () => {
-    setDeliveryStatus('pending');
+    setDeliveryStatus("pending");
   };
 
   return {
@@ -197,6 +227,6 @@ STR Certified Team`);
     handleDelivery,
     updateManagerInfo,
     updateDeliveryOption,
-    resetDeliveryStatus
+    resetDeliveryStatus,
   };
 };

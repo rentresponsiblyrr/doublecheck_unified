@@ -3,50 +3,62 @@
  * Consolidates all admin management functionality into a single, feature-rich component
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Users, 
-  Building, 
-  FileText, 
-  Bug, 
-  BarChart3, 
-  Settings, 
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Users,
+  Building,
+  FileText,
+  Bug,
+  BarChart3,
+  Settings,
   Database,
-  Shield
-} from 'lucide-react';
+  Shield,
+} from "lucide-react";
 
 // Import existing admin components that we'll consolidate
-import { ComponentErrorBoundary } from '@/components/error/UniversalErrorBoundary';
-import { FunctionalUserManagement } from './FunctionalUserManagement';
-import { FunctionalChecklistManagement } from './FunctionalChecklistManagement';
-import { ProductionHealthCheck } from './ProductionHealthCheck';
+import { ComponentErrorBoundary } from "@/components/error/UniversalErrorBoundary";
+import { FunctionalUserManagement } from "./FunctionalUserManagement";
+import { FunctionalChecklistManagement } from "./FunctionalChecklistManagement";
+import { ProductionHealthCheck } from "./ProductionHealthCheck";
 
 interface UnifiedAdminManagementProps {
-  initialTab?: 'users' | 'properties' | 'inspections' | 'reports' | 'bugs' | 'analytics' | 'system';
-  userRole?: 'admin' | 'super_admin';
+  initialTab?:
+    | "users"
+    | "properties"
+    | "inspections"
+    | "reports"
+    | "bugs"
+    | "analytics"
+    | "system";
+  userRole?: "admin" | "super_admin";
 }
 
 export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
-  initialTab = 'users',
-  userRole = 'admin'
+  initialTab = "users",
+  userRole = "admin",
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const adminTabs = [
-    { id: 'users', label: 'User Management', icon: Users, adminOnly: false },
-    { id: 'properties', label: 'Properties', icon: Building, adminOnly: false },
-    { id: 'inspections', label: 'Inspections', icon: FileText, adminOnly: false },
-    { id: 'reports', label: 'Reports', icon: BarChart3, adminOnly: false },
-    { id: 'bugs', label: 'Bug Reports', icon: Bug, adminOnly: false },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, adminOnly: true },
-    { id: 'system', label: 'System', icon: Settings, adminOnly: true },
+    { id: "users", label: "User Management", icon: Users, adminOnly: false },
+    { id: "properties", label: "Properties", icon: Building, adminOnly: false },
+    {
+      id: "inspections",
+      label: "Inspections",
+      icon: FileText,
+      adminOnly: false,
+    },
+    { id: "reports", label: "Reports", icon: BarChart3, adminOnly: false },
+    { id: "bugs", label: "Bug Reports", icon: Bug, adminOnly: false },
+    { id: "analytics", label: "Analytics", icon: BarChart3, adminOnly: true },
+    { id: "system", label: "System", icon: Settings, adminOnly: true },
   ];
 
-  const filteredTabs = adminTabs.filter(tab => 
-    !tab.adminOnly || userRole === 'super_admin'
+  const filteredTabs = adminTabs.filter(
+    (tab) => !tab.adminOnly || userRole === "super_admin",
   );
 
   return (
@@ -59,11 +71,15 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-5 lg:grid-cols-7">
               {filteredTabs.map((tab) => (
-                <TabsTrigger 
-                  key={tab.id} 
+                <TabsTrigger
+                  key={tab.id}
                   value={tab.id}
                   className="flex items-center gap-1"
                 >
@@ -75,7 +91,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
 
             <div className="mt-6">
               <TabsContent value="users">
-                <ComponentErrorBoundary 
+                <ComponentErrorBoundary
                   componentName="User Management"
                   enableRetry={true}
                   enableHide={false}
@@ -85,7 +101,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
               </TabsContent>
 
               <TabsContent value="properties">
-                <ComponentErrorBoundary 
+                <ComponentErrorBoundary
                   componentName="Property Management"
                   enableRetry={true}
                 >
@@ -94,7 +110,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
               </TabsContent>
 
               <TabsContent value="inspections">
-                <ComponentErrorBoundary 
+                <ComponentErrorBoundary
                   componentName="Inspection Management"
                   enableRetry={true}
                 >
@@ -103,7 +119,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
               </TabsContent>
 
               <TabsContent value="reports">
-                <ComponentErrorBoundary 
+                <ComponentErrorBoundary
                   componentName="Report Management"
                   enableRetry={true}
                 >
@@ -112,7 +128,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
               </TabsContent>
 
               <TabsContent value="bugs">
-                <ComponentErrorBoundary 
+                <ComponentErrorBoundary
                   componentName="Bug Report Management"
                   enableRetry={true}
                 >
@@ -120,10 +136,10 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
                 </ComponentErrorBoundary>
               </TabsContent>
 
-              {userRole === 'super_admin' && (
+              {userRole === "super_admin" && (
                 <>
                   <TabsContent value="analytics">
-                    <ComponentErrorBoundary 
+                    <ComponentErrorBoundary
                       componentName="Analytics Dashboard"
                       enableRetry={true}
                     >
@@ -132,7 +148,7 @@ export const UnifiedAdminManagement: React.FC<UnifiedAdminManagementProps> = ({
                   </TabsContent>
 
                   <TabsContent value="system">
-                    <ComponentErrorBoundary 
+                    <ComponentErrorBoundary
                       componentName="System Management"
                       enableRetry={true}
                     >
@@ -162,7 +178,8 @@ const PropertyManagementContent = () => (
       <CardContent className="p-4">
         <p>Property management functionality will be implemented here.</p>
         <p className="text-sm text-gray-500 mt-2">
-          This consolidates PropertyManagement, PropertyFormDialog, and related components.
+          This consolidates PropertyManagement, PropertyFormDialog, and related
+          components.
         </p>
       </CardContent>
     </Card>
@@ -206,7 +223,8 @@ const AnalyticsDashboardContent = () => (
       <CardContent className="p-4">
         <p>Analytics dashboard will be implemented here.</p>
         <p className="text-sm text-gray-500 mt-2">
-          This consolidates AIPerformanceDashboard and related analytics components.
+          This consolidates AIPerformanceDashboard and related analytics
+          components.
         </p>
       </CardContent>
     </Card>

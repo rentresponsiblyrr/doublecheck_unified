@@ -11,7 +11,7 @@ The console logs showed specific database queries using the old schema that were
 **Problem**: Query using old schema causing the exact console errors you saw
 ```typescript
 // ❌ OLD (causing 503 errors):
-properties!inner(property_id, property_name, street_address),
+properties!inner(property_id, name, address),
 logs(log_id, pass, inspector_remarks, static_safety_items!checklist_id(...))
 
 // ✅ NEW (correct schema):
@@ -23,14 +23,14 @@ checklist_items(id, status, notes, static_safety_items!static_item_id(...))
 - `inspection.logs` → `inspection.checklist_items`
 - `item.pass` → `item.status` 
 - `property.property_id` → `property.id`
-- `property.property_name` → `property.name`
-- `property.street_address` → `property.address`
+- `property.name` → `property.name`
+- `property.address` → `property.address`
 
 #### **Fix 2: inspectionStore.ts - Sync Operations**
 **Problem**: Store trying to sync to non-existent `logs` table
 ```typescript
 // ❌ OLD:
-.from('logs').upsert({
+.from('checklist_items').upsert({
   inspection_id: state.inspectionId,
   checklist_id: item.checklist_id,
   pass: item.status === 'completed',
@@ -48,7 +48,7 @@ checklist_items(id, status, notes, static_safety_items!static_item_id(...))
 **Problem**: Component trying to update non-existent `logs` table
 ```typescript
 // ❌ OLD:
-.from('logs').update({ status: null })
+.from('checklist_items').update({ status: null })
 
 // ✅ NEW:  
 .from('checklist_items').update({ status: 'pending' })
@@ -70,7 +70,7 @@ GET /rest/v1/logs?select=id%2Cstatus&inspection_id=... 503 (Service Unavailable)
 
 ### ✅ **Error 3**:
 ```
-properties!inner(property_id,property_name,street_address) - 400 Bad Request
+properties!inner(property_id,name,address) - 400 Bad Request
 ```
 **Status**: FIXED - Now uses correct property fields (id, name, address)
 
@@ -90,8 +90,8 @@ static_safety_items!checklist_id - relationship error
 
 ### **✅ PROPERTY FIELDS:**
 - ❌ `property_id` → ✅ `id`
-- ❌ `property_name` → ✅ `name`  
-- ❌ `street_address` → ✅ `address`
+- ❌ `name` → ✅ `name`  
+- ❌ `address` → ✅ `address`
 
 ### **✅ CHECKLIST ITEM FIELDS:**
 - ❌ `log_id` → ✅ `id`

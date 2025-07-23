@@ -1,12 +1,12 @@
 /**
  * Monitoring Loading State - Enterprise Grade
- * 
+ *
  * Loading and error states for monitoring dashboard
  */
 
-import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface MonitoringLoadingStateProps {
   isLoading: boolean;
@@ -17,7 +17,7 @@ interface MonitoringLoadingStateProps {
 export const MonitoringLoadingState: React.FC<MonitoringLoadingStateProps> = ({
   isLoading,
   error,
-  className = ''
+  className = "",
 }) => {
   if (error) {
     return (
@@ -33,7 +33,10 @@ export const MonitoringLoadingState: React.FC<MonitoringLoadingStateProps> = ({
 
   if (isLoading) {
     return (
-      <div id="monitoring-loading-container" className={`flex items-center justify-center p-8 ${className}`}>
+      <div
+        id="monitoring-loading-container"
+        className={`flex items-center justify-center p-8 ${className}`}
+      >
         <div id="loading-spinner" className="flex items-center space-x-2">
           <RefreshCw className="h-4 w-4 animate-spin" />
           <span>Loading monitoring data...</span>

@@ -1,13 +1,13 @@
 /**
  * Property Selection Actions - Focused Component
- * 
+ *
  * Handles action buttons for property selection workflow
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2 } from 'lucide-react';
-import type { Property } from './PropertySelectionStep';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Loader2 } from "lucide-react";
+import type { Property } from "./PropertySelectionStep";
 
 interface PropertySelectionActionsProps {
   selectedProperty?: Property | null;
@@ -15,11 +15,9 @@ interface PropertySelectionActionsProps {
   onRefresh: () => void;
 }
 
-export const PropertySelectionActions: React.FC<PropertySelectionActionsProps> = ({
-  selectedProperty,
-  isSelecting,
-  onRefresh
-}) => {
+export const PropertySelectionActions: React.FC<
+  PropertySelectionActionsProps
+> = ({ selectedProperty, isSelecting, onRefresh }) => {
   return (
     <div className="flex gap-2 pt-4 border-t" id="property-selection-actions">
       <Button
@@ -30,7 +28,7 @@ export const PropertySelectionActions: React.FC<PropertySelectionActionsProps> =
       >
         Refresh List
       </Button>
-      
+
       {selectedProperty && (
         <Button
           className="flex-1"

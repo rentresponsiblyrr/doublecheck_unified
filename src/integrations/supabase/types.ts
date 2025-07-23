@@ -4,1697 +4,1697 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
       categories: {
         Row: {
-          color_class: string
-          created_at: string
-          description: string | null
-          icon_name: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          sort_order: number | null
-          updated_at: string
-        }
+          color_class: string;
+          created_at: string;
+          description: string | null;
+          icon_name: string | null;
+          id: string;
+          is_active: boolean | null;
+          name: string;
+          sort_order: number | null;
+          updated_at: string;
+        };
         Insert: {
-          color_class?: string
-          created_at?: string
-          description?: string | null
-          icon_name?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          sort_order?: number | null
-          updated_at?: string
-        }
+          color_class?: string;
+          created_at?: string;
+          description?: string | null;
+          icon_name?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          name: string;
+          sort_order?: number | null;
+          updated_at?: string;
+        };
         Update: {
-          color_class?: string
-          created_at?: string
-          description?: string | null
-          icon_name?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          sort_order?: number | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          color_class?: string;
+          created_at?: string;
+          description?: string | null;
+          icon_name?: string | null;
+          id?: string;
+          is_active?: boolean | null;
+          name?: string;
+          sort_order?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       checklist_audit_log: {
         Row: {
-          action_type: string
-          checklist_item_id: string | null
-          created_at: string | null
-          field_name: string
-          id: string
-          new_value: string | null
-          old_value: string | null
-          user_id: string | null
-        }
+          action_type: string;
+          checklist_item_id: string | null;
+          created_at: string | null;
+          field_name: string;
+          id: string;
+          new_value: string | null;
+          old_value: string | null;
+          user_id: string | null;
+        };
         Insert: {
-          action_type: string
-          checklist_item_id?: string | null
-          created_at?: string | null
-          field_name: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-          user_id?: string | null
-        }
+          action_type: string;
+          checklist_item_id?: string | null;
+          created_at?: string | null;
+          field_name: string;
+          id?: string;
+          new_value?: string | null;
+          old_value?: string | null;
+          user_id?: string | null;
+        };
         Update: {
-          action_type?: string
-          checklist_item_id?: string | null
-          created_at?: string | null
-          field_name?: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-          user_id?: string | null
-        }
+          action_type?: string;
+          checklist_item_id?: string | null;
+          created_at?: string | null;
+          field_name?: string;
+          id?: string;
+          new_value?: string | null;
+          old_value?: string | null;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "checklist_audit_log_checklist_item_id_fkey"
-            columns: ["checklist_item_id"]
-            isOneToOne: false
-            referencedRelation: "static_safety_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "checklist_audit_log_checklist_item_id_fkey";
+            columns: ["checklist_item_id"];
+            isOneToOne: false;
+            referencedRelation: "static_safety_items";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "checklist_audit_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "checklist_audit_log_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       checklist_item_change_log: {
         Row: {
-          change_reason: string | null
-          change_type: string
-          checklist_item_id: string
-          conflict_id: string | null
-          created_at: string
-          id: string
-          inspector_id: string
-          new_values: Json | null
-          old_values: Json | null
-        }
+          change_reason: string | null;
+          change_type: string;
+          checklist_item_id: string;
+          conflict_id: string | null;
+          created_at: string;
+          id: string;
+          inspector_id: string;
+          new_values: Json | null;
+          old_values: Json | null;
+        };
         Insert: {
-          change_reason?: string | null
-          change_type: string
-          checklist_item_id: string
-          conflict_id?: string | null
-          created_at?: string
-          id?: string
-          inspector_id: string
-          new_values?: Json | null
-          old_values?: Json | null
-        }
+          change_reason?: string | null;
+          change_type: string;
+          checklist_item_id: string;
+          conflict_id?: string | null;
+          created_at?: string;
+          id?: string;
+          inspector_id: string;
+          new_values?: Json | null;
+          old_values?: Json | null;
+        };
         Update: {
-          change_reason?: string | null
-          change_type?: string
-          checklist_item_id?: string
-          conflict_id?: string | null
-          created_at?: string
-          id?: string
-          inspector_id?: string
-          new_values?: Json | null
-          old_values?: Json | null
-        }
+          change_reason?: string | null;
+          change_type?: string;
+          checklist_item_id?: string;
+          conflict_id?: string | null;
+          created_at?: string;
+          id?: string;
+          inspector_id?: string;
+          new_values?: Json | null;
+          old_values?: Json | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "checklist_item_change_log_checklist_item_id_fkey"
-            columns: ["checklist_item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "checklist_item_change_log_checklist_item_id_fkey";
+            columns: ["checklist_item_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_items";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "checklist_item_change_log_conflict_id_fkey"
-            columns: ["conflict_id"]
-            isOneToOne: false
-            referencedRelation: "collaboration_conflicts"
-            referencedColumns: ["id"]
+            foreignKeyName: "checklist_item_change_log_conflict_id_fkey";
+            columns: ["conflict_id"];
+            isOneToOne: false;
+            referencedRelation: "collaboration_conflicts";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       logs: {
         Row: {
-          id: string
-          inspection_id: string
-          static_safety_item_id: string
-          status: string
-          inspector_notes: string | null
-          is_critical: boolean
-          score: number | null
-          photo_evidence_required: boolean
-          created_at: string
-        }
+          id: string;
+          inspection_id: string;
+          static_safety_item_id: string;
+          status: string;
+          inspector_notes: string | null;
+          is_critical: boolean;
+          score: number | null;
+          photo_evidence_required: boolean;
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          inspection_id: string
-          static_safety_item_id: string
-          status: string
-          inspector_notes?: string | null
-          is_critical?: boolean
-          score?: number | null
-          photo_evidence_required?: boolean
-          created_at?: string
-        }
+          id?: string;
+          inspection_id: string;
+          static_safety_item_id: string;
+          status: string;
+          inspector_notes?: string | null;
+          is_critical?: boolean;
+          score?: number | null;
+          photo_evidence_required?: boolean;
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          inspection_id?: string
-          static_safety_item_id?: string
-          status?: string
-          inspector_notes?: string | null
-          is_critical?: boolean
-          score?: number | null
-          photo_evidence_required?: boolean
-          created_at?: string
-        }
+          id?: string;
+          inspection_id?: string;
+          static_safety_item_id?: string;
+          status?: string;
+          inspector_notes?: string | null;
+          is_critical?: boolean;
+          score?: number | null;
+          photo_evidence_required?: boolean;
+          created_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "logs_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "logs_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "logs_static_safety_item_id_fkey"
-            columns: ["static_safety_item_id"]
-            isOneToOne: false
-            referencedRelation: "static_safety_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "logs_static_safety_item_id_fkey";
+            columns: ["static_safety_item_id"];
+            isOneToOne: false;
+            referencedRelation: "static_safety_items";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       checklist_items_backup: {
         Row: {
-          ai_status: string | null
-          category: string | null
-          created_at: string | null
-          evidence_type: string | null
-          id: string | null
-          inspection_id: string | null
-          label: string | null
-          notes: string | null
-          source_photo_url: string | null
-          static_item_id: string | null
-          status: string | null
-        }
+          ai_status: string | null;
+          category: string | null;
+          created_at: string | null;
+          evidence_type: string | null;
+          id: string | null;
+          inspection_id: string | null;
+          label: string | null;
+          notes: string | null;
+          source_photo_url: string | null;
+          static_item_id: string | null;
+          status: string | null;
+        };
         Insert: {
-          ai_status?: string | null
-          category?: string | null
-          created_at?: string | null
-          evidence_type?: string | null
-          id?: string | null
-          inspection_id?: string | null
-          label?: string | null
-          notes?: string | null
-          source_photo_url?: string | null
-          static_item_id?: string | null
-          status?: string | null
-        }
+          ai_status?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+          evidence_type?: string | null;
+          id?: string | null;
+          inspection_id?: string | null;
+          label?: string | null;
+          notes?: string | null;
+          source_photo_url?: string | null;
+          static_item_id?: string | null;
+          status?: string | null;
+        };
         Update: {
-          ai_status?: string | null
-          category?: string | null
-          created_at?: string | null
-          evidence_type?: string | null
-          id?: string | null
-          inspection_id?: string | null
-          label?: string | null
-          notes?: string | null
-          source_photo_url?: string | null
-          static_item_id?: string | null
-          status?: string | null
-        }
-        Relationships: []
-      }
+          ai_status?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+          evidence_type?: string | null;
+          id?: string | null;
+          inspection_id?: string | null;
+          label?: string | null;
+          notes?: string | null;
+          source_photo_url?: string | null;
+          static_item_id?: string | null;
+          status?: string | null;
+        };
+        Relationships: [];
+      };
       checklist_operations_audit: {
         Row: {
-          created_at: string | null
-          id: string
-          inspection_id: string
-          items_affected: number | null
-          metadata: Json | null
-          operation_type: string
-        }
+          created_at: string | null;
+          id: string;
+          inspection_id: string;
+          items_affected: number | null;
+          metadata: Json | null;
+          operation_type: string;
+        };
         Insert: {
-          created_at?: string | null
-          id?: string
-          inspection_id: string
-          items_affected?: number | null
-          metadata?: Json | null
-          operation_type: string
-        }
+          created_at?: string | null;
+          id?: string;
+          inspection_id: string;
+          items_affected?: number | null;
+          metadata?: Json | null;
+          operation_type: string;
+        };
         Update: {
-          created_at?: string | null
-          id?: string
-          inspection_id?: string
-          items_affected?: number | null
-          metadata?: Json | null
-          operation_type?: string
-        }
-        Relationships: []
-      }
+          created_at?: string | null;
+          id?: string;
+          inspection_id?: string;
+          items_affected?: number | null;
+          metadata?: Json | null;
+          operation_type?: string;
+        };
+        Relationships: [];
+      };
       collaboration_conflicts: {
         Row: {
-          checklist_item_id: string | null
-          conflict_type: string
-          created_at: string
-          id: string
-          inspection_id: string
-          inspector_1: string
-          inspector_1_action: Json
-          inspector_2: string
-          inspector_2_action: Json
-          resolution_notes: string | null
-          resolution_status: Database["public"]["Enums"]["conflict_resolution_status"]
-          resolved_at: string | null
-          resolved_by: string | null
-          updated_at: string
-        }
+          checklist_item_id: string | null;
+          conflict_type: string;
+          created_at: string;
+          id: string;
+          inspection_id: string;
+          inspector_1: string;
+          inspector_1_action: Json;
+          inspector_2: string;
+          inspector_2_action: Json;
+          resolution_notes: string | null;
+          resolution_status: Database["public"]["Enums"]["conflict_resolution_status"];
+          resolved_at: string | null;
+          resolved_by: string | null;
+          updated_at: string;
+        };
         Insert: {
-          checklist_item_id?: string | null
-          conflict_type: string
-          created_at?: string
-          id?: string
-          inspection_id: string
-          inspector_1: string
-          inspector_1_action: Json
-          inspector_2: string
-          inspector_2_action: Json
-          resolution_notes?: string | null
-          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"]
-          resolved_at?: string | null
-          resolved_by?: string | null
-          updated_at?: string
-        }
+          checklist_item_id?: string | null;
+          conflict_type: string;
+          created_at?: string;
+          id?: string;
+          inspection_id: string;
+          inspector_1: string;
+          inspector_1_action: Json;
+          inspector_2: string;
+          inspector_2_action: Json;
+          resolution_notes?: string | null;
+          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"];
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          checklist_item_id?: string | null
-          conflict_type?: string
-          created_at?: string
-          id?: string
-          inspection_id?: string
-          inspector_1?: string
-          inspector_1_action?: Json
-          inspector_2?: string
-          inspector_2_action?: Json
-          resolution_notes?: string | null
-          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"]
-          resolved_at?: string | null
-          resolved_by?: string | null
-          updated_at?: string
-        }
+          checklist_item_id?: string | null;
+          conflict_type?: string;
+          created_at?: string;
+          id?: string;
+          inspection_id?: string;
+          inspector_1?: string;
+          inspector_1_action?: Json;
+          inspector_2?: string;
+          inspector_2_action?: Json;
+          resolution_notes?: string | null;
+          resolution_status?: Database["public"]["Enums"]["conflict_resolution_status"];
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "collaboration_conflicts_checklist_item_id_fkey"
-            columns: ["checklist_item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "collaboration_conflicts_checklist_item_id_fkey";
+            columns: ["checklist_item_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_items";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "collaboration_conflicts_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "collaboration_conflicts_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       inspections: {
         Row: {
-          certification_status: string | null
-          completed: boolean | null
-          end_time: string | null
-          id: string
-          inspector_id: string | null
-          property_id: string
-          start_time: string | null
-          status: string | null
-        }
+          certification_status: string | null;
+          completed: boolean | null;
+          end_time: string | null;
+          id: string;
+          inspector_id: string | null;
+          property_id: string;
+          start_time: string | null;
+          status: string | null;
+        };
         Insert: {
-          certification_status?: string | null
-          completed?: boolean | null
-          end_time?: string | null
-          id?: string
-          inspector_id?: string | null
-          property_id: string
-          start_time?: string | null
-          status?: string | null
-        }
+          certification_status?: string | null;
+          completed?: boolean | null;
+          end_time?: string | null;
+          id?: string;
+          inspector_id?: string | null;
+          property_id: string;
+          start_time?: string | null;
+          status?: string | null;
+        };
         Update: {
-          certification_status?: string | null
-          completed?: boolean | null
-          end_time?: string | null
-          id?: string
-          inspector_id?: string | null
-          property_id?: string
-          start_time?: string | null
-          status?: string | null
-        }
+          certification_status?: string | null;
+          completed?: boolean | null;
+          end_time?: string | null;
+          id?: string;
+          inspector_id?: string | null;
+          property_id?: string;
+          start_time?: string | null;
+          status?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "inspections_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
+            foreignKeyName: "inspections_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       inspector_assignments: {
         Row: {
-          assigned_at: string
-          assigned_by: string | null
-          completed_at: string | null
-          created_at: string
-          id: string
-          inspection_id: string
-          inspector_id: string
-          notes: string | null
-          started_at: string | null
-          status: Database["public"]["Enums"]["inspector_assignment_status"]
-          updated_at: string
-        }
+          assigned_at: string;
+          assigned_by: string | null;
+          completed_at: string | null;
+          created_at: string;
+          id: string;
+          inspection_id: string;
+          inspector_id: string;
+          notes: string | null;
+          started_at: string | null;
+          status: Database["public"]["Enums"]["inspector_assignment_status"];
+          updated_at: string;
+        };
         Insert: {
-          assigned_at?: string
-          assigned_by?: string | null
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          inspection_id: string
-          inspector_id: string
-          notes?: string | null
-          started_at?: string | null
-          status?: Database["public"]["Enums"]["inspector_assignment_status"]
-          updated_at?: string
-        }
+          assigned_at?: string;
+          assigned_by?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          inspection_id: string;
+          inspector_id: string;
+          notes?: string | null;
+          started_at?: string | null;
+          status?: Database["public"]["Enums"]["inspector_assignment_status"];
+          updated_at?: string;
+        };
         Update: {
-          assigned_at?: string
-          assigned_by?: string | null
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          inspection_id?: string
-          inspector_id?: string
-          notes?: string | null
-          started_at?: string | null
-          status?: Database["public"]["Enums"]["inspector_assignment_status"]
-          updated_at?: string
-        }
+          assigned_at?: string;
+          assigned_by?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          inspection_id?: string;
+          inspector_id?: string;
+          notes?: string | null;
+          started_at?: string | null;
+          status?: Database["public"]["Enums"]["inspector_assignment_status"];
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "inspector_assignments_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "inspector_assignments_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       inspector_presence: {
         Row: {
-          created_at: string
-          current_item_id: string | null
-          id: string
-          inspection_id: string
-          inspector_id: string
-          last_seen: string
-          metadata: Json | null
-          status: string
-        }
+          created_at: string;
+          current_item_id: string | null;
+          id: string;
+          inspection_id: string;
+          inspector_id: string;
+          last_seen: string;
+          metadata: Json | null;
+          status: string;
+        };
         Insert: {
-          created_at?: string
-          current_item_id?: string | null
-          id?: string
-          inspection_id: string
-          inspector_id: string
-          last_seen?: string
-          metadata?: Json | null
-          status?: string
-        }
+          created_at?: string;
+          current_item_id?: string | null;
+          id?: string;
+          inspection_id: string;
+          inspector_id: string;
+          last_seen?: string;
+          metadata?: Json | null;
+          status?: string;
+        };
         Update: {
-          created_at?: string
-          current_item_id?: string | null
-          id?: string
-          inspection_id?: string
-          inspector_id?: string
-          last_seen?: string
-          metadata?: Json | null
-          status?: string
-        }
+          created_at?: string;
+          current_item_id?: string | null;
+          id?: string;
+          inspection_id?: string;
+          inspector_id?: string;
+          last_seen?: string;
+          metadata?: Json | null;
+          status?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "inspector_presence_current_item_id_fkey"
-            columns: ["current_item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "inspector_presence_current_item_id_fkey";
+            columns: ["current_item_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_items";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "inspector_presence_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "inspector_presence_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       listing_photos: {
         Row: {
-          created_at: string | null
-          id: string
-          inspection_id: string | null
-          property_id: string | null
-          url: string
-        }
+          created_at: string | null;
+          id: string;
+          inspection_id: string | null;
+          property_id: string | null;
+          url: string;
+        };
         Insert: {
-          created_at?: string | null
-          id?: string
-          inspection_id?: string | null
-          property_id?: string | null
-          url: string
-        }
+          created_at?: string | null;
+          id?: string;
+          inspection_id?: string | null;
+          property_id?: string | null;
+          url: string;
+        };
         Update: {
-          created_at?: string | null
-          id?: string
-          inspection_id?: string | null
-          property_id?: string | null
-          url?: string
-        }
+          created_at?: string | null;
+          id?: string;
+          inspection_id?: string | null;
+          property_id?: string | null;
+          url?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "listing_photos_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "listing_photos_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "listing_photos_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
+            foreignKeyName: "listing_photos_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       media: {
         Row: {
-          checklist_item_id: string
-          created_at: string | null
-          file_path: string | null
-          id: string
-          notes: string | null
-          type: string
-          uploaded_by: string | null
-          uploaded_by_name: string | null
-          url: string | null
-          user_id: string | null
-        }
+          checklist_item_id: string;
+          created_at: string | null;
+          file_path: string | null;
+          id: string;
+          notes: string | null;
+          type: string;
+          uploaded_by: string | null;
+          uploaded_by_name: string | null;
+          url: string | null;
+          user_id: string | null;
+        };
         Insert: {
-          checklist_item_id: string
-          created_at?: string | null
-          file_path?: string | null
-          id?: string
-          notes?: string | null
-          type: string
-          uploaded_by?: string | null
-          uploaded_by_name?: string | null
-          url?: string | null
-          user_id?: string | null
-        }
+          checklist_item_id: string;
+          created_at?: string | null;
+          file_path?: string | null;
+          id?: string;
+          notes?: string | null;
+          type: string;
+          uploaded_by?: string | null;
+          uploaded_by_name?: string | null;
+          url?: string | null;
+          user_id?: string | null;
+        };
         Update: {
-          checklist_item_id?: string
-          created_at?: string | null
-          file_path?: string | null
-          id?: string
-          notes?: string | null
-          type?: string
-          uploaded_by?: string | null
-          uploaded_by_name?: string | null
-          url?: string | null
-          user_id?: string | null
-        }
+          checklist_item_id?: string;
+          created_at?: string | null;
+          file_path?: string | null;
+          id?: string;
+          notes?: string | null;
+          type?: string;
+          uploaded_by?: string | null;
+          uploaded_by_name?: string | null;
+          url?: string | null;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "media_checklist_item_id_fkey"
-            columns: ["checklist_item_id"]
-            isOneToOne: false
-            referencedRelation: "checklist_items"
-            referencedColumns: ["id"]
+            foreignKeyName: "media_checklist_item_id_fkey";
+            columns: ["checklist_item_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_items";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       properties: {
         Row: {
-          added_by: string
-          address: string | null
-          airbnb_url: string | null
-          created_at: string | null
-          id: string
-          name: string | null
-          status: string | null
-          updated_at: string | null
-          vrbo_url: string | null
-        }
+          added_by: string;
+          address: string | null;
+          airbnb_url: string | null;
+          created_at: string | null;
+          id: string;
+          name: string | null;
+          status: string | null;
+          updated_at: string | null;
+          vrbo_url: string | null;
+        };
         Insert: {
-          added_by: string
-          address?: string | null
-          airbnb_url?: string | null
-          created_at?: string | null
-          id?: string
-          name?: string | null
-          status?: string | null
-          updated_at?: string | null
-          vrbo_url?: string | null
-        }
+          added_by: string;
+          address?: string | null;
+          airbnb_url?: string | null;
+          created_at?: string | null;
+          id?: string;
+          name?: string | null;
+          status?: string | null;
+          updated_at?: string | null;
+          vrbo_url?: string | null;
+        };
         Update: {
-          added_by?: string
-          address?: string | null
-          airbnb_url?: string | null
-          created_at?: string | null
-          id?: string
-          name?: string | null
-          status?: string | null
-          updated_at?: string | null
-          vrbo_url?: string | null
-        }
-        Relationships: []
-      }
+          added_by?: string;
+          address?: string | null;
+          airbnb_url?: string | null;
+          created_at?: string | null;
+          id?: string;
+          name?: string | null;
+          status?: string | null;
+          updated_at?: string | null;
+          vrbo_url?: string | null;
+        };
+        Relationships: [];
+      };
       static_safety_items: {
         Row: {
-          active_date: string | null
-          category: string | null
-          category_id: string | null
-          checklist_id: number
-          created_at: string | null
-          deleted: boolean | null
-          deleted_date: string | null
-          evidence_type: string
-          gpt_prompt: string | null
-          id: string
-          label: string
-          notes: string | null
-          required: boolean | null
-          updated_at: string | null
-        }
+          active_date: string | null;
+          category: string | null;
+          category_id: string | null;
+          checklist_id: number;
+          created_at: string | null;
+          deleted: boolean | null;
+          deleted_date: string | null;
+          evidence_type: string;
+          gpt_prompt: string | null;
+          id: string;
+          label: string;
+          notes: string | null;
+          required: boolean | null;
+          updated_at: string | null;
+        };
         Insert: {
-          active_date?: string | null
-          category?: string | null
-          category_id?: string | null
-          checklist_id?: number
-          created_at?: string | null
-          deleted?: boolean | null
-          deleted_date?: string | null
-          evidence_type: string
-          gpt_prompt?: string | null
-          id?: string
-          label: string
-          notes?: string | null
-          required?: boolean | null
-          updated_at?: string | null
-        }
+          active_date?: string | null;
+          category?: string | null;
+          category_id?: string | null;
+          checklist_id?: number;
+          created_at?: string | null;
+          deleted?: boolean | null;
+          deleted_date?: string | null;
+          evidence_type: string;
+          gpt_prompt?: string | null;
+          id?: string;
+          label: string;
+          notes?: string | null;
+          required?: boolean | null;
+          updated_at?: string | null;
+        };
         Update: {
-          active_date?: string | null
-          category?: string | null
-          category_id?: string | null
-          checklist_id?: number
-          created_at?: string | null
-          deleted?: boolean | null
-          deleted_date?: string | null
-          evidence_type?: string
-          gpt_prompt?: string | null
-          id?: string
-          label?: string
-          notes?: string | null
-          required?: boolean | null
-          updated_at?: string | null
-        }
+          active_date?: string | null;
+          category?: string | null;
+          category_id?: string | null;
+          checklist_id?: number;
+          created_at?: string | null;
+          deleted?: boolean | null;
+          deleted_date?: string | null;
+          evidence_type?: string;
+          gpt_prompt?: string | null;
+          id?: string;
+          label?: string;
+          notes?: string | null;
+          required?: boolean | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "fk_static_safety_items_category"
-            columns: ["category"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["name"]
+            foreignKeyName: "fk_static_safety_items_category";
+            columns: ["category"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["name"];
           },
           {
-            foreignKeyName: "static_safety_items_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
+            foreignKeyName: "static_safety_items_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       user_activity: {
         Row: {
-          action_type: string
-          created_at: string
-          description: string | null
-          id: string
-          metadata: Json | null
-          user_id: string
-        }
+          action_type: string;
+          created_at: string;
+          description: string | null;
+          id: string;
+          metadata: Json | null;
+          user_id: string;
+        };
         Insert: {
-          action_type: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id: string
-        }
+          action_type: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          metadata?: Json | null;
+          user_id: string;
+        };
         Update: {
-          action_type?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id?: string
-        }
-        Relationships: []
-      }
+          action_type?: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          metadata?: Json | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_audit_log: {
         Row: {
-          action_type: string
-          changed_by: string | null
-          created_at: string | null
-          id: string
-          new_values: Json | null
-          old_values: Json | null
-          user_id: string
-        }
+          action_type: string;
+          changed_by: string | null;
+          created_at: string | null;
+          id: string;
+          new_values: Json | null;
+          old_values: Json | null;
+          user_id: string;
+        };
         Insert: {
-          action_type: string
-          changed_by?: string | null
-          created_at?: string | null
-          id?: string
-          new_values?: Json | null
-          old_values?: Json | null
-          user_id: string
-        }
+          action_type: string;
+          changed_by?: string | null;
+          created_at?: string | null;
+          id?: string;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          user_id: string;
+        };
         Update: {
-          action_type?: string
-          changed_by?: string | null
-          created_at?: string | null
-          id?: string
-          new_values?: Json | null
-          old_values?: Json | null
-          user_id?: string
-        }
-        Relationships: []
-      }
+          action_type?: string;
+          changed_by?: string | null;
+          created_at?: string | null;
+          id?: string;
+          new_values?: Json | null;
+          old_values?: Json | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_roles: {
         Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at: string | null;
+          id: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at?: string | null;
+          id?: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string | null;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          last_login_at: string | null
-          name: string | null
-          role: string | null
-          status: string | null
-          updated_at: string | null
-        }
+          created_at: string | null;
+          email: string | null;
+          id: string;
+          last_login_at: string | null;
+          name: string | null;
+          role: string | null;
+          status: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          last_login_at?: string | null
-          name?: string | null
-          role?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
+          created_at?: string | null;
+          email?: string | null;
+          id?: string;
+          last_login_at?: string | null;
+          name?: string | null;
+          role?: string | null;
+          status?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          last_login_at?: string | null
-          name?: string | null
-          role?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+          created_at?: string | null;
+          email?: string | null;
+          id?: string;
+          last_login_at?: string | null;
+          name?: string | null;
+          role?: string | null;
+          status?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       webhook_notifications: {
         Row: {
-          created_at: string
-          id: string
-          property_id: string
-          response: string | null
-          sent_at: string | null
-          status: string | null
-          webhook_url: string
-        }
+          created_at: string;
+          id: string;
+          property_id: string;
+          response: string | null;
+          sent_at: string | null;
+          status: string | null;
+          webhook_url: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          property_id: string
-          response?: string | null
-          sent_at?: string | null
-          status?: string | null
-          webhook_url: string
-        }
+          created_at?: string;
+          id?: string;
+          property_id: string;
+          response?: string | null;
+          sent_at?: string | null;
+          status?: string | null;
+          webhook_url: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          property_id?: string
-          response?: string | null
-          sent_at?: string | null
-          status?: string | null
-          webhook_url?: string
-        }
+          created_at?: string;
+          id?: string;
+          property_id?: string;
+          response?: string | null;
+          sent_at?: string | null;
+          status?: string | null;
+          webhook_url?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "webhook_notifications_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
+            foreignKeyName: "webhook_notifications_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       ai_model_versions: {
         Row: {
-          accuracy_rate: number | null
-          confidence_calibration: number | null
-          created_at: string
-          deprecated_at: string | null
-          deployment_notes: string | null
-          deployment_trigger: string | null
-          deployed_at: string | null
-          false_negative_rate: number | null
-          false_positive_rate: number | null
-          id: string
-          model_parameters: Json
-          model_type: string
-          parent_version: string | null
-          processing_speed_ms: number | null
-          status: string
-          training_config: Json
-          training_feedback_count: number
-          updated_at: string
-          validation_feedback_count: number
-          validation_results: Json
-          version: string
-        }
+          accuracy_rate: number | null;
+          confidence_calibration: number | null;
+          created_at: string;
+          deprecated_at: string | null;
+          deployment_notes: string | null;
+          deployment_trigger: string | null;
+          deployed_at: string | null;
+          false_negative_rate: number | null;
+          false_positive_rate: number | null;
+          id: string;
+          model_parameters: Json;
+          model_type: string;
+          parent_version: string | null;
+          processing_speed_ms: number | null;
+          status: string;
+          training_config: Json;
+          training_feedback_count: number;
+          updated_at: string;
+          validation_feedback_count: number;
+          validation_results: Json;
+          version: string;
+        };
         Insert: {
-          accuracy_rate?: number | null
-          confidence_calibration?: number | null
-          created_at?: string
-          deprecated_at?: string | null
-          deployment_notes?: string | null
-          deployment_trigger?: string | null
-          deployed_at?: string | null
-          false_negative_rate?: number | null
-          false_positive_rate?: number | null
-          id?: string
-          model_parameters?: Json
-          model_type: string
-          parent_version?: string | null
-          processing_speed_ms?: number | null
-          status?: string
-          training_config?: Json
-          training_feedback_count?: number
-          updated_at?: string
-          validation_feedback_count?: number
-          validation_results?: Json
-          version: string
-        }
+          accuracy_rate?: number | null;
+          confidence_calibration?: number | null;
+          created_at?: string;
+          deprecated_at?: string | null;
+          deployment_notes?: string | null;
+          deployment_trigger?: string | null;
+          deployed_at?: string | null;
+          false_negative_rate?: number | null;
+          false_positive_rate?: number | null;
+          id?: string;
+          model_parameters?: Json;
+          model_type: string;
+          parent_version?: string | null;
+          processing_speed_ms?: number | null;
+          status?: string;
+          training_config?: Json;
+          training_feedback_count?: number;
+          updated_at?: string;
+          validation_feedback_count?: number;
+          validation_results?: Json;
+          version: string;
+        };
         Update: {
-          accuracy_rate?: number | null
-          confidence_calibration?: number | null
-          created_at?: string
-          deprecated_at?: string | null
-          deployment_notes?: string | null
-          deployment_trigger?: string | null
-          deployed_at?: string | null
-          false_negative_rate?: number | null
-          false_positive_rate?: number | null
-          id?: string
-          model_parameters?: Json
-          model_type?: string
-          parent_version?: string | null
-          processing_speed_ms?: number | null
-          status?: string
-          training_config?: Json
-          training_feedback_count?: number
-          updated_at?: string
-          validation_feedback_count?: number
-          validation_results?: Json
-          version?: string
-        }
+          accuracy_rate?: number | null;
+          confidence_calibration?: number | null;
+          created_at?: string;
+          deprecated_at?: string | null;
+          deployment_notes?: string | null;
+          deployment_trigger?: string | null;
+          deployed_at?: string | null;
+          false_negative_rate?: number | null;
+          false_positive_rate?: number | null;
+          id?: string;
+          model_parameters?: Json;
+          model_type?: string;
+          parent_version?: string | null;
+          processing_speed_ms?: number | null;
+          status?: string;
+          training_config?: Json;
+          training_feedback_count?: number;
+          updated_at?: string;
+          validation_feedback_count?: number;
+          validation_results?: Json;
+          version?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "ai_model_versions_parent_version_fkey"
-            columns: ["parent_version"]
-            isOneToOne: false
-            referencedRelation: "ai_model_versions"
-            referencedColumns: ["version"]
+            foreignKeyName: "ai_model_versions_parent_version_fkey";
+            columns: ["parent_version"];
+            isOneToOne: false;
+            referencedRelation: "ai_model_versions";
+            referencedColumns: ["version"];
           },
-        ]
-      }
+        ];
+      };
       auditor_feedback: {
         Row: {
-          accuracy_improvement: number | null
-          ai_prediction: Json
-          auditor_correction: Json
-          auditor_id: string | null
-          category: string
-          checklist_item_id: string | null
-          confidence_impact: number | null
-          created_at: string
-          feedback_type: string
-          id: string
-          identified_patterns: string[] | null
-          impact_score: number | null
-          inspection_id: string | null
-          inspector_context: Json
-          processed: boolean
-          processed_at: string | null
-          property_context: Json
-          similar_cases: string[] | null
-          temporal_context: Json
-          updated_at: string
-        }
+          accuracy_improvement: number | null;
+          ai_prediction: Json;
+          auditor_correction: Json;
+          auditor_id: string | null;
+          category: string;
+          checklist_item_id: string | null;
+          confidence_impact: number | null;
+          created_at: string;
+          feedback_type: string;
+          id: string;
+          identified_patterns: string[] | null;
+          impact_score: number | null;
+          inspection_id: string | null;
+          inspector_context: Json;
+          processed: boolean;
+          processed_at: string | null;
+          property_context: Json;
+          similar_cases: string[] | null;
+          temporal_context: Json;
+          updated_at: string;
+        };
         Insert: {
-          accuracy_improvement?: number | null
-          ai_prediction: Json
-          auditor_correction: Json
-          auditor_id?: string | null
-          category: string
-          checklist_item_id?: string | null
-          confidence_impact?: number | null
-          created_at?: string
-          feedback_type: string
-          id?: string
-          identified_patterns?: string[] | null
-          impact_score?: number | null
-          inspection_id?: string | null
-          inspector_context?: Json
-          processed?: boolean
-          processed_at?: string | null
-          property_context?: Json
-          similar_cases?: string[] | null
-          temporal_context?: Json
-          updated_at?: string
-        }
+          accuracy_improvement?: number | null;
+          ai_prediction: Json;
+          auditor_correction: Json;
+          auditor_id?: string | null;
+          category: string;
+          checklist_item_id?: string | null;
+          confidence_impact?: number | null;
+          created_at?: string;
+          feedback_type: string;
+          id?: string;
+          identified_patterns?: string[] | null;
+          impact_score?: number | null;
+          inspection_id?: string | null;
+          inspector_context?: Json;
+          processed?: boolean;
+          processed_at?: string | null;
+          property_context?: Json;
+          similar_cases?: string[] | null;
+          temporal_context?: Json;
+          updated_at?: string;
+        };
         Update: {
-          accuracy_improvement?: number | null
-          ai_prediction?: Json
-          auditor_correction?: Json
-          auditor_id?: string | null
-          category?: string
-          checklist_item_id?: string | null
-          confidence_impact?: number | null
-          created_at?: string
-          feedback_type?: string
-          id?: string
-          identified_patterns?: string[] | null
-          impact_score?: number | null
-          inspection_id?: string | null
-          inspector_context?: Json
-          processed?: boolean
-          processed_at?: string | null
-          property_context?: Json
-          similar_cases?: string[] | null
-          temporal_context?: Json
-          updated_at?: string
-        }
+          accuracy_improvement?: number | null;
+          ai_prediction?: Json;
+          auditor_correction?: Json;
+          auditor_id?: string | null;
+          category?: string;
+          checklist_item_id?: string | null;
+          confidence_impact?: number | null;
+          created_at?: string;
+          feedback_type?: string;
+          id?: string;
+          identified_patterns?: string[] | null;
+          impact_score?: number | null;
+          inspection_id?: string | null;
+          inspector_context?: Json;
+          processed?: boolean;
+          processed_at?: string | null;
+          property_context?: Json;
+          similar_cases?: string[] | null;
+          temporal_context?: Json;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "auditor_feedback_auditor_id_fkey"
-            columns: ["auditor_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "auditor_feedback_auditor_id_fkey";
+            columns: ["auditor_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "auditor_feedback_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "auditor_feedback_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       cag_context_patterns: {
         Row: {
-          accuracy_improvement: number | null
-          confidence: number
-          confidence_boost: number | null
-          conditions: Json
-          context_data: Json
-          created_at: string
-          id: string
-          last_validated: string
-          pattern_name: string
-          pattern_type: string
-          status: string
-          updated_at: string
-          usage_count: number
-          validation_score: number | null
-          weight: number
-        }
+          accuracy_improvement: number | null;
+          confidence: number;
+          confidence_boost: number | null;
+          conditions: Json;
+          context_data: Json;
+          created_at: string;
+          id: string;
+          last_validated: string;
+          pattern_name: string;
+          pattern_type: string;
+          status: string;
+          updated_at: string;
+          usage_count: number;
+          validation_score: number | null;
+          weight: number;
+        };
         Insert: {
-          accuracy_improvement?: number | null
-          confidence?: number
-          confidence_boost?: number | null
-          conditions: Json
-          context_data: Json
-          created_at?: string
-          id?: string
-          last_validated?: string
-          pattern_name: string
-          pattern_type: string
-          status?: string
-          updated_at?: string
-          usage_count?: number
-          validation_score?: number | null
-          weight?: number
-        }
+          accuracy_improvement?: number | null;
+          confidence?: number;
+          confidence_boost?: number | null;
+          conditions: Json;
+          context_data: Json;
+          created_at?: string;
+          id?: string;
+          last_validated?: string;
+          pattern_name: string;
+          pattern_type: string;
+          status?: string;
+          updated_at?: string;
+          usage_count?: number;
+          validation_score?: number | null;
+          weight?: number;
+        };
         Update: {
-          accuracy_improvement?: number | null
-          confidence?: number
-          confidence_boost?: number | null
-          conditions?: Json
-          context_data?: Json
-          created_at?: string
-          id?: string
-          last_validated?: string
-          pattern_name?: string
-          pattern_type?: string
-          status?: string
-          updated_at?: string
-          usage_count?: number
-          validation_score?: number | null
-          weight?: number
-        }
-        Relationships: []
-      }
+          accuracy_improvement?: number | null;
+          confidence?: number;
+          confidence_boost?: number | null;
+          conditions?: Json;
+          context_data?: Json;
+          created_at?: string;
+          id?: string;
+          last_validated?: string;
+          pattern_name?: string;
+          pattern_type?: string;
+          status?: string;
+          updated_at?: string;
+          usage_count?: number;
+          validation_score?: number | null;
+          weight?: number;
+        };
+        Relationships: [];
+      };
       knowledge_base: {
         Row: {
-          category: string
-          citation_count: number
-          content: string
-          created_at: string
-          effective_date: string
-          embedding: string
-          expiration_date: string | null
-          id: string
-          metadata: Json
-          query_count: number
-          relevance_score: number
-          source: string
-          status: string
-          title: string
-          updated_at: string
-        }
+          category: string;
+          citation_count: number;
+          content: string;
+          created_at: string;
+          effective_date: string;
+          embedding: string;
+          expiration_date: string | null;
+          id: string;
+          metadata: Json;
+          query_count: number;
+          relevance_score: number;
+          source: string;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
         Insert: {
-          category: string
-          citation_count?: number
-          content: string
-          created_at?: string
-          effective_date?: string
-          embedding: string
-          expiration_date?: string | null
-          id?: string
-          metadata?: Json
-          query_count?: number
-          relevance_score?: number
-          source: string
-          status?: string
-          title: string
-          updated_at?: string
-        }
+          category: string;
+          citation_count?: number;
+          content: string;
+          created_at?: string;
+          effective_date?: string;
+          embedding: string;
+          expiration_date?: string | null;
+          id?: string;
+          metadata?: Json;
+          query_count?: number;
+          relevance_score?: number;
+          source: string;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
         Update: {
-          category?: string
-          citation_count?: number
-          content?: string
-          created_at?: string
-          effective_date?: string
-          embedding?: string
-          expiration_date?: string | null
-          id?: string
-          metadata?: Json
-          query_count?: number
-          relevance_score?: number
-          source?: string
-          status?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          category?: string;
+          citation_count?: number;
+          content?: string;
+          created_at?: string;
+          effective_date?: string;
+          embedding?: string;
+          expiration_date?: string | null;
+          id?: string;
+          metadata?: Json;
+          query_count?: number;
+          relevance_score?: number;
+          source?: string;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       learning_metrics: {
         Row: {
-          accuracy_rate: number | null
-          category: string | null
-          change_percent: number | null
-          confidence_improvement: number | null
-          corrections_count: number
-          created_at: string
-          id: string
-          inspector_performance: Json
-          metric_type: string
-          model_version: string | null
-          period_end: string
-          period_start: string
-          property_type_performance: Json
-          total_feedback: number
-          trend_direction: string | null
-          updated_at: string
-          validations_count: number
-        }
+          accuracy_rate: number | null;
+          category: string | null;
+          change_percent: number | null;
+          confidence_improvement: number | null;
+          corrections_count: number;
+          created_at: string;
+          id: string;
+          inspector_performance: Json;
+          metric_type: string;
+          model_version: string | null;
+          period_end: string;
+          period_start: string;
+          property_type_performance: Json;
+          total_feedback: number;
+          trend_direction: string | null;
+          updated_at: string;
+          validations_count: number;
+        };
         Insert: {
-          accuracy_rate?: number | null
-          category?: string | null
-          change_percent?: number | null
-          confidence_improvement?: number | null
-          corrections_count?: number
-          created_at?: string
-          id?: string
-          inspector_performance?: Json
-          metric_type: string
-          model_version?: string | null
-          period_end: string
-          period_start: string
-          property_type_performance?: Json
-          total_feedback?: number
-          trend_direction?: string | null
-          updated_at?: string
-          validations_count?: number
-        }
+          accuracy_rate?: number | null;
+          category?: string | null;
+          change_percent?: number | null;
+          confidence_improvement?: number | null;
+          corrections_count?: number;
+          created_at?: string;
+          id?: string;
+          inspector_performance?: Json;
+          metric_type: string;
+          model_version?: string | null;
+          period_end: string;
+          period_start: string;
+          property_type_performance?: Json;
+          total_feedback?: number;
+          trend_direction?: string | null;
+          updated_at?: string;
+          validations_count?: number;
+        };
         Update: {
-          accuracy_rate?: number | null
-          category?: string | null
-          change_percent?: number | null
-          confidence_improvement?: number | null
-          corrections_count?: number
-          created_at?: string
-          id?: string
-          inspector_performance?: Json
-          metric_type?: string
-          model_version?: string | null
-          period_end?: string
-          period_start?: string
-          property_type_performance?: Json
-          total_feedback?: number
-          trend_direction?: string | null
-          updated_at?: string
-          validations_count?: number
-        }
+          accuracy_rate?: number | null;
+          category?: string | null;
+          change_percent?: number | null;
+          confidence_improvement?: number | null;
+          corrections_count?: number;
+          created_at?: string;
+          id?: string;
+          inspector_performance?: Json;
+          metric_type?: string;
+          model_version?: string | null;
+          period_end?: string;
+          period_start?: string;
+          property_type_performance?: Json;
+          total_feedback?: number;
+          trend_direction?: string | null;
+          updated_at?: string;
+          validations_count?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "learning_metrics_model_version_fkey"
-            columns: ["model_version"]
-            isOneToOne: false
-            referencedRelation: "ai_model_versions"
-            referencedColumns: ["version"]
+            foreignKeyName: "learning_metrics_model_version_fkey";
+            columns: ["model_version"];
+            isOneToOne: false;
+            referencedRelation: "ai_model_versions";
+            referencedColumns: ["version"];
           },
-        ]
-      }
+        ];
+      };
       rag_query_log: {
         Row: {
-          ai_prediction_accuracy: number | null
-          auditor_satisfaction_score: number | null
-          cag_patterns_applied: string[] | null
-          checklist_item_id: string | null
-          context_relevance_score: number | null
-          context_retrieval_time_ms: number | null
-          context_selection_reason: string | null
-          context_weight: number | null
-          created_at: string
-          dynamic_context: Json
-          id: string
-          inspection_id: string | null
-          query_embedding: string | null
-          query_text: string
-          query_time_ms: number | null
-          query_type: string
-          retrieved_knowledge_ids: string[] | null
-          selected_context: Json
-          similarity_scores: number[] | null
-          total_processing_time_ms: number | null
-        }
+          ai_prediction_accuracy: number | null;
+          auditor_satisfaction_score: number | null;
+          cag_patterns_applied: string[] | null;
+          checklist_item_id: string | null;
+          context_relevance_score: number | null;
+          context_retrieval_time_ms: number | null;
+          context_selection_reason: string | null;
+          context_weight: number | null;
+          created_at: string;
+          dynamic_context: Json;
+          id: string;
+          inspection_id: string | null;
+          query_embedding: string | null;
+          query_text: string;
+          query_time_ms: number | null;
+          query_type: string;
+          retrieved_knowledge_ids: string[] | null;
+          selected_context: Json;
+          similarity_scores: number[] | null;
+          total_processing_time_ms: number | null;
+        };
         Insert: {
-          ai_prediction_accuracy?: number | null
-          auditor_satisfaction_score?: number | null
-          cag_patterns_applied?: string[] | null
-          checklist_item_id?: string | null
-          context_relevance_score?: number | null
-          context_retrieval_time_ms?: number | null
-          context_selection_reason?: string | null
-          context_weight?: number | null
-          created_at?: string
-          dynamic_context?: Json
-          id?: string
-          inspection_id?: string | null
-          query_embedding?: string | null
-          query_text: string
-          query_time_ms?: number | null
-          query_type: string
-          retrieved_knowledge_ids?: string[] | null
-          selected_context?: Json
-          similarity_scores?: number[] | null
-          total_processing_time_ms?: number | null
-        }
+          ai_prediction_accuracy?: number | null;
+          auditor_satisfaction_score?: number | null;
+          cag_patterns_applied?: string[] | null;
+          checklist_item_id?: string | null;
+          context_relevance_score?: number | null;
+          context_retrieval_time_ms?: number | null;
+          context_selection_reason?: string | null;
+          context_weight?: number | null;
+          created_at?: string;
+          dynamic_context?: Json;
+          id?: string;
+          inspection_id?: string | null;
+          query_embedding?: string | null;
+          query_text: string;
+          query_time_ms?: number | null;
+          query_type: string;
+          retrieved_knowledge_ids?: string[] | null;
+          selected_context?: Json;
+          similarity_scores?: number[] | null;
+          total_processing_time_ms?: number | null;
+        };
         Update: {
-          ai_prediction_accuracy?: number | null
-          auditor_satisfaction_score?: number | null
-          cag_patterns_applied?: string[] | null
-          checklist_item_id?: string | null
-          context_relevance_score?: number | null
-          context_retrieval_time_ms?: number | null
-          context_selection_reason?: string | null
-          context_weight?: number | null
-          created_at?: string
-          dynamic_context?: Json
-          id?: string
-          inspection_id?: string | null
-          query_embedding?: string | null
-          query_text?: string
-          query_time_ms?: number | null
-          query_type?: string
-          retrieved_knowledge_ids?: string[] | null
-          selected_context?: Json
-          similarity_scores?: number[] | null
-          total_processing_time_ms?: number | null
-        }
+          ai_prediction_accuracy?: number | null;
+          auditor_satisfaction_score?: number | null;
+          cag_patterns_applied?: string[] | null;
+          checklist_item_id?: string | null;
+          context_relevance_score?: number | null;
+          context_retrieval_time_ms?: number | null;
+          context_selection_reason?: string | null;
+          context_weight?: number | null;
+          created_at?: string;
+          dynamic_context?: Json;
+          id?: string;
+          inspection_id?: string | null;
+          query_embedding?: string | null;
+          query_text?: string;
+          query_time_ms?: number | null;
+          query_type?: string;
+          retrieved_knowledge_ids?: string[] | null;
+          selected_context?: Json;
+          similarity_scores?: number[] | null;
+          total_processing_time_ms?: number | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "rag_query_log_inspection_id_fkey"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
+            foreignKeyName: "rag_query_log_inspection_id_fkey";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       inspection_reports: {
         Row: {
-          id: string
-          inspection_id: string
-          generated_at: string | null
-          version: string
-          options: Json | null
-          file_size: number | null
-          file_path: string | null
-          download_count: number | null
-          created_at: string | null
-          updated_at: string | null
-        }
+          id: string;
+          inspection_id: string;
+          generated_at: string | null;
+          version: string;
+          options: Json | null;
+          file_size: number | null;
+          file_path: string | null;
+          download_count: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          id: string
-          inspection_id: string
-          generated_at?: string | null
-          version?: string
-          options?: Json | null
-          file_size?: number | null
-          file_path?: string | null
-          download_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id: string;
+          inspection_id: string;
+          generated_at?: string | null;
+          version?: string;
+          options?: Json | null;
+          file_size?: number | null;
+          file_path?: string | null;
+          download_count?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          id?: string
-          inspection_id?: string
-          generated_at?: string | null
-          version?: string
-          options?: Json | null
-          file_size?: number | null
-          file_path?: string | null
-          download_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id?: string;
+          inspection_id?: string;
+          generated_at?: string | null;
+          version?: string;
+          options?: Json | null;
+          file_size?: number | null;
+          file_path?: string | null;
+          download_count?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "fk_inspection_reports_inspection_id"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: "fk_inspection_reports_inspection_id";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_feedback: {
         Row: {
-          id: string
-          inspection_id: string
-          auditor_decision: string
-          feedback_text: string | null
-          review_time_minutes: number | null
-          overrides_count: number | null
-          created_at: string | null
-          updated_at: string | null
-        }
+          id: string;
+          inspection_id: string;
+          auditor_decision: string;
+          feedback_text: string | null;
+          review_time_minutes: number | null;
+          overrides_count: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          id?: string
-          inspection_id: string
-          auditor_decision: string
-          feedback_text?: string | null
-          review_time_minutes?: number | null
-          overrides_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id?: string;
+          inspection_id: string;
+          auditor_decision: string;
+          feedback_text?: string | null;
+          review_time_minutes?: number | null;
+          overrides_count?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          id?: string
-          inspection_id?: string
-          auditor_decision?: string
-          feedback_text?: string | null
-          review_time_minutes?: number | null
-          overrides_count?: number | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id?: string;
+          inspection_id?: string;
+          auditor_decision?: string;
+          feedback_text?: string | null;
+          review_time_minutes?: number | null;
+          overrides_count?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "fk_audit_feedback_inspection_id"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: "fk_audit_feedback_inspection_id";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       report_deliveries: {
         Row: {
-          id: string
-          inspection_id: string
-          report_id: string
-          recipient_email: string
-          recipient_name: string
-          delivery_method: string
-          status: string
-          sent_at: string | null
-          delivered_at: string | null
-          error_message: string | null
-          metadata: Json | null
-          created_at: string | null
-          updated_at: string | null
-        }
+          id: string;
+          inspection_id: string;
+          report_id: string;
+          recipient_email: string;
+          recipient_name: string;
+          delivery_method: string;
+          status: string;
+          sent_at: string | null;
+          delivered_at: string | null;
+          error_message: string | null;
+          metadata: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          id: string
-          inspection_id: string
-          report_id: string
-          recipient_email: string
-          recipient_name: string
-          delivery_method: string
-          status: string
-          sent_at?: string | null
-          delivered_at?: string | null
-          error_message?: string | null
-          metadata?: Json | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id: string;
+          inspection_id: string;
+          report_id: string;
+          recipient_email: string;
+          recipient_name: string;
+          delivery_method: string;
+          status: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          error_message?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          id?: string
-          inspection_id?: string
-          report_id?: string
-          recipient_email?: string
-          recipient_name?: string
-          delivery_method?: string
-          status?: string
-          sent_at?: string | null
-          delivered_at?: string | null
-          error_message?: string | null
-          metadata?: Json | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
+          id?: string;
+          inspection_id?: string;
+          report_id?: string;
+          recipient_email?: string;
+          recipient_name?: string;
+          delivery_method?: string;
+          status?: string;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          error_message?: string | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "fk_report_deliveries_inspection_id"
-            columns: ["inspection_id"]
-            isOneToOne: false
-            referencedRelation: "inspections"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-    }
-    Views: Record<string, never>
+            foreignKeyName: "fk_report_deliveries_inspection_id";
+            columns: ["inspection_id"];
+            isOneToOne: false;
+            referencedRelation: "inspections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: Record<string, never>;
     Functions: {
       analyze_checklist_duplicates: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          inspection_id: string
-          static_item_id: string
-          label: string
-          duplicate_count: number
-        }[]
-      }
+          inspection_id: string;
+          static_item_id: string;
+          label: string;
+          duplicate_count: number;
+        }[];
+      };
       append_user_note: {
         Args: {
-          item_id: string
-          note_text: string
-          user_id: string
-          user_name: string
-        }
+          item_id: string;
+          note_text: string;
+          user_id: string;
+          user_name: string;
+        };
         Returns: {
-          ai_status: string | null
-          assigned_inspector_id: string | null
-          category: string | null
-          created_at: string | null
-          evidence_type: string
-          id: string
-          inspection_id: string
-          label: string
-          last_modified_at: string | null
-          last_modified_by: string | null
-          notes: string | null
-          notes_history: Json | null
-          source_photo_url: string | null
-          static_item_id: string | null
-          status: string | null
-          version: number | null
-        }
-      }
+          ai_status: string | null;
+          assigned_inspector_id: string | null;
+          category: string | null;
+          created_at: string | null;
+          evidence_type: string;
+          id: string;
+          inspection_id: string;
+          label: string;
+          last_modified_at: string | null;
+          last_modified_by: string | null;
+          notes: string | null;
+          notes_history: Json | null;
+          source_photo_url: string | null;
+          static_item_id: string | null;
+          status: string | null;
+          version: number | null;
+        };
+      };
       assign_checklist_item: {
-        Args: { p_item_id: string; p_inspector_id?: string }
+        Args: { p_item_id: string; p_inspector_id?: string };
         Returns: {
-          ai_status: string | null
-          assigned_inspector_id: string | null
-          category: string | null
-          created_at: string | null
-          evidence_type: string
-          id: string
-          inspection_id: string
-          label: string
-          last_modified_at: string | null
-          last_modified_by: string | null
-          notes: string | null
-          notes_history: Json | null
-          source_photo_url: string | null
-          static_item_id: string | null
-          status: string | null
-          version: number | null
-        }
-      }
+          ai_status: string | null;
+          assigned_inspector_id: string | null;
+          category: string | null;
+          created_at: string | null;
+          evidence_type: string;
+          id: string;
+          inspection_id: string;
+          label: string;
+          last_modified_at: string | null;
+          last_modified_by: string | null;
+          notes: string | null;
+          notes_history: Json | null;
+          source_photo_url: string | null;
+          static_item_id: string | null;
+          status: string | null;
+          version: number | null;
+        };
+      };
       assign_inspector_to_inspection: {
-        Args: { p_inspection_id: string; p_inspector_id?: string }
+        Args: { p_inspection_id: string; p_inspector_id?: string };
         Returns: {
-          certification_status: string | null
-          completed: boolean | null
-          end_time: string | null
-          id: string
-          inspector_id: string | null
-          property_id: string
-          start_time: string | null
-          status: string | null
-        }
-      }
+          certification_status: string | null;
+          completed: boolean | null;
+          end_time: string | null;
+          id: string;
+          inspector_id: string | null;
+          property_id: string;
+          start_time: string | null;
+          status: string | null;
+        };
+      };
       assign_user_role: {
-        Args: { _user_id: string; _email: string }
-        Returns: undefined
-      }
+        Args: { _user_id: string; _email: string };
+        Returns: undefined;
+      };
       bytea_to_text: {
-        Args: { data: string }
-        Returns: string
-      }
+        Args: { data: string };
+        Returns: string;
+      };
       cleanup_duplicate_checklist_items: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          inspection_id: string
-          items_removed: number
-        }[]
-      }
+          inspection_id: string;
+          items_removed: number;
+        }[];
+      };
       complete_inspection: {
-        Args: { p_inspection_id: string }
+        Args: { p_inspection_id: string };
         Returns: {
-          certification_status: string | null
-          completed: boolean | null
-          end_time: string | null
-          id: string
-          inspector_id: string | null
-          property_id: string
-          start_time: string | null
-          status: string | null
-        }
-      }
+          certification_status: string | null;
+          completed: boolean | null;
+          end_time: string | null;
+          id: string;
+          inspector_id: string | null;
+          property_id: string;
+          start_time: string | null;
+          status: string | null;
+        };
+      };
       debug_data_access: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          table_name: string
-          row_count: number
-          can_select: boolean
-        }[]
-      }
+          table_name: string;
+          row_count: number;
+          can_select: boolean;
+        }[];
+      };
       get_database_stats: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          database_size: number
-          table_count: number
-          connections: number
-          active_connections: number
-          database_name: string
-          version: string
-          timestamp: string
-        }
-      }
+          database_size: number;
+          table_count: number;
+          connections: number;
+          active_connections: number;
+          database_name: string;
+          version: string;
+          timestamp: string;
+        };
+      };
       get_properties_with_inspections: {
-        Args: { _user_id?: string }
+        Args: { _user_id?: string };
         Returns: {
-          property_id: string
-          property_name: string
-          property_address: string
-          property_vrbo_url: string
-          property_airbnb_url: string
-          property_status: string
-          property_created_at: string
-          inspection_count: number
-          completed_inspection_count: number
-          active_inspection_count: number
-          latest_inspection_id: string
-          latest_inspection_completed: boolean
-        }[]
-      }
+          property_id: string;
+          property_name: string;
+          property_address: string;
+          property_vrbo_url: string;
+          property_airbnb_url: string;
+          property_status: string;
+          property_created_at: string;
+          inspection_count: number;
+          completed_inspection_count: number;
+          active_inspection_count: number;
+          latest_inspection_id: string;
+          latest_inspection_completed: boolean;
+        }[];
+      };
       get_property_status: {
-        Args: { _completed_count: number; _active_count: number }
+        Args: { _completed_count: number; _active_count: number };
         Returns: {
-          status: string
-          color: string
-          text_label: string
-        }[]
-      }
+          status: string;
+          color: string;
+          text_label: string;
+        }[];
+      };
       get_user_role_simple: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
+        Args: { _user_id: string };
+        Returns: Database["public"]["Enums"]["app_role"];
+      };
       get_user_roles: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"][]
-      }
+        Args: { _user_id: string };
+        Returns: Database["public"]["Enums"]["app_role"][];
+      };
       has_role: {
         Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+          _user_id: string;
+          _role: Database["public"]["Enums"]["app_role"];
+        };
+        Returns: boolean;
+      };
       http: {
-        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_delete: {
         Args:
           | { uri: string }
-          | { uri: string; content: string; content_type: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+          | { uri: string; content: string; content_type: string };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_get: {
-        Args: { uri: string } | { uri: string; data: Json }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+        Args: { uri: string } | { uri: string; data: Json };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_head: {
-        Args: { uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+        Args: { uri: string };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_header: {
-        Args: { field: string; value: string }
-        Returns: Database["public"]["CompositeTypes"]["http_header"]
-      }
+        Args: { field: string; value: string };
+        Returns: Database["public"]["CompositeTypes"]["http_header"];
+      };
       http_list_curlopt: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          curlopt: string
-          value: string
-        }[]
-      }
+          curlopt: string;
+          value: string;
+        }[];
+      };
       http_patch: {
-        Args: { uri: string; content: string; content_type: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+        Args: { uri: string; content: string; content_type: string };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_post: {
         Args:
           | { uri: string; content: string; content_type: string }
-          | { uri: string; data: Json }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+          | { uri: string; data: Json };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_put: {
-        Args: { uri: string; content: string; content_type: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+        Args: { uri: string; content: string; content_type: string };
+        Returns: Database["public"]["CompositeTypes"]["http_response"];
+      };
       http_reset_curlopt: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       http_set_curlopt: {
-        Args: { curlopt: string; value: string }
-        Returns: boolean
-      }
+        Args: { curlopt: string; value: string };
+        Returns: boolean;
+      };
       log_user_activity: {
         Args: {
-          target_user_id: string
-          activity_type: string
-          activity_description?: string
-          activity_metadata?: Json
-        }
-        Returns: undefined
-      }
+          target_user_id: string;
+          activity_type: string;
+          activity_description?: string;
+          activity_metadata?: Json;
+        };
+        Returns: undefined;
+      };
       text_to_bytea: {
-        Args: { data: string }
-        Returns: string
-      }
+        Args: { data: string };
+        Returns: string;
+      };
       update_checklist_item_complete: {
-        Args: { item_id: string; item_status: string; item_notes?: string }
+        Args: { item_id: string; item_status: string; item_notes?: string };
         Returns: {
-          ai_status: string | null
-          assigned_inspector_id: string | null
-          category: string | null
-          created_at: string | null
-          evidence_type: string
-          id: string
-          inspection_id: string
-          label: string
-          last_modified_at: string | null
-          last_modified_by: string | null
-          notes: string | null
-          notes_history: Json | null
-          source_photo_url: string | null
-          static_item_id: string | null
-          status: string | null
-          version: number | null
-        }
-      }
+          ai_status: string | null;
+          assigned_inspector_id: string | null;
+          category: string | null;
+          created_at: string | null;
+          evidence_type: string;
+          id: string;
+          inspection_id: string;
+          label: string;
+          last_modified_at: string | null;
+          last_modified_by: string | null;
+          notes: string | null;
+          notes_history: Json | null;
+          source_photo_url: string | null;
+          static_item_id: string | null;
+          status: string | null;
+          version: number | null;
+        };
+      };
       update_inspector_presence: {
         Args: {
-          p_inspection_id: string
-          p_status?: string
-          p_current_item_id?: string
-          p_metadata?: Json
-        }
+          p_inspection_id: string;
+          p_status?: string;
+          p_current_item_id?: string;
+          p_metadata?: Json;
+        };
         Returns: {
-          created_at: string
-          current_item_id: string | null
-          id: string
-          inspection_id: string
-          inspector_id: string
-          last_seen: string
-          metadata: Json | null
-          status: string
-        }
-      }
+          created_at: string;
+          current_item_id: string | null;
+          id: string;
+          inspection_id: string;
+          inspector_id: string;
+          last_seen: string;
+          metadata: Json | null;
+          status: string;
+        };
+      };
       update_user_profile: {
         Args: {
-          target_user_id: string
-          new_name: string
-          new_email: string
-          changed_by_user_id: string
-        }
-        Returns: undefined
-      }
+          target_user_id: string;
+          new_name: string;
+          new_email: string;
+          changed_by_user_id: string;
+        };
+        Returns: undefined;
+      };
       update_user_status: {
         Args: {
-          target_user_id: string
-          new_status: string
-          changed_by_user_id: string
-        }
-        Returns: undefined
-      }
+          target_user_id: string;
+          new_status: string;
+          changed_by_user_id: string;
+        };
+        Returns: undefined;
+      };
       urlencode: {
-        Args: { data: Json } | { string: string } | { string: string }
-        Returns: string
-      }
+        Args: { data: Json } | { string: string } | { string: string };
+        Returns: string;
+      };
       validate_and_map_category: {
-        Args: { input_category: string }
-        Returns: string
-      }
-    }
+        Args: { input_category: string };
+        Returns: string;
+      };
+    };
     Enums: {
-      app_role: "admin" | "inspector" | "reviewer"
-      conflict_resolution_status: "pending" | "resolved" | "escalated"
+      app_role: "admin" | "inspector" | "reviewer";
+      conflict_resolution_status: "pending" | "resolved" | "escalated";
       inspector_assignment_status:
         | "assigned"
         | "active"
         | "completed"
-        | "reassigned"
-    }
+        | "reassigned";
+    };
     CompositeTypes: {
       http_header: {
-        field: string | null
-        value: string | null
-      }
+        field: string | null;
+        value: string | null;
+      };
       http_request: {
-        method: unknown | null
-        uri: string | null
-        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
-        content_type: string | null
-        content: string | null
-      }
+        method: unknown | null;
+        uri: string | null;
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null;
+        content_type: string | null;
+        content: string | null;
+      };
       http_response: {
-        status: number | null
-        content_type: string | null
-        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
-        content: string | null
-      }
-    }
-  }
-}
+        status: number | null;
+        content_type: string | null;
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null;
+        content: string | null;
+      };
+    };
+  };
+};
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
@@ -1702,7 +1702,7 @@ export type Tables<
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
@@ -1710,64 +1710,64 @@ export type Tables<
         DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
@@ -1775,14 +1775,14 @@ export type Enums<
   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof Database;
   }
     ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
@@ -1790,7 +1790,7 @@ export type CompositeTypes<
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
@@ -1805,4 +1805,4 @@ export const Constants = {
       ],
     },
   },
-} as const
+} as const;

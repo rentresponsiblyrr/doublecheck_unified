@@ -3,18 +3,22 @@
  * Handles search, category, evidence type, and status filtering
  */
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Search } from 'lucide-react';
-import { ChecklistFilters, CHECKLIST_CATEGORIES, EVIDENCE_TYPES } from './types';
+} from "@/components/ui/select";
+import { Search } from "lucide-react";
+import {
+  ChecklistFilters,
+  CHECKLIST_CATEGORIES,
+  EVIDENCE_TYPES,
+} from "./types";
 
 interface ChecklistFiltersProps {
   filters: ChecklistFilters;
@@ -31,11 +35,11 @@ interface ChecklistFiltersProps {
 export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
   filters,
   onFiltersChange,
-  itemCounts
+  itemCounts,
 }) => {
   const updateFilter = <K extends keyof ChecklistFilters>(
-    key: K, 
-    value: ChecklistFilters[K]
+    key: K,
+    value: ChecklistFilters[K],
   ) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -52,7 +56,7 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
               id="search"
               placeholder="Search by label or notes..."
               value={filters.search}
-              onChange={(e) => updateFilter('search', e.target.value)}
+              onChange={(e) => updateFilter("search", e.target.value)}
               className="pl-10"
             />
           </div>
@@ -63,13 +67,15 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
           <Label>Category</Label>
           <Select
             value={filters.category}
-            onValueChange={(value) => updateFilter('category', value)}
+            onValueChange={(value) => updateFilter("category", value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories ({itemCounts.total})</SelectItem>
+              <SelectItem value="">
+                All categories ({itemCounts.total})
+              </SelectItem>
               {CHECKLIST_CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category} ({itemCounts.byCategory[category] || 0})
@@ -84,7 +90,7 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
           <Label>Evidence Type</Label>
           <Select
             value={filters.evidenceType}
-            onValueChange={(value) => updateFilter('evidenceType', value)}
+            onValueChange={(value) => updateFilter("evidenceType", value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All types" />
@@ -93,7 +99,8 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
               <SelectItem value="">All types ({itemCounts.total})</SelectItem>
               {EVIDENCE_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)} ({itemCounts.byEvidenceType[type] || 0})
+                  {type.charAt(0).toUpperCase() + type.slice(1)} (
+                  {itemCounts.byEvidenceType[type] || 0})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -105,51 +112,65 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
           <Label>Status</Label>
           <Select
             value={filters.status}
-            onValueChange={(value) => updateFilter('status', value)}
+            onValueChange={(value) => updateFilter("status", value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All items" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All items ({itemCounts.total})</SelectItem>
-              <SelectItem value="active">Active ({itemCounts.active})</SelectItem>
-              <SelectItem value="deleted">Deleted ({itemCounts.deleted})</SelectItem>
+              <SelectItem value="active">
+                Active ({itemCounts.active})
+              </SelectItem>
+              <SelectItem value="deleted">
+                Deleted ({itemCounts.deleted})
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Filter Summary */}
-      {(filters.search || filters.category || filters.evidenceType || filters.status) && (
+      {(filters.search ||
+        filters.category ||
+        filters.evidenceType ||
+        filters.status) && (
         <div className="flex flex-wrap gap-2 pt-2 border-t">
           <span className="text-sm text-gray-600">Active filters:</span>
-          
+
           {filters.search && (
             <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
               Search: "{filters.search}"
             </span>
           )}
-          
+
           {filters.category && (
             <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
               Category: {filters.category}
             </span>
           )}
-          
+
           {filters.evidenceType && (
             <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
               Type: {filters.evidenceType}
             </span>
           )}
-          
+
           {filters.status && (
             <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
               Status: {filters.status}
             </span>
           )}
-          
+
           <button
-            onClick={() => onFiltersChange({ search: '', category: '', evidenceType: '', status: '' })}
+            onClick={() =>
+              onFiltersChange({
+                search: "",
+                category: "",
+                evidenceType: "",
+                status: "",
+              })
+            }
             className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded hover:bg-gray-200"
           >
             Clear all

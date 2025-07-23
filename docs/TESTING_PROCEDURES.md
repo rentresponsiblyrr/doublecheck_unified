@@ -19,12 +19,12 @@ Comprehensive testing procedures for the STR Certified application, with special
 
 ```sql
 -- Create test data if needed
-INSERT INTO properties (property_name, street_address, city, state, zipcode) 
+INSERT INTO properties (name, address, city, state, zipcode) 
 VALUES ('Test Property', '123 Test St', 'Test City', 'TS', '12345')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO inspection_sessions (property_id) 
-VALUES ((SELECT property_id FROM properties WHERE property_name = 'Test Property' LIMIT 1))
+VALUES ((SELECT property_id FROM properties WHERE name = 'Test Property' LIMIT 1))
 ON CONFLICT DO NOTHING;
 ```
 
@@ -134,7 +134,7 @@ BEGIN
     -- Test checklist items to safety items relationship
     SELECT COUNT(*) INTO relationship_count
     FROM inspection_checklist_items icl
-    JOIN checklist_items_compat cic ON cic.id = icl.static_safety_item_id::text
+    JOIN checklist_items_compat cic ON cic.id = icl.static_item_id::text
     LIMIT 1;
     
     RAISE NOTICE 'Relationship Integrity Test: PASSED';
@@ -546,7 +546,7 @@ jobs:
 -- Minimum test data required for compatibility tests
 
 -- Properties
-INSERT INTO properties (property_id, property_name, street_address, city, state, zipcode)
+INSERT INTO properties (property_id, name, address, city, state, zipcode)
 VALUES 
   (999, 'Test Property 1', '123 Test St', 'Test City', 'TS', '12345'),
   (998, 'Test Property 2', '456 Test Ave', 'Test Town', 'TS', '67890')

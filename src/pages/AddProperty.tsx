@@ -1,4 +1,3 @@
-
 import { SimplePropertyForm } from "@/components/SimplePropertyForm";
 
 const AddProperty = () => {

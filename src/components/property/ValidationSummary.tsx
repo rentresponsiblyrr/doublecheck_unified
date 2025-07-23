@@ -3,7 +3,7 @@
  * Extracted from PropertyFormFields.tsx
  */
 
-import React from 'react';
+import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
@@ -16,7 +16,7 @@ interface ValidationSummaryProps {
 export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
   hasAtLeastOneUrl,
   vrboUrl,
-  formErrors
+  formErrors,
 }) => {
   return (
     <div id="validation-summary" className="space-y-2">
@@ -32,9 +32,7 @@ export const ValidationSummary: React.FC<ValidationSummaryProps> = ({
         </p>
       )}
       {hasAtLeastOneUrl && (
-        <p className="text-xs text-green-600">
-          ✓ Vrbo listing URL provided
-        </p>
+        <p className="text-xs text-green-600">✓ Vrbo listing URL provided</p>
       )}
     </div>
   );

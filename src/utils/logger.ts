@@ -1,7 +1,13 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 // Generic log data type for flexibility while maintaining some type safety
-type LogData = Record<string, unknown> | string | number | boolean | null | undefined;
+type LogData =
+  | Record<string, unknown>
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
 
 interface LogEntry {
   timestamp: string;
@@ -15,9 +21,11 @@ interface LogEntry {
 class Logger {
   private logs: LogEntry[] = [];
   private maxLogs = 1000;
-  private isDevelopment = import.meta.env.DEV || import.meta.env.NODE_ENV === 'development';
-  private isProduction = import.meta.env.PROD || import.meta.env.NODE_ENV === 'production';
-  
+  private isDevelopment =
+    import.meta.env.DEV || import.meta.env.NODE_ENV === "development";
+  private isProduction =
+    import.meta.env.PROD || import.meta.env.NODE_ENV === "production";
+
   // Throttling to prevent console spam
   private logThrottle = new Map<string, number>();
   private readonly THROTTLE_MS = 1000;
@@ -26,7 +34,7 @@ class Logger {
     level: LogLevel,
     message: string,
     data?: LogData,
-    context?: string
+    context?: string,
   ): LogEntry {
     return {
       timestamp: new Date().toISOString(),
@@ -34,7 +42,7 @@ class Logger {
       message,
       data,
       context,
-      userId: this.getCurrentUserId()
+      userId: this.getCurrentUserId(),
     };
   }
 
@@ -46,29 +54,29 @@ class Logger {
 
   private shouldLogToConsole(message: string, level: LogLevel): boolean {
     // Always allow error and warn logs
-    if (level === 'error' || level === 'warn') {
+    if (level === "error" || level === "warn") {
       return true;
     }
-    
+
     // Block debug logs in production
-    if (this.isProduction && level === 'debug') {
+    if (this.isProduction && level === "debug") {
       return false;
     }
-    
+
     // Throttle frequent logs
     const now = Date.now();
     const lastLog = this.logThrottle.get(message);
-    if (lastLog && (now - lastLog) < this.THROTTLE_MS) {
+    if (lastLog && now - lastLog < this.THROTTLE_MS) {
       return false;
     }
-    
+
     this.logThrottle.set(message, now);
     return true;
   }
 
   private addLog(entry: LogEntry) {
     this.logs.push(entry);
-    
+
     // Keep only the most recent logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
@@ -76,17 +84,21 @@ class Logger {
 
     // FIXED: Re-enabled console output with proper throttling
     if (this.shouldLogToConsole(entry.message, entry.level)) {
-      const consoleMethod = entry.level === 'error' ? 'error' : 
-                           entry.level === 'warn' ? 'warn' : 'log';
-      
-      const logMessage = `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ''}${entry.message}`;
-      
+      const consoleMethod =
+        entry.level === "error"
+          ? "error"
+          : entry.level === "warn"
+            ? "warn"
+            : "log";
+
+      const logMessage = `[${entry.level.toUpperCase()}] ${entry.context ? `[${entry.context}] ` : ""}${entry.message}`;
+
       // Use try-catch to prevent any logging errors from crashing the app
       try {
-        if (entry.data && typeof entry.data === 'object') {
+        if (entry.data && typeof entry.data === "object") {
           console[consoleMethod](logMessage, entry.data);
         } else {
-          console[consoleMethod](logMessage, entry.data || '');
+          console[consoleMethod](logMessage, entry.data || "");
         }
       } catch (consoleError) {
         // Silently fail if console logging breaks - don't crash the app
@@ -96,23 +108,23 @@ class Logger {
 
   debug(message: string, data?: LogData, context?: string) {
     if (this.isDevelopment) {
-      const entry = this.createLogEntry('debug', message, data, context);
+      const entry = this.createLogEntry("debug", message, data, context);
       this.addLog(entry);
     }
   }
 
   info(message: string, data?: LogData, context?: string) {
-    const entry = this.createLogEntry('info', message, data, context);
+    const entry = this.createLogEntry("info", message, data, context);
     this.addLog(entry);
   }
 
   warn(message: string, data?: LogData, context?: string) {
-    const entry = this.createLogEntry('warn', message, data, context);
+    const entry = this.createLogEntry("warn", message, data, context);
     this.addLog(entry);
   }
 
   error(message: string, data?: LogData, context?: string) {
-    const entry = this.createLogEntry('error', message, data, context);
+    const entry = this.createLogEntry("error", message, data, context);
     this.addLog(entry);
 
     // In production, you might want to send errors to a monitoring service
@@ -142,7 +154,7 @@ class Logger {
 
   // Get logs by level
   getLogsByLevel(level: LogLevel): LogEntry[] {
-    return this.logs.filter(log => log.level === level);
+    return this.logs.filter((log) => log.level === level);
   }
 
   // Clear logs
@@ -156,25 +168,28 @@ class Logger {
   }
 
   // DISABLED: Performance timing to prevent infinite loops
-  time(label: string) {
-  }
+  time(label: string) {}
 
-  timeEnd(label: string) {
-  }
+  timeEnd(label: string) {}
 
   // User action tracking
   trackUserAction(action: string, data?: LogData) {
-    this.info(`User action: ${action}`, data, 'USER_ACTION');
+    this.info(`User action: ${action}`, data, "USER_ACTION");
   }
 
   // API call tracking
-  trackApiCall(method: string, url: string, duration?: number, error?: Error | string) {
-    const message = `API ${method} ${url}${duration ? ` (${duration}ms)` : ''}`;
-    
+  trackApiCall(
+    method: string,
+    url: string,
+    duration?: number,
+    error?: Error | string,
+  ) {
+    const message = `API ${method} ${url}${duration ? ` (${duration}ms)` : ""}`;
+
     if (error) {
-      this.error(message, { error, duration }, 'API');
+      this.error(message, { error, duration }, "API");
     } else {
-      this.info(message, { duration }, 'API');
+      this.info(message, { duration }, "API");
     }
   }
 }

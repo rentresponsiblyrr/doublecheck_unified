@@ -19,7 +19,7 @@ Run this SQL in your Supabase SQL editor to update the `get_properties_with_insp
 CREATE OR REPLACE FUNCTION public.get_properties_with_inspections(_user_id uuid DEFAULT NULL::uuid)
  RETURNS TABLE(
    property_id uuid, 
-   property_name text, 
+   name text, 
    property_address text, 
    property_vrbo_url text, 
    property_airbnb_url text, 
@@ -38,7 +38,7 @@ CREATE OR REPLACE FUNCTION public.get_properties_with_inspections(_user_id uuid 
 AS $function$
   SELECT 
     p.id as property_id,
-    p.name as property_name,
+    p.name as name,
     p.address as property_address,
     p.vrbo_url as property_vrbo_url,
     p.airbnb_url as property_airbnb_url,

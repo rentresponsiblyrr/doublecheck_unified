@@ -1,10 +1,10 @@
 /**
  * INSTALL PROMPT HANDLER - ELITE PWA INSTALLATION SYSTEM
- * 
+ *
  * Advanced PWA installation management with intelligent prompting, iOS Safari support,
  * and construction site optimized installation flow. Designed for Netflix/Meta
  * installation conversion rates with zero friction user experience.
- * 
+ *
  * CORE CAPABILITIES:
  * - Smart timing for install prompts based on user engagement
  * - iOS Safari detection and custom install experience
@@ -12,32 +12,32 @@
  * - Cross-platform installation support
  * - Installation analytics and success rate tracking
  * - Construction site specific install guidance
- * 
+ *
  * INSTALLATION STRATEGIES:
  * 1. Android Chrome - Native beforeinstallprompt API
  * 2. iOS Safari - Custom modal with step-by-step instructions
  * 3. Desktop Chrome - Enhanced beforeinstallprompt with benefits
  * 4. Edge/Firefox - Custom installation guidance
  * 5. Samsung Internet - Native prompt with Samsung optimizations
- * 
+ *
  * ENGAGEMENT TRIGGERS:
  * - User completes first inspection (high engagement signal)
  * - User visits app 3+ times (return user optimization)
  * - User spends 5+ minutes in session (engagement threshold)
  * - User captures photos (core functionality usage)
  * - User works offline (PWA value demonstration)
- * 
+ *
  * CONSTRUCTION SITE OPTIMIZATION:
  * - Emphasize offline capabilities for spotty connections
  * - Highlight battery optimization for long inspections
  * - Show home screen access for quick launching
  * - Demonstrate camera integration benefits
  * - Focus on reliability in challenging environments
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // Core interfaces for install prompt management
 export interface InstallPromptState {
@@ -52,7 +52,14 @@ export interface InstallPromptState {
 }
 
 export interface InstallationSource {
-  platform: 'android_chrome' | 'ios_safari' | 'desktop_chrome' | 'edge' | 'firefox' | 'samsung' | 'unknown';
+  platform:
+    | "android_chrome"
+    | "ios_safari"
+    | "desktop_chrome"
+    | "edge"
+    | "firefox"
+    | "samsung"
+    | "unknown";
   browser: string;
   version: string;
   supportsNativePrompt: boolean;
@@ -107,7 +114,7 @@ export interface IOSInstallStep {
 }
 
 export interface VisualGuide {
-  type: 'image' | 'animation' | 'video';
+  type: "image" | "animation" | "video";
   url: string;
   description: string;
   step: number;
@@ -117,8 +124,8 @@ export interface InstallationBenefit {
   title: string;
   description: string;
   icon: string;
-  category: 'performance' | 'convenience' | 'reliability' | 'features';
-  importance: 'critical' | 'high' | 'medium' | 'low';
+  category: "performance" | "convenience" | "reliability" | "features";
+  importance: "critical" | "high" | "medium" | "low";
 }
 
 export class InstallPromptHandler {
@@ -128,7 +135,7 @@ export class InstallPromptHandler {
   private config: InstallPromptConfig;
   private metrics: InstallationMetrics;
   private iosInstructions: IOSInstallInstructions;
-  
+
   private constructor() {
     this.config = {
       minVisits: 2,
@@ -137,9 +144,9 @@ export class InstallPromptHandler {
       cooldownPeriod: 86400000, // 24 hours
       maxPromptAttempts: 3,
       showBenefitsModal: true,
-      emphasizeOfflineFeatures: true
+      emphasizeOfflineFeatures: true,
     };
-    
+
     this.metrics = {
       promptsShown: 0,
       promptsAccepted: 0,
@@ -148,14 +155,14 @@ export class InstallPromptHandler {
       installationsFailed: 0,
       conversionRate: 0,
       averageTimeToInstall: 0,
-      topInstallationReasons: []
+      topInstallationReasons: [],
     };
-    
+
     this.installPromptState = this.initializePromptState();
     this.iosInstructions = this.initializeIOSInstructions();
     this.setupInstallPromptListeners();
   }
-  
+
   static getInstance(): InstallPromptHandler {
     if (!InstallPromptHandler.instance) {
       InstallPromptHandler.instance = new InstallPromptHandler();
@@ -168,33 +175,40 @@ export class InstallPromptHandler {
    */
   async initialize(): Promise<boolean> {
     try {
-      logger.info('Initializing Install Prompt Handler', {}, 'INSTALL_PROMPT');
+      logger.info("Initializing Install Prompt Handler", {}, "INSTALL_PROMPT");
 
       // Detect platform and capabilities
       await this.detectPlatformCapabilities();
-      
+
       // Load user engagement data
       await this.loadUserEngagement();
-      
+
       // Check if already installed
       await this.checkInstallationStatus();
-      
+
       // Setup engagement tracking
       this.setupEngagementTracking();
-      
+
       // Load metrics from storage
       await this.loadInstallationMetrics();
 
-      logger.info('Install Prompt Handler initialized successfully', {
-        platform: this.installPromptState.installationSource.platform,
-        isInstalled: this.installPromptState.isInstalled,
-        canPrompt: this.installPromptState.canPrompt
-      }, 'INSTALL_PROMPT');
+      logger.info(
+        "Install Prompt Handler initialized successfully",
+        {
+          platform: this.installPromptState.installationSource.platform,
+          isInstalled: this.installPromptState.isInstalled,
+          canPrompt: this.installPromptState.canPrompt,
+        },
+        "INSTALL_PROMPT",
+      );
 
       return true;
-
     } catch (error) {
-      logger.error('Install Prompt Handler initialization failed', { error }, 'INSTALL_PROMPT');
+      logger.error(
+        "Install Prompt Handler initialization failed",
+        { error },
+        "INSTALL_PROMPT",
+      );
       return false;
     }
   }
@@ -204,7 +218,10 @@ export class InstallPromptHandler {
    */
   async shouldShowInstallPrompt(): Promise<boolean> {
     // Don't show if already installed
-    if (this.installPromptState.isInstalled || this.installPromptState.isStandalone) {
+    if (
+      this.installPromptState.isInstalled ||
+      this.installPromptState.isStandalone
+    ) {
       return false;
     }
 
@@ -215,7 +232,10 @@ export class InstallPromptHandler {
 
     // Check if prompt was recently shown (cooldown period)
     const lastPromptTime = this.getLastPromptTime();
-    if (lastPromptTime && (Date.now() - lastPromptTime) < this.config.cooldownPeriod) {
+    if (
+      lastPromptTime &&
+      Date.now() - lastPromptTime < this.config.cooldownPeriod
+    ) {
       return false;
     }
 
@@ -226,26 +246,35 @@ export class InstallPromptHandler {
 
     // Evaluate user engagement criteria
     const engagement = this.installPromptState.userEngagement;
-    
+
     const meetsVisitCriteria = engagement.visitCount >= this.config.minVisits;
-    const meetsTimeCriteria = engagement.totalTimeSpent >= this.config.minTimeSpent;
-    const meetsEngagementCriteria = engagement.engagementScore >= this.config.minEngagementScore;
-    
+    const meetsTimeCriteria =
+      engagement.totalTimeSpent >= this.config.minTimeSpent;
+    const meetsEngagementCriteria =
+      engagement.engagementScore >= this.config.minEngagementScore;
+
     // High-value engagement signals override basic criteria
-    const hasHighValueSignals = 
-      engagement.inspectionsCompleted > 0 || 
+    const hasHighValueSignals =
+      engagement.inspectionsCompleted > 0 ||
       engagement.photosCapured > 5 ||
       engagement.offlineUsage > 0;
 
-    logger.info('Install prompt criteria evaluation', {
-      meetsVisitCriteria,
-      meetsTimeCriteria,
-      meetsEngagementCriteria,
-      hasHighValueSignals,
-      engagementScore: engagement.engagementScore
-    }, 'INSTALL_PROMPT');
+    logger.info(
+      "Install prompt criteria evaluation",
+      {
+        meetsVisitCriteria,
+        meetsTimeCriteria,
+        meetsEngagementCriteria,
+        hasHighValueSignals,
+        engagementScore: engagement.engagementScore,
+      },
+      "INSTALL_PROMPT",
+    );
 
-    return (meetsVisitCriteria && meetsTimeCriteria && meetsEngagementCriteria) || hasHighValueSignals;
+    return (
+      (meetsVisitCriteria && meetsTimeCriteria && meetsEngagementCriteria) ||
+      hasHighValueSignals
+    );
   }
 
   /**
@@ -254,19 +283,23 @@ export class InstallPromptHandler {
   async showInstallPrompt(): Promise<InstallPromptResult> {
     try {
       const shouldShow = await this.shouldShowInstallPrompt();
-      
+
       if (!shouldShow) {
         return {
           success: false,
-          reason: 'criteria_not_met',
-          userChoice: 'dismissed'
+          reason: "criteria_not_met",
+          userChoice: "dismissed",
         };
       }
 
-      logger.info('Showing install prompt', {
-        platform: this.installPromptState.installationSource.platform,
-        userEngagement: this.installPromptState.userEngagement
-      }, 'INSTALL_PROMPT');
+      logger.info(
+        "Showing install prompt",
+        {
+          platform: this.installPromptState.installationSource.platform,
+          userEngagement: this.installPromptState.userEngagement,
+        },
+        "INSTALL_PROMPT",
+      );
 
       this.metrics.promptsShown++;
       this.installPromptState.promptShown = true;
@@ -274,23 +307,22 @@ export class InstallPromptHandler {
 
       // Show platform-specific install prompt
       const result = await this.showPlatformSpecificPrompt();
-      
+
       // Update metrics based on result
       this.updateMetricsFromResult(result);
-      
+
       // Save metrics
       await this.saveInstallationMetrics();
 
       return result;
-
     } catch (error) {
-      logger.error('Install prompt failed', { error }, 'INSTALL_PROMPT');
-      
+      logger.error("Install prompt failed", { error }, "INSTALL_PROMPT");
+
       return {
         success: false,
-        reason: 'system_error',
-        userChoice: 'error',
-        error: error.message
+        reason: "system_error",
+        userChoice: "error",
+        error: error.message,
       };
     }
   }
@@ -300,24 +332,24 @@ export class InstallPromptHandler {
    */
   private async showPlatformSpecificPrompt(): Promise<InstallPromptResult> {
     const platform = this.installPromptState.installationSource.platform;
-    
+
     switch (platform) {
-      case 'android_chrome':
+      case "android_chrome":
         return this.showAndroidChromePrompt();
-      
-      case 'ios_safari':
+
+      case "ios_safari":
         return this.showIOSSafariPrompt();
-      
-      case 'desktop_chrome':
+
+      case "desktop_chrome":
         return this.showDesktopChromePrompt();
-      
-      case 'edge':
-      case 'firefox':
+
+      case "edge":
+      case "firefox":
         return this.showGenericBrowserPrompt();
-      
-      case 'samsung':
+
+      case "samsung":
         return this.showSamsungInternetPrompt();
-      
+
       default:
         return this.showFallbackPrompt();
     }
@@ -330,21 +362,21 @@ export class InstallPromptHandler {
     if (!this.deferredPrompt) {
       return {
         success: false,
-        reason: 'native_prompt_not_available',
-        userChoice: 'dismissed'
+        reason: "native_prompt_not_available",
+        userChoice: "dismissed",
       };
     }
 
     try {
       // Show benefits modal first if configured
       if (this.config.showBenefitsModal) {
-        const benefitsAccepted = await this.showInstallBenefitsModal('android');
+        const benefitsAccepted = await this.showInstallBenefitsModal("android");
         if (!benefitsAccepted) {
           this.metrics.promptsDismissed++;
           return {
             success: false,
-            reason: 'benefits_dismissed',
-            userChoice: 'dismissed'
+            reason: "benefits_dismissed",
+            userChoice: "dismissed",
           };
         }
       }
@@ -352,36 +384,39 @@ export class InstallPromptHandler {
       // Show native prompt
       this.deferredPrompt.prompt();
       const choiceResult = await this.deferredPrompt.userChoice;
-      
-      logger.info('Android Chrome install prompt result', {
-        outcome: choiceResult.outcome
-      }, 'INSTALL_PROMPT');
 
-      if (choiceResult.outcome === 'accepted') {
+      logger.info(
+        "Android Chrome install prompt result",
+        {
+          outcome: choiceResult.outcome,
+        },
+        "INSTALL_PROMPT",
+      );
+
+      if (choiceResult.outcome === "accepted") {
         this.metrics.promptsAccepted++;
         return {
           success: true,
-          reason: 'user_accepted',
-          userChoice: 'accepted',
-          installationMethod: 'native_android'
+          reason: "user_accepted",
+          userChoice: "accepted",
+          installationMethod: "native_android",
         };
       } else {
         this.metrics.promptsDismissed++;
         return {
           success: false,
-          reason: 'user_dismissed',
-          userChoice: 'dismissed'
+          reason: "user_dismissed",
+          userChoice: "dismissed",
         };
       }
-
     } catch (error) {
-      logger.error('Android Chrome prompt failed', { error }, 'INSTALL_PROMPT');
-      
+      logger.error("Android Chrome prompt failed", { error }, "INSTALL_PROMPT");
+
       return {
         success: false,
-        reason: 'prompt_error',
-        userChoice: 'error',
-        error: error.message
+        reason: "prompt_error",
+        userChoice: "error",
+        error: error.message,
       };
     }
   }
@@ -393,38 +428,37 @@ export class InstallPromptHandler {
     try {
       // Create and show iOS install modal
       const modalResult = await this.showIOSInstallModal();
-      
+
       if (modalResult.userAccepted) {
         this.metrics.promptsAccepted++;
-        
+
         // Track if user actually completed installation
         setTimeout(() => {
           this.checkIOSInstallationCompletion();
         }, 30000); // Check after 30 seconds
-        
+
         return {
           success: true,
-          reason: 'instructions_shown',
-          userChoice: 'accepted',
-          installationMethod: 'ios_manual'
+          reason: "instructions_shown",
+          userChoice: "accepted",
+          installationMethod: "ios_manual",
         };
       } else {
         this.metrics.promptsDismissed++;
         return {
           success: false,
-          reason: 'user_dismissed',
-          userChoice: 'dismissed'
+          reason: "user_dismissed",
+          userChoice: "dismissed",
         };
       }
-
     } catch (error) {
-      logger.error('iOS Safari prompt failed', { error }, 'INSTALL_PROMPT');
-      
+      logger.error("iOS Safari prompt failed", { error }, "INSTALL_PROMPT");
+
       return {
         success: false,
-        reason: 'modal_error',
-        userChoice: 'error',
-        error: error.message
+        reason: "modal_error",
+        userChoice: "error",
+        error: error.message,
       };
     }
   }
@@ -435,14 +469,16 @@ export class InstallPromptHandler {
   private async showIOSInstallModal(): Promise<{ userAccepted: boolean }> {
     return new Promise((resolve) => {
       // Create modal overlay
-      const overlay = document.createElement('div');
-      overlay.id = 'ios-install-modal-overlay';
-      overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
-      
+      const overlay = document.createElement("div");
+      overlay.id = "ios-install-modal-overlay";
+      overlay.className =
+        "fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4";
+
       // Create modal content
-      const modal = document.createElement('div');
-      modal.className = 'bg-white rounded-lg max-w-md w-full max-h-90vh overflow-y-auto';
-      
+      const modal = document.createElement("div");
+      modal.className =
+        "bg-white rounded-lg max-w-md w-full max-h-90vh overflow-y-auto";
+
       modal.innerHTML = `
         <div class="p-6">
           <div class="flex items-center justify-between mb-4">
@@ -517,35 +553,35 @@ export class InstallPromptHandler {
           </div>
         </div>
       `;
-      
+
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
-      
+
       // Handle modal interactions
-      const closeBtn = modal.querySelector('#ios-modal-close');
-      const dismissBtn = modal.querySelector('#ios-install-dismiss');
-      const continueBtn = modal.querySelector('#ios-install-continue');
-      
+      const closeBtn = modal.querySelector("#ios-modal-close");
+      const dismissBtn = modal.querySelector("#ios-install-dismiss");
+      const continueBtn = modal.querySelector("#ios-install-continue");
+
       const cleanup = () => {
         document.body.removeChild(overlay);
       };
-      
+
       const handleDismiss = () => {
         cleanup();
         resolve({ userAccepted: false });
       };
-      
+
       const handleAccept = () => {
         cleanup();
         resolve({ userAccepted: true });
       };
-      
-      closeBtn?.addEventListener('click', handleDismiss);
-      dismissBtn?.addEventListener('click', handleDismiss);
-      continueBtn?.addEventListener('click', handleAccept);
-      
+
+      closeBtn?.addEventListener("click", handleDismiss);
+      dismissBtn?.addEventListener("click", handleDismiss);
+      continueBtn?.addEventListener("click", handleAccept);
+
       // Close on overlay click
-      overlay.addEventListener('click', (e) => {
+      overlay.addEventListener("click", (e) => {
         if (e.target === overlay) {
           handleDismiss();
         }
@@ -565,13 +601,13 @@ export class InstallPromptHandler {
     try {
       // Show desktop benefits modal
       if (this.config.showBenefitsModal) {
-        const benefitsAccepted = await this.showInstallBenefitsModal('desktop');
+        const benefitsAccepted = await this.showInstallBenefitsModal("desktop");
         if (!benefitsAccepted) {
           this.metrics.promptsDismissed++;
           return {
             success: false,
-            reason: 'benefits_dismissed',
-            userChoice: 'dismissed'
+            reason: "benefits_dismissed",
+            userChoice: "dismissed",
           };
         }
       }
@@ -579,23 +615,22 @@ export class InstallPromptHandler {
       this.deferredPrompt.prompt();
       const choiceResult = await this.deferredPrompt.userChoice;
 
-      if (choiceResult.outcome === 'accepted') {
+      if (choiceResult.outcome === "accepted") {
         this.metrics.promptsAccepted++;
         return {
           success: true,
-          reason: 'user_accepted',
-          userChoice: 'accepted',
-          installationMethod: 'native_desktop'
+          reason: "user_accepted",
+          userChoice: "accepted",
+          installationMethod: "native_desktop",
         };
       } else {
         this.metrics.promptsDismissed++;
         return {
           success: false,
-          reason: 'user_dismissed',
-          userChoice: 'dismissed'
+          reason: "user_dismissed",
+          userChoice: "dismissed",
         };
       }
-
     } catch (error) {
       return this.showFallbackPrompt();
     }
@@ -607,14 +642,14 @@ export class InstallPromptHandler {
   private async showFallbackPrompt(): Promise<InstallPromptResult> {
     // Show informational modal about PWA benefits
     // and guide users to supported browsers if needed
-    
+
     this.metrics.promptsShown++;
-    
+
     return {
       success: false,
-      reason: 'platform_not_supported',
-      userChoice: 'informed',
-      message: 'PWA installation not supported on this browser'
+      reason: "platform_not_supported",
+      userChoice: "informed",
+      message: "PWA installation not supported on this browser",
     };
   }
 
@@ -623,28 +658,36 @@ export class InstallPromptHandler {
    */
   private setupInstallPromptListeners(): void {
     // Listen for beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
       this.installPromptState.canPrompt = true;
-      
-      logger.info('Install prompt deferred', {
-        platform: this.installPromptState.installationSource.platform
-      }, 'INSTALL_PROMPT');
+
+      logger.info(
+        "Install prompt deferred",
+        {
+          platform: this.installPromptState.installationSource.platform,
+        },
+        "INSTALL_PROMPT",
+      );
     });
 
     // Listen for app installation
-    window.addEventListener('appinstalled', (e) => {
+    window.addEventListener("appinstalled", (e) => {
       this.handleInstallationSuccess();
-      
-      logger.info('App installed successfully', {
-        source: 'native_event'
-      }, 'INSTALL_PROMPT');
+
+      logger.info(
+        "App installed successfully",
+        {
+          source: "native_event",
+        },
+        "INSTALL_PROMPT",
+      );
     });
 
     // Listen for standalone mode changes (iOS)
     if (window.matchMedia) {
-      const standaloneQuery = window.matchMedia('(display-mode: standalone)');
+      const standaloneQuery = window.matchMedia("(display-mode: standalone)");
       standaloneQuery.addListener((e) => {
         if (e.matches) {
           this.handleInstallationSuccess();
@@ -660,21 +703,28 @@ export class InstallPromptHandler {
     this.installPromptState.isInstalled = true;
     this.installPromptState.isStandalone = true;
     this.metrics.installationsCompleted++;
-    
+
     // Calculate conversion rate
-    this.metrics.conversionRate = this.metrics.promptsShown > 0 ? 
-      (this.metrics.installationsCompleted / this.metrics.promptsShown) * 100 : 0;
-    
+    this.metrics.conversionRate =
+      this.metrics.promptsShown > 0
+        ? (this.metrics.installationsCompleted / this.metrics.promptsShown) *
+          100
+        : 0;
+
     // Save updated metrics
     this.saveInstallationMetrics();
-    
+
     // Show thank you message
     this.showInstallationSuccessMessage();
-    
-    logger.info('Installation completed successfully', {
-      conversionRate: this.metrics.conversionRate,
-      totalInstallations: this.metrics.installationsCompleted
-    }, 'INSTALL_PROMPT');
+
+    logger.info(
+      "Installation completed successfully",
+      {
+        conversionRate: this.metrics.conversionRate,
+        totalInstallations: this.metrics.installationsCompleted,
+      },
+      "INSTALL_PROMPT",
+    );
   }
 
   /**
@@ -689,51 +739,52 @@ export class InstallPromptHandler {
     const isEdge = /Edg/.test(userAgent);
     const isFirefox = /Firefox/.test(userAgent);
     const isSamsung = /SamsungBrowser/.test(userAgent);
-    
-    let platform: InstallationSource['platform'];
+
+    let platform: InstallationSource["platform"];
     let supportsNativePrompt = false;
     let requiresCustomFlow = true;
-    
+
     if (isIOS && isSafari) {
-      platform = 'ios_safari';
+      platform = "ios_safari";
       supportsNativePrompt = false;
       requiresCustomFlow = true;
     } else if (isAndroid && isChrome) {
-      platform = 'android_chrome';
+      platform = "android_chrome";
       supportsNativePrompt = true;
       requiresCustomFlow = false;
     } else if (!isAndroid && !isIOS && isChrome) {
-      platform = 'desktop_chrome';
+      platform = "desktop_chrome";
       supportsNativePrompt = true;
       requiresCustomFlow = false;
     } else if (isEdge) {
-      platform = 'edge';
+      platform = "edge";
       supportsNativePrompt = true;
       requiresCustomFlow = false;
     } else if (isFirefox) {
-      platform = 'firefox';
+      platform = "firefox";
       supportsNativePrompt = false;
       requiresCustomFlow = true;
     } else if (isSamsung) {
-      platform = 'samsung';
+      platform = "samsung";
       supportsNativePrompt = true;
       requiresCustomFlow = false;
     } else {
-      platform = 'unknown';
+      platform = "unknown";
       supportsNativePrompt = false;
       requiresCustomFlow = true;
     }
-    
+
     this.installPromptState.installationSource = {
       platform,
       browser: this.getBrowserName(userAgent),
       version: this.getBrowserVersion(userAgent),
       supportsNativePrompt,
-      requiresCustomFlow
+      requiresCustomFlow,
     };
-    
+
     this.installPromptState.isIOS = isIOS;
-    this.installPromptState.isSupported = supportsNativePrompt || (isIOS && isSafari);
+    this.installPromptState.isSupported =
+      supportsNativePrompt || (isIOS && isSafari);
   }
 
   /**
@@ -741,13 +792,14 @@ export class InstallPromptHandler {
    */
   private async checkInstallationStatus(): Promise<void> {
     // Check if running in standalone mode
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (window.navigator as any).standalone ||
-                        document.referrer.includes('android-app://');
-    
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone ||
+      document.referrer.includes("android-app://");
+
     this.installPromptState.isStandalone = isStandalone;
     this.installPromptState.isInstalled = isStandalone;
-    
+
     // For iOS, check if running from home screen
     if (this.installPromptState.isIOS && (window.navigator as any).standalone) {
       this.installPromptState.isInstalled = true;
@@ -762,8 +814,8 @@ export class InstallPromptHandler {
     // Track page visibility for time spent calculation
     let sessionStartTime = Date.now();
     let isVisible = !document.hidden;
-    
-    document.addEventListener('visibilitychange', () => {
+
+    document.addEventListener("visibilitychange", () => {
       if (document.hidden && isVisible) {
         // Page became hidden - add session time
         const sessionTime = Date.now() - sessionStartTime;
@@ -775,12 +827,12 @@ export class InstallPromptHandler {
         isVisible = true;
       }
     });
-    
+
     // Track specific user actions
     this.trackInspectionActions();
     this.trackPhotoCapture();
     this.trackOfflineUsage();
-    
+
     // Update engagement score
     this.updateEngagementScore();
   }
@@ -790,18 +842,18 @@ export class InstallPromptHandler {
    */
   private trackInspectionActions(): void {
     // Listen for inspection completion events
-    window.addEventListener('inspection-completed', () => {
+    window.addEventListener("inspection-completed", () => {
       this.installPromptState.userEngagement.inspectionsCompleted++;
       this.updateEngagementScore();
-      
+
       // Inspection completion is a high-value signal
       setTimeout(() => {
         this.checkAndShowPromptIfAppropriate();
       }, 2000);
     });
-    
+
     // Listen for checklist item completion
-    window.addEventListener('checklist-item-completed', () => {
+    window.addEventListener("checklist-item-completed", () => {
       this.updateEngagementScore();
     });
   }
@@ -810,7 +862,7 @@ export class InstallPromptHandler {
    * Track photo capture for engagement scoring
    */
   private trackPhotoCapture(): void {
-    window.addEventListener('photo-captured', () => {
+    window.addEventListener("photo-captured", () => {
       this.installPromptState.userEngagement.photosCapured++;
       this.updateEngagementScore();
     });
@@ -820,10 +872,10 @@ export class InstallPromptHandler {
    * Track offline usage for engagement scoring
    */
   private trackOfflineUsage(): void {
-    window.addEventListener('offline-usage-detected', () => {
+    window.addEventListener("offline-usage-detected", () => {
       this.installPromptState.userEngagement.offlineUsage++;
       this.updateEngagementScore();
-      
+
       // Offline usage demonstrates PWA value
       setTimeout(() => {
         this.checkAndShowPromptIfAppropriate();
@@ -836,33 +888,37 @@ export class InstallPromptHandler {
    */
   private updateEngagementScore(): void {
     const engagement = this.installPromptState.userEngagement;
-    
+
     // Calculate engagement score (0-1 scale)
     let score = 0;
-    
+
     // Visit frequency (0-0.2)
     score += Math.min(engagement.visitCount / 10, 0.2);
-    
+
     // Time spent (0-0.3)
     score += Math.min(engagement.totalTimeSpent / 1800000, 0.3); // 30 minutes = max
-    
+
     // Inspections completed (0-0.3)
     score += Math.min(engagement.inspectionsCompleted / 5, 0.3);
-    
+
     // Photos captured (0-0.1)
     score += Math.min(engagement.photosCapured / 20, 0.1);
-    
+
     // Offline usage (0-0.1)
     score += Math.min(engagement.offlineUsage / 3, 0.1);
-    
+
     engagement.engagementScore = Math.min(score, 1.0);
-    
-    logger.debug('Engagement score updated', {
-      score: engagement.engagementScore,
-      visitCount: engagement.visitCount,
-      timeSpent: engagement.totalTimeSpent,
-      inspections: engagement.inspectionsCompleted
-    }, 'INSTALL_PROMPT');
+
+    logger.debug(
+      "Engagement score updated",
+      {
+        score: engagement.engagementScore,
+        visitCount: engagement.visitCount,
+        timeSpent: engagement.totalTimeSpent,
+        inspections: engagement.inspectionsCompleted,
+      },
+      "INSTALL_PROMPT",
+    );
   }
 
   /**
@@ -881,17 +937,19 @@ export class InstallPromptHandler {
   // Helper methods
 
   private getBrowserName(userAgent: string): string {
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Edge')) return 'Edge';
-    if (userAgent.includes('SamsungBrowser')) return 'Samsung Internet';
-    return 'Unknown';
+    if (userAgent.includes("Chrome")) return "Chrome";
+    if (userAgent.includes("Safari")) return "Safari";
+    if (userAgent.includes("Firefox")) return "Firefox";
+    if (userAgent.includes("Edge")) return "Edge";
+    if (userAgent.includes("SamsungBrowser")) return "Samsung Internet";
+    return "Unknown";
   }
 
   private getBrowserVersion(userAgent: string): string {
-    const matches = userAgent.match(/(chrome|safari|firefox|edge|samsung)\/([\d.]+)/i);
-    return matches ? matches[2] : 'unknown';
+    const matches = userAgent.match(
+      /(chrome|safari|firefox|edge|samsung)\/([\d.]+)/i,
+    );
+    return matches ? matches[2] : "unknown";
   }
 
   private initializePromptState(): InstallPromptState {
@@ -903,11 +961,11 @@ export class InstallPromptHandler {
       canPrompt: false,
       promptShown: false,
       installationSource: {
-        platform: 'unknown',
-        browser: '',
-        version: '',
+        platform: "unknown",
+        browser: "",
+        version: "",
         supportsNativePrompt: false,
-        requiresCustomFlow: true
+        requiresCustomFlow: true,
       },
       userEngagement: {
         visitCount: this.getVisitCount(),
@@ -916,8 +974,8 @@ export class InstallPromptHandler {
         photosCapured: 0,
         offlineUsage: 0,
         lastVisit: new Date(),
-        engagementScore: 0
-      }
+        engagementScore: 0,
+      },
     };
   }
 
@@ -926,88 +984,88 @@ export class InstallPromptHandler {
       steps: [
         {
           stepNumber: 1,
-          instruction: 'Tap the Share button',
-          icon: '⬆️',
-          description: 'Look for the share icon at the bottom of Safari',
-          isRequired: true
+          instruction: "Tap the Share button",
+          icon: "⬆️",
+          description: "Look for the share icon at the bottom of Safari",
+          isRequired: true,
         },
         {
           stepNumber: 2,
           instruction: 'Find "Add to Home Screen"',
-          icon: '➕',
-          description: 'Scroll down in the share menu',
-          isRequired: true
+          icon: "➕",
+          description: "Scroll down in the share menu",
+          isRequired: true,
         },
         {
           stepNumber: 3,
           instruction: 'Tap "Add"',
-          icon: '✅',
-          description: 'Confirm the installation',
-          isRequired: true
-        }
+          icon: "✅",
+          description: "Confirm the installation",
+          isRequired: true,
+        },
       ],
       visualGuides: [],
       troubleshooting: [
         {
           stepNumber: 1,
-          instruction: 'Share button not visible?',
-          icon: '❓',
-          description: 'Make sure you\'re using Safari, not another browser',
-          isRequired: false
-        }
+          instruction: "Share button not visible?",
+          icon: "❓",
+          description: "Make sure you're using Safari, not another browser",
+          isRequired: false,
+        },
       ],
       benefits: [
         {
-          title: 'Works Offline',
-          description: 'Complete inspections even without internet',
-          icon: '📡',
-          category: 'reliability',
-          importance: 'critical'
+          title: "Works Offline",
+          description: "Complete inspections even without internet",
+          icon: "📡",
+          category: "reliability",
+          importance: "critical",
         },
         {
-          title: 'Home Screen Access',
-          description: 'Quick launch from your phone\'s home screen',
-          icon: '📱',
-          category: 'convenience',
-          importance: 'high'
+          title: "Home Screen Access",
+          description: "Quick launch from your phone's home screen",
+          icon: "📱",
+          category: "convenience",
+          importance: "high",
         },
         {
-          title: 'Better Performance',
-          description: 'Faster loading and smoother experience',
-          icon: '⚡',
-          category: 'performance',
-          importance: 'high'
+          title: "Better Performance",
+          description: "Faster loading and smoother experience",
+          icon: "⚡",
+          category: "performance",
+          importance: "high",
         },
         {
-          title: 'Enhanced Camera',
-          description: 'Improved photo capture for inspections',
-          icon: '📷',
-          category: 'features',
-          importance: 'medium'
-        }
-      ]
+          title: "Enhanced Camera",
+          description: "Improved photo capture for inspections",
+          icon: "📷",
+          category: "features",
+          importance: "medium",
+        },
+      ],
     };
   }
 
   private getVisitCount(): number {
-    const visits = localStorage.getItem('str_certified_visit_count');
+    const visits = localStorage.getItem("str_certified_visit_count");
     const count = visits ? parseInt(visits, 10) : 0;
     const newCount = count + 1;
-    localStorage.setItem('str_certified_visit_count', newCount.toString());
+    localStorage.setItem("str_certified_visit_count", newCount.toString());
     return newCount;
   }
 
   private getLastPromptTime(): number | null {
-    const lastPrompt = localStorage.getItem('str_certified_last_prompt');
+    const lastPrompt = localStorage.getItem("str_certified_last_prompt");
     return lastPrompt ? parseInt(lastPrompt, 10) : null;
   }
 
   private recordPromptTime(): void {
-    localStorage.setItem('str_certified_last_prompt', Date.now().toString());
+    localStorage.setItem("str_certified_last_prompt", Date.now().toString());
   }
 
   // Additional helper methods for metrics, engagement tracking, etc.
-  
+
   /**
    * Get current install prompt state
    */
@@ -1036,31 +1094,40 @@ export class InstallPromptHandler {
 
   private async loadInstallationMetrics(): Promise<void> {
     // Load metrics from localStorage
-    const saved = localStorage.getItem('str_certified_install_metrics');
+    const saved = localStorage.getItem("str_certified_install_metrics");
     if (saved) {
       try {
         this.metrics = { ...this.metrics, ...JSON.parse(saved) };
       } catch (error) {
-        logger.error('Failed to load install metrics', { error }, 'INSTALL_PROMPT');
+        logger.error(
+          "Failed to load install metrics",
+          { error },
+          "INSTALL_PROMPT",
+        );
       }
     }
   }
 
   private async saveInstallationMetrics(): Promise<void> {
     // Save metrics to localStorage
-    localStorage.setItem('str_certified_install_metrics', JSON.stringify(this.metrics));
+    localStorage.setItem(
+      "str_certified_install_metrics",
+      JSON.stringify(this.metrics),
+    );
   }
 
   private updateMetricsFromResult(result: InstallPromptResult): void {
-    if (result.userChoice === 'accepted') {
+    if (result.userChoice === "accepted") {
       this.metrics.promptsAccepted++;
-    } else if (result.userChoice === 'dismissed') {
+    } else if (result.userChoice === "dismissed") {
       this.metrics.promptsDismissed++;
     }
-    
+
     // Update conversion rate
-    this.metrics.conversionRate = this.metrics.promptsShown > 0 ? 
-      (this.metrics.promptsAccepted / this.metrics.promptsShown) * 100 : 0;
+    this.metrics.conversionRate =
+      this.metrics.promptsShown > 0
+        ? (this.metrics.promptsAccepted / this.metrics.promptsShown) * 100
+        : 0;
   }
 
   private async showInstallBenefitsModal(platform: string): Promise<boolean> {
@@ -1087,7 +1154,7 @@ export class InstallPromptHandler {
 
   private showInstallationSuccessMessage(): void {
     // Show success message after installation
-    logger.info('Showing installation success message', {}, 'INSTALL_PROMPT');
+    logger.info("Showing installation success message", {}, "INSTALL_PROMPT");
   }
 }
 
@@ -1095,7 +1162,7 @@ export class InstallPromptHandler {
 export interface InstallPromptResult {
   success: boolean;
   reason: string;
-  userChoice: 'accepted' | 'dismissed' | 'error' | 'informed';
+  userChoice: "accepted" | "dismissed" | "error" | "informed";
   installationMethod?: string;
   message?: string;
   error?: string;

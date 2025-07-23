@@ -3,22 +3,32 @@
  * Extracted from monolithic BugReportDialog for single responsibility
  */
 
-import React from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
-import type { BugReportFormData, BugReportSeverity, BugReportCategory } from './types'
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import type {
+  BugReportFormData,
+  BugReportSeverity,
+  BugReportCategory,
+} from "./types";
 
 interface BugReportFormProps {
-  formData: BugReportFormData
-  onUpdateTitle: (title: string) => void
-  onUpdateDescription: (description: string) => void
-  onUpdateSeverity: (severity: BugReportSeverity) => void
-  onUpdateCategory: (category: BugReportCategory) => void
-  onUpdateSteps: (steps: string[]) => void
+  formData: BugReportFormData;
+  onUpdateTitle: (title: string) => void;
+  onUpdateDescription: (description: string) => void;
+  onUpdateSeverity: (severity: BugReportSeverity) => void;
+  onUpdateCategory: (category: BugReportCategory) => void;
+  onUpdateSteps: (steps: string[]) => void;
 }
 
 export const BugReportForm: React.FC<BugReportFormProps> = ({
@@ -30,21 +40,21 @@ export const BugReportForm: React.FC<BugReportFormProps> = ({
   onUpdateSteps,
 }) => {
   const handleStepChange = (index: number, value: string) => {
-    const newSteps = [...formData.steps]
-    newSteps[index] = value
-    onUpdateSteps(newSteps)
-  }
+    const newSteps = [...formData.steps];
+    newSteps[index] = value;
+    onUpdateSteps(newSteps);
+  };
 
   const addStep = () => {
-    onUpdateSteps([...formData.steps, ''])
-  }
+    onUpdateSteps([...formData.steps, ""]);
+  };
 
   const removeStep = (index: number) => {
     if (formData.steps.length > 1) {
-      const newSteps = formData.steps.filter((_, i) => i !== index)
-      onUpdateSteps(newSteps)
+      const newSteps = formData.steps.filter((_, i) => i !== index);
+      onUpdateSteps(newSteps);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -141,5 +151,5 @@ export const BugReportForm: React.FC<BugReportFormProps> = ({
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

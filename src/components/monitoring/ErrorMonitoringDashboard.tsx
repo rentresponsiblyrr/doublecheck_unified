@@ -1,27 +1,27 @@
 /**
  * ERROR MONITORING DASHBOARD - COMPREHENSIVE ERROR TRACKING
- * 
+ *
  * Advanced error monitoring and analytics dashboard providing real-time
  * error tracking, recovery statistics, circuit breaker status, and
  * comprehensive error analysis for production monitoring.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import React, { useState, useEffect } from 'react';
-import { errorRecoveryService } from '@/lib/error/ErrorRecoveryService';
-import { memoryLeakDetector } from '@/lib/memory/MemoryLeakDetector';
-import { intelligentCacheInvalidation } from '@/lib/cache/IntelligentCacheInvalidation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
+import React, { useState, useEffect } from "react";
+import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
+import { memoryLeakDetector } from "@/lib/memory/MemoryLeakDetector";
+import { intelligentCacheInvalidation } from "@/lib/cache/IntelligentCacheInvalidation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
   Activity,
   TrendingUp,
   TrendingDown,
@@ -32,13 +32,18 @@ import {
   Clock,
   Users,
   Database,
-  Wifi
-} from 'lucide-react';
+  Wifi,
+} from "lucide-react";
 
 interface ErrorMonitoringDashboardProps {
   isVisible?: boolean;
   onToggle?: () => void;
-  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'fullscreen';
+  position?:
+    | "bottom-right"
+    | "bottom-left"
+    | "top-right"
+    | "top-left"
+    | "fullscreen";
   updateInterval?: number;
 }
 
@@ -54,16 +59,18 @@ interface SystemHealth {
   errorBoundariesActive: number;
   memoryUsage: number;
   cacheHitRate: number;
-  networkStatus: 'online' | 'offline' | 'slow' | 'unstable';
+  networkStatus: "online" | "offline" | "slow" | "unstable";
   lastErrorTime: number;
   criticalErrorsCount: number;
 }
 
-export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> = ({
+export const ErrorMonitoringDashboard: React.FC<
+  ErrorMonitoringDashboardProps
+> = ({
   isVisible = false,
   onToggle,
-  position = 'bottom-right',
-  updateInterval = 5000
+  position = "bottom-right",
+  updateInterval = 5000,
 }) => {
   const [errorStats, setErrorStats] = useState<ErrorStats>({
     totalErrors: 0,
@@ -77,20 +84,22 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
     errorBoundariesActive: 0,
     memoryUsage: 0,
     cacheHitRate: 0,
-    networkStatus: 'online',
+    networkStatus: "online",
     lastErrorTime: 0,
     criticalErrorsCount: 0,
   });
 
-  const [recentErrors, setRecentErrors] = useState<Array<{
-    id: string;
-    message: string;
-    type: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    timestamp: number;
-    recovered: boolean;
-    component?: string;
-  }>>([]);
+  const [recentErrors, setRecentErrors] = useState<
+    Array<{
+      id: string;
+      message: string;
+      type: string;
+      severity: "low" | "medium" | "high" | "critical";
+      timestamp: number;
+      recovered: boolean;
+      component?: string;
+    }>
+  >([]);
 
   const [isMonitoring, setIsMonitoring] = useState(false);
 
@@ -106,7 +115,7 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
 
         // Get memory stats
         const memoryStats = memoryLeakDetector.getMemoryStats();
-        
+
         // Get cache stats
         const cacheStats = intelligentCacheInvalidation.getStats();
 
@@ -122,50 +131,56 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
 
         // Update recent errors (mock data for demo)
         setRecentErrors(generateRecentErrorsData());
-
       } catch (error) {
-        console.error('Failed to update monitoring stats:', error);
+        console.error("Failed to update monitoring stats:", error);
       }
     };
 
     updateStats();
     const interval = setInterval(updateStats, updateInterval);
-    
+
     return () => clearInterval(interval);
   }, [isVisible, updateInterval]);
 
   // Position classes for floating dashboard
   const getPositionClasses = () => {
-    const baseClasses = "fixed z-50 bg-white border border-gray-300 rounded-lg shadow-2xl";
-    
-    if (position === 'fullscreen') {
+    const baseClasses =
+      "fixed z-50 bg-white border border-gray-300 rounded-lg shadow-2xl";
+
+    if (position === "fullscreen") {
       return `${baseClasses} inset-4 max-h-[95vh]`;
     }
-    
+
     const sizeClasses = "w-[600px] max-h-[80vh]";
-    
+
     switch (position) {
-      case 'bottom-right': return `${baseClasses} ${sizeClasses} bottom-4 right-4`;
-      case 'bottom-left': return `${baseClasses} ${sizeClasses} bottom-4 left-4`;
-      case 'top-right': return `${baseClasses} ${sizeClasses} top-4 right-4`;
-      case 'top-left': return `${baseClasses} ${sizeClasses} top-4 left-4`;
-      default: return `${baseClasses} ${sizeClasses} bottom-4 right-4`;
+      case "bottom-right":
+        return `${baseClasses} ${sizeClasses} bottom-4 right-4`;
+      case "bottom-left":
+        return `${baseClasses} ${sizeClasses} bottom-4 left-4`;
+      case "top-right":
+        return `${baseClasses} ${sizeClasses} top-4 right-4`;
+      case "top-left":
+        return `${baseClasses} ${sizeClasses} top-4 left-4`;
+      default:
+        return `${baseClasses} ${sizeClasses} bottom-4 right-4`;
     }
   };
 
   // Floating button when dashboard is hidden
   if (!isVisible) {
-    const hasActiveIssues = errorStats.recoveryRate < 95 || systemHealth.criticalErrorsCount > 0;
-    
+    const hasActiveIssues =
+      errorStats.recoveryRate < 95 || systemHealth.criticalErrorsCount > 0;
+
     return (
       <button
         onClick={onToggle}
         className={`fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg transition-colors ${
-          hasActiveIssues 
-            ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse' 
-            : 'bg-blue-600 text-white hover:bg-blue-700'
+          hasActiveIssues
+            ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
+            : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
-        title={hasActiveIssues ? 'Error Issues Detected' : 'Open Error Monitor'}
+        title={hasActiveIssues ? "Error Issues Detected" : "Open Error Monitor"}
       >
         {hasActiveIssues ? (
           <AlertTriangle className="w-5 h-5" />
@@ -181,35 +196,55 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
     );
   }
 
-  const overallHealthScore = calculateOverallHealthScore(errorStats, systemHealth);
+  const overallHealthScore = calculateOverallHealthScore(
+    errorStats,
+    systemHealth,
+  );
 
   return (
     <div className={getPositionClasses()}>
       {/* Header */}
-      <div id="error-monitoring-header" className="flex items-center justify-between p-4 border-b">
+      <div
+        id="error-monitoring-header"
+        className="flex items-center justify-between p-4 border-b"
+      >
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Error Monitor</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Error Monitor
+            </h2>
           </div>
-          <Badge 
-            variant={overallHealthScore >= 90 ? "default" : overallHealthScore >= 75 ? "secondary" : "destructive"}
+          <Badge
+            variant={
+              overallHealthScore >= 90
+                ? "default"
+                : overallHealthScore >= 75
+                  ? "secondary"
+                  : "destructive"
+            }
             className="text-xs"
           >
             Health: {overallHealthScore}%
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsMonitoring(!isMonitoring)}
           >
-            <Activity className={`w-4 h-4 ${isMonitoring ? 'animate-pulse text-green-600' : 'text-gray-400'}`} />
+            <Activity
+              className={`w-4 h-4 ${isMonitoring ? "animate-pulse text-green-600" : "text-gray-400"}`}
+            />
           </Button>
-          {position === 'fullscreen' && (
-            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          {position === "fullscreen" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
               <RefreshCw className="w-4 h-4" />
             </Button>
           )}
@@ -250,28 +285,52 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                 icon={<Shield className="w-4 h-4" />}
                 title="Overall Health"
                 value={`${overallHealthScore}%`}
-                status={overallHealthScore >= 90 ? 'good' : overallHealthScore >= 75 ? 'warning' : 'critical'}
+                status={
+                  overallHealthScore >= 90
+                    ? "good"
+                    : overallHealthScore >= 75
+                      ? "warning"
+                      : "critical"
+                }
               />
-              
+
               <OverviewMetricCard
                 icon={<Activity className="w-4 h-4" />}
                 title="Recovery Rate"
                 value={`${errorStats.recoveryRate.toFixed(1)}%`}
-                status={errorStats.recoveryRate >= 95 ? 'good' : errorStats.recoveryRate >= 85 ? 'warning' : 'critical'}
+                status={
+                  errorStats.recoveryRate >= 95
+                    ? "good"
+                    : errorStats.recoveryRate >= 85
+                      ? "warning"
+                      : "critical"
+                }
               />
-              
+
               <OverviewMetricCard
                 icon={<AlertTriangle className="w-4 h-4" />}
                 title="Total Errors"
                 value={errorStats.totalErrors.toString()}
-                status={errorStats.totalErrors < 10 ? 'good' : errorStats.totalErrors < 50 ? 'warning' : 'critical'}
+                status={
+                  errorStats.totalErrors < 10
+                    ? "good"
+                    : errorStats.totalErrors < 50
+                      ? "warning"
+                      : "critical"
+                }
               />
-              
+
               <OverviewMetricCard
                 icon={<Zap className="w-4 h-4" />}
                 title="Critical Issues"
                 value={systemHealth.criticalErrorsCount.toString()}
-                status={systemHealth.criticalErrorsCount === 0 ? 'good' : systemHealth.criticalErrorsCount < 3 ? 'warning' : 'critical'}
+                status={
+                  systemHealth.criticalErrorsCount === 0
+                    ? "good"
+                    : systemHealth.criticalErrorsCount < 3
+                      ? "warning"
+                      : "critical"
+                }
               />
             </div>
 
@@ -287,28 +346,43 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                       <span>Memory Usage</span>
                       <span>{systemHealth.memoryUsage.toFixed(1)} MB</span>
                     </div>
-                    <Progress value={Math.min((systemHealth.memoryUsage / 500) * 100, 100)} className="h-2" />
+                    <Progress
+                      value={Math.min(
+                        (systemHealth.memoryUsage / 500) * 100,
+                        100,
+                      )}
+                      className="h-2"
+                    />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Cache Hit Rate</span>
                       <span>{systemHealth.cacheHitRate.toFixed(1)}%</span>
                     </div>
-                    <Progress value={systemHealth.cacheHitRate} className="h-2" />
+                    <Progress
+                      value={systemHealth.cacheHitRate}
+                      className="h-2"
+                    />
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wifi className={`w-4 h-4 ${getNetworkStatusColor(systemHealth.networkStatus)}`} />
-                    <span className="text-sm capitalize">{systemHealth.networkStatus}</span>
+                    <Wifi
+                      className={`w-4 h-4 ${getNetworkStatusColor(systemHealth.networkStatus)}`}
+                    />
+                    <span className="text-sm capitalize">
+                      {systemHealth.networkStatus}
+                    </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isMonitoring ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                    <div
+                      className={`w-2 h-2 rounded-full ${isMonitoring ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
+                    />
                     <span className="text-xs text-gray-600">
-                      {isMonitoring ? 'Live Monitoring' : 'Monitoring Paused'}
+                      {isMonitoring ? "Live Monitoring" : "Monitoring Paused"}
                     </span>
                   </div>
                 </div>
@@ -331,11 +405,16 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                     <RefreshCw className="w-3 h-3 mr-1" />
                     Force GC
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => intelligentCacheInvalidation.invalidateByPattern(/.*/, 'Manual cache clear')}
+                    onClick={() =>
+                      intelligentCacheInvalidation.invalidateByPattern(
+                        /.*/,
+                        "Manual cache clear",
+                      )
+                    }
                     className="text-xs"
                   >
                     <Database className="w-3 h-3 mr-1" />
@@ -357,24 +436,31 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                 <CardContent>
                   {errorStats.commonErrorTypes.length > 0 ? (
                     <div className="space-y-2">
-                      {errorStats.commonErrorTypes.slice(0, 5).map(errorType => (
-                        <div key={errorType.type} className="flex justify-between items-center">
-                          <span className="text-sm font-medium">{errorType.type}</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-red-500 h-2 rounded-full"
-                                style={{ 
-                                  width: `${(errorType.count / Math.max(...errorStats.commonErrorTypes.map(e => e.count))) * 100}%` 
-                                }}
-                              />
-                            </div>
-                            <span className="text-sm text-gray-600 w-8 text-right">
-                              {errorType.count}
+                      {errorStats.commonErrorTypes
+                        .slice(0, 5)
+                        .map((errorType) => (
+                          <div
+                            key={errorType.type}
+                            className="flex justify-between items-center"
+                          >
+                            <span className="text-sm font-medium">
+                              {errorType.type}
                             </span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-20 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-red-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${(errorType.count / Math.max(...errorStats.commonErrorTypes.map((e) => e.count))) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-sm text-gray-600 w-8 text-right">
+                                {errorType.count}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   ) : (
                     <div className="text-center text-green-600 py-4">
@@ -393,7 +479,7 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                 <CardContent>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {recentErrors.length > 0 ? (
-                      recentErrors.map(error => (
+                      recentErrors.map((error) => (
                         <ErrorItem key={error.id} error={error} />
                       ))
                     ) : (
@@ -419,18 +505,27 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-sm">Total Errors:</span>
-                      <span className="font-medium">{errorStats.totalErrors}</span>
+                      <span className="font-medium">
+                        {errorStats.totalErrors}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Recovered:</span>
-                      <span className="font-medium text-green-600">{errorStats.recoveredErrors}</span>
+                      <span className="font-medium text-green-600">
+                        {errorStats.recoveredErrors}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Recovery Rate:</span>
-                      <span className={`font-medium ${
-                        errorStats.recoveryRate >= 95 ? 'text-green-600' : 
-                        errorStats.recoveryRate >= 85 ? 'text-orange-600' : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          errorStats.recoveryRate >= 95
+                            ? "text-green-600"
+                            : errorStats.recoveryRate >= 85
+                              ? "text-orange-600"
+                              : "text-red-600"
+                        }`}
+                      >
                         {errorStats.recoveryRate.toFixed(1)}%
                       </span>
                     </div>
@@ -445,9 +540,15 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {Object.entries(errorStats.circuitBreakerStates).map(([type, breaker]) => (
-                      <CircuitBreakerItem key={type} type={type} breaker={breaker} />
-                    ))}
+                    {Object.entries(errorStats.circuitBreakerStates).map(
+                      ([type, breaker]) => (
+                        <CircuitBreakerItem
+                          key={type}
+                          type={type}
+                          breaker={breaker}
+                        />
+                      ),
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -457,13 +558,14 @@ export const ErrorMonitoringDashboard: React.FC<ErrorMonitoringDashboardProps> =
           {/* System Tab */}
           <TabsContent value="system" className="space-y-4">
             <div className="grid grid-cols-1 gap-3">
-              <SystemMetricsCard 
+              <SystemMetricsCard
                 title="Performance Metrics"
                 metrics={{
-                  'Memory Usage': `${systemHealth.memoryUsage.toFixed(1)} MB`,
-                  'Cache Hit Rate': `${systemHealth.cacheHitRate.toFixed(1)}%`,
-                  'Network Status': systemHealth.networkStatus,
-                  'Error Boundaries': systemHealth.errorBoundariesActive.toString(),
+                  "Memory Usage": `${systemHealth.memoryUsage.toFixed(1)} MB`,
+                  "Cache Hit Rate": `${systemHealth.cacheHitRate.toFixed(1)}%`,
+                  "Network Status": systemHealth.networkStatus,
+                  "Error Boundaries":
+                    systemHealth.errorBoundariesActive.toString(),
                 }}
               />
             </div>
@@ -479,12 +581,12 @@ const OverviewMetricCard: React.FC<{
   icon: React.ReactNode;
   title: string;
   value: string;
-  status: 'good' | 'warning' | 'critical';
+  status: "good" | "warning" | "critical";
 }> = ({ icon, title, value, status }) => {
   const statusColors = {
-    good: 'text-green-600 bg-green-50 border-green-200',
-    warning: 'text-orange-600 bg-orange-50 border-orange-200',
-    critical: 'text-red-600 bg-red-50 border-red-200',
+    good: "text-green-600 bg-green-50 border-green-200",
+    warning: "text-orange-600 bg-orange-50 border-orange-200",
+    critical: "text-red-600 bg-red-50 border-red-200",
   };
 
   return (
@@ -500,22 +602,26 @@ const OverviewMetricCard: React.FC<{
   );
 };
 
-const ErrorItem: React.FC<{ 
-  error: { 
-    message: string; 
-    type: string; 
-    severity: string; 
-    timestamp: number; 
+const ErrorItem: React.FC<{
+  error: {
+    message: string;
+    type: string;
+    severity: string;
+    timestamp: number;
     recovered: boolean;
     component?: string;
-  } 
+  };
 }> = ({ error }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'text-red-600';
-      case 'high': return 'text-orange-600';
-      case 'medium': return 'text-yellow-600';
-      default: return 'text-blue-600';
+      case "critical":
+        return "text-red-600";
+      case "high":
+        return "text-orange-600";
+      case "medium":
+        return "text-yellow-600";
+      default:
+        return "text-blue-600";
     }
   };
 
@@ -543,13 +649,20 @@ const ErrorItem: React.FC<{
   );
 };
 
-const CircuitBreakerItem: React.FC<{ type: string; breaker: any }> = ({ type, breaker }) => {
+const CircuitBreakerItem: React.FC<{ type: string; breaker: any }> = ({
+  type,
+  breaker,
+}) => {
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'closed': return 'text-green-600';
-      case 'half-open': return 'text-orange-600';
-      case 'open': return 'text-red-600';
-      default: return 'text-gray-600';
+      case "closed":
+        return "text-green-600";
+      case "half-open":
+        return "text-orange-600";
+      case "open":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
     }
   };
 
@@ -590,28 +703,39 @@ const SystemMetricsCard: React.FC<{
 );
 
 // Helper Functions
-function calculateOverallHealthScore(errorStats: ErrorStats, systemHealth: SystemHealth): number {
+function calculateOverallHealthScore(
+  errorStats: ErrorStats,
+  systemHealth: SystemHealth,
+): number {
   let score = 100;
-  
+
   // Deduct points for errors
   if (errorStats.recoveryRate < 95) score -= (95 - errorStats.recoveryRate) * 2;
-  if (systemHealth.criticalErrorsCount > 0) score -= systemHealth.criticalErrorsCount * 10;
-  if (errorStats.totalErrors > 20) score -= Math.min((errorStats.totalErrors - 20) * 2, 30);
-  
+  if (systemHealth.criticalErrorsCount > 0)
+    score -= systemHealth.criticalErrorsCount * 10;
+  if (errorStats.totalErrors > 20)
+    score -= Math.min((errorStats.totalErrors - 20) * 2, 30);
+
   // Deduct points for system issues
-  if (systemHealth.memoryUsage > 200) score -= Math.min((systemHealth.memoryUsage - 200) / 10, 20);
-  if (systemHealth.cacheHitRate < 60) score -= (60 - systemHealth.cacheHitRate);
-  
+  if (systemHealth.memoryUsage > 200)
+    score -= Math.min((systemHealth.memoryUsage - 200) / 10, 20);
+  if (systemHealth.cacheHitRate < 60) score -= 60 - systemHealth.cacheHitRate;
+
   return Math.max(0, Math.round(score));
 }
 
 function getNetworkStatusColor(status: string): string {
   switch (status) {
-    case 'online': return 'text-green-600';
-    case 'slow': return 'text-orange-600';
-    case 'unstable': return 'text-yellow-600';
-    case 'offline': return 'text-red-600';
-    default: return 'text-gray-600';
+    case "online":
+      return "text-green-600";
+    case "slow":
+      return "text-orange-600";
+    case "unstable":
+      return "text-yellow-600";
+    case "offline":
+      return "text-red-600";
+    default:
+      return "text-gray-600";
   }
 }
 
@@ -624,9 +748,9 @@ function calculateCacheHitRate(cacheStats: any): number {
   return cacheStats?.successRate || 85 + Math.random() * 10;
 }
 
-function getNetworkStatus(): 'online' | 'offline' | 'slow' | 'unstable' {
-  if (!navigator.onLine) return 'offline';
-  return 'online';
+function getNetworkStatus(): "online" | "offline" | "slow" | "unstable" {
+  if (!navigator.onLine) return "offline";
+  return "online";
 }
 
 function getLastErrorTime(): number {

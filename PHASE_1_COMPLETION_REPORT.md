@@ -46,10 +46,10 @@ Previous Submission Status: REJECTED - INCOMPLETE
    
 ❌ explicit_checklist_id EXCEPTION: supabase is not defined
    
-   Testing explicit_static_safety_item_id...
-   Description: Test logs -> static_safety_items via static_safety_item_id
+   Testing explicit_static_item_id...
+   Description: Test logs -> static_safety_items via static_item_id
    
-❌ explicit_static_safety_item_id EXCEPTION: supabase is not defined
+❌ explicit_static_item_id EXCEPTION: supabase is not defined
    
    Testing default_relationship...
    Description: Test logs -> static_safety_items with default relationship

@@ -1,9 +1,9 @@
 /**
  * ENTERPRISE ERROR HANDLING SYSTEM - GOOGLE/META/NETFLIX STANDARDS
- * 
+ *
  * This is how real engineers handle errors in production systems.
  * ZERO TOLERANCE for amateur error patterns.
- * 
+ *
  * Features:
  * - Circuit breaker pattern for resilience
  * - Automatic retry with exponential backoff
@@ -13,16 +13,27 @@
  * - Recovery mechanisms and rollback
  */
 
-import { log } from '../logging/enterprise-logger';
-import { v4 as uuidv4 } from 'uuid';
+import { log } from "../logging/enterprise-logger";
+import { v4 as uuidv4 } from "uuid";
 
 // ============================================================================
 // ENTERPRISE ERROR TYPES
 // ============================================================================
 
-export type ErrorSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type ErrorCategory = 'NETWORK' | 'VALIDATION' | 'BUSINESS' | 'SYSTEM' | 'SECURITY' | 'PERFORMANCE';
-export type RecoveryAction = 'RETRY' | 'FALLBACK' | 'ESCALATE' | 'CIRCUIT_BREAK' | 'IGNORE';
+export type ErrorSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type ErrorCategory =
+  | "NETWORK"
+  | "VALIDATION"
+  | "BUSINESS"
+  | "SYSTEM"
+  | "SECURITY"
+  | "PERFORMANCE";
+export type RecoveryAction =
+  | "RETRY"
+  | "FALLBACK"
+  | "ESCALATE"
+  | "CIRCUIT_BREAK"
+  | "IGNORE";
 
 export interface ErrorContext {
   correlationId: string;
@@ -54,7 +65,7 @@ export interface ErrorReport {
 
 export interface CircuitBreakerState {
   name: string;
-  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  state: "CLOSED" | "OPEN" | "HALF_OPEN";
   failureCount: number;
   lastFailureTime: number;
   successCount: number;
@@ -108,17 +119,18 @@ export class EnterpriseError extends Error {
       userMessage?: string;
       context?: Partial<ErrorContext>;
       cause?: Error;
-    } = {}
+    } = {},
   ) {
     super(message);
-    
-    this.name = 'EnterpriseError';
+
+    this.name = "EnterpriseError";
     this.id = uuidv4();
-    this.severity = options.severity || 'MEDIUM';
-    this.category = options.category || 'SYSTEM';
+    this.severity = options.severity || "MEDIUM";
+    this.category = options.category || "SYSTEM";
     this.isRecoverable = options.isRecoverable !== false;
     this.retryable = options.retryable !== false;
-    this.userMessage = options.userMessage || 'An unexpected error occurred. Please try again.';
+    this.userMessage =
+      options.userMessage || "An unexpected error occurred. Please try again.";
     this.context = options.context || {};
     this.timestamp = new Date().toISOString();
 
@@ -132,70 +144,72 @@ export class EnterpriseError extends Error {
 export class ValidationError extends EnterpriseError {
   constructor(message: string, field?: string, value?: unknown) {
     super(message, {
-      severity: 'LOW',
-      category: 'VALIDATION',
+      severity: "LOW",
+      category: "VALIDATION",
       isRecoverable: true,
       retryable: false,
       userMessage: `Validation failed: ${message}`,
-      context: { field, value }
+      context: { field, value },
     });
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
 
 export class BusinessError extends EnterpriseError {
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, {
-      severity: 'MEDIUM',
-      category: 'BUSINESS',
+      severity: "MEDIUM",
+      category: "BUSINESS",
       isRecoverable: true,
       retryable: false,
       userMessage: message,
-      context
+      context,
     });
-    this.name = 'BusinessError';
+    this.name = "BusinessError";
   }
 }
 
 export class NetworkError extends EnterpriseError {
   constructor(message: string, statusCode?: number, endpoint?: string) {
     super(message, {
-      severity: statusCode && statusCode >= 500 ? 'HIGH' : 'MEDIUM',
-      category: 'NETWORK',
+      severity: statusCode && statusCode >= 500 ? "HIGH" : "MEDIUM",
+      category: "NETWORK",
       isRecoverable: true,
       retryable: true,
-      userMessage: 'Network error occurred. Please check your connection and try again.',
-      context: { statusCode, endpoint }
+      userMessage:
+        "Network error occurred. Please check your connection and try again.",
+      context: { statusCode, endpoint },
     });
-    this.name = 'NetworkError';
+    this.name = "NetworkError";
   }
 }
 
 export class SecurityError extends EnterpriseError {
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, {
-      severity: 'CRITICAL',
-      category: 'SECURITY',
+      severity: "CRITICAL",
+      category: "SECURITY",
       isRecoverable: false,
       retryable: false,
-      userMessage: 'Access denied. Please contact support if this issue persists.',
-      context
+      userMessage:
+        "Access denied. Please contact support if this issue persists.",
+      context,
     });
-    this.name = 'SecurityError';
+    this.name = "SecurityError";
   }
 }
 
 export class SystemError extends EnterpriseError {
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, {
-      severity: 'CRITICAL',
-      category: 'SYSTEM',
+      severity: "CRITICAL",
+      category: "SYSTEM",
       isRecoverable: true,
       retryable: true,
-      userMessage: 'System error occurred. Our team has been notified.',
-      context
+      userMessage: "System error occurred. Our team has been notified.",
+      context,
     });
-    this.name = 'SystemError';
+    this.name = "SystemError";
   }
 }
 
@@ -207,20 +221,17 @@ export class CircuitBreaker {
   private state: CircuitBreakerState;
   private readonly config: ErrorHandlerConfig;
 
-  constructor(
-    name: string,
-    config: ErrorHandlerConfig
-  ) {
+  constructor(name: string, config: ErrorHandlerConfig) {
     this.config = config;
     this.state = {
       name,
-      state: 'CLOSED',
+      state: "CLOSED",
       failureCount: 0,
       lastFailureTime: 0,
       successCount: 0,
       nextAttemptTime: 0,
       threshold: config.circuitBreakerThreshold,
-      timeout: config.circuitBreakerTimeout
+      timeout: config.circuitBreakerTimeout,
     };
   }
 
@@ -231,14 +242,11 @@ export class CircuitBreaker {
 
     this.updateState();
 
-    if (this.state.state === 'OPEN') {
-      throw new SystemError(
-        `Circuit breaker is OPEN for ${this.state.name}`,
-        { 
-          circuitState: this.state,
-          nextAttemptTime: new Date(this.state.nextAttemptTime).toISOString()
-        }
-      );
+    if (this.state.state === "OPEN") {
+      throw new SystemError(`Circuit breaker is OPEN for ${this.state.name}`, {
+        circuitState: this.state,
+        nextAttemptTime: new Date(this.state.nextAttemptTime).toISOString(),
+      });
     }
 
     try {
@@ -254,29 +262,30 @@ export class CircuitBreaker {
   private updateState(): void {
     const now = Date.now();
 
-    if (this.state.state === 'OPEN' && now >= this.state.nextAttemptTime) {
-      this.state.state = 'HALF_OPEN';
+    if (this.state.state === "OPEN" && now >= this.state.nextAttemptTime) {
+      this.state.state = "HALF_OPEN";
       this.state.successCount = 0;
       log.info(`Circuit breaker ${this.state.name} moved to HALF_OPEN`, {
-        component: 'circuit-breaker',
-        circuitName: this.state.name
+        component: "circuit-breaker",
+        circuitName: this.state.name,
       });
     }
   }
 
   private onSuccess(): void {
-    if (this.state.state === 'HALF_OPEN') {
+    if (this.state.state === "HALF_OPEN") {
       this.state.successCount++;
-      
-      if (this.state.successCount >= 3) { // Require 3 successes to close
-        this.state.state = 'CLOSED';
+
+      if (this.state.successCount >= 3) {
+        // Require 3 successes to close
+        this.state.state = "CLOSED";
         this.state.failureCount = 0;
         log.info(`Circuit breaker ${this.state.name} moved to CLOSED`, {
-          component: 'circuit-breaker',
-          circuitName: this.state.name
+          component: "circuit-breaker",
+          circuitName: this.state.name,
         });
       }
-    } else if (this.state.state === 'CLOSED') {
+    } else if (this.state.state === "CLOSED") {
       this.state.failureCount = Math.max(0, this.state.failureCount - 1);
     }
   }
@@ -285,24 +294,30 @@ export class CircuitBreaker {
     this.state.failureCount++;
     this.state.lastFailureTime = Date.now();
 
-    if (this.state.state === 'CLOSED' && this.state.failureCount >= this.state.threshold) {
-      this.state.state = 'OPEN';
+    if (
+      this.state.state === "CLOSED" &&
+      this.state.failureCount >= this.state.threshold
+    ) {
+      this.state.state = "OPEN";
       this.state.nextAttemptTime = Date.now() + this.state.timeout;
-      
+
       log.error(`Circuit breaker ${this.state.name} moved to OPEN`, undefined, {
-        component: 'circuit-breaker',
+        component: "circuit-breaker",
         circuitName: this.state.name,
         failureCount: this.state.failureCount,
-        threshold: this.state.threshold
+        threshold: this.state.threshold,
       });
-    } else if (this.state.state === 'HALF_OPEN') {
-      this.state.state = 'OPEN';
+    } else if (this.state.state === "HALF_OPEN") {
+      this.state.state = "OPEN";
       this.state.nextAttemptTime = Date.now() + this.state.timeout;
-      
-      log.warn(`Circuit breaker ${this.state.name} returned to OPEN from HALF_OPEN`, {
-        component: 'circuit-breaker',
-        circuitName: this.state.name
-      });
+
+      log.warn(
+        `Circuit breaker ${this.state.name} returned to OPEN from HALF_OPEN`,
+        {
+          component: "circuit-breaker",
+          circuitName: this.state.name,
+        },
+      );
     }
   }
 
@@ -311,14 +326,14 @@ export class CircuitBreaker {
   }
 
   public reset(): void {
-    this.state.state = 'CLOSED';
+    this.state.state = "CLOSED";
     this.state.failureCount = 0;
     this.state.successCount = 0;
     this.state.nextAttemptTime = 0;
-    
+
     log.info(`Circuit breaker ${this.state.name} manually reset`, {
-      component: 'circuit-breaker',
-      circuitName: this.state.name
+      component: "circuit-breaker",
+      circuitName: this.state.name,
     });
   }
 }
@@ -337,27 +352,32 @@ export class RetryManager {
       maxDelay: 30000, // 30 seconds
       backoffMultiplier: 2,
       jitter: true,
-      retryableErrors: ['NetworkError', 'SystemError', 'ECONNRESET', 'ETIMEDOUT'],
-      ...config
+      retryableErrors: [
+        "NetworkError",
+        "SystemError",
+        "ECONNRESET",
+        "ETIMEDOUT",
+      ],
+      ...config,
     };
   }
 
   public async execute<T>(
     operation: () => Promise<T>,
-    context: Partial<ErrorContext> = {}
+    context: Partial<ErrorContext> = {},
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
       try {
         if (attempt > 0) {
           const delay = this.calculateDelay(attempt);
           log.info(`Retrying operation after ${delay}ms`, {
-            component: 'retry-manager',
+            component: "retry-manager",
             attempt,
             maxRetries: this.config.maxRetries,
             delay,
-            ...context
+            ...context,
           });
           await this.sleep(delay);
         }
@@ -365,15 +385,15 @@ export class RetryManager {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry if this error type is not retryable
         if (!this.isRetryable(error as Error)) {
           log.warn(`Error not retryable, aborting retry attempts`, {
-            component: 'retry-manager',
+            component: "retry-manager",
             errorName: lastError.name,
             errorMessage: lastError.message,
             attempt,
-            ...context
+            ...context,
           });
           break;
         }
@@ -381,21 +401,21 @@ export class RetryManager {
         // Don't retry if we've reached max attempts
         if (attempt === this.config.maxRetries) {
           log.error(`Max retry attempts reached`, lastError, {
-            component: 'retry-manager',
+            component: "retry-manager",
             attempt,
             maxRetries: this.config.maxRetries,
-            ...context
+            ...context,
           });
           break;
         }
 
         log.warn(`Operation failed, will retry`, {
-          component: 'retry-manager',
+          component: "retry-manager",
           errorName: lastError.name,
           errorMessage: lastError.message,
           attempt,
           maxRetries: this.config.maxRetries,
-          ...context
+          ...context,
         });
       }
     }
@@ -403,12 +423,12 @@ export class RetryManager {
     throw new EnterpriseError(
       `Operation failed after ${this.config.maxRetries} retry attempts`,
       {
-        severity: 'HIGH',
-        category: 'SYSTEM',
+        severity: "HIGH",
+        category: "SYSTEM",
         retryable: false,
         context: { ...context, maxRetries: this.config.maxRetries },
-        cause: lastError!
-      }
+        cause: lastError!,
+      },
     );
   }
 
@@ -433,21 +453,23 @@ export class RetryManager {
   }
 
   private calculateDelay(attempt: number): number {
-    const baseDelay = this.config.baseDelay * Math.pow(this.config.backoffMultiplier, attempt - 1);
+    const baseDelay =
+      this.config.baseDelay *
+      Math.pow(this.config.backoffMultiplier, attempt - 1);
     const cappedDelay = Math.min(baseDelay, this.config.maxDelay);
-    
+
     if (this.config.jitter) {
       // Add ±25% jitter to prevent thundering herd
       const jitterRange = cappedDelay * 0.25;
       const jitter = (Math.random() - 0.5) * 2 * jitterRange;
       return Math.max(0, cappedDelay + jitter);
     }
-    
+
     return cappedDelay;
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -476,15 +498,15 @@ export class EnterpriseErrorHandler {
         maxDelay: 30000,
         backoffMultiplier: 2,
         jitter: true,
-        retryableErrors: ['NetworkError', 'SystemError']
+        retryableErrors: ["NetworkError", "SystemError"],
       },
       circuitBreakerTimeout: 60000, // 1 minute
       circuitBreakerThreshold: 5,
-      ...config
+      ...config,
     };
 
     this.retryManager = new RetryManager(this.config.defaultRetryConfig);
-    
+
     if (this.config.enableAlerting) {
       this.startAlertingProcessor();
     }
@@ -499,41 +521,42 @@ export class EnterpriseErrorHandler {
    */
   public async handleError(
     error: Error,
-    context: Partial<ErrorContext>
+    context: Partial<ErrorContext>,
   ): Promise<ErrorReport> {
     const enrichedContext: ErrorContext = {
       correlationId: uuidv4(),
-      component: 'unknown',
-      operation: 'unknown',
+      component: "unknown",
+      operation: "unknown",
       timestamp: new Date().toISOString(),
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
-      ...context
+      userAgent:
+        typeof window !== "undefined" ? window.navigator.userAgent : undefined,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+      ...context,
     };
 
     // Convert to EnterpriseError if needed
     const enterpriseError = this.normalizeError(error);
-    
+
     // Create error report
     const report = this.createErrorReport(enterpriseError, enrichedContext);
-    
+
     // Store error report
     this.errorReports.set(report.id, report);
-    
+
     // Log the error
     log.error(
       `Error handled: ${enterpriseError.message}`,
       enterpriseError,
       enrichedContext,
-      'ERROR_HANDLED'
+      "ERROR_HANDLED",
     );
 
     // Security audit for security errors
-    if (enterpriseError.category === 'SECURITY') {
+    if (enterpriseError.category === "SECURITY") {
       log.securityEvent(
         `Security error: ${enterpriseError.message}`,
         enterpriseError.severity as any,
-        enrichedContext
+        enrichedContext,
       );
     }
 
@@ -554,17 +577,17 @@ export class EnterpriseErrorHandler {
   public async withCircuitBreaker<T>(
     operationName: string,
     operation: () => Promise<T>,
-    context: Partial<ErrorContext> = {}
+    context: Partial<ErrorContext> = {},
   ): Promise<T> {
     const circuitBreaker = this.getOrCreateCircuitBreaker(operationName);
-    
+
     try {
       return await circuitBreaker.execute(operation);
     } catch (error) {
       await this.handleError(error as Error, {
         ...context,
-        component: 'circuit-breaker',
-        operation: operationName
+        component: "circuit-breaker",
+        operation: operationName,
       });
       throw error;
     }
@@ -576,16 +599,18 @@ export class EnterpriseErrorHandler {
   public async withRetry<T>(
     operation: () => Promise<T>,
     context: Partial<ErrorContext> = {},
-    retryConfig?: Partial<RetryConfig>
+    retryConfig?: Partial<RetryConfig>,
   ): Promise<T> {
-    const manager = retryConfig ? new RetryManager(retryConfig) : this.retryManager;
-    
+    const manager = retryConfig
+      ? new RetryManager(retryConfig)
+      : this.retryManager;
+
     try {
       return await manager.execute(operation, context);
     } catch (error) {
       await this.handleError(error as Error, {
         ...context,
-        component: 'retry-manager'
+        component: "retry-manager",
       });
       throw error;
     }
@@ -597,29 +622,32 @@ export class EnterpriseErrorHandler {
   public async withFullProtection<T>(
     operationName: string,
     operation: () => Promise<T>,
-    context: Partial<ErrorContext> = {}
+    context: Partial<ErrorContext> = {},
   ): Promise<T> {
     return this.withCircuitBreaker(
       operationName,
       () => this.withRetry(operation, context),
-      context
+      context,
     );
   }
 
   /**
    * Create a user-friendly error for display
    */
-  public createUserError(error: Error, context: Partial<ErrorContext> = {}): {
+  public createUserError(
+    error: Error,
+    context: Partial<ErrorContext> = {},
+  ): {
     message: string;
     isRetryable: boolean;
     errorId: string;
   } {
     const enterpriseError = this.normalizeError(error);
-    
+
     return {
       message: enterpriseError.userMessage,
       isRetryable: enterpriseError.retryable,
-      errorId: enterpriseError.id
+      errorId: enterpriseError.id,
     };
   }
 
@@ -633,22 +661,31 @@ export class EnterpriseErrorHandler {
     }
 
     // Detect error category based on error properties
-    let category: ErrorCategory = 'SYSTEM';
-    let severity: ErrorSeverity = 'MEDIUM';
+    let category: ErrorCategory = "SYSTEM";
+    let severity: ErrorSeverity = "MEDIUM";
     let retryable = false;
 
-    if (error.name.includes('Network') || (error as any).code === 'NETWORK_ERROR') {
-      category = 'NETWORK';
+    if (
+      error.name.includes("Network") ||
+      (error as any).code === "NETWORK_ERROR"
+    ) {
+      category = "NETWORK";
       retryable = true;
-    } else if (error.name.includes('Validation') || error.message.includes('validation')) {
-      category = 'VALIDATION';
-      severity = 'LOW';
-    } else if (error.name.includes('Permission') || error.name.includes('Auth')) {
-      category = 'SECURITY';
-      severity = 'HIGH';
+    } else if (
+      error.name.includes("Validation") ||
+      error.message.includes("validation")
+    ) {
+      category = "VALIDATION";
+      severity = "LOW";
+    } else if (
+      error.name.includes("Permission") ||
+      error.name.includes("Auth")
+    ) {
+      category = "SECURITY";
+      severity = "HIGH";
     } else if ((error as any).statusCode >= 500) {
-      category = 'SYSTEM';
-      severity = 'HIGH';
+      category = "SYSTEM";
+      severity = "HIGH";
       retryable = true;
     }
 
@@ -657,16 +694,16 @@ export class EnterpriseErrorHandler {
       category,
       retryable,
       cause: error,
-      context: {}
+      context: {},
     });
   }
 
   private createErrorReport(
     error: EnterpriseError,
-    context: ErrorContext
+    context: ErrorContext,
   ): ErrorReport {
     const recoveryAction = this.determineRecoveryAction(error);
-    
+
     return {
       id: error.id,
       error,
@@ -678,41 +715,42 @@ export class EnterpriseErrorHandler {
       retryable: error.retryable,
       userMessage: error.userMessage,
       timestamp: error.timestamp,
-      resolved: false
+      resolved: false,
     };
   }
 
   private determineRecoveryAction(error: EnterpriseError): RecoveryAction {
-    if (error.severity === 'CRITICAL') {
-      return 'ESCALATE';
+    if (error.severity === "CRITICAL") {
+      return "ESCALATE";
     }
-    
+
     if (error.retryable) {
-      return 'RETRY';
+      return "RETRY";
     }
-    
+
     if (error.isRecoverable) {
-      return 'FALLBACK';
+      return "FALLBACK";
     }
-    
-    if (error.category === 'NETWORK' || error.category === 'SYSTEM') {
-      return 'CIRCUIT_BREAK';
+
+    if (error.category === "NETWORK" || error.category === "SYSTEM") {
+      return "CIRCUIT_BREAK";
     }
-    
-    return 'IGNORE';
+
+    return "IGNORE";
   }
 
   private shouldAlert(report: ErrorReport): boolean {
-    if (report.severity === 'CRITICAL') return true;
-    if (report.category === 'SECURITY') return true;
-    
+    if (report.severity === "CRITICAL") return true;
+    if (report.category === "SECURITY") return true;
+
     // Check error frequency
-    const recentErrors = Array.from(this.errorReports.values())
-      .filter(r => 
-        Date.now() - new Date(r.timestamp).getTime() < this.config.errorAggregationWindow &&
-        r.error.name === report.error.name
-      );
-    
+    const recentErrors = Array.from(this.errorReports.values()).filter(
+      (r) =>
+        Date.now() - new Date(r.timestamp).getTime() <
+          this.config.errorAggregationWindow &&
+        r.error.name === report.error.name,
+    );
+
     return recentErrors.length >= this.config.alertingThreshold;
   }
 
@@ -725,7 +763,7 @@ export class EnterpriseErrorHandler {
 
   private cleanupErrorReports(): void {
     const cutoff = Date.now() - this.config.errorAggregationWindow * 10; // Keep 10x window
-    
+
     for (const [id, report] of this.errorReports) {
       if (new Date(report.timestamp).getTime() < cutoff) {
         this.errorReports.delete(id);
@@ -753,12 +791,11 @@ export class EnterpriseErrorHandler {
             ...alert.context,
             alertId: alert.id,
             severity: alert.severity,
-            category: alert.category
+            category: alert.category,
           },
-          'ERROR_ALERT'
+          "ERROR_ALERT",
         );
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   }
 
@@ -767,7 +804,7 @@ export class EnterpriseErrorHandler {
   // ============================================================================
 
   public getCircuitBreakerStates(): CircuitBreakerState[] {
-    return Array.from(this.circuitBreakers.values()).map(cb => cb.getState());
+    return Array.from(this.circuitBreakers.values()).map((cb) => cb.getState());
   }
 
   public getErrorReports(): ErrorReport[] {
@@ -791,7 +828,7 @@ export class EnterpriseErrorHandler {
     return {
       totalErrors: this.errorReports.size,
       activeCircuitBreakers: this.circuitBreakers.size,
-      pendingAlerts: this.alertingQueue.length
+      pendingAlerts: this.alertingQueue.length,
     };
   }
 }
@@ -822,5 +859,5 @@ export const errorManager = {
   withFullProtection: errorHandler.withFullProtection.bind(errorHandler),
   createUserError: errorHandler.createUserError.bind(errorHandler),
   getStats: errorHandler.getStats.bind(errorHandler),
-  resetCircuitBreaker: errorHandler.resetCircuitBreaker.bind(errorHandler)
+  resetCircuitBreaker: errorHandler.resetCircuitBreaker.bind(errorHandler),
 };

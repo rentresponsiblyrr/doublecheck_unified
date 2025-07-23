@@ -1,9 +1,9 @@
 /**
  * PROPERTY CARD WITH RESUME - ELITE LEVEL INSPECTION CONTINUITY
- * 
+ *
  * Enhanced property card that clearly shows inspection status and resume capability.
  * Provides seamless user experience for starting new vs continuing existing inspections.
- * 
+ *
  * Features:
  * - Visual distinction between "Start New" vs "Continue" actions
  * - Progress indicators showing completion status
@@ -11,35 +11,36 @@
  * - Smart resume with state validation
  * - Offline progress indication
  * - Cross-device resume capability
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  ArrowRight, 
-  PlayCircle, 
-  Clock, 
-  CheckCircle, 
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  ArrowRight,
+  PlayCircle,
+  Clock,
+  CheckCircle,
   AlertTriangle,
   Wifi,
   WifiOff,
   MapPin,
   Camera,
   FileText,
-  MoreVertical
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { supabase } from '@/integrations/supabase/client';
-import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
-import { logger } from '@/utils/logger';
+  MoreVertical,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { supabase } from "@/integrations/supabase/client";
+import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
+import { logger } from "@/utils/logger";
+import { safeNavigateToInspection } from "@/utils/inspectionNavigation";
 
 export interface Property {
   id: string;
@@ -52,7 +53,7 @@ export interface Property {
 
 export interface ActiveInspection {
   id: string;
-  status: 'draft' | 'in_progress' | 'completed';
+  status: "draft" | "in_progress" | "completed";
   created_at: string;
   updated_at: string;
   completed_items: number;
@@ -76,13 +77,14 @@ export const PropertyCardWithResume = ({
   property,
   onInspectionStart,
   showActions = true,
-  className = ''
+  className = "",
 }: PropertyCardWithResumeProps) => {
-  const [activeInspection, setActiveInspection] = useState<ActiveInspection | null>(null);
+  const [activeInspection, setActiveInspection] =
+    useState<ActiveInspection | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasOfflineChanges, setHasOfflineChanges] = useState(false);
   const [lastWorkTime, setLastWorkTime] = useState<Date | null>(null);
-  
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -105,25 +107,28 @@ export const PropertyCardWithResume = ({
     try {
       // CORRECTED: Using actual production database schema
       const { data: inspection, error } = await supabase
-        .from('inspections')
-        .select(`
+        .from("inspections")
+        .select(
+          `
           id,
           status,
           created_at,
           updated_at
-        `)
-        .eq('property_id', property.id)
-        .eq('inspector_id', user.id)
-        .in('status', ['draft', 'in_progress'])
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .eq("property_id", property.id)
+        .eq("inspector_id", user.id)
+        .in("status", ["draft", "in_progress"])
+        .order("created_at", { ascending: false })
         .limit(1);
 
       // Get checklist items separately using correct schema
       let checklistItems = [];
       if (inspection && inspection.length > 0) {
         const { data: logs, error: logsError } = await supabase
-          .from('checklist_items')
-          .select(`
+          .from("checklist_items")
+          .select(
+            `
             id,
             status,
             notes,
@@ -132,62 +137,83 @@ export const PropertyCardWithResume = ({
               label,
               evidence_type
             )
-          `)
-          .eq('inspection_id', inspection[0].id);
+          `,
+          )
+          .eq("inspection_id", inspection[0].id);
 
         if (logsError) {
-          logger.warn('Error fetching checklist items', { error: logsError, propertyId: property.id }, 'PROPERTY_CARD');
+          logger.warn(
+            "Error fetching checklist items",
+            { error: logsError, propertyId: property.id },
+            "PROPERTY_CARD",
+          );
         } else {
           checklistItems = logs || [];
         }
       }
 
       if (error) {
-        logger.warn('Error checking for active inspection', { error, propertyId: property.id }, 'PROPERTY_CARD');
+        logger.warn(
+          "Error checking for active inspection",
+          { error, propertyId: property.id },
+          "PROPERTY_CARD",
+        );
         setLoading(false);
         return;
       }
 
       if (inspection && inspection.length > 0) {
         const inspectionData = inspection[0];
-        
+
         // Calculate completed items based on corrected schema
-        const completedItems = checklistItems.filter((item: { status?: string }) => 
-          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
+        const completedItems = checklistItems.filter(
+          (item: { status?: string }) =>
+            item.status === "completed" || item.status === "failed", // Item has been evaluated
         ).length;
 
-        const photosRequired = checklistItems.filter((item: { static_safety_items?: { evidence_type: string } }) => 
-          item.static_safety_items?.evidence_type === 'photo'
+        const photosRequired = checklistItems.filter(
+          (item: { static_safety_items?: { evidence_type: string } }) =>
+            item.static_safety_items?.evidence_type === "photo",
         ).length;
 
         const activeInspectionData: ActiveInspection = {
           id: inspectionData.id,
-          status: inspectionData.status as ActiveInspection['status'],
+          status: inspectionData.status as ActiveInspection["status"],
           created_at: inspectionData.created_at,
           updated_at: inspectionData.updated_at,
           completed_items: completedItems,
           total_items: checklistItems.length,
-          last_step: checklistItems.length > 0 ? Math.floor((completedItems / checklistItems.length) * 5) : 0,
+          last_step:
+            checklistItems.length > 0
+              ? Math.floor((completedItems / checklistItems.length) * 5)
+              : 0,
           total_steps: 5,
           photos_captured: 0, // This would need to be calculated from media table
-          photos_required: photosRequired
+          photos_required: photosRequired,
         };
 
         setActiveInspection(activeInspectionData);
         setLastWorkTime(new Date(inspectionData.updated_at));
-        
-        logger.info('Active inspection found', {
-          inspectionId: activeInspectionData.id,
-          completedItems,
-          totalItems: checklistItems.length,
-          status: inspectionData.status
-        }, 'PROPERTY_CARD');
+
+        logger.info(
+          "Active inspection found",
+          {
+            inspectionId: activeInspectionData.id,
+            completedItems,
+            totalItems: checklistItems.length,
+            status: inspectionData.status,
+          },
+          "PROPERTY_CARD",
+        );
       }
 
       setLoading(false);
-
     } catch (error) {
-      logger.error('Unexpected error checking for active inspection', { error, propertyId: property.id }, 'PROPERTY_CARD');
+      logger.error(
+        "Unexpected error checking for active inspection",
+        { error, propertyId: property.id },
+        "PROPERTY_CARD",
+      );
       setLoading(false);
     }
   }, [user, property.id]);
@@ -197,13 +223,23 @@ export const PropertyCardWithResume = ({
    */
   const checkForOfflineChanges = useCallback(async () => {
     try {
-      const recoveryResult = await workflowStatePersistence.recoverState(`property_${property.id}`);
+      const recoveryResult = await workflowStatePersistence.recoverState(
+        `property_${property.id}`,
+      );
       if (recoveryResult.recovered) {
         setHasOfflineChanges(true);
-        logger.info('Offline changes detected for property', { propertyId: property.id }, 'PROPERTY_CARD');
+        logger.info(
+          "Offline changes detected for property",
+          { propertyId: property.id },
+          "PROPERTY_CARD",
+        );
       }
     } catch (error) {
-      logger.warn('Error checking for offline changes', { error, propertyId: property.id }, 'PROPERTY_CARD');
+      logger.warn(
+        "Error checking for offline changes",
+        { error, propertyId: property.id },
+        "PROPERTY_CARD",
+      );
     }
   }, [property.id]);
 
@@ -227,20 +263,41 @@ export const PropertyCardWithResume = ({
 
     // Default navigation behavior
     if (isResume && activeInspection) {
-      logger.info('Resuming inspection', { 
-        inspectionId: activeInspection.id,
-        propertyId: property.id 
-      }, 'PROPERTY_CARD');
-      
-      navigate(`/inspection/${activeInspection.id}`);
-      
+      logger.info(
+        "Resuming inspection",
+        {
+          inspectionId: activeInspection.id,
+          propertyId: property.id,
+        },
+        "PROPERTY_CARD",
+      );
+
+      const navigated = safeNavigateToInspection(
+        navigate,
+        activeInspection?.id,
+      );
+
+      if (!navigated) {
+        toast({
+          title: "Navigation Error",
+          description:
+            "Unable to resume inspection due to invalid ID. Please try starting a new inspection.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Resuming inspection",
         description: `Continuing where you left off - ${activeInspection.completed_items}/${activeInspection.total_items} items completed.`,
       });
     } else {
-      logger.info('Starting new inspection', { propertyId: property.id }, 'PROPERTY_CARD');
-      
+      logger.info(
+        "Starting new inspection",
+        { propertyId: property.id },
+        "PROPERTY_CARD",
+      );
+
       // This will be handled by the existing usePropertyActions.startInspection logic
       // which will detect if there's an existing inspection and navigate accordingly
       navigate(`/property-selection?property=${property.id}&start=true`);
@@ -257,7 +314,7 @@ export const PropertyCardWithResume = ({
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -271,10 +328,18 @@ export const PropertyCardWithResume = ({
     if (!activeInspection) return null;
 
     switch (activeInspection.status) {
-      case 'draft':
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-700">Draft</Badge>;
-      case 'in_progress':
-        return <Badge variant="default" className="bg-blue-100 text-blue-700">In Progress</Badge>;
+      case "draft":
+        return (
+          <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+            Draft
+          </Badge>
+        );
+      case "in_progress":
+        return (
+          <Badge variant="default" className="bg-blue-100 text-blue-700">
+            In Progress
+          </Badge>
+        );
       default:
         return null;
     }
@@ -285,7 +350,9 @@ export const PropertyCardWithResume = ({
    */
   const getProgressPercentage = (): number => {
     if (!activeInspection || activeInspection.total_items === 0) return 0;
-    return Math.round((activeInspection.completed_items / activeInspection.total_items) * 100);
+    return Math.round(
+      (activeInspection.completed_items / activeInspection.total_items) * 100,
+    );
   };
 
   if (loading) {
@@ -303,11 +370,17 @@ export const PropertyCardWithResume = ({
   }
 
   return (
-    <Card className={`relative transition-all duration-200 hover:shadow-md ${className}`} id={`property-card-${property.id}`}>
+    <Card
+      className={`relative transition-all duration-200 hover:shadow-md ${className}`}
+      id={`property-card-${property.id}`}
+    >
       {/* Offline indicator */}
       {hasOfflineChanges && (
         <div className="absolute top-2 right-2">
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+          <Badge
+            variant="outline"
+            className="bg-amber-50 text-amber-700 border-amber-300"
+          >
             <WifiOff className="w-3 h-3 mr-1" />
             Offline Changes
           </Badge>
@@ -334,7 +407,9 @@ export const PropertyCardWithResume = ({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
                 <PlayCircle className="w-4 h-4 text-blue-600 mr-2" />
-                <span className="font-medium text-blue-900">Inspection In Progress</span>
+                <span className="font-medium text-blue-900">
+                  Inspection In Progress
+                </span>
               </div>
               {lastWorkTime && (
                 <div className="flex items-center text-xs text-blue-600">
@@ -348,20 +423,32 @@ export const PropertyCardWithResume = ({
             <div className="mb-2">
               <div className="flex items-center justify-between text-xs text-blue-700 mb-1">
                 <span>Checklist Progress</span>
-                <span>{activeInspection.completed_items}/{activeInspection.total_items} items</span>
+                <span>
+                  {activeInspection.completed_items}/
+                  {activeInspection.total_items} items
+                </span>
               </div>
-              <Progress value={getProgressPercentage()} className="h-2 bg-blue-100" />
+              <Progress
+                value={getProgressPercentage()}
+                className="h-2 bg-blue-100"
+              />
             </div>
 
             {/* Additional stats */}
             <div className="flex items-center justify-between text-xs text-blue-600">
               <div className="flex items-center">
                 <FileText className="w-3 h-3 mr-1" />
-                <span>Step {activeInspection.last_step}/{activeInspection.total_steps}</span>
+                <span>
+                  Step {activeInspection.last_step}/
+                  {activeInspection.total_steps}
+                </span>
               </div>
               <div className="flex items-center">
                 <Camera className="w-3 h-3 mr-1" />
-                <span>{activeInspection.photos_captured}/{activeInspection.photos_required} photos</span>
+                <span>
+                  {activeInspection.photos_captured}/
+                  {activeInspection.photos_required} photos
+                </span>
               </div>
             </div>
           </div>
@@ -381,7 +468,7 @@ export const PropertyCardWithResume = ({
                   <ArrowRight className="w-5 h-5 mr-2" />
                   Continue Inspection ({getProgressPercentage()}% complete)
                 </Button>
-                
+
                 {/* Secondary action - start new */}
                 <Button
                   onClick={() => handleInspectionAction(false)}

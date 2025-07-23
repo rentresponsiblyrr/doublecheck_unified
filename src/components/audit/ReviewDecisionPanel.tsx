@@ -3,17 +3,18 @@
  * Extracted from InspectionReviewPanel.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import React from "react";
 import {
-  ThumbsUp,
-  ThumbsDown,
-  MessageSquare,
-  CheckCircle
-} from 'lucide-react';
-import { ReviewDecision } from '@/hooks/useInspectionReview';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { ThumbsUp, ThumbsDown, MessageSquare, CheckCircle } from "lucide-react";
+import { ReviewDecision } from "@/hooks/useInspectionReview";
 
 interface ReviewDecisionPanelProps {
   reviewDecision: ReviewDecision;
@@ -30,18 +31,18 @@ export const ReviewDecisionPanel: React.FC<ReviewDecisionPanelProps> = ({
   feedbackText,
   setFeedbackText,
   isSubmitting,
-  onSubmitDecision
+  onSubmitDecision,
 }) => {
   const getPlaceholderText = () => {
     switch (reviewDecision) {
-      case 'approved':
-        return 'Provide positive feedback and any suggestions...';
-      case 'rejected':
-        return 'Explain the reasons for rejection...';
-      case 'needs_revision':
-        return 'Detail what needs to be revised...';
+      case "approved":
+        return "Provide positive feedback and any suggestions...";
+      case "rejected":
+        return "Explain the reasons for rejection...";
+      case "needs_revision":
+        return "Detail what needs to be revised...";
       default:
-        return 'Select a decision above and provide your feedback...';
+        return "Select a decision above and provide your feedback...";
     }
   };
 
@@ -56,26 +57,28 @@ export const ReviewDecisionPanel: React.FC<ReviewDecisionPanelProps> = ({
       <CardContent className="space-y-4">
         <div className="flex space-x-3">
           <Button
-            variant={reviewDecision === 'approved' ? 'default' : 'outline'}
-            onClick={() => setReviewDecision('approved')}
+            variant={reviewDecision === "approved" ? "default" : "outline"}
+            onClick={() => setReviewDecision("approved")}
             className="flex-1"
           >
             <ThumbsUp className="h-4 w-4 mr-2" />
             Approve
           </Button>
-          
+
           <Button
-            variant={reviewDecision === 'needs_revision' ? 'default' : 'outline'}
-            onClick={() => setReviewDecision('needs_revision')}
+            variant={
+              reviewDecision === "needs_revision" ? "default" : "outline"
+            }
+            onClick={() => setReviewDecision("needs_revision")}
             className="flex-1"
           >
             <MessageSquare className="h-4 w-4 mr-2" />
             Request Revision
           </Button>
-          
+
           <Button
-            variant={reviewDecision === 'rejected' ? 'destructive' : 'outline'}
-            onClick={() => setReviewDecision('rejected')}
+            variant={reviewDecision === "rejected" ? "destructive" : "outline"}
+            onClick={() => setReviewDecision("rejected")}
             className="flex-1"
           >
             <ThumbsDown className="h-4 w-4 mr-2" />
@@ -85,7 +88,7 @@ export const ReviewDecisionPanel: React.FC<ReviewDecisionPanelProps> = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">
-            Feedback {reviewDecision && '*'}
+            Feedback {reviewDecision && "*"}
           </label>
           <Textarea
             placeholder={getPlaceholderText()}

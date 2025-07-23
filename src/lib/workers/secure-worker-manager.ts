@@ -1,7 +1,7 @@
 /**
  * Enterprise-Grade Secure Web Worker Manager
  * Implements Stripe/GitHub/Auth0 level worker security standards
- * 
+ *
  * SECURITY FEATURES:
  * - Message integrity validation with HMAC signatures
  * - Request/response correlation with unique IDs
@@ -12,8 +12,8 @@
  * - Memory leak prevention with cleanup
  */
 
-import { z } from 'zod';
-import { PIIProtectionService } from '../security/pii-protection';
+import { z } from "zod";
+import { PIIProtectionService } from "../security/pii-protection";
 
 // Worker security configuration
 const WORKER_CONFIG = {
@@ -25,12 +25,12 @@ const WORKER_CONFIG = {
 } as const;
 
 // Message types for type safety
-export type WorkerMessageType = 
-  | 'COMPRESS_MEDIA'
-  | 'PROCESS_IMAGE'
-  | 'ANALYZE_VIDEO'
-  | 'HEARTBEAT'
-  | 'TERMINATE';
+export type WorkerMessageType =
+  | "COMPRESS_MEDIA"
+  | "PROCESS_IMAGE"
+  | "ANALYZE_VIDEO"
+  | "HEARTBEAT"
+  | "TERMINATE";
 
 export interface SecureWorkerMessage {
   id: string;
@@ -63,10 +63,10 @@ export class WorkerSecurityError extends Error {
   constructor(
     message: string,
     public readonly code: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = 'WorkerSecurityError';
+    this.name = "WorkerSecurityError";
   }
 }
 
@@ -81,7 +81,7 @@ export class SecureWorkerManager {
 
   constructor(
     private workerScript: string,
-    private options: WorkerOptions = {}
+    private options: WorkerOptions = {},
   ) {
     this.createWorker();
   }
@@ -93,18 +93,17 @@ export class SecureWorkerManager {
     try {
       this.worker = new Worker(this.workerScript, {
         ...this.options,
-        type: 'module' // Ensure module type for security
+        type: "module", // Ensure module type for security
       });
-      
+
       this.workerCreatedAt = Date.now();
       this.setupWorkerHandlers();
       this.startHeartbeat();
-      
     } catch (error) {
       throw new WorkerSecurityError(
-        'Failed to create worker',
-        'WORKER_CREATION_FAILED',
-        { error: error.message }
+        "Failed to create worker",
+        "WORKER_CREATION_FAILED",
+        { error: error.message },
       );
     }
   }
@@ -140,14 +139,14 @@ export class SecureWorkerManager {
       this.lastActivity = Date.now();
 
       // Handle heartbeat responses
-      if (response.id === 'heartbeat') {
+      if (response.id === "heartbeat") {
         return;
       }
 
       // Find pending task
       const task = this.pendingTasks.get(response.id);
       if (!task) {
-        console.warn('Received response for unknown task:', response.id);
+        console.warn("Received response for unknown task:", response.id);
         return;
       }
 
@@ -159,14 +158,15 @@ export class SecureWorkerManager {
       if (response.success) {
         task.resolve(response.data);
       } else {
-        task.reject(new WorkerSecurityError(
-          response.error || 'Worker task failed',
-          'WORKER_TASK_FAILED'
-        ));
+        task.reject(
+          new WorkerSecurityError(
+            response.error || "Worker task failed",
+            "WORKER_TASK_FAILED",
+          ),
+        );
       }
-
     } catch (error) {
-      console.error('Error handling worker message:', error);
+      console.error("Error handling worker message:", error);
     }
   }
 
@@ -174,12 +174,12 @@ export class SecureWorkerManager {
    * Handles worker errors
    */
   private handleWorkerError(error: ErrorEvent): void {
-    console.error('Worker error:', error);
-    this.rejectAllPendingTasks(new WorkerSecurityError(
-      'Worker encountered an error',
-      'WORKER_ERROR',
-      { error: error.message }
-    ));
+    console.error("Worker error:", error);
+    this.rejectAllPendingTasks(
+      new WorkerSecurityError("Worker encountered an error", "WORKER_ERROR", {
+        error: error.message,
+      }),
+    );
     this.restartWorker();
   }
 
@@ -187,11 +187,13 @@ export class SecureWorkerManager {
    * Handles worker message errors
    */
   private handleWorkerMessageError(error: MessageEvent): void {
-    console.error('Worker message error:', error);
-    this.rejectAllPendingTasks(new WorkerSecurityError(
-      'Worker message parsing failed',
-      'WORKER_MESSAGE_ERROR'
-    ));
+    console.error("Worker message error:", error);
+    this.rejectAllPendingTasks(
+      new WorkerSecurityError(
+        "Worker message parsing failed",
+        "WORKER_MESSAGE_ERROR",
+      ),
+    );
   }
 
   /**
@@ -204,16 +206,16 @@ export class SecureWorkerManager {
       data: z.unknown().optional(),
       error: z.string().optional(),
       timestamp: z.number(),
-      signature: z.string().optional()
+      signature: z.string().optional(),
     });
 
     try {
       responseSchema.parse(response);
     } catch (error) {
       throw new WorkerSecurityError(
-        'Invalid worker response structure',
-        'INVALID_RESPONSE_STRUCTURE',
-        { validationError: error }
+        "Invalid worker response structure",
+        "INVALID_RESPONSE_STRUCTURE",
+        { validationError: error },
       );
     }
 
@@ -221,8 +223,8 @@ export class SecureWorkerManager {
     const age = Date.now() - response.timestamp;
     if (age > 60000) {
       throw new WorkerSecurityError(
-        'Worker response timestamp too old',
-        'STALE_RESPONSE'
+        "Worker response timestamp too old",
+        "STALE_RESPONSE",
       );
     }
   }
@@ -233,23 +235,23 @@ export class SecureWorkerManager {
   async sendMessage(
     type: WorkerMessageType,
     payload: unknown,
-    options: { timeout?: number } = {}
+    options: { timeout?: number } = {},
   ): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         // Check if worker is available
         if (!this.worker || this.isTerminating) {
           throw new WorkerSecurityError(
-            'Worker not available',
-            'WORKER_UNAVAILABLE'
+            "Worker not available",
+            "WORKER_UNAVAILABLE",
           );
         }
 
         // Check concurrent message limit
         if (this.pendingTasks.size >= WORKER_CONFIG.MAX_CONCURRENT_MESSAGES) {
           throw new WorkerSecurityError(
-            'Too many concurrent worker messages',
-            'TOO_MANY_MESSAGES'
+            "Too many concurrent worker messages",
+            "TOO_MANY_MESSAGES",
           );
         }
 
@@ -258,20 +260,20 @@ export class SecureWorkerManager {
         if (workerAge > WORKER_CONFIG.MAX_WORKER_LIFETIME) {
           this.restartWorker();
           throw new WorkerSecurityError(
-            'Worker restarted due to age limit',
-            'WORKER_RESTARTED'
+            "Worker restarted due to age limit",
+            "WORKER_RESTARTED",
           );
         }
 
         // Create secure message
         const message = this.createSecureMessage(type, payload);
-        
+
         // Validate message size
         const messageSize = JSON.stringify(message).length;
         if (messageSize > WORKER_CONFIG.MAX_MESSAGE_SIZE) {
           throw new WorkerSecurityError(
             `Message too large: ${messageSize} bytes`,
-            'MESSAGE_TOO_LARGE'
+            "MESSAGE_TOO_LARGE",
           );
         }
 
@@ -279,10 +281,12 @@ export class SecureWorkerManager {
         const timeout = options.timeout || WORKER_CONFIG.MESSAGE_TIMEOUT;
         const timeoutId = window.setTimeout(() => {
           this.pendingTasks.delete(message.id);
-          reject(new WorkerSecurityError(
-            'Worker message timeout',
-            'MESSAGE_TIMEOUT'
-          ));
+          reject(
+            new WorkerSecurityError(
+              "Worker message timeout",
+              "MESSAGE_TIMEOUT",
+            ),
+          );
         }, timeout);
 
         // Store task
@@ -292,19 +296,22 @@ export class SecureWorkerManager {
           resolve,
           reject,
           timestamp: Date.now(),
-          timeoutId
+          timeoutId,
         });
 
         // Send message
         this.worker.postMessage(message);
         this.messageCount++;
-
       } catch (error) {
-        reject(error instanceof WorkerSecurityError ? error : new WorkerSecurityError(
-          'Failed to send worker message',
-          'SEND_MESSAGE_FAILED',
-          { error: error.message }
-        ));
+        reject(
+          error instanceof WorkerSecurityError
+            ? error
+            : new WorkerSecurityError(
+                "Failed to send worker message",
+                "SEND_MESSAGE_FAILED",
+                { error: error.message },
+              ),
+        );
       }
     });
   }
@@ -312,21 +319,24 @@ export class SecureWorkerManager {
   /**
    * Creates a secure message with validation and integrity checks
    */
-  private createSecureMessage(type: WorkerMessageType, payload: unknown): SecureWorkerMessage {
+  private createSecureMessage(
+    type: WorkerMessageType,
+    payload: unknown,
+  ): SecureWorkerMessage {
     const messageId = crypto.randomUUID();
-    
+
     // Sanitize payload for security
     const sanitizedPayload = PIIProtectionService.scrubPII(payload);
-    
+
     // Calculate checksum for integrity
     const checksum = this.calculateChecksum(JSON.stringify(sanitizedPayload));
-    
+
     return {
       id: messageId,
       type,
       payload: sanitizedPayload,
       timestamp: Date.now(),
-      checksum
+      checksum,
     };
   }
 
@@ -337,7 +347,7 @@ export class SecureWorkerManager {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString(16);
@@ -350,16 +360,16 @@ export class SecureWorkerManager {
     this.heartbeatInterval = window.setInterval(() => {
       if (this.worker && !this.isTerminating) {
         const heartbeatMessage: SecureWorkerMessage = {
-          id: 'heartbeat',
-          type: 'HEARTBEAT',
+          id: "heartbeat",
+          type: "HEARTBEAT",
           payload: null,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        
+
         try {
           this.worker.postMessage(heartbeatMessage);
         } catch (error) {
-          console.error('Heartbeat failed:', error);
+          console.error("Heartbeat failed:", error);
           this.restartWorker();
         }
       }
@@ -382,13 +392,12 @@ export class SecureWorkerManager {
   private restartWorker(): void {
     if (this.isTerminating) return;
 
-    console.log('Restarting worker...');
-    
+    console.log("Restarting worker...");
+
     // Reject all pending tasks
-    this.rejectAllPendingTasks(new WorkerSecurityError(
-      'Worker restarted',
-      'WORKER_RESTARTED'
-    ));
+    this.rejectAllPendingTasks(
+      new WorkerSecurityError("Worker restarted", "WORKER_RESTARTED"),
+    );
 
     // Terminate old worker
     this.terminateWorker();
@@ -415,15 +424,14 @@ export class SecureWorkerManager {
    */
   terminateWorker(): void {
     this.isTerminating = true;
-    
+
     // Stop heartbeat
     this.stopHeartbeat();
 
     // Reject pending tasks
-    this.rejectAllPendingTasks(new WorkerSecurityError(
-      'Worker terminated',
-      'WORKER_TERMINATED'
-    ));
+    this.rejectAllPendingTasks(
+      new WorkerSecurityError("Worker terminated", "WORKER_TERMINATED"),
+    );
 
     // Terminate worker
     if (this.worker) {
@@ -451,7 +459,7 @@ export class SecureWorkerManager {
       messageCount: this.messageCount,
       pendingTasks: this.pendingTasks.size,
       lastActivity: this.lastActivity,
-      workerAge: this.workerCreatedAt ? Date.now() - this.workerCreatedAt : 0
+      workerAge: this.workerCreatedAt ? Date.now() - this.workerCreatedAt : 0,
     };
   }
 
@@ -468,7 +476,7 @@ export class SecureWorkerManager {
  */
 export class SecureMediaWorker extends SecureWorkerManager {
   constructor() {
-    super('/workers/media-compression-worker.js');
+    super("/workers/media-compression-worker.js");
   }
 
   async compressImage(
@@ -477,13 +485,13 @@ export class SecureMediaWorker extends SecureWorkerManager {
       quality?: number;
       maxWidth?: number;
       maxHeight?: number;
-      format?: 'jpeg' | 'png' | 'webp';
-    } = {}
+      format?: "jpeg" | "png" | "webp";
+    } = {},
   ): Promise<File> {
-    return this.sendMessage('COMPRESS_MEDIA', {
+    return this.sendMessage("COMPRESS_MEDIA", {
       file,
-      type: 'image',
-      options
+      type: "image",
+      options,
     });
   }
 
@@ -492,12 +500,12 @@ export class SecureMediaWorker extends SecureWorkerManager {
     options: {
       quality?: number;
       maxSize?: number;
-    } = {}
+    } = {},
   ): Promise<File> {
-    return this.sendMessage('COMPRESS_MEDIA', {
+    return this.sendMessage("COMPRESS_MEDIA", {
       file,
-      type: 'video',
-      options
+      type: "video",
+      options,
     });
   }
 }
@@ -509,8 +517,8 @@ export class SecureWorkerFactory {
   private static instances = new Map<string, SecureWorkerManager>();
 
   static createMediaWorker(): SecureMediaWorker {
-    const key = 'media-worker';
-    
+    const key = "media-worker";
+
     if (!this.instances.has(key)) {
       this.instances.set(key, new SecureMediaWorker());
     }
@@ -525,20 +533,26 @@ export class SecureWorkerFactory {
     this.instances.clear();
   }
 
-  static getStats(): Record<string, {
-    isActive: boolean;
-    messageCount: number;
-    pendingTasks: number;
-    lastActivity: number;
-    workerAge: number;
-  }> {
-    const stats: Record<string, {
+  static getStats(): Record<
+    string,
+    {
       isActive: boolean;
       messageCount: number;
       pendingTasks: number;
       lastActivity: number;
       workerAge: number;
-    }> = {};
+    }
+  > {
+    const stats: Record<
+      string,
+      {
+        isActive: boolean;
+        messageCount: number;
+        pendingTasks: number;
+        lastActivity: number;
+        workerAge: number;
+      }
+    > = {};
     for (const [key, worker] of this.instances.entries()) {
       stats[key] = worker.getStats();
     }
@@ -547,8 +561,8 @@ export class SecureWorkerFactory {
 }
 
 // Cleanup on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
     SecureWorkerFactory.terminateAll();
   });
 }

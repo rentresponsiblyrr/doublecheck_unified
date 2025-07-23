@@ -33,15 +33,15 @@ CREATE VIEW properties_fixed AS
 SELECT 
     int_to_uuid(properties.property_id) AS id,
     properties.property_id AS original_property_id,
-    properties.property_name AS name,
-    concat(properties.street_address, ', ', properties.city, ', ', properties.state, ' ', properties.zipcode) AS address,
+    properties.name AS name,
+    concat(properties.address, ', ', properties.city, ', ', properties.state, ' ', properties.zipcode) AS address,
     properties.vrbo_url,
     properties.airbnb_url,
     properties.audit_assigned_to,
     properties.active_inspection_session_id,
     properties.created_at,
     properties.updated_at,
-    properties.street_address,
+    properties.address,
     properties.city,
     properties.state,
     properties.zipcode,
@@ -61,7 +61,7 @@ FROM properties;
 
 **Key Transformations:**
 - `property_id` (integer) → `id` (uuid) via `int_to_uuid()`
-- `property_name` → `name`
+- `name` → `name`
 - Address fields → `address` (concatenated)
 - All other fields mapped directly
 
@@ -251,8 +251,8 @@ Application Layer (TypeScript)
 │     properties      │    │  inspection_sessions│
 │   (BASE TABLE)     │    │   (BASE TABLE)      │
 │   - property_id: int│    │   - id: uuid        │
-│   - property_name  │    │   - property_id: int│
-│   - street_address │    │   - created_at      │
+│   - name  │    │   - property_id: int│
+│   - address │    │   - created_at      │
 │   - city, state    │    │   - updated_at      │
 └─────────────────────┘    └─────────────────────┘
     ↓ (Database operations: constraints, indexes, backups)
@@ -274,7 +274,7 @@ CREATE OR REPLACE VIEW properties_fixed AS
 SELECT 
     int_to_uuid(properties.property_id) AS id,
     properties.property_id AS original_property_id,
-    properties.property_name AS name,
+    properties.name AS name,
     -- ... existing columns ...
     properties.new_field  -- Add new column
 FROM properties;

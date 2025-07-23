@@ -1,32 +1,32 @@
 /**
  * PROPERTY DATA MANAGER - ENTERPRISE EXCELLENCE
- * 
+ *
  * Service layer for PropertyCard with render props pattern:
  * - Active inspection detection and management
  * - Offline change detection with state persistence
  * - Network status monitoring for sync capabilities
  * - Professional error handling and recovery
  * - Clean separation of data operations from UI concerns
- * 
+ *
  * Extracted from PropertyCard.tsx as part of architectural excellence
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 1C Excellence
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { supabase } from '@/integrations/supabase/client';
-import { workflowStatePersistence } from '@/services/WorkflowStatePersistence';
-import { logger } from '@/utils/logger';
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { supabase } from "@/integrations/supabase/client";
+import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
+import { logger } from "@/utils/logger";
 
 /**
  * Active inspection data structure
  */
 export interface ActiveInspection {
   id: string;
-  status: 'draft' | 'in_progress' | 'completed';
+  status: "draft" | "in_progress" | "completed";
   created_at: string;
   updated_at: string;
   completed_items: number;
@@ -64,7 +64,9 @@ export interface PropertyDataActions {
 /**
  * Render props interface
  */
-export interface PropertyDataManagerRenderProps extends PropertyInspectionData, PropertyDataActions {}
+export interface PropertyDataManagerRenderProps
+  extends PropertyInspectionData,
+    PropertyDataActions {}
 
 /**
  * Component props
@@ -83,13 +85,14 @@ class PropertyInspectionService {
    * Get active inspection for property and user
    */
   async getActiveInspection(
-    propertyId: string, 
-    userId: string
+    propertyId: string,
+    userId: string,
   ): Promise<ActiveInspection | null> {
     try {
       const { data: inspection, error } = await supabase
-        .from('inspections')
-        .select(`
+        .from("inspections")
+        .select(
+          `
           id,
           status,
           created_at,
@@ -103,15 +106,20 @@ class PropertyInspectionService {
               evidence_type
             )
           )
-        `)
-        .eq('property_id', propertyId.toString())
-        .eq('inspector_id', userId)
-        .in('status', ['draft', 'in_progress'])
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .eq("property_id", propertyId.toString())
+        .eq("inspector_id", userId)
+        .in("status", ["draft", "in_progress"])
+        .order("created_at", { ascending: false })
         .limit(1);
 
       if (error) {
-        logger.warn('Error fetching active inspection', { error, propertyId, userId }, 'PROPERTY_SERVICE');
+        logger.warn(
+          "Error fetching active inspection",
+          { error, propertyId, userId },
+          "PROPERTY_SERVICE",
+        );
         return null;
       }
 
@@ -121,18 +129,21 @@ class PropertyInspectionService {
 
       const inspectionData = inspection[0];
       const checklistItems = inspectionData.logs || [];
-      
-      const completedItems = checklistItems.filter((item: any) => 
-        item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
+
+      const completedItems = checklistItems.filter(
+        (item: any) =>
+          item.status === "completed" ||
+          item.status === "failed" ||
+          item.status === "not_applicable",
       ).length;
 
-      const photosRequired = checklistItems.filter((item: any) => 
-        item.static_safety_items?.evidence_type === 'photo'
+      const photosRequired = checklistItems.filter(
+        (item: any) => item.static_safety_items?.evidence_type === "photo",
       ).length;
 
       const activeInspectionData: ActiveInspection = {
         id: inspectionData.id,
-        status: inspectionData.status as ActiveInspection['status'],
+        status: inspectionData.status as ActiveInspection["status"],
         created_at: inspectionData.created_at,
         updated_at: inspectionData.updated_at,
         completed_items: completedItems,
@@ -140,20 +151,29 @@ class PropertyInspectionService {
         last_step: Math.floor((completedItems / checklistItems.length) * 5),
         total_steps: 5,
         photos_captured: 0,
-        photos_required: photosRequired
+        photos_required: photosRequired,
       };
 
-      logger.info('Active inspection loaded', {
-        inspectionId: activeInspectionData.id,
-        completedItems,
-        totalItems: checklistItems.length,
-        progressPercentage: Math.round((completedItems / checklistItems.length) * 100)
-      }, 'PROPERTY_SERVICE');
+      logger.info(
+        "Active inspection loaded",
+        {
+          inspectionId: activeInspectionData.id,
+          completedItems,
+          totalItems: checklistItems.length,
+          progressPercentage: Math.round(
+            (completedItems / checklistItems.length) * 100,
+          ),
+        },
+        "PROPERTY_SERVICE",
+      );
 
       return activeInspectionData;
-      
     } catch (error) {
-      logger.error('Unexpected error fetching active inspection', { error, propertyId, userId }, 'PROPERTY_SERVICE');
+      logger.error(
+        "Unexpected error fetching active inspection",
+        { error, propertyId, userId },
+        "PROPERTY_SERVICE",
+      );
       throw error;
     }
   }
@@ -163,14 +183,24 @@ class PropertyInspectionService {
    */
   async checkOfflineChanges(propertyId: string): Promise<boolean> {
     try {
-      const recoveryResult = await workflowStatePersistence.recoverState(`property_${propertyId}`);
+      const recoveryResult = await workflowStatePersistence.recoverState(
+        `property_${propertyId}`,
+      );
       if (recoveryResult.recovered) {
-        logger.info('Offline changes detected', { propertyId }, 'PROPERTY_SERVICE');
+        logger.info(
+          "Offline changes detected",
+          { propertyId },
+          "PROPERTY_SERVICE",
+        );
         return true;
       }
       return false;
     } catch (error) {
-      logger.warn('Error checking offline changes', { error, propertyId }, 'PROPERTY_SERVICE');
+      logger.warn(
+        "Error checking offline changes",
+        { error, propertyId },
+        "PROPERTY_SERVICE",
+      );
       return false;
     }
   }
@@ -182,14 +212,15 @@ class PropertyInspectionService {
 export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
   propertyId,
   enableInspectionTracking = false,
-  children
+  children,
 }) => {
-  const [activeInspection, setActiveInspection] = useState<ActiveInspection | null>(null);
+  const [activeInspection, setActiveInspection] =
+    useState<ActiveInspection | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasOfflineChanges, setHasOfflineChanges] = useState(false);
   const [lastWorkTime, setLastWorkTime] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { user } = useAuth();
   const { isOnline } = useNetworkStatus();
   const service = new PropertyInspectionService();
@@ -206,9 +237,9 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const inspection = await service.getActiveInspection(propertyId, user.id);
-      
+
       if (inspection) {
         setActiveInspection(inspection);
         setLastWorkTime(new Date(inspection.updated_at));
@@ -216,11 +247,14 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
         setActiveInspection(null);
         setLastWorkTime(null);
       }
-      
     } catch (error) {
-      const errorMessage = 'Failed to load inspection data';
+      const errorMessage = "Failed to load inspection data";
       setError(errorMessage);
-      logger.error('checkForActiveInspection failed', { error, propertyId, userId: user.id }, 'PROPERTY_DATA_MANAGER');
+      logger.error(
+        "checkForActiveInspection failed",
+        { error, propertyId, userId: user.id },
+        "PROPERTY_DATA_MANAGER",
+      );
     } finally {
       setLoading(false);
     }
@@ -234,7 +268,11 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
       const hasChanges = await service.checkOfflineChanges(propertyId);
       setHasOfflineChanges(hasChanges);
     } catch (error) {
-      logger.warn('checkForOfflineChanges failed', { error, propertyId }, 'PROPERTY_DATA_MANAGER');
+      logger.warn(
+        "checkForOfflineChanges failed",
+        { error, propertyId },
+        "PROPERTY_DATA_MANAGER",
+      );
     }
   }, [propertyId, service]);
 
@@ -242,10 +280,7 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
    * Refresh all inspection data
    */
   const refreshInspectionData = useCallback(async () => {
-    await Promise.all([
-      checkForActiveInspection(),
-      checkForOfflineChanges()
-    ]);
+    await Promise.all([checkForActiveInspection(), checkForOfflineChanges()]);
   }, [checkForActiveInspection, checkForOfflineChanges]);
 
   /**
@@ -281,7 +316,7 @@ export const PropertyDataManager: React.FC<PropertyDataManagerProps> = ({
         checkForActiveInspection,
         checkForOfflineChanges,
         refreshInspectionData,
-        clearError
+        clearError,
       })}
     </>
   );

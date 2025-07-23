@@ -3,7 +3,7 @@
  * Prevents memory leaks and ensures proper resource cleanup
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from "react";
 
 interface CleanupFunction {
   (): void;
@@ -20,11 +20,13 @@ export function useMemoryCleanup(): ResourceManager {
   const isCleanedUp = useRef(false);
   const timers = useRef<Set<NodeJS.Timeout>>(new Set());
   const intervals = useRef<Set<NodeJS.Timeout>>(new Set());
-  const eventListeners = useRef<Array<{
-    element: EventTarget;
-    event: string;
-    handler: EventListener;
-  }>>([]);
+  const eventListeners = useRef<
+    Array<{
+      element: EventTarget;
+      event: string;
+      handler: EventListener;
+    }>
+  >([]);
 
   const addCleanup = useCallback((cleanup: CleanupFunction) => {
     if (!isCleanedUp.current) {
@@ -36,27 +38,25 @@ export function useMemoryCleanup(): ResourceManager {
     if (isCleanedUp.current) return;
 
     // Execute all cleanup functions
-    cleanupFunctions.current.forEach(cleanupFn => {
+    cleanupFunctions.current.forEach((cleanupFn) => {
       try {
         cleanupFn();
-      } catch (error) {
-      }
+      } catch (error) {}
     });
 
     // Clear all timers
-    timers.current.forEach(timer => clearTimeout(timer));
+    timers.current.forEach((timer) => clearTimeout(timer));
     timers.current.clear();
 
     // Clear all intervals
-    intervals.current.forEach(interval => clearInterval(interval));
+    intervals.current.forEach((interval) => clearInterval(interval));
     intervals.current.clear();
 
     // Remove all event listeners
     eventListeners.current.forEach(({ element, event, handler }) => {
       try {
         element.removeEventListener(event, handler);
-      } catch (error) {
-      }
+      } catch (error) {}
     });
     eventListeners.current.length = 0;
 
@@ -80,7 +80,7 @@ export function useMemoryCleanup(): ResourceManager {
 export function useSafeTimeout(
   callback: () => void,
   delay: number | null,
-  deps?: React.DependencyList
+  deps?: React.DependencyList,
 ) {
   const memoryManager = useMemoryCleanup();
   const callbackRef = useRef(callback);
@@ -117,7 +117,7 @@ export function useSafeTimeout(
 export function useSafeInterval(
   callback: () => void,
   delay: number | null,
-  deps?: React.DependencyList
+  deps?: React.DependencyList,
 ) {
   const memoryManager = useMemoryCleanup();
   const callbackRef = useRef(callback);
@@ -156,7 +156,7 @@ export function useSafeEventListener<K extends keyof WindowEventMap>(
   eventName: K,
   handler: (event: WindowEventMap[K]) => void,
   element?: EventTarget | null,
-  options?: boolean | AddEventListenerOptions
+  options?: boolean | AddEventListenerOptions,
 ) {
   const memoryManager = useMemoryCleanup();
   const handlerRef = useRef(handler);
@@ -168,7 +168,7 @@ export function useSafeEventListener<K extends keyof WindowEventMap>(
 
   useEffect(() => {
     const targetElement = element || window;
-    
+
     const wrappedHandler = (event: Event) => {
       if (!memoryManager.isCleanedUp) {
         handlerRef.current(event as WindowEventMap[K]);
@@ -192,38 +192,38 @@ export function useSafeFetch() {
   const memoryManager = useMemoryCleanup();
   const abortControllersRef = useRef<Set<AbortController>>(new Set());
 
-  const safeFetch = useCallback(async (
-    url: string,
-    options?: RequestInit
-  ): Promise<Response> => {
-    if (memoryManager.isCleanedUp) {
-      throw new Error('Component is unmounted');
-    }
-
-    const abortController = new AbortController();
-    abortControllersRef.current.add(abortController);
-
-    const fetchOptions: RequestInit = {
-      ...options,
-      signal: abortController.signal,
-    };
-
-    try {
-      const response = await fetch(url, fetchOptions);
-      return response;
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+  const safeFetch = useCallback(
+    async (url: string, options?: RequestInit): Promise<Response> => {
+      if (memoryManager.isCleanedUp) {
+        throw new Error("Component is unmounted");
       }
-      throw error;
-    } finally {
-      abortControllersRef.current.delete(abortController);
-    }
-  }, [memoryManager]);
+
+      const abortController = new AbortController();
+      abortControllersRef.current.add(abortController);
+
+      const fetchOptions: RequestInit = {
+        ...options,
+        signal: abortController.signal,
+      };
+
+      try {
+        const response = await fetch(url, fetchOptions);
+        return response;
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+        }
+        throw error;
+      } finally {
+        abortControllersRef.current.delete(abortController);
+      }
+    },
+    [memoryManager],
+  );
 
   // Cleanup all pending requests
   useEffect(() => {
     memoryManager.addCleanup(() => {
-      abortControllersRef.current.forEach(controller => {
+      abortControllersRef.current.forEach((controller) => {
         controller.abort();
       });
       abortControllersRef.current.clear();
@@ -240,7 +240,7 @@ export function useFileReader() {
 
   const createReader = useCallback(() => {
     if (memoryManager.isCleanedUp) {
-      throw new Error('Component is unmounted');
+      throw new Error("Component is unmounted");
     }
 
     const reader = new FileReader();
@@ -251,16 +251,16 @@ export function useFileReader() {
       readersRef.current.delete(reader);
     };
 
-    reader.addEventListener('load', cleanup);
-    reader.addEventListener('error', cleanup);
-    reader.addEventListener('abort', cleanup);
+    reader.addEventListener("load", cleanup);
+    reader.addEventListener("error", cleanup);
+    reader.addEventListener("abort", cleanup);
 
     return reader;
   }, [memoryManager]);
 
   useEffect(() => {
     memoryManager.addCleanup(() => {
-      readersRef.current.forEach(reader => {
+      readersRef.current.forEach((reader) => {
         if (reader.readyState === FileReader.LOADING) {
           reader.abort();
         }
@@ -277,22 +277,25 @@ export function useMediaStream() {
   const memoryManager = useMemoryCleanup();
   const streamsRef = useRef<Set<MediaStream>>(new Set());
 
-  const addStream = useCallback((stream: MediaStream) => {
-    if (memoryManager.isCleanedUp) {
-      return;
-    }
+  const addStream = useCallback(
+    (stream: MediaStream) => {
+      if (memoryManager.isCleanedUp) {
+        return;
+      }
 
-    streamsRef.current.add(stream);
+      streamsRef.current.add(stream);
 
-    memoryManager.addCleanup(() => {
-      stream.getTracks().forEach(track => {
-        track.stop();
+      memoryManager.addCleanup(() => {
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       });
-    });
-  }, [memoryManager]);
+    },
+    [memoryManager],
+  );
 
   const stopStream = useCallback((stream: MediaStream) => {
-    stream.getTracks().forEach(track => {
+    stream.getTracks().forEach((track) => {
       track.stop();
     });
     streamsRef.current.delete(stream);
@@ -300,8 +303,8 @@ export function useMediaStream() {
 
   useEffect(() => {
     memoryManager.addCleanup(() => {
-      streamsRef.current.forEach(stream => {
-        stream.getTracks().forEach(track => {
+      streamsRef.current.forEach((stream) => {
+        stream.getTracks().forEach((track) => {
           track.stop();
         });
       });
@@ -324,13 +327,19 @@ export function useWebSocket(url: string | null) {
     socketRef.current = socket;
 
     memoryManager.addCleanup(() => {
-      if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
+      if (
+        socket.readyState === WebSocket.CONNECTING ||
+        socket.readyState === WebSocket.OPEN
+      ) {
         socket.close();
       }
     });
 
     return () => {
-      if (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN) {
+      if (
+        socket.readyState === WebSocket.CONNECTING ||
+        socket.readyState === WebSocket.OPEN
+      ) {
         socket.close();
       }
     };
@@ -340,11 +349,13 @@ export function useWebSocket(url: string | null) {
 }
 
 // Observer cleanup hook (for Intersection, Mutation, Resize observers)
-export function useObserver<T extends {
-  disconnect(): void;
-  observe(target: Element): void;
-  unobserve(target: Element): void;
-}>(createObserver: () => T) {
+export function useObserver<
+  T extends {
+    disconnect(): void;
+    observe(target: Element): void;
+    unobserve(target: Element): void;
+  },
+>(createObserver: () => T) {
   const memoryManager = useMemoryCleanup();
   const observerRef = useRef<T | null>(null);
   const observedElementsRef = useRef<Set<Element>>(new Set());
@@ -352,7 +363,7 @@ export function useObserver<T extends {
   const getObserver = useCallback(() => {
     if (!observerRef.current && !memoryManager.isCleanedUp) {
       observerRef.current = createObserver();
-      
+
       memoryManager.addCleanup(() => {
         if (observerRef.current) {
           observerRef.current.disconnect();
@@ -364,21 +375,27 @@ export function useObserver<T extends {
     return observerRef.current;
   }, [createObserver, memoryManager]);
 
-  const observe = useCallback((element: Element) => {
-    const observer = getObserver();
-    if (observer && !memoryManager.isCleanedUp) {
-      observer.observe(element);
-      observedElementsRef.current.add(element);
-    }
-  }, [getObserver, memoryManager]);
+  const observe = useCallback(
+    (element: Element) => {
+      const observer = getObserver();
+      if (observer && !memoryManager.isCleanedUp) {
+        observer.observe(element);
+        observedElementsRef.current.add(element);
+      }
+    },
+    [getObserver, memoryManager],
+  );
 
-  const unobserve = useCallback((element: Element) => {
-    const observer = getObserver();
-    if (observer) {
-      observer.unobserve(element);
-      observedElementsRef.current.delete(element);
-    }
-  }, [getObserver]);
+  const unobserve = useCallback(
+    (element: Element) => {
+      const observer = getObserver();
+      if (observer) {
+        observer.unobserve(element);
+        observedElementsRef.current.delete(element);
+      }
+    },
+    [getObserver],
+  );
 
   return { observe, unobserve };
 }
@@ -393,12 +410,15 @@ export function useAnimationFrame(callback: (timestamp: number) => void) {
     callbackRef.current = callback;
   }, [callback]);
 
-  const animate = useCallback((timestamp: number) => {
-    if (!memoryManager.isCleanedUp) {
-      callbackRef.current(timestamp);
-      requestRef.current = requestAnimationFrame(animate);
-    }
-  }, [memoryManager]);
+  const animate = useCallback(
+    (timestamp: number) => {
+      if (!memoryManager.isCleanedUp) {
+        callbackRef.current(timestamp);
+        requestRef.current = requestAnimationFrame(animate);
+      }
+    },
+    [memoryManager],
+  );
 
   useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);

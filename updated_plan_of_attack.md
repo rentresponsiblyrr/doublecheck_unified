@@ -40,7 +40,7 @@ Based on comprehensive codebase analysis, I've identified **critical schema mism
 
 // CORRECT (works with current schema)
 .from('inspection_checklist_items')
-.select('id, static_safety_item_id, inspection_id')
+.select('id, static_item_id, inspection_id')
 ```
 
 #### **1.2 Fix Media Table References**

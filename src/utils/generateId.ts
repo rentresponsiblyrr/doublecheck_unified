@@ -26,14 +26,18 @@ export function generateId(prefix: string, suffix?: string): string {
  * @returns Semantic component ID
  */
 export function generateComponentId(
-  componentName: string, 
-  elementType: string, 
-  index?: number
+  componentName: string,
+  elementType: string,
+  index?: number,
 ): string {
-  const normalizedComponent = componentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const normalizedElement = elementType.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const indexSuffix = index !== undefined ? `-${index}` : '';
-  
+  const normalizedComponent = componentName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-");
+  const normalizedElement = elementType
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-");
+  const indexSuffix = index !== undefined ? `-${index}` : "";
+
   return `${normalizedComponent}-${normalizedElement}${indexSuffix}`;
 }
 

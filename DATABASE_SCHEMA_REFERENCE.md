@@ -19,8 +19,8 @@ Primary Key: id (UUID)
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | UUID | Primary key (NOT property_id) |
-| `name` | TEXT | Property name (NOT property_name) |
-| `address` | TEXT | Property address (NOT street_address) |
+| `name` | TEXT | Property name (NOT name) |
+| `address` | TEXT | Property address (NOT address) |
 | `vrbo_url` | TEXT | VRBO listing URL |
 | `airbnb_url` | TEXT | Airbnb listing URL |
 | `added_by` | UUID | User who added property (references users.id) |
@@ -39,7 +39,7 @@ const { data } = await supabase
 **❌ WRONG (OLD Schema):**
 ```typescript
 // NEVER USE THESE FIELD NAMES:
-.select('property_id, property_name, street_address') // ❌ Wrong!
+.select('property_id, name, address') // ❌ Wrong!
 ```
 
 ### **Inspections Table**
@@ -106,7 +106,7 @@ const { data } = await supabase
 **❌ WRONG (OLD Schema):**
 ```typescript
 // NEVER USE THESE:
-.from('logs')  // ❌ Table doesn't exist!
+.from('checklist_items')  // ❌ Table doesn't exist!
 .select('log_id, pass, inspector_remarks, ai_result')  // ❌ Wrong fields!
 ```
 
@@ -220,8 +220,8 @@ const { data } = await supabase
 
 ### **❌ WRONG Field Names:**
 - `property_id` (in properties) → Use `id`
-- `property_name` → Use `name`
-- `street_address` → Use `address`
+- `name` → Use `name`
+- `address` → Use `address`
 - `log_id` → Use `id`
 - `pass` → Use `status`
 - `inspector_remarks` → Use `notes`
@@ -240,8 +240,8 @@ const { data } = await supabase
 ```typescript
 interface Property {
   id: string;           // ✅ NOT property_id
-  name: string;         // ✅ NOT property_name  
-  address: string;      // ✅ NOT street_address
+  name: string;         // ✅ NOT name  
+  address: string;      // ✅ NOT address
   vrbo_url?: string;
   airbnb_url?: string;
   added_by: string;
@@ -303,7 +303,7 @@ LIMIT 1;
 Before writing any database code:
 
 - [ ] ✅ Used correct table names (checklist_items NOT logs)
-- [ ] ✅ Used correct field names (id NOT property_id, name NOT property_name)
+- [ ] ✅ Used correct field names (id NOT property_id, name NOT name)
 - [ ] ✅ Used correct relationships (static_item_id FK to static_safety_items.id)
 - [ ] ✅ Tested query in Supabase SQL editor
 - [ ] ✅ Updated TypeScript interfaces to match schema

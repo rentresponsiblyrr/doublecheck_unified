@@ -3,11 +3,11 @@
  * Extracted from VideoRecorder.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, Camera } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle, Camera } from "lucide-react";
 
 interface CameraPermissionCardProps {
   className?: string;
@@ -16,7 +16,7 @@ interface CameraPermissionCardProps {
 
 export const CameraPermissionCard: React.FC<CameraPermissionCardProps> = ({
   className,
-  onRequestPermission
+  onRequestPermission,
 }) => {
   return (
     <Card id="camera-permission-card" className={className}>

@@ -3,10 +3,10 @@
  * Extracted from VideoRecorder.tsx
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Circle, Settings } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Circle, Settings } from "lucide-react";
 
 interface VideoPreviewProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -25,10 +25,13 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({
   duration,
   formatDuration,
   showSettings,
-  onToggleSettings
+  onToggleSettings,
 }) => {
   return (
-    <div id="video-preview-container" className="relative bg-black rounded-lg overflow-hidden aspect-video min-h-[300px] sm:min-h-[400px]">
+    <div
+      id="video-preview-container"
+      className="relative bg-black rounded-lg overflow-hidden aspect-video min-h-[300px] sm:min-h-[400px]"
+    >
       {cameraLoading ? (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-white text-lg">Loading camera...</div>
@@ -42,7 +45,7 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({
           muted
         />
       )}
-      
+
       {/* Recording Indicator - Mobile Optimized */}
       {isRecording && (
         <div className="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-full flex items-center gap-2 text-lg font-medium">

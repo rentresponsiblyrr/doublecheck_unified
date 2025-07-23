@@ -1,6 +1,6 @@
 /**
  * BLEEDING EDGE: Advanced Compression & HTTP/2 Optimization
- * 
+ *
  * Professional compression and HTTP/2 push optimization that exceeds industry standards
  * - Dynamic compression with multiple algorithms (gzip, brotli, zstd)
  * - Smart resource bundling for HTTP/2 multiplexing
@@ -29,7 +29,7 @@ export interface CompressionConfig {
 export interface HTTP2PushConfig {
   enablePush: boolean;
   maxPushResources: number;
-  pushPriority: 'high' | 'medium' | 'low';
+  pushPriority: "high" | "medium" | "low";
   criticalResources: string[];
   adaptivePush: boolean;
   pushThreshold: number; // Connection speed threshold for push
@@ -38,7 +38,7 @@ export interface HTTP2PushConfig {
 export interface ResourceBundle {
   name: string;
   files: string[];
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   compressible: boolean;
   pushCandidate: boolean;
   estimatedSize: number;
@@ -47,14 +47,14 @@ export interface ResourceBundle {
 export interface CompressionResult {
   originalSize: number;
   compressedSize: number;
-  algorithm: 'gzip' | 'brotli' | 'zstd' | 'none';
+  algorithm: "gzip" | "brotli" | "zstd" | "none";
   compressionRatio: number;
   compressionTime: number;
   savings: number;
 }
 
 export interface NetworkCondition {
-  effectiveType: '2g' | '3g' | '4g' | 'slow-2g';
+  effectiveType: "2g" | "3g" | "4g" | "slow-2g";
   downlink: number;
   rtt: number;
   saveData: boolean;
@@ -73,7 +73,7 @@ export class AdvancedCompressionManager {
 
   constructor(
     compressionConfig: Partial<CompressionConfig> = {},
-    http2Config: Partial<HTTP2PushConfig> = {}
+    http2Config: Partial<HTTP2PushConfig> = {},
   ) {
     this.config = {
       enableGzip: true,
@@ -82,26 +82,37 @@ export class AdvancedCompressionManager {
       gzipLevel: 6,
       brotliLevel: 6,
       minSizeThreshold: 1024, // 1KB
-      excludeTypes: ['image/jpeg', 'image/png', 'image/gif', 'video/*', 'audio/*'],
-      includeTypes: ['text/*', 'application/javascript', 'application/json', 'application/xml'],
+      excludeTypes: [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "video/*",
+        "audio/*",
+      ],
+      includeTypes: [
+        "text/*",
+        "application/javascript",
+        "application/json",
+        "application/xml",
+      ],
       adaptiveCompression: true,
       networkAware: true,
-      ...compressionConfig
+      ...compressionConfig,
     };
 
     this.http2Config = {
       enablePush: true,
       maxPushResources: 10,
-      pushPriority: 'high',
+      pushPriority: "high",
       criticalResources: [
-        '/assets/js/index-*.js',
-        '/assets/js/react-core-*.js',
-        '/assets/js/ui-core-*.js',
-        '/assets/index-*.css'
+        "/assets/js/index-*.js",
+        "/assets/js/react-core-*.js",
+        "/assets/js/ui-core-*.js",
+        "/assets/index-*.css",
       ],
       adaptivePush: true,
       pushThreshold: 1.0, // Mbps
-      ...http2Config
+      ...http2Config,
     };
 
     this.initializeCompressionSupport();
@@ -118,21 +129,23 @@ export class AdvancedCompressionManager {
   public async compressResource(
     content: string | ArrayBuffer,
     contentType: string,
-    url?: string
+    url?: string,
   ): Promise<CompressionResult> {
     const startTime = performance.now();
-    const originalSize = typeof content === 'string' ? 
-      new TextEncoder().encode(content).length : content.byteLength;
+    const originalSize =
+      typeof content === "string"
+        ? new TextEncoder().encode(content).length
+        : content.byteLength;
 
     // Check if compression is beneficial
     if (!this.shouldCompress(originalSize, contentType)) {
       return {
         originalSize,
         compressedSize: originalSize,
-        algorithm: 'none',
+        algorithm: "none",
         compressionRatio: 1,
         compressionTime: 0,
-        savings: 0
+        savings: 0,
       };
     }
 
@@ -144,35 +157,37 @@ export class AdvancedCompressionManager {
     }
 
     // Select optimal compression algorithm
-    const algorithm = this.selectCompressionAlgorithm(originalSize, contentType);
-    
+    const algorithm = this.selectCompressionAlgorithm(
+      originalSize,
+      contentType,
+    );
+
     try {
       const compressed = await this.performCompression(content, algorithm);
       const compressedSize = compressed.byteLength;
       const compressionTime = performance.now() - startTime;
-      
+
       const result: CompressionResult = {
         originalSize,
         compressedSize,
         algorithm,
         compressionRatio: compressedSize / originalSize,
         compressionTime,
-        savings: originalSize - compressedSize
+        savings: originalSize - compressedSize,
       };
 
       // Cache result for future use
       this.compressionCache.set(cacheKey, result);
-      
-      
+
       return result;
     } catch (error) {
       return {
         originalSize,
         compressedSize: originalSize,
-        algorithm: 'none',
+        algorithm: "none",
         compressionRatio: 1,
         compressionTime: performance.now() - startTime,
-        savings: 0
+        savings: 0,
       };
     }
   }
@@ -180,14 +195,16 @@ export class AdvancedCompressionManager {
   /**
    * BLEEDING EDGE: Batch compression with prioritization
    */
-  public async compressBatch(resources: Array<{
-    content: string | ArrayBuffer;
-    contentType: string;
-    url: string;
-    priority: 'critical' | 'high' | 'medium' | 'low';
-  }>): Promise<Map<string, CompressionResult>> {
+  public async compressBatch(
+    resources: Array<{
+      content: string | ArrayBuffer;
+      contentType: string;
+      url: string;
+      priority: "critical" | "high" | "medium" | "low";
+    }>,
+  ): Promise<Map<string, CompressionResult>> {
     const results = new Map<string, CompressionResult>();
-    
+
     // Sort by priority for processing order
     const prioritizedResources = resources.sort((a, b) => {
       const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -196,19 +213,19 @@ export class AdvancedCompressionManager {
 
     // Process in parallel batches to avoid blocking
     const batchSize = this.calculateOptimalBatchSize();
-    
+
     for (let i = 0; i < prioritizedResources.length; i += batchSize) {
       const batch = prioritizedResources.slice(i, i + batchSize);
-      
+
       const batchResults = await Promise.all(
-        batch.map(async resource => {
+        batch.map(async (resource) => {
           const result = await this.compressResource(
             resource.content,
             resource.contentType,
-            resource.url
+            resource.url,
           );
           return { url: resource.url, result };
-        })
+        }),
       );
 
       batchResults.forEach(({ url, result }) => {
@@ -233,31 +250,35 @@ export class AdvancedCompressionManager {
    */
   public generateHTTP2PushManifest(
     bundles: ResourceBundle[],
-    currentRoute: string
+    currentRoute: string,
   ): string[] {
     if (!this.http2Config.enablePush) return [];
 
-    const pushCandidates: Array<{ url: string; priority: number; size: number }> = [];
+    const pushCandidates: Array<{
+      url: string;
+      priority: number;
+      size: number;
+    }> = [];
 
-    bundles.forEach(bundle => {
+    bundles.forEach((bundle) => {
       if (!bundle.pushCandidate) return;
 
       // Calculate push priority score
       const priorityScore = this.calculatePushPriority(bundle, currentRoute);
-      
+
       // Consider network conditions
       if (this.config.networkAware && this.networkCondition) {
         const networkScore = this.calculateNetworkScore(this.networkCondition);
-        if (networkScore < 0.5 && bundle.priority !== 'critical') {
+        if (networkScore < 0.5 && bundle.priority !== "critical") {
           return; // Skip non-critical resources on slow networks
         }
       }
 
-      bundle.files.forEach(file => {
+      bundle.files.forEach((file) => {
         pushCandidates.push({
           url: file,
           priority: priorityScore,
-          size: bundle.estimatedSize / bundle.files.length
+          size: bundle.estimatedSize / bundle.files.length,
         });
       });
     });
@@ -271,7 +292,9 @@ export class AdvancedCompressionManager {
 
     // Limit number of push resources
     const maxPush = this.http2Config.maxPushResources;
-    const selected = pushCandidates.slice(0, maxPush).map(candidate => candidate.url);
+    const selected = pushCandidates
+      .slice(0, maxPush)
+      .map((candidate) => candidate.url);
 
     return selected;
   }
@@ -282,17 +305,20 @@ export class AdvancedCompressionManager {
   public optimizeBundlesForHTTP2(bundles: ResourceBundle[]): ResourceBundle[] {
     // In HTTP/2, we can afford smaller bundles due to multiplexing
     // Split large bundles and merge tiny ones for optimal performance
-    
+
     const optimized: ResourceBundle[] = [];
     const OPTIMAL_BUNDLE_SIZE = 50 * 1024; // 50KB target
     const MIN_BUNDLE_SIZE = 10 * 1024; // 10KB minimum
-    
-    bundles.forEach(bundle => {
+
+    bundles.forEach((bundle) => {
       if (bundle.estimatedSize > OPTIMAL_BUNDLE_SIZE * 2) {
         // Split large bundles
         const splitBundles = this.splitLargeBundle(bundle, OPTIMAL_BUNDLE_SIZE);
         optimized.push(...splitBundles);
-      } else if (bundle.estimatedSize < MIN_BUNDLE_SIZE && bundle.priority !== 'critical') {
+      } else if (
+        bundle.estimatedSize < MIN_BUNDLE_SIZE &&
+        bundle.priority !== "critical"
+      ) {
         // Mark small bundles for potential merging
         optimized.push({ ...bundle, name: `${bundle.name}-small` });
       } else {
@@ -310,21 +336,23 @@ export class AdvancedCompressionManager {
 
   private async performCompression(
     content: string | ArrayBuffer,
-    algorithm: 'gzip' | 'brotli' | 'zstd'
+    algorithm: "gzip" | "brotli" | "zstd",
   ): Promise<ArrayBuffer> {
-    const data = typeof content === 'string' ? 
-      new TextEncoder().encode(content) : new Uint8Array(content);
+    const data =
+      typeof content === "string"
+        ? new TextEncoder().encode(content)
+        : new Uint8Array(content);
 
     switch (algorithm) {
-      case 'gzip':
+      case "gzip":
         return this.gzipCompress(data);
-      
-      case 'brotli':
+
+      case "brotli":
         return this.brotliCompress(data);
-      
-      case 'zstd':
+
+      case "zstd":
         return this.zstdCompress(data);
-      
+
       default:
         throw new Error(`Unsupported compression algorithm: ${algorithm}`);
     }
@@ -332,41 +360,41 @@ export class AdvancedCompressionManager {
 
   private async gzipCompress(data: Uint8Array): Promise<ArrayBuffer> {
     // Use CompressionStream API if available
-    if ('CompressionStream' in window) {
-      const compressionStream = new CompressionStream('gzip');
+    if ("CompressionStream" in window) {
+      const compressionStream = new CompressionStream("gzip");
       const writer = compressionStream.writable.getWriter();
       const reader = compressionStream.readable.getReader();
-      
+
       writer.write(data);
       writer.close();
-      
+
       const chunks: Uint8Array[] = [];
       let done = false;
-      
+
       while (!done) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone;
         if (value) chunks.push(value);
       }
-      
+
       const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
       const result = new Uint8Array(totalLength);
       let offset = 0;
-      
+
       for (const chunk of chunks) {
         result.set(chunk, offset);
         offset += chunk.length;
       }
-      
+
       return result.buffer;
     }
-    
+
     // Fallback: return original data (would implement polyfill in production)
     return data.buffer;
   }
 
   private async brotliCompress(data: Uint8Array): Promise<ArrayBuffer> {
-    // Similar implementation to gzip but with 'deflate-raw' 
+    // Similar implementation to gzip but with 'deflate-raw'
     // (Brotli not yet supported in CompressionStream)
     return this.gzipCompress(data);
   }
@@ -382,73 +410,79 @@ export class AdvancedCompressionManager {
 
   private selectCompressionAlgorithm(
     size: number,
-    contentType: string
-  ): 'gzip' | 'brotli' | 'zstd' {
+    contentType: string,
+  ): "gzip" | "brotli" | "zstd" {
     // Network-aware algorithm selection
     if (this.config.networkAware && this.networkCondition) {
       const networkSpeed = this.networkCondition.downlink;
-      
+
       // On slow networks, prioritize compression ratio over speed
-      if (networkSpeed < 1.0) { // < 1 Mbps
-        return this.config.enableBrotli ? 'brotli' : 'gzip';
+      if (networkSpeed < 1.0) {
+        // < 1 Mbps
+        return this.config.enableBrotli ? "brotli" : "gzip";
       }
-      
+
       // On fast networks, prioritize compression speed
-      if (networkSpeed > 10.0) { // > 10 Mbps
-        return 'gzip'; // Fastest compression
+      if (networkSpeed > 10.0) {
+        // > 10 Mbps
+        return "gzip"; // Fastest compression
       }
     }
 
     // Content-type specific selection
-    if (contentType.includes('javascript') || contentType.includes('json')) {
+    if (contentType.includes("javascript") || contentType.includes("json")) {
       // JavaScript and JSON compress very well with Brotli
-      return this.config.enableBrotli ? 'brotli' : 'gzip';
+      return this.config.enableBrotli ? "brotli" : "gzip";
     }
-    
-    if (contentType.includes('html') || contentType.includes('css')) {
+
+    if (contentType.includes("html") || contentType.includes("css")) {
       // HTML and CSS benefit from Brotli's dictionary compression
-      return this.config.enableBrotli ? 'brotli' : 'gzip';
+      return this.config.enableBrotli ? "brotli" : "gzip";
     }
 
     // Size-based selection
     if (size > 100 * 1024 && this.config.enableBrotli) {
       // Large files benefit more from Brotli's better compression ratio
-      return 'brotli';
+      return "brotli";
     }
 
     // Default to gzip for broad compatibility and good speed
-    return 'gzip';
+    return "gzip";
   }
 
   private shouldCompress(size: number, contentType: string): boolean {
     // Size threshold
     if (size < this.config.minSizeThreshold) return false;
-    
+
     // Excluded types
-    if (this.config.excludeTypes.some(type => {
-      if (type.endsWith('*')) {
-        return contentType.startsWith(type.slice(0, -1));
-      }
-      return contentType === type;
-    })) {
+    if (
+      this.config.excludeTypes.some((type) => {
+        if (type.endsWith("*")) {
+          return contentType.startsWith(type.slice(0, -1));
+        }
+        return contentType === type;
+      })
+    ) {
       return false;
     }
-    
+
     // Included types
     if (this.config.includeTypes.length > 0) {
-      return this.config.includeTypes.some(type => {
-        if (type.endsWith('*')) {
+      return this.config.includeTypes.some((type) => {
+        if (type.endsWith("*")) {
           return contentType.startsWith(type.slice(0, -1));
         }
         return contentType === type;
       });
     }
-    
+
     // Default: compress text-based content
-    return contentType.startsWith('text/') || 
-           contentType.includes('javascript') ||
-           contentType.includes('json') ||
-           contentType.includes('xml');
+    return (
+      contentType.startsWith("text/") ||
+      contentType.includes("javascript") ||
+      contentType.includes("json") ||
+      contentType.includes("xml")
+    );
   }
 
   // ============================================================================
@@ -457,16 +491,15 @@ export class AdvancedCompressionManager {
 
   private initializeCompressionSupport(): void {
     // Detect browser compression support
-    if ('CompressionStream' in window) {
-      this.supportedAlgorithms.add('gzip');
-      
+    if ("CompressionStream" in window) {
+      this.supportedAlgorithms.add("gzip");
+
       // Test for other algorithms
       try {
-        new CompressionStream('deflate');
-        this.supportedAlgorithms.add('deflate');
+        new CompressionStream("deflate");
+        this.supportedAlgorithms.add("deflate");
       } catch {}
     }
-    
   }
 
   private initializeNetworkMonitoring(): void {
@@ -478,32 +511,37 @@ export class AdvancedCompressionManager {
         effectiveType: connection.effectiveType,
         downlink: connection.downlink,
         rtt: connection.rtt,
-        saveData: connection.saveData
+        saveData: connection.saveData,
       };
 
-      connection.addEventListener('change', () => {
+      connection.addEventListener("change", () => {
         this.networkCondition = {
           effectiveType: connection.effectiveType,
           downlink: connection.downlink,
           rtt: connection.rtt,
-          saveData: connection.saveData
+          saveData: connection.saveData,
         };
-        
       });
     }
   }
 
-  private generateCacheKey(content: string | ArrayBuffer, contentType: string): string {
+  private generateCacheKey(
+    content: string | ArrayBuffer,
+    contentType: string,
+  ): string {
     // Generate a simple hash for caching (would use crypto.subtle in production)
-    const data = typeof content === 'string' ? content : String.fromCharCode(...new Uint8Array(content));
+    const data =
+      typeof content === "string"
+        ? content
+        : String.fromCharCode(...new Uint8Array(content));
     let hash = 0;
-    
+
     for (let i = 0; i < Math.min(data.length, 1000); i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
-    
+
     return `${hash}_${contentType}`;
   }
 
@@ -512,83 +550,98 @@ export class AdvancedCompressionManager {
     return Math.min(cpuCores * 2, 8); // Limit to reasonable batch size
   }
 
-  private calculatePushPriority(bundle: ResourceBundle, currentRoute: string): number {
+  private calculatePushPriority(
+    bundle: ResourceBundle,
+    currentRoute: string,
+  ): number {
     let score = 0;
-    
+
     // Base priority score
     const priorityScores = { critical: 100, high: 75, medium: 50, low: 25 };
     score += priorityScores[bundle.priority];
-    
+
     // Route relevance
-    if (bundle.files.some(file => file.includes(currentRoute))) {
+    if (bundle.files.some((file) => file.includes(currentRoute))) {
       score += 25;
     }
-    
+
     // Size penalty for large bundles
     if (bundle.estimatedSize > 100 * 1024) {
       score -= 20;
     }
-    
+
     return score;
   }
 
   private calculateNetworkScore(network: NetworkCondition): number {
-    const typeScores = { '4g': 1.0, '3g': 0.7, '2g': 0.3, 'slow-2g': 0.1 };
+    const typeScores = { "4g": 1.0, "3g": 0.7, "2g": 0.3, "slow-2g": 0.1 };
     const baseScore = typeScores[network.effectiveType] || 0.5;
-    
+
     // Adjust for actual speed
     const speedScore = Math.min(network.downlink / 10, 1.0);
-    
+
     return (baseScore + speedScore) / 2;
   }
 
-  private splitLargeBundle(bundle: ResourceBundle, targetSize: number): ResourceBundle[] {
+  private splitLargeBundle(
+    bundle: ResourceBundle,
+    targetSize: number,
+  ): ResourceBundle[] {
     const chunks: ResourceBundle[] = [];
-    const filesPerChunk = Math.ceil(bundle.files.length / Math.ceil(bundle.estimatedSize / targetSize));
-    
+    const filesPerChunk = Math.ceil(
+      bundle.files.length / Math.ceil(bundle.estimatedSize / targetSize),
+    );
+
     for (let i = 0; i < bundle.files.length; i += filesPerChunk) {
       const chunkFiles = bundle.files.slice(i, i + filesPerChunk);
       chunks.push({
         ...bundle,
         name: `${bundle.name}-chunk-${chunks.length + 1}`,
         files: chunkFiles,
-        estimatedSize: (bundle.estimatedSize / bundle.files.length) * chunkFiles.length
+        estimatedSize:
+          (bundle.estimatedSize / bundle.files.length) * chunkFiles.length,
       });
     }
-    
+
     return chunks;
   }
 
-  private mergeSmallBundles(bundles: ResourceBundle[], minSize: number): ResourceBundle[] {
+  private mergeSmallBundles(
+    bundles: ResourceBundle[],
+    minSize: number,
+  ): ResourceBundle[] {
     const result: ResourceBundle[] = [];
     const smallBundles: ResourceBundle[] = [];
-    
-    bundles.forEach(bundle => {
-      if (bundle.estimatedSize < minSize && bundle.name.includes('-small')) {
+
+    bundles.forEach((bundle) => {
+      if (bundle.estimatedSize < minSize && bundle.name.includes("-small")) {
         smallBundles.push(bundle);
       } else {
         result.push(bundle);
       }
     });
-    
+
     // Group small bundles by priority
     const priorityGroups = new Map<string, ResourceBundle[]>();
-    smallBundles.forEach(bundle => {
+    smallBundles.forEach((bundle) => {
       const key = bundle.priority;
       if (!priorityGroups.has(key)) {
         priorityGroups.set(key, []);
       }
       priorityGroups.get(key)!.push(bundle);
     });
-    
+
     // Merge bundles within each priority group
     priorityGroups.forEach((group, priority) => {
       let currentBundle: ResourceBundle | null = null;
-      
-      group.forEach(bundle => {
+
+      group.forEach((bundle) => {
         if (!currentBundle) {
           currentBundle = { ...bundle, name: `merged-${priority}` };
-        } else if (currentBundle.estimatedSize + bundle.estimatedSize < minSize * 2) {
+        } else if (
+          currentBundle.estimatedSize + bundle.estimatedSize <
+          minSize * 2
+        ) {
           currentBundle.files.push(...bundle.files);
           currentBundle.estimatedSize += bundle.estimatedSize;
         } else {
@@ -596,17 +649,17 @@ export class AdvancedCompressionManager {
           currentBundle = { ...bundle, name: `merged-${priority}` };
         }
       });
-      
+
       if (currentBundle) {
         result.push(currentBundle);
       }
     });
-    
+
     return result;
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // ============================================================================
@@ -620,19 +673,26 @@ export class AdvancedCompressionManager {
     algorithmUsage: Record<string, number>;
   } {
     const results = Array.from(this.compressionCache.values());
-    const totalSavings = results.reduce((sum, result) => sum + result.savings, 0);
+    const totalSavings = results.reduce(
+      (sum, result) => sum + result.savings,
+      0,
+    );
     const algorithmUsage: Record<string, number> = {};
-    
-    results.forEach(result => {
-      algorithmUsage[result.algorithm] = (algorithmUsage[result.algorithm] || 0) + 1;
+
+    results.forEach((result) => {
+      algorithmUsage[result.algorithm] =
+        (algorithmUsage[result.algorithm] || 0) + 1;
     });
 
     return {
       totalRequests: results.length,
       totalSavings,
-      averageRatio: results.length > 0 ? 
-        results.reduce((sum, result) => sum + result.compressionRatio, 0) / results.length : 0,
-      algorithmUsage
+      averageRatio:
+        results.length > 0
+          ? results.reduce((sum, result) => sum + result.compressionRatio, 0) /
+            results.length
+          : 0,
+      algorithmUsage,
     };
   }
 
@@ -651,7 +711,7 @@ export class AdvancedCompressionManager {
 
 export function createAdvancedCompressionManager(
   compressionConfig?: Partial<CompressionConfig>,
-  http2Config?: Partial<HTTP2PushConfig>
+  http2Config?: Partial<HTTP2PushConfig>,
 ): AdvancedCompressionManager {
   return new AdvancedCompressionManager(compressionConfig, http2Config);
 }
@@ -660,17 +720,26 @@ export function createAdvancedCompressionManager(
 // INTEGRATION HOOK
 // ============================================================================
 
-import React from 'react';
+import React from "react";
 
 export function useAdvancedCompression(
   compressionConfig?: Partial<CompressionConfig>,
-  http2Config?: Partial<HTTP2PushConfig>
+  http2Config?: Partial<HTTP2PushConfig>,
 ) {
-  const [compressionManager, setCompressionManager] = React.useState<AdvancedCompressionManager | null>(null);
-  const [stats, setStats] = React.useState({ totalRequests: 0, totalSavings: 0, averageRatio: 0, algorithmUsage: {} });
+  const [compressionManager, setCompressionManager] =
+    React.useState<AdvancedCompressionManager | null>(null);
+  const [stats, setStats] = React.useState({
+    totalRequests: 0,
+    totalSavings: 0,
+    averageRatio: 0,
+    algorithmUsage: {},
+  });
 
   React.useEffect(() => {
-    const manager = createAdvancedCompressionManager(compressionConfig, http2Config);
+    const manager = createAdvancedCompressionManager(
+      compressionConfig,
+      http2Config,
+    );
     setCompressionManager(manager);
 
     // Update stats periodically
@@ -686,8 +755,10 @@ export function useAdvancedCompression(
   return {
     compressionManager,
     stats,
-    compressResource: compressionManager?.compressResource.bind(compressionManager),
+    compressResource:
+      compressionManager?.compressResource.bind(compressionManager),
     compressBatch: compressionManager?.compressBatch.bind(compressionManager),
-    generateHTTP2PushManifest: compressionManager?.generateHTTP2PushManifest.bind(compressionManager)
+    generateHTTP2PushManifest:
+      compressionManager?.generateHTTP2PushManifest.bind(compressionManager),
   };
 }

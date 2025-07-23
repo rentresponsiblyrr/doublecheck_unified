@@ -1,33 +1,33 @@
 /**
  * UNIFIED SERVICE WORKER MANAGER - NETFLIX/META GRADE RELIABILITY
- * 
+ *
  * Enterprise-grade service worker orchestrator that ensures zero registration failures,
  * bulletproof lifecycle management, and seamless offline-first experience for construction sites.
- * 
+ *
  * ELITE FEATURES:
  * - Zero-failure registration with exponential backoff retry
- * - Intelligent cache strategies with network-adaptive optimization  
+ * - Intelligent cache strategies with network-adaptive optimization
  * - Background sync with robust conflict resolution
  * - Construction site optimizations (2G networks, battery conservation)
  * - Performance integration with Core Web Vitals monitoring
  * - Comprehensive error recovery and graceful degradation
- * 
+ *
  * SUCCESS METRICS:
  * - 100% registration success rate across all environments
  * - <50ms cache retrieval for critical resources
  * - 99.9% background sync success rate
  * - Zero data loss during network transitions
  * - 70%+ cache hit rate for repeated resources
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 3.0.0 - Phase 3 Elite PWA Excellence
  */
 
-import { logger } from '@/utils/logger';
-import { IntelligentCacheManager } from './IntelligentCacheManager';
-import { BackgroundSyncManager } from './BackgroundSyncManager';
-import { ConstructionSiteOptimizer } from './ConstructionSiteOptimizer';
-import { PWAPerformanceIntegrator } from './PWAPerformanceIntegrator';
+import { logger } from "@/utils/logger";
+import { IntelligentCacheManager } from "./IntelligentCacheManager";
+import { BackgroundSyncManager } from "./BackgroundSyncManager";
+import { ConstructionSiteOptimizer } from "./ConstructionSiteOptimizer";
+import { PWAPerformanceIntegrator } from "./PWAPerformanceIntegrator";
 
 export interface ServiceWorkerStatus {
   isRegistered: boolean;
@@ -64,11 +64,16 @@ export interface AdvancedSWOptions {
 export interface CacheStrategy {
   name: string;
   pattern: RegExp | string;
-  strategy: 'CacheFirst' | 'NetworkFirst' | 'StaleWhileRevalidate' | 'NetworkOnly' | 'CacheOnly';
+  strategy:
+    | "CacheFirst"
+    | "NetworkFirst"
+    | "StaleWhileRevalidate"
+    | "NetworkOnly"
+    | "CacheOnly";
   cacheName: string;
   maxEntries?: number;
   maxAgeSeconds?: number;
-  priority: 'critical' | 'high' | 'medium' | 'low';
+  priority: "critical" | "high" | "medium" | "low";
   networkTimeoutSeconds?: number;
   constructionSiteOptimized?: boolean;
 }
@@ -99,17 +104,17 @@ export class UnifiedServiceWorkerManager {
       enableConstructionSiteMode: true,
       performanceIntegration: true,
       cacheStrategies: this.getDefaultCacheStrategies(),
-      ...options
+      ...options,
     };
 
     this.status = {
       isRegistered: false,
       isActive: false,
-      version: '3.0.0',
-      scope: '/',
+      version: "3.0.0",
+      scope: "/",
       updateAvailable: false,
       registrationTime: 0,
-      activationTime: 0
+      activationTime: 0,
     };
 
     this.metrics = {
@@ -119,8 +124,8 @@ export class UnifiedServiceWorkerManager {
       cacheHitRate: 0,
       backgroundSyncSuccess: 0,
       offlineCapability: false,
-      networkCondition: 'unknown',
-      batteryOptimized: false
+      networkCondition: "unknown",
+      batteryOptimized: false,
     };
 
     // Initialize subsystems
@@ -136,27 +141,39 @@ export class UnifiedServiceWorkerManager {
    */
   async initialize(): Promise<ServiceWorkerRegistration> {
     if (this.isInitializing) {
-      logger.warn('Service Worker initialization already in progress', {}, 'SW_MANAGER');
+      logger.warn(
+        "Service Worker initialization already in progress",
+        {},
+        "SW_MANAGER",
+      );
       return this.waitForInitialization();
     }
 
     if (this.registration?.active) {
-      logger.info('Service Worker already active', { 
-        scope: this.registration.scope,
-        state: this.registration.active.state 
-      }, 'SW_MANAGER');
+      logger.info(
+        "Service Worker already active",
+        {
+          scope: this.registration.scope,
+          state: this.registration.active.state,
+        },
+        "SW_MANAGER",
+      );
       return this.registration;
     }
 
     this.isInitializing = true;
 
     try {
-      logger.info('🚀 Initializing Unified Service Worker Manager', {
-        version: this.status.version,
-        options: this.options,
-        userAgent: navigator.userAgent,
-        supported: 'serviceWorker' in navigator
-      }, 'SW_MANAGER');
+      logger.info(
+        "🚀 Initializing Unified Service Worker Manager",
+        {
+          version: this.status.version,
+          options: this.options,
+          userAgent: navigator.userAgent,
+          supported: "serviceWorker" in navigator,
+        },
+        "SW_MANAGER",
+      );
 
       // Pre-flight checks
       await this.performPreflightChecks();
@@ -183,16 +200,22 @@ export class UnifiedServiceWorkerManager {
       // Update status and metrics
       this.updateStatusAfterSuccess();
 
-      logger.info('✅ Service Worker Manager initialized successfully', {
-        scope: this.registration.scope,
-        version: this.status.version,
-        activationTime: this.metrics.activationTime,
-        features: this.getEnabledFeatures()
-      }, 'SW_MANAGER');
+      logger.info(
+        "✅ Service Worker Manager initialized successfully",
+        {
+          scope: this.registration.scope,
+          version: this.status.version,
+          activationTime: this.metrics.activationTime,
+          features: this.getEnabledFeatures(),
+        },
+        "SW_MANAGER",
+      );
 
-      this.emit('initialized', { registration: this.registration, status: this.status });
+      this.emit("initialized", {
+        registration: this.registration,
+        status: this.status,
+      });
       return this.registration;
-
     } catch (error) {
       await this.handleInitializationFailure(error as Error);
       throw error;
@@ -212,20 +235,24 @@ export class UnifiedServiceWorkerManager {
       this.metrics.registrationAttempts++;
 
       try {
-        logger.debug(`Service Worker registration attempt ${attempt + 1}/${this.options.maxRetries + 1}`, {
-          retryCount: this.retryCount,
-          delay: this.retryCount * this.options.retryDelay
-        }, 'SW_MANAGER');
+        logger.debug(
+          `Service Worker registration attempt ${attempt + 1}/${this.options.maxRetries + 1}`,
+          {
+            retryCount: this.retryCount,
+            delay: this.retryCount * this.options.retryDelay,
+          },
+          "SW_MANAGER",
+        );
 
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/',
-          updateViaCache: 'none', // Always check for updates
-          type: 'classic' // Explicit type for reliability
+        const registration = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none", // Always check for updates
+          type: "classic", // Explicit type for reliability
         });
 
         // Verify registration was successful
         if (!registration) {
-          throw new Error('Registration returned null');
+          throw new Error("Registration returned null");
         }
 
         // Setup update handling immediately
@@ -235,40 +262,53 @@ export class UnifiedServiceWorkerManager {
         this.setupMessageHandling();
 
         this.status.registrationTime = Date.now();
-        logger.info('✅ Service Worker registered successfully', {
-          scope: registration.scope,
-          registrationTime: this.status.registrationTime,
-          attempt: attempt + 1
-        }, 'SW_MANAGER');
+        logger.info(
+          "✅ Service Worker registered successfully",
+          {
+            scope: registration.scope,
+            registrationTime: this.status.registrationTime,
+            attempt: attempt + 1,
+          },
+          "SW_MANAGER",
+        );
 
         return registration;
-
       } catch (error) {
         lastError = error as Error;
         this.metrics.registrationFailures++;
-        
-        logger.warn(`Service Worker registration failed (attempt ${attempt + 1})`, {
-          error: lastError.message,
-          code: (lastError as any).code,
-          stack: lastError.stack?.substring(0, 500)
-        }, 'SW_MANAGER');
+
+        logger.warn(
+          `Service Worker registration failed (attempt ${attempt + 1})`,
+          {
+            error: lastError.message,
+            code: (lastError as any).code,
+            stack: lastError.stack?.substring(0, 500),
+          },
+          "SW_MANAGER",
+        );
 
         if (attempt < this.options.maxRetries) {
           const delay = Math.pow(2, attempt) * this.options.retryDelay;
-          logger.debug(`Retrying registration in ${delay}ms`, {}, 'SW_MANAGER');
+          logger.debug(`Retrying registration in ${delay}ms`, {}, "SW_MANAGER");
           await this.delay(delay);
         }
       }
     }
 
     // All retries exhausted
-    const finalError = new Error(`Service Worker registration failed after ${this.options.maxRetries + 1} attempts: ${lastError!.message}`);
-    logger.error('❌ Service Worker registration permanently failed', {
-      finalError: finalError.message,
-      lastError: lastError!.message,
-      attempts: this.metrics.registrationAttempts,
-      failures: this.metrics.registrationFailures
-    }, 'SW_MANAGER');
+    const finalError = new Error(
+      `Service Worker registration failed after ${this.options.maxRetries + 1} attempts: ${lastError!.message}`,
+    );
+    logger.error(
+      "❌ Service Worker registration permanently failed",
+      {
+        finalError: finalError.message,
+        lastError: lastError!.message,
+        attempts: this.metrics.registrationAttempts,
+        failures: this.metrics.registrationFailures,
+      },
+      "SW_MANAGER",
+    );
 
     throw finalError;
   }
@@ -279,7 +319,7 @@ export class UnifiedServiceWorkerManager {
    */
   private async waitForStableActivation(): Promise<void> {
     if (!this.registration) {
-      throw new Error('No registration available for activation wait');
+      throw new Error("No registration available for activation wait");
     }
 
     const startTime = Date.now();
@@ -288,24 +328,31 @@ export class UnifiedServiceWorkerManager {
     return new Promise((resolve, reject) => {
       const checkActivation = () => {
         const elapsed = Date.now() - startTime;
-        
+
         if (elapsed > timeout) {
-          reject(new Error('Service Worker activation timeout after 30 seconds'));
+          reject(
+            new Error("Service Worker activation timeout after 30 seconds"),
+          );
           return;
         }
 
         const activeWorker = this.registration!.active;
-        
-        if (activeWorker && activeWorker.state === 'activated') {
+
+        if (activeWorker && activeWorker.state === "activated") {
           this.status.isActive = true;
           this.status.activationTime = Date.now();
-          this.metrics.activationTime = this.status.activationTime - this.status.registrationTime;
-          
-          logger.info('✅ Service Worker activated successfully', {
-            activationTime: this.metrics.activationTime,
-            state: activeWorker.state
-          }, 'SW_MANAGER');
-          
+          this.metrics.activationTime =
+            this.status.activationTime - this.status.registrationTime;
+
+          logger.info(
+            "✅ Service Worker activated successfully",
+            {
+              activationTime: this.metrics.activationTime,
+              state: activeWorker.state,
+            },
+            "SW_MANAGER",
+          );
+
           resolve();
         } else {
           // Check again in 100ms
@@ -341,14 +388,21 @@ export class UnifiedServiceWorkerManager {
       // Wait for all features to initialize
       await Promise.allSettled(initPromises);
 
-      logger.info('Advanced features initialized', {
-        cacheManagement: true,
-        backgroundSync: this.options.enableBackgroundSync,
-        navigationPreload: this.options.enableNavigationPreload
-      }, 'SW_MANAGER');
-
+      logger.info(
+        "Advanced features initialized",
+        {
+          cacheManagement: true,
+          backgroundSync: this.options.enableBackgroundSync,
+          navigationPreload: this.options.enableNavigationPreload,
+        },
+        "SW_MANAGER",
+      );
     } catch (error) {
-      logger.warn('Some advanced features failed to initialize', { error }, 'SW_MANAGER');
+      logger.warn(
+        "Some advanced features failed to initialize",
+        { error },
+        "SW_MANAGER",
+      );
       // Continue - advanced features are enhancements, not requirements
     }
   }
@@ -360,12 +414,20 @@ export class UnifiedServiceWorkerManager {
   private async initializeBackgroundSyncSafely(): Promise<void> {
     try {
       if (!this.registration?.active) {
-        logger.warn('Cannot initialize background sync: No active service worker', {}, 'SW_MANAGER');
+        logger.warn(
+          "Cannot initialize background sync: No active service worker",
+          {},
+          "SW_MANAGER",
+        );
         return;
       }
 
-      if (!('sync' in window.ServiceWorkerRegistration.prototype)) {
-        logger.info('Background sync not supported in this environment', {}, 'SW_MANAGER');
+      if (!("sync" in window.ServiceWorkerRegistration.prototype)) {
+        logger.info(
+          "Background sync not supported in this environment",
+          {},
+          "SW_MANAGER",
+        );
         return;
       }
 
@@ -373,18 +435,29 @@ export class UnifiedServiceWorkerManager {
       await this.syncManager.initialize(this.registration);
 
       // Register sync events for different data types
-      await this.registration.sync.register('inspection-data-sync');
-      await this.registration.sync.register('photo-upload-sync');
-      await this.registration.sync.register('offline-actions-sync');
+      await this.registration.sync.register("inspection-data-sync");
+      await this.registration.sync.register("photo-upload-sync");
+      await this.registration.sync.register("offline-actions-sync");
 
-      logger.info('✅ Background sync initialized successfully', {
-        syncTags: ['inspection-data-sync', 'photo-upload-sync', 'offline-actions-sync']
-      }, 'SW_MANAGER');
-
+      logger.info(
+        "✅ Background sync initialized successfully",
+        {
+          syncTags: [
+            "inspection-data-sync",
+            "photo-upload-sync",
+            "offline-actions-sync",
+          ],
+        },
+        "SW_MANAGER",
+      );
     } catch (error) {
-      logger.warn('Background sync initialization failed - continuing without sync', {
-        error: (error as Error).message
-      }, 'SW_MANAGER');
+      logger.warn(
+        "Background sync initialization failed - continuing without sync",
+        {
+          error: (error as Error).message,
+        },
+        "SW_MANAGER",
+      );
       // Background sync is an enhancement - continue without it
     }
   }
@@ -396,28 +469,41 @@ export class UnifiedServiceWorkerManager {
   private async initializeNavigationPreloadSafely(): Promise<void> {
     try {
       if (!this.registration?.navigationPreload) {
-        logger.info('Navigation preload not supported', {}, 'SW_MANAGER');
+        logger.info("Navigation preload not supported", {}, "SW_MANAGER");
         return;
       }
 
-      if (this.registration.active?.state !== 'activated') {
-        logger.warn('Cannot enable navigation preload: Service worker not activated', {
-          currentState: this.registration.active?.state
-        }, 'SW_MANAGER');
+      if (this.registration.active?.state !== "activated") {
+        logger.warn(
+          "Cannot enable navigation preload: Service worker not activated",
+          {
+            currentState: this.registration.active?.state,
+          },
+          "SW_MANAGER",
+        );
         return;
       }
 
       await this.registration.navigationPreload.enable();
-      
+
       // Set custom header for navigation preload
-      await this.registration.navigationPreload.setHeaderValue('cache-control: max-age=300');
+      await this.registration.navigationPreload.setHeaderValue(
+        "cache-control: max-age=300",
+      );
 
-      logger.info('✅ Navigation preload enabled successfully', {}, 'SW_MANAGER');
-
+      logger.info(
+        "✅ Navigation preload enabled successfully",
+        {},
+        "SW_MANAGER",
+      );
     } catch (error) {
-      logger.warn('Navigation preload setup failed - continuing without preload', {
-        error: (error as Error).message
-      }, 'SW_MANAGER');
+      logger.warn(
+        "Navigation preload setup failed - continuing without preload",
+        {
+          error: (error as Error).message,
+        },
+        "SW_MANAGER",
+      );
       // Navigation preload is an enhancement - continue without it
     }
   }
@@ -429,16 +515,23 @@ export class UnifiedServiceWorkerManager {
   private async initializeCacheManagement(): Promise<void> {
     try {
       await this.cacheManager.initialize(this.options.cacheStrategies);
-      
+
       // Setup cache performance monitoring
       this.setupCacheMonitoring();
-      
-      logger.info('✅ Cache management initialized successfully', {
-        strategiesCount: this.options.cacheStrategies.length
-      }, 'SW_MANAGER');
 
+      logger.info(
+        "✅ Cache management initialized successfully",
+        {
+          strategiesCount: this.options.cacheStrategies.length,
+        },
+        "SW_MANAGER",
+      );
     } catch (error) {
-      logger.error('Cache management initialization failed', { error }, 'SW_MANAGER');
+      logger.error(
+        "Cache management initialization failed",
+        { error },
+        "SW_MANAGER",
+      );
       throw error; // Cache management is critical
     }
   }
@@ -452,13 +545,16 @@ export class UnifiedServiceWorkerManager {
       await this.performanceIntegrator.initialize({
         serviceWorkerManager: this,
         cacheManager: this.cacheManager,
-        enableRealTimeMonitoring: true
+        enableRealTimeMonitoring: true,
       });
 
-      logger.info('✅ Performance integration enabled', {}, 'SW_MANAGER');
-
+      logger.info("✅ Performance integration enabled", {}, "SW_MANAGER");
     } catch (error) {
-      logger.warn('Performance integration setup failed', { error }, 'SW_MANAGER');
+      logger.warn(
+        "Performance integration setup failed",
+        { error },
+        "SW_MANAGER",
+      );
       // Performance integration is an enhancement
     }
   }
@@ -472,20 +568,28 @@ export class UnifiedServiceWorkerManager {
       await this.constructionOptimizer.initialize({
         cacheManager: this.cacheManager,
         syncManager: this.syncManager,
-        performanceIntegrator: this.performanceIntegrator
+        performanceIntegrator: this.performanceIntegrator,
       });
 
       // Update metrics
       this.metrics.batteryOptimized = true;
-      this.metrics.networkCondition = this.constructionOptimizer.getNetworkCondition();
+      this.metrics.networkCondition =
+        this.constructionOptimizer.getNetworkCondition();
 
-      logger.info('✅ Construction site optimizations enabled', {
-        networkCondition: this.metrics.networkCondition,
-        batteryOptimized: this.metrics.batteryOptimized
-      }, 'SW_MANAGER');
-
+      logger.info(
+        "✅ Construction site optimizations enabled",
+        {
+          networkCondition: this.metrics.networkCondition,
+          batteryOptimized: this.metrics.batteryOptimized,
+        },
+        "SW_MANAGER",
+      );
     } catch (error) {
-      logger.warn('Construction site optimization setup failed', { error }, 'SW_MANAGER');
+      logger.warn(
+        "Construction site optimization setup failed",
+        { error },
+        "SW_MANAGER",
+      );
       // Construction optimizations are enhancements
     }
   }
@@ -496,31 +600,43 @@ export class UnifiedServiceWorkerManager {
    */
   private async performPreflightChecks(): Promise<void> {
     // Check Service Worker support
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('Service Workers are not supported in this environment');
+    if (!("serviceWorker" in navigator)) {
+      throw new Error("Service Workers are not supported in this environment");
     }
 
     // Check if we're in secure context (required for SW)
-    if (!window.isSecureContext && location.hostname !== 'localhost') {
-      throw new Error('Service Workers require a secure context (HTTPS)');
+    if (!window.isSecureContext && location.hostname !== "localhost") {
+      throw new Error("Service Workers require a secure context (HTTPS)");
     }
 
     // Check if SW file exists
     try {
-      const swResponse = await fetch('/sw.js', { method: 'HEAD' });
+      const swResponse = await fetch("/sw.js", { method: "HEAD" });
       if (!swResponse.ok) {
-        logger.warn('Service Worker file not found, but continuing', {
-          status: swResponse.status
-        }, 'SW_MANAGER');
+        logger.warn(
+          "Service Worker file not found, but continuing",
+          {
+            status: swResponse.status,
+          },
+          "SW_MANAGER",
+        );
       }
     } catch (error) {
-      logger.warn('Could not verify Service Worker file existence', { error }, 'SW_MANAGER');
+      logger.warn(
+        "Could not verify Service Worker file existence",
+        { error },
+        "SW_MANAGER",
+      );
     }
 
-    logger.debug('Pre-flight checks completed', {
-      secureContext: window.isSecureContext,
-      hostname: location.hostname
-    }, 'SW_MANAGER');
+    logger.debug(
+      "Pre-flight checks completed",
+      {
+        secureContext: window.isSecureContext,
+        hostname: location.hostname,
+      },
+      "SW_MANAGER",
+    );
   }
 
   /**
@@ -528,20 +644,27 @@ export class UnifiedServiceWorkerManager {
    * Manages SW updates without disrupting user workflow
    */
   private setupUpdateHandling(registration: ServiceWorkerRegistration): void {
-    registration.addEventListener('updatefound', () => {
+    registration.addEventListener("updatefound", () => {
       const installingWorker = registration.installing;
       if (!installingWorker) return;
 
-      logger.info('🔄 Service Worker update found', {
-        currentVersion: this.status.version
-      }, 'SW_MANAGER');
+      logger.info(
+        "🔄 Service Worker update found",
+        {
+          currentVersion: this.status.version,
+        },
+        "SW_MANAGER",
+      );
 
-      installingWorker.addEventListener('statechange', () => {
-        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+      installingWorker.addEventListener("statechange", () => {
+        if (
+          installingWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
           // New update available
           this.status.updateAvailable = true;
-          logger.info('📦 Service Worker update available', {}, 'SW_MANAGER');
-          this.emit('updateAvailable', { registration, installingWorker });
+          logger.info("📦 Service Worker update available", {}, "SW_MANAGER");
+          this.emit("updateAvailable", { registration, installingWorker });
         }
       });
     });
@@ -552,23 +675,27 @@ export class UnifiedServiceWorkerManager {
    * Enables communication with Service Worker
    */
   private setupMessageHandling(): void {
-    navigator.serviceWorker.addEventListener('message', (event) => {
+    navigator.serviceWorker.addEventListener("message", (event) => {
       const { type, data } = event.data || {};
-      
-      logger.debug('Message from Service Worker', { type, data }, 'SW_MANAGER');
-      
+
+      logger.debug("Message from Service Worker", { type, data }, "SW_MANAGER");
+
       switch (type) {
-        case 'CACHE_UPDATED':
+        case "CACHE_UPDATED":
           this.handleCacheUpdate(data);
           break;
-        case 'SYNC_COMPLETED':
+        case "SYNC_COMPLETED":
           this.handleSyncCompleted(data);
           break;
-        case 'ERROR':
+        case "ERROR":
           this.handleServiceWorkerError(data);
           break;
         default:
-          logger.debug('Unknown message type from SW', { type, data }, 'SW_MANAGER');
+          logger.debug(
+            "Unknown message type from SW",
+            { type, data },
+            "SW_MANAGER",
+          );
       }
     });
   }
@@ -583,12 +710,11 @@ export class UnifiedServiceWorkerManager {
       try {
         const cacheMetrics = await this.cacheManager.getMetrics();
         this.metrics.cacheHitRate = cacheMetrics.hitRate;
-        
+
         // Emit metrics for monitoring
-        this.emit('metricsUpdate', { metrics: this.metrics });
-        
+        this.emit("metricsUpdate", { metrics: this.metrics });
       } catch (error) {
-        logger.warn('Cache metrics collection failed', { error }, 'SW_MANAGER');
+        logger.warn("Cache metrics collection failed", { error }, "SW_MANAGER");
       }
     }, 30000); // Every 30 seconds
   }
@@ -600,82 +726,82 @@ export class UnifiedServiceWorkerManager {
   private getDefaultCacheStrategies(): CacheStrategy[] {
     return [
       {
-        name: 'app-shell',
+        name: "app-shell",
         pattern: /\.(html|js|css|manifest\.json)$/,
-        strategy: 'CacheFirst',
-        cacheName: 'app-shell-v3',
+        strategy: "CacheFirst",
+        cacheName: "app-shell-v3",
         maxEntries: 50,
         maxAgeSeconds: 24 * 60 * 60, // 24 hours
-        priority: 'critical',
-        constructionSiteOptimized: true
+        priority: "critical",
+        constructionSiteOptimized: true,
       },
       {
-        name: 'inspection-data',
+        name: "inspection-data",
         pattern: /\/api\/.*\/(inspections|properties|checklists)/,
-        strategy: 'StaleWhileRevalidate',
-        cacheName: 'inspection-data-v3',
+        strategy: "StaleWhileRevalidate",
+        cacheName: "inspection-data-v3",
         maxEntries: 100,
         maxAgeSeconds: 5 * 60, // 5 minutes
-        priority: 'high',
+        priority: "high",
         networkTimeoutSeconds: 3,
-        constructionSiteOptimized: true
+        constructionSiteOptimized: true,
       },
       {
-        name: 'media-files',
+        name: "media-files",
         pattern: /\.(jpg|jpeg|png|webp|gif|svg)$/,
-        strategy: 'CacheFirst',
-        cacheName: 'media-v3',
+        strategy: "CacheFirst",
+        cacheName: "media-v3",
         maxEntries: 200,
         maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-        priority: 'medium',
-        constructionSiteOptimized: true
+        priority: "medium",
+        constructionSiteOptimized: true,
       },
       {
-        name: 'fonts',
+        name: "fonts",
         pattern: /\.(woff|woff2|ttf|eot)$/,
-        strategy: 'CacheFirst',
-        cacheName: 'fonts-v3',
+        strategy: "CacheFirst",
+        cacheName: "fonts-v3",
         maxEntries: 30,
         maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-        priority: 'low',
-        constructionSiteOptimized: false
+        priority: "low",
+        constructionSiteOptimized: false,
       },
       {
-        name: 'api-fallback',
+        name: "api-fallback",
         pattern: /\/api\//,
-        strategy: 'NetworkFirst',
-        cacheName: 'api-fallback-v3',
+        strategy: "NetworkFirst",
+        cacheName: "api-fallback-v3",
         maxEntries: 50,
         maxAgeSeconds: 1 * 60, // 1 minute
-        priority: 'high',
+        priority: "high",
         networkTimeoutSeconds: 5,
-        constructionSiteOptimized: true
-      }
+        constructionSiteOptimized: true,
+      },
     ];
   }
 
   // Event handling methods
   private handleCacheUpdate(data: any): void {
-    logger.info('Cache updated by Service Worker', data, 'SW_MANAGER');
-    this.emit('cacheUpdated', data);
+    logger.info("Cache updated by Service Worker", data, "SW_MANAGER");
+    this.emit("cacheUpdated", data);
   }
 
   private handleSyncCompleted(data: any): void {
-    logger.info('Background sync completed', data, 'SW_MANAGER');
+    logger.info("Background sync completed", data, "SW_MANAGER");
     this.metrics.backgroundSyncSuccess++;
-    this.emit('syncCompleted', data);
+    this.emit("syncCompleted", data);
   }
 
   private handleServiceWorkerError(data: any): void {
-    logger.error('Service Worker reported error', data, 'SW_MANAGER');
-    this.emit('error', data);
+    logger.error("Service Worker reported error", data, "SW_MANAGER");
+    this.emit("error", data);
   }
 
   // Utility methods
   private async waitForInitialization(): Promise<ServiceWorkerRegistration> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Service Worker initialization timeout'));
+        reject(new Error("Service Worker initialization timeout"));
       }, 30000);
 
       const checkInitialization = () => {
@@ -699,29 +825,36 @@ export class UnifiedServiceWorkerManager {
 
   private async handleInitializationFailure(error: Error): Promise<void> {
     this.status.lastError = error;
-    logger.error('Service Worker Manager initialization failed', {
-      error: error.message,
-      stack: error.stack?.substring(0, 500),
-      attempts: this.metrics.registrationAttempts,
-      failures: this.metrics.registrationFailures
-    }, 'SW_MANAGER');
+    logger.error(
+      "Service Worker Manager initialization failed",
+      {
+        error: error.message,
+        stack: error.stack?.substring(0, 500),
+        attempts: this.metrics.registrationAttempts,
+        failures: this.metrics.registrationFailures,
+      },
+      "SW_MANAGER",
+    );
 
-    this.emit('initializationFailed', { error, status: this.status });
+    this.emit("initializationFailed", { error, status: this.status });
   }
 
   private getEnabledFeatures(): string[] {
-    const features: string[] = ['core-registration'];
-    
-    if (this.options.enableBackgroundSync) features.push('background-sync');
-    if (this.options.enableNavigationPreload) features.push('navigation-preload');
-    if (this.options.enableConstructionSiteMode) features.push('construction-site-mode');
-    if (this.options.performanceIntegration) features.push('performance-integration');
-    
+    const features: string[] = ["core-registration"];
+
+    if (this.options.enableBackgroundSync) features.push("background-sync");
+    if (this.options.enableNavigationPreload)
+      features.push("navigation-preload");
+    if (this.options.enableConstructionSiteMode)
+      features.push("construction-site-mode");
+    if (this.options.performanceIntegration)
+      features.push("performance-integration");
+
     return features;
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // Event emitter functionality
@@ -745,11 +878,11 @@ export class UnifiedServiceWorkerManager {
   private emit(event: string, data?: any): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {
-          logger.error('Event listener error', { event, error }, 'SW_MANAGER');
+          logger.error("Event listener error", { event, error }, "SW_MANAGER");
         }
       });
     }
@@ -770,7 +903,7 @@ export class UnifiedServiceWorkerManager {
 
   async skipWaiting(): Promise<void> {
     if (this.registration?.waiting) {
-      this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
     }
   }
 
@@ -791,7 +924,9 @@ export class UnifiedServiceWorkerManager {
 // Singleton instance for global access
 let instance: UnifiedServiceWorkerManager | null = null;
 
-export function getServiceWorkerManager(options?: Partial<AdvancedSWOptions>): UnifiedServiceWorkerManager {
+export function getServiceWorkerManager(
+  options?: Partial<AdvancedSWOptions>,
+): UnifiedServiceWorkerManager {
   if (!instance) {
     instance = new UnifiedServiceWorkerManager(options);
   }

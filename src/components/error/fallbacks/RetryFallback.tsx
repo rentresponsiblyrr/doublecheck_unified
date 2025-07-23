@@ -3,12 +3,18 @@
  * Comprehensive error fallback with retry functionality and detailed error display
  */
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw, ArrowLeft, Bug } from 'lucide-react';
-import { sanitizeErrorMessage } from '@/utils/sanitization';
+import React from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, RefreshCw, ArrowLeft, Bug } from "lucide-react";
+import { sanitizeErrorMessage } from "@/utils/sanitization";
 
 interface RetryFallbackProps {
   error: Error | null;
@@ -35,10 +41,12 @@ export const RetryFallback: React.FC<RetryFallbackProps> = ({
   allowReportBug,
   onRetry,
   onNavigateBack,
-  onReportBug
+  onReportBug,
 }) => {
   const canRetry = retryCount < maxRetries;
-  const errorMessage = error ? sanitizeErrorMessage(error) : 'An unexpected error occurred';
+  const errorMessage = error
+    ? sanitizeErrorMessage(error)
+    : "An unexpected error occurred";
 
   return (
     <div className="flex items-center justify-center min-h-[400px] p-6">
@@ -76,8 +84,8 @@ export const RetryFallback: React.FC<RetryFallbackProps> = ({
 
           <div className="flex flex-col gap-2">
             {canRetry && (
-              <Button 
-                onClick={onRetry} 
+              <Button
+                onClick={onRetry}
                 disabled={isRetrying}
                 className="w-full"
                 aria-label={`Retry operation. ${maxRetries - retryCount} attempts remaining.`}
@@ -97,8 +105,8 @@ export const RetryFallback: React.FC<RetryFallbackProps> = ({
             )}
 
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onNavigateBack}
                 className="flex-1"
                 aria-label="Navigate back to previous page"
@@ -106,10 +114,10 @@ export const RetryFallback: React.FC<RetryFallbackProps> = ({
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
               </Button>
-              
+
               {allowReportBug && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={onReportBug}
                   className="flex-1"
                   aria-label="Report this bug to support"
@@ -124,7 +132,8 @@ export const RetryFallback: React.FC<RetryFallbackProps> = ({
           {!canRetry && retryCount >= maxRetries && (
             <Alert>
               <AlertDescription className="text-sm">
-                Maximum retry attempts exceeded. Please contact support if the problem persists.
+                Maximum retry attempts exceeded. Please contact support if the
+                problem persists.
               </AlertDescription>
             </Alert>
           )}

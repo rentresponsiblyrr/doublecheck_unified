@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,8 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 
 // Use proper TypeScript types from Supabase
-type Property = Tables<'properties'>;
-type Inspection = Tables<'inspections'>;
+type Property = Tables<"properties">;
+type Inspection = Tables<"inspections">;
 
 interface PropertyData {
   property_id: string; // UUID from database - keeping as string for frontend consistency
@@ -47,8 +46,13 @@ const PropertySelection = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: properties = [], isLoading: propertiesLoading, error: propertiesError, refetch: refetchProperties } = useQuery({
-    queryKey: ['properties', user?.id],
+  const {
+    data: properties = [],
+    isLoading: propertiesLoading,
+    error: propertiesError,
+    refetch: refetchProperties,
+  } = useQuery({
+    queryKey: ["properties", user?.id],
     queryFn: async () => {
       if (!user?.id) {
         // REMOVED: Console logging to prevent infinite loops
@@ -56,11 +60,13 @@ const PropertySelection = () => {
       }
 
       // REMOVED: Console logging to prevent infinite loops
-      
+
       // Use the existing get_properties_with_inspections function that works
-      const { data: propertiesData, error: propertiesError } = await supabase
-        .rpc('get_properties_with_inspections', { _user_id: user.id });
-      
+      const { data: propertiesData, error: propertiesError } =
+        await supabase.rpc("get_properties_with_inspections", {
+          _user_id: user.id,
+        });
+
       if (propertiesError) {
         throw propertiesError;
       }
@@ -79,17 +85,20 @@ const PropertySelection = () => {
   // Properly derive inspections from properties data - no circular dependencies
   const inspections = React.useMemo(() => {
     if (!properties?.length) return [];
-    
+
     return properties
-      .filter(property => property.latest_inspection_id)
-      .map(property => ({
+      .filter((property) => property.latest_inspection_id)
+      .map((property) => ({
         id: property.latest_inspection_id!,
-        property_id: property.property_id,  // FIXED: Use correct field from RPC function
+        property_id: property.property_id, // FIXED: Use correct field from RPC function
         completed: property.latest_inspection_completed || false,
         start_time: null,
         // FIXED: RPC function doesn't return latest_inspection_status, derive from available fields
-        status: property.latest_inspection_completed ? 'completed' : 
-               (property.latest_inspection_id ? 'in_progress' : 'draft')
+        status: property.latest_inspection_completed
+          ? "completed"
+          : property.latest_inspection_id
+            ? "in_progress"
+            : "draft",
       }));
   }, [properties]);
 
@@ -106,7 +115,7 @@ const PropertySelection = () => {
     getButtonText,
     isCreatingInspection,
     inspectionError,
-    clearError
+    clearError,
   } = usePropertySelection(inspections);
 
   // Use the robust creation hook as a fallback for custom inspection creation
@@ -119,14 +128,14 @@ const PropertySelection = () => {
 
   const handlePropertyDeleted = async () => {
     // REMOVED: Console logging to prevent infinite loops
-    
+
     // Clear selection immediately
     setSelectedProperty(null);
-    
+
     try {
       // Force immediate refresh of properties data (contains inspection info)
       await refetchProperties();
-      
+
       // REMOVED: Console logging to prevent infinite loops
     } catch (error) {
       // Use proper error handling instead of nuclear reload
@@ -135,30 +144,21 @@ const PropertySelection = () => {
         await refetchProperties();
       } catch (retryError) {
         // Last resort: navigate to home page instead of reload
-        navigate('/', { replace: true });
+        navigate("/", { replace: true });
       }
     }
   };
 
   const handleRetry = async () => {
     try {
-      await Promise.all([
-        refetchProperties(),
-        refetchInspections()
-      ]);
-    } catch (error) {
-    }
+      await Promise.all([refetchProperties(), refetchInspections()]);
+    } catch (error) {}
   };
 
   // Handle errors
   if (propertiesError || inspectionsError) {
     const error = propertiesError || inspectionsError;
-    return (
-      <PropertySelectionError 
-        error={error}
-        onRetry={handleRetry}
-      />
-    );
+    return <PropertySelectionError error={error} onRetry={handleRetry} />;
   }
 
   // Show loading state

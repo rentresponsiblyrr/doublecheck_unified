@@ -7,11 +7,14 @@ interface NetworkStatusBadgeProps {
 }
 
 export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = ({
-  isOnline
+  isOnline,
 }) => {
   if (isOnline) {
     return (
-      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+      <Badge
+        variant="outline"
+        className="bg-green-100 text-green-800 border-green-200"
+      >
         <Wifi className="w-3 h-3 mr-1" />
         Online
       </Badge>

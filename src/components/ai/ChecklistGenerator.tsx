@@ -1,14 +1,20 @@
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Brain, 
-  CheckCircle, 
-  Clock, 
+import React, { useState, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Brain,
+  CheckCircle,
+  Clock,
   AlertTriangle,
   RefreshCw,
   Zap,
@@ -16,10 +22,14 @@ import {
   Bath,
   Home,
   Shield,
-  Settings
-} from 'lucide-react';
-import { dynamicChecklistGenerator, type DynamicChecklistItem, type ChecklistGenerationResult } from '@/lib/ai/dynamic-checklist-generator';
-import { EnhancedAIService } from '@/lib/ai/enhanced-ai-service';
+  Settings,
+} from "lucide-react";
+import {
+  dynamicChecklistGenerator,
+  type DynamicChecklistItem,
+  type ChecklistGenerationResult,
+} from "@/lib/ai/dynamic-checklist-generator";
+import { EnhancedAIService } from "@/lib/ai/enhanced-ai-service";
 
 // Property interface matching InspectorWorkflow
 interface Property {
@@ -46,31 +56,32 @@ interface ChecklistGeneratorProps {
   isLoading?: boolean;
 }
 
-export function ChecklistGenerator({ 
-  property, 
+export function ChecklistGenerator({
+  property,
   onChecklistGenerated,
-  isLoading = false 
+  isLoading = false,
 }: ChecklistGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
-  const [generatedChecklist, setGeneratedChecklist] = useState<ChecklistGenerationResult | null>(null);
+  const [generatedChecklist, setGeneratedChecklist] =
+    useState<ChecklistGenerationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const generateChecklist = useCallback(async () => {
     if (!property) return;
-    
+
     setIsGenerating(true);
     setError(null);
     setGenerationProgress(0);
-    
+
     try {
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setGenerationProgress(prev => Math.min(prev + 10, 90));
+        setGenerationProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
       // AI service disabled for security - use fallback checklist generation
-      
+
       // Use fallback dynamic checklist generator instead
       const result = await dynamicChecklistGenerator.generateDynamicChecklist({
         vrboId: property.id,
@@ -78,32 +89,32 @@ export function ChecklistGenerator({
         bedrooms: property.bedrooms,
         bathrooms: property.bathrooms,
         amenities: property.amenities || [],
-        description: property.description || '',
-        location: { city: '', state: '', country: '' },
-        specifications: { 
+        description: property.description || "",
+        location: { city: "", state: "", country: "" },
+        specifications: {
           propertyType: property.type,
           bedrooms: property.bedrooms,
-          bathrooms: property.bathrooms 
-        }
+          bathrooms: property.bathrooms,
+        },
       });
 
       clearInterval(progressInterval);
       setGenerationProgress(100);
-      
+
       setGeneratedChecklist(result);
-      
+
       // Convert to format expected by InspectorWorkflow
       const workflowChecklist: ChecklistItem = {
         items: result.items,
         estimatedTime: result.estimatedTimeMinutes,
-        totalItems: result.totalItems
+        totalItems: result.totalItems,
       };
-      
+
       onChecklistGenerated(workflowChecklist);
-      
     } catch (err) {
       clearInterval(progressInterval);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to generate checklist';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to generate checklist";
       setError(errorMessage);
     } finally {
       setIsGenerating(false);
@@ -116,21 +127,21 @@ export function ChecklistGenerator({
       bedrooms: <Users className="h-4 w-4" />,
       bathrooms: <Bath className="h-4 w-4" />,
       kitchen: <Home className="h-4 w-4" />,
-      general: <Settings className="h-4 w-4" />
+      general: <Settings className="h-4 w-4" />,
     };
-    
+
     return icons[category] || <CheckCircle className="h-4 w-4" />;
   };
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
-      critical: 'bg-red-100 text-red-800',
-      high: 'bg-orange-100 text-orange-800',
-      medium: 'bg-blue-100 text-blue-800',
-      low: 'bg-gray-100 text-gray-800'
+      critical: "bg-red-100 text-red-800",
+      high: "bg-orange-100 text-orange-800",
+      medium: "bg-blue-100 text-blue-800",
+      low: "bg-gray-100 text-gray-800",
     };
-    
-    return colors[priority] || 'bg-gray-100 text-gray-800';
+
+    return colors[priority] || "bg-gray-100 text-gray-800";
   };
 
   if (error) {
@@ -140,10 +151,10 @@ export function ChecklistGenerator({
         <AlertTitle>Checklist Generation Failed</AlertTitle>
         <AlertDescription className="mt-2">
           {error}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-2 ml-2" 
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 ml-2"
             onClick={generateChecklist}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -164,7 +175,8 @@ export function ChecklistGenerator({
             AI Checklist Generator
           </CardTitle>
           <CardDescription>
-            Generate a property-specific inspection checklist using AI based on property details and amenities
+            Generate a property-specific inspection checklist using AI based on
+            property details and amenities
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -172,10 +184,11 @@ export function ChecklistGenerator({
             <div className="text-center sm:text-left">
               <h4 className="font-medium text-lg">{property.address}</h4>
               <p className="text-base text-gray-600 dark:text-gray-400 mt-1">
-                {property.bedrooms} bed • {property.bathrooms} bath • {property.sqft} sqft
+                {property.bedrooms} bed • {property.bathrooms} bath •{" "}
+                {property.sqft} sqft
               </p>
             </div>
-            <Button 
+            <Button
               onClick={generateChecklist}
               disabled={isGenerating || isLoading}
               className="w-full h-14 text-base touch-manipulation"
@@ -193,7 +206,7 @@ export function ChecklistGenerator({
               )}
             </Button>
           </div>
-          
+
           {/* Generation Progress */}
           {isGenerating && (
             <div className="space-y-2">
@@ -216,29 +229,41 @@ export function ChecklistGenerator({
               Generated Checklist
             </CardTitle>
             <CardDescription>
-              {generatedChecklist.totalItems} items • ~{generatedChecklist.estimatedTimeMinutes} minutes
+              {generatedChecklist.totalItems} items • ~
+              {generatedChecklist.estimatedTimeMinutes} minutes
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Checklist Summary */}
             <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div className="text-center py-2">
-                <div className="font-semibold text-xl">{generatedChecklist.totalItems}</div>
+                <div className="font-semibold text-xl">
+                  {generatedChecklist.totalItems}
+                </div>
                 <div className="text-sm text-gray-600">Total Items</div>
               </div>
               <div className="text-center py-2">
-                <div className="font-semibold text-xl">{generatedChecklist.estimatedTimeMinutes}m</div>
+                <div className="font-semibold text-xl">
+                  {generatedChecklist.estimatedTimeMinutes}m
+                </div>
                 <div className="text-sm text-gray-600">Est. Time</div>
               </div>
               <div className="text-center py-2">
                 <div className="font-semibold text-xl">
-                  {Object.values(generatedChecklist.categories).filter(count => count > 0).length}
+                  {
+                    Object.values(generatedChecklist.categories).filter(
+                      (count) => count > 0,
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-gray-600">Categories</div>
               </div>
               <div className="text-center py-2">
                 <div className="font-semibold text-xl">
-                  {generatedChecklist.items.filter(item => item.required).length}
+                  {
+                    generatedChecklist.items.filter((item) => item.required)
+                      .length
+                  }
                 </div>
                 <div className="text-sm text-gray-600">Required</div>
               </div>
@@ -251,7 +276,11 @@ export function ChecklistGenerator({
                 {Object.entries(generatedChecklist.categories)
                   .filter(([, count]) => count > 0)
                   .map(([category, count]) => (
-                    <Badge key={category} variant="outline" className="flex items-center gap-1">
+                    <Badge
+                      key={category}
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
                       {getCategoryIcon(category)}
                       {category} ({count})
                     </Badge>
@@ -261,7 +290,10 @@ export function ChecklistGenerator({
 
             {/* Sample Items Preview */}
             <div className="space-y-2">
-              <h4 className="font-medium">Preview ({Math.min(3, generatedChecklist.items.length)} of {generatedChecklist.items.length} items)</h4>
+              <h4 className="font-medium">
+                Preview ({Math.min(3, generatedChecklist.items.length)} of{" "}
+                {generatedChecklist.items.length} items)
+              </h4>
               <div className="space-y-2">
                 {generatedChecklist.items.slice(0, 3).map((item) => (
                   <div key={item.id} className="border rounded-lg p-3">
@@ -282,7 +314,9 @@ export function ChecklistGenerator({
                           <Badge variant="outline" className="text-xs">
                             {item.category}
                           </Badge>
-                          <Badge className={`text-xs ${getPriorityColor(item.priority)}`}>
+                          <Badge
+                            className={`text-xs ${getPriorityColor(item.priority)}`}
+                          >
                             {item.priority}
                           </Badge>
                           <span className="text-xs text-gray-500">
@@ -293,7 +327,7 @@ export function ChecklistGenerator({
                     </div>
                   </div>
                 ))}
-                
+
                 {generatedChecklist.items.length > 3 && (
                   <div className="text-center py-2 text-sm text-gray-600">
                     ... and {generatedChecklist.items.length - 3} more items
@@ -304,15 +338,17 @@ export function ChecklistGenerator({
 
             {/* Generation Metadata */}
             <div className="text-xs text-gray-500 border-t pt-3">
-              Generated in {generatedChecklist.generationMetadata.processingTime}ms • 
-              {generatedChecklist.generationMetadata.aiGenerated} AI-generated items • 
-              {generatedChecklist.generationMetadata.manuallyAdded} template items
+              Generated in{" "}
+              {generatedChecklist.generationMetadata.processingTime}ms •
+              {generatedChecklist.generationMetadata.aiGenerated} AI-generated
+              items •{generatedChecklist.generationMetadata.manuallyAdded}{" "}
+              template items
             </div>
           </CardContent>
         </Card>
       )}
     </div>
   );
-};
+}
 
 export default ChecklistGenerator;

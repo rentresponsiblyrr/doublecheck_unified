@@ -4,7 +4,7 @@
  * Note: Generated types from Supabase are correct - properties use UUIDs, not integers
  */
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
 // Add missing RPC functions that exist in the database
 export interface DatabaseFunctionsOverride {
@@ -45,28 +45,47 @@ export interface DatabaseFunctionsOverride {
 // Create enhanced database interface with additional RPC functions
 export interface EnhancedDatabase {
   public: {
-    Tables: Database['public']['Tables']; // Use generated types - they are correct
-    Functions: Database['public']['Functions'] & DatabaseFunctionsOverride;
+    Tables: Database["public"]["Tables"]; // Use generated types - they are correct
+    Functions: Database["public"]["Functions"] & DatabaseFunctionsOverride;
   };
 }
 
 // Helper types for common operations (using correct UUID types)
-export type InspectionInsert = Database['public']['Tables']['inspections']['Insert'];
-export type InspectionRow = Database['public']['Tables']['inspections']['Row'];
-export type PropertyRow = Database['public']['Tables']['properties']['Row'];
-export type InspectionChecklistItemRow = Database['public']['Tables']['logs']['Row'];
-export type InspectionChecklistItemInsert = Database['public']['Tables']['logs']['Insert'];
-export type StaticSafetyItemRow = Database['public']['Tables']['static_safety_items']['Row'];
+export type InspectionInsert =
+  Database["public"]["Tables"]["inspections"]["Insert"];
+export type InspectionRow = Database["public"]["Tables"]["inspections"]["Row"];
+export type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
+export type InspectionChecklistItemRow =
+  Database["public"]["Tables"]["logs"]["Row"];
+export type InspectionChecklistItemInsert =
+  Database["public"]["Tables"]["logs"]["Insert"];
+export type StaticSafetyItemRow =
+  Database["public"]["Tables"]["static_safety_items"]["Row"];
 
 // Type guards for ID validation (corrected to match actual database schema)
 export function isPropertyId(id: unknown): id is string {
-  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  return (
+    typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    )
+  );
 }
 
 export function isInspectionId(id: unknown): id is string {
-  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  return (
+    typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    )
+  );
 }
 
 export function isUserId(id: unknown): id is string {
-  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  return (
+    typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    )
+  );
 }

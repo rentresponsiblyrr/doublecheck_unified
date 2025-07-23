@@ -1,22 +1,25 @@
 /**
  * FORM VALIDATION SERVICE - NETFLIX/META PRODUCTION STANDARDS
- * 
+ *
  * Comprehensive form validation system with real-time validation, schema-based
- * validation using Zod, accessibility compliance, error recovery, and 
+ * validation using Zod, accessibility compliance, error recovery, and
  * production-ready form handling patterns.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import { z, ZodSchema, ZodError } from 'zod';
-import { logger } from '@/utils/logger';
+import { z, ZodSchema, ZodError } from "zod";
+import { logger } from "@/utils/logger";
 
 export interface ValidationRule {
   field: string;
   schema: ZodSchema;
   dependencies?: string[];
-  asyncValidator?: (value: any, formData: Record<string, any>) => Promise<string | null>;
+  asyncValidator?: (
+    value: any,
+    formData: Record<string, any>,
+  ) => Promise<string | null>;
   debounceMs?: number;
   validateOnChange?: boolean;
   validateOnBlur?: boolean;
@@ -80,10 +83,10 @@ class FormValidationService {
   registerForm(
     formId: string,
     rules: ValidationRule[],
-    config: FormValidationConfig = {}
+    config: FormValidationConfig = {},
   ): void {
     this.validationRules.set(formId, rules);
-    
+
     // Initialize form state
     const initialState: ValidationResult = {
       isValid: true,
@@ -94,7 +97,7 @@ class FormValidationService {
     };
 
     // Initialize field states
-    rules.forEach(rule => {
+    rules.forEach((rule) => {
       initialState.fieldStates[rule.field] = {
         isValid: true,
         isPending: false,
@@ -109,7 +112,7 @@ class FormValidationService {
 
     this.validationStates.set(formId, initialState);
 
-    logger.debug('Form validation rules registered', {
+    logger.debug("Form validation rules registered", {
       formId,
       rulesCount: rules.length,
       config,
@@ -124,7 +127,7 @@ class FormValidationService {
     fieldName: string,
     value: any,
     formData: Record<string, any> = {},
-    options: { force?: boolean; trigger?: 'change' | 'blur' | 'submit' } = {}
+    options: { force?: boolean; trigger?: "change" | "blur" | "submit" } = {},
   ): Promise<FieldValidationState> {
     const rules = this.validationRules.get(formId);
     const currentState = this.validationStates.get(formId);
@@ -133,28 +136,43 @@ class FormValidationService {
       throw new Error(`Form ${formId} not registered`);
     }
 
-    const fieldRule = rules.find(rule => rule.field === fieldName);
+    const fieldRule = rules.find((rule) => rule.field === fieldName);
     if (!fieldRule) {
       throw new Error(`Field ${fieldName} not found in form ${formId}`);
     }
 
     const fieldState = currentState.fieldStates[fieldName];
-    
+
     // Update field state based on interaction
     fieldState.isTouched = true;
     fieldState.isDirty = true;
 
     // Check if we should validate based on trigger and rule configuration
-    if (!options.force && !this.shouldValidate(fieldRule, options.trigger || 'change')) {
+    if (
+      !options.force &&
+      !this.shouldValidate(fieldRule, options.trigger || "change")
+    ) {
       return fieldState;
     }
 
     // Handle debouncing
-    if (fieldRule.debounceMs && options.trigger === 'change') {
-      return this.debounceValidation(formId, fieldName, value, formData, fieldRule);
+    if (fieldRule.debounceMs && options.trigger === "change") {
+      return this.debounceValidation(
+        formId,
+        fieldName,
+        value,
+        formData,
+        fieldRule,
+      );
     }
 
-    return this.performFieldValidation(formId, fieldName, value, formData, fieldRule);
+    return this.performFieldValidation(
+      formId,
+      fieldName,
+      value,
+      formData,
+      fieldRule,
+    );
   }
 
   /**
@@ -163,7 +181,7 @@ class FormValidationService {
   async validateForm(
     formId: string,
     formData: Record<string, any>,
-    options: { partial?: boolean; skipAsync?: boolean } = {}
+    options: { partial?: boolean; skipAsync?: boolean } = {},
   ): Promise<ValidationResult> {
     const rules = this.validationRules.get(formId);
     const currentState = this.validationStates.get(formId);
@@ -188,33 +206,33 @@ class FormValidationService {
       }
 
       const value = formData[rule.field];
-      
+
       validationPromises.push(
         this.performFieldValidation(formId, rule.field, value, formData, rule)
-          .then(fieldState => {
+          .then((fieldState) => {
             result.fieldStates[rule.field] = fieldState;
-            
+
             if (!fieldState.isValid) {
               result.isValid = false;
               result.errors[rule.field] = fieldState.errors;
             }
-            
+
             if (fieldState.warnings.length > 0) {
               result.warnings[rule.field] = fieldState.warnings;
             }
           })
-          .catch(error => {
-            logger.error('Field validation failed', {
+          .catch((error) => {
+            logger.error("Field validation failed", {
               formId,
               field: rule.field,
               error,
             });
-            
+
             result.isValid = false;
-            result.errors[rule.field] = ['Validation failed'];
+            result.errors[rule.field] = ["Validation failed"];
             result.fieldStates[rule.field].isValid = false;
-            result.fieldStates[rule.field].errors = ['Validation failed'];
-          })
+            result.fieldStates[rule.field].errors = ["Validation failed"];
+          }),
       );
     }
 
@@ -230,7 +248,7 @@ class FormValidationService {
     // Track analytics if enabled
     this.trackFormValidation(formId, result);
 
-    logger.debug('Form validation completed', {
+    logger.debug("Form validation completed", {
       formId,
       isValid: result.isValid,
       errorCount: Object.keys(result.errors).length,
@@ -251,8 +269,13 @@ class FormValidationService {
       validateBeforeSubmit?: boolean;
       retryOnFailure?: boolean;
       sanitizeData?: boolean;
-    } = {}
-  ): Promise<{ success: boolean; data?: any; error?: Error; validationResult?: ValidationResult }> {
+    } = {},
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: Error;
+    validationResult?: ValidationResult;
+  }> {
     const config = { ...this.DEFAULT_CONFIG, ...options };
 
     try {
@@ -260,18 +283,20 @@ class FormValidationService {
       let validationResult: ValidationResult | undefined;
       if (config.validateBeforeSubmit !== false) {
         validationResult = await this.validateForm(formId, formData);
-        
+
         if (!validationResult.isValid) {
           return {
             success: false,
-            error: new Error('Form validation failed'),
+            error: new Error("Form validation failed"),
             validationResult,
           };
         }
       }
 
       // Sanitize data if enabled
-      const sanitizedData = config.sanitizeData ? this.sanitizeFormData(formData) : formData;
+      const sanitizedData = config.sanitizeData
+        ? this.sanitizeFormData(formData)
+        : formData;
 
       // Attempt submission with retry logic
       let attempts = 0;
@@ -281,8 +306,11 @@ class FormValidationService {
         try {
           const result = await Promise.race([
             submitFn(sanitizedData),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Submission timeout')), config.timeoutMs)
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Submission timeout")),
+                config.timeoutMs,
+              ),
             ),
           ]);
 
@@ -294,14 +322,13 @@ class FormValidationService {
             data: result,
             validationResult,
           };
-
         } catch (submitError) {
           attempts++;
-          
+
           if (attempts >= maxAttempts) {
             // Track failed submission
             this.trackFormSubmission(formId, false, attempts);
-            
+
             return {
               success: false,
               error: submitError as Error,
@@ -311,12 +338,11 @@ class FormValidationService {
 
           // Wait before retry with exponential backoff
           const delay = Math.min(1000 * Math.pow(2, attempts - 1), 10000);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
-
     } catch (error) {
-      logger.error('Form submission failed', {
+      logger.error("Form submission failed", {
         formId,
         error,
       });
@@ -328,7 +354,10 @@ class FormValidationService {
     }
 
     // This should never be reached, but TypeScript requires it
-    return { success: false, error: new Error('Unexpected submission failure') };
+    return {
+      success: false,
+      error: new Error("Unexpected submission failure"),
+    };
   }
 
   /**
@@ -353,7 +382,7 @@ class FormValidationService {
       overallScore: 100,
     };
 
-    rules.forEach(rule => {
+    rules.forEach((rule) => {
       resetState.fieldStates[rule.field] = {
         isValid: true,
         isPending: false,
@@ -369,7 +398,7 @@ class FormValidationService {
     this.validationStates.set(formId, resetState);
     this.clearPendingValidations(formId);
 
-    logger.debug('Form validation state reset', { formId });
+    logger.debug("Form validation state reset", { formId });
   }
 
   /**
@@ -381,7 +410,7 @@ class FormValidationService {
     this.clearPendingValidations(formId);
     this.analyticsData.delete(formId);
 
-    logger.debug('Form validation unregistered', { formId });
+    logger.debug("Form validation unregistered", { formId });
   }
 
   private async performFieldValidation(
@@ -389,10 +418,11 @@ class FormValidationService {
     fieldName: string,
     value: any,
     formData: Record<string, any>,
-    rule: ValidationRule
+    rule: ValidationRule,
   ): Promise<FieldValidationState> {
-    const fieldState = this.validationStates.get(formId)!.fieldStates[fieldName];
-    
+    const fieldState =
+      this.validationStates.get(formId)!.fieldStates[fieldName];
+
     // Set pending state
     fieldState.isPending = true;
     fieldState.lastValidated = Date.now();
@@ -406,9 +436,9 @@ class FormValidationService {
         rule.schema.parse(value);
       } catch (error) {
         if (error instanceof ZodError) {
-          errors.push(...error.errors.map(e => e.message));
+          errors.push(...error.errors.map((e) => e.message));
         } else {
-          errors.push('Invalid value');
+          errors.push("Invalid value");
         }
       }
 
@@ -420,12 +450,12 @@ class FormValidationService {
             errors.push(asyncError);
           }
         } catch (asyncValidationError) {
-          logger.warn('Async validation failed', {
+          logger.warn("Async validation failed", {
             formId,
             fieldName,
             error: asyncValidationError,
           });
-          errors.push('Validation service unavailable');
+          errors.push("Validation service unavailable");
         }
       }
 
@@ -437,14 +467,13 @@ class FormValidationService {
       fieldState.score = this.calculateFieldScore(fieldState);
 
       return fieldState;
-
     } catch (error) {
       fieldState.isValid = false;
-      fieldState.errors = ['Validation error occurred'];
+      fieldState.errors = ["Validation error occurred"];
       fieldState.isPending = false;
       fieldState.score = 0;
 
-      logger.error('Field validation error', {
+      logger.error("Field validation error", {
         formId,
         fieldName,
         error,
@@ -456,11 +485,11 @@ class FormValidationService {
 
   private shouldValidate(rule: ValidationRule, trigger: string): boolean {
     switch (trigger) {
-      case 'change':
+      case "change":
         return rule.validateOnChange !== false;
-      case 'blur':
+      case "blur":
         return rule.validateOnBlur !== false;
-      case 'submit':
+      case "submit":
         return true;
       default:
         return true;
@@ -472,10 +501,10 @@ class FormValidationService {
     fieldName: string,
     value: any,
     formData: Record<string, any>,
-    rule: ValidationRule
+    rule: ValidationRule,
   ): Promise<FieldValidationState> {
     const debounceKey = `${formId}_${fieldName}`;
-    
+
     // Clear existing timer
     const existingTimer = this.debounceTimers.get(debounceKey);
     if (existingTimer) {
@@ -484,7 +513,13 @@ class FormValidationService {
 
     return new Promise((resolve) => {
       const timer = setTimeout(async () => {
-        const result = await this.performFieldValidation(formId, fieldName, value, formData, rule);
+        const result = await this.performFieldValidation(
+          formId,
+          fieldName,
+          value,
+          formData,
+          rule,
+        );
         this.debounceTimers.delete(debounceKey);
         resolve(result);
       }, rule.debounceMs || 300);
@@ -500,7 +535,9 @@ class FormValidationService {
     return 100;
   }
 
-  private calculateFormScore(fieldStates: Record<string, FieldValidationState>): number {
+  private calculateFormScore(
+    fieldStates: Record<string, FieldValidationState>,
+  ): number {
     const states = Object.values(fieldStates);
     if (states.length === 0) return 100;
 
@@ -510,16 +547,18 @@ class FormValidationService {
 
   private sanitizeFormData(data: Record<string, any>): Record<string, any> {
     const sanitized: Record<string, any> = {};
-    
+
     for (const [key, value] of Object.entries(data)) {
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         // Basic sanitization - remove potentially dangerous characters
-        sanitized[key] = value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '');
+        sanitized[key] = value
+          .trim()
+          .replace(/<script[^>]*>.*?<\/script>/gi, "");
       } else {
         sanitized[key] = value;
       }
     }
-    
+
     return sanitized;
   }
 
@@ -554,9 +593,13 @@ class FormValidationService {
     this.analyticsData.set(formId, analytics);
   }
 
-  private trackFormSubmission(formId: string, success: boolean, attempts: number): void {
+  private trackFormSubmission(
+    formId: string,
+    success: boolean,
+    attempts: number,
+  ): void {
     const analytics = this.analyticsData.get(formId) || {};
-    
+
     if (!analytics.submissions) {
       analytics.submissions = { success: 0, failure: 0, totalAttempts: 0 };
     }
@@ -566,9 +609,9 @@ class FormValidationService {
     } else {
       analytics.submissions.failure++;
     }
-    
+
     analytics.submissions.totalAttempts += attempts;
-    
+
     this.analyticsData.set(formId, analytics);
   }
 }
@@ -578,19 +621,22 @@ export const formValidationService = new FormValidationService();
 
 // Common validation schemas
 export const CommonSchemas = {
-  email: z.string().email('Invalid email address'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
-  phone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number'),
-  url: z.string().url('Invalid URL'),
-  required: z.string().min(1, 'This field is required'),
+  email: z.string().email("Invalid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Password must contain uppercase, lowercase, and number",
+    ),
+  phone: z.string().regex(/^\+?[\d\s\-\(\)]+$/, "Invalid phone number"),
+  url: z.string().url("Invalid URL"),
+  required: z.string().min(1, "This field is required"),
   optionalString: z.string().optional(),
-  positiveNumber: z.number().positive('Must be a positive number'),
-  dateString: z.string().refine(
-    (date) => !isNaN(Date.parse(date)),
-    'Invalid date format'
-  ),
+  positiveNumber: z.number().positive("Must be a positive number"),
+  dateString: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
 };
 
 export default FormValidationService;

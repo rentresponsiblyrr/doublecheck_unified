@@ -1,9 +1,9 @@
 // Browser Manager for VRBO Dynamic Content Scraping
 // Handles Puppeteer browser lifecycle and stealth mode
 
-import puppeteer, { Browser, Page, LaunchOptions } from 'puppeteer';
-import { logger } from '../../utils/logger';
-import { errorReporter } from '../monitoring/error-reporter';
+import puppeteer, { Browser, Page, LaunchOptions } from "puppeteer";
+import { logger } from "../../utils/logger";
+import { errorReporter } from "../monitoring/error-reporter";
 
 export interface BrowserConfig {
   headless: boolean;
@@ -29,17 +29,18 @@ export class BrowserManager {
   private static instance: BrowserManager;
   private activeSessions: Map<string, BrowserSession> = new Map();
   private config: BrowserConfig;
-  
+
   private defaultConfig: BrowserConfig = {
     headless: true,
     timeout: 60000,
     viewportWidth: 1920,
     viewportHeight: 1080,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     enableStealth: true,
     blockImages: false, // We need images for VRBO
     blockCSS: true, // Block CSS to speed up loading
-    proxy: undefined
+    proxy: undefined,
   };
 
   constructor(config: Partial<BrowserConfig> = {}) {
@@ -60,26 +61,30 @@ export class BrowserManager {
    */
   async createSession(sessionId?: string): Promise<BrowserSession> {
     const id = sessionId || this.generateSessionId();
-    
+
     try {
-      logger.info('Creating new browser session', { sessionId: id }, 'BROWSER_MANAGER');
-      
+      logger.info(
+        "Creating new browser session",
+        { sessionId: id },
+        "BROWSER_MANAGER",
+      );
+
       const launchOptions: LaunchOptions = {
         headless: this.config.headless,
         timeout: this.config.timeout,
         args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-blink-features=AutomationControlled',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu',
-          '--window-size=1920,1080',
-          ...(this.config.proxy ? [`--proxy-server=${this.config.proxy}`] : [])
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-blink-features=AutomationControlled",
+          "--disable-features=VizDisplayCompositor",
+          "--disable-dev-shm-usage",
+          "--disable-accelerated-2d-canvas",
+          "--no-first-run",
+          "--no-zygote",
+          "--single-process",
+          "--disable-gpu",
+          "--window-size=1920,1080",
+          ...(this.config.proxy ? [`--proxy-server=${this.config.proxy}`] : []),
         ],
         defaultViewport: {
           width: this.config.viewportWidth,
@@ -87,8 +92,8 @@ export class BrowserManager {
           deviceScaleFactor: 1,
           isMobile: false,
           hasTouch: false,
-          isLandscape: true
-        }
+          isLandscape: true,
+        },
       };
 
       const browser = await puppeteer.launch(launchOptions);
@@ -102,24 +107,31 @@ export class BrowserManager {
         page,
         sessionId: id,
         startTime: Date.now(),
-        isActive: true
+        isActive: true,
       };
 
       this.activeSessions.set(id, session);
 
-      logger.info('Browser session created successfully', { 
-        sessionId: id,
-        activeSessionsCount: this.activeSessions.size 
-      }, 'BROWSER_MANAGER');
+      logger.info(
+        "Browser session created successfully",
+        {
+          sessionId: id,
+          activeSessionsCount: this.activeSessions.size,
+        },
+        "BROWSER_MANAGER",
+      );
 
       return session;
-
     } catch (error) {
-      logger.error('Failed to create browser session', error, 'BROWSER_MANAGER');
+      logger.error(
+        "Failed to create browser session",
+        error,
+        "BROWSER_MANAGER",
+      );
       errorReporter.reportError(error as Error, {
-        context: 'BROWSER_MANAGER',
-        operation: 'createSession',
-        sessionId: id
+        context: "BROWSER_MANAGER",
+        operation: "createSession",
+        sessionId: id,
       });
       throw error;
     }
@@ -135,33 +147,34 @@ export class BrowserManager {
 
     // Set extra HTTP headers
     await page.setExtraHTTPHeaders({
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.5',
-      'Accept-Encoding': 'gzip, deflate',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
-      'Upgrade-Insecure-Requests': '1'
+      Accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      "Upgrade-Insecure-Requests": "1",
     });
 
     // Block unnecessary resources for faster loading
     if (this.config.blockCSS || this.config.blockImages) {
       await page.setRequestInterception(true);
-      
-      page.on('request', (request) => {
+
+      page.on("request", (request) => {
         const resourceType = request.resourceType();
-        
-        if (this.config.blockCSS && resourceType === 'stylesheet') {
+
+        if (this.config.blockCSS && resourceType === "stylesheet") {
           request.abort();
           return;
         }
-        
-        if (this.config.blockImages && resourceType === 'image') {
+
+        if (this.config.blockImages && resourceType === "image") {
           request.abort();
           return;
         }
 
         // Block other unnecessary resources
-        if (['font', 'media'].includes(resourceType)) {
+        if (["font", "media"].includes(resourceType)) {
           request.abort();
           return;
         }
@@ -187,39 +200,38 @@ export class BrowserManager {
   private async enableStealthMode(page: Page): Promise<void> {
     // Remove webdriver property
     await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'webdriver', {
+      Object.defineProperty(navigator, "webdriver", {
         get: () => undefined,
       });
     });
 
     // Mock plugins
     await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'plugins', {
+      Object.defineProperty(navigator, "plugins", {
         get: () => [1, 2, 3, 4, 5],
       });
     });
 
     // Mock languages
     await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'languages', {
-        get: () => ['en-US', 'en'],
+      Object.defineProperty(navigator, "languages", {
+        get: () => ["en-US", "en"],
       });
     });
 
     // Mock permissions
     await page.evaluateOnNewDocument(() => {
       const originalQuery = window.navigator.permissions.query;
-      window.navigator.permissions.query = (parameters) => (
-        parameters.name === 'notifications' ?
-          Promise.resolve({ state: Notification.permission }) :
-          originalQuery(parameters)
-      );
+      window.navigator.permissions.query = (parameters) =>
+        parameters.name === "notifications"
+          ? Promise.resolve({ state: Notification.permission })
+          : originalQuery(parameters);
     });
 
     // Mock chrome runtime
     await page.evaluateOnNewDocument(() => {
       (window as any).chrome = {
-        runtime: {}
+        runtime: {},
       };
     });
   }
@@ -230,19 +242,23 @@ export class BrowserManager {
    */
   async closeSession(sessionId: string): Promise<void> {
     const session = this.activeSessions.get(sessionId);
-    
+
     if (!session) {
-      logger.warn('Attempted to close non-existent session', { sessionId }, 'BROWSER_MANAGER');
+      logger.warn(
+        "Attempted to close non-existent session",
+        { sessionId },
+        "BROWSER_MANAGER",
+      );
       return;
     }
 
     try {
       session.isActive = false;
-      
+
       if (session.page && !session.page.isClosed()) {
         await session.page.close();
       }
-      
+
       if (session.browser && session.browser.connected()) {
         await session.browser.close();
       }
@@ -250,14 +266,17 @@ export class BrowserManager {
       this.activeSessions.delete(sessionId);
 
       const sessionDuration = Date.now() - session.startTime;
-      logger.info('Browser session closed', { 
-        sessionId,
-        duration: sessionDuration,
-        activeSessionsCount: this.activeSessions.size 
-      }, 'BROWSER_MANAGER');
-
+      logger.info(
+        "Browser session closed",
+        {
+          sessionId,
+          duration: sessionDuration,
+          activeSessionsCount: this.activeSessions.size,
+        },
+        "BROWSER_MANAGER",
+      );
     } catch (error) {
-      logger.error('Error closing browser session', error, 'BROWSER_MANAGER');
+      logger.error("Error closing browser session", error, "BROWSER_MANAGER");
       this.activeSessions.delete(sessionId);
     }
   }
@@ -267,14 +286,18 @@ export class BrowserManager {
    */
   async closeAllSessions(): Promise<void> {
     const sessionIds = Array.from(this.activeSessions.keys());
-    
+
     await Promise.allSettled(
-      sessionIds.map(sessionId => this.closeSession(sessionId))
+      sessionIds.map((sessionId) => this.closeSession(sessionId)),
     );
 
-    logger.info('All browser sessions closed', { 
-      closedCount: sessionIds.length 
-    }, 'BROWSER_MANAGER');
+    logger.info(
+      "All browser sessions closed",
+      {
+        closedCount: sessionIds.length,
+      },
+      "BROWSER_MANAGER",
+    );
   }
 
   /**
@@ -301,7 +324,7 @@ export class BrowserManager {
    */
   async isSessionHealthy(sessionId: string): Promise<boolean> {
     const session = this.activeSessions.get(sessionId);
-    
+
     if (!session || !session.isActive) {
       return false;
     }
@@ -320,9 +343,12 @@ export class BrowserManager {
       // Try to evaluate a simple expression
       await session.page.evaluate(() => true);
       return true;
-
     } catch (error) {
-      logger.warn('Session health check failed', { sessionId, error }, 'BROWSER_MANAGER');
+      logger.warn(
+        "Session health check failed",
+        { sessionId, error },
+        "BROWSER_MANAGER",
+      );
       return false;
     }
   }
@@ -335,7 +361,7 @@ export class BrowserManager {
    */
   async randomDelay(min: number = 1000, max: number = 3000): Promise<void> {
     const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   /**
@@ -347,12 +373,12 @@ export class BrowserManager {
   async humanMouseMove(page: Page, x: number, y: number): Promise<void> {
     const currentPos = await page.evaluate(() => ({ x: 0, y: 0 }));
     const steps = 10;
-    
+
     for (let i = 0; i <= steps; i++) {
       const progress = i / steps;
       const currentX = currentPos.x + (x - currentPos.x) * progress;
       const currentY = currentPos.y + (y - currentPos.y) * progress;
-      
+
       await page.mouse.move(currentX, currentY);
       await this.randomDelay(10, 30);
     }
@@ -364,16 +390,20 @@ export class BrowserManager {
    * @param direction - 'up' or 'down'
    * @param distance - Scroll distance in pixels
    */
-  async humanScroll(page: Page, direction: 'up' | 'down' = 'down', distance: number = 300): Promise<void> {
-    const scrollDelta = direction === 'down' ? distance : -distance;
+  async humanScroll(
+    page: Page,
+    direction: "up" | "down" = "down",
+    distance: number = 300,
+  ): Promise<void> {
+    const scrollDelta = direction === "down" ? distance : -distance;
     const steps = 5;
     const stepDistance = scrollDelta / steps;
-    
+
     for (let i = 0; i < steps; i++) {
       await page.evaluate((delta) => {
         window.scrollBy(0, delta);
       }, stepDistance);
-      
+
       await this.randomDelay(100, 200);
     }
   }
@@ -392,7 +422,7 @@ export class BrowserManager {
    * Cleanup on process exit
    */
   async cleanup(): Promise<void> {
-    logger.info('Cleaning up browser manager', {}, 'BROWSER_MANAGER');
+    logger.info("Cleaning up browser manager", {}, "BROWSER_MANAGER");
     await this.closeAllSessions();
   }
 }
@@ -401,16 +431,16 @@ export class BrowserManager {
 export const browserManager = BrowserManager.getInstance();
 
 // Cleanup on process exit
-process.on('exit', () => {
+process.on("exit", () => {
   browserManager.cleanup();
 });
 
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await browserManager.cleanup();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await browserManager.cleanup();
   process.exit(0);
 });

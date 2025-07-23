@@ -13,7 +13,7 @@ interface CacheEntry<T = any> {
   metadata: {
     accessCount: number;
     lastAccessed: number;
-    priority: 'low' | 'medium' | 'high' | 'critical';
+    priority: "low" | "medium" | "high" | "critical";
     tags: string[];
     size: number;
   };
@@ -40,15 +40,15 @@ export class IntelligentCacheManager {
 
   constructor(config: Partial<CacheConfig> = {}) {
     this.config = {
-      dbName: 'STRCertifiedCache',
+      dbName: "STRCertifiedCache",
       version: 1,
-      stores: ['properties', 'inspections', 'media', 'metadata'],
+      stores: ["properties", "inspections", "media", "metadata"],
       maxSize: 100 * 1024 * 1024, // 100MB
       defaultTTL: 5 * 60 * 1000, // 5 minutes
       compressionThreshold: 64 * 1024, // 64KB
       enableBackgroundSync: true,
       enablePredictivePreload: true,
-      ...config
+      ...config,
     };
 
     this.initializeCache();
@@ -62,16 +62,18 @@ export class IntelligentCacheManager {
       const request = indexedDB.open(this.config.dbName, this.config.version);
 
       request.onerror = () => {
-        reject(new Error(`Failed to open IndexedDB: ${request.error?.message}`));
+        reject(
+          new Error(`Failed to open IndexedDB: ${request.error?.message}`),
+        );
       };
 
       request.onsuccess = () => {
         this.db = request.result;
         this.isInitialized = true;
-        
+
         // Setup error handling
         this.db.onerror = (event) => {
-          console.error('IndexedDB error:', event);
+          console.error("IndexedDB error:", event);
         };
 
         // Initialize background processes
@@ -86,16 +88,23 @@ export class IntelligentCacheManager {
         const db = (event.target as IDBOpenDBRequest).result;
 
         // Create object stores with optimized indexes
-        this.config.stores.forEach(storeName => {
+        this.config.stores.forEach((storeName) => {
           if (!db.objectStoreNames.contains(storeName)) {
-            const store = db.createObjectStore(storeName, { keyPath: 'key' });
-            
+            const store = db.createObjectStore(storeName, { keyPath: "key" });
+
             // Create indexes for efficient querying
-            store.createIndex('timestamp', 'timestamp', { unique: false });
-            store.createIndex('expiresAt', 'expiresAt', { unique: false });
-            store.createIndex('priority', 'metadata.priority', { unique: false });
-            store.createIndex('tags', 'metadata.tags', { unique: false, multiEntry: true });
-            store.createIndex('lastAccessed', 'metadata.lastAccessed', { unique: false });
+            store.createIndex("timestamp", "timestamp", { unique: false });
+            store.createIndex("expiresAt", "expiresAt", { unique: false });
+            store.createIndex("priority", "metadata.priority", {
+              unique: false,
+            });
+            store.createIndex("tags", "metadata.tags", {
+              unique: false,
+              multiEntry: true,
+            });
+            store.createIndex("lastAccessed", "metadata.lastAccessed", {
+              unique: false,
+            });
           }
         });
       };
@@ -106,15 +115,15 @@ export class IntelligentCacheManager {
    * Intelligent set with automatic compression and metadata tracking
    */
   async set<T>(
-    store: string, 
-    key: string, 
-    data: T, 
+    store: string,
+    key: string,
+    data: T,
     options: {
       ttl?: number;
-      priority?: 'low' | 'medium' | 'high' | 'critical';
+      priority?: "low" | "medium" | "high" | "critical";
       tags?: string[];
       compress?: boolean;
-    } = {}
+    } = {},
   ): Promise<void> {
     if (!this.isInitialized || !this.db) {
       await this.initializeCache();
@@ -140,24 +149,24 @@ export class IntelligentCacheManager {
       metadata: {
         accessCount: 0,
         lastAccessed: now,
-        priority: options.priority || 'medium',
+        priority: options.priority || "medium",
         tags: options.tags || [],
-        size: dataSize
-      }
+        size: dataSize,
+      },
     };
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readwrite');
+      const transaction = this.db!.transaction([store], "readwrite");
       const objectStore = transaction.objectStore(store);
-      
+
       const request = objectStore.put(entry);
-      
+
       request.onsuccess = () => {
         this.trackAccess(key);
         this.checkCacheSize(store);
         resolve();
       };
-      
+
       request.onerror = () => {
         reject(new Error(`Failed to cache data: ${request.error?.message}`));
       };
@@ -173,14 +182,14 @@ export class IntelligentCacheManager {
     }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readonly');
+      const transaction = this.db!.transaction([store], "readonly");
       const objectStore = transaction.objectStore(store);
-      
+
       const request = objectStore.get(key);
-      
+
       request.onsuccess = async () => {
         const entry: CacheEntry<T> = request.result;
-        
+
         if (!entry) {
           resolve(null);
           return;
@@ -196,9 +205,9 @@ export class IntelligentCacheManager {
         // Update access metadata
         entry.metadata.accessCount++;
         entry.metadata.lastAccessed = Date.now();
-        
+
         // Update the entry with new metadata
-        const updateTransaction = this.db!.transaction([store], 'readwrite');
+        const updateTransaction = this.db!.transaction([store], "readwrite");
         const updateStore = updateTransaction.objectStore(store);
         updateStore.put(entry);
 
@@ -213,9 +222,13 @@ export class IntelligentCacheManager {
 
         resolve(data);
       };
-      
+
       request.onerror = () => {
-        reject(new Error(`Failed to retrieve cached data: ${request.error?.message}`));
+        reject(
+          new Error(
+            `Failed to retrieve cached data: ${request.error?.message}`,
+          ),
+        );
       };
     });
   }
@@ -223,15 +236,22 @@ export class IntelligentCacheManager {
   /**
    * Batch operations for performance optimization
    */
-  async setBatch<T>(store: string, entries: Array<{ key: string; data: T; options?: Partial<CacheEntry<T>['metadata']> }>): Promise<void> {
+  async setBatch<T>(
+    store: string,
+    entries: Array<{
+      key: string;
+      data: T;
+      options?: Partial<CacheEntry<T>["metadata"]>;
+    }>,
+  ): Promise<void> {
     if (!this.isInitialized || !this.db) {
       await this.initializeCache();
     }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readwrite');
+      const transaction = this.db!.transaction([store], "readwrite");
       const objectStore = transaction.objectStore(store);
-      
+
       let completed = 0;
       const total = entries.length;
 
@@ -255,23 +275,25 @@ export class IntelligentCacheManager {
           metadata: {
             accessCount: 0,
             lastAccessed: now,
-            priority: options.priority || 'medium',
+            priority: options.priority || "medium",
             tags: options.tags || [],
-            size: dataSize
-          }
+            size: dataSize,
+          },
         };
 
         const request = objectStore.put(entry);
-        
+
         request.onsuccess = () => {
           completed++;
           if (completed === total) {
             resolve();
           }
         };
-        
+
         request.onerror = () => {
-          reject(new Error(`Failed to cache batch data: ${request.error?.message}`));
+          reject(
+            new Error(`Failed to cache batch data: ${request.error?.message}`),
+          );
         };
       });
     });
@@ -281,35 +303,38 @@ export class IntelligentCacheManager {
    * Query cache with advanced filtering
    */
   async query<T>(
-    store: string, 
+    store: string,
     filter: {
       tags?: string[];
       priority?: string;
       minAccessCount?: number;
       maxAge?: number;
-    } = {}
+    } = {},
   ): Promise<CacheEntry<T>[]> {
     if (!this.isInitialized || !this.db) {
       await this.initializeCache();
     }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readonly');
+      const transaction = this.db!.transaction([store], "readonly");
       const objectStore = transaction.objectStore(store);
-      
+
       const request = objectStore.getAll();
-      
+
       request.onsuccess = () => {
         let results: CacheEntry<T>[] = request.result;
         const now = Date.now();
 
         // Apply filters
-        results = results.filter(entry => {
+        results = results.filter((entry) => {
           // Filter expired entries
           if (entry.expiresAt < now) return false;
 
           // Filter by tags
-          if (filter.tags && !filter.tags.some(tag => entry.metadata.tags.includes(tag))) {
+          if (
+            filter.tags &&
+            !filter.tags.some((tag) => entry.metadata.tags.includes(tag))
+          ) {
             return false;
           }
 
@@ -319,12 +344,15 @@ export class IntelligentCacheManager {
           }
 
           // Filter by access count
-          if (filter.minAccessCount && entry.metadata.accessCount < filter.minAccessCount) {
+          if (
+            filter.minAccessCount &&
+            entry.metadata.accessCount < filter.minAccessCount
+          ) {
             return false;
           }
 
           // Filter by age
-          if (filter.maxAge && (now - entry.timestamp) > filter.maxAge) {
+          if (filter.maxAge && now - entry.timestamp > filter.maxAge) {
             return false;
           }
 
@@ -333,7 +361,7 @@ export class IntelligentCacheManager {
 
         resolve(results);
       };
-      
+
       request.onerror = () => {
         reject(new Error(`Failed to query cache: ${request.error?.message}`));
       };
@@ -356,7 +384,8 @@ export class IntelligentCacheManager {
         intervals.push(accessTimes[i] - accessTimes[i - 1]);
       }
 
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const avgInterval =
+        intervals.reduce((a, b) => a + b, 0) / intervals.length;
       const lastAccess = accessTimes[accessTimes.length - 1];
       const timeSinceLastAccess = Date.now() - lastAccess;
 
@@ -376,8 +405,8 @@ export class IntelligentCacheManager {
     const serialized = JSON.stringify(data);
     return {
       _compressed: true,
-      _algorithm: 'json',
-      _data: serialized
+      _algorithm: "json",
+      _data: serialized,
     };
   }
 
@@ -385,7 +414,7 @@ export class IntelligentCacheManager {
    * Decompress data
    */
   private async decompressData<T>(data: ArrayBuffer | T): Promise<T> {
-    if (data._compressed && data._algorithm === 'json') {
+    if (data._compressed && data._algorithm === "json") {
       return JSON.parse(data._data);
     }
     return data;
@@ -395,7 +424,7 @@ export class IntelligentCacheManager {
    * Check if data is compressed
    */
   private isCompressed(data: unknown): boolean {
-    return data && typeof data === 'object' && data._compressed === true;
+    return data && typeof data === "object" && data._compressed === true;
   }
 
   /**
@@ -404,14 +433,14 @@ export class IntelligentCacheManager {
   private trackAccess(key: string): void {
     const now = Date.now();
     const pattern = this.accessPatterns.get(key) || [];
-    
+
     pattern.push(now);
-    
+
     // Keep only last 10 access times
     if (pattern.length > 10) {
       pattern.shift();
     }
-    
+
     this.accessPatterns.set(key, pattern);
   }
 
@@ -432,15 +461,15 @@ export class IntelligentCacheManager {
     if (!this.db) return;
 
     const now = Date.now();
-    
+
     for (const storeName of this.config.stores) {
-      const transaction = this.db.transaction([storeName], 'readwrite');
+      const transaction = this.db.transaction([storeName], "readwrite");
       const store = transaction.objectStore(storeName);
-      const index = store.index('expiresAt');
-      
+      const index = store.index("expiresAt");
+
       const range = IDBKeyRange.upperBound(now);
       const request = index.openCursor(range);
-      
+
       request.onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -474,13 +503,16 @@ export class IntelligentCacheManager {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readwrite');
+      const transaction = this.db!.transaction([store], "readwrite");
       const objectStore = transaction.objectStore(store);
-      
+
       const request = objectStore.delete(key);
-      
+
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(new Error(`Failed to delete cache entry: ${request.error?.message}`));
+      request.onerror = () =>
+        reject(
+          new Error(`Failed to delete cache entry: ${request.error?.message}`),
+        );
     });
   }
 
@@ -491,13 +523,16 @@ export class IntelligentCacheManager {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([store], 'readwrite');
+      const transaction = this.db!.transaction([store], "readwrite");
       const objectStore = transaction.objectStore(store);
-      
+
       const request = objectStore.clear();
-      
+
       request.onsuccess = () => resolve();
-      request.onerror = () => reject(new Error(`Failed to clear cache store: ${request.error?.message}`));
+      request.onerror = () =>
+        reject(
+          new Error(`Failed to clear cache store: ${request.error?.message}`),
+        );
     });
   }
 
@@ -515,7 +550,7 @@ export class IntelligentCacheManager {
         totalEntries: 0,
         totalSize: 0,
         hitRate: 0,
-        stores: {}
+        stores: {},
       };
     }
 
@@ -523,18 +558,21 @@ export class IntelligentCacheManager {
       totalEntries: 0,
       totalSize: 0,
       hitRate: 0,
-      stores: {} as Record<string, { entries: number; size: number }>
+      stores: {} as Record<string, { entries: number; size: number }>,
     };
 
     for (const storeName of this.config.stores) {
       const entries = await this.query(storeName);
-      const storeSize = entries.reduce((total, entry) => total + entry.metadata.size, 0);
-      
+      const storeSize = entries.reduce(
+        (total, entry) => total + entry.metadata.size,
+        0,
+      );
+
       stats.stores[storeName] = {
         entries: entries.length,
-        size: storeSize
+        size: storeSize,
       };
-      
+
       stats.totalEntries += entries.length;
       stats.totalSize += storeSize;
     }
@@ -549,11 +587,11 @@ export class IntelligentCacheManager {
     if (this.backgroundSyncInterval) {
       clearInterval(this.backgroundSyncInterval);
     }
-    
+
     if (this.compressionWorker) {
       this.compressionWorker.terminate();
     }
-    
+
     if (this.db) {
       this.db.close();
     }

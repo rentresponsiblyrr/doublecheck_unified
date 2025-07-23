@@ -2,28 +2,33 @@
  * @fileoverview Self-Healing Suggestions System
  * AI-powered system that provides automated fix suggestions and can apply
  * safe, reversible fixes to common issues without human intervention
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { OpenAI } from 'openai';
-import { supabase } from '@/integrations/supabase/client';
-import { ErrorDetails, SystemContext } from '@/types/errorTypes';
-import { log } from '@/lib/logging/enterprise-logger';
-import type { RootCauseAnalysis } from './rootCauseAnalyzer';
+import { OpenAI } from "openai";
+import { supabase } from "@/integrations/supabase/client";
+import { ErrorDetails, SystemContext } from "@/types/errorTypes";
+import { log } from "@/lib/logging/enterprise-logger";
+import type { RootCauseAnalysis } from "./rootCauseAnalyzer";
 
 interface SelfHealingSuggestion {
   id: string;
   errorId: string;
-  type: 'immediate' | 'scheduled' | 'manual_approval';
-  category: 'cache_clear' | 'data_correction' | 'config_adjustment' | 'service_restart' | 'fallback_activation';
+  type: "immediate" | "scheduled" | "manual_approval";
+  category:
+    | "cache_clear"
+    | "data_correction"
+    | "config_adjustment"
+    | "service_restart"
+    | "fallback_activation";
   title: string;
   description: string;
   technicalDetails: string;
   impact: {
-    risk: 'low' | 'medium' | 'high';
-    userExperience: 'none' | 'minimal' | 'moderate' | 'significant';
+    risk: "low" | "medium" | "high";
+    userExperience: "none" | "minimal" | "moderate" | "significant";
     downtime: string;
     reversible: boolean;
   };
@@ -41,20 +46,31 @@ interface SelfHealingSuggestion {
   similarCases: SimilarCase[];
   createdAt: string;
   executedAt?: string;
-  status: 'pending' | 'approved' | 'executing' | 'completed' | 'failed' | 'rolled_back';
+  status:
+    | "pending"
+    | "approved"
+    | "executing"
+    | "completed"
+    | "failed"
+    | "rolled_back";
 }
 
 interface SimilarCase {
   caseId: string;
   similarity: number;
-  outcome: 'success' | 'failure' | 'partial';
+  outcome: "success" | "failure" | "partial";
   lessonLearned: string;
 }
 
 interface HealingAction {
   id: string;
   suggestionId: string;
-  type: 'script_execution' | 'api_call' | 'database_query' | 'config_update' | 'cache_operation';
+  type:
+    | "script_execution"
+    | "api_call"
+    | "database_query"
+    | "config_update"
+    | "cache_operation";
   action: string;
   parameters: Record<string, unknown>;
   expectedResult: string;
@@ -97,11 +113,15 @@ export class SelfHealingSuggestions {
   constructor() {
     // SECURITY: AI services moved to secure backend proxy
     // Direct OpenAI integration disabled for security
-    log.warn('SelfHealingSuggestions: Direct AI integration disabled for security. Use AIProxyService instead.', {
-      component: 'SelfHealingSuggestions',
-      action: 'constructor',
-      securityMeasure: 'AI_INTEGRATION_DISABLED'
-    }, 'AI_INTEGRATION_DISABLED');
+    log.warn(
+      "SelfHealingSuggestions: Direct AI integration disabled for security. Use AIProxyService instead.",
+      {
+        component: "SelfHealingSuggestions",
+        action: "constructor",
+        securityMeasure: "AI_INTEGRATION_DISABLED",
+      },
+      "AI_INTEGRATION_DISABLED",
+    );
     this.openai = null as any; // Disabled
   }
 
@@ -111,18 +131,22 @@ export class SelfHealingSuggestions {
   async generateHealingSuggestions(
     errorDetails: ErrorDetails,
     systemContext: SystemContext,
-    rootCauseAnalysis?: RootCauseAnalysis
+    rootCauseAnalysis?: RootCauseAnalysis,
   ): Promise<SelfHealingSuggestion[]> {
     // SECURITY: Direct AI integration disabled - use secure backend proxy
-    log.warn('Self-healing AI disabled for security. Returning fallback suggestions.', {
-      component: 'SelfHealingSuggestions',
-      action: 'generateHealingSuggestions',
-      errorId: errorDetails.id,
-      hasSystemContext: !!systemContext,
-      hasRootCause: !!rootCauseAnalysis
-    }, 'SELF_HEALING_AI_DISABLED');
+    log.warn(
+      "Self-healing AI disabled for security. Returning fallback suggestions.",
+      {
+        component: "SelfHealingSuggestions",
+        action: "generateHealingSuggestions",
+        errorId: errorDetails.id,
+        hasSystemContext: !!systemContext,
+        hasRootCause: !!rootCauseAnalysis,
+      },
+      "SELF_HEALING_AI_DISABLED",
+    );
     return this.getFallbackSuggestions(errorDetails);
-    
+
     /*
     try {
       // Check if healing is already in progress for this error
@@ -159,74 +183,82 @@ export class SelfHealingSuggestions {
   /**
    * Fallback suggestions when AI is disabled
    */
-  private getFallbackSuggestions(errorDetails: ErrorDetails): SelfHealingSuggestion[] {
+  private getFallbackSuggestions(
+    errorDetails: ErrorDetails,
+  ): SelfHealingSuggestion[] {
     const fallbackSuggestions: SelfHealingSuggestion[] = [];
 
     // Basic network error recovery
-    if (errorDetails.message.toLowerCase().includes('network') || 
-        errorDetails.message.toLowerCase().includes('fetch')) {
+    if (
+      errorDetails.message.toLowerCase().includes("network") ||
+      errorDetails.message.toLowerCase().includes("fetch")
+    ) {
       fallbackSuggestions.push({
         id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        type: 'immediate',
-        category: 'network_retry',
-        title: 'Retry Network Operation',
-        description: 'Retry the failed network operation with exponential backoff',
-        technicalDetails: 'Implement retry mechanism with delays: 1s, 3s, 5s',
+        errorId: errorDetails.id || "unknown",
+        type: "immediate",
+        category: "network_retry",
+        title: "Retry Network Operation",
+        description:
+          "Retry the failed network operation with exponential backoff",
+        technicalDetails: "Implement retry mechanism with delays: 1s, 3s, 5s",
         impact: {
-          risk: 'low',
-          userExperience: 'minimal',
-          downtime: 'none',
-          reversible: true
+          risk: "low",
+          userExperience: "minimal",
+          downtime: "none",
+          reversible: true,
         },
         implementation: {
           automated: true,
-          script: 'retryWithBackoff(originalRequest, [1000, 3000, 5000])',
+          script: "retryWithBackoff(originalRequest, [1000, 3000, 5000])",
           approvalRequired: false,
-          rollbackPlan: 'Stop retries and show error to user',
-          monitoringPoints: ['Network success rate', 'Response time']
+          rollbackPlan: "Stop retries and show error to user",
+          monitoringPoints: ["Network success rate", "Response time"],
         },
-        prerequisites: ['Network connectivity'],
-        successCriteria: ['Request completes successfully'],
-        estimatedResolution: '10 seconds',
+        prerequisites: ["Network connectivity"],
+        successCriteria: ["Request completes successfully"],
+        estimatedResolution: "10 seconds",
         confidence: 75,
         similarCases: [],
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: "pending",
       });
     }
 
     // Cache clearing for data issues
-    if (errorDetails.message.toLowerCase().includes('cache') || 
-        errorDetails.message.toLowerCase().includes('stale')) {
+    if (
+      errorDetails.message.toLowerCase().includes("cache") ||
+      errorDetails.message.toLowerCase().includes("stale")
+    ) {
       fallbackSuggestions.push({
         id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        type: 'immediate',
-        category: 'cache_clear',
-        title: 'Clear Application Cache',
-        description: 'Clear browser cache to resolve stale data issues',
-        technicalDetails: 'Clear localStorage, sessionStorage, and browser cache',
+        errorId: errorDetails.id || "unknown",
+        type: "immediate",
+        category: "cache_clear",
+        title: "Clear Application Cache",
+        description: "Clear browser cache to resolve stale data issues",
+        technicalDetails:
+          "Clear localStorage, sessionStorage, and browser cache",
         impact: {
-          risk: 'low',
-          userExperience: 'minimal',
-          downtime: 'none',
-          reversible: false
+          risk: "low",
+          userExperience: "minimal",
+          downtime: "none",
+          reversible: false,
         },
         implementation: {
           automated: true,
-          script: 'localStorage.clear(); sessionStorage.clear();',
+          script: "localStorage.clear(); sessionStorage.clear();",
           approvalRequired: false,
-          rollbackPlan: 'Data will be refetched from server',
-          monitoringPoints: ['Cache performance', 'Data freshness']
+          rollbackPlan: "Data will be refetched from server",
+          monitoringPoints: ["Cache performance", "Data freshness"],
         },
-        prerequisites: ['Browser storage access'],
-        successCriteria: ['Cache cleared', 'Fresh data loaded'],
-        estimatedResolution: '5 seconds',
+        prerequisites: ["Browser storage access"],
+        successCriteria: ["Cache cleared", "Fresh data loaded"],
+        estimatedResolution: "5 seconds",
         confidence: 80,
         similarCases: [],
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: "pending",
       });
     }
 
@@ -239,7 +271,7 @@ export class SelfHealingSuggestions {
   private async generateAISuggestions(
     errorDetails: ErrorDetails,
     systemContext: SystemContext,
-    rootCauseAnalysis?: RootCauseAnalysis
+    rootCauseAnalysis?: RootCauseAnalysis,
   ): Promise<SelfHealingSuggestion[]> {
     const prompt = `
 You are an expert DevOps engineer with deep knowledge of self-healing systems for web applications.
@@ -258,7 +290,7 @@ SYSTEM CONTEXT:
 ${JSON.stringify(systemContext, null, 2)}
 
 ROOT CAUSE ANALYSIS:
-${rootCauseAnalysis ? JSON.stringify(rootCauseAnalysis, null, 2) : 'Not available'}
+${rootCauseAnalysis ? JSON.stringify(rootCauseAnalysis, null, 2) : "Not available"}
 
 Generate 3-5 self-healing suggestions that could automatically resolve or mitigate this error. 
 
@@ -293,38 +325,46 @@ Format as JSON array of SelfHealingSuggestion objects.
       messages: [
         {
           role: "system",
-          content: "You are an expert DevOps engineer specializing in automated error recovery and self-healing systems. Respond with valid JSON only."
+          content:
+            "You are an expert DevOps engineer specializing in automated error recovery and self-healing systems. Respond with valid JSON only.",
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       max_tokens: 2000,
-      temperature: 0.1
+      temperature: 0.1,
     });
 
     const suggestionsText = response.choices[0]?.message?.content;
     if (!suggestionsText) {
-      throw new Error('No healing suggestions received from AI');
+      throw new Error("No healing suggestions received from AI");
     }
 
     try {
       const parsedSuggestions = JSON.parse(suggestionsText);
-      return Array.isArray(parsedSuggestions) ? parsedSuggestions.map(suggestion => ({
-        ...suggestion,
-        id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        createdAt: new Date().toISOString(),
-        status: 'pending' as const
-      })) : [];
+      return Array.isArray(parsedSuggestions)
+        ? parsedSuggestions.map((suggestion) => ({
+            ...suggestion,
+            id: this.generateSuggestionId(),
+            errorId: errorDetails.id || "unknown",
+            createdAt: new Date().toISOString(),
+            status: "pending" as const,
+          }))
+        : [];
     } catch (parseError) {
-      log.error('Failed to parse AI healing suggestions', parseError as Error, {
-        component: 'SelfHealingSuggestions',
-        action: 'parseHealingSuggestions',
-        rawResponseLength: suggestionsText?.length || 0,
-        hasResponse: !!suggestionsText
-      }, 'HEALING_SUGGESTIONS_PARSE_FAILED');
+      log.error(
+        "Failed to parse AI healing suggestions",
+        parseError as Error,
+        {
+          component: "SelfHealingSuggestions",
+          action: "parseHealingSuggestions",
+          rawResponseLength: suggestionsText?.length || 0,
+          hasResponse: !!suggestionsText,
+        },
+        "HEALING_SUGGESTIONS_PARSE_FAILED",
+      );
       return [];
     }
   }
@@ -334,11 +374,14 @@ Format as JSON array of SelfHealingSuggestion objects.
    */
   private async filterAndPrioritizeSuggestions(
     suggestions: SelfHealingSuggestion[],
-    errorDetails: ErrorDetails
+    errorDetails: ErrorDetails,
   ): Promise<SelfHealingSuggestion[]> {
     // Filter out high-risk suggestions for production environment
-    const safeSuggestions = suggestions.filter(suggestion => {
-      if (errorDetails.environment === 'production' && suggestion.impact.risk === 'high') {
+    const safeSuggestions = suggestions.filter((suggestion) => {
+      if (
+        errorDetails.environment === "production" &&
+        suggestion.impact.risk === "high"
+      ) {
         return false;
       }
       return true;
@@ -347,8 +390,20 @@ Format as JSON array of SelfHealingSuggestion objects.
     // Prioritize by confidence and safety
     const prioritized = safeSuggestions.sort((a, b) => {
       // High confidence, low risk suggestions first
-      const scoreA = a.confidence * (a.impact.risk === 'low' ? 1.2 : a.impact.risk === 'medium' ? 1.0 : 0.8);
-      const scoreB = b.confidence * (b.impact.risk === 'low' ? 1.2 : b.impact.risk === 'medium' ? 1.0 : 0.8);
+      const scoreA =
+        a.confidence *
+        (a.impact.risk === "low"
+          ? 1.2
+          : a.impact.risk === "medium"
+            ? 1.0
+            : 0.8);
+      const scoreB =
+        b.confidence *
+        (b.impact.risk === "low"
+          ? 1.2
+          : b.impact.risk === "medium"
+            ? 1.0
+            : 0.8);
       return scoreB - scoreA;
     });
 
@@ -360,107 +415,122 @@ Format as JSON array of SelfHealingSuggestion objects.
    */
   private async addSystemSpecificHealing(
     suggestions: SelfHealingSuggestion[],
-    errorDetails: ErrorDetails
+    errorDetails: ErrorDetails,
   ): Promise<SelfHealingSuggestion[]> {
     const systemSpecific: SelfHealingSuggestion[] = [];
 
     // Database constraint violation healing
-    if (errorDetails.code === '23514') {
+    if (errorDetails.code === "23514") {
       systemSpecific.push({
         id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        type: 'manual_approval',
-        category: 'config_adjustment',
-        title: 'Fix Database Status Constraint',
-        description: 'Apply database migration to fix inspection status constraint',
-        technicalDetails: 'Execute SQL migration to update inspections_status_check constraint',
+        errorId: errorDetails.id || "unknown",
+        type: "manual_approval",
+        category: "config_adjustment",
+        title: "Fix Database Status Constraint",
+        description:
+          "Apply database migration to fix inspection status constraint",
+        technicalDetails:
+          "Execute SQL migration to update inspections_status_check constraint",
         impact: {
-          risk: 'medium',
-          userExperience: 'minimal',
-          downtime: 'none',
-          reversible: true
+          risk: "medium",
+          userExperience: "minimal",
+          downtime: "none",
+          reversible: true,
         },
         implementation: {
           automated: false,
           approvalRequired: true,
-          rollbackPlan: 'Revert constraint to previous definition',
-          monitoringPoints: ['Database constraint violations', 'Inspection creation success rate']
+          rollbackPlan: "Revert constraint to previous definition",
+          monitoringPoints: [
+            "Database constraint violations",
+            "Inspection creation success rate",
+          ],
         },
-        prerequisites: ['Database admin access', 'Staging environment testing'],
-        successCriteria: ['No constraint violation errors', 'Successful inspection creation'],
-        estimatedResolution: '15 minutes',
+        prerequisites: ["Database admin access", "Staging environment testing"],
+        successCriteria: [
+          "No constraint violation errors",
+          "Successful inspection creation",
+        ],
+        estimatedResolution: "15 minutes",
         confidence: 90,
         similarCases: [],
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: "pending",
       });
     }
 
     // Authentication token refresh
-    if (errorDetails.message.toLowerCase().includes('auth') || 
-        errorDetails.message.toLowerCase().includes('unauthorized')) {
+    if (
+      errorDetails.message.toLowerCase().includes("auth") ||
+      errorDetails.message.toLowerCase().includes("unauthorized")
+    ) {
       systemSpecific.push({
         id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        type: 'immediate',
-        category: 'service_restart',
-        title: 'Refresh Authentication Session',
-        description: 'Automatically refresh user authentication tokens',
-        technicalDetails: 'Call Supabase session refresh API to get new tokens',
+        errorId: errorDetails.id || "unknown",
+        type: "immediate",
+        category: "service_restart",
+        title: "Refresh Authentication Session",
+        description: "Automatically refresh user authentication tokens",
+        technicalDetails: "Call Supabase session refresh API to get new tokens",
         impact: {
-          risk: 'low',
-          userExperience: 'none',
-          downtime: 'none',
-          reversible: true
+          risk: "low",
+          userExperience: "none",
+          downtime: "none",
+          reversible: true,
         },
         implementation: {
           automated: true,
-          script: 'await supabase.auth.refreshSession()',
+          script: "await supabase.auth.refreshSession()",
           approvalRequired: false,
-          rollbackPlan: 'Redirect to login page if refresh fails',
-          monitoringPoints: ['Authentication success rate', 'Session duration']
+          rollbackPlan: "Redirect to login page if refresh fails",
+          monitoringPoints: ["Authentication success rate", "Session duration"],
         },
-        prerequisites: ['Valid refresh token'],
-        successCriteria: ['New access token received', 'API calls succeed'],
-        estimatedResolution: '5 seconds',
+        prerequisites: ["Valid refresh token"],
+        successCriteria: ["New access token received", "API calls succeed"],
+        estimatedResolution: "5 seconds",
         confidence: 85,
         similarCases: [],
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: "pending",
       });
     }
 
     // Cache clearing for stale data issues
-    if (errorDetails.message.toLowerCase().includes('stale') || 
-        errorDetails.message.toLowerCase().includes('cache')) {
+    if (
+      errorDetails.message.toLowerCase().includes("stale") ||
+      errorDetails.message.toLowerCase().includes("cache")
+    ) {
       systemSpecific.push({
         id: this.generateSuggestionId(),
-        errorId: errorDetails.id || 'unknown',
-        type: 'immediate',
-        category: 'cache_clear',
-        title: 'Clear Application Cache',
-        description: 'Clear browser and application cache to resolve stale data issues',
-        technicalDetails: 'Clear localStorage, sessionStorage, and IndexedDB cache',
+        errorId: errorDetails.id || "unknown",
+        type: "immediate",
+        category: "cache_clear",
+        title: "Clear Application Cache",
+        description:
+          "Clear browser and application cache to resolve stale data issues",
+        technicalDetails:
+          "Clear localStorage, sessionStorage, and IndexedDB cache",
         impact: {
-          risk: 'low',
-          userExperience: 'minimal',
-          downtime: 'none',
-          reversible: false
+          risk: "low",
+          userExperience: "minimal",
+          downtime: "none",
+          reversible: false,
         },
         implementation: {
           automated: true,
-          script: 'localStorage.clear(); sessionStorage.clear(); caches.delete("app-cache");',
+          script:
+            'localStorage.clear(); sessionStorage.clear(); caches.delete("app-cache");',
           approvalRequired: false,
-          rollbackPlan: 'Data will be refetched from server',
-          monitoringPoints: ['Cache hit rate', 'Page load performance']
+          rollbackPlan: "Data will be refetched from server",
+          monitoringPoints: ["Cache hit rate", "Page load performance"],
         },
-        prerequisites: ['Browser storage access'],
-        successCriteria: ['Cache cleared successfully', 'Fresh data loaded'],
-        estimatedResolution: '10 seconds',
+        prerequisites: ["Browser storage access"],
+        successCriteria: ["Cache cleared successfully", "Fresh data loaded"],
+        estimatedResolution: "10 seconds",
         confidence: 80,
         similarCases: [],
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: "pending",
       });
     }
 
@@ -470,24 +540,28 @@ Format as JSON array of SelfHealingSuggestion objects.
   /**
    * Validate safety of healing suggestions
    */
-  private async validateSafety(suggestions: SelfHealingSuggestion[]): Promise<SelfHealingSuggestion[]> {
-    return suggestions.filter(suggestion => {
+  private async validateSafety(
+    suggestions: SelfHealingSuggestion[],
+  ): Promise<SelfHealingSuggestion[]> {
+    return suggestions.filter((suggestion) => {
       // Block any suggestions that could affect user data
-      if (suggestion.technicalDetails.toLowerCase().includes('delete') ||
-          suggestion.technicalDetails.toLowerCase().includes('drop') ||
-          suggestion.technicalDetails.toLowerCase().includes('truncate')) {
+      if (
+        suggestion.technicalDetails.toLowerCase().includes("delete") ||
+        suggestion.technicalDetails.toLowerCase().includes("drop") ||
+        suggestion.technicalDetails.toLowerCase().includes("truncate")
+      ) {
         return false;
       }
 
       // Require approval for high-risk operations
-      if (suggestion.impact.risk === 'high') {
+      if (suggestion.impact.risk === "high") {
         suggestion.implementation.approvalRequired = true;
-        suggestion.type = 'manual_approval';
+        suggestion.type = "manual_approval";
       }
 
       // Ensure rollback plan exists
       if (!suggestion.implementation.rollbackPlan) {
-        suggestion.implementation.rollbackPlan = 'Manual rollback required';
+        suggestion.implementation.rollbackPlan = "Manual rollback required";
         suggestion.implementation.approvalRequired = true;
       }
 
@@ -506,7 +580,7 @@ Format as JSON array of SelfHealingSuggestion objects.
       // Get suggestion details
       const suggestion = await this.getSuggestion(suggestionId);
       if (!suggestion) {
-        throw new Error('Suggestion not found');
+        throw new Error("Suggestion not found");
       }
 
       // Check prerequisites
@@ -530,9 +604,9 @@ Format as JSON array of SelfHealingSuggestion objects.
         details: error.message,
         metrics: { errorsReduced: 0, performanceImpact: 0 },
         sideEffects: [error.message],
-        monitoringData: {}
+        monitoringData: {},
       };
-      
+
       this.storeHealingResult(suggestionId, errorResult);
       return errorResult;
     } finally {
@@ -543,26 +617,28 @@ Format as JSON array of SelfHealingSuggestion objects.
   /**
    * Execute the actual healing action
    */
-  private async executeHealingAction(suggestion: SelfHealingSuggestion): Promise<HealingResult> {
+  private async executeHealingAction(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<HealingResult> {
     const startTime = Date.now();
-    
+
     try {
       let executionResult: ExecutionResult;
 
       switch (suggestion.category) {
-        case 'cache_clear':
+        case "cache_clear":
           executionResult = await this.executeCacheClear(suggestion);
           break;
-        case 'service_restart':
+        case "service_restart":
           executionResult = await this.executeServiceRestart(suggestion);
           break;
-        case 'data_correction':
+        case "data_correction":
           executionResult = await this.executeDataCorrection(suggestion);
           break;
-        case 'config_adjustment':
+        case "config_adjustment":
           executionResult = await this.executeConfigAdjustment(suggestion);
           break;
-        case 'fallback_activation':
+        case "fallback_activation":
           executionResult = await this.executeFallbackActivation(suggestion);
           break;
         default:
@@ -575,13 +651,13 @@ Format as JSON array of SelfHealingSuggestion objects.
         suggestionId: suggestion.id,
         success: true,
         executionTime,
-        details: 'Healing action completed successfully',
+        details: "Healing action completed successfully",
         metrics: {
           errorsReduced: 1,
           performanceImpact: executionTime,
         },
         sideEffects: [],
-        monitoringData: executionResult
+        monitoringData: executionResult,
       };
     } catch (error) {
       throw new Error(`Healing execution failed: ${error.message}`);
@@ -591,15 +667,17 @@ Format as JSON array of SelfHealingSuggestion objects.
   /**
    * Execute cache clearing operation
    */
-  private async executeCacheClear(suggestion: SelfHealingSuggestion): Promise<ExecutionResult> {
+  private async executeCacheClear(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<ExecutionResult> {
     // Clear browser storage
     localStorage.clear();
     sessionStorage.clear();
-    
+
     // Clear cache API if available
-    if ('caches' in window) {
+    if ("caches" in window) {
       const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
     }
 
     return { cacheCleared: true, timestamp: new Date().toISOString() };
@@ -608,68 +686,97 @@ Format as JSON array of SelfHealingSuggestion objects.
   /**
    * Execute service restart (session refresh)
    */
-  private async executeServiceRestart(suggestion: SelfHealingSuggestion): Promise<ExecutionResult> {
+  private async executeServiceRestart(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<ExecutionResult> {
     // Refresh Supabase session
     const { data, error } = await supabase.auth.refreshSession();
-    
+
     if (error) {
       throw new Error(`Session refresh failed: ${error.message}`);
     }
 
-    return { sessionRefreshed: true, newSession: data.session?.access_token ? 'valid' : 'invalid' };
+    return {
+      sessionRefreshed: true,
+      newSession: data.session?.access_token ? "valid" : "invalid",
+    };
   }
 
   /**
    * Execute data correction
    */
-  private async executeDataCorrection(suggestion: SelfHealingSuggestion): Promise<ExecutionResult> {
+  private async executeDataCorrection(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<ExecutionResult> {
     // Only execute safe data corrections
-    log.info('Data correction would be executed here with proper approval workflow', {
-      component: 'SelfHealingSuggestions',
-      action: 'executeDataCorrection',
-      suggestionId: suggestion.id
-    }, 'DATA_CORRECTION_SIMULATED');
+    log.info(
+      "Data correction would be executed here with proper approval workflow",
+      {
+        component: "SelfHealingSuggestions",
+        action: "executeDataCorrection",
+        suggestionId: suggestion.id,
+      },
+      "DATA_CORRECTION_SIMULATED",
+    );
     return { dataCorrectionSimulated: true };
   }
 
   /**
    * Execute configuration adjustment
    */
-  private async executeConfigAdjustment(suggestion: SelfHealingSuggestion): Promise<ExecutionResult> {
+  private async executeConfigAdjustment(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<ExecutionResult> {
     // Only execute safe configuration changes
-    log.info('Configuration adjustment would be executed here with proper approval workflow', {
-      component: 'SelfHealingSuggestions',
-      action: 'executeConfigAdjustment',
-      suggestionId: suggestion.id
-    }, 'CONFIG_ADJUSTMENT_SIMULATED');
+    log.info(
+      "Configuration adjustment would be executed here with proper approval workflow",
+      {
+        component: "SelfHealingSuggestions",
+        action: "executeConfigAdjustment",
+        suggestionId: suggestion.id,
+      },
+      "CONFIG_ADJUSTMENT_SIMULATED",
+    );
     return { configAdjustmentSimulated: true };
   }
 
   /**
    * Execute fallback activation
    */
-  private async executeFallbackActivation(suggestion: SelfHealingSuggestion): Promise<ExecutionResult> {
+  private async executeFallbackActivation(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<ExecutionResult> {
     // Activate fallback mechanisms
-    log.info('Fallback activation would be executed here', {
-      component: 'SelfHealingSuggestions',
-      action: 'executeFallbackActivation',
-      suggestionId: suggestion.id
-    }, 'FALLBACK_ACTIVATION_SIMULATED');
+    log.info(
+      "Fallback activation would be executed here",
+      {
+        component: "SelfHealingSuggestions",
+        action: "executeFallbackActivation",
+        suggestionId: suggestion.id,
+      },
+      "FALLBACK_ACTIVATION_SIMULATED",
+    );
     return { fallbackActivated: true };
   }
 
   /**
    * Check if prerequisites are met
    */
-  private async checkPrerequisites(suggestion: SelfHealingSuggestion): Promise<void> {
+  private async checkPrerequisites(
+    suggestion: SelfHealingSuggestion,
+  ): Promise<void> {
     for (const prerequisite of suggestion.prerequisites) {
       // Implement prerequisite checks based on the requirement
-      log.debug('Checking prerequisite', {
-        component: 'SelfHealingSuggestions',
-        action: 'checkPrerequisites',
-        suggestionId: suggestion.id,
-        prerequisite
-      }, 'PREREQUISITE_CHECK');
+      log.debug(
+        "Checking prerequisite",
+        {
+          component: "SelfHealingSuggestions",
+          action: "checkPrerequisites",
+          suggestionId: suggestion.id,
+          prerequisite,
+        },
+        "PREREQUISITE_CHECK",
+      );
     }
   }
 
@@ -678,23 +785,30 @@ Format as JSON array of SelfHealingSuggestion objects.
    */
   private async monitorHealingResults(
     suggestion: SelfHealingSuggestion,
-    result: HealingResult
+    result: HealingResult,
   ): Promise<void> {
     // Implement monitoring based on suggestion.implementation.monitoringPoints
     for (const point of suggestion.implementation.monitoringPoints) {
-      log.debug('Monitoring point', {
-        component: 'SelfHealingSuggestions',
-        action: 'monitorExecution',
-        suggestionId: suggestion.id,
-        monitoringPoint: point
-      }, 'MONITORING_POINT');
+      log.debug(
+        "Monitoring point",
+        {
+          component: "SelfHealingSuggestions",
+          action: "monitorExecution",
+          suggestionId: suggestion.id,
+          monitoringPoint: point,
+        },
+        "MONITORING_POINT",
+      );
     }
   }
 
   /**
    * Store healing result for learning
    */
-  private storeHealingResult(suggestionId: string, result: HealingResult): void {
+  private storeHealingResult(
+    suggestionId: string,
+    result: HealingResult,
+  ): void {
     if (!this.healingHistory.has(suggestionId)) {
       this.healingHistory.set(suggestionId, []);
     }
@@ -704,7 +818,9 @@ Format as JSON array of SelfHealingSuggestion objects.
   /**
    * Get suggestion by ID (mock implementation)
    */
-  private async getSuggestion(suggestionId: string): Promise<SelfHealingSuggestion | null> {
+  private async getSuggestion(
+    suggestionId: string,
+  ): Promise<SelfHealingSuggestion | null> {
     // In a real implementation, this would query the database
     return null;
   }
@@ -723,9 +839,9 @@ Format as JSON array of SelfHealingSuggestion objects.
     if (suggestionId) {
       return this.healingHistory.get(suggestionId) || [];
     }
-    
+
     const allResults: HealingResult[] = [];
-    this.healingHistory.forEach(results => allResults.push(...results));
+    this.healingHistory.forEach((results) => allResults.push(...results));
     return allResults;
   }
 }

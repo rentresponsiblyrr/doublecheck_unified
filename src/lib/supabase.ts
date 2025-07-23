@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Export the real Supabase client
@@ -6,56 +5,55 @@ export { supabase };
 
 // Helper function to upload media files to Supabase Storage
 export const uploadMedia = async (
-  file: File, 
-  inspectionId: string, 
-  checklistItemId: string
+  file: File,
+  inspectionId: string,
+  checklistItemId: string,
 ): Promise<{ url: string; error: null } | { url: null; error: string }> => {
   try {
-    
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${inspectionId}/${checklistItemId}/${fileName}`;
-    
-    
+
     const { data, error } = await supabase.storage
-      .from('inspection-media')
+      .from("inspection-media")
       .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
+        cacheControl: "3600",
+        upsert: false,
       });
 
     if (error) {
       return { url: null, error: error.message };
     }
 
-
     // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('inspection-media')
-      .getPublicUrl(filePath);
-
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("inspection-media").getPublicUrl(filePath);
 
     return { url: publicUrl, error: null };
   } catch (error) {
-    return { url: null, error: error instanceof Error ? error.message : 'Upload failed' };
+    return {
+      url: null,
+      error: error instanceof Error ? error.message : "Upload failed",
+    };
   }
 };
 
 // Helper function to save media record to database
 export const saveMediaRecord = async (
   checklistItemId: string,
-  type: 'photo' | 'video',
+  type: "photo" | "video",
   url: string,
-  filePath?: string
+  filePath?: string,
 ) => {
   const { data, error } = await supabase
-    .from('media')
+    .from("media")
     .insert({
       checklist_item_id: checklistItemId,
       type,
       url,
       file_path: filePath,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -70,13 +68,13 @@ export const saveMediaRecord = async (
 // Helper function to update checklist item status
 export const updateChecklistItemStatus = async (
   checklistItemId: string,
-  status: 'completed' | null
+  status: "completed" | null,
 ) => {
   // CORRECTED: Use checklist_items table directly
   const { data, error } = await supabase
-    .from('checklist_items')
+    .from("checklist_items")
     .update({ status })
-    .eq('id', checklistItemId)
+    .eq("id", checklistItemId)
     .select()
     .single();
 
@@ -90,16 +88,18 @@ export const updateChecklistItemStatus = async (
 // Helper function to get inspection details
 export const getInspectionDetails = async (inspectionId: string) => {
   const { data, error } = await supabase
-    .from('inspections')
-    .select(`
+    .from("inspections")
+    .select(
+      `
       *,
       properties (
         name,
         address,
         vrbo_url
       )
-    `)
-    .eq('id', inspectionId)
+    `,
+    )
+    .eq("id", inspectionId)
     .single();
 
   if (error) {

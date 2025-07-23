@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { PWAProvider } from '@/contexts/PWAContext';
-import { PWAErrorBoundary } from './PWAErrorBoundary';
-import { PWAPerformanceMonitor } from './PWAPerformanceMonitor';
-import { PWAInstallPrompt } from './PWAInstallPrompt';
-import { OfflineInspectionWorkflow } from '@/components/inspection/OfflineInspectionWorkflow';
-import { logger } from '@/utils/logger';
+import React, { useEffect, useState, useCallback } from "react";
+import { PWAProvider } from "@/contexts/PWAContext";
+import { PWAErrorBoundary } from "./PWAErrorBoundary";
+import { PWAPerformanceMonitor } from "./PWAPerformanceMonitor";
+import { PWAInstallPrompt } from "./PWAInstallPrompt";
+import { OfflineInspectionWorkflow } from "@/components/inspection/OfflineInspectionWorkflow";
+import { logger } from "@/utils/logger";
 
 interface PWAOrchestrationState {
   isInitialized: boolean;
@@ -32,24 +32,25 @@ export const PWAIntegrationOrchestrator: React.FC<{
   children,
   enablePerformanceMonitoring = true,
   enableInstallPrompt = true,
-  enableOfflineWorkflow = true
+  enableOfflineWorkflow = true,
 }) => {
-  const [orchestrationState, setOrchestrationState] = useState<PWAOrchestrationState>({
-    isInitialized: false,
-    isInitializing: false,
-    initializationProgress: 0,
-    componentsReady: {
-      serviceWorker: false,
-      backgroundSync: false,
-      notifications: false,
-      installPrompt: false,
-      offlineWorkflow: false,
-      errorBoundary: false,
-      performance: false
-    },
-    errors: [],
-    performanceScore: 0
-  });
+  const [orchestrationState, setOrchestrationState] =
+    useState<PWAOrchestrationState>({
+      isInitialized: false,
+      isInitializing: false,
+      initializationProgress: 0,
+      componentsReady: {
+        serviceWorker: false,
+        backgroundSync: false,
+        notifications: false,
+        installPrompt: false,
+        offlineWorkflow: false,
+        errorBoundary: false,
+        performance: false,
+      },
+      errors: [],
+      performanceScore: 0,
+    });
 
   /**
    * PHASE 4C ORCHESTRATION INITIALIZATION
@@ -61,19 +62,23 @@ export const PWAIntegrationOrchestrator: React.FC<{
 
   const initializePWAOrchestration = useCallback(async () => {
     try {
-      logger.info('🚀 Starting PWA Integration Orchestration - Phase 4C', {
-        timestamp: Date.now(),
-        components: {
-          performanceMonitoring: enablePerformanceMonitoring,
-          installPrompt: enableInstallPrompt,
-          offlineWorkflow: enableOfflineWorkflow
-        }
-      }, 'PWA_ORCHESTRATOR');
+      logger.info(
+        "🚀 Starting PWA Integration Orchestration - Phase 4C",
+        {
+          timestamp: Date.now(),
+          components: {
+            performanceMonitoring: enablePerformanceMonitoring,
+            installPrompt: enableInstallPrompt,
+            offlineWorkflow: enableOfflineWorkflow,
+          },
+        },
+        "PWA_ORCHESTRATOR",
+      );
 
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         isInitializing: true,
-        initializationProgress: 0
+        initializationProgress: 0,
       }));
 
       // Phase 1: Initialize core PWA foundation (20%)
@@ -96,206 +101,247 @@ export const PWAIntegrationOrchestrator: React.FC<{
       await performFinalHealthCheck();
       updateProgress(100);
 
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         isInitialized: true,
-        isInitializing: false
+        isInitializing: false,
       }));
 
-      logger.info('✅ PWA Integration Orchestration completed successfully', {
-        duration: Date.now(),
-        componentsReady: orchestrationState.componentsReady,
-        performanceScore: orchestrationState.performanceScore
-      }, 'PWA_ORCHESTRATOR');
-
+      logger.info(
+        "✅ PWA Integration Orchestration completed successfully",
+        {
+          duration: Date.now(),
+          componentsReady: orchestrationState.componentsReady,
+          performanceScore: orchestrationState.performanceScore,
+        },
+        "PWA_ORCHESTRATOR",
+      );
     } catch (error) {
-      logger.error('❌ PWA Integration Orchestration failed', {
-        error: (error as Error).message,
-        stack: (error as Error).stack
-      }, 'PWA_ORCHESTRATOR');
+      logger.error(
+        "❌ PWA Integration Orchestration failed",
+        {
+          error: (error as Error).message,
+          stack: (error as Error).stack,
+        },
+        "PWA_ORCHESTRATOR",
+      );
 
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         isInitializing: false,
-        errors: [...prev.errors, (error as Error).message]
+        errors: [...prev.errors, (error as Error).message],
       }));
     }
   }, [enablePerformanceMonitoring, enableInstallPrompt, enableOfflineWorkflow]);
 
   const updateProgress = (progress: number) => {
-    setOrchestrationState(prev => ({
+    setOrchestrationState((prev) => ({
       ...prev,
-      initializationProgress: progress
+      initializationProgress: progress,
     }));
   };
 
   const initializePWAFoundation = async () => {
-    logger.info('Initializing PWA foundation components', {}, 'PWA_ORCHESTRATOR');
+    logger.info(
+      "Initializing PWA foundation components",
+      {},
+      "PWA_ORCHESTRATOR",
+    );
 
     // Check for PWA support
     const pwaSupport = {
-      serviceWorker: 'serviceWorker' in navigator,
-      manifest: 'manifest' in document.querySelector('link[rel="manifest"]') || false,
-      notifications: 'Notification' in window,
-      pushManager: 'PushManager' in window,
-      backgroundSync: !!(window.ServiceWorkerRegistration && 'sync' in window.ServiceWorkerRegistration.prototype)
+      serviceWorker: "serviceWorker" in navigator,
+      manifest:
+        "manifest" in document.querySelector('link[rel="manifest"]') || false,
+      notifications: "Notification" in window,
+      pushManager: "PushManager" in window,
+      backgroundSync: !!(
+        window.ServiceWorkerRegistration &&
+        "sync" in window.ServiceWorkerRegistration.prototype
+      ),
     };
 
-    logger.info('PWA support assessment', pwaSupport, 'PWA_ORCHESTRATOR');
+    logger.info("PWA support assessment", pwaSupport, "PWA_ORCHESTRATOR");
 
     // Initialize error boundary
-    setOrchestrationState(prev => ({
+    setOrchestrationState((prev) => ({
       ...prev,
       componentsReady: {
         ...prev.componentsReady,
-        errorBoundary: true
-      }
+        errorBoundary: true,
+      },
     }));
 
     if (!pwaSupport.serviceWorker) {
-      throw new Error('Service Worker not supported - PWA features unavailable');
+      throw new Error(
+        "Service Worker not supported - PWA features unavailable",
+      );
     }
   };
 
   const initializeServiceWorkerSystems = async () => {
-    logger.info('Initializing Service Worker systems', {}, 'PWA_ORCHESTRATOR');
+    logger.info("Initializing Service Worker systems", {}, "PWA_ORCHESTRATOR");
 
     try {
       // Get existing managers from global scope
       const backgroundSyncManager = (window as any).__BACKGROUND_SYNC_MANAGER__;
-      const pushNotificationManager = (window as any).__PUSH_NOTIFICATION_MANAGER__;
+      const pushNotificationManager = (window as any)
+        .__PUSH_NOTIFICATION_MANAGER__;
 
       if (!backgroundSyncManager) {
-        throw new Error('Background Sync Manager not initialized');
+        throw new Error("Background Sync Manager not initialized");
       }
 
       if (!pushNotificationManager) {
-        throw new Error('Push Notification Manager not initialized');
+        throw new Error("Push Notification Manager not initialized");
       }
 
       // Verify service worker status
       const registration = await navigator.serviceWorker.ready;
       if (!registration.active) {
-        throw new Error('Service Worker not active');
+        throw new Error("Service Worker not active");
       }
 
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         componentsReady: {
           ...prev.componentsReady,
           serviceWorker: true,
-          backgroundSync: true
-        }
+          backgroundSync: true,
+        },
       }));
 
-      logger.info('Service Worker systems initialized successfully', {
-        registration: !!registration,
-        backgroundSync: !!backgroundSyncManager,
-        pushNotifications: !!pushNotificationManager
-      }, 'PWA_ORCHESTRATOR');
-
+      logger.info(
+        "Service Worker systems initialized successfully",
+        {
+          registration: !!registration,
+          backgroundSync: !!backgroundSyncManager,
+          pushNotifications: !!pushNotificationManager,
+        },
+        "PWA_ORCHESTRATOR",
+      );
     } catch (error) {
-      logger.error('Service Worker systems initialization failed', { error }, 'PWA_ORCHESTRATOR');
+      logger.error(
+        "Service Worker systems initialization failed",
+        { error },
+        "PWA_ORCHESTRATOR",
+      );
       throw error;
     }
   };
 
   const initializeNotificationSystem = async () => {
-    logger.info('Initializing notification system', {}, 'PWA_ORCHESTRATOR');
+    logger.info("Initializing notification system", {}, "PWA_ORCHESTRATOR");
 
     try {
       const pushManager = (window as any).__PUSH_NOTIFICATION_MANAGER__;
 
       if (pushManager) {
         // Test notification system
-        const permission = await pushManager.requestPermission?.() || Notification.permission;
+        const permission =
+          (await pushManager.requestPermission?.()) || Notification.permission;
 
-        setOrchestrationState(prev => ({
+        setOrchestrationState((prev) => ({
           ...prev,
           componentsReady: {
             ...prev.componentsReady,
-            notifications: permission === 'granted' || permission === 'default'
-          }
+            notifications: permission === "granted" || permission === "default",
+          },
         }));
 
-        logger.info('Notification system initialized', { permission }, 'PWA_ORCHESTRATOR');
+        logger.info(
+          "Notification system initialized",
+          { permission },
+          "PWA_ORCHESTRATOR",
+        );
       }
-
     } catch (error) {
-      logger.warn('Notification system initialization failed', { error }, 'PWA_ORCHESTRATOR');
+      logger.warn(
+        "Notification system initialization failed",
+        { error },
+        "PWA_ORCHESTRATOR",
+      );
       // Don't throw - notifications are not critical for basic PWA functionality
     }
   };
 
   const initializeUIComponents = async () => {
-    logger.info('Initializing PWA UI components', {}, 'PWA_ORCHESTRATOR');
+    logger.info("Initializing PWA UI components", {}, "PWA_ORCHESTRATOR");
 
     // Install prompt component
     if (enableInstallPrompt) {
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         componentsReady: {
           ...prev.componentsReady,
-          installPrompt: true
-        }
+          installPrompt: true,
+        },
       }));
     }
 
     // Offline workflow component
     if (enableOfflineWorkflow) {
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         componentsReady: {
           ...prev.componentsReady,
-          offlineWorkflow: true
-        }
+          offlineWorkflow: true,
+        },
       }));
     }
 
     // Performance monitoring
     if (enablePerformanceMonitoring) {
-      setOrchestrationState(prev => ({
+      setOrchestrationState((prev) => ({
         ...prev,
         componentsReady: {
           ...prev.componentsReady,
-          performance: true
-        }
+          performance: true,
+        },
       }));
     }
   };
 
   const performFinalHealthCheck = async () => {
-    logger.info('Performing final PWA health check', {}, 'PWA_ORCHESTRATOR');
+    logger.info("Performing final PWA health check", {}, "PWA_ORCHESTRATOR");
 
     const healthScore = calculateHealthScore();
 
-    setOrchestrationState(prev => ({
+    setOrchestrationState((prev) => ({
       ...prev,
-      performanceScore: healthScore
+      performanceScore: healthScore,
     }));
 
     if (healthScore < 75) {
-      logger.warn('PWA health score below threshold', {
-        score: healthScore,
-        components: orchestrationState.componentsReady
-      }, 'PWA_ORCHESTRATOR');
+      logger.warn(
+        "PWA health score below threshold",
+        {
+          score: healthScore,
+          components: orchestrationState.componentsReady,
+        },
+        "PWA_ORCHESTRATOR",
+      );
     }
 
     // Send initialization metrics
     try {
-      await fetch('/api/pwa/initialization', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/pwa/initialization", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           healthScore,
           componentsReady: orchestrationState.componentsReady,
           initializationTime: Date.now(),
           userAgent: navigator.userAgent,
-          url: window.location.href
-        })
+          url: window.location.href,
+        }),
       });
     } catch (error) {
-      logger.warn('Failed to send initialization metrics', { error }, 'PWA_ORCHESTRATOR');
+      logger.warn(
+        "Failed to send initialization metrics",
+        { error },
+        "PWA_ORCHESTRATOR",
+      );
     }
   };
 
@@ -318,7 +364,10 @@ export const PWAIntegrationOrchestrator: React.FC<{
   // Loading UI during initialization
   if (orchestrationState.isInitializing) {
     return (
-      <div id="pwa-orchestrator-loading" className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+      <div
+        id="pwa-orchestrator-loading"
+        className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50"
+      >
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -328,7 +377,7 @@ export const PWAIntegrationOrchestrator: React.FC<{
             Setting up offline capabilities and advanced features...
           </p>
           <div className="w-64 bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${orchestrationState.initializationProgress}%` }}
             />
@@ -342,9 +391,15 @@ export const PWAIntegrationOrchestrator: React.FC<{
   }
 
   // Error UI if initialization failed
-  if (orchestrationState.errors.length > 0 && !orchestrationState.isInitialized) {
+  if (
+    orchestrationState.errors.length > 0 &&
+    !orchestrationState.isInitialized
+  ) {
     return (
-      <div id="pwa-orchestrator-error" className="fixed inset-0 bg-red-50 flex items-center justify-center z-50">
+      <div
+        id="pwa-orchestrator-error"
+        className="fixed inset-0 bg-red-50 flex items-center justify-center z-50"
+      >
         <div className="max-w-md text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h3 className="text-lg font-medium text-red-900 mb-2">
@@ -383,7 +438,11 @@ export const PWAIntegrationOrchestrator: React.FC<{
           <PWAInstallPrompt
             enableFloatingButton={true}
             onInstallSuccess={() => {
-              logger.info('PWA installed successfully via orchestrator', {}, 'PWA_ORCHESTRATOR');
+              logger.info(
+                "PWA installed successfully via orchestrator",
+                {},
+                "PWA_ORCHESTRATOR",
+              );
             }}
           />
         )}

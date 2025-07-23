@@ -31,7 +31,7 @@ export interface ScrapedPropertyData {
     zipCode: string;
   };
   scrapedAt: string;
-  source: 'vrbo' | 'airbnb' | 'manual';
+  source: "vrbo" | "airbnb" | "manual";
   confidence: number; // 0-1 confidence in scraped data accuracy
 }
 

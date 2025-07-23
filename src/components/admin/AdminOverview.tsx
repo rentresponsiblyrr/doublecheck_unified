@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, RefreshCw } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { KPICards } from './overview/KPICards';
-import { TrendCharts } from './overview/TrendCharts';
-import { QuickActions } from './overview/QuickActions';
-import { useAdminDashboard } from './overview/useAdminDashboard';
-import { TimeRange } from './overview/types';
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar, RefreshCw } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { KPICards } from "./overview/KPICards";
+import { TrendCharts } from "./overview/TrendCharts";
+import { QuickActions } from "./overview/QuickActions";
+import { useAdminDashboard } from "./overview/useAdminDashboard";
+import { TimeRange } from "./overview/types";
 
-export const AdminOverview: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('30d');
-  const { kpis, trends, regions, isLoading, reload } = useAdminDashboard(selectedTimeRange);
+export const AdminOverview: React.FC<{ className?: string }> = ({
+  className = "",
+}) => {
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("30d");
+  const { kpis, trends, regions, isLoading, reload } =
+    useAdminDashboard(selectedTimeRange);
 
   const handleRefresh = () => {
     reload();
@@ -20,10 +35,10 @@ export const AdminOverview: React.FC<{ className?: string }> = ({ className = ''
 
   const getTimeRangeLabel = (range: TimeRange): string => {
     const labels = {
-      '7d': 'Last 7 Days',
-      '30d': 'Last 30 Days', 
-      '90d': 'Last 90 Days',
-      '1y': 'Last Year'
+      "7d": "Last 7 Days",
+      "30d": "Last 30 Days",
+      "90d": "Last 90 Days",
+      "1y": "Last Year",
     };
     return labels[range];
   };
@@ -57,7 +72,7 @@ export const AdminOverview: React.FC<{ className?: string }> = ({ className = ''
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {(['7d', '30d', '90d', '1y'] as TimeRange[]).map((range) => (
+              {(["7d", "30d", "90d", "1y"] as TimeRange[]).map((range) => (
                 <SelectItem key={range} value={range}>
                   {getTimeRangeLabel(range)}
                 </SelectItem>
@@ -80,7 +95,7 @@ export const AdminOverview: React.FC<{ className?: string }> = ({ className = ''
         <div className="xl:col-span-2">
           <TrendCharts trendData={trends} regionalData={regions} />
         </div>
-        
+
         <div className="xl:col-span-1">
           <QuickActions kpis={kpis} />
         </div>
@@ -100,14 +115,14 @@ export const AdminOverview: React.FC<{ className?: string }> = ({ className = ''
               </div>
               <div className="text-sm text-gray-600">AI Accuracy</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
                 {kpis.avgInspectionTime}min
               </div>
               <div className="text-sm text-gray-600">Avg Processing Time</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
                 {kpis.avgPhotosPerInspection}

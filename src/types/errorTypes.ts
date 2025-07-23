@@ -1,7 +1,7 @@
 /**
  * @fileoverview Error Analysis Type Definitions
  * Comprehensive type definitions for error tracking, analysis, and root cause identification
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
@@ -11,8 +11,14 @@ export interface ErrorDetails {
   message: string;
   stack?: string;
   code?: string;
-  type: 'javascript' | 'network' | 'database' | 'authentication' | 'validation' | 'performance';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "javascript"
+    | "network"
+    | "database"
+    | "authentication"
+    | "validation"
+    | "performance";
+  severity: "low" | "medium" | "high" | "critical";
   frequency: number;
   affectedUsers: number;
   firstSeen: string;
@@ -22,7 +28,7 @@ export interface ErrorDetails {
   userId?: string;
   sessionId?: string;
   buildVersion?: string;
-  environment: 'development' | 'staging' | 'production';
+  environment: "development" | "staging" | "production";
   additionalContext?: Record<string, any>;
 }
 
@@ -53,17 +59,17 @@ export interface SystemContext {
     version: string;
   };
   device: {
-    type: 'desktop' | 'mobile' | 'tablet';
+    type: "desktop" | "mobile" | "tablet";
     model?: string;
   };
   screen: {
     width: number;
     height: number;
-    orientation: 'portrait' | 'landscape';
+    orientation: "portrait" | "landscape";
   };
   network: {
-    type: 'wifi' | 'cellular' | 'ethernet' | 'unknown';
-    speed: 'slow' | 'medium' | 'fast';
+    type: "wifi" | "cellular" | "ethernet" | "unknown";
+    speed: "slow" | "medium" | "fast";
     latency?: number;
   };
   url: string;
@@ -88,13 +94,13 @@ export interface ErrorAnalysisResult {
   analysisId: string;
   confidence: number;
   classification: {
-    type: ErrorDetails['type'];
-    severity: ErrorDetails['severity'];
+    type: ErrorDetails["type"];
+    severity: ErrorDetails["severity"];
     category: string;
     subcategory?: string;
   };
   impact: {
-    userExperience: 'minimal' | 'moderate' | 'severe' | 'blocking';
+    userExperience: "minimal" | "moderate" | "severe" | "blocking";
     businessCritical: boolean;
     affectedFeatures: string[];
     estimatedRevenue?: number;
@@ -111,7 +117,7 @@ export interface ErrorAnalysisResult {
     dayOfWeek: string;
     seasonality?: string;
     userBehaviorPattern?: string;
-    systemLoad?: 'low' | 'medium' | 'high';
+    systemLoad?: "low" | "medium" | "high";
   };
   similarErrors: {
     errorId: string;
@@ -145,11 +151,22 @@ export interface UserFrustrationMetrics {
 export interface ErrorResolutionHistory {
   errorId: string;
   resolutionId: string;
-  status: 'open' | 'investigating' | 'in_progress' | 'resolved' | 'closed' | 'wont_fix';
+  status:
+    | "open"
+    | "investigating"
+    | "in_progress"
+    | "resolved"
+    | "closed"
+    | "wont_fix";
   assignedTo?: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: "low" | "medium" | "high" | "critical";
   resolution: {
-    type: 'code_fix' | 'config_change' | 'data_correction' | 'infrastructure' | 'third_party';
+    type:
+      | "code_fix"
+      | "config_change"
+      | "data_correction"
+      | "infrastructure"
+      | "third_party";
     description: string;
     changesApplied: string[];
     testingPerformed: string[];
@@ -172,24 +189,24 @@ export interface ErrorResolutionHistory {
 }
 
 export interface ErrorTrendAnalysis {
-  timeframe: 'hour' | 'day' | 'week' | 'month';
+  timeframe: "hour" | "day" | "week" | "month";
   errorCounts: {
     timestamp: string;
     count: number;
-    severity: Record<ErrorDetails['severity'], number>;
-    types: Record<ErrorDetails['type'], number>;
+    severity: Record<ErrorDetails["severity"], number>;
+    types: Record<ErrorDetails["type"], number>;
   }[];
   trends: {
-    direction: 'increasing' | 'decreasing' | 'stable';
+    direction: "increasing" | "decreasing" | "stable";
     rate: number; // percentage change
-    significance: 'low' | 'medium' | 'high';
+    significance: "low" | "medium" | "high";
     seasonality?: {
-      pattern: 'daily' | 'weekly' | 'monthly';
+      pattern: "daily" | "weekly" | "monthly";
       confidence: number;
     };
   };
   correlations: {
-    with: 'user_activity' | 'system_load' | 'deployments' | 'external_services';
+    with: "user_activity" | "system_load" | "deployments" | "external_services";
     strength: number; // -1 to 1
     description: string;
   }[];
@@ -207,8 +224,8 @@ export interface ErrorAlertConfiguration {
   description: string;
   enabled: boolean;
   conditions: {
-    errorType?: ErrorDetails['type'][];
-    severity?: ErrorDetails['severity'][];
+    errorType?: ErrorDetails["type"][];
+    severity?: ErrorDetails["severity"][];
     frequency?: {
       threshold: number;
       timeWindow: string; // ISO duration
@@ -223,9 +240,9 @@ export interface ErrorAlertConfiguration {
     }[];
   };
   actions: {
-    type: 'email' | 'slack' | 'webhook' | 'ticket' | 'escalation';
+    type: "email" | "slack" | "webhook" | "ticket" | "escalation";
     configuration: Record<string, any>;
-    priority: 'low' | 'medium' | 'high' | 'critical';
+    priority: "low" | "medium" | "high" | "critical";
   }[];
   schedule: {
     timezone: string;
@@ -273,7 +290,7 @@ export interface ErrorReportResponse {
     url: string;
     relevance: number;
   }[];
-  status: 'created' | 'analyzing' | 'completed' | 'failed';
+  status: "created" | "analyzing" | "completed" | "failed";
   createdAt: string;
   completedAt?: string;
 }

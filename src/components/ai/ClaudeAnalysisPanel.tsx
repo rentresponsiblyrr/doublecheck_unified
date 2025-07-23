@@ -1,21 +1,21 @@
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { PhotoAnalysisSection } from './claude/PhotoAnalysisSection';
-import { TextGenerationSection } from './claude/TextGenerationSection';
-import { CodeReviewSection } from './claude/CodeReviewSection';
-import { ResultsDisplay } from './claude/ResultsDisplay';
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { PhotoAnalysisSection } from "./claude/PhotoAnalysisSection";
+import { TextGenerationSection } from "./claude/TextGenerationSection";
+import { CodeReviewSection } from "./claude/CodeReviewSection";
+import { ResultsDisplay } from "./claude/ResultsDisplay";
 
 interface ClaudeAnalysisResult {
   confidence: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
     description: string;
     location?: string;
     suggestions: string[];
   }>;
   recommendations: string[];
   processingTime: number;
-  status: 'success' | 'error' | 'processing';
+  status: "success" | "error" | "processing";
 }
 
 interface ClaudeTextResult {
@@ -27,8 +27,13 @@ interface ClaudeTextResult {
 interface ClaudeCodeReview {
   overallRating: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    category: 'security' | 'performance' | 'accessibility' | 'type-safety' | 'style';
+    severity: "low" | "medium" | "high" | "critical";
+    category:
+      | "security"
+      | "performance"
+      | "accessibility"
+      | "type-safety"
+      | "style";
     description: string;
     line?: number;
     suggestion?: string;
@@ -45,12 +50,14 @@ interface ClaudeAnalysisPanelProps {
   onAnalysisComplete?: (result: ClaudeResult) => void;
 }
 
-export function ClaudeAnalysisPanel({ 
-  inspectionId, 
-  checklistItemId, 
-  onAnalysisComplete 
+export function ClaudeAnalysisPanel({
+  inspectionId,
+  checklistItemId,
+  onAnalysisComplete,
 }: ClaudeAnalysisPanelProps) {
-  const [activeTab, setActiveTab] = useState<'photo' | 'text' | 'code'>('photo');
+  const [activeTab, setActiveTab] = useState<"photo" | "text" | "code">(
+    "photo",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ClaudeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,11 +68,14 @@ export function ClaudeAnalysisPanel({
     setResult(null);
   }, []);
 
-  const handleAnalysisComplete = useCallback((analysisResult: ClaudeResult) => {
-    setResult(analysisResult);
-    setIsLoading(false);
-    onAnalysisComplete?.(analysisResult);
-  }, [onAnalysisComplete]);
+  const handleAnalysisComplete = useCallback(
+    (analysisResult: ClaudeResult) => {
+      setResult(analysisResult);
+      setIsLoading(false);
+      onAnalysisComplete?.(analysisResult);
+    },
+    [onAnalysisComplete],
+  );
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
@@ -73,9 +83,9 @@ export function ClaudeAnalysisPanel({
   }, []);
 
   const tabs = [
-    { id: 'photo' as const, label: 'Photo Analysis' },
-    { id: 'text' as const, label: 'Text Generation' },
-    { id: 'code' as const, label: 'Code Review' }
+    { id: "photo" as const, label: "Photo Analysis" },
+    { id: "text" as const, label: "Text Generation" },
+    { id: "code" as const, label: "Code Review" },
   ];
 
   return (
@@ -84,7 +94,7 @@ export function ClaudeAnalysisPanel({
         {tabs.map((tab) => (
           <Button
             key={tab.id}
-            variant={activeTab === tab.id ? 'default' : 'ghost'}
+            variant={activeTab === tab.id ? "default" : "ghost"}
             className="px-4 py-2"
             onClick={() => setActiveTab(tab.id)}
             id={`tab-${tab.id}`}
@@ -95,7 +105,7 @@ export function ClaudeAnalysisPanel({
       </div>
 
       <div id="tab-content">
-        {activeTab === 'photo' && (
+        {activeTab === "photo" && (
           <PhotoAnalysisSection
             inspectionId={inspectionId}
             checklistItemId={checklistItemId}
@@ -108,7 +118,7 @@ export function ClaudeAnalysisPanel({
           />
         )}
 
-        {activeTab === 'text' && (
+        {activeTab === "text" && (
           <TextGenerationSection
             isLoading={isLoading}
             error={error}
@@ -119,7 +129,7 @@ export function ClaudeAnalysisPanel({
           />
         )}
 
-        {activeTab === 'code' && (
+        {activeTab === "code" && (
           <CodeReviewSection
             isLoading={isLoading}
             error={error}

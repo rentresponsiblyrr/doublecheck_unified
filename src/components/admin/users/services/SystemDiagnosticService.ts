@@ -1,13 +1,13 @@
 /**
  * System Diagnostic Service - Enterprise Grade
- * 
+ *
  * Handles system health checks and diagnostics for user management
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
-import { SystemDiagnostic } from '../types';
-import type { MutableRefObject } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
+import { SystemDiagnostic } from "../types";
+import type { MutableRefObject } from "react";
 
 export class SystemDiagnosticService {
   constructor(private mountedRef: MutableRefObject<boolean>) {}
@@ -17,7 +17,7 @@ export class SystemDiagnosticService {
    */
   async runDiagnostics(): Promise<SystemDiagnostic> {
     if (!this.mountedRef.current) {
-      throw new Error('Component unmounted');
+      throw new Error("Component unmounted");
     }
 
     try {
@@ -27,42 +27,55 @@ export class SystemDiagnosticService {
         authEnabled: false,
         rlsEnabled: false,
         hasPermissions: false,
-        lastChecked: new Date()
+        lastChecked: new Date(),
       };
 
       // Test users table access
       try {
-        const { error } = await supabase.from('users').select('id').limit(1);
+        const { error } = await supabase.from("users").select("id").limit(1);
         diagnosticResults.usersTableExists = !error;
         diagnosticResults.hasPermissions = !error;
       } catch (e) {
         diagnosticResults.usersTableExists = false;
-        logger.warn('Users table access failed', e, 'SYSTEM_DIAGNOSTIC_SERVICE');
+        logger.warn(
+          "Users table access failed",
+          e,
+          "SYSTEM_DIAGNOSTIC_SERVICE",
+        );
       }
 
       // Test auth functionality
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         diagnosticResults.authEnabled = !!user;
       } catch (e) {
         diagnosticResults.authEnabled = false;
-        logger.warn('Auth check failed', e, 'SYSTEM_DIAGNOSTIC_SERVICE');
+        logger.warn("Auth check failed", e, "SYSTEM_DIAGNOSTIC_SERVICE");
       }
 
       // Test RLS (Row Level Security)
       try {
-        const { error } = await supabase.rpc('get_user_role');
+        const { error } = await supabase.rpc("get_user_role");
         diagnosticResults.rlsEnabled = !error;
       } catch (e) {
         // RLS function might not exist - this is optional
         diagnosticResults.rlsEnabled = false;
       }
 
-      logger.info('System diagnostics completed', diagnosticResults, 'SYSTEM_DIAGNOSTIC_SERVICE');
+      logger.info(
+        "System diagnostics completed",
+        diagnosticResults,
+        "SYSTEM_DIAGNOSTIC_SERVICE",
+      );
       return diagnosticResults;
-
     } catch (error) {
-      logger.error('System diagnostics failed:', error, 'SYSTEM_DIAGNOSTIC_SERVICE');
+      logger.error(
+        "System diagnostics failed:",
+        error,
+        "SYSTEM_DIAGNOSTIC_SERVICE",
+      );
       throw error;
     }
   }
@@ -72,7 +85,7 @@ export class SystemDiagnosticService {
    */
   async testDatabaseConnection(): Promise<boolean> {
     try {
-      const { error } = await supabase.from('users').select('count').limit(0);
+      const { error } = await supabase.from("users").select("count").limit(0);
       return !error;
     } catch (e) {
       return false;
@@ -109,19 +122,27 @@ export class SystemDiagnosticService {
     const recommendations: string[] = [];
 
     if (!diagnostic.usersTableExists) {
-      recommendations.push('Users table is not accessible - check database configuration');
+      recommendations.push(
+        "Users table is not accessible - check database configuration",
+      );
     }
 
     if (!diagnostic.authEnabled) {
-      recommendations.push('Authentication is not working - verify Supabase auth setup');
+      recommendations.push(
+        "Authentication is not working - verify Supabase auth setup",
+      );
     }
 
     if (!diagnostic.hasPermissions) {
-      recommendations.push('Insufficient permissions - check user role and RLS policies');
+      recommendations.push(
+        "Insufficient permissions - check user role and RLS policies",
+      );
     }
 
     if (!diagnostic.rlsEnabled) {
-      recommendations.push('Consider enabling Row Level Security for enhanced data protection');
+      recommendations.push(
+        "Consider enabling Row Level Security for enhanced data protection",
+      );
     }
 
     return recommendations;

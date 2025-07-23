@@ -1,9 +1,8 @@
-
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
 
 export const useFastAuth = () => {
   const authContext = useAuth();
-  
+
   return {
     user: authContext.user,
     userRole: authContext.userRole,
@@ -20,7 +19,7 @@ export const useFastAuth = () => {
       hasUser: !!authContext.user,
       hasRole: !!authContext.userRole,
       isLoading: authContext.loading,
-      hasError: !!authContext.error
-    }
+      hasError: !!authContext.error,
+    },
   };
 };

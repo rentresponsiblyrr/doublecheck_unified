@@ -1,21 +1,21 @@
 /**
  * PROPERTY CARD - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored property card following ZERO_TOLERANCE_STANDARDS
  * Reduced from 478 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - pure orchestration only
  * - Uses PropertyDataManager with render props for clean separation
  * - Professional error handling and accessibility compliance
  * - Mobile-first responsive design maintained
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - PropertyDataManager: Complete data operations with render props
  * - PropertyInspectionStatus: Active inspection display
  * - PropertyInspectionActions: Action buttons for inspection workflow
- * 
+ *
  * @example
  * ```typescript
  * <PropertyCard
@@ -27,22 +27,17 @@
  * ```
  */
 
-import React, { useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import { 
-  MapPin, 
-  ExternalLink, 
-  Trash2,
-  WifiOff
-} from 'lucide-react';
+import React, { useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { MapPin, ExternalLink, Trash2, WifiOff } from "lucide-react";
 
 // Import focused components
-import { PropertyDataManager } from './property/PropertyDataManager';
-import { PropertyInspectionStatus } from './property/PropertyInspectionStatus';
-import { PropertyInspectionActions } from './property/PropertyInspectionActions';
+import { PropertyDataManager } from "./property/PropertyDataManager";
+import { PropertyInspectionStatus } from "./property/PropertyInspectionStatus";
+import { PropertyInspectionActions } from "./property/PropertyInspectionActions";
 
 /**
  * Property data structure - simplified for orchestration
@@ -91,7 +86,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect,
   onPropertyDeleted,
   showInspectionActions = false,
-  onInspectionStart
+  onInspectionStart,
 }) => {
   const { user } = useAuth();
 
@@ -107,25 +102,30 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   /**
    * Handle property deletion with confirmation
    */
-  const handleDelete = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm(`Are you sure you want to delete "${property.name}"?`)) {
-      onPropertyDeleted();
-    }
-  }, [property.name, onPropertyDeleted]);
+  const handleDelete = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (
+        window.confirm(`Are you sure you want to delete "${property.name}"?`)
+      ) {
+        onPropertyDeleted();
+      }
+    },
+    [property.name, onPropertyDeleted],
+  );
 
   return (
-    <Card 
+    <Card
       id={`property-card-${property.id}`}
       className={`relative transition-all duration-200 ${
-        isSelected 
-          ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-200' 
-          : 'hover:shadow-md border-gray-200'
-      } ${!showInspectionActions ? 'cursor-pointer' : ''}`}
+        isSelected
+          ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200"
+          : "hover:shadow-md border-gray-200"
+      } ${!showInspectionActions ? "cursor-pointer" : ""}`}
       onClick={handleCardClick}
     >
       {/* Data Manager with Render Props Pattern */}
-      <PropertyDataManager 
+      <PropertyDataManager
         propertyId={property.id}
         enableInspectionTracking={showInspectionActions}
       >
@@ -134,13 +134,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           loading,
           hasOfflineChanges,
           lastWorkTime,
-          isOnline
+          isOnline,
         }) => (
           <>
             {/* Offline indicator */}
             {hasOfflineChanges && (
               <div className="absolute top-2 right-2">
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-700 border-amber-300"
+                >
                   <WifiOff className="w-3 h-3 mr-1" aria-hidden="true" />
                   Offline Changes
                 </Badge>
@@ -167,15 +170,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         {property.name}
                       </CardTitle>
                       <div className="flex items-center mt-1 text-gray-600">
-                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" aria-hidden="true" />
-                        <span className="text-sm truncate">{property.address}</span>
+                        <MapPin
+                          className="w-4 h-4 mr-1 flex-shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="text-sm truncate">
+                          {property.address}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                      <Badge 
-                        className={status.color}
-                        variant="secondary"
-                      >
+                      <Badge className={status.color} variant="secondary">
                         {status.text}
                       </Badge>
                       <Button
@@ -193,7 +198,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                   {/* Active inspection status */}
                   {activeInspection && showInspectionActions && (
-                    <PropertyInspectionStatus 
+                    <PropertyInspectionStatus
                       activeInspection={activeInspection}
                       lastWorkTime={lastWorkTime}
                       className="mt-2"
@@ -204,7 +209,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 <CardContent className="pt-0">
                   {/* Inspection Actions */}
                   {showInspectionActions && (
-                    <PropertyInspectionActions 
+                    <PropertyInspectionActions
                       propertyId={property.id}
                       activeInspection={activeInspection}
                       isOnline={isOnline}
@@ -225,7 +230,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                           className="flex items-center text-sm text-blue-600 hover:text-blue-800 focus:ring-2 focus:ring-blue-500 rounded"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
+                          <ExternalLink
+                            className="w-3 h-3 mr-1"
+                            aria-hidden="true"
+                          />
                           Vrbo
                         </a>
                       )}
@@ -237,7 +245,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                           className="flex items-center text-sm text-blue-600 hover:text-blue-800 focus:ring-2 focus:ring-blue-500 rounded"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
+                          <ExternalLink
+                            className="w-3 h-3 mr-1"
+                            aria-hidden="true"
+                          />
                           Airbnb
                         </a>
                       )}

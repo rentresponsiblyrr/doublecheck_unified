@@ -21,7 +21,7 @@ static_safety_items.id: UUID
 ### **2. logs Table Column Correction**
 ```sql
 -- ❌ WRONG (Previous assumption):
-logs.static_safety_item_id → static_safety_items.id
+logs.static_item_id → static_safety_items.id
 
 -- ✅ CORRECT (Production reality):
 logs.checklist_id → static_safety_items.id
@@ -51,8 +51,8 @@ logs.checklist_id → static_safety_items.id
 ```sql
 CREATE TABLE properties (
     property_id SERIAL PRIMARY KEY,          -- ✅ Integer primary key
-    property_name TEXT NOT NULL,             -- ✅ Property name
-    street_address TEXT NOT NULL,            -- ✅ Property address
+    name TEXT NOT NULL,             -- ✅ Property name
+    address TEXT NOT NULL,            -- ✅ Property address
     vrbo_url TEXT,                           -- Optional VRBO URL
     airbnb_url TEXT,                         -- Optional Airbnb URL
     created_by UUID REFERENCES users(id),    -- Created by user
@@ -141,7 +141,7 @@ WHERE l.property_id = ?;
 -- ❌ WRONG (Previous):
 SELECT l.*, s.label, s.category, s.required  
 FROM logs l
-JOIN static_safety_items s ON l.static_safety_item_id = s.id  -- Wrong column!
+JOIN static_safety_items s ON l.static_item_id = s.id  -- Wrong column!
 WHERE l.property_id = ?;
 ```
 
@@ -157,7 +157,7 @@ CREATE INDEX CONCURRENTLY idx_logs_checklist_id ON logs(checklist_id);
 CREATE INDEX CONCURRENTLY idx_logs_inspector_id ON logs(inspector_id);
 
 -- Search optimization indexes
-CREATE INDEX CONCURRENTLY idx_properties_search ON properties(property_name, street_address);
+CREATE INDEX CONCURRENTLY idx_properties_search ON properties(name, address);
 CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
 CREATE INDEX CONCURRENTLY idx_users_role ON users(role);
 
@@ -174,13 +174,13 @@ CREATE INDEX CONCURRENTLY idx_inspections_inspector_id ON inspections(inspector_
 ```typescript
 // ❌ OLD (Wrong):
 const { data } = await supabase
-  .from('logs')
-  .select('*, static_safety_items!static_safety_item_id(*)')
+  .from('checklist_items')
+  .select('*, static_safety_items!static_item_id(*)')
   .eq('inspection_id', inspectionId);
 
 // ✅ NEW (Correct):
 const { data } = await supabase
-  .from('logs')
+  .from('checklist_items')
   .select('*, static_safety_items!checklist_id(*)')
   .eq('property_id', propertyId);
 ```
@@ -213,8 +213,8 @@ interface StaticSafetyItem {
 // ✅ CORRECT: Property queries
 const { data: properties } = await supabase
   .from('properties')                // Direct table access
-  .select('property_id, property_name, street_address')
-  .order('property_name');
+  .select('property_id, name, address')
+  .order('name');
 
 // ✅ CORRECT: User queries  
 const { data: users } = await supabase
@@ -224,7 +224,7 @@ const { data: users } = await supabase
 
 // ✅ CORRECT: Checklist queries
 const { data: items } = await supabase
-  .from('logs')                      // Checklist items in logs table
+  .from('checklist_items')                      // Checklist items in logs table
   .select(`
     log_id,
     property_id,

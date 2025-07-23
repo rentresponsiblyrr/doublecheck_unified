@@ -3,7 +3,7 @@
  * Extracted from MobileErrorRecovery.tsx
  */
 
-import React from 'react';
+import React from "react";
 
 export const ErrorHeader: React.FC = () => {
   return (

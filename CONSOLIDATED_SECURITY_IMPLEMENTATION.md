@@ -90,7 +90,7 @@ Run `SECURITY_VERIFICATION.sql` to confirm all fixes work:
 # Test authenticated user can access properties
 curl -H "Authorization: Bearer [USER_JWT_TOKEN]" \
      -H "apikey: [ANON_KEY]" \
-     "https://urrydhjchgxnhyggqtzr.supabase.co/rest/v1/properties?select=property_id,property_name&limit=1"
+     "https://urrydhjchgxnhyggqtzr.supabase.co/rest/v1/properties?select=property_id,name&limit=1"
 ```
 
 ### **3. Application Testing:**

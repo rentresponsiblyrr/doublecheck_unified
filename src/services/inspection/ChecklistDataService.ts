@@ -1,25 +1,25 @@
 /**
  * CHECKLIST DATA SERVICE - PHASE 2 CHECKLIST MANAGEMENT
- * 
+ *
  * Enterprise-grade service layer for checklist item operations, progress tracking,
  * and completion workflows. Optimized for inspector mobile experience with
  * intelligent caching and offline-first design patterns.
- * 
+ *
  * PERFORMANCE TARGETS:
  * - 70% reduction in checklist-related queries through smart caching
  * - <100ms response time for checklist operations (mobile-optimized)
  * - Real-time progress updates with optimistic UI patterns
  * - Intelligent pre-loading of media and AI guidance
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
-import { supabase } from '@/lib/supabase';
-import { logger } from '@/utils/logger';
-import { queryCache } from '../core/QueryCache';
-import { performanceMonitor } from '../core/PerformanceMonitor';
-import { realTimeSync } from '../core/RealTimeSync';
+import { supabase } from "@/lib/supabase";
+import { logger } from "@/utils/logger";
+import { queryCache } from "../core/QueryCache";
+import { performanceMonitor } from "../core/PerformanceMonitor";
+import { realTimeSync } from "../core/RealTimeSync";
 
 // Type imports
 import type {
@@ -38,15 +38,15 @@ import type {
   DataFreshnessOptions,
   InspectionServiceError,
   InspectionErrorCode,
-} from './types/business';
+} from "./types/business";
 
 import type {
   DatabaseLog,
   DatabaseStaticSafetyItem,
   DatabaseMedia,
   ChecklistItemWithDetails,
-  QueryMetrics
-} from './types/database';
+  QueryMetrics,
+} from "./types/database";
 
 // ========================================
 // SERVICE CONFIGURATION
@@ -58,36 +58,46 @@ const CHECKLIST_SERVICE_CONFIG = {
     inspectionChecklist: (inspectionId: string) => `checklist:${inspectionId}`,
     checklistProgress: (inspectionId: string) => `progress:${inspectionId}`,
     checklistItem: (itemId: string) => `checklist_item:${itemId}`,
-    categoryProgress: (inspectionId: string, category: string) => `category_progress:${inspectionId}:${category}`,
-    staticSafetyItems: 'static_safety_items:all',
+    categoryProgress: (inspectionId: string, category: string) =>
+      `category_progress:${inspectionId}:${category}`,
+    staticSafetyItems: "static_safety_items:all",
     itemMedia: (itemId: string) => `item_media:${itemId}`,
     aiGuidance: (itemId: string) => `ai_guidance:${itemId}`,
   },
-  
+
   // Performance optimizations
   performance: {
-    batchSize: 20,                    // Items per batch operation
-    progressCalculationThreshold: 5,  // Min items before calculation
-    mediaPreloadCount: 3,             // Pre-load next N items' media
-    aiGuidanceThreshold: 10,          // Cache AI guidance for >10 uses
+    batchSize: 20, // Items per batch operation
+    progressCalculationThreshold: 5, // Min items before calculation
+    mediaPreloadCount: 3, // Pre-load next N items' media
+    aiGuidanceThreshold: 10, // Cache AI guidance for >10 uses
   },
-  
+
   // Cache TTL settings (mobile-optimized)
   cacheTTL: {
-    checklistItems: 30 * 1000,        // 30 seconds - changes frequently
-    progress: 15 * 1000,              // 15 seconds - real-time updates
-    staticItems: 30 * 60 * 1000,      // 30 minutes - rarely changes
-    itemMedia: 10 * 60 * 1000,        // 10 minutes - stable content
-    aiGuidance: 60 * 60 * 1000,       // 1 hour - expensive to generate
+    checklistItems: 30 * 1000, // 30 seconds - changes frequently
+    progress: 15 * 1000, // 15 seconds - real-time updates
+    staticItems: 30 * 60 * 1000, // 30 minutes - rarely changes
+    itemMedia: 10 * 60 * 1000, // 10 minutes - stable content
+    aiGuidance: 60 * 60 * 1000, // 1 hour - expensive to generate
   },
-  
+
   // Cache invalidation patterns
   tags: {
-    inspection: (inspectionId: string) => [`checklist:${inspectionId}`, `progress:${inspectionId}`],
-    checklistItem: (itemId: string) => [`checklist_item:${itemId}`, `progress:*`],
+    inspection: (inspectionId: string) => [
+      `checklist:${inspectionId}`,
+      `progress:${inspectionId}`,
+    ],
+    checklistItem: (itemId: string) => [
+      `checklist_item:${itemId}`,
+      `progress:*`,
+    ],
     category: (category: string) => [`*category:${category}*`],
-    media: (itemId: string) => [`item_media:${itemId}`, `checklist_item:${itemId}`],
-  }
+    media: (itemId: string) => [
+      `item_media:${itemId}`,
+      `checklist_item:${itemId}`,
+    ],
+  },
 } as const;
 
 // ========================================
@@ -96,11 +106,11 @@ const CHECKLIST_SERVICE_CONFIG = {
 
 /**
  * ChecklistDataService - Comprehensive checklist and progress management
- * 
+ *
  * Handles all checklist-related operations including item management,
  * progress tracking, media attachments, and completion workflows.
  * Optimized for mobile inspector experience with offline capabilities.
- * 
+ *
  * Key Features:
  * - Real-time progress calculation with caching
  * - Optimistic UI updates with conflict resolution
@@ -125,7 +135,7 @@ export class ChecklistDataService {
   /**
    * Get complete checklist for inspection with progress context
    * Optimized for inspector mobile interface with pre-loaded media
-   * 
+   *
    * @param inspectionId - Inspection UUID
    * @param options - Retrieval and caching options
    * @returns Complete checklist with progress data
@@ -139,10 +149,11 @@ export class ChecklistDataService {
       statusFilter?: ChecklistItemStatus[];
       preloadMedia?: boolean;
     } = {},
-    freshness: DataFreshnessOptions = {}
+    freshness: DataFreshnessOptions = {},
   ): Promise<ServiceResult<ChecklistItem[]>> {
     const startTime = performance.now();
-    const cacheKey = CHECKLIST_SERVICE_CONFIG.cacheKeys.inspectionChecklist(inspectionId);
+    const cacheKey =
+      CHECKLIST_SERVICE_CONFIG.cacheKeys.inspectionChecklist(inspectionId);
 
     try {
       // Check cache first for mobile performance
@@ -156,11 +167,12 @@ export class ChecklistDataService {
       }
 
       // ✅ CORRECTED: Using actual checklist_items table with inspection_id relationship
-      
+
       // Get checklist items directly by inspection_id (correct schema)
       const query = supabase
-        .from('checklist_items')
-        .select(`
+        .from("checklist_items")
+        .select(
+          `
           *,
           static_safety_items!static_item_id (
             id,
@@ -169,9 +181,10 @@ export class ChecklistDataService {
             required,
             evidence_type
           )
-          ${options.includeMedia ? ',media (*)' : ''}
-        `)
-        .eq('inspection_id', inspectionId);
+          ${options.includeMedia ? ",media (*)" : ""}
+        `,
+        )
+        .eq("inspection_id", inspectionId);
 
       let queryCount = 0;
 
@@ -179,9 +192,9 @@ export class ChecklistDataService {
       queryCount += 1;
 
       if (error) {
-        throw this.createServiceError('VALIDATION_FAILED', error.message, {
-          operation: 'getInspectionChecklist',
-          inspectionId
+        throw this.createServiceError("VALIDATION_FAILED", error.message, {
+          operation: "getInspectionChecklist",
+          inspectionId,
         });
       }
 
@@ -207,20 +220,22 @@ export class ChecklistDataService {
             inspectionId,
             title: staticItem?.label || item.label,
             description: staticItem?.label || item.label, // Would be enhanced with detailed descriptions
-            category: (staticItem?.category || item.category) as ChecklistCategory,
+            category: (staticItem?.category ||
+              item.category) as ChecklistCategory,
             required: staticItem?.required ?? true,
-            evidenceType: (staticItem?.evidence_type || item.evidence_type) as any,
+            evidenceType: (staticItem?.evidence_type ||
+              item.evidence_type) as any,
             status: this.mapItemStatusToItemStatus(item),
             result: this.createItemResult(item),
             media: media.map((m: any) => this.transformMediaItem(m)),
-            notes: item.notes || '',
+            notes: item.notes || "",
             estimatedTime: this.estimateItemTime(staticItem || item),
             dependencies: [], // Would be populated from dependencies table
             aiGuidance,
           };
 
           return checklistItem;
-        })
+        }),
       );
 
       // Apply filters
@@ -232,7 +247,7 @@ export class ChecklistDataService {
         cacheKey,
         checklistItems,
         CHECKLIST_SERVICE_CONFIG.cacheTTL.checklistItems,
-        cacheTags
+        cacheTags,
       );
 
       // Pre-load media if requested (background operation)
@@ -240,11 +255,19 @@ export class ChecklistDataService {
         this.preloadItemMedia(filteredItems);
       }
 
-      return this.createSuccessResult(filteredItems, startTime, false, queryCount);
-
+      return this.createSuccessResult(
+        filteredItems,
+        startTime,
+        false,
+        queryCount,
+      );
     } catch (error) {
-      logger.error('Failed to fetch inspection checklist', { error, inspectionId, options });
-      
+      logger.error("Failed to fetch inspection checklist", {
+        error,
+        inspectionId,
+        options,
+      });
+
       return {
         success: false,
         data: null,
@@ -254,7 +277,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -262,17 +285,18 @@ export class ChecklistDataService {
   /**
    * Get detailed progress metrics for inspection
    * Optimized for real-time progress indicators and dashboards
-   * 
+   *
    * @param inspectionId - Inspection UUID
    * @param freshness - Cache freshness preferences
    * @returns Comprehensive progress metrics
    */
   async getInspectionProgress(
     inspectionId: string,
-    freshness: DataFreshnessOptions = {}
+    freshness: DataFreshnessOptions = {},
   ): Promise<ServiceResult<ProgressMetrics>> {
     const startTime = performance.now();
-    const cacheKey = CHECKLIST_SERVICE_CONFIG.cacheKeys.checklistProgress(inspectionId);
+    const cacheKey =
+      CHECKLIST_SERVICE_CONFIG.cacheKeys.checklistProgress(inspectionId);
 
     try {
       // Check cache first (very short TTL for real-time updates)
@@ -286,15 +310,18 @@ export class ChecklistDataService {
       // Get checklist items for progress calculation
       const checklistResult = await this.getInspectionChecklist(inspectionId, {
         includeMedia: true,
-        includeAIGuidance: false
+        includeAIGuidance: false,
       });
 
       if (!checklistResult.success || !checklistResult.data) {
-        throw this.createServiceError('VALIDATION_FAILED', 
-          'Could not retrieve checklist for progress calculation', {
-          operation: 'getInspectionProgress',
-          inspectionId
-        });
+        throw this.createServiceError(
+          "VALIDATION_FAILED",
+          "Could not retrieve checklist for progress calculation",
+          {
+            operation: "getInspectionProgress",
+            inspectionId,
+          },
+        );
       }
 
       const checklist = checklistResult.data;
@@ -306,14 +333,16 @@ export class ChecklistDataService {
         cacheKey,
         progress,
         CHECKLIST_SERVICE_CONFIG.cacheTTL.progress,
-        cacheTags
+        cacheTags,
       );
 
       return this.createSuccessResult(progress, startTime, false, 1);
-
     } catch (error) {
-      logger.error('Failed to calculate inspection progress', { error, inspectionId });
-      
+      logger.error("Failed to calculate inspection progress", {
+        error,
+        inspectionId,
+      });
+
       return {
         success: false,
         data: null,
@@ -323,7 +352,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -331,36 +360,43 @@ export class ChecklistDataService {
   /**
    * Get comprehensive checklist progress with category breakdown
    * Used for detailed progress views and analytics
-   * 
+   *
    * @param inspectionId - Inspection UUID
    * @returns Detailed progress with category analysis
    */
-  async getDetailedProgress(inspectionId: string): Promise<ServiceResult<ChecklistProgress>> {
+  async getDetailedProgress(
+    inspectionId: string,
+  ): Promise<ServiceResult<ChecklistProgress>> {
     const startTime = performance.now();
 
     try {
       // Get full checklist with all details
       const checklistResult = await this.getInspectionChecklist(inspectionId, {
         includeMedia: true,
-        includeAIGuidance: false
+        includeAIGuidance: false,
       });
 
       if (!checklistResult.success || !checklistResult.data) {
-        throw this.createServiceError('VALIDATION_FAILED',
-          'Could not retrieve checklist for detailed progress', {
-          operation: 'getDetailedProgress',
-          inspectionId
-        });
+        throw this.createServiceError(
+          "VALIDATION_FAILED",
+          "Could not retrieve checklist for detailed progress",
+          {
+            operation: "getDetailedProgress",
+            inspectionId,
+          },
+        );
       }
 
       const checklist = checklistResult.data;
       const detailedProgress = this.calculateDetailedProgress(checklist);
 
       return this.createSuccessResult(detailedProgress, startTime, false, 1);
-
     } catch (error) {
-      logger.error('Failed to calculate detailed progress', { error, inspectionId });
-      
+      logger.error("Failed to calculate detailed progress", {
+        error,
+        inspectionId,
+      });
+
       return {
         success: false,
         data: null,
@@ -370,7 +406,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -382,7 +418,7 @@ export class ChecklistDataService {
   /**
    * Update checklist item status with optimistic updates
    * Optimized for mobile inspector workflow with conflict resolution
-   * 
+   *
    * @param itemId - Checklist item ID
    * @param status - New status value
    * @param result - Optional completion result
@@ -393,7 +429,7 @@ export class ChecklistDataService {
     itemId: string,
     status: ChecklistItemStatus,
     result?: Partial<ChecklistItemResult>,
-    notes?: string
+    notes?: string,
   ): Promise<ServiceResult<boolean>> {
     const startTime = performance.now();
 
@@ -404,20 +440,21 @@ export class ChecklistDataService {
       // Update database using correct checklist_items table
       const updates: any = {
         status: status,
-        ai_status: status === 'completed' ? (result?.passed ? 'pass' : 'fail') : null,
+        ai_status:
+          status === "completed" ? (result?.passed ? "pass" : "fail") : null,
         notes: notes || null,
       };
 
       const queryStart = performance.now();
       const { error } = await supabase
-        .from('checklist_items')
+        .from("checklist_items")
         .update(updates)
-        .eq('id', itemId);
-      
+        .eq("id", itemId);
+
       // Track performance
       performanceMonitor.trackQuery({
-        service: 'ChecklistDataService',
-        operation: 'updateChecklistItem',
+        service: "ChecklistDataService",
+        operation: "updateChecklistItem",
         startTime: queryStart,
         endTime: performance.now(),
         fromCache: false,
@@ -431,32 +468,35 @@ export class ChecklistDataService {
       if (error) {
         // Revert optimistic update on error
         this.revertOptimisticUpdate(itemId);
-        
-        throw this.createServiceError('VALIDATION_FAILED', error.message, {
-          operation: 'updateChecklistItem',
+
+        throw this.createServiceError("VALIDATION_FAILED", error.message, {
+          operation: "updateChecklistItem",
           itemId,
-          status
+          status,
         });
       }
 
       // Smart cache invalidation
       await this.invalidateItemCaches(itemId);
-      
+
       // Publish real-time update
       await realTimeSync.publishChecklistUpdate(itemId, updates);
 
-      logger.debug('Checklist item updated', { 
-        itemId, 
-        status, 
+      logger.debug("Checklist item updated", {
+        itemId,
+        status,
         hasResult: !!result,
-        hasNotes: !!notes
+        hasNotes: !!notes,
       });
 
       return this.createSuccessResult(true, startTime, false, queryCount);
-
     } catch (error) {
-      logger.error('Failed to update checklist item', { error, itemId, status });
-      
+      logger.error("Failed to update checklist item", {
+        error,
+        itemId,
+        status,
+      });
+
       return {
         success: false,
         data: null,
@@ -466,7 +506,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -474,7 +514,7 @@ export class ChecklistDataService {
   /**
    * Batch update multiple checklist items for efficiency
    * Optimized for bulk operations and data import workflows
-   * 
+   *
    * @param updates - Array of item updates
    * @returns Batch operation results
    */
@@ -484,7 +524,7 @@ export class ChecklistDataService {
       status: ChecklistItemStatus;
       result?: Partial<ChecklistItemResult>;
       notes?: string;
-    }>
+    }>,
   ): Promise<ServiceResult<BatchResult<string>>> {
     const startTime = performance.now();
 
@@ -505,7 +545,7 @@ export class ChecklistDataService {
               update.itemId,
               update.status,
               update.result,
-              update.notes
+              update.notes,
             );
 
             totalQueries += result.metadata.queryCount;
@@ -515,13 +555,13 @@ export class ChecklistDataService {
             } else {
               failed.push({
                 item: update.itemId,
-                error: result.error!
+                error: result.error!,
               });
             }
           } catch (error) {
             failed.push({
               item: update.itemId,
-              error: error as InspectionServiceError
+              error: error as InspectionServiceError,
             });
           }
         });
@@ -537,14 +577,21 @@ export class ChecklistDataService {
           successful: successful.length,
           failed: failed.length,
           duration: performance.now() - startTime,
-        }
+        },
       };
 
-      return this.createSuccessResult(batchResult, startTime, false, totalQueries);
-
+      return this.createSuccessResult(
+        batchResult,
+        startTime,
+        false,
+        totalQueries,
+      );
     } catch (error) {
-      logger.error('Failed to batch update checklist items', { error, updateCount: updates.length });
-      
+      logger.error("Failed to batch update checklist items", {
+        error,
+        updateCount: updates.length,
+      });
+
       return {
         success: false,
         data: null,
@@ -554,7 +601,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -566,7 +613,7 @@ export class ChecklistDataService {
   /**
    * Attach media to checklist item
    * Optimized for mobile photo/video workflow
-   * 
+   *
    * @param itemId - Checklist item ID
    * @param mediaFiles - Media files to attach
    * @returns Attached media items
@@ -575,9 +622,9 @@ export class ChecklistDataService {
     itemId: string,
     mediaFiles: Array<{
       file: File | Blob;
-      type: 'photo' | 'video' | 'document';
+      type: "photo" | "video" | "document";
       filename?: string;
-    }>
+    }>,
   ): Promise<ServiceResult<MediaItem[]>> {
     const startTime = performance.now();
 
@@ -587,26 +634,32 @@ export class ChecklistDataService {
 
       for (const mediaFile of mediaFiles) {
         // Upload to storage
-        const filename = mediaFile.filename || `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const filename =
+          mediaFile.filename ||
+          `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const storagePath = `inspection-media/${itemId}/${filename}`;
 
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('inspection-media')
+          .from("inspection-media")
           .upload(storagePath, mediaFile.file);
 
         if (uploadError) {
-          logger.error('Failed to upload media file', { error: uploadError, itemId, filename });
+          logger.error("Failed to upload media file", {
+            error: uploadError,
+            itemId,
+            filename,
+          });
           continue;
         }
 
         // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('inspection-media')
-          .getPublicUrl(storagePath);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("inspection-media").getPublicUrl(storagePath);
 
         // Create media record
         const { data: mediaRecord, error: dbError } = await supabase
-          .from('media')
+          .from("media")
           .insert({
             checklist_item_id: itemId,
             type: mediaFile.type,
@@ -620,7 +673,11 @@ export class ChecklistDataService {
         queryCount += 1;
 
         if (dbError) {
-          logger.error('Failed to create media record', { error: dbError, itemId, filename });
+          logger.error("Failed to create media record", {
+            error: dbError,
+            itemId,
+            filename,
+          });
           continue;
         }
 
@@ -632,17 +689,25 @@ export class ChecklistDataService {
       // Invalidate media caches
       await this.invalidateMediaCaches(itemId);
 
-      logger.info('Media attached to checklist item', {
+      logger.info("Media attached to checklist item", {
         itemId,
         attachedCount: attachedMedia.length,
-        totalAttempted: mediaFiles.length
+        totalAttempted: mediaFiles.length,
       });
 
-      return this.createSuccessResult(attachedMedia, startTime, false, queryCount);
-
+      return this.createSuccessResult(
+        attachedMedia,
+        startTime,
+        false,
+        queryCount,
+      );
     } catch (error) {
-      logger.error('Failed to attach media to item', { error, itemId, fileCount: mediaFiles.length });
-      
+      logger.error("Failed to attach media to item", {
+        error,
+        itemId,
+        fileCount: mediaFiles.length,
+      });
+
       return {
         success: false,
         data: null,
@@ -652,7 +717,7 @@ export class ChecklistDataService {
           duration: performance.now() - startTime,
           fromCache: false,
           queryCount: 0,
-        }
+        },
       };
     }
   }
@@ -664,12 +729,15 @@ export class ChecklistDataService {
   /**
    * Get AI guidance for checklist item
    * Cached for performance with intelligent suggestions
-   * 
+   *
    * @param staticItemId - Static safety item ID
    * @returns AI guidance and tips
    */
-  private async getAIGuidance(staticItemId: string): Promise<AIGuidance | null> {
-    const cacheKey = CHECKLIST_SERVICE_CONFIG.cacheKeys.aiGuidance(staticItemId);
+  private async getAIGuidance(
+    staticItemId: string,
+  ): Promise<AIGuidance | null> {
+    const cacheKey =
+      CHECKLIST_SERVICE_CONFIG.cacheKeys.aiGuidance(staticItemId);
 
     try {
       // Check cache first (long TTL since AI guidance is expensive)
@@ -682,19 +750,19 @@ export class ChecklistDataService {
       const guidance: AIGuidance = {
         instructions: `Complete inspection for item ${staticItemId}`,
         tips: [
-          'Take clear, well-lit photos',
-          'Document any issues found',
-          'Follow safety protocols'
+          "Take clear, well-lit photos",
+          "Document any issues found",
+          "Follow safety protocols",
         ],
         commonMistakes: [
-          'Poor lighting in photos',
-          'Missing required documentation',
-          'Incomplete inspection of area'
+          "Poor lighting in photos",
+          "Missing required documentation",
+          "Incomplete inspection of area",
         ],
         qualityChecks: [
-          'Photo clarity and lighting',
-          'Complete coverage of area',
-          'Proper documentation'
+          "Photo clarity and lighting",
+          "Complete coverage of area",
+          "Proper documentation",
         ],
         estimatedTime: 5, // Minutes
       };
@@ -704,13 +772,12 @@ export class ChecklistDataService {
         cacheKey,
         guidance,
         CHECKLIST_SERVICE_CONFIG.cacheTTL.aiGuidance,
-        [`ai_guidance:${staticItemId}`]
+        [`ai_guidance:${staticItemId}`],
       );
 
       return guidance;
-
     } catch (error) {
-      logger.error('Failed to get AI guidance', { error, staticItemId });
+      logger.error("Failed to get AI guidance", { error, staticItemId });
       return null;
     }
   }
@@ -719,45 +786,60 @@ export class ChecklistDataService {
   // PROGRESS CALCULATION ALGORITHMS
   // ========================================
 
-  private calculateProgressMetrics(checklist: ChecklistItem[]): ProgressMetrics {
+  private calculateProgressMetrics(
+    checklist: ChecklistItem[],
+  ): ProgressMetrics {
     if (checklist.length === 0) {
       return this.createEmptyProgress();
     }
 
-    const completedItems = checklist.filter(item => item.status === 'completed').length;
-    const requiredItems = checklist.filter(item => item.required);
-    const requiredCompleted = requiredItems.filter(item => item.status === 'completed').length;
+    const completedItems = checklist.filter(
+      (item) => item.status === "completed",
+    ).length;
+    const requiredItems = checklist.filter((item) => item.required);
+    const requiredCompleted = requiredItems.filter(
+      (item) => item.status === "completed",
+    ).length;
 
     // Calculate media progress
-    const photosRequired = checklist.filter(item => 
-      item.evidenceType === 'photo' || item.evidenceType === 'both'
+    const photosRequired = checklist.filter(
+      (item) => item.evidenceType === "photo" || item.evidenceType === "both",
     ).length;
-    const photosCaptured = checklist.filter(item =>
-      (item.evidenceType === 'photo' || item.evidenceType === 'both') &&
-      item.media.some(media => media.type === 'photo')
+    const photosCaptured = checklist.filter(
+      (item) =>
+        (item.evidenceType === "photo" || item.evidenceType === "both") &&
+        item.media.some((media) => media.type === "photo"),
     ).length;
 
-    const videosRequired = checklist.filter(item =>
-      item.evidenceType === 'video' || item.evidenceType === 'both'
+    const videosRequired = checklist.filter(
+      (item) => item.evidenceType === "video" || item.evidenceType === "both",
     ).length;
-    const videosRecorded = checklist.filter(item =>
-      (item.evidenceType === 'video' || item.evidenceType === 'both') &&
-      item.media.some(media => media.type === 'video')
+    const videosRecorded = checklist.filter(
+      (item) =>
+        (item.evidenceType === "video" || item.evidenceType === "both") &&
+        item.media.some((media) => media.type === "video"),
     ).length;
 
     // Calculate time estimates
-    const totalEstimatedTime = checklist.reduce((sum, item) => sum + item.estimatedTime, 0);
+    const totalEstimatedTime = checklist.reduce(
+      (sum, item) => sum + item.estimatedTime,
+      0,
+    );
     const completedTime = checklist
-      .filter(item => item.status === 'completed')
+      .filter((item) => item.status === "completed")
       .reduce((sum, item) => sum + item.estimatedTime, 0);
     const remainingTime = totalEstimatedTime - completedTime;
 
     // Calculate efficiency score
     const progressPercentage = (completedItems / checklist.length) * 100;
-    const timeEfficiency = completedTime > 0 ? (completedItems / completedTime) * 100 : 100;
-    const mediaEfficiency = (photosRequired + videosRequired) > 0 
-      ? ((photosCaptured + videosRecorded) / (photosRequired + videosRequired)) * 100 
-      : 100;
+    const timeEfficiency =
+      completedTime > 0 ? (completedItems / completedTime) * 100 : 100;
+    const mediaEfficiency =
+      photosRequired + videosRequired > 0
+        ? ((photosCaptured + videosRecorded) /
+            (photosRequired + videosRequired)) *
+          100
+        : 100;
 
     const efficiencyScore = Math.round((timeEfficiency + mediaEfficiency) / 2);
 
@@ -777,28 +859,37 @@ export class ChecklistDataService {
     };
   }
 
-  private calculateDetailedProgress(checklist: ChecklistItem[]): ChecklistProgress {
+  private calculateDetailedProgress(
+    checklist: ChecklistItem[],
+  ): ChecklistProgress {
     const totalItems = checklist.length;
-    const completedItems = checklist.filter(item => item.status === 'completed').length;
+    const completedItems = checklist.filter(
+      (item) => item.status === "completed",
+    ).length;
 
     // Calculate category progress
     const categoryMap = new Map<ChecklistCategory, ChecklistItem[]>();
-    checklist.forEach(item => {
+    checklist.forEach((item) => {
       if (!categoryMap.has(item.category)) {
         categoryMap.set(item.category, []);
       }
       categoryMap.get(item.category)!.push(item);
     });
 
-    const categories: CategoryProgress[] = Array.from(categoryMap.entries()).map(([category, items]) => {
-      const categoryCompleted = items.filter(item => item.status === 'completed').length;
-      const categoryIssues = items.filter(item => 
-        item.result && !item.result.passed
+    const categories: CategoryProgress[] = Array.from(
+      categoryMap.entries(),
+    ).map(([category, items]) => {
+      const categoryCompleted = items.filter(
+        (item) => item.status === "completed",
       ).length;
-      
-      const categoryScore = items.length > 0 
-        ? Math.round((categoryCompleted / items.length) * 100)
-        : 0;
+      const categoryIssues = items.filter(
+        (item) => item.result && !item.result.passed,
+      ).length;
+
+      const categoryScore =
+        items.length > 0
+          ? Math.round((categoryCompleted / items.length) * 100)
+          : 0;
 
       return {
         category,
@@ -811,25 +902,35 @@ export class ChecklistDataService {
 
     // Identify critical issues
     const criticalIssues: CriticalIssue[] = checklist
-      .filter(item => item.result?.riskLevel === 'critical' || item.result?.riskLevel === 'high')
-      .map(item => ({
+      .filter(
+        (item) =>
+          item.result?.riskLevel === "critical" ||
+          item.result?.riskLevel === "high",
+      )
+      .map((item) => ({
         itemId: item.itemId,
         title: item.title,
-        severity: item.result?.riskLevel || 'medium',
-        description: item.result?.issues.join('; ') || 'Critical issue identified',
-        requiresImmediate: item.result?.riskLevel === 'critical',
+        severity: item.result?.riskLevel || "medium",
+        description:
+          item.result?.issues.join("; ") || "Critical issue identified",
+        requiresImmediate: item.result?.riskLevel === "critical",
         category: item.category,
       }));
 
     // Generate recommendations
-    const recommendations = this.generateProgressRecommendations(checklist, categories);
+    const recommendations = this.generateProgressRecommendations(
+      checklist,
+      categories,
+    );
 
     // Estimate completion
     const progress = completedItems / totalItems;
     const averageTimePerItem = 5; // minutes - would be calculated from historical data
     const remainingItems = totalItems - completedItems;
     const estimatedMinutesRemaining = remainingItems * averageTimePerItem;
-    const estimatedCompletion = new Date(Date.now() + estimatedMinutesRemaining * 60 * 1000);
+    const estimatedCompletion = new Date(
+      Date.now() + estimatedMinutesRemaining * 60 * 1000,
+    );
 
     // Calculate quality score
     const qualityScore = this.calculateQualityScore(checklist);
@@ -851,7 +952,7 @@ export class ChecklistDataService {
     let totalScore = 0;
     let scoredItems = 0;
 
-    checklist.forEach(item => {
+    checklist.forEach((item) => {
       if (item.result?.score !== null && item.result?.score !== undefined) {
         totalScore += item.result.score;
         scoredItems++;
@@ -863,29 +964,38 @@ export class ChecklistDataService {
 
   private generateProgressRecommendations(
     checklist: ChecklistItem[],
-    categories: CategoryProgress[]
+    categories: CategoryProgress[],
   ): string[] {
     const recommendations: string[] = [];
 
     // Check for incomplete required items
-    const incompleteRequired = checklist.filter(item => item.required && item.status !== 'completed');
+    const incompleteRequired = checklist.filter(
+      (item) => item.required && item.status !== "completed",
+    );
     if (incompleteRequired.length > 0) {
-      recommendations.push(`Complete ${incompleteRequired.length} required items before finishing`);
+      recommendations.push(
+        `Complete ${incompleteRequired.length} required items before finishing`,
+      );
     }
 
     // Check for missing media
-    const missingMedia = checklist.filter(item =>
-      (item.evidenceType === 'photo' || item.evidenceType === 'both') &&
-      item.media.length === 0
+    const missingMedia = checklist.filter(
+      (item) =>
+        (item.evidenceType === "photo" || item.evidenceType === "both") &&
+        item.media.length === 0,
     );
     if (missingMedia.length > 0) {
-      recommendations.push(`${missingMedia.length} items need photo documentation`);
+      recommendations.push(
+        `${missingMedia.length} items need photo documentation`,
+      );
     }
 
     // Check for low-scoring categories
-    const lowScoringCategories = categories.filter(cat => cat.score < 70);
+    const lowScoringCategories = categories.filter((cat) => cat.score < 70);
     if (lowScoringCategories.length > 0) {
-      recommendations.push(`Review ${lowScoringCategories.map(c => c.category).join(', ')} categories`);
+      recommendations.push(
+        `Review ${lowScoringCategories.map((c) => c.category).join(", ")} categories`,
+      );
     }
 
     return recommendations;
@@ -900,16 +1010,20 @@ export class ChecklistDataService {
     options: {
       categoryFilter?: ChecklistCategory[];
       statusFilter?: ChecklistItemStatus[];
-    }
+    },
   ): ChecklistItem[] {
     let filtered = items;
 
     if (options.categoryFilter && options.categoryFilter.length > 0) {
-      filtered = filtered.filter(item => options.categoryFilter!.includes(item.category));
+      filtered = filtered.filter((item) =>
+        options.categoryFilter!.includes(item.category),
+      );
     }
 
     if (options.statusFilter && options.statusFilter.length > 0) {
-      filtered = filtered.filter(item => options.statusFilter!.includes(item.status));
+      filtered = filtered.filter((item) =>
+        options.statusFilter!.includes(item.status),
+      );
     }
 
     return filtered;
@@ -917,24 +1031,24 @@ export class ChecklistDataService {
 
   private mapItemStatusToItemStatus(item: any): ChecklistItemStatus {
     if (item.status) return item.status as ChecklistItemStatus;
-    if (item.ai_status === 'pass') return 'completed';
-    if (item.ai_status === 'fail') return 'flagged';
-    if (item.notes) return 'in_progress';
-    return 'pending';
+    if (item.ai_status === "pass") return "completed";
+    if (item.ai_status === "fail") return "flagged";
+    if (item.notes) return "in_progress";
+    return "pending";
   }
 
   private createItemResult(item: any): ChecklistItemResult | null {
     if (!item.ai_status) return null;
 
-    const passed = item.ai_status === 'pass';
+    const passed = item.ai_status === "pass";
     return {
       passed,
       score: null, // Would be calculated from detailed scoring
-      issues: passed ? [] : ['Item failed inspection'],
-      recommendations: passed ? [] : ['Review and correct identified issues'],
+      issues: passed ? [] : ["Item failed inspection"],
+      recommendations: passed ? [] : ["Review and correct identified issues"],
       confidence: 100, // Would be from AI analysis
       reviewRequired: !passed,
-      riskLevel: passed ? 'low' : 'medium',
+      riskLevel: passed ? "low" : "medium",
     };
   }
 
@@ -953,24 +1067,24 @@ export class ChecklistDataService {
       location: null, // Would be from EXIF data
       aiAnalysis: null, // Would be populated from AI service
       quality: {
-        resolution: 'unknown',
+        resolution: "unknown",
         clarity: 100,
         lighting: 100,
-        angle: 'good',
+        angle: "good",
         issues: [],
       },
-      processing: 'ready',
+      processing: "ready",
     };
   }
 
   private estimateItemTime(staticItem: any): number {
     // Simple estimation based on item type - would be enhanced with ML
     const baseTime = 3; // minutes
-    
-    if (staticItem.evidence_type === 'photo') return baseTime + 2;
-    if (staticItem.evidence_type === 'video') return baseTime + 5;
-    if (staticItem.evidence_type === 'both') return baseTime + 7;
-    
+
+    if (staticItem.evidence_type === "photo") return baseTime + 2;
+    if (staticItem.evidence_type === "video") return baseTime + 5;
+    if (staticItem.evidence_type === "both") return baseTime + 7;
+
     return baseTime;
   }
 
@@ -1007,39 +1121,44 @@ export class ChecklistDataService {
     itemId: string,
     status: ChecklistItemStatus,
     result?: Partial<ChecklistItemResult>,
-    notes?: string
+    notes?: string,
   ): void {
     // Store update for potential rollback
     this.progressUpdateQueue.set(itemId, {
       status,
       result,
       notes,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Update relevant caches optimistically
     // This would update cached checklist items immediately for UI responsiveness
-    logger.debug('Optimistic update applied', { itemId, status });
+    logger.debug("Optimistic update applied", { itemId, status });
   }
 
   private revertOptimisticUpdate(itemId: string): void {
     // Remove optimistic update and revert caches
     this.progressUpdateQueue.delete(itemId);
-    
+
     // Invalidate caches to force fresh data
     this.invalidateItemCaches(itemId);
-    
-    logger.debug('Optimistic update reverted', { itemId });
+
+    logger.debug("Optimistic update reverted", { itemId });
   }
 
   private async preloadItemMedia(items: ChecklistItem[]): Promise<void> {
     // Pre-load media for next few items to improve UX
     const itemsWithMedia = items
-      .filter(item => item.evidenceType === 'photo' || item.evidenceType === 'video')
+      .filter(
+        (item) =>
+          item.evidenceType === "photo" || item.evidenceType === "video",
+      )
       .slice(0, CHECKLIST_SERVICE_CONFIG.performance.mediaPreloadCount);
 
     // Background preloading logic would go here
-    logger.debug('Media preloading initiated', { itemCount: itemsWithMedia.length });
+    logger.debug("Media preloading initiated", {
+      itemCount: itemsWithMedia.length,
+    });
   }
 
   // ========================================
@@ -1048,16 +1167,16 @@ export class ChecklistDataService {
 
   private async invalidateItemCaches(itemId: string): Promise<void> {
     const tags = CHECKLIST_SERVICE_CONFIG.tags.checklistItem(itemId);
-    
-    tags.forEach(tag => {
+
+    tags.forEach((tag) => {
       queryCache.invalidatePattern(tag);
     });
   }
 
   private async invalidateMediaCaches(itemId: string): Promise<void> {
     const tags = CHECKLIST_SERVICE_CONFIG.tags.media(itemId);
-    
-    tags.forEach(tag => {
+
+    tags.forEach((tag) => {
       queryCache.invalidatePattern(tag);
     });
   }
@@ -1069,8 +1188,8 @@ export class ChecklistDataService {
   private setupRealTimeUpdates(): void {
     // Set up real-time subscriptions for collaborative editing
     // Would integrate with Supabase real-time subscriptions
-    
-    logger.debug('Real-time updates initialized for checklist service');
+
+    logger.debug("Real-time updates initialized for checklist service");
   }
 
   private setupBatchProcessing(): void {
@@ -1085,11 +1204,13 @@ export class ChecklistDataService {
   private async processBatchedUpdates(): Promise<void> {
     // Process pending optimistic updates
     const pendingUpdates = Array.from(this.progressUpdateQueue.entries());
-    
+
     // Clear queue
     this.progressUpdateQueue.clear();
-    
-    logger.debug('Processed batched updates', { updateCount: pendingUpdates.length });
+
+    logger.debug("Processed batched updates", {
+      updateCount: pendingUpdates.length,
+    });
   }
 
   // ========================================
@@ -1099,13 +1220,13 @@ export class ChecklistDataService {
   private createServiceError(
     code: InspectionErrorCode,
     message: string,
-    context: Record<string, any>
+    context: Record<string, any>,
   ): InspectionServiceError {
     const error = new Error(message) as InspectionServiceError;
     error.code = code;
-    error.context = { operation: 'unknown', ...context };
-    error.recoverable = code !== 'DATA_CORRUPTION';
-    error.suggestions = ['Contact technical support'];
+    error.context = { operation: "unknown", ...context };
+    error.recoverable = code !== "DATA_CORRUPTION";
+    error.suggestions = ["Contact technical support"];
     return error;
   }
 
@@ -1113,7 +1234,7 @@ export class ChecklistDataService {
     data: T,
     startTime: number,
     fromCache: boolean,
-    queryCount: number
+    queryCount: number,
   ): ServiceResult<T> {
     return {
       success: true,
@@ -1124,7 +1245,7 @@ export class ChecklistDataService {
         duration: performance.now() - startTime,
         fromCache,
         queryCount,
-      }
+      },
     };
   }
 
@@ -1137,11 +1258,11 @@ export class ChecklistDataService {
    * Use for troubleshooting or after major data updates
    */
   clearChecklistCaches(): void {
-    queryCache.invalidatePattern('checklist*');
-    queryCache.invalidatePattern('progress*');
-    queryCache.invalidatePattern('item_media*');
-    
-    logger.info('All checklist caches cleared');
+    queryCache.invalidatePattern("checklist*");
+    queryCache.invalidatePattern("progress*");
+    queryCache.invalidatePattern("item_media*");
+
+    logger.info("All checklist caches cleared");
   }
 
   /**

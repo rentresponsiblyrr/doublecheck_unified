@@ -1,15 +1,14 @@
-
 export const CACHE_KEYS = {
   CHECKLIST_ITEMS: (inspectionId: string) => `checklist-items-${inspectionId}`,
   INSPECTION: (inspectionId: string) => `inspection-${inspectionId}`,
-  PROPERTIES: 'properties-list',
-  USER_PROFILE: (userId: string) => `user-profile-${userId}`
+  PROPERTIES: "properties-list",
+  USER_PROFILE: (userId: string) => `user-profile-${userId}`,
 } as const;
 
 export const CACHE_TTL = {
-  SHORT: 60000,    // 1 minute
-  MEDIUM: 300000,  // 5 minutes
-  LONG: 900000     // 15 minutes
+  SHORT: 60000, // 1 minute
+  MEDIUM: 300000, // 5 minutes
+  LONG: 900000, // 15 minutes
 } as const;
 
 interface CacheItem<T> {
@@ -25,19 +24,19 @@ class SimpleCache {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl
+      ttl,
     });
   }
 
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
 
     const now = Date.now();
-    const isExpired = (now - item.timestamp) > item.ttl;
+    const isExpired = now - item.timestamp > item.ttl;
 
     if (isExpired) {
       this.cache.delete(key);
@@ -58,7 +57,7 @@ class SimpleCache {
   getStats() {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }

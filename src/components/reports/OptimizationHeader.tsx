@@ -1,8 +1,8 @@
-import React from 'react';
-import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Lightbulb, Download } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import React from "react";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Lightbulb, Download } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface OptimizationHeaderProps {
   onGenerateReport: () => void;
@@ -11,7 +11,7 @@ interface OptimizationHeaderProps {
 
 export const OptimizationHeader: React.FC<OptimizationHeaderProps> = ({
   onGenerateReport,
-  isGeneratingReport
+  isGeneratingReport,
 }) => (
   <CardHeader id="optimization-header">
     <div className="flex items-center justify-between">

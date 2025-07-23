@@ -1,4 +1,3 @@
-
 import { PropertySelectionError } from "@/components/PropertySelectionError";
 import { PropertySelectionLoading } from "@/components/PropertySelectionLoading";
 import { PropertySelectionContent } from "@/components/PropertySelectionContent";
@@ -19,17 +18,12 @@ const OptimizedPropertySelection = () => {
     onPropertyDeleted,
     isLoading,
     error,
-    refetch
+    refetch,
   } = useOptimizedPropertySelection();
 
   // Handle errors
   if (error) {
-    return (
-      <PropertySelectionError 
-        error={error}
-        onRetry={refetch}
-      />
-    );
+    return <PropertySelectionError error={error} onRetry={refetch} />;
   }
 
   // Show loading state

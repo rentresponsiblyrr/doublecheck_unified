@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,107 +5,133 @@ import { ChecklistItemType } from "@/types/inspection";
 import { debugLogger } from "@/utils/debugLogger";
 
 export const useInspectionData = (inspectionId: string) => {
-  debugLogger.info('InspectionData', 'Hook initialized', { inspectionId });
+  debugLogger.info("InspectionData", "Hook initialized", { inspectionId });
 
-  const { data: checklistItems = [], isLoading, refetch, isRefetching, error } = useQuery({
-    queryKey: ['checklist-items', inspectionId],
+  const {
+    data: checklistItems = [],
+    isLoading,
+    refetch,
+    isRefetching,
+    error,
+  } = useQuery({
+    queryKey: ["checklist-items", inspectionId],
     queryFn: async () => {
-      debugLogger.info('InspectionData', 'Query starting', { inspectionId });
-      
+      debugLogger.info("InspectionData", "Query starting", { inspectionId });
+
       if (!inspectionId) {
-        debugLogger.error('InspectionData', 'No inspectionId provided');
-        throw new Error('Inspection ID is required');
+        debugLogger.error("InspectionData", "No inspectionId provided");
+        throw new Error("Inspection ID is required");
       }
-      
+
       try {
         // First, verify the inspection exists and user has access
-        debugLogger.debug('InspectionData', 'Verifying inspection exists');
+        debugLogger.debug("InspectionData", "Verifying inspection exists");
         const { data: inspection, error: inspectionError } = await supabase
-          .from('inspections')
-          .select('id, property_id, status, completed')
-          .eq('id', inspectionId)
+          .from("inspections")
+          .select("id, property_id, status, completed")
+          .eq("id", inspectionId)
           .single();
 
         if (inspectionError) {
-          debugLogger.error('InspectionData', 'Inspection verification failed', {
-            error: inspectionError,
-            code: inspectionError.code,
-            message: inspectionError.message
-          });
-          
-          if (inspectionError.code === 'PGRST116') {
-            throw new Error('Inspection not found or you do not have permission to access it');
+          debugLogger.error(
+            "InspectionData",
+            "Inspection verification failed",
+            {
+              error: inspectionError,
+              code: inspectionError.code,
+              message: inspectionError.message,
+            },
+          );
+
+          if (inspectionError.code === "PGRST116") {
+            throw new Error(
+              "Inspection not found or you do not have permission to access it",
+            );
           }
-          
-          throw new Error(`Failed to load inspection: ${inspectionError.message}`);
+
+          throw new Error(
+            `Failed to load inspection: ${inspectionError.message}`,
+          );
         }
 
-        debugLogger.info('InspectionData', 'Inspection verified', inspection);
+        debugLogger.info("InspectionData", "Inspection verified", inspection);
 
         // Fetch checklist items with error handling - CORRECTED: checklist_items table uses inspection_id
-        debugLogger.debug('InspectionData', 'Fetching checklist items', { 
-          inspectionId 
+        debugLogger.debug("InspectionData", "Fetching checklist items", {
+          inspectionId,
         });
         const { data: items, error: itemsError } = await supabase
-          .from('checklist_items')
-          .select('id, inspection_id, static_item_id, ai_status, notes, status, created_at, static_safety_items!static_item_id(id, title, category)')
-          .eq('inspection_id', inspectionId)
-          .order('created_at', { ascending: true });
-        
+          .from("checklist_items")
+          .select(
+            "id, inspection_id, static_item_id, ai_status, notes, status, created_at, static_safety_items!static_item_id(id, title, category)",
+          )
+          .eq("inspection_id", inspectionId)
+          .order("created_at", { ascending: true });
+
         if (itemsError) {
-          debugLogger.error('InspectionData', 'Database error fetching checklist items', {
-            error: itemsError,
-            code: itemsError.code,
-            message: itemsError.message
-          });
-          throw new Error(`Failed to load checklist items: ${itemsError.message}`);
+          debugLogger.error(
+            "InspectionData",
+            "Database error fetching checklist items",
+            {
+              error: itemsError,
+              code: itemsError.code,
+              message: itemsError.message,
+            },
+          );
+          throw new Error(
+            `Failed to load checklist items: ${itemsError.message}`,
+          );
         }
 
-        debugLogger.info('InspectionData', 'Raw checklist items fetched', { 
+        debugLogger.info("InspectionData", "Raw checklist items fetched", {
           count: items?.length || 0,
-          sampleItems: items?.slice(0, 3).map(i => ({ 
-            id: i.id, 
-            label: i.static_safety_items?.title, 
-            status: i.status 
-          })) || []
+          sampleItems:
+            items?.slice(0, 3).map((i) => ({
+              id: i.id,
+              label: i.static_safety_items?.title,
+              status: i.status,
+            })) || [],
         });
-        
+
         // If no items found, provide helpful information
         if (!items || items.length === 0) {
-          debugLogger.warn('InspectionData', 'No checklist items found', {
+          debugLogger.warn("InspectionData", "No checklist items found", {
             inspectionExists: !!inspection,
             inspectionStatus: inspection?.status,
-            inspectionCompleted: inspection?.completed
+            inspectionCompleted: inspection?.completed,
           });
-          
+
           // This is normal - return empty array and let UI handle it
           return [];
         }
-        
+
         // Transform the data to match our TypeScript interface - CORRECTED for checklist_items table schema
-        const transformedData: ChecklistItemType[] = items.map(item => ({
+        const transformedData: ChecklistItemType[] = items.map((item) => ({
           id: item.id, // UUID from checklist_items table
           inspection_id: inspectionId, // Already stored in checklist_items table
-          label: item.static_safety_items?.title || '',
-          category: item.static_safety_items?.category || 'safety',
-          evidence_type: 'photo', // Default to photo for now
+          label: item.static_safety_items?.title || "",
+          category: item.static_safety_items?.category || "safety",
+          evidence_type: "photo", // Default to photo for now
           status: item.status, // Use status field directly
-          notes: item.notes || '', // Use notes field
-          created_at: item.created_at || new Date().toISOString()
+          notes: item.notes || "", // Use notes field
+          created_at: item.created_at || new Date().toISOString(),
         }));
-        
-        debugLogger.info('InspectionData', 'Data transformation complete', {
+
+        debugLogger.info("InspectionData", "Data transformation complete", {
           transformedCount: transformedData.length,
-          completedItems: transformedData.filter(i => i.status === 'completed').length,
-          pendingItems: transformedData.filter(i => !i.status).length
+          completedItems: transformedData.filter(
+            (i) => i.status === "completed",
+          ).length,
+          pendingItems: transformedData.filter((i) => !i.status).length,
         });
-        
+
         return transformedData;
       } catch (fetchError) {
-        debugLogger.error('InspectionData', 'Query failed', {
+        debugLogger.error("InspectionData", "Query failed", {
           error: fetchError,
-          message: fetchError instanceof Error ? fetchError.message : 'Unknown error',
-          inspectionId
+          message:
+            fetchError instanceof Error ? fetchError.message : "Unknown error",
+          inspectionId,
         });
         throw fetchError;
       }
@@ -115,10 +140,10 @@ export const useInspectionData = (inspectionId: string) => {
     refetchOnWindowFocus: false,
     staleTime: 30000,
     retry: (failureCount, error) => {
-      debugLogger.info('InspectionData', 'Retry attempt', { 
-        failureCount, 
+      debugLogger.info("InspectionData", "Retry attempt", {
+        failureCount,
         error: error?.message,
-        maxRetries: 2
+        maxRetries: 2,
       });
       return failureCount < 2;
     },
@@ -126,13 +151,13 @@ export const useInspectionData = (inspectionId: string) => {
 
   // Log state changes
   useEffect(() => {
-    debugLogger.info('InspectionData', 'State update', {
+    debugLogger.info("InspectionData", "State update", {
       inspectionId,
       isLoading,
       isRefetching,
       itemCount: checklistItems.length,
       hasError: !!error,
-      errorMessage: error?.message
+      errorMessage: error?.message,
     });
   }, [inspectionId, isLoading, isRefetching, checklistItems.length, error]);
 
@@ -141,6 +166,6 @@ export const useInspectionData = (inspectionId: string) => {
     isLoading,
     refetch,
     isRefetching,
-    error
+    error,
   };
 };

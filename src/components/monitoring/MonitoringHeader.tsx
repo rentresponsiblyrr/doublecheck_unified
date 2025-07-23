@@ -1,12 +1,12 @@
 /**
  * Monitoring Header - Enterprise Grade
- * 
+ *
  * Dashboard header with title, last update time, and action buttons
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Download } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Download } from "lucide-react";
 
 interface MonitoringHeaderProps {
   lastUpdate: Date;
@@ -19,7 +19,7 @@ export const MonitoringHeader: React.FC<MonitoringHeaderProps> = ({
   lastUpdate,
   onRefresh,
   onExport,
-  isLoading
+  isLoading,
 }) => {
   return (
     <div id="monitoring-header" className="flex justify-between items-center">
@@ -36,7 +36,9 @@ export const MonitoringHeader: React.FC<MonitoringHeaderProps> = ({
           onClick={onRefresh}
           disabled={isLoading}
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
         <Button variant="outline" size="sm" onClick={onExport}>

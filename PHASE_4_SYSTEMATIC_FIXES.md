@@ -74,7 +74,7 @@ try {
   const { data: usersData } = await supabase.from('users').select('*');
 } catch {
   // ❌ Fallback to profiles table - inconsistent schema
-  const { data: profilesData } = await supabase.from('profiles').select('*');
+  const { data: profilesData } = await supabase.from('users').select('*');
 }
 
 // After - Consistent pattern

@@ -1,11 +1,11 @@
 /**
  * Inspection Queue Empty - Focused Component
- * 
+ *
  * Displays empty state when no inspections are found
  */
 
-import React from 'react';
-import { FileText } from 'lucide-react';
+import React from "react";
+import { FileText } from "lucide-react";
 
 interface InspectionQueueEmptyProps {
   searchQuery: string;
@@ -14,7 +14,7 @@ interface InspectionQueueEmptyProps {
 
 export const InspectionQueueEmpty: React.FC<InspectionQueueEmptyProps> = ({
   searchQuery,
-  hasActiveFilters
+  hasActiveFilters,
 }) => {
   return (
     <div className="text-center py-8" id="inspection-queue-empty">

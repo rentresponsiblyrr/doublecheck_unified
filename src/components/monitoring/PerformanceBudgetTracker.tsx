@@ -3,20 +3,33 @@
  * Performance budget monitoring and user journey analysis
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BarChart3, TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 
 interface PerformanceBudget {
   metric: string;
   budget: number;
   current: number;
   utilization: number;
-  status: 'within-budget' | 'approaching-limit' | 'over-budget';
-  trend: 'improving' | 'stable' | 'degrading';
+  status: "within-budget" | "approaching-limit" | "over-budget";
+  trend: "improving" | "stable" | "degrading";
 }
 
 interface UserJourneys {
@@ -32,31 +45,29 @@ interface PerformanceBudgetTrackerProps {
   isLoading?: boolean;
 }
 
-export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> = ({
-  performanceBudgets,
-  userJourneys,
-  isLoading = false
-}) => {
+export const PerformanceBudgetTracker: React.FC<
+  PerformanceBudgetTrackerProps
+> = ({ performanceBudgets, userJourneys, isLoading = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'within-budget':
-        return 'text-green-600 bg-green-100';
-      case 'approaching-limit':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'over-budget':
-        return 'text-red-600 bg-red-100';
+      case "within-budget":
+        return "text-green-600 bg-green-100";
+      case "approaching-limit":
+        return "text-yellow-600 bg-yellow-100";
+      case "over-budget":
+        return "text-red-600 bg-red-100";
       default:
-        return 'text-gray-600 bg-gray-100';
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'improving':
+      case "improving":
         return <TrendingUp className="w-4 h-4 text-green-500" />;
-      case 'degrading':
+      case "degrading":
         return <TrendingDown className="w-4 h-4 text-red-500" />;
-      case 'stable':
+      case "stable":
         return <Activity className="w-4 h-4 text-blue-500" />;
       default:
         return <Activity className="w-4 h-4 text-gray-500" />;
@@ -65,11 +76,11 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'within-budget':
+      case "within-budget":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'approaching-limit':
+      case "approaching-limit":
         return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-      case 'over-budget':
+      case "over-budget":
         return <AlertTriangle className="w-4 h-4 text-red-500" />;
       default:
         return <Activity className="w-4 h-4 text-gray-500" />;
@@ -95,8 +106,12 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
     );
   }
 
-  const overBudgetMetrics = performanceBudgets.filter(budget => budget.status === 'over-budget');
-  const approachingLimitMetrics = performanceBudgets.filter(budget => budget.status === 'approaching-limit');
+  const overBudgetMetrics = performanceBudgets.filter(
+    (budget) => budget.status === "over-budget",
+  );
+  const approachingLimitMetrics = performanceBudgets.filter(
+    (budget) => budget.status === "approaching-limit",
+  );
 
   return (
     <div className="space-y-6">
@@ -105,8 +120,8 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>{overBudgetMetrics.length} metric(s)</strong> are over budget: {' '}
-            {overBudgetMetrics.map(m => m.metric).join(', ')}
+            <strong>{overBudgetMetrics.length} metric(s)</strong> are over
+            budget: {overBudgetMetrics.map((m) => m.metric).join(", ")}
           </AlertDescription>
         </Alert>
       )}
@@ -115,8 +130,9 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
         <Alert className="border-yellow-200 bg-yellow-50">
           <AlertTriangle className="w-4 h-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            <strong>{approachingLimitMetrics.length} metric(s)</strong> approaching budget limits: {' '}
-            {approachingLimitMetrics.map(m => m.metric).join(', ')}
+            <strong>{approachingLimitMetrics.length} metric(s)</strong>{" "}
+            approaching budget limits:{" "}
+            {approachingLimitMetrics.map((m) => m.metric).join(", ")}
           </AlertDescription>
         </Alert>
       )}
@@ -142,13 +158,14 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
                     <div>
                       <h4 className="font-medium">{budget.metric}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {budget.current.toFixed(1)} / {budget.budget.toFixed(1)} budget
+                        {budget.current.toFixed(1)} / {budget.budget.toFixed(1)}{" "}
+                        budget
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={getStatusColor(budget.status)}>
-                      {budget.status.replace('-', ' ')}
+                      {budget.status.replace("-", " ")}
                     </Badge>
                     {getTrendIcon(budget.trend)}
                   </div>
@@ -157,15 +174,24 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Utilization:</span>
-                    <span className={budget.utilization > 90 ? 'text-red-600 font-medium' : ''}>
+                    <span
+                      className={
+                        budget.utilization > 90
+                          ? "text-red-600 font-medium"
+                          : ""
+                      }
+                    >
                       {budget.utilization.toFixed(1)}%
                     </span>
                   </div>
-                  <Progress 
-                    value={budget.utilization} 
+                  <Progress
+                    value={budget.utilization}
                     className={`h-3 ${
-                      budget.utilization > 100 ? '[&>div]:bg-red-500' :
-                      budget.utilization > 80 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-green-500'
+                      budget.utilization > 100
+                        ? "[&>div]:bg-red-500"
+                        : budget.utilization > 80
+                          ? "[&>div]:bg-yellow-500"
+                          : "[&>div]:bg-green-500"
                     }`}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
@@ -213,7 +239,7 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
                   <div className="text-sm text-green-700">Completion Rate</div>
                 </div>
               </div>
-              
+
               <div className="p-3 bg-gray-50 rounded-lg">
                 <div className="text-lg font-semibold text-center">
                   {(userJourneys.averageDuration / 1000).toFixed(1)}s
@@ -221,9 +247,12 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
                 <div className="text-sm text-center text-muted-foreground">
                   Average Journey Duration
                 </div>
-                <Progress 
-                  value={Math.min(100, (30000 - userJourneys.averageDuration) / 300)} 
-                  className="mt-2 h-2" 
+                <Progress
+                  value={Math.min(
+                    100,
+                    (30000 - userJourneys.averageDuration) / 300,
+                  )}
+                  className="mt-2 h-2"
                 />
                 <div className="text-xs text-center text-muted-foreground mt-1">
                   Target: &lt; 30s
@@ -250,8 +279,8 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
             ) : (
               <div className="space-y-3">
                 {userJourneys.abandonmentPoints.map((point, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
                   >
                     <div className="flex items-center gap-2">
@@ -281,18 +310,21 @@ export const PerformanceBudgetTracker: React.FC<PerformanceBudgetTrackerProps> =
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {performanceBudgets.filter(b => b.status === 'within-budget').length}
+                {
+                  performanceBudgets.filter((b) => b.status === "within-budget")
+                    .length
+                }
               </div>
               <div className="text-sm text-green-700">Within Budget</div>
             </div>
-            
+
             <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
                 {approachingLimitMetrics.length}
               </div>
               <div className="text-sm text-yellow-700">Approaching Limit</div>
             </div>
-            
+
             <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
                 {overBudgetMetrics.length}

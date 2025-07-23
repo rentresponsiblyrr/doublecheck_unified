@@ -21,7 +21,7 @@ This guide documents the database compatibility layer implemented to bridge the 
 ## **🏗️ Architecture Overview**
 
 ### **The Problem**
-- **Database Schema**: Uses integer primary keys (`property_id`, `property_name`)
+- **Database Schema**: Uses integer primary keys (`property_id`, `name`)
 - **Application Layer**: Expects UUID interfaces (`id`, `name`)
 - **Data Inconsistency**: Direct table access causes schema mismatches
 
@@ -47,7 +47,7 @@ uuid_to_int('00000000-0000-0000-0000-000000000123') → 123
 CREATE VIEW properties_fixed AS
 SELECT 
   int_to_uuid(property_id) as id,        -- UUID interface
-  property_name as name,                 -- Renamed for consistency
+  name as name,                 -- Renamed for consistency
   listing_url as url,                    -- Renamed for consistency
   airbnb_url,
   vrbo_url,
@@ -164,7 +164,7 @@ const { data } = await supabase.from('inspections').select('*');
 // ❌ WRONG - Using base table field names
 const { data } = await supabase
   .from('properties_fixed')
-  .select('property_id, property_name');  // These don't exist in view
+  .select('property_id, name');  // These don't exist in view
 
 // ✅ CORRECT - Using view field names
 const { data } = await supabase
@@ -189,8 +189,8 @@ const { data } = await supabase.from('properties_fixed').select('*');
 ❌ Error: column "property_id" does not exist
 ✅ Solution: Use 'id' instead (compatibility view maps property_id → id)
 
-❌ Error: column "property_name" does not exist  
-✅ Solution: Use 'name' instead (compatibility view maps property_name → name)
+❌ Error: column "name" does not exist  
+✅ Solution: Use 'name' instead (compatibility view maps name → name)
 ```
 
 ### **"Cannot cast UUID to integer" Errors**

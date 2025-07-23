@@ -1,7 +1,6 @@
-
 export interface SubmissionDebugInfo {
   submitError?: {
-    operation: 'update' | 'insert';
+    operation: "update" | "insert";
     error: string;
     code?: string;
     details?: string;
@@ -18,7 +17,7 @@ export interface SubmissionDebugInfo {
     timestamp: string;
   };
   submitSuccess?: {
-    operation: 'update' | 'insert';
+    operation: "update" | "insert";
     propertyId?: string;
     attempts?: number;
     duration: number;

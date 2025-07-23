@@ -4,14 +4,14 @@
  * Provides progressive sync, predictive preloading, and background refresh
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { intelligentCache } from '@/lib/cache/IntelligentCacheManager';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { intelligentCache } from "@/lib/cache/IntelligentCacheManager";
 
 interface CacheOptions {
   store?: string;
   ttl?: number;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
+  priority?: "low" | "medium" | "high" | "critical";
   tags?: string[];
   enableBackgroundRefresh?: boolean;
   enablePredictivePreload?: boolean;
@@ -30,14 +30,14 @@ export function useIntelligentQuery<T>(
     gcTime?: number;
     refetchOnWindowFocus?: boolean;
     enabled?: boolean;
-  } = {}
+  } = {},
 ) {
   const queryClient = useQueryClient();
-  
+
   const {
-    store = 'default',
+    store = "default",
     ttl = 5 * 60 * 1000, // 5 minutes
-    priority = 'medium',
+    priority = "medium",
     tags = [],
     enableBackgroundRefresh = true,
     enablePredictivePreload = true,
@@ -48,14 +48,14 @@ export function useIntelligentQuery<T>(
     ...restOptions
   } = options;
 
-  const cacheKey = useMemo(() => queryKey.join(':'), [queryKey]);
+  const cacheKey = useMemo(() => queryKey.join(":"), [queryKey]);
 
   // Enhanced query function with intelligent caching
   const enhancedQueryFn = useCallback(async (): Promise<T> => {
     try {
       // First, try to get from intelligent cache
       const cachedData = await intelligentCache.get<T>(store, cacheKey);
-      
+
       if (cachedData) {
         // Cache hit - return immediately for better UX
         if (enableBackgroundRefresh) {
@@ -66,28 +66,28 @@ export function useIntelligentQuery<T>(
               await intelligentCache.set(store, cacheKey, freshData, {
                 ttl,
                 priority,
-                tags: [...tags, 'background-refresh']
+                tags: [...tags, "background-refresh"],
               });
-              
+
               // Update TanStack Query cache
               queryClient.setQueryData(queryKey, freshData);
             } catch (error) {
-              console.warn('Background refresh failed:', error);
+              console.warn("Background refresh failed:", error);
             }
           }, 0);
         }
-        
+
         return cachedData;
       }
 
       // Cache miss - fetch from network
       const freshData = await queryFn();
-      
+
       // Store in intelligent cache
       await intelligentCache.set(store, cacheKey, freshData, {
         ttl,
         priority,
-        tags: [...tags, 'network-fetch']
+        tags: [...tags, "network-fetch"],
       });
 
       return freshData;
@@ -95,13 +95,23 @@ export function useIntelligentQuery<T>(
       // Fallback to cached data even if expired for offline support
       const expiredCachedData = await intelligentCache.get<T>(store, cacheKey);
       if (expiredCachedData) {
-        console.warn('Using expired cache data due to network error:', error);
+        console.warn("Using expired cache data due to network error:", error);
         return expiredCachedData;
       }
-      
+
       throw error;
     }
-  }, [queryFn, store, cacheKey, ttl, priority, tags, enableBackgroundRefresh, queryClient, queryKey]);
+  }, [
+    queryFn,
+    store,
+    cacheKey,
+    ttl,
+    priority,
+    tags,
+    enableBackgroundRefresh,
+    queryClient,
+    queryKey,
+  ]);
 
   // Use TanStack Query with our enhanced query function
   const query = useQuery({
@@ -111,7 +121,7 @@ export function useIntelligentQuery<T>(
     gcTime,
     refetchOnWindowFocus,
     enabled,
-    ...restOptions
+    ...restOptions,
   });
 
   return {
@@ -121,15 +131,15 @@ export function useIntelligentQuery<T>(
       await intelligentCache.delete(store, cacheKey);
       queryClient.invalidateQueries({ queryKey });
     }, [store, cacheKey, queryClient, queryKey]),
-    
+
     clearStore: useCallback(async () => {
       await intelligentCache.clear(store);
       queryClient.invalidateQueries();
     }, [store, queryClient]),
-    
+
     getCacheStats: useCallback(async () => {
       return await intelligentCache.getStats();
-    }, [])
+    }, []),
   };
 }
 
@@ -139,7 +149,7 @@ export function useIntelligentQuery<T>(
 export function useIntelligentCache<T>(
   key: string | (string | number)[],
   fetcher: () => Promise<T>,
-  options: CacheOptions = {}
+  options: CacheOptions = {},
 ) {
   const queryKey = Array.isArray(key) ? key : [key];
   return useIntelligentQuery(queryKey, fetcher, options);
@@ -158,7 +168,7 @@ export function useCacheMetrics() {
     totalEntries: 0,
     totalSize: 0,
     hitRate: 0,
-    stores: {}
+    stores: {},
   });
 
   const refreshStats = useCallback(async () => {
@@ -166,7 +176,7 @@ export function useCacheMetrics() {
       const cacheStats = await intelligentCache.getStats();
       setStats(cacheStats);
     } catch (error) {
-      console.warn('Failed to get cache stats:', error);
+      console.warn("Failed to get cache stats:", error);
     }
   }, []);
 
@@ -178,7 +188,7 @@ export function useCacheMetrics() {
 
   return {
     stats,
-    refreshStats
+    refreshStats,
   };
 }
 
@@ -187,18 +197,18 @@ export function useCacheMetrics() {
  */
 export function usePropertyCache() {
   return useIntelligentQuery(
-    ['properties'], 
+    ["properties"],
     async () => {
       // This would be your actual property fetching logic
-      throw new Error('Property fetch function not implemented');
+      throw new Error("Property fetch function not implemented");
     },
     {
-      store: 'properties',
+      store: "properties",
       ttl: 10 * 60 * 1000, // 10 minutes for properties
-      priority: 'high',
-      tags: ['properties', 'core-data'],
+      priority: "high",
+      tags: ["properties", "core-data"],
       enableBackgroundRefresh: true,
-      enablePredictivePreload: true
-    }
+      enablePredictivePreload: true,
+    },
   );
 }

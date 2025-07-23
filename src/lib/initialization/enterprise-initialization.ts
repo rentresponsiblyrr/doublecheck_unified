@@ -1,26 +1,26 @@
 /**
  * @fileoverview Enterprise System Initialization
  * Centralized initialization of all enterprise systems
- * 
+ *
  * This module handles the proper startup sequence for all enterprise-grade
  * infrastructure components including logging, tracing, APM, and monitoring.
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { createLogger, getGlobalLogger } from '../logging/enterprise-logger';
-import DistributedTracer from '../tracing/distributed-tracer';
-import APMIntegration from '../monitoring/apm-integration';
-import { enterpriseServiceTracer } from '../services/enterprise-service-tracer';
-import { errorManager } from '../error/enterprise-error-handler';
-import { EnterpriseSecurityManager } from '../security/enterprise-security-manager';
-import { ThreatDetectionEngine } from '../security/threat-detection-engine';
-import { SecurityMiddleware } from '../security/security-middleware';
+import { createLogger, getGlobalLogger } from "../logging/enterprise-logger";
+import DistributedTracer from "../tracing/distributed-tracer";
+import APMIntegration from "../monitoring/apm-integration";
+import { enterpriseServiceTracer } from "../services/enterprise-service-tracer";
+import { errorManager } from "../error/enterprise-error-handler";
+import { EnterpriseSecurityManager } from "../security/enterprise-security-manager";
+import { ThreatDetectionEngine } from "../security/threat-detection-engine";
+import { SecurityMiddleware } from "../security/security-middleware";
 
 export interface EnterpriseConfig {
   // Environment configuration
-  environment: 'development' | 'staging' | 'production';
+  environment: "development" | "staging" | "production";
   serviceName: string;
   serviceVersion: string;
 
@@ -30,7 +30,7 @@ export interface EnterpriseConfig {
     enableRemote: boolean;
     remoteEndpoint?: string;
     apiKey?: string;
-    minLevel: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+    minLevel: "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL";
   };
 
   // Tracing configuration
@@ -42,7 +42,7 @@ export interface EnterpriseConfig {
 
   // APM configuration
   apm: {
-    provider: 'datadog' | 'newrelic' | 'xray' | 'elastic' | 'custom';
+    provider: "datadog" | "newrelic" | "xray" | "elastic" | "custom";
     apiKey?: string;
     enableRUM: boolean;
     enableProfiling: boolean;
@@ -118,24 +118,29 @@ class EnterpriseInitializer {
       this.isInitialized = true;
 
       const logger = getGlobalLogger();
-      logger.info('Enterprise systems initialized successfully', {
-        component: 'enterprise-initializer',
-        environment: config.environment,
-        serviceName: config.serviceName,
-        serviceVersion: config.serviceVersion,
-        features: {
-          logging: true,
-          tracing: true,
-          apm: true,
-          errorHandling: true,
-          security: true,
-          threatDetection: true,
-          monitoring: true,
+      logger.info(
+        "Enterprise systems initialized successfully",
+        {
+          component: "enterprise-initializer",
+          environment: config.environment,
+          serviceName: config.serviceName,
+          serviceVersion: config.serviceVersion,
+          features: {
+            logging: true,
+            tracing: true,
+            apm: true,
+            errorHandling: true,
+            security: true,
+            threatDetection: true,
+            monitoring: true,
+          },
         },
-      }, 'ENTERPRISE_INITIALIZATION_COMPLETE');
-
+        "ENTERPRISE_INITIALIZATION_COMPLETE",
+      );
     } catch (error) {
-      throw new Error(`Enterprise initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Enterprise initialization failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -152,9 +157,8 @@ class EnterpriseInitializer {
       apiKey: this.config!.logging.apiKey,
       enablePerformanceTracking: true,
       enableSecurityAudit: true,
-      sanitizeData: this.config!.environment === 'production',
+      sanitizeData: this.config!.environment === "production",
     });
-
   }
 
   /**
@@ -163,7 +167,6 @@ class EnterpriseInitializer {
   private async initializeErrorHandling(): Promise<void> {
     // errorManager is pre-configured with sensible defaults
     // Just ensure it's available for use throughout the application
-
   }
 
   /**
@@ -177,14 +180,13 @@ class EnterpriseInitializer {
       samplingRate: this.config!.tracing.samplingRate,
       exporterConfig: {
         endpoint: this.config!.tracing.exporterEndpoint,
-        protocol: 'otlp',
+        protocol: "otlp",
         timeout: 30000,
       },
       enableMetrics: true,
       enableLogging: true,
       enableProfiling: this.config!.tracing.enableProfiling,
     });
-
   }
 
   /**
@@ -209,7 +211,6 @@ class EnterpriseInitializer {
         version: this.config!.serviceVersion,
       },
     });
-
   }
 
   /**
@@ -245,12 +246,20 @@ class EnterpriseInitializer {
         sessionTimeoutMs: 3600000, // 1 hour
         maxConcurrentSessions: 5,
         enableSessionRotation: true,
-        requireSecureCookies: this.config!.environment === 'production',
+        requireSecureCookies: this.config!.environment === "production",
       },
       content: {
         maxFileUploadSize: 50 * 1024 * 1024, // 50MB
-        allowedFileTypes: ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'],
-        enableVirusScanning: this.config!.environment === 'production',
+        allowedFileTypes: [
+          ".jpg",
+          ".jpeg",
+          ".png",
+          ".gif",
+          ".pdf",
+          ".doc",
+          ".docx",
+        ],
+        enableVirusScanning: this.config!.environment === "production",
         enableContentValidation: true,
       },
     });
@@ -301,7 +310,7 @@ class EnterpriseInitializer {
         headers: {
           enableSecurityHeaders: true,
           enableCSP: true,
-          enableHSTS: this.config!.environment === 'production',
+          enableHSTS: this.config!.environment === "production",
           enableXFrameOptions: true,
           enableXContentType: true,
           customHeaders: {},
@@ -316,7 +325,7 @@ class EnterpriseInitializer {
         response: {
           enableDataLeakPrevention: true,
           enableSensitiveDataMasking: true,
-          enableErrorSanitization: this.config!.environment === 'production',
+          enableErrorSanitization: this.config!.environment === "production",
           enableResponseValidation: true,
         },
         rateLimiting: {
@@ -329,7 +338,6 @@ class EnterpriseInitializer {
         },
       });
     }
-
   }
 
   /**
@@ -347,19 +355,29 @@ class EnterpriseInitializer {
     const logger = getGlobalLogger();
 
     // Unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
-      logger.fatal('Unhandled promise rejection', reason as Error, {
-        component: 'global-error-handler',
-        promise: promise.toString(),
-      }, 'UNHANDLED_PROMISE_REJECTION');
+    process.on("unhandledRejection", (reason, promise) => {
+      logger.fatal(
+        "Unhandled promise rejection",
+        reason as Error,
+        {
+          component: "global-error-handler",
+          promise: promise.toString(),
+        },
+        "UNHANDLED_PROMISE_REJECTION",
+      );
     });
 
     // Uncaught exceptions
-    process.on('uncaughtException', (error) => {
-      logger.fatal('Uncaught exception', error, {
-        component: 'global-error-handler',
-      }, 'UNCAUGHT_EXCEPTION');
-      
+    process.on("uncaughtException", (error) => {
+      logger.fatal(
+        "Uncaught exception",
+        error,
+        {
+          component: "global-error-handler",
+        },
+        "UNCAUGHT_EXCEPTION",
+      );
+
       // Allow graceful shutdown
       setTimeout(() => {
         process.exit(1);
@@ -367,25 +385,32 @@ class EnterpriseInitializer {
     });
 
     // SIGTERM signal (graceful shutdown)
-    process.on('SIGTERM', async () => {
-      logger.info('Received SIGTERM, starting graceful shutdown', {
-        component: 'global-error-handler',
-      }, 'GRACEFUL_SHUTDOWN_STARTED');
-      
+    process.on("SIGTERM", async () => {
+      logger.info(
+        "Received SIGTERM, starting graceful shutdown",
+        {
+          component: "global-error-handler",
+        },
+        "GRACEFUL_SHUTDOWN_STARTED",
+      );
+
       await this.gracefulShutdown();
       process.exit(0);
     });
 
     // SIGINT signal (Ctrl+C)
-    process.on('SIGINT', async () => {
-      logger.info('Received SIGINT, starting graceful shutdown', {
-        component: 'global-error-handler',
-      }, 'GRACEFUL_SHUTDOWN_STARTED');
-      
+    process.on("SIGINT", async () => {
+      logger.info(
+        "Received SIGINT, starting graceful shutdown",
+        {
+          component: "global-error-handler",
+        },
+        "GRACEFUL_SHUTDOWN_STARTED",
+      );
+
       await this.gracefulShutdown();
       process.exit(0);
     });
-
   }
 
   /**
@@ -393,7 +418,7 @@ class EnterpriseInitializer {
    */
   private async startHealthMonitoring(): Promise<void> {
     const logger = getGlobalLogger();
-    
+
     // Health check interval
     setInterval(async () => {
       try {
@@ -402,45 +427,60 @@ class EnterpriseInitializer {
           services: {},
           infrastructure: {
             memoryUsage: 0,
-            cpuUsage: 0
-          }
+            cpuUsage: 0,
+          },
         };
-        
+
         // Check for unhealthy services
         const unhealthyServices = Object.entries(health.services)
-          .filter(([, service]) => service.status === 'unhealthy')
+          .filter(([, service]) => service.status === "unhealthy")
           .map(([name]) => name);
 
         if (unhealthyServices.length > 0) {
-          logger.warn('Unhealthy services detected', {
-            component: 'health-monitor',
-            unhealthyServices,
-            serviceCount: Object.keys(health.services).length,
-          }, 'UNHEALTHY_SERVICES_DETECTED');
+          logger.warn(
+            "Unhealthy services detected",
+            {
+              component: "health-monitor",
+              unhealthyServices,
+              serviceCount: Object.keys(health.services).length,
+            },
+            "UNHEALTHY_SERVICES_DETECTED",
+          );
         }
 
         // Check infrastructure health
         if (health.infrastructure.memoryUsage > 90) {
-          logger.warn('High memory usage detected', {
-            component: 'health-monitor',
-            memoryUsage: health.infrastructure.memoryUsage,
-          }, 'HIGH_MEMORY_USAGE');
+          logger.warn(
+            "High memory usage detected",
+            {
+              component: "health-monitor",
+              memoryUsage: health.infrastructure.memoryUsage,
+            },
+            "HIGH_MEMORY_USAGE",
+          );
         }
 
         if (health.infrastructure.cpuUsage > 90) {
-          logger.warn('High CPU usage detected', {
-            component: 'health-monitor',
-            cpuUsage: health.infrastructure.cpuUsage,
-          }, 'HIGH_CPU_USAGE');
+          logger.warn(
+            "High CPU usage detected",
+            {
+              component: "health-monitor",
+              cpuUsage: health.infrastructure.cpuUsage,
+            },
+            "HIGH_CPU_USAGE",
+          );
         }
-
       } catch (error) {
-        logger.error('Health monitoring failed', error as Error, {
-          component: 'health-monitor',
-        }, 'HEALTH_MONITOR_ERROR');
+        logger.error(
+          "Health monitoring failed",
+          error as Error,
+          {
+            component: "health-monitor",
+          },
+          "HEALTH_MONITOR_ERROR",
+        );
       }
     }, 30000); // Every 30 seconds
-
   }
 
   /**
@@ -448,11 +488,15 @@ class EnterpriseInitializer {
    */
   private async gracefulShutdown(): Promise<void> {
     const logger = getGlobalLogger();
-    
+
     try {
-      logger.info('Starting graceful shutdown of enterprise systems', {
-        component: 'enterprise-initializer',
-      }, 'GRACEFUL_SHUTDOWN_STARTED');
+      logger.info(
+        "Starting graceful shutdown of enterprise systems",
+        {
+          component: "enterprise-initializer",
+        },
+        "GRACEFUL_SHUTDOWN_STARTED",
+      );
 
       // Flush all pending logs
       await logger.destroy();
@@ -464,9 +508,7 @@ class EnterpriseInitializer {
       // Export remaining APM metrics
       const apm = APMIntegration.getInstance();
       await apm.exportToAPM();
-
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   /**
@@ -487,7 +529,7 @@ class EnterpriseInitializer {
    * Get system health status
    */
   getHealthStatus(): {
-    status: 'healthy' | 'degraded' | 'unhealthy';
+    status: "healthy" | "degraded" | "unhealthy";
     systems: {
       logging: boolean;
       tracing: boolean;
@@ -497,7 +539,7 @@ class EnterpriseInitializer {
     uptime: number;
   } {
     return {
-      status: this.isInitialized ? 'healthy' : 'unhealthy',
+      status: this.isInitialized ? "healthy" : "unhealthy",
       systems: {
         logging: this.isInitialized,
         tracing: this.isInitialized,

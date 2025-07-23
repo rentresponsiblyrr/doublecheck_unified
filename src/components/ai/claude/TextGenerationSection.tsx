@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, FileText } from 'lucide-react';
-import { createClaudeService, ClaudeTextRequest } from '@/lib/ai/claude-service';
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, FileText } from "lucide-react";
+import {
+  createClaudeService,
+  ClaudeTextRequest,
+} from "@/lib/ai/claude-service";
 
 interface ClaudeTextResult {
   text: string;
@@ -27,15 +30,15 @@ export const TextGenerationSection: React.FC<TextGenerationSectionProps> = ({
   result,
   onGenerationStart,
   onGenerationComplete,
-  onError
+  onError,
 }) => {
-  const [textPrompt, setTextPrompt] = useState('');
+  const [textPrompt, setTextPrompt] = useState("");
 
   const claudeService = createClaudeService();
 
   const handleTextGeneration = useCallback(async () => {
     if (!textPrompt.trim()) {
-      onError('Please enter a prompt');
+      onError("Please enter a prompt");
       return;
     }
 
@@ -45,17 +48,23 @@ export const TextGenerationSection: React.FC<TextGenerationSectionProps> = ({
       const request: ClaudeTextRequest = {
         prompt: textPrompt,
         context: {
-          domain: 'property_inspection',
-          purpose: 'content_generation'
-        }
+          domain: "property_inspection",
+          purpose: "content_generation",
+        },
       };
 
       const response = await claudeService.generateText(request);
       onGenerationComplete(response);
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Text generation failed');
+      onError(err instanceof Error ? err.message : "Text generation failed");
     }
-  }, [textPrompt, claudeService, onGenerationStart, onGenerationComplete, onError]);
+  }, [
+    textPrompt,
+    claudeService,
+    onGenerationStart,
+    onGenerationComplete,
+    onError,
+  ]);
 
   const handlePromptChange = (value: string) => {
     setTextPrompt(value);
@@ -67,17 +76,20 @@ export const TextGenerationSection: React.FC<TextGenerationSectionProps> = ({
 
   const promptTemplates = [
     {
-      name: 'Safety Checklist',
-      template: 'Generate a comprehensive safety checklist for vacation rental property inspection, focusing on fire safety, electrical systems, and emergency exits.'
+      name: "Safety Checklist",
+      template:
+        "Generate a comprehensive safety checklist for vacation rental property inspection, focusing on fire safety, electrical systems, and emergency exits.",
     },
     {
-      name: 'Inspection Report',
-      template: 'Create a detailed inspection report template for vacation rental properties, including sections for property condition, safety compliance, and recommendations.'
+      name: "Inspection Report",
+      template:
+        "Create a detailed inspection report template for vacation rental properties, including sections for property condition, safety compliance, and recommendations.",
     },
     {
-      name: 'Guest Guidelines',
-      template: 'Write professional guest guidelines for a vacation rental property, covering house rules, safety procedures, and emergency contact information.'
-    }
+      name: "Guest Guidelines",
+      template:
+        "Write professional guest guidelines for a vacation rental property, covering house rules, safety procedures, and emergency contact information.",
+    },
   ];
 
   return (
@@ -92,7 +104,10 @@ export const TextGenerationSection: React.FC<TextGenerationSectionProps> = ({
         <CardContent id="text-prompt-content">
           <div className="space-y-4">
             <div>
-              <label htmlFor="text-prompt-textarea" className="text-sm font-medium mb-2 block">
+              <label
+                htmlFor="text-prompt-textarea"
+                className="text-sm font-medium mb-2 block"
+              >
                 Prompt
               </label>
               <Textarea
@@ -134,7 +149,7 @@ export const TextGenerationSection: React.FC<TextGenerationSectionProps> = ({
                   Generating...
                 </>
               ) : (
-                'Generate Text'
+                "Generate Text"
               )}
             </Button>
           </div>

@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit } from 'lucide-react';
-import { ProductionUser } from '@/services/productionDatabaseService';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Edit } from "lucide-react";
+import { ProductionUser } from "@/services/productionDatabaseService";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserFormData {
   name: string;
@@ -29,14 +41,14 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
   editingUser,
   isOpen,
   onOpenChange,
-  onSubmit
+  onSubmit,
 }) => {
   const [formData, setFormData] = useState<UserFormData>({
-    name: '',
-    email: '',
-    role: 'inspector',
-    phone: '',
-    status: 'active'
+    name: "",
+    email: "",
+    role: "inspector",
+    phone: "",
+    status: "active",
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const { toast } = useToast();
@@ -44,19 +56,19 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
   useEffect(() => {
     if (editingUser) {
       setFormData({
-        name: editingUser.name || '',
-        email: editingUser.email || '',
-        role: editingUser.role || 'inspector',
-        phone: editingUser.phone || '',
-        status: editingUser.status || 'active'
+        name: editingUser.name || "",
+        email: editingUser.email || "",
+        role: editingUser.role || "inspector",
+        phone: editingUser.phone || "",
+        status: editingUser.status || "active",
       });
     } else {
       setFormData({
-        name: '',
-        email: '',
-        role: 'inspector',
-        phone: '',
-        status: 'active'
+        name: "",
+        email: "",
+        role: "inspector",
+        phone: "",
+        status: "active",
       });
     }
   }, [editingUser, isOpen]);
@@ -68,16 +80,17 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
     try {
       await onSubmit(formData);
       onOpenChange(false);
-      
+
       toast({
-        title: editingUser ? 'User Updated' : 'User Created',
-        description: `${formData.name} has been ${editingUser ? 'updated' : 'created'} successfully.`,
+        title: editingUser ? "User Updated" : "User Created",
+        description: `${formData.name} has been ${editingUser ? "updated" : "created"} successfully.`,
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'An error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
       });
     } finally {
       setSubmitLoading(false);
@@ -85,23 +98,23 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
   };
 
   const handleInputChange = (field: keyof UserFormData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      
+
       <DialogContent id="user-form-dialog" className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {editingUser ? 'Edit User' : 'Add New User'}
+            {editingUser ? "Edit User" : "Add New User"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4" id="user-form">
           <div className="space-y-2">
             <Label htmlFor="user-name">Full Name</Label>
@@ -109,7 +122,7 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
               id="user-name"
               type="text"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Enter full name"
               required
             />
@@ -121,7 +134,7 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
               id="user-email"
               type="email"
               value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              onChange={(e) => handleInputChange("email", e.target.value)}
               placeholder="Enter email address"
               required
             />
@@ -133,14 +146,17 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
               id="user-phone"
               type="tel"
               value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
               placeholder="Enter phone number"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="user-role">Role</Label>
-            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => handleInputChange("role", value)}
+            >
               <SelectTrigger id="user-role">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -154,7 +170,10 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="user-status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => handleInputChange("status", value)}
+            >
               <SelectTrigger id="user-status">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -181,7 +200,11 @@ export const UserFormDialogNew: React.FC<UserFormDialogProps> = ({
               disabled={submitLoading}
               id="submit-user-form-button"
             >
-              {submitLoading ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}
+              {submitLoading
+                ? "Saving..."
+                : editingUser
+                  ? "Update User"
+                  : "Create User"}
             </Button>
           </div>
         </form>

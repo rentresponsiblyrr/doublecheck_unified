@@ -1,13 +1,13 @@
 /**
  * Claude Text Generator - Enterprise Grade
- * 
+ *
  * Text generation interface for Claude AI
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ClaudeTextGeneratorProps {
   textPrompt: string;
@@ -20,7 +20,7 @@ export const ClaudeTextGenerator: React.FC<ClaudeTextGeneratorProps> = ({
   textPrompt,
   onTextPromptChange,
   onGenerate,
-  isLoading
+  isLoading,
 }) => {
   return (
     <Card id="claude-text-generator">
@@ -40,7 +40,7 @@ export const ClaudeTextGenerator: React.FC<ClaudeTextGeneratorProps> = ({
           disabled={!textPrompt.trim() || isLoading}
           className="w-full bg-purple-600 hover:bg-purple-700"
         >
-          {isLoading ? 'Generating...' : 'Generate Text'}
+          {isLoading ? "Generating..." : "Generate Text"}
         </Button>
       </CardContent>
     </Card>

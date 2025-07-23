@@ -1,10 +1,10 @@
-import React from 'react';
-import { FixedSizeList as List } from 'react-window';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Home, Plus } from 'lucide-react';
-import { PropertyCard } from './PropertyCard';
+import React from "react";
+import { FixedSizeList as List } from "react-window";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Home, Plus } from "lucide-react";
+import { PropertyCard } from "./PropertyCard";
 
 interface PropertyData {
   property_id: string;
@@ -42,7 +42,7 @@ const PropertyListItem = React.memo<{
 }>(({ index, style, data }) => {
   const { properties, selectedProperty, onPropertySelect } = data;
   const property = properties[index];
-  
+
   if (!property) return null;
 
   const isSelected = selectedProperty?.property_id === property.property_id;
@@ -57,30 +57,30 @@ const PropertyListItem = React.memo<{
   );
 });
 
-PropertyListItem.displayName = 'PropertyListItem';
+PropertyListItem.displayName = "PropertyListItem";
 
 export function PropertyList({
   properties,
   selectedProperty,
   onPropertySelect,
   isLoading = false,
-  searchQuery = '',
-  onShowAddForm
+  searchQuery = "",
+  onShowAddForm,
 }: PropertyListProps) {
   // Virtual list data for react-window
   const virtualListData: VirtualListData = {
     properties,
     selectedProperty,
-    onPropertySelect
+    onPropertySelect,
   };
 
   // Loading state
   if (isLoading) {
     return (
-      <div 
-        className="grid gap-4" 
-        role="status" 
-        aria-live="polite" 
+      <div
+        className="grid gap-4"
+        role="status"
+        aria-live="polite"
         aria-label="Loading properties"
       >
         {[1, 2, 3].map((i) => (
@@ -112,12 +112,11 @@ export function PropertyList({
             No Properties Found
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {searchQuery ? 
-              "No properties match your search criteria." : 
-              "No properties available. Add a property to get started."
-            }
+            {searchQuery
+              ? "No properties match your search criteria."
+              : "No properties available. Add a property to get started."}
           </p>
-          <Button 
+          <Button
             onClick={onShowAddForm}
             className="h-12 px-6 text-base touch-manipulation"
           >

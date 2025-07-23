@@ -85,7 +85,7 @@ SELECT id, name, address FROM properties LIMIT 5;
 SELECT id, property_id, inspector_id, status FROM inspections LIMIT 5;
 
 -- Test 4: Inspection checklist items (CRITICAL - this was the main issue)
-SELECT id, inspection_id, static_safety_item_id, status FROM inspection_checklist_items LIMIT 5;
+SELECT id, inspection_id, static_item_id, status FROM inspection_checklist_items LIMIT 5;
 
 -- Test 5: Media table
 SELECT id, checklist_item_id, type, url FROM media LIMIT 5;

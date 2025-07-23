@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { log } from '@/lib/logging/enterprise-logger';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { log } from "@/lib/logging/enterprise-logger";
 
 export interface SessionConfig {
   inactivityTimeoutMs: number; // Time before warning (default: 110 minutes)
-  warningDurationMs: number;   // Warning countdown duration (default: 10 minutes)
+  warningDurationMs: number; // Warning countdown duration (default: 10 minutes)
   maxSessionDurationMs: number; // Maximum session length (default: 12 hours)
   rememberMeDurationMs: number; // Remember me duration (default: 7 days)
-  enableRememberMe: boolean;    // Whether remember me is enabled
+  enableRememberMe: boolean; // Whether remember me is enabled
 }
 
 export interface SessionState {
@@ -21,20 +21,20 @@ export interface SessionState {
 
 const DEFAULT_CONFIG: SessionConfig = {
   inactivityTimeoutMs: 110 * 60 * 1000, // 110 minutes (warning at 110, logout at 120)
-  warningDurationMs: 10 * 60 * 1000,    // 10 minutes warning
+  warningDurationMs: 10 * 60 * 1000, // 10 minutes warning
   maxSessionDurationMs: 12 * 60 * 60 * 1000, // 12 hours
   rememberMeDurationMs: 7 * 24 * 60 * 60 * 1000, // 7 days
-  enableRememberMe: true
+  enableRememberMe: true,
 };
 
 // Activity events to monitor
 const ACTIVITY_EVENTS = [
-  'mousedown',
-  'mousemove',
-  'keypress',
-  'scroll',
-  'touchstart',
-  'click'
+  "mousedown",
+  "mousemove",
+  "keypress",
+  "scroll",
+  "touchstart",
+  "click",
 ];
 
 export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
@@ -45,7 +45,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
     timeUntilLogout: 0,
     timeUntilExpiry: 0,
     lastActivity: null,
-    sessionStartTime: null
+    sessionStartTime: null,
   });
 
   const lastActivityRef = useRef<Date>(new Date());
@@ -58,15 +58,15 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   const updateActivity = useCallback(() => {
     const now = new Date();
     lastActivityRef.current = now;
-    
-    setSessionState(prev => ({
+
+    setSessionState((prev) => ({
       ...prev,
       lastActivity: now,
-      showWarning: false
+      showWarning: false,
     }));
 
     // Session activity updated (log removed to prevent console spam)
-    
+
     // Reset timers if warning was shown
     if (sessionState.showWarning) {
       clearWarningTimers();
@@ -91,53 +91,67 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   }, []);
 
   // Force logout
-  const forceLogout = useCallback(async (reason: string) => {
-    log.info('Session timeout - forcing logout', {
-      component: 'useSessionManager',
-      action: 'forceLogout',
-      reason,
-      sessionDuration: Date.now() - sessionStartRef.current.getTime()
-    }, 'SESSION_FORCE_LOGOUT');
-    
-    clearWarningTimers();
-    
-    try {
-      await supabase.auth.signOut();
-      
-      setSessionState(prev => ({
-        ...prev,
-        isActive: false,
-        showWarning: false
-      }));
-      
-      // Show user-friendly logout message
-      alert(`Your session has expired due to ${reason}. Please log in again.`);
-      // NUCLEAR REMOVED: window.location.replace('/');
-    } catch (error) {
-      log.error('Error during forced logout', error as Error, {
-        component: 'useSessionManager',
-        action: 'forceLogout',
-        reason
-      }, 'FORCE_LOGOUT_ERROR');
-      // NUCLEAR REMOVED: window.location.replace('/'); // Force reload as fallback
-    }
-  }, [clearWarningTimers]);
+  const forceLogout = useCallback(
+    async (reason: string) => {
+      log.info(
+        "Session timeout - forcing logout",
+        {
+          component: "useSessionManager",
+          action: "forceLogout",
+          reason,
+          sessionDuration: Date.now() - sessionStartRef.current.getTime(),
+        },
+        "SESSION_FORCE_LOGOUT",
+      );
+
+      clearWarningTimers();
+
+      try {
+        await supabase.auth.signOut();
+
+        setSessionState((prev) => ({
+          ...prev,
+          isActive: false,
+          showWarning: false,
+        }));
+
+        // Show user-friendly logout message
+        alert(
+          `Your session has expired due to ${reason}. Please log in again.`,
+        );
+        // NUCLEAR REMOVED: window.location.replace('/');
+      } catch (error) {
+        log.error(
+          "Error during forced logout",
+          error as Error,
+          {
+            component: "useSessionManager",
+            action: "forceLogout",
+            reason,
+          },
+          "FORCE_LOGOUT_ERROR",
+        );
+        // NUCLEAR REMOVED: window.location.replace('/'); // Force reload as fallback
+      }
+    },
+    [clearWarningTimers],
+  );
 
   // Start countdown timer
   const startCountdown = useCallback(() => {
     let secondsLeft = Math.floor(fullConfig.warningDurationMs / 1000);
-    
-    setSessionState(prev => ({
+
+    setSessionState((prev) => ({
       ...prev,
-      timeUntilLogout: secondsLeft
+      timeUntilLogout: secondsLeft,
     }));
 
     countdownTimerRef.current = setInterval(() => {
       secondsLeft -= 1;
-      
-      setSessionState(prev => ({
+
+      setSessionState((prev) => ({
         ...prev,
-        timeUntilLogout: secondsLeft
+        timeUntilLogout: secondsLeft,
       }));
 
       if (secondsLeft <= 0) {
@@ -152,46 +166,52 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   // Show warning and schedule logout
   const showInactivityWarning = useCallback(() => {
     // REMOVED: Inactivity warning log to prevent console spam
-    
-    setSessionState(prev => ({
+
+    setSessionState((prev) => ({
       ...prev,
-      showWarning: true
+      showWarning: true,
     }));
 
     startCountdown();
 
     // Schedule logout after warning period
     logoutTimerRef.current = setTimeout(() => {
-      forceLogout('inactivity');
+      forceLogout("inactivity");
     }, fullConfig.warningDurationMs);
   }, [forceLogout, fullConfig.warningDurationMs, startCountdown]);
 
   // Schedule warning timer
   const scheduleWarning = useCallback(() => {
     clearWarningTimers();
-    
+
     warningTimerRef.current = setTimeout(() => {
       showInactivityWarning();
     }, fullConfig.inactivityTimeoutMs);
-    
+
     // REMOVED: Session warning scheduling log to prevent infinite console loops
-  }, [clearWarningTimers, showInactivityWarning, fullConfig.inactivityTimeoutMs]);
+  }, [
+    clearWarningTimers,
+    showInactivityWarning,
+    fullConfig.inactivityTimeoutMs,
+  ]);
 
   // Check maximum session duration
   const checkMaxSessionDuration = useCallback(() => {
     const sessionDuration = Date.now() - sessionStartRef.current.getTime();
-    
+
     if (sessionDuration >= fullConfig.maxSessionDurationMs) {
-      forceLogout('maximum session duration exceeded');
+      forceLogout("maximum session duration exceeded");
       return true;
     }
-    
-    const timeUntilExpiry = Math.floor((fullConfig.maxSessionDurationMs - sessionDuration) / 1000);
-    setSessionState(prev => ({
+
+    const timeUntilExpiry = Math.floor(
+      (fullConfig.maxSessionDurationMs - sessionDuration) / 1000,
+    );
+    setSessionState((prev) => ({
       ...prev,
-      timeUntilExpiry
+      timeUntilExpiry,
     }));
-    
+
     return false;
   }, [forceLogout, fullConfig.maxSessionDurationMs]);
 
@@ -205,19 +225,24 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   const logout = useCallback(async () => {
     // REMOVED: Manual logout log to prevent console spam
     clearWarningTimers();
-    
+
     try {
       await supabase.auth.signOut();
-      setSessionState(prev => ({
+      setSessionState((prev) => ({
         ...prev,
         isActive: false,
-        showWarning: false
+        showWarning: false,
       }));
     } catch (error) {
-      log.error('Error during manual logout', error as Error, {
-        component: 'useSessionManager',
-        action: 'logout'
-      }, 'MANUAL_LOGOUT_ERROR');
+      log.error(
+        "Error during manual logout",
+        error as Error,
+        {
+          component: "useSessionManager",
+          action: "logout",
+        },
+        "MANUAL_LOGOUT_ERROR",
+      );
     }
   }, [clearWarningTimers]);
 
@@ -233,18 +258,18 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
     const now = new Date();
     lastActivityRef.current = now;
     sessionStartRef.current = now;
-    
-    setSessionState(prev => ({
+
+    setSessionState((prev) => ({
       ...prev,
       lastActivity: now,
       sessionStartTime: now,
-      isActive: true
+      isActive: true,
     }));
 
     // Add activity event listeners
     const handleActivity = () => updateActivity();
-    
-    ACTIVITY_EVENTS.forEach(event => {
+
+    ACTIVITY_EVENTS.forEach((event) => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
 
@@ -253,30 +278,40 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
 
     // Set up max session duration check
     const maxSessionTimer = setTimeout(() => {
-      forceLogout('maximum session duration exceeded');
+      forceLogout("maximum session duration exceeded");
     }, fullConfig.maxSessionDurationMs);
 
     // Periodic session duration check (every 5 minutes)
-    const sessionCheckInterval = setInterval(() => {
-      checkMaxSessionDuration();
-    }, 5 * 60 * 1000);
+    const sessionCheckInterval = setInterval(
+      () => {
+        checkMaxSessionDuration();
+      },
+      5 * 60 * 1000,
+    );
 
     return () => {
       // Cleanup
-      ACTIVITY_EVENTS.forEach(event => {
+      ACTIVITY_EVENTS.forEach((event) => {
         document.removeEventListener(event, handleActivity);
       });
-      
+
       clearWarningTimers();
       clearTimeout(maxSessionTimer);
       clearInterval(sessionCheckInterval);
     };
-  }, [fullConfig, updateActivity, scheduleWarning, forceLogout, checkMaxSessionDuration, clearWarningTimers]);
+  }, [
+    fullConfig,
+    updateActivity,
+    scheduleWarning,
+    forceLogout,
+    checkMaxSessionDuration,
+    clearWarningTimers,
+  ]);
 
   return {
     sessionState,
     extendSession,
     logout,
-    config: fullConfig
+    config: fullConfig,
   };
 };

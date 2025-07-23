@@ -88,8 +88,8 @@ private contextCache = new Map<string, AIContext>();
 ```sql
 -- Properties table ✅ MATCHES our code
 property_id: integer ✅
-property_name: text ✅  
-street_address: text ✅
+name: text ✅  
+address: text ✅
 
 -- Profiles table ✅ MATCHES our code
 id: uuid ✅
@@ -105,7 +105,7 @@ get_user_role ✅
 #### **🔧 FIXED: Critical Database Issues**
 ```sql
 -- ❌ WRONG: What code was doing
-SELECT * FROM logs WHERE static_safety_item_id = ?
+SELECT * FROM logs WHERE static_item_id = ?
 
 -- ✅ FIXED: What database actually has
 SELECT * FROM logs WHERE checklist_id = ?
@@ -118,7 +118,7 @@ SELECT * FROM logs WHERE property_id = ?
 ```
 
 #### **Database Fixes Applied**
-- ✅ `static_safety_item_id` → `checklist_id` in mobileInspectionOptimizer.ts
+- ✅ `static_item_id` → `checklist_id` in mobileInspectionOptimizer.ts
 - ✅ Removed queries for non-existent `inspection_id` column
 - ✅ Updated foreign key relationships to match actual schema
 

@@ -3,11 +3,11 @@
  * Extracted from PhotoComparisonView.tsx
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ZoomIn, RefreshCw } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ZoomIn, RefreshCw } from "lucide-react";
 
 interface PhotoViewerProps {
   inspectionPhoto: string;
@@ -18,21 +18,27 @@ interface PhotoViewerProps {
 export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   inspectionPhoto,
   listingPhoto,
-  isAnalyzing
+  isAnalyzing,
 }) => {
-  const [selectedPhoto, setSelectedPhoto] = useState<'inspection' | 'listing' | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<
+    "inspection" | "listing" | null
+  >(null);
 
-  const handlePhotoClick = (type: 'inspection' | 'listing') => {
+  const handlePhotoClick = (type: "inspection" | "listing") => {
     setSelectedPhoto(selectedPhoto === type ? null : type);
   };
 
   if (selectedPhoto) {
-    const photoUrl = selectedPhoto === 'inspection' ? inspectionPhoto : listingPhoto;
+    const photoUrl =
+      selectedPhoto === "inspection" ? inspectionPhoto : listingPhoto;
     return (
-      <div id="photo-viewer-fullscreen" className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+      <div
+        id="photo-viewer-fullscreen"
+        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+      >
         <div className="relative max-w-4xl max-h-full">
-          <img 
-            src={photoUrl} 
+          <img
+            src={photoUrl}
             alt={`${selectedPhoto} photo`}
             className="max-w-full max-h-full object-contain"
           />
@@ -50,7 +56,10 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
   }
 
   return (
-    <div id="photo-viewer-comparison" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      id="photo-viewer-comparison"
+      className="grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
       {/* Inspection Photo */}
       <Card>
         <CardHeader>
@@ -60,9 +69,12 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative group cursor-pointer" onClick={() => handlePhotoClick('inspection')}>
-            <img 
-              src={inspectionPhoto} 
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => handlePhotoClick("inspection")}
+          >
+            <img
+              src={inspectionPhoto}
               alt="Inspector captured photo"
               className="w-full h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
             />
@@ -87,9 +99,12 @@ export const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative group cursor-pointer" onClick={() => handlePhotoClick('listing')}>
-            <img 
-              src={listingPhoto} 
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => handlePhotoClick("listing")}
+          >
+            <img
+              src={listingPhoto}
               alt="Property listing photo"
               className="w-full h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
             />

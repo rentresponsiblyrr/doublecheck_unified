@@ -1,10 +1,10 @@
 /**
  * User Statistics Service - Enterprise Grade
- * 
+ *
  * Handles user statistics calculation and analysis
  */
 
-import { User, UserStats } from '../types';
+import { User, UserStats } from "../types";
 
 export class UserStatisticsService {
   /**
@@ -16,15 +16,15 @@ export class UserStatisticsService {
       active: 0,
       inactive: 0,
       byRole: {},
-      recentSignIns: 0
+      recentSignIns: 0,
     };
 
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    users.forEach(user => {
+    users.forEach((user) => {
       // Active/inactive status
-      if (user.status === 'active') {
+      if (user.status === "active") {
         stats.active++;
       } else {
         stats.inactive++;
@@ -52,9 +52,11 @@ export class UserStatisticsService {
   } {
     // Mock implementation - would calculate from actual data
     return {
-      dailyActivity: Array.from({ length: 7 }, () => Math.floor(Math.random() * users.length)),
+      dailyActivity: Array.from({ length: 7 }, () =>
+        Math.floor(Math.random() * users.length),
+      ),
       weeklyGrowth: Math.random() * 20 - 5, // -5% to +15%
-      monthlyRetention: 75 + Math.random() * 20 // 75% to 95%
+      monthlyRetention: 75 + Math.random() * 20, // 75% to 95%
     };
   }
 
@@ -64,12 +66,12 @@ export class UserStatisticsService {
   getRoleDistribution(users: User[]): { role: string; percentage: number }[] {
     const stats = this.calculateStats(users);
     const total = stats.total;
-    
+
     if (total === 0) return [];
-    
+
     return Object.entries(stats.byRole).map(([role, count]) => ({
       role,
-      percentage: Math.round((count / total) * 100)
+      percentage: Math.round((count / total) * 100),
     }));
   }
 }

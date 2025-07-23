@@ -3,7 +3,7 @@
  * Extracted from chart.tsx
  */
 
-import { ChartConfig } from '@/components/ui/chart';
+import { ChartConfig } from "@/components/ui/chart";
 
 /**
  * Helper to extract item config from a payload
@@ -11,7 +11,7 @@ import { ChartConfig } from '@/components/ui/chart';
 export function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,
-  key: string
+  key: string,
 ) {
   if (typeof payload !== "object" || payload === null) {
     return undefined;

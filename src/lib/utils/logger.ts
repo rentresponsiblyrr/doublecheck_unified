@@ -3,7 +3,7 @@
  */
 
 // Type definitions for logging system
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 type LogData = string | number | boolean | object | null | undefined | Error;
 type LogContext = Record<string, unknown>;
 
@@ -16,20 +16,30 @@ interface LogEntry {
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = process.env.NODE_ENV === "development";
   private logs: LogEntry[] = [];
 
-  private createLogEntry(level: LogLevel, message: string, context?: string, data?: LogData): LogEntry {
+  private createLogEntry(
+    level: LogLevel,
+    message: string,
+    context?: string,
+    data?: LogData,
+  ): LogEntry {
     return {
       level,
       message,
       timestamp: new Date().toISOString(),
       context,
-      data
+      data,
     };
   }
 
-  private log(level: LogLevel, message: string, context?: string, data?: LogData): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    context?: string,
+    data?: LogData,
+  ): void {
     const entry = this.createLogEntry(level, message, context, data);
     this.logs.push(entry);
 
@@ -40,31 +50,31 @@ class Logger {
 
     // Console output in development
     if (this.isDevelopment) {
-      const contextStr = context ? `[${context}]` : '';
-      
-      logMethod(`${contextStr} ${message}`, data || '');
+      const contextStr = context ? `[${context}]` : "";
+
+      logMethod(`${contextStr} ${message}`, data || "");
     }
   }
 
   debug(message: string, context?: string, data?: LogData): void {
-    this.log('debug', message, context, data);
+    this.log("debug", message, context, data);
   }
 
   info(message: string, context?: string, data?: LogData): void {
-    this.log('info', message, context, data);
+    this.log("info", message, context, data);
   }
 
   warn(message: string, context?: string, data?: LogData): void {
-    this.log('warn', message, context, data);
+    this.log("warn", message, context, data);
   }
 
   error(message: string, context?: string, data?: LogData): void {
-    this.log('error', message, context, data);
+    this.log("error", message, context, data);
   }
 
   getLogs(level?: LogLevel): LogEntry[] {
     if (level) {
-      return this.logs.filter(log => log.level === level);
+      return this.logs.filter((log) => log.level === level);
     }
     return [...this.logs];
   }

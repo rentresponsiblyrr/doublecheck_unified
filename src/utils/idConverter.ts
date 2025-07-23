@@ -11,7 +11,9 @@
 export function convertPropertyIdToInt(propertyId: string): number {
   const propertyIdInt = parseInt(propertyId, 10);
   if (isNaN(propertyIdInt)) {
-    throw new Error(`Invalid property ID: ${propertyId} - must be a valid integer`);
+    throw new Error(
+      `Invalid property ID: ${propertyId} - must be a valid integer`,
+    );
   }
   return propertyIdInt;
 }
@@ -22,7 +24,8 @@ export function convertPropertyIdToInt(propertyId: string): number {
  * @returns true if valid UUID format
  */
 export function isValidUUID(id: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 }
 
@@ -48,23 +51,27 @@ export function convertUUIDLikePropertyIdToInt(propertyId: string): number {
     const intPart = propertyId.substring(24); // Get last 12 characters
     return parseInt(intPart, 10);
   }
-  
+
   // Handle pure integer strings
   if (propertyId.match(/^[0-9]+$/)) {
     return parseInt(propertyId, 10);
   }
-  
+
   // Handle actual UUIDs - these should not exist for properties in current schema
   // But if they do, we need to throw an error since we can't convert them
   if (isValidUUID(propertyId)) {
     throw new IdConversionError(
-      'Cannot convert real UUID to integer - database schema mismatch', 
-      'property', 
-      propertyId
+      "Cannot convert real UUID to integer - database schema mismatch",
+      "property",
+      propertyId,
     );
   }
-  
-  throw new IdConversionError('Invalid property ID format', 'property', propertyId);
+
+  throw new IdConversionError(
+    "Invalid property ID format",
+    "property",
+    propertyId,
+  );
 }
 
 /**
@@ -76,40 +83,44 @@ export const IdConverter = {
    */
   property: {
     toDatabase: (id: string) => parseInt(id, 10), // Convert string to integer for database
-    validate: (id: string) => !isNaN(parseInt(id, 10)) && parseInt(id, 10) > 0
+    validate: (id: string) => !isNaN(parseInt(id, 10)) && parseInt(id, 10) > 0,
   },
-  
+
   /**
    * Inspections use UUID strings
    */
   inspection: {
     toDatabase: (id: string) => id, // Already a UUID string
-    validate: isValidUUID
+    validate: isValidUUID,
   },
-  
+
   /**
    * Users use UUID strings from Supabase auth
    */
   user: {
     toDatabase: (id: string) => id, // Already a UUID string
-    validate: isValidUUID
+    validate: isValidUUID,
   },
-  
+
   /**
    * Checklist items - depends on implementation
    */
   checklistItem: {
     toDatabase: (id: string) => id, // Assuming UUID for now
-    validate: isValidUUID
-  }
+    validate: isValidUUID,
+  },
 };
 
 /**
  * Error class for ID conversion issues
  */
 export class IdConversionError extends Error {
-  constructor(message: string, public readonly entityType: string, public readonly originalId: string) {
+  constructor(
+    message: string,
+    public readonly entityType: string,
+    public readonly originalId: string,
+  ) {
     super(`[${entityType}] ${message}: ${originalId}`);
-    this.name = 'IdConversionError';
+    this.name = "IdConversionError";
   }
 }

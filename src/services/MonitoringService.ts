@@ -1,18 +1,18 @@
 /**
  * MONITORING SERVICE - ENTERPRISE EXCELLENCE
- * 
+ *
  * Comprehensive monitoring and metrics collection:
  * - Service performance tracking
  * - Error rate monitoring
  * - Resource usage metrics
  * - Health status aggregation
  * - Real-time alerting capabilities
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Service Layer Excellence
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 // Metric types
 export interface OperationMetrics {
@@ -40,7 +40,7 @@ export interface ServiceMetrics {
 
 export interface SystemHealthMetrics {
   services: Map<string, ServiceMetrics>;
-  overallHealth: 'healthy' | 'degraded' | 'unhealthy';
+  overallHealth: "healthy" | "degraded" | "unhealthy";
   totalErrors: number;
   activeServices: number;
   lastUpdated: Date;
@@ -73,7 +73,11 @@ export class MetricsCollector {
   /**
    * Record an operation with its performance metrics
    */
-  recordOperation(operationName: string, latency: number, success: boolean): void {
+  recordOperation(
+    operationName: string,
+    latency: number,
+    success: boolean,
+  ): void {
     this.requestCounts.total++;
     if (success) {
       this.requestCounts.successful++;
@@ -99,7 +103,7 @@ export class MetricsCollector {
         minLatency: latency,
         maxLatency: latency,
         lastCall: new Date(),
-        errorRate: 0
+        errorRate: 0,
       };
       this.operations.set(operationName, opMetrics);
     }
@@ -111,18 +115,22 @@ export class MetricsCollector {
     } else {
       opMetrics.failedCalls++;
     }
-    
+
     opMetrics.minLatency = Math.min(opMetrics.minLatency, latency);
     opMetrics.maxLatency = Math.max(opMetrics.maxLatency, latency);
     opMetrics.lastCall = new Date();
     opMetrics.errorRate = opMetrics.failedCalls / opMetrics.totalCalls;
-    
+
     // Calculate rolling average latency
-    const totalLatency = Array.from(this.operations.values())
-      .reduce((sum, op) => sum + (op.averageLatency * op.totalCalls), 0);
-    const totalOps = Array.from(this.operations.values())
-      .reduce((sum, op) => sum + op.totalCalls, 0);
-    
+    const totalLatency = Array.from(this.operations.values()).reduce(
+      (sum, op) => sum + op.averageLatency * op.totalCalls,
+      0,
+    );
+    const totalOps = Array.from(this.operations.values()).reduce(
+      (sum, op) => sum + op.totalCalls,
+      0,
+    );
+
     opMetrics.averageLatency = totalOps > 0 ? totalLatency / totalOps : latency;
   }
 
@@ -132,13 +140,16 @@ export class MetricsCollector {
   getSnapshot(): ServiceMetrics {
     const now = new Date();
     const uptime = now.getTime() - this.startTime.getTime();
-    const errorRate = this.requestCounts.total > 0 
-      ? this.requestCounts.failed / this.requestCounts.total 
-      : 0;
-    
-    const averageResponseTime = this.latencies.length > 0
-      ? this.latencies.reduce((sum, lat) => sum + lat, 0) / this.latencies.length
-      : 0;
+    const errorRate =
+      this.requestCounts.total > 0
+        ? this.requestCounts.failed / this.requestCounts.total
+        : 0;
+
+    const averageResponseTime =
+      this.latencies.length > 0
+        ? this.latencies.reduce((sum, lat) => sum + lat, 0) /
+          this.latencies.length
+        : 0;
 
     return {
       serviceName: this.serviceName,
@@ -148,7 +159,7 @@ export class MetricsCollector {
       errorRate,
       totalRequests: this.requestCounts.total,
       successfulRequests: this.requestCounts.successful,
-      averageResponseTime
+      averageResponseTime,
     };
   }
 
@@ -156,8 +167,8 @@ export class MetricsCollector {
    * Get error rate for the service
    */
   getErrorRate(): number {
-    return this.requestCounts.total > 0 
-      ? this.requestCounts.failed / this.requestCounts.total 
+    return this.requestCounts.total > 0
+      ? this.requestCounts.failed / this.requestCounts.total
       : 0;
   }
 
@@ -186,7 +197,7 @@ export class MonitoringService {
       errorRateThreshold: 0.05, // 5% error rate threshold
       latencyThreshold: 1000, // 1 second latency threshold
       healthCheckInterval: 30000, // 30 seconds
-      enableAlerts: true
+      enableAlerts: true,
     };
 
     this.startHealthMonitoring();
@@ -209,8 +220,8 @@ export class MonitoringService {
 
     const collector = new MetricsCollector(serviceName);
     this.services.set(serviceName, collector);
-    
-    logger.info('Service registered for monitoring', { serviceName });
+
+    logger.info("Service registered for monitoring", { serviceName });
     return collector;
   }
 
@@ -241,11 +252,11 @@ export class MonitoringService {
     overallErrorRate = totalRequests > 0 ? totalErrors / totalRequests : 0;
 
     // Determine overall health
-    let overallHealth: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+    let overallHealth: "healthy" | "degraded" | "unhealthy" = "healthy";
     if (overallErrorRate > 0.1) {
-      overallHealth = 'unhealthy';
+      overallHealth = "unhealthy";
     } else if (overallErrorRate > 0.05) {
-      overallHealth = 'degraded';
+      overallHealth = "degraded";
     }
 
     return {
@@ -253,7 +264,7 @@ export class MonitoringService {
       overallHealth,
       totalErrors,
       activeServices: this.services.size,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
@@ -267,22 +278,22 @@ export class MonitoringService {
 
     for (const [serviceName, collector] of this.services) {
       const metrics = collector.getSnapshot();
-      
+
       // Check error rate
       if (metrics.errorRate > this.alertConfig.errorRateThreshold) {
-        this.triggerAlert('HIGH_ERROR_RATE', {
+        this.triggerAlert("HIGH_ERROR_RATE", {
           serviceName,
           errorRate: metrics.errorRate,
-          threshold: this.alertConfig.errorRateThreshold
+          threshold: this.alertConfig.errorRateThreshold,
         });
       }
 
       // Check latency
       if (metrics.averageResponseTime > this.alertConfig.latencyThreshold) {
-        this.triggerAlert('HIGH_LATENCY', {
+        this.triggerAlert("HIGH_LATENCY", {
           serviceName,
           latency: metrics.averageResponseTime,
-          threshold: this.alertConfig.latencyThreshold
+          threshold: this.alertConfig.latencyThreshold,
         });
       }
     }
@@ -292,10 +303,10 @@ export class MonitoringService {
    * Trigger an alert (can be extended to send notifications)
    */
   private triggerAlert(alertType: string, context: any): void {
-    logger.warn('Service alert triggered', {
+    logger.warn("Service alert triggered", {
       alertType,
       ...context,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // In production, this could send notifications to:
@@ -312,18 +323,18 @@ export class MonitoringService {
     this.healthCheckTimer = setInterval(() => {
       try {
         this.checkAlertConditions();
-        
+
         // Log system health periodically
         const health = this.getSystemHealth();
-        if (health.overallHealth !== 'healthy') {
-          logger.warn('System health degraded', {
+        if (health.overallHealth !== "healthy") {
+          logger.warn("System health degraded", {
             health: health.overallHealth,
             totalErrors: health.totalErrors,
-            activeServices: health.activeServices
+            activeServices: health.activeServices,
           });
         }
       } catch (error) {
-        logger.error('Health check failed', error);
+        logger.error("Health check failed", error);
       }
     }, this.alertConfig.healthCheckInterval);
   }
@@ -333,7 +344,7 @@ export class MonitoringService {
    */
   updateAlertConfig(config: Partial<AlertConfig>): void {
     this.alertConfig = { ...this.alertConfig, ...config };
-    logger.info('Alert configuration updated', this.alertConfig);
+    logger.info("Alert configuration updated", this.alertConfig);
   }
 
   /**
@@ -353,13 +364,13 @@ export class MonitoringService {
       report += `  Requests: ${metrics.totalRequests} (${metrics.successfulRequests} successful)\n`;
       report += `  Error Rate: ${(metrics.errorRate * 100).toFixed(2)}%\n`;
       report += `  Avg Response Time: ${metrics.averageResponseTime.toFixed(2)}ms\n`;
-      
+
       if (metrics.operations.size > 0) {
         report += `  Top Operations:\n`;
         const sortedOps = Array.from(metrics.operations.values())
           .sort((a, b) => b.totalCalls - a.totalCalls)
           .slice(0, 3);
-        
+
         for (const op of sortedOps) {
           report += `    ${op.name}: ${op.totalCalls} calls, ${op.averageLatency.toFixed(2)}ms avg\n`;
         }
@@ -378,8 +389,8 @@ export class MonitoringService {
       clearInterval(this.healthCheckTimer);
       this.healthCheckTimer = null;
     }
-    
-    logger.info('MonitoringService shutdown completed');
+
+    logger.info("MonitoringService shutdown completed");
   }
 }
 

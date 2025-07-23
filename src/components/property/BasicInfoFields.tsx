@@ -3,10 +3,10 @@
  * Extracted from PropertyFormFields.tsx
  */
 
-import React from 'react';
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FormData } from '@/hooks/usePropertyFormValidation';
+import { FormData } from "@/hooks/usePropertyFormValidation";
 
 interface BasicInfoFieldsProps {
   safeFormData: FormData;
@@ -17,7 +17,7 @@ interface BasicInfoFieldsProps {
 export const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   safeFormData,
   safeFormErrors,
-  onInputChange
+  onInputChange,
 }) => {
   return (
     <div id="basic-info-fields" className="space-y-6">
@@ -26,7 +26,7 @@ export const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         <Input
           id="name"
           value={safeFormData.name}
-          onChange={(e) => onInputChange('name', e.target.value)}
+          onChange={(e) => onInputChange("name", e.target.value)}
           placeholder="e.g., Cozy Mountain Cabin"
           required
           className={safeFormErrors.name ? "border-red-500" : ""}
@@ -41,7 +41,7 @@ export const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
         <Input
           id="address"
           value={safeFormData.address}
-          onChange={(e) => onInputChange('address', e.target.value)}
+          onChange={(e) => onInputChange("address", e.target.value)}
           placeholder="e.g., 123 Main St, Mountain View, CA 94041"
           required
           className={safeFormErrors.address ? "border-red-500" : ""}

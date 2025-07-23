@@ -1,18 +1,18 @@
 /**
  * ENHANCED QUERY CACHE - PRODUCTION-HARDENED VERSION
- * 
+ *
  * Addresses critical issues identified in third-party review:
  * - Memory leak prevention with proper resource management
  * - Atomic operations with concurrency control
  * - Streaming cache eviction with constant memory footprint
  * - Security hardening against XSS and resource exhaustion
- * 
+ *
  * @author STR Certified Engineering Team - Hardened Edition
  * @version 2.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
-import { z } from 'zod';
+import { logger } from "@/utils/logger";
+import { z } from "zod";
 
 // Enhanced Cache Entry Validation Schema
 const CacheEntrySchema = z.object({
@@ -23,18 +23,24 @@ const CacheEntrySchema = z.object({
   accessCount: z.number().nonnegative(),
   lastAccess: z.number(),
   size: z.number().positive(),
-  checksum: z.string().min(1)
+  checksum: z.string().min(1),
 });
 
 // Cache Key Validation
-const CacheKeySchema = z.string().min(1).max(500).regex(/^[a-zA-Z0-9:_-]+$/);
+const CacheKeySchema = z
+  .string()
+  .min(1)
+  .max(500)
+  .regex(/^[a-zA-Z0-9:_-]+$/);
 
 // Cache Options Validation
-const CacheOptionsSchema = z.object({
-  ttl: z.number().positive().optional(),
-  tags: z.array(z.string()).optional(),
-  priority: z.enum(['high', 'normal', 'low']).optional()
-}).optional();
+const CacheOptionsSchema = z
+  .object({
+    ttl: z.number().positive().optional(),
+    tags: z.array(z.string()).optional(),
+    priority: z.enum(["high", "normal", "low"]).optional(),
+  })
+  .optional();
 
 // ========================================
 // HARDENED CACHE CONFIGURATION
@@ -61,12 +67,12 @@ interface CachePartition {
 
 // Security-hardened configuration
 const HARDENED_CONFIG = {
-  maxPartitions: 8,                    // Limit partitions for memory control
-  maxPartitionSize: 10 * 1024 * 1024,  // 10MB per partition
-  maxKeyLength: 256,                    // Prevent key-based attacks
-  maxEntrySize: 1024 * 1024,           // 1MB max per entry
-  cleanupInterval: 30 * 1000,          // More frequent cleanup
-  maxConcurrentOps: 100,               // Prevent resource exhaustion
+  maxPartitions: 8, // Limit partitions for memory control
+  maxPartitionSize: 10 * 1024 * 1024, // 10MB per partition
+  maxKeyLength: 256, // Prevent key-based attacks
+  maxEntrySize: 1024 * 1024, // 1MB max per entry
+  cleanupInterval: 30 * 1000, // More frequent cleanup
+  maxConcurrentOps: 100, // Prevent resource exhaustion
 } as const;
 
 // ========================================
@@ -104,12 +110,12 @@ export class EnhancedQueryCache {
    */
   async get<T>(key: string): Promise<T | null> {
     if (this.destroyed) {
-      throw new Error('Cache has been destroyed');
+      throw new Error("Cache has been destroyed");
     }
 
     const sanitizedKey = this.sanitizeKey(key);
     const partitionKey = this.getPartitionKey(sanitizedKey);
-    
+
     return this.executeAtomic(partitionKey, async () => {
       const partition = this.partitions.get(partitionKey);
       if (!partition) return null;
@@ -141,33 +147,33 @@ export class EnhancedQueryCache {
    * Atomic set operation with size and security validation
    */
   async set<T>(
-    key: string, 
-    value: T, 
+    key: string,
+    value: T,
     ttl: number = 30000,
-    tags: string[] = []
+    tags: string[] = [],
   ): Promise<void> {
     if (this.destroyed) {
-      throw new Error('Cache has been destroyed');
+      throw new Error("Cache has been destroyed");
     }
 
     const sanitizedKey = this.sanitizeKey(key);
-    const sanitizedTags = tags.map(tag => this.sanitizeKey(tag));
+    const sanitizedTags = tags.map((tag) => this.sanitizeKey(tag));
     const partitionKey = this.getPartitionKey(sanitizedKey);
-    
+
     // Pre-calculate entry size and validate
     const entrySize = this.calculateEntrySize(value);
     if (entrySize > HARDENED_CONFIG.maxEntrySize) {
-      logger.warn('Cache entry too large, rejecting', { 
-        key: sanitizedKey, 
+      logger.warn("Cache entry too large, rejecting", {
+        key: sanitizedKey,
         size: entrySize,
-        maxSize: HARDENED_CONFIG.maxEntrySize 
+        maxSize: HARDENED_CONFIG.maxEntrySize,
       });
       return;
     }
 
     await this.executeAtomic(partitionKey, async () => {
       const partition = this.getOrCreatePartition(partitionKey);
-      
+
       // Check if we need space
       if (partition.totalSize + entrySize > partition.maxSize) {
         await this.streamingEviction(partition, entrySize);
@@ -206,7 +212,7 @@ export class EnhancedQueryCache {
 
     const sanitizedKey = this.sanitizeKey(key);
     const partitionKey = this.getPartitionKey(sanitizedKey);
-    
+
     return this.executeAtomic(partitionKey, async () => {
       const partition = this.partitions.get(partitionKey);
       if (!partition) return false;
@@ -217,7 +223,7 @@ export class EnhancedQueryCache {
       partition.entries.delete(sanitizedKey);
       this.updatePartitionSize(partition, -entry.size);
       this.resourceTracker.totalEntries--;
-      
+
       return true;
     });
   }
@@ -229,18 +235,18 @@ export class EnhancedQueryCache {
     if (this.destroyed) return 0;
 
     const sanitizedPattern = this.sanitizePattern(pattern);
-    const regex = new RegExp(sanitizedPattern.replace(/\*/g, '.*'));
+    const regex = new RegExp(sanitizedPattern.replace(/\*/g, ".*"));
     let totalInvalidated = 0;
-    
+
     // Limit concurrent invalidations to prevent DoS
     const maxInvalidations = 1000;
     let currentInvalidations = 0;
 
     for (const [partitionKey, partition] of this.partitions) {
       if (currentInvalidations >= maxInvalidations) {
-        logger.warn('Invalidation limit reached', { 
-          pattern: sanitizedPattern, 
-          invalidated: totalInvalidated 
+        logger.warn("Invalidation limit reached", {
+          pattern: sanitizedPattern,
+          invalidated: totalInvalidated,
         });
         break;
       }
@@ -248,11 +254,11 @@ export class EnhancedQueryCache {
       const invalidated = await this.executeAtomic(partitionKey, async () => {
         let count = 0;
         const keysToDelete: string[] = [];
-        
+
         for (const [key, entry] of partition.entries) {
           if (currentInvalidations >= maxInvalidations) break;
-          
-          if (regex.test(key) || entry.tags.some(tag => regex.test(tag))) {
+
+          if (regex.test(key) || entry.tags.some((tag) => regex.test(tag))) {
             keysToDelete.push(key);
             count++;
             currentInvalidations++;
@@ -285,10 +291,17 @@ export class EnhancedQueryCache {
   /**
    * Streaming eviction with constant memory footprint
    */
-  private async streamingEviction(partition: CachePartition, spaceNeeded: number): Promise<void> {
-    const evictionCandidates: Array<{ key: string; entry: HardenedCacheEntry; score: number }> = [];
+  private async streamingEviction(
+    partition: CachePartition,
+    spaceNeeded: number,
+  ): Promise<void> {
+    const evictionCandidates: Array<{
+      key: string;
+      entry: HardenedCacheEntry;
+      score: number;
+    }> = [];
     let freedSpace = 0;
-    
+
     // Calculate eviction scores (LRU + access frequency)
     for (const [key, entry] of partition.entries) {
       if (this.isExpired(entry)) {
@@ -297,14 +310,14 @@ export class EnhancedQueryCache {
         this.updatePartitionSize(partition, -entry.size);
         freedSpace += entry.size;
         this.resourceTracker.totalEntries--;
-        
+
         if (freedSpace >= spaceNeeded) return;
       } else {
         // Calculate eviction score
         const ageScore = Date.now() - entry.lastAccess;
         const accessScore = 1000000 / Math.max(entry.accessCount, 1);
         const sizeScore = entry.size / 1024; // Prefer evicting larger items
-        
+
         evictionCandidates.push({
           key,
           entry,
@@ -319,23 +332,23 @@ export class EnhancedQueryCache {
     // Evict in batches to maintain performance
     const batchSize = 10;
     let processed = 0;
-    
+
     while (freedSpace < spaceNeeded && processed < evictionCandidates.length) {
       const batch = evictionCandidates.slice(processed, processed + batchSize);
-      
+
       for (const candidate of batch) {
         partition.entries.delete(candidate.key);
         this.updatePartitionSize(partition, -candidate.entry.size);
         freedSpace += candidate.entry.size;
         this.resourceTracker.totalEntries--;
-        
+
         if (freedSpace >= spaceNeeded) break;
       }
-      
+
       processed += batchSize;
-      
+
       // Yield control to prevent blocking
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
     }
   }
 
@@ -347,25 +360,25 @@ export class EnhancedQueryCache {
    * Execute operation atomically with proper locking
    */
   private async executeAtomic<T>(
-    lockKey: string, 
-    operation: () => Promise<T>
+    lockKey: string,
+    operation: () => Promise<T>,
   ): Promise<T> {
     // Rate limiting protection
     if (this.concurrentOps >= HARDENED_CONFIG.maxConcurrentOps) {
-      throw new Error('Too many concurrent cache operations');
+      throw new Error("Too many concurrent cache operations");
     }
 
     this.concurrentOps++;
-    
+
     try {
       // Wait for lock availability
       while (this.activeLocks.has(lockKey)) {
-        await new Promise(resolve => setTimeout(resolve, 1));
+        await new Promise((resolve) => setTimeout(resolve, 1));
       }
-      
+
       // Acquire lock
       this.activeLocks.add(lockKey);
-      
+
       try {
         return await operation();
       } finally {
@@ -385,25 +398,29 @@ export class EnhancedQueryCache {
    * Sanitize cache keys to prevent injection attacks
    */
   private sanitizeKey(key: string): string {
-    if (!key || typeof key !== 'string') {
-      throw new Error('Invalid cache key');
+    if (!key || typeof key !== "string") {
+      throw new Error("Invalid cache key");
     }
-    
+
     if (key.length > HARDENED_CONFIG.maxKeyLength) {
-      throw new Error(`Cache key too long: ${key.length} > ${HARDENED_CONFIG.maxKeyLength}`);
+      throw new Error(
+        `Cache key too long: ${key.length} > ${HARDENED_CONFIG.maxKeyLength}`,
+      );
     }
 
     // Remove potentially dangerous characters
-    return key.replace(/[<>'"&]/g, '').substring(0, HARDENED_CONFIG.maxKeyLength);
+    return key
+      .replace(/[<>'"&]/g, "")
+      .substring(0, HARDENED_CONFIG.maxKeyLength);
   }
 
   private sanitizePattern(pattern: string): string {
-    if (!pattern || typeof pattern !== 'string') {
-      throw new Error('Invalid cache pattern');
+    if (!pattern || typeof pattern !== "string") {
+      throw new Error("Invalid cache pattern");
     }
-    
+
     // Allow only safe regex characters
-    return pattern.replace(/[^a-zA-Z0-9\-_\*\.]/g, '');
+    return pattern.replace(/[^a-zA-Z0-9\-_\*\.]/g, "");
   }
 
   /**
@@ -411,12 +428,12 @@ export class EnhancedQueryCache {
    */
   private calculateEntrySize(data: any): number {
     if (data === null || data === undefined) return 8;
-    if (typeof data === 'string') return data.length * 2;
-    if (typeof data === 'number') return 8;
-    if (typeof data === 'boolean') return 4;
+    if (typeof data === "string") return data.length * 2;
+    if (typeof data === "number") return 8;
+    if (typeof data === "boolean") return 4;
     if (Array.isArray(data)) return data.length * 100; // Rough estimate
-    if (typeof data === 'object') return Object.keys(data).length * 100;
-    
+    if (typeof data === "object") return Object.keys(data).length * 100;
+
     return 1024; // Safe fallback
   }
 
@@ -426,14 +443,14 @@ export class EnhancedQueryCache {
   private calculateChecksum(data: any): string {
     // Simple hash function - in production would use crypto.subtle
     let hash = 0;
-    const str = typeof data === 'string' ? data : JSON.stringify(data);
-    
+    const str = typeof data === "string" ? data : JSON.stringify(data);
+
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
-    
+
     return hash.toString(36);
   }
 
@@ -445,7 +462,7 @@ export class EnhancedQueryCache {
       const currentChecksum = this.calculateChecksum(entry.data);
       return currentChecksum === entry.checksum;
     } catch (error) {
-      logger.warn('Data integrity check failed', { error });
+      logger.warn("Data integrity check failed", { error });
       return false;
     }
   }
@@ -495,7 +512,7 @@ export class EnhancedQueryCache {
   private updatePartitionSize(partition: CachePartition, delta: number): void {
     partition.totalSize += delta;
     this.resourceTracker.totalMemory += delta;
-    
+
     if (this.resourceTracker.totalMemory > this.resourceTracker.peakMemory) {
       this.resourceTracker.peakMemory = this.resourceTracker.totalMemory;
     }
@@ -523,12 +540,12 @@ export class EnhancedQueryCache {
     }
 
     let totalCleaned = 0;
-    
+
     for (const [partitionKey, partition] of this.partitions) {
       const cleaned = await this.executeAtomic(partitionKey, async () => {
         let count = 0;
         const keysToDelete: string[] = [];
-        
+
         for (const [key, entry] of partition.entries) {
           if (this.isExpired(entry) || !this.verifyIntegrity(entry)) {
             keysToDelete.push(key);
@@ -547,34 +564,39 @@ export class EnhancedQueryCache {
 
         return count;
       });
-      
+
       totalCleaned += cleaned;
     }
 
     if (totalCleaned > 0) {
-      logger.debug('Cache cleanup completed', { 
+      logger.debug("Cache cleanup completed", {
         entriesCleaned: totalCleaned,
         totalMemory: this.resourceTracker.totalMemory,
-        totalEntries: this.resourceTracker.totalEntries
+        totalEntries: this.resourceTracker.totalEntries,
       });
     }
   }
 
   private setupResourceMonitoring(): void {
     // Monitor for potential memory leaks
-    setInterval(() => {
-      const uptimeHours = (Date.now() - this.resourceTracker.createdAt) / (1000 * 60 * 60);
-      const memoryGrowthRate = this.resourceTracker.totalMemory / uptimeHours;
-      
-      if (memoryGrowthRate > 10 * 1024 * 1024) { // 10MB/hour growth rate
-        logger.warn('Potential memory leak detected in cache', {
-          memoryGrowthRate,
-          totalMemory: this.resourceTracker.totalMemory,
-          peakMemory: this.resourceTracker.peakMemory,
-          uptimeHours
-        });
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    setInterval(
+      () => {
+        const uptimeHours =
+          (Date.now() - this.resourceTracker.createdAt) / (1000 * 60 * 60);
+        const memoryGrowthRate = this.resourceTracker.totalMemory / uptimeHours;
+
+        if (memoryGrowthRate > 10 * 1024 * 1024) {
+          // 10MB/hour growth rate
+          logger.warn("Potential memory leak detected in cache", {
+            memoryGrowthRate,
+            totalMemory: this.resourceTracker.totalMemory,
+            peakMemory: this.resourceTracker.peakMemory,
+            uptimeHours,
+          });
+        }
+      },
+      5 * 60 * 1000,
+    ); // Check every 5 minutes
   }
 
   // ========================================
@@ -586,9 +608,9 @@ export class EnhancedQueryCache {
    */
   destroy(): void {
     if (this.destroyed) return;
-    
+
     this.destroyed = true;
-    
+
     // Clear cleanup timer
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
@@ -598,20 +620,20 @@ export class EnhancedQueryCache {
     // Wait for active operations to complete
     const waitForCompletion = async () => {
       while (this.activeLocks.size > 0 || this.concurrentOps > 0) {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
-      
+
       // Clear all partitions
       this.partitions.clear();
       this.operationQueue.length = 0;
-      
-      logger.info('Enhanced QueryCache destroyed safely', {
+
+      logger.info("Enhanced QueryCache destroyed safely", {
         finalMemory: this.resourceTracker.totalMemory,
         peakMemory: this.resourceTracker.peakMemory,
-        finalEntries: this.resourceTracker.totalEntries
+        finalEntries: this.resourceTracker.totalEntries,
       });
     };
-    
+
     waitForCompletion();
   }
 
@@ -628,7 +650,8 @@ export class EnhancedQueryCache {
     concurrentOps: number;
   } {
     return {
-      healthy: !this.destroyed && this.resourceTracker.totalMemory < 500 * 1024 * 1024,
+      healthy:
+        !this.destroyed && this.resourceTracker.totalMemory < 500 * 1024 * 1024,
       totalMemory: this.resourceTracker.totalMemory,
       totalEntries: this.resourceTracker.totalEntries,
       partitionCount: this.partitions.size,

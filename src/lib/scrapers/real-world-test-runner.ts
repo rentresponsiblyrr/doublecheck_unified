@@ -1,30 +1,30 @@
 // Real-World VRBO Scraper Test Runner
 // Tests the scraper with actual VRBO URLs to validate functionality
 
-import { scrapeVRBOProperty } from './vrbo-scraper';
-import { scrapeBrowserVRBOProperty } from './vrbo-browser-scraper';
-import { logger } from '../../utils/logger';
-import type { VRBOPropertyData, PhotoData } from './types';
+import { scrapeVRBOProperty } from "./vrbo-scraper";
+import { scrapeBrowserVRBOProperty } from "./vrbo-browser-scraper";
+import { logger } from "../../utils/logger";
+import type { VRBOPropertyData, PhotoData } from "./types";
 
 // Test Configuration
 const TEST_CONFIG = {
   // Sample VRBO URLs for testing (replace with actual URLs)
   testUrls: [
-    'https://www.vrbo.com/1234567', // House
-    'https://www.vrbo.com/2345678', // Condo
-    'https://www.vrbo.com/3456789', // Cabin
-    'https://www.vrbo.com/4567890', // Large property
-    'https://www.vrbo.com/5678901'  // Minimal property
+    "https://www.vrbo.com/1234567", // House
+    "https://www.vrbo.com/2345678", // Condo
+    "https://www.vrbo.com/3456789", // Cabin
+    "https://www.vrbo.com/4567890", // Large property
+    "https://www.vrbo.com/5678901", // Minimal property
   ],
-  
+
   // Test options
   options: {
     maxTestProperties: 3,
     timeoutPerProperty: 120000, // 2 minutes
     enableDetailedLogging: true,
     saveResults: true,
-    compareStatic: true
-  }
+    compareStatic: true,
+  },
 };
 
 interface TestResult {
@@ -49,8 +49,10 @@ export class RealWorldVRBOTestRunner {
    * Run all real-world tests
    */
   async runAllTests(): Promise<void> {
-
-    const urlsToTest = TEST_CONFIG.testUrls.slice(0, TEST_CONFIG.options.maxTestProperties);
+    const urlsToTest = TEST_CONFIG.testUrls.slice(
+      0,
+      TEST_CONFIG.options.maxTestProperties,
+    );
 
     for (let i = 0; i < urlsToTest.length; i++) {
       const url = urlsToTest[i];
@@ -67,7 +69,7 @@ export class RealWorldVRBOTestRunner {
       await this.testPerformanceComparison(url);
 
       // Small delay between properties
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     this.printFinalResults();
@@ -77,12 +79,11 @@ export class RealWorldVRBOTestRunner {
    * Test browser automation scraping
    */
   private async testBrowserAutomation(url: string): Promise<void> {
-    const testName = 'Browser Automation';
+    const testName = "Browser Automation";
     const startTime = Date.now();
-    
+
     try {
-      
-      const result = await Promise.race([
+      const result = (await Promise.race([
         scrapeBrowserVRBOProperty(url, {
           useStaticFallback: true,
           headless: true,
@@ -91,12 +92,15 @@ export class RealWorldVRBOTestRunner {
           scrollWaitTime: 3000,
           browserTimeout: 60000,
           enableScreenshots: false,
-          screenshotPath: './screenshots'
+          screenshotPath: "./screenshots",
         }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Test timeout')), TEST_CONFIG.options.timeoutPerProperty)
-        )
-      ]) as any;
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Test timeout")),
+            TEST_CONFIG.options.timeoutPerProperty,
+          ),
+        ),
+      ])) as any;
 
       const duration = Date.now() - startTime;
 
@@ -104,7 +108,9 @@ export class RealWorldVRBOTestRunner {
         const totalPhotos = result.data.totalImages || 0;
         const galleryPhotos = result.data.galleryImages?.length || 0;
         const staticPhotos = result.data.staticImages?.length || 0;
-        const completeness = this.calculateDataCompleteness(result.data.propertyData);
+        const completeness = this.calculateDataCompleteness(
+          result.data.propertyData,
+        );
 
         this.testResults.push({
           url,
@@ -116,21 +122,25 @@ export class RealWorldVRBOTestRunner {
           staticPhotoCount: staticPhotos,
           dataCompleteness: completeness,
           propertyData: result.data.propertyData,
-          metadata: result.metadata
+          metadata: result.metadata,
         });
 
-        
         if (TEST_CONFIG.options.enableDetailedLogging) {
-          this.logDetailedResults(result.data.propertyData, 'Browser Automation');
+          this.logDetailedResults(
+            result.data.propertyData,
+            "Browser Automation",
+          );
         }
       } else {
-        throw new Error(`Scraping failed: ${result.errors?.map(e => e.message).join(', ')}`);
+        throw new Error(
+          `Scraping failed: ${result.errors?.map((e) => e.message).join(", ")}`,
+        );
       }
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       this.testResults.push({
         url,
         testName,
@@ -138,9 +148,8 @@ export class RealWorldVRBOTestRunner {
         duration,
         photoCount: 0,
         dataCompleteness: 0,
-        errorMessage
+        errorMessage,
       });
-
     }
   }
 
@@ -148,17 +157,19 @@ export class RealWorldVRBOTestRunner {
    * Test static scraping (fallback)
    */
   private async testStaticScraping(url: string): Promise<void> {
-    const testName = 'Static Fallback';
+    const testName = "Static Fallback";
     const startTime = Date.now();
-    
+
     try {
-      
-      const propertyData = await Promise.race([
+      const propertyData = (await Promise.race([
         scrapeVRBOProperty(url),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Test timeout')), TEST_CONFIG.options.timeoutPerProperty)
-        )
-      ]) as VRBOPropertyData;
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Test timeout")),
+            TEST_CONFIG.options.timeoutPerProperty,
+          ),
+        ),
+      ])) as VRBOPropertyData;
 
       const duration = Date.now() - startTime;
       const photoCount = propertyData.photos?.length || 0;
@@ -171,14 +182,13 @@ export class RealWorldVRBOTestRunner {
         duration,
         photoCount,
         dataCompleteness: completeness,
-        propertyData
+        propertyData,
       });
-
-      
     } catch (error) {
       const duration = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       this.testResults.push({
         url,
         testName,
@@ -186,9 +196,8 @@ export class RealWorldVRBOTestRunner {
         duration,
         photoCount: 0,
         dataCompleteness: 0,
-        errorMessage
+        errorMessage,
       });
-
     }
   }
 
@@ -196,15 +205,18 @@ export class RealWorldVRBOTestRunner {
    * Compare performance between methods
    */
   private async testPerformanceComparison(url: string): Promise<void> {
-    const browserResult = this.testResults.find(r => r.url === url && r.testName === 'Browser Automation');
-    const staticResult = this.testResults.find(r => r.url === url && r.testName === 'Static Fallback');
+    const browserResult = this.testResults.find(
+      (r) => r.url === url && r.testName === "Browser Automation",
+    );
+    const staticResult = this.testResults.find(
+      (r) => r.url === url && r.testName === "Static Fallback",
+    );
 
     if (browserResult && staticResult) {
-      
-      const photoImprovement = browserResult.photoCount - staticResult.photoCount;
+      const photoImprovement =
+        browserResult.photoCount - staticResult.photoCount;
       const timeOverhead = browserResult.duration - staticResult.duration;
-      
-      
+
       if (photoImprovement > 0) {
       } else {
       }
@@ -214,8 +226,10 @@ export class RealWorldVRBOTestRunner {
   /**
    * Log detailed results for a property
    */
-  private logDetailedResults(propertyData: VRBOPropertyData, method: string): void {
-    
+  private logDetailedResults(
+    propertyData: VRBOPropertyData,
+    method: string,
+  ): void {
     if (propertyData.amenities && propertyData.amenities.length > 0) {
     }
   }
@@ -224,20 +238,27 @@ export class RealWorldVRBOTestRunner {
    * Calculate data completeness percentage
    */
   private calculateDataCompleteness(data: VRBOPropertyData): number {
-    const requiredFields = ['title', 'description', 'amenities', 'photos', 'specifications', 'location'];
-    const optionalFields = ['rooms', 'pricing', 'host', 'reviews'];
-    
+    const requiredFields = [
+      "title",
+      "description",
+      "amenities",
+      "photos",
+      "specifications",
+      "location",
+    ];
+    const optionalFields = ["rooms", "pricing", "host", "reviews"];
+
     let completedRequired = 0;
     let completedOptional = 0;
 
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       const value = data[field as keyof VRBOPropertyData];
       if (this.isFieldComplete(value)) {
         completedRequired++;
       }
     });
 
-    optionalFields.forEach(field => {
+    optionalFields.forEach((field) => {
       const value = data[field as keyof VRBOPropertyData];
       if (this.isFieldComplete(value)) {
         completedOptional++;
@@ -255,9 +276,9 @@ export class RealWorldVRBOTestRunner {
    */
   private isFieldComplete(value: any): boolean {
     if (value === null || value === undefined) return false;
-    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === "string") return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'object') return Object.keys(value).length > 0;
+    if (typeof value === "object") return Object.keys(value).length > 0;
     return true;
   }
 
@@ -266,58 +287,88 @@ export class RealWorldVRBOTestRunner {
    */
   private printFinalResults(): void {
     const totalDuration = Date.now() - this.startTime;
-    
 
     // Success rate
-    const successfulTests = this.testResults.filter(r => r.success);
-    const successRate = Math.round((successfulTests.length / this.testResults.length) * 100);
+    const successfulTests = this.testResults.filter((r) => r.success);
+    const successRate = Math.round(
+      (successfulTests.length / this.testResults.length) * 100,
+    );
 
     // Browser automation results
-    const browserResults = this.testResults.filter(r => r.testName === 'Browser Automation' && r.success);
+    const browserResults = this.testResults.filter(
+      (r) => r.testName === "Browser Automation" && r.success,
+    );
     if (browserResults.length > 0) {
-      const avgPhotos = Math.round(browserResults.reduce((sum, r) => sum + r.photoCount, 0) / browserResults.length);
-      const avgGalleryPhotos = Math.round(browserResults.reduce((sum, r) => sum + (r.galleryPhotoCount || 0), 0) / browserResults.length);
-      const avgStaticPhotos = Math.round(browserResults.reduce((sum, r) => sum + (r.staticPhotoCount || 0), 0) / browserResults.length);
-      const avgTime = Math.round(browserResults.reduce((sum, r) => sum + r.duration, 0) / browserResults.length);
-      const avgCompleteness = Math.round(browserResults.reduce((sum, r) => sum + r.dataCompleteness, 0) / browserResults.length);
-
+      const avgPhotos = Math.round(
+        browserResults.reduce((sum, r) => sum + r.photoCount, 0) /
+          browserResults.length,
+      );
+      const avgGalleryPhotos = Math.round(
+        browserResults.reduce((sum, r) => sum + (r.galleryPhotoCount || 0), 0) /
+          browserResults.length,
+      );
+      const avgStaticPhotos = Math.round(
+        browserResults.reduce((sum, r) => sum + (r.staticPhotoCount || 0), 0) /
+          browserResults.length,
+      );
+      const avgTime = Math.round(
+        browserResults.reduce((sum, r) => sum + r.duration, 0) /
+          browserResults.length,
+      );
+      const avgCompleteness = Math.round(
+        browserResults.reduce((sum, r) => sum + r.dataCompleteness, 0) /
+          browserResults.length,
+      );
     }
 
     // Static fallback results
-    const staticResults = this.testResults.filter(r => r.testName === 'Static Fallback' && r.success);
+    const staticResults = this.testResults.filter(
+      (r) => r.testName === "Static Fallback" && r.success,
+    );
     if (staticResults.length > 0) {
-      const avgPhotos = Math.round(staticResults.reduce((sum, r) => sum + r.photoCount, 0) / staticResults.length);
-      const avgTime = Math.round(staticResults.reduce((sum, r) => sum + r.duration, 0) / staticResults.length);
-      const avgCompleteness = Math.round(staticResults.reduce((sum, r) => sum + r.dataCompleteness, 0) / staticResults.length);
-
+      const avgPhotos = Math.round(
+        staticResults.reduce((sum, r) => sum + r.photoCount, 0) /
+          staticResults.length,
+      );
+      const avgTime = Math.round(
+        staticResults.reduce((sum, r) => sum + r.duration, 0) /
+          staticResults.length,
+      );
+      const avgCompleteness = Math.round(
+        staticResults.reduce((sum, r) => sum + r.dataCompleteness, 0) /
+          staticResults.length,
+      );
     }
 
     // Performance comparison
     if (browserResults.length > 0 && staticResults.length > 0) {
-      const photoImprovement = browserResults.reduce((sum, r) => sum + r.photoCount, 0) - staticResults.reduce((sum, r) => sum + r.photoCount, 0);
-      const timeOverhead = browserResults.reduce((sum, r) => sum + r.duration, 0) - staticResults.reduce((sum, r) => sum + r.duration, 0);
-      
+      const photoImprovement =
+        browserResults.reduce((sum, r) => sum + r.photoCount, 0) -
+        staticResults.reduce((sum, r) => sum + r.photoCount, 0);
+      const timeOverhead =
+        browserResults.reduce((sum, r) => sum + r.duration, 0) -
+        staticResults.reduce((sum, r) => sum + r.duration, 0);
     }
 
     // Failed tests
-    const failedTests = this.testResults.filter(r => !r.success);
+    const failedTests = this.testResults.filter((r) => !r.success);
     if (failedTests.length > 0) {
-      failedTests.forEach(test => {
-      });
+      failedTests.forEach((test) => {});
     }
 
     // Recommendations
     if (browserResults.length > 0) {
-      const avgPhotos = browserResults.reduce((sum, r) => sum + r.photoCount, 0) / browserResults.length;
+      const avgPhotos =
+        browserResults.reduce((sum, r) => sum + r.photoCount, 0) /
+        browserResults.length;
       if (avgPhotos > 15) {
       } else {
       }
     }
-    
+
     if (successRate < 80) {
     } else {
     }
-
   }
 
   /**
@@ -332,10 +383,20 @@ export class RealWorldVRBOTestRunner {
       results: this.testResults,
       summary: {
         totalDuration: Date.now() - this.startTime,
-        successRate: Math.round((this.testResults.filter(r => r.success).length / this.testResults.length) * 100),
-        averagePhotos: Math.round(this.testResults.reduce((sum, r) => sum + r.photoCount, 0) / this.testResults.length),
-        averageTime: Math.round(this.testResults.reduce((sum, r) => sum + r.duration, 0) / this.testResults.length)
-      }
+        successRate: Math.round(
+          (this.testResults.filter((r) => r.success).length /
+            this.testResults.length) *
+            100,
+        ),
+        averagePhotos: Math.round(
+          this.testResults.reduce((sum, r) => sum + r.photoCount, 0) /
+            this.testResults.length,
+        ),
+        averageTime: Math.round(
+          this.testResults.reduce((sum, r) => sum + r.duration, 0) /
+            this.testResults.length,
+        ),
+      },
     };
 
     // In a real implementation, you'd save to a file

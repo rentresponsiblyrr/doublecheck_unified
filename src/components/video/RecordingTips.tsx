@@ -3,15 +3,17 @@
  * Extracted from VideoRecorder.tsx
  */
 
-import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface RecordingTipsProps {
   isRecording: boolean;
 }
 
-export const RecordingTips: React.FC<RecordingTipsProps> = ({ isRecording }) => {
+export const RecordingTips: React.FC<RecordingTipsProps> = ({
+  isRecording,
+}) => {
   if (isRecording) {
     return null;
   }

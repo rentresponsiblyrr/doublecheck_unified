@@ -3,12 +3,12 @@
  * Extracted from PhotoComparisonView.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Shield, Activity } from 'lucide-react';
-import type { PhotoQualityMetrics } from '../../types/photo-comparison';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Activity } from "lucide-react";
+import type { PhotoQualityMetrics } from "../../types/photo-comparison";
 
 interface QualityMetricsProps {
   metrics: PhotoQualityMetrics;
@@ -16,19 +16,26 @@ interface QualityMetricsProps {
 
 export const QualityMetrics: React.FC<QualityMetricsProps> = ({ metrics }) => {
   const getQualityBadge = (score: number) => {
-    if (score >= 0.8) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
-    if (score >= 0.6) return <Badge className="bg-blue-100 text-blue-800">Good</Badge>;
+    if (score >= 0.8)
+      return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
+    if (score >= 0.6)
+      return <Badge className="bg-blue-100 text-blue-800">Good</Badge>;
     if (score >= 0.4) return <Badge variant="secondary">Fair</Badge>;
     return <Badge variant="destructive">Poor</Badge>;
   };
 
   const qualityItems = [
-    { label: 'Overall Quality', value: metrics.overallScore, key: 'overall' },
-    { label: 'Sharpness', value: metrics.sharpness, key: 'sharpness' },
-    { label: 'Brightness', value: metrics.brightness, key: 'brightness' },
-    { label: 'Contrast', value: metrics.contrast, key: 'contrast' },
-    { label: 'Color Balance', value: metrics.colorBalance, key: 'color' },
-    { label: 'Noise Level', value: 1 - metrics.noise, key: 'noise', inverted: true }
+    { label: "Overall Quality", value: metrics.overallScore, key: "overall" },
+    { label: "Sharpness", value: metrics.sharpness, key: "sharpness" },
+    { label: "Brightness", value: metrics.brightness, key: "brightness" },
+    { label: "Contrast", value: metrics.contrast, key: "contrast" },
+    { label: "Color Balance", value: metrics.colorBalance, key: "color" },
+    {
+      label: "Noise Level",
+      value: 1 - metrics.noise,
+      key: "noise",
+      inverted: true,
+    },
   ];
 
   return (
@@ -49,12 +56,16 @@ export const QualityMetrics: React.FC<QualityMetricsProps> = ({ metrics }) => {
                   <span>{item.label}</span>
                   <span>{Math.round(item.value * 100)}%</span>
                 </div>
-                <Progress 
-                  value={item.value * 100} 
+                <Progress
+                  value={item.value * 100}
                   className={`h-2 ${
-                    item.value >= 0.8 ? 'bg-green-100' :
-                    item.value >= 0.6 ? 'bg-blue-100' :
-                    item.value >= 0.4 ? 'bg-yellow-100' : 'bg-red-100'
+                    item.value >= 0.8
+                      ? "bg-green-100"
+                      : item.value >= 0.6
+                        ? "bg-blue-100"
+                        : item.value >= 0.4
+                          ? "bg-yellow-100"
+                          : "bg-red-100"
                   }`}
                 />
               </div>
@@ -83,7 +94,7 @@ export const QualityMetrics: React.FC<QualityMetricsProps> = ({ metrics }) => {
                 <span className="ml-2">{metrics.fileSize}</span>
               </div>
             </div>
-            
+
             {metrics.issues && metrics.issues.length > 0 && (
               <div>
                 <span className="font-medium">Detected Issues:</span>
@@ -94,7 +105,7 @@ export const QualityMetrics: React.FC<QualityMetricsProps> = ({ metrics }) => {
                 </ul>
               </div>
             )}
-            
+
             {metrics.recommendations && metrics.recommendations.length > 0 && (
               <div>
                 <span className="font-medium">Recommendations:</span>

@@ -1,4 +1,3 @@
-
 import { InspectionValidationService } from "./inspectionValidationService";
 import { InspectionCreationOptimizer } from "./inspectionCreationOptimizer";
 import { InspectionDatabaseService } from "./inspectionDatabaseService";
@@ -21,24 +20,36 @@ export class InspectionCreationService {
   async checkForExistingInspection(propertyId: string): Promise<string | null> {
     try {
       // Use the correct method from InspectionCreationOptimizer
-      return await InspectionCreationOptimizer.findActiveInspectionSecure(propertyId);
+      return await InspectionCreationOptimizer.findActiveInspectionSecure(
+        propertyId,
+      );
     } catch (error) {
       return null;
     }
   }
 
-  async createNewInspection(propertyId: string, inspectorId: string): Promise<string> {
+  async createNewInspection(
+    propertyId: string,
+    inspectorId: string,
+  ): Promise<string> {
     const inspectionId = await this.retryService.executeWithRetry(async () => {
       // Create the inspection record using the optimizer with inspector ID
-      const newInspectionId = await InspectionCreationOptimizer.createInspectionWithRetry(propertyId, inspectorId);
-      
+      const newInspectionId =
+        await InspectionCreationOptimizer.createInspectionWithRetry(
+          propertyId,
+          inspectorId,
+        );
+
       // Verify checklist items were created (with improved error handling)
-      const checklistItemsCount = await InspectionValidationService.verifyChecklistItemsCreated(newInspectionId);
-      
+      const checklistItemsCount =
+        await InspectionValidationService.verifyChecklistItemsCreated(
+          newInspectionId,
+        );
+
       if (checklistItemsCount === 0) {
         // This is not necessarily an error - the inspection may be valid even without items
       }
-      
+
       return newInspectionId;
     });
 

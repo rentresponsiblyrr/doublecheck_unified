@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,27 +24,35 @@ export const useRobustInspectionCreation = () => {
     }
 
     setIsCreating(true);
-    
-    logger.info('Starting inspection creation', {
-      propertyId, 
-      type: typeof propertyId, 
-      isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(propertyId) 
+
+    logger.info("Starting inspection creation", {
+      propertyId,
+      type: typeof propertyId,
+      isUUID:
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          propertyId,
+        ),
     });
 
     try {
       // Check for existing active inspections first
-      const existingInspectionId = await inspectionService.checkForExistingInspection(propertyId);
-      
+      const existingInspectionId =
+        await inspectionService.checkForExistingInspection(propertyId);
+
       if (existingInspectionId) {
         toast({
           title: "Resuming existing inspection",
-          description: "Only one inspection per property is allowed. Continuing your existing inspection...",
+          description:
+            "Only one inspection per property is allowed. Continuing your existing inspection...",
         });
         return existingInspectionId;
       }
 
       // Create new inspection with current user as inspector
-      const inspectionId = await inspectionService.createNewInspection(propertyId, user.id);
+      const inspectionId = await inspectionService.createNewInspection(
+        propertyId,
+        user.id,
+      );
 
       toast({
         title: "Inspection created",
@@ -53,11 +60,11 @@ export const useRobustInspectionCreation = () => {
       });
 
       return inspectionId;
-
     } catch (error) {
       toast({
         title: "Failed to create inspection",
-        description: error instanceof Error ? error.message : "Please try again.",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
       return null;
@@ -68,6 +75,6 @@ export const useRobustInspectionCreation = () => {
 
   return {
     createInspection,
-    isCreating
+    isCreating,
   };
 };

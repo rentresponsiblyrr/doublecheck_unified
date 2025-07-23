@@ -1,21 +1,21 @@
 /**
  * INSPECTION STEPS SIDEBAR - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored inspection steps sidebar following ZERO_TOLERANCE_STANDARDS
  * Reduced from 323 lines to <100 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - pure orchestration only
  * - Composed of focused sub-components (ProgressHeader, StepsList, QuickActions)
  * - Professional error handling and accessibility compliance
  * - Mobile-first responsive design maintained
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - InspectionProgressHeader: Property info and progress display
  * - InspectionStepsList: Step navigation with visual indicators
  * - InspectionQuickActions: Action buttons and help tips
- * 
+ *
  * @example
  * ```typescript
  * <InspectionStepsSidebar
@@ -27,19 +27,16 @@
  * ```
  */
 
-import React, { useMemo } from 'react';
-import { 
-  Home, 
-  FileText, 
-  Camera, 
-  Video, 
-  Upload
-} from 'lucide-react';
+import React, { useMemo } from "react";
+import { Home, FileText, Camera, Video, Upload } from "lucide-react";
 
 // Import focused components
-import { InspectionProgressHeader } from './steps/InspectionProgressHeader';
-import { InspectionStepsList, type InspectionStep } from './steps/InspectionStepsList';
-import { InspectionQuickActions } from './steps/InspectionQuickActions';
+import { InspectionProgressHeader } from "./steps/InspectionProgressHeader";
+import {
+  InspectionStepsList,
+  type InspectionStep,
+} from "./steps/InspectionStepsList";
+import { InspectionQuickActions } from "./steps/InspectionQuickActions";
 
 /**
  * Component props - simplified for orchestration
@@ -60,50 +57,50 @@ interface InspectionStepsSidebarProps {
  */
 const DEFAULT_STEPS: InspectionStep[] = [
   {
-    id: 'property-selection',
-    title: 'Property Selection',
-    description: 'Choose property to inspect',
+    id: "property-selection",
+    title: "Property Selection",
+    description: "Choose property to inspect",
     icon: <Home className="w-4 h-4" />,
-    status: 'completed',
+    status: "completed",
     required: true,
-    estimatedTime: '2 min'
+    estimatedTime: "2 min",
   },
   {
-    id: 'checklist-generation',
-    title: 'Checklist Generation',
-    description: 'AI generates inspection items',
+    id: "checklist-generation",
+    title: "Checklist Generation",
+    description: "AI generates inspection items",
     icon: <FileText className="w-4 h-4" />,
-    status: 'completed',
+    status: "completed",
     required: true,
-    estimatedTime: '1 min'
+    estimatedTime: "1 min",
   },
   {
-    id: 'photo-capture',
-    title: 'Photo Capture',
-    description: 'Document property with photos',
+    id: "photo-capture",
+    title: "Photo Capture",
+    description: "Document property with photos",
     icon: <Camera className="w-4 h-4" />,
-    status: 'active',
+    status: "active",
     required: true,
-    estimatedTime: '15-30 min'
+    estimatedTime: "15-30 min",
   },
   {
-    id: 'video-recording',
-    title: 'Video Walkthrough',
-    description: 'Record comprehensive video',
+    id: "video-recording",
+    title: "Video Walkthrough",
+    description: "Record comprehensive video",
     icon: <Video className="w-4 h-4" />,
-    status: 'pending',
+    status: "pending",
     required: true,
-    estimatedTime: '5-10 min'
+    estimatedTime: "5-10 min",
   },
   {
-    id: 'upload-sync',
-    title: 'Upload & Sync',
-    description: 'Upload all inspection data',
+    id: "upload-sync",
+    title: "Upload & Sync",
+    description: "Upload all inspection data",
     icon: <Upload className="w-4 h-4" />,
-    status: 'pending',
+    status: "pending",
     required: true,
-    estimatedTime: '2-5 min'
-  }
+    estimatedTime: "2-5 min",
+  },
 ];
 
 /**
@@ -118,7 +115,7 @@ const InspectionStepsSidebar: React.FC<InspectionStepsSidebarProps> = ({
   propertyName,
   onSaveProgress,
   onGoBack,
-  className = ''
+  className = "",
 }) => {
   /**
    * Use provided steps or fallback to defaults

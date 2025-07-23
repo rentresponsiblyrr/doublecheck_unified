@@ -1,9 +1,9 @@
 /**
  * PHOTO GUIDANCE ORCHESTRATOR - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade photo workflow following ZERO_TOLERANCE_STANDARDS
  * Reduced from 412 lines to <150 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (PhotoWorkflowManager, WorkflowStepRenderer, etc.)
@@ -11,12 +11,12 @@
  * - Performance optimized with proper component separation
  * - Professional error handling and recovery
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - PhotoWorkflowManager: State management and data operations
  * - PhotoWorkflowHeader: Header with progress indicators
  * - WorkflowStepRenderer: Step-specific UI rendering
- * 
+ *
  * @example
  * ```typescript
  * <PhotoGuidanceOrchestrator
@@ -30,14 +30,14 @@
  * ```
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import type { PropertyData } from '@/types/ai-interfaces';
-import type { DynamicChecklistItem } from '@/lib/ai/dynamic-checklist-generator';
-import type { AIAnalysisResult } from '../../types/business-logic';
-import { PhotoWorkflowManager } from './PhotoWorkflowManager';
-import { PhotoWorkflowHeader } from './PhotoWorkflowHeader';
-import { WorkflowStepRenderer } from './WorkflowStepRenderer';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import type { PropertyData } from "@/types/ai-interfaces";
+import type { DynamicChecklistItem } from "@/lib/ai/dynamic-checklist-generator";
+import type { AIAnalysisResult } from "../../types/business-logic";
+import { PhotoWorkflowManager } from "./PhotoWorkflowManager";
+import { PhotoWorkflowHeader } from "./PhotoWorkflowHeader";
+import { WorkflowStepRenderer } from "./WorkflowStepRenderer";
 
 /**
  * Component props - simplified for orchestration
@@ -75,10 +75,10 @@ const PhotoGuidanceOrchestrator: React.FC<PhotoGuidanceOrchestratorProps> = ({
   inspectionId,
   onPhotoComplete,
   onVideoWalkthroughRequired,
-  onError
+  onError,
 }) => {
   return (
-    <Card 
+    <Card
       id="photo-guidance-orchestrator"
       className="w-full"
       role="region"
@@ -108,7 +108,7 @@ const PhotoGuidanceOrchestrator: React.FC<PhotoGuidanceOrchestratorProps> = ({
           resetWorkflow,
           toggleExpanded,
           getStepStatus,
-          getStepBadgeVariant
+          getStepBadgeVariant,
         }) => (
           <>
             {/* Header with Progress */}
@@ -146,7 +146,7 @@ const PhotoGuidanceOrchestrator: React.FC<PhotoGuidanceOrchestratorProps> = ({
   );
 };
 
-PhotoGuidanceOrchestrator.displayName = 'PhotoGuidanceOrchestrator';
+PhotoGuidanceOrchestrator.displayName = "PhotoGuidanceOrchestrator";
 
 export { PhotoGuidanceOrchestrator };
 export default PhotoGuidanceOrchestrator;

@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  AlertTriangle, 
-  XCircle, 
-  X, 
-  RefreshCw, 
-  Bell, 
-  BellOff 
-} from 'lucide-react';
-import { PerformanceAlert } from '@/types/performance-monitoring';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertTriangle,
+  XCircle,
+  X,
+  RefreshCw,
+  Bell,
+  BellOff,
+} from "lucide-react";
+import { PerformanceAlert } from "@/types/performance-monitoring";
 
 interface AlertsManagerProps {
   alerts: PerformanceAlert[];
@@ -25,20 +25,20 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
   onDismissAlert,
   onRefreshAlerts,
   alertsEnabled,
-  onToggleAlerts
+  onToggleAlerts,
 }) => {
-  const [filter, setFilter] = useState<'all' | 'critical' | 'warning'>('all');
+  const [filter, setFilter] = useState<"all" | "critical" | "warning">("all");
 
-  const filteredAlerts = alerts.filter(alert => {
-    if (filter === 'all') return true;
+  const filteredAlerts = alerts.filter((alert) => {
+    if (filter === "all") return true;
     return alert.severity === filter;
   });
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'critical':
+      case "critical":
         return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       default:
         return <AlertTriangle className="h-4 w-4 text-blue-500" />;
@@ -47,9 +47,9 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
-      case 'critical':
+      case "critical":
         return <Badge variant="destructive">Critical</Badge>;
-      case 'warning':
+      case "warning":
         return <Badge variant="outline">Warning</Badge>;
       default:
         return <Badge variant="secondary">Info</Badge>;
@@ -61,7 +61,11 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
-            {alertsEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+            {alertsEnabled ? (
+              <Bell className="h-5 w-5" />
+            ) : (
+              <BellOff className="h-5 w-5" />
+            )}
             <span>Performance Alerts</span>
             <Badge variant="secondary">{alerts.length}</Badge>
           </CardTitle>
@@ -72,7 +76,11 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
               onClick={() => onToggleAlerts(!alertsEnabled)}
               id="toggle-alerts-button"
             >
-              {alertsEnabled ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+              {alertsEnabled ? (
+                <BellOff className="h-4 w-4" />
+              ) : (
+                <Bell className="h-4 w-4" />
+              )}
             </Button>
             <Button
               variant="outline"
@@ -85,33 +93,34 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent id="alerts-content">
         <div className="space-y-4">
           <div id="alert-filters" className="flex space-x-2">
             <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
+              variant={filter === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter('all')}
+              onClick={() => setFilter("all")}
               id="filter-all-button"
             >
               All ({alerts.length})
             </Button>
             <Button
-              variant={filter === 'critical' ? 'default' : 'outline'}
+              variant={filter === "critical" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter('critical')}
+              onClick={() => setFilter("critical")}
               id="filter-critical-button"
             >
-              Critical ({alerts.filter(a => a.severity === 'critical').length})
+              Critical ({alerts.filter((a) => a.severity === "critical").length}
+              )
             </Button>
             <Button
-              variant={filter === 'warning' ? 'default' : 'outline'}
+              variant={filter === "warning" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter('warning')}
+              onClick={() => setFilter("warning")}
               id="filter-warning-button"
             >
-              Warning ({alerts.filter(a => a.severity === 'warning').length})
+              Warning ({alerts.filter((a) => a.severity === "warning").length})
             </Button>
           </div>
 
@@ -135,7 +144,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = ({
                         {getSeverityBadge(alert.severity)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {alert.component} • {new Date(alert.timestamp).toLocaleTimeString()}
+                        {alert.component} •{" "}
+                        {new Date(alert.timestamp).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>

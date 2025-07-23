@@ -1,19 +1,19 @@
 /**
  * Photo Workflow Header - Enterprise Grade
- * 
+ *
  * Header component displaying checklist item info and workflow progress
  */
 
-import React from 'react';
-import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Camera, ChevronDown, ChevronUp, Info } from 'lucide-react';
-import type { DynamicChecklistItem } from '@/lib/ai/dynamic-checklist-generator';
+import React from "react";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Camera, ChevronDown, ChevronUp, Info } from "lucide-react";
+import type { DynamicChecklistItem } from "@/lib/ai/dynamic-checklist-generator";
 
 interface WorkflowState {
-  currentStep: 'capture' | 'processing' | 'analysis' | 'upload' | 'complete';
+  currentStep: "capture" | "processing" | "analysis" | "upload" | "complete";
   capturedFile: File | null;
   processedFile: File | null;
   analysisResult: any | null;
@@ -26,8 +26,8 @@ interface PhotoWorkflowHeaderProps {
   checklistItem: DynamicChecklistItem;
   workflowState: WorkflowState;
   onToggleExpanded: () => void;
-  getStepStatus: (step: WorkflowState['currentStep']) => string;
-  getStepBadgeVariant: (status: string) => 'default' | 'secondary' | 'outline';
+  getStepStatus: (step: WorkflowState["currentStep"]) => string;
+  getStepBadgeVariant: (status: string) => "default" | "secondary" | "outline";
 }
 
 export const PhotoWorkflowHeader: React.FC<PhotoWorkflowHeaderProps> = ({
@@ -35,7 +35,7 @@ export const PhotoWorkflowHeader: React.FC<PhotoWorkflowHeaderProps> = ({
   workflowState,
   onToggleExpanded,
   getStepStatus,
-  getStepBadgeVariant
+  getStepBadgeVariant,
 }) => {
   return (
     <>
@@ -50,36 +50,43 @@ export const PhotoWorkflowHeader: React.FC<PhotoWorkflowHeaderProps> = ({
               {checklistItem.description}
             </CardDescription>
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleExpanded}
             className="focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label={workflowState.isExpanded ? 'Collapse section' : 'Expand section'}
-          >
-            {workflowState.isExpanded ? 
-              <ChevronUp className="h-4 w-4" /> : 
-              <ChevronDown className="h-4 w-4" />
+            aria-label={
+              workflowState.isExpanded ? "Collapse section" : "Expand section"
             }
+          >
+            {workflowState.isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
         {/* Workflow Progress */}
         <div className="flex space-x-2 mt-3">
-          {['capture', 'processing', 'analysis', 'upload', 'complete'].map((step) => (
-            <Badge 
-              key={step} 
-              variant={getStepBadgeVariant(getStepStatus(step as WorkflowState['currentStep']))}
-              className="text-xs"
-            >
-              {step === 'capture' && 'Capture'}
-              {step === 'processing' && 'Process'}
-              {step === 'analysis' && 'Analyze'}
-              {step === 'upload' && 'Upload'}
-              {step === 'complete' && 'Complete'}
-            </Badge>
-          ))}
+          {["capture", "processing", "analysis", "upload", "complete"].map(
+            (step) => (
+              <Badge
+                key={step}
+                variant={getStepBadgeVariant(
+                  getStepStatus(step as WorkflowState["currentStep"]),
+                )}
+                className="text-xs"
+              >
+                {step === "capture" && "Capture"}
+                {step === "processing" && "Process"}
+                {step === "analysis" && "Analyze"}
+                {step === "upload" && "Upload"}
+                {step === "complete" && "Complete"}
+              </Badge>
+            ),
+          )}
         </div>
       </CardHeader>
 

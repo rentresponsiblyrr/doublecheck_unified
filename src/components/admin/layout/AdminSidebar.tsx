@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React, { useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Building2,
   Users,
@@ -19,94 +19,105 @@ import {
   Bug,
   X,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { Logo } from '@/components/Logo';
-import { cn } from '@/lib/utils';
-import { KeyboardNavigation, useRovingTabindex } from '@/lib/accessibility/KeyboardNavigation';
-import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
+  ChevronRight,
+} from "lucide-react";
+import { Logo } from "@/components/Logo";
+import { cn } from "@/lib/utils";
+import {
+  KeyboardNavigation,
+  useRovingTabindex,
+} from "@/lib/accessibility/KeyboardNavigation";
+import { useAccessibility } from "@/lib/accessibility/AccessibilityProvider";
 
 const navigation = [
   {
-    name: 'Overview',
-    href: '/admin',
+    name: "Overview",
+    href: "/admin",
     icon: Home,
     current: false,
   },
   {
-    name: 'Properties',
-    href: '/admin/properties',
+    name: "Properties",
+    href: "/admin/properties",
     icon: Building2,
     current: false,
-    badge: 'enhanced'
+    badge: "enhanced",
   },
   {
-    name: 'Users',
-    href: '/admin/users',
+    name: "Users",
+    href: "/admin/users",
     icon: Users,
     current: false,
-    badge: 'pro'
+    badge: "pro",
   },
   {
-    name: 'Inspections',
-    href: '/admin/inspections',
+    name: "Inspections",
+    href: "/admin/inspections",
     icon: ClipboardList,
     current: false,
   },
   {
-    name: 'Checklist Management',
-    href: '/admin/checklist',
+    name: "Audit Center",
+    href: "/admin/audit",
+    icon: UserCheck,
+    current: false,
+    badge: "pro",
+  },
+  {
+    name: "Checklists",
+    href: "/admin/checklists",
     icon: FileText,
     current: false,
   },
   {
-    name: 'Performance',
-    href: '/admin/performance',
+    name: "Reports",
+    href: "/admin/reports",
     icon: BarChart3,
     current: false,
-    badge: 'pro'
   },
   {
-    name: 'AI Learning',
-    href: '/admin/ai-learning',
+    name: "Bug Reports",
+    href: "/admin/bug-reports",
+    icon: Bug,
+    current: false,
+    badge: "new",
+  },
+  {
+    name: "Performance",
+    href: "/admin/performance",
+    icon: TrendingUp,
+    current: false,
+    badge: "pro",
+  },
+  {
+    name: "AI Learning",
+    href: "/admin/ai-learning",
     icon: Brain,
     current: false,
   },
   {
-    name: 'System Status',
-    href: '/admin/system-status',
+    name: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3,
+    current: false,
+  },
+  {
+    name: "Diagnostics",
+    href: "/admin/diagnostics",
     icon: Activity,
     current: false,
+    badge: "dev",
   },
   {
-    name: 'Analytics',
-    href: '/admin/analytics',
-    icon: TrendingUp,
-    current: false,
-  },
-  {
-    name: 'Audit Logs',
-    href: '/admin/audit-logs',
+    name: "Health Check",
+    href: "/admin/health",
     icon: AlertCircle,
     current: false,
+    badge: "dev",
   },
   {
-    name: 'Scheduler',
-    href: '/admin/scheduler',
-    icon: Calendar,
-    current: false,
-    badge: 'beta'
-  },
-  {
-    name: 'Debug',
-    href: '/admin/debug',
-    icon: Bug,
-    current: false,
-    badge: 'dev'
-  },
-  {
-    name: 'Settings',
-    href: '/admin/settings',
+    name: "Settings",
+    href: "/admin/settings",
     icon: Settings,
     current: false,
   },
@@ -120,78 +131,80 @@ interface AdminSidebarProps {
   isTablet?: boolean;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
-  className = '',
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({
+  className = "",
   isOpen = false,
   onClose,
   isMobile = false,
-  isTablet = false
+  isTablet = false,
 }) => {
   const location = useLocation();
   const { announce } = useAccessibility();
-  
+
   // Determine sidebar state and styling
   const isCollapsed = isTablet && !isOpen;
   const showLabels = !isCollapsed;
   const showCloseButton = isMobile && isOpen;
-  
+
   const classNames = (...classes: (string | boolean)[]) => {
-    return classes.filter(Boolean).join(' ');
+    return classes.filter(Boolean).join(" ");
   };
-  
+
   // Enable roving tabindex for navigation items
-  useRovingTabindex('admin-navigation', 'vertical');
-  
+  useRovingTabindex("admin-navigation", "vertical");
+
   // Announce sidebar state changes
   useEffect(() => {
     if (isMobile && isOpen) {
-      announce('Navigation sidebar opened', 'polite');
+      announce("Navigation sidebar opened", "polite");
     }
   }, [isOpen, isMobile, announce]);
-  
+
   const handleNavClick = (itemName: string) => {
     // Announce navigation for screen readers
-    announce(`Navigating to ${itemName}`, 'polite');
-    
+    announce(`Navigating to ${itemName}`, "polite");
+
     // Close sidebar on mobile after navigation
     if (isMobile && onClose) {
       onClose();
     }
   };
-  
+
   const handleCloseClick = () => {
-    announce('Navigation sidebar closed', 'polite');
+    announce("Navigation sidebar closed", "polite");
     onClose?.();
   };
 
   return (
     <>
       {/* Sidebar Container */}
-      <div 
-        id="admin-sidebar" 
+      <div
+        id="admin-sidebar"
         className={cn(
           "bg-slate-900 text-white transition-all duration-300 ease-in-out flex flex-col",
           // Mobile: Fixed overlay sidebar
           isMobile && [
             "fixed inset-y-0 left-0 z-50 transform",
             isOpen ? "translate-x-0" : "-translate-x-full",
-            "w-64"
+            "w-64",
           ],
           // Tablet: Collapsible sidebar
           isTablet && [
             "fixed inset-y-0 left-0 z-30",
-            isCollapsed ? "w-16" : "w-64"
+            isCollapsed ? "w-16" : "w-64",
           ],
           // Desktop: Static sidebar
           !isMobile && !isTablet && "w-64 min-h-screen",
-          className
+          className,
         )}
       >
         {/* Header Section */}
-        <div className={cn(
-          "flex items-center border-b border-slate-700 transition-all duration-300",
-          isCollapsed ? "px-3 py-4 justify-center" : "px-6 py-4"
-        )}>
+        <div
+          className={cn(
+            "flex items-center border-b border-slate-700 transition-all duration-300",
+            isCollapsed ? "px-3 py-4 justify-center" : "px-6 py-4",
+          )}
+        >
           {showCloseButton && (
             <Button
               variant="ghost"
@@ -205,18 +218,24 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <span className="sr-only">Close sidebar</span>
             </Button>
           )}
-          
-          <Logo className={cn(
-            "flex-shrink-0 transition-all duration-300",
-            isCollapsed ? "h-6 w-6" : "h-8 w-auto"
-          )} />
-          
+
+          <Logo
+            className={cn(
+              "flex-shrink-0 transition-all duration-300",
+              isCollapsed ? "h-6 w-6" : "h-8 w-auto",
+            )}
+          />
+
           {showLabels && (
             <div className="ml-3 overflow-hidden">
-              <h1 className={cn(
-                "font-semibold transition-all duration-300",
-                isCollapsed ? "text-sm" : "text-lg"
-              )}>STR Admin</h1>
+              <h1
+                className={cn(
+                  "font-semibold transition-all duration-300",
+                  isCollapsed ? "text-sm" : "text-lg",
+                )}
+              >
+                STR Admin
+              </h1>
               {!isCollapsed && (
                 <p className="text-xs text-slate-400">Management Console</p>
               )}
@@ -231,7 +250,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           ariaLabel="Admin dashboard navigation"
           className={cn(
             "flex-1 overflow-y-auto transition-all duration-300",
-            isCollapsed ? "mt-4 px-2" : "mt-6 px-3"
+            isCollapsed ? "mt-4 px-2" : "mt-6 px-3",
           )}
           arrowKeys={true}
           announceNavigation={true}
@@ -245,15 +264,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 className={({ isActive }) =>
                   classNames(
                     isActive
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white',
-                    'group flex items-center rounded-md transition-all duration-200 relative focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900',
-                    isCollapsed ? 'px-2 py-3 justify-center' : 'px-2 py-2'
+                      ? "bg-slate-800 text-white"
+                      : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                    "group flex items-center rounded-md transition-all duration-200 relative focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900",
+                    isCollapsed ? "px-2 py-3 justify-center" : "px-2 py-2",
                   )
                 }
-                id={`nav-link-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                id={`nav-link-${item.name.toLowerCase().replace(/\s+/g, "-")}`}
                 role="listitem"
-                aria-label={`Navigate to ${item.name}${item.badge ? ` (${item.badge})` : ''}`}
+                aria-label={`Navigate to ${item.name}${item.badge ? ` (${item.badge})` : ""}`}
                 title={isCollapsed ? item.name : undefined}
                 data-roving-tabindex
                 tabIndex={index === 0 ? 0 : -1}
@@ -262,13 +281,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   <>
                     <item.icon
                       className={classNames(
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-white',
-                        'flex-shrink-0 transition-colors duration-200',
-                        isCollapsed ? 'h-5 w-5' : 'h-5 w-5 mr-3'
+                        isActive
+                          ? "text-white"
+                          : "text-slate-400 group-hover:text-white",
+                        "flex-shrink-0 transition-colors duration-200",
+                        isCollapsed ? "h-5 w-5" : "h-5 w-5 mr-3",
                       )}
                       aria-hidden="true"
                     />
-                    
+
                     {showLabels && (
                       <>
                         <span className="flex-1 text-sm font-medium truncate">
@@ -277,10 +298,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         {item.badge && (
                           <Badge
                             variant={
-                              item.badge === 'pro' ? 'default' :
-                              item.badge === 'beta' ? 'secondary' :
-                              item.badge === 'dev' ? 'destructive' :
-                              'outline'
+                              item.badge === "pro"
+                                ? "default"
+                                : item.badge === "beta"
+                                  ? "secondary"
+                                  : item.badge === "dev"
+                                    ? "destructive"
+                                    : "outline"
                             }
                             className="ml-2 text-xs flex-shrink-0"
                             aria-label={`${item.badge} feature`}
@@ -290,23 +314,29 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         )}
                       </>
                     )}
-                    
+
                     {/* Collapsed state tooltip indicator */}
                     {isCollapsed && item.badge && (
-                      <div className="absolute -top-1 -right-1" aria-hidden="true">
-                        <div 
+                      <div
+                        className="absolute -top-1 -right-1"
+                        aria-hidden="true"
+                      >
+                        <div
                           className={cn(
                             "w-2 h-2 rounded-full",
-                            item.badge === 'pro' ? 'bg-blue-500' :
-                            item.badge === 'beta' ? 'bg-orange-500' :
-                            item.badge === 'dev' ? 'bg-red-500' :
-                            'bg-gray-500'
+                            item.badge === "pro"
+                              ? "bg-blue-500"
+                              : item.badge === "beta"
+                                ? "bg-orange-500"
+                                : item.badge === "dev"
+                                  ? "bg-red-500"
+                                  : "bg-gray-500",
                           )}
                           title={`${item.badge} feature indicator`}
                         />
                       </div>
                     )}
-                    
+
                     {/* Screen reader current page indicator */}
                     {isActive && (
                       <span className="sr-only">(current page)</span>
@@ -319,17 +349,24 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </KeyboardNavigation>
 
         {/* Footer Section */}
-        <div className={cn(
-          "border-t border-slate-700 transition-all duration-300",
-          isCollapsed ? "p-2" : "p-4"
-        )}>
+        <div
+          className={cn(
+            "border-t border-slate-700 transition-all duration-300",
+            isCollapsed ? "p-2" : "p-4",
+          )}
+        >
           {showLabels ? (
             <div className="text-xs text-slate-400">
               <p className="font-medium">Version 2.0.0</p>
-              <p className="mt-1">Build {import.meta.env.VITE_BUILD_VERSION || 'dev'}</p>
+              <p className="mt-1">
+                Build {import.meta.env.VITE_BUILD_VERSION || "dev"}
+              </p>
             </div>
           ) : (
-            <div className="w-2 h-2 bg-green-500 rounded-full mx-auto" title="System Online" />
+            <div
+              className="w-2 h-2 bg-green-500 rounded-full mx-auto"
+              title="System Online"
+            />
           )}
         </div>
       </div>

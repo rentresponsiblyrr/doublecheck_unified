@@ -3,12 +3,18 @@
  * Extracted from InspectionWorkflowContainer.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Home } from 'lucide-react';
-import { WorkflowState } from '@/hooks/useInspectionWorkflow';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Home } from "lucide-react";
+import { WorkflowState } from "@/hooks/useInspectionWorkflow";
 
 interface WorkflowActionsProps {
   state: WorkflowState;
@@ -17,7 +23,7 @@ interface WorkflowActionsProps {
 
 export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   state,
-  onSafeReturn
+  onSafeReturn,
 }) => {
   return (
     <Card id="workflow-progress-header">
@@ -34,8 +40,8 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
             Exit
           </Button>
         </div>
-        <Progress 
-          value={(state.currentStep / (state.inspectionSteps.length - 1)) * 100} 
+        <Progress
+          value={(state.currentStep / (state.inspectionSteps.length - 1)) * 100}
           className="w-full"
         />
       </CardHeader>

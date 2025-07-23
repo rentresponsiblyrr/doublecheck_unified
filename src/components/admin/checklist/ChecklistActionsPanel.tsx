@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, ClipboardList, RefreshCw, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { ChecklistFormDialog } from './ChecklistFormDialog';
-import { ChecklistFiltersComponent } from './ChecklistFilters';
-import { ChecklistItem, ChecklistFilters, SystemHealth } from './types';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, ClipboardList, RefreshCw, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ChecklistFormDialog } from "./ChecklistFormDialog";
+import { ChecklistFiltersComponent } from "./ChecklistFilters";
+import { ChecklistItem, ChecklistFilters, SystemHealth } from "./types";
 
 interface ChecklistActionsPanelProps {
   systemHealth: SystemHealth;
@@ -30,7 +30,7 @@ export const ChecklistActionsPanel: React.FC<ChecklistActionsPanelProps> = ({
   error,
   onRefresh,
   onItemCreate,
-  onFiltersChange
+  onFiltersChange,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -39,16 +39,16 @@ export const ChecklistActionsPanel: React.FC<ChecklistActionsPanelProps> = ({
     try {
       await onItemCreate(formData);
       setIsDialogOpen(false);
-      
+
       toast({
-        title: 'Success',
-        description: 'Checklist item created successfully',
+        title: "Success",
+        description: "Checklist item created successfully",
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to create checklist item',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create checklist item",
+        variant: "destructive",
       });
     }
   };
@@ -58,7 +58,8 @@ export const ChecklistActionsPanel: React.FC<ChecklistActionsPanelProps> = ({
       <Alert variant="destructive" id="connection-error-alert">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          Unable to connect to the database. Please check your connection and try again.
+          Unable to connect to the database. Please check your connection and
+          try again.
         </AlertDescription>
       </Alert>
     );
@@ -78,7 +79,7 @@ export const ChecklistActionsPanel: React.FC<ChecklistActionsPanelProps> = ({
           <ClipboardList className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Checklist Management</h1>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -87,10 +88,12 @@ export const ChecklistActionsPanel: React.FC<ChecklistActionsPanelProps> = ({
             disabled={isLoading}
             id="refresh-button"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
-          
+
           <Button
             onClick={() => setIsDialogOpen(true)}
             disabled={isLoading}

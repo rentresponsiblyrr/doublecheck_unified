@@ -3,21 +3,27 @@
  * Real-time threat detection and incident management
  */
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Eye, RefreshCw, Bell, Activity } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Eye, RefreshCw, Bell, Activity } from "lucide-react";
 
 interface ThreatEvent {
   id: string;
-  type: 'malware' | 'phishing' | 'brute_force' | 'data_breach' | 'ddos';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "malware" | "phishing" | "brute_force" | "data_breach" | "ddos";
+  severity: "low" | "medium" | "high" | "critical";
   timestamp: string;
   source: string;
   description: string;
-  status: 'active' | 'investigating' | 'resolved' | 'false_positive';
+  status: "active" | "investigating" | "resolved" | "false_positive";
   affectedSystems: string[];
 }
 
@@ -34,51 +40,53 @@ export const ThreatMonitoringPanel: React.FC<ThreatMonitoringPanelProps> = ({
   onRefresh,
   onInvestigate,
   onResolve,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const [selectedThreat, setSelectedThreat] = useState<ThreatEvent | null>(null);
+  const [selectedThreat, setSelectedThreat] = useState<ThreatEvent | null>(
+    null,
+  );
 
-  const getSeverityColor = (severity: ThreatEvent['severity']) => {
+  const getSeverityColor = (severity: ThreatEvent["severity"]) => {
     switch (severity) {
-      case 'critical':
-        return 'bg-red-500';
-      case 'high':
-        return 'bg-orange-500';
-      case 'medium':
-        return 'bg-yellow-500';
-      case 'low':
-        return 'bg-blue-500';
+      case "critical":
+        return "bg-red-500";
+      case "high":
+        return "bg-orange-500";
+      case "medium":
+        return "bg-yellow-500";
+      case "low":
+        return "bg-blue-500";
     }
   };
 
-  const getSeverityBadge = (severity: ThreatEvent['severity']) => {
+  const getSeverityBadge = (severity: ThreatEvent["severity"]) => {
     switch (severity) {
-      case 'critical':
-        return 'destructive';
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'secondary';
-      case 'low':
-        return 'outline';
+      case "critical":
+        return "destructive";
+      case "high":
+        return "destructive";
+      case "medium":
+        return "secondary";
+      case "low":
+        return "outline";
     }
   };
 
-  const getStatusBadge = (status: ThreatEvent['status']) => {
+  const getStatusBadge = (status: ThreatEvent["status"]) => {
     switch (status) {
-      case 'active':
-        return 'destructive';
-      case 'investigating':
-        return 'secondary';
-      case 'resolved':
-        return 'default';
-      case 'false_positive':
-        return 'outline';
+      case "active":
+        return "destructive";
+      case "investigating":
+        return "secondary";
+      case "resolved":
+        return "default";
+      case "false_positive":
+        return "outline";
     }
   };
 
   const activeCriticalThreats = threats.filter(
-    t => t.status === 'active' && t.severity === 'critical'
+    (t) => t.status === "active" && t.severity === "critical",
   );
 
   return (
@@ -88,8 +96,9 @@ export const ThreatMonitoringPanel: React.FC<ThreatMonitoringPanelProps> = ({
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>{activeCriticalThreats.length} critical threats</strong> require immediate attention.
-            Security team has been automatically notified.
+            <strong>{activeCriticalThreats.length} critical threats</strong>{" "}
+            require immediate attention. Security team has been automatically
+            notified.
           </AlertDescription>
         </Alert>
       )}
@@ -108,8 +117,15 @@ export const ThreatMonitoringPanel: React.FC<ThreatMonitoringPanelProps> = ({
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                disabled={isLoading}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </Button>
               <Button variant="outline" size="sm">
@@ -144,24 +160,32 @@ export const ThreatMonitoringPanel: React.FC<ThreatMonitoringPanelProps> = ({
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-3 h-3 rounded-full ${getSeverityColor(threat.severity)}`} />
-                        <h4 className="font-medium">{threat.type.replace('_', ' ').toUpperCase()}</h4>
+                        <div
+                          className={`w-3 h-3 rounded-full ${getSeverityColor(threat.severity)}`}
+                        />
+                        <h4 className="font-medium">
+                          {threat.type.replace("_", " ").toUpperCase()}
+                        </h4>
                         <Badge variant={getSeverityBadge(threat.severity)}>
                           {threat.severity}
                         </Badge>
                         <Badge variant={getStatusBadge(threat.status)}>
-                          {threat.status.replace('_', ' ')}
+                          {threat.status.replace("_", " ")}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{threat.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {threat.description}
+                      </p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>Source: {threat.source}</span>
-                        <span>Time: {new Date(threat.timestamp).toLocaleString()}</span>
+                        <span>
+                          Time: {new Date(threat.timestamp).toLocaleString()}
+                        </span>
                         <span>Systems: {threat.affectedSystems.length}</span>
                       </div>
                     </div>
                     <div className="flex gap-2 ml-4">
-                      {threat.status === 'active' && (
+                      {threat.status === "active" && (
                         <>
                           <Button
                             size="sm"
@@ -213,7 +237,9 @@ export const ThreatMonitoringPanel: React.FC<ThreatMonitoringPanelProps> = ({
               </div>
               <div>
                 <h5 className="font-medium mb-2">Description</h5>
-                <p className="text-sm text-gray-600">{selectedThreat.description}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedThreat.description}
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button

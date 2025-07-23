@@ -1,5 +1,5 @@
-import React from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function InspectionLoadingState() {
   return (
@@ -10,12 +10,12 @@ export function InspectionLoadingState() {
           <Skeleton className="h-8 w-64 mb-2" />
           <Skeleton className="h-4 w-96" />
         </div>
-        
+
         {/* Progress bar loading */}
         <div className="mb-6">
           <Skeleton className="h-2 w-full" />
         </div>
-        
+
         {/* Checklist items loading */}
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (

@@ -1,30 +1,39 @@
 /**
  * MOBILE INSTALL PROMPT - ELITE PWA INSTALLATION UX
- * 
+ *
  * Construction site optimized install prompt with iOS Safari support,
  * smart engagement triggers, and inspection workflow integration.
  * Designed for Netflix/Meta conversion rates with zero friction UX.
- * 
+ *
  * FEATURES:
  * - Smart timing based on user engagement
  * - iOS Safari custom install flow
  * - Construction site benefit messaging
  * - Touch-optimized mobile design
  * - Inspection workflow integration
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { usePWAStatus } from '@/hooks/usePWAStatus';
-import { Smartphone, Download, Wifi, Battery, Camera, Clock, X, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { usePWAStatus } from "@/hooks/usePWAStatus";
+import {
+  Smartphone,
+  Download,
+  Wifi,
+  Battery,
+  Camera,
+  Clock,
+  X,
+  CheckCircle,
+} from "lucide-react";
 
 interface MobileInstallPromptProps {
   id?: string;
-  trigger?: 'manual' | 'engagement' | 'workflow' | 'always';
+  trigger?: "manual" | "engagement" | "workflow" | "always";
   engagementThreshold?: number; // minutes
   showBenefits?: boolean;
-  variant?: 'modal' | 'banner' | 'card';
+  variant?: "modal" | "banner" | "card";
   onInstall?: () => void;
   onDismiss?: () => void;
   className?: string;
@@ -40,13 +49,13 @@ interface EngagementMetrics {
 
 export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
   id = "mobile-install-prompt",
-  trigger = 'engagement',
+  trigger = "engagement",
   engagementThreshold = 5,
   showBenefits = true,
-  variant = 'modal',
+  variant = "modal",
   onInstall,
   onDismiss,
-  className = ''
+  className = "",
 }) => {
   const { status, actions } = usePWAStatus();
   const [showPrompt, setShowPrompt] = useState(false);
@@ -57,13 +66,14 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
     inspectionsCompleted: 0,
     photosCapturePage: 0,
     offlineUsage: 0,
-    returnVisits: parseInt(localStorage.getItem('str_return_visits') || '0')
+    returnVisits: parseInt(localStorage.getItem("str_return_visits") || "0"),
   });
 
   // Check if user meets engagement threshold
   const meetsEngagementThreshold = useCallback((): boolean => {
-    const sessionMinutes = (Date.now() - engagement.sessionStartTime) / (1000 * 60);
-    
+    const sessionMinutes =
+      (Date.now() - engagement.sessionStartTime) / (1000 * 60);
+
     return (
       sessionMinutes >= engagementThreshold ||
       engagement.inspectionsCompleted >= 1 ||
@@ -77,7 +87,8 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
   const isIOSSafari = (): boolean => {
     const userAgent = window.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-    const isSafari = /Safari/.test(userAgent) && !/CriOS|FxiOS|EdgiOS/.test(userAgent);
+    const isSafari =
+      /Safari/.test(userAgent) && !/CriOS|FxiOS|EdgiOS/.test(userAgent);
     return isIOS && isSafari;
   };
 
@@ -89,78 +100,88 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
     }
 
     switch (trigger) {
-      case 'always':
+      case "always":
         setShowPrompt(true);
         break;
-      case 'manual':
+      case "manual":
         // Controlled externally
         break;
-      case 'workflow': {
+      case "workflow": {
         // Show during specific workflow steps
         const currentPath = window.location.pathname;
-        if (currentPath.includes('/inspection/') && meetsEngagementThreshold()) {
+        if (
+          currentPath.includes("/inspection/") &&
+          meetsEngagementThreshold()
+        ) {
           setShowPrompt(true);
         }
         break;
       }
-      case 'engagement':
+      case "engagement":
       default:
         if (meetsEngagementThreshold()) {
           setShowPrompt(true);
         }
         break;
     }
-  }, [trigger, status.canShowInstallPrompt, isDismissed, engagement, meetsEngagementThreshold]);
+  }, [
+    trigger,
+    status.canShowInstallPrompt,
+    isDismissed,
+    engagement,
+    meetsEngagementThreshold,
+  ]);
 
   // Track engagement metrics
   useEffect(() => {
     const handleRouteChange = () => {
       const path = window.location.pathname;
-      
-      if (path.includes('/inspection/complete')) {
-        setEngagement(prev => ({
+
+      if (path.includes("/inspection/complete")) {
+        setEngagement((prev) => ({
           ...prev,
-          inspectionsCompleted: prev.inspectionsCompleted + 1
+          inspectionsCompleted: prev.inspectionsCompleted + 1,
         }));
       }
-      
-      if (path.includes('/photo')) {
-        setEngagement(prev => ({
+
+      if (path.includes("/photo")) {
+        setEngagement((prev) => ({
           ...prev,
-          photosCapturePage: prev.photosCapturePage + 1
+          photosCapturePage: prev.photosCapturePage + 1,
         }));
       }
     };
 
     const handleOfflineUsage = () => {
       if (!navigator.onLine) {
-        setEngagement(prev => ({
+        setEngagement((prev) => ({
           ...prev,
-          offlineUsage: prev.offlineUsage + 1
+          offlineUsage: prev.offlineUsage + 1,
         }));
       }
     };
 
     // Track return visits
-    const visitCount = parseInt(localStorage.getItem('str_return_visits') || '0') + 1;
-    localStorage.setItem('str_return_visits', visitCount.toString());
-    
-    window.addEventListener('popstate', handleRouteChange);
-    window.addEventListener('offline', handleOfflineUsage);
+    const visitCount =
+      parseInt(localStorage.getItem("str_return_visits") || "0") + 1;
+    localStorage.setItem("str_return_visits", visitCount.toString());
+
+    window.addEventListener("popstate", handleRouteChange);
+    window.addEventListener("offline", handleOfflineUsage);
 
     return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-      window.removeEventListener('offline', handleOfflineUsage);
+      window.removeEventListener("popstate", handleRouteChange);
+      window.removeEventListener("offline", handleOfflineUsage);
     };
   }, []);
 
   // Handle install action
   const handleInstall = async () => {
     setIsInstalling(true);
-    
+
     try {
       const success = await actions.showInstallPrompt();
-      
+
       if (success) {
         setShowPrompt(false);
         onInstall?.();
@@ -169,7 +190,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
         setShowPrompt(true); // Keep prompt open to show instructions
       }
     } catch (error) {
-      console.error('Install failed:', error);
+      console.error("Install failed:", error);
     } finally {
       setIsInstalling(false);
     }
@@ -180,16 +201,17 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
     setShowPrompt(false);
     setIsDismissed(true);
     onDismiss?.();
-    
+
     // Don't show again for 24 hours
-    localStorage.setItem('str_install_prompt_dismissed', Date.now().toString());
+    localStorage.setItem("str_install_prompt_dismissed", Date.now().toString());
   };
 
   // Check if was recently dismissed
   useEffect(() => {
-    const dismissedTime = localStorage.getItem('str_install_prompt_dismissed');
+    const dismissedTime = localStorage.getItem("str_install_prompt_dismissed");
     if (dismissedTime) {
-      const hoursSinceDismissal = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
+      const hoursSinceDismissal =
+        (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
       if (hoursSinceDismissal < 24) {
         setIsDismissed(true);
       }
@@ -202,44 +224,47 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
   const benefits = [
     {
       icon: <Wifi className="h-5 w-5 text-blue-600" />,
-      title: 'Work Offline',
-      description: 'Complete inspections without internet connection'
+      title: "Work Offline",
+      description: "Complete inspections without internet connection",
     },
     {
       icon: <Battery className="h-5 w-5 text-green-600" />,
-      title: 'Save Battery',
-      description: 'Optimized for all-day use on construction sites'
+      title: "Save Battery",
+      description: "Optimized for all-day use on construction sites",
     },
     {
       icon: <Camera className="h-5 w-5 text-purple-600" />,
-      title: 'Better Camera',
-      description: 'Enhanced photo capture for better quality images'
+      title: "Better Camera",
+      description: "Enhanced photo capture for better quality images",
     },
     {
       icon: <Clock className="h-5 w-5 text-orange-600" />,
-      title: 'Faster Access',
-      description: 'Launch instantly from your home screen'
-    }
+      title: "Faster Access",
+      description: "Launch instantly from your home screen",
+    },
   ];
 
   // iOS Safari instructions
   const iosInstructions = [
-    'Tap the Share button at the bottom of the screen',
+    "Tap the Share button at the bottom of the screen",
     'Scroll and tap "Add to Home Screen"',
     'Tap "Add" to install the app',
-    'Find the app on your home screen'
+    "Find the app on your home screen",
   ];
 
   // Modal variant
-  if (variant === 'modal') {
+  if (variant === "modal") {
     return (
-      <div id="install-prompt-overlay" className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50" 
+      <div
+        id="install-prompt-overlay"
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      >
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50"
           onClick={handleDismiss}
         />
-        
-        <div 
+
+        <div
           id={id}
           className={`relative bg-white rounded-t-lg sm:rounded-lg p-6 w-full max-w-md mx-4 mb-0 sm:mb-4 ${className}`}
         >
@@ -257,13 +282,14 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
               <Smartphone className="h-8 w-8 text-blue-600" />
             </div>
-            
+
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               Install STR Certified
             </h2>
-            
+
             <p className="text-gray-600 text-sm">
-              Get the full app experience with offline capabilities perfect for construction sites
+              Get the full app experience with offline capabilities perfect for
+              construction sites
             </p>
           </div>
 
@@ -271,13 +297,19 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
           {showBenefits && (
             <div id="install-benefits" className="space-y-3 mb-6">
               {benefits.map((benefit, index) => (
-                <div key={index} id={`benefit-${index}`} className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    {benefit.icon}
-                  </div>
+                <div
+                  key={index}
+                  id={`benefit-${index}`}
+                  className="flex items-start gap-3"
+                >
+                  <div className="mt-0.5">{benefit.icon}</div>
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{benefit.title}</h3>
-                    <p className="text-xs text-gray-600">{benefit.description}</p>
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-xs text-gray-600">
+                      {benefit.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -286,7 +318,10 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
 
           {/* iOS Safari Instructions */}
           {isIOSSafari() && (
-            <div id="ios-install-instructions" className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div
+              id="ios-install-instructions"
+              className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
+            >
               <h3 className="text-sm font-semibold text-blue-900 mb-2">
                 How to Install on iOS:
               </h3>
@@ -310,7 +345,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
             >
               Maybe Later
             </button>
-            
+
             <button
               id="install-action-button"
               onClick={handleInstall}
@@ -325,7 +360,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
               ) : (
                 <>
                   <Download className="h-4 w-4" />
-                  {isIOSSafari() ? 'Follow Steps Above' : 'Install App'}
+                  {isIOSSafari() ? "Follow Steps Above" : "Install App"}
                 </>
               )}
             </button>
@@ -336,18 +371,20 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
   }
 
   // Banner variant
-  if (variant === 'banner') {
+  if (variant === "banner") {
     return (
-      <div 
+      <div
         id={id}
         className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 ${className}`}
       >
         <div id="install-banner-content" className="flex items-center gap-4">
           <Smartphone className="h-6 w-6 flex-shrink-0" />
-          
+
           <div id="install-banner-text" className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm">Install STR Certified</h3>
-            <p className="text-xs text-blue-100">Work offline, save battery, faster access</p>
+            <p className="text-xs text-blue-100">
+              Work offline, save battery, faster access
+            </p>
           </div>
 
           <div id="install-banner-actions" className="flex gap-2">
@@ -358,14 +395,14 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
             >
               Later
             </button>
-            
+
             <button
               id="banner-install-button"
               onClick={handleInstall}
               disabled={isInstalling}
               className="bg-white text-blue-700 text-xs font-medium px-3 py-1 rounded-md hover:bg-blue-50 disabled:opacity-50 transition-colors"
             >
-              {isInstalling ? 'Installing...' : 'Install'}
+              {isInstalling ? "Installing..." : "Install"}
             </button>
           </div>
         </div>
@@ -375,7 +412,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
 
   // Card variant - embedded within content
   return (
-    <div 
+    <div
       id={id}
       className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm ${className}`}
     >
@@ -383,15 +420,16 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
         <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0">
           <Smartphone className="h-5 w-5 text-blue-600" />
         </div>
-        
+
         <div id="install-card-text" className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 text-sm mb-1">
             Install STR Certified App
           </h3>
           <p className="text-xs text-gray-600 mb-3">
-            Get offline access, better performance, and instant launching for your inspections.
+            Get offline access, better performance, and instant launching for
+            your inspections.
           </p>
-          
+
           <div id="install-card-actions" className="flex gap-2">
             <button
               id="card-install-button"
@@ -411,7 +449,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
                 </>
               )}
             </button>
-            
+
             <button
               id="card-dismiss-button"
               onClick={handleDismiss}

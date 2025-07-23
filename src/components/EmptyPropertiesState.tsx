@@ -17,9 +17,12 @@ export const EmptyPropertiesState: React.FC = () => {
     <Card id="empty-properties-state" className="bg-gray-50 border-gray-200">
       <CardContent className="p-8 text-center">
         <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Properties Found</h3>
+        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          No Properties Found
+        </h3>
         <p className="text-gray-500 mb-6 max-w-md mx-auto">
-          You don't have any properties yet. Add your first property to get started with inspections.
+          You don't have any properties yet. Add your first property to get
+          started with inspections.
         </p>
         <Button onClick={handleAddProperty} className="flex items-center gap-2">
           <Plus className="w-4 h-4" />

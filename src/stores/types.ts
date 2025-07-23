@@ -1,16 +1,16 @@
 /**
  * PROFESSIONAL ZUSTAND STORE TYPE DEFINITIONS
- * 
+ *
  * World-class TypeScript types for centralized state management.
  * NO amateur any types, NO optional chaos, ONLY bulletproof interfaces.
- * 
+ *
  * Architecture principles:
  * - Single source of truth
  * - Immutable state patterns
  * - Professional error handling
  * - Type-safe throughout
  * - Performance optimized
- * 
+ *
  * @example
  * ```typescript
  * const useAppStore = create<AppStore>()((set, get) => ({
@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { User } from '@supabase/supabase-js';
+import type { User } from "@supabase/supabase-js";
 
 /**
  * Authentication State - Replaces amateur useState sprawl
@@ -30,7 +30,7 @@ export interface AuthState {
   user: User | null;
   error: string | null;
   sessionExpiresAt: Date | null;
-  role: 'inspector' | 'auditor' | 'admin' | null;
+  role: "inspector" | "auditor" | "admin" | null;
 }
 
 /**
@@ -41,7 +41,7 @@ export interface Property {
   property_id: number;
   property_name: string;
   street_address: string;
-  type: 'single_family' | 'apartment' | 'condo' | 'townhouse';
+  type: "single_family" | "apartment" | "condo" | "townhouse";
   bedrooms: number;
   bathrooms: number;
   sqft: number;
@@ -60,33 +60,33 @@ export interface InspectionWorkflowState {
   currentStep: number;
   totalSteps: number;
   isComplete: boolean;
-  
+
   // Selected property
   selectedProperty: Property | null;
-  
+
   // Generated checklist
   checklist: ChecklistItem[] | null;
   checklistGenerated: boolean;
   estimatedTimeMinutes: number;
-  
+
   // Current inspection session
   inspectionId: string | null;
   startTime: Date | null;
-  
+
   // Photo capture progress
   photosRequired: number;
   photosCompleted: number;
   photosCaptured: MediaItem[];
-  
+
   // Video recording state
   isRecording: boolean;
   videoRecorded: MediaItem | null;
-  
+
   // Upload/sync progress
   syncProgress: number;
   isSyncing: boolean;
   lastSyncTime: Date | null;
-  
+
   // Error state
   error: string | null;
   retryCount: number;
@@ -102,9 +102,9 @@ export interface ChecklistItem {
   description: string;
   category: string;
   required: boolean;
-  evidence_type: 'photo' | 'video' | 'none';
+  evidence_type: "photo" | "video" | "none";
   gpt_prompt?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'not_applicable';
+  status: "pending" | "in_progress" | "completed" | "failed" | "not_applicable";
   inspector_notes?: string;
   ai_result?: string;
   confidence_score?: number;
@@ -117,10 +117,10 @@ export interface ChecklistItem {
  */
 export interface MediaItem {
   id: string;
-  type: 'photo' | 'video';
+  type: "photo" | "video";
   file: File;
   blob_url: string;
-  upload_status: 'pending' | 'uploading' | 'completed' | 'failed';
+  upload_status: "pending" | "uploading" | "completed" | "failed";
   upload_progress: number;
   upload_error?: string;
   supabase_path?: string;
@@ -146,7 +146,7 @@ export interface OfflineState {
 
 export interface SyncQueueItem {
   id: string;
-  type: 'inspection' | 'checklist_item' | 'media_upload';
+  type: "inspection" | "checklist_item" | "media_upload";
   data: unknown;
   created_at: Date;
   retries: number;
@@ -166,7 +166,7 @@ export interface FormState {
 
 export interface FormInstance {
   id: string;
-  type: 'bug_report' | 'property_form' | 'inspection_notes';
+  type: "bug_report" | "property_form" | "inspection_notes";
   data: Record<string, unknown>;
   errors: Record<string, string>;
   isSubmitting: boolean;
@@ -181,14 +181,14 @@ export interface UIState {
   sidebarOpen: boolean;
   activeModal: string | null;
   notifications: Notification[];
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   isMobile: boolean;
   currentRoute: string;
 }
 
 export interface Notification {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   title: string;
   message: string;
   duration?: number;
@@ -199,7 +199,7 @@ export interface Notification {
 export interface NotificationAction {
   label: string;
   action: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
 }
 
 /**
@@ -219,29 +219,29 @@ export interface InspectionActions {
   nextStep: () => void;
   previousStep: () => void;
   resetWorkflow: () => void;
-  
+
   // Property selection
   selectProperty: (property: Property) => void;
-  
+
   // Checklist management
   setChecklist: (items: ChecklistItem[]) => void;
   updateChecklistItem: (id: string, updates: Partial<ChecklistItem>) => void;
   completeChecklistItem: (id: string, notes?: string) => void;
-  
+
   // Media management
   addMedia: (media: MediaItem) => void;
   updateMediaUpload: (id: string, progress: number) => void;
   completeMediaUpload: (id: string, url: string) => void;
   failMediaUpload: (id: string, error: string) => void;
-  
+
   // Inspection session
   startInspection: (propertyId: string) => Promise<string>;
   completeInspection: () => Promise<void>;
-  
+
   // Video recording
   startRecording: () => void;
   stopRecording: (videoFile: File) => void;
-  
+
   // Sync operations
   syncToServer: () => Promise<void>;
   setError: (error: string | null) => void;
@@ -249,7 +249,9 @@ export interface InspectionActions {
 
 export interface OfflineActions {
   setOnlineStatus: (isOnline: boolean) => void;
-  addToSyncQueue: (item: Omit<SyncQueueItem, 'id' | 'created_at' | 'retries'>) => void;
+  addToSyncQueue: (
+    item: Omit<SyncQueueItem, "id" | "created_at" | "retries">,
+  ) => void;
   processSyncQueue: () => Promise<void>;
   clearSyncQueue: () => void;
   retryFailedSync: (itemId: string) => Promise<void>;
@@ -260,9 +262,11 @@ export interface UIActions {
   toggleSidebar: () => void;
   openModal: (modalId: string) => void;
   closeModal: () => void;
-  addNotification: (notification: Omit<Notification, 'id' | 'created_at'>) => void;
+  addNotification: (
+    notification: Omit<Notification, "id" | "created_at">,
+  ) => void;
   removeNotification: (id: string) => void;
-  setTheme: (theme: UIState['theme']) => void;
+  setTheme: (theme: UIState["theme"]) => void;
   setIsMobile: (isMobile: boolean) => void;
   setCurrentRoute: (route: string) => void;
 }
@@ -274,7 +278,9 @@ export interface AppStore extends AuthState, AuthActions {
   // Core application state
 }
 
-export interface InspectionStore extends InspectionWorkflowState, InspectionActions {
+export interface InspectionStore
+  extends InspectionWorkflowState,
+    InspectionActions {
   // Inspection workflow state
 }
 
@@ -293,7 +299,10 @@ export interface StorePersistConfig {
   name: string;
   version: number;
   partialize?: (state: Record<string, unknown>) => Record<string, unknown>;
-  migrate?: (persistedState: Record<string, unknown>, version: number) => Record<string, unknown>;
+  migrate?: (
+    persistedState: Record<string, unknown>,
+    version: number,
+  ) => Record<string, unknown>;
 }
 
 /**

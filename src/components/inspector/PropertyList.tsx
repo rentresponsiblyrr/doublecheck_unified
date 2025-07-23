@@ -1,22 +1,22 @@
 /**
  * Property List - Focused Component
- * 
+ *
  * Displays list of properties with selection functionality
  * and proper accessibility support
  */
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { 
-  MapPin, 
-  Home, 
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+  MapPin,
+  Home,
   ExternalLink,
   CheckCircle,
-  ArrowRight
-} from 'lucide-react';
-import type { Property } from './PropertySelectionStep';
+  ArrowRight,
+} from "lucide-react";
+import type { Property } from "./PropertySelectionStep";
 
 interface PropertyListProps {
   properties: Property[];
@@ -29,18 +29,18 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   properties,
   selectedProperty,
   isSelecting,
-  onPropertySelect
+  onPropertySelect,
 }) => {
   const getPropertyTypeColor = (type?: string) => {
     switch (type?.toLowerCase()) {
-      case 'apartment':
-        return 'bg-blue-100 text-blue-800';
-      case 'house':
-        return 'bg-green-100 text-green-800';
-      case 'condo':
-        return 'bg-purple-100 text-purple-800';
+      case "apartment":
+        return "bg-blue-100 text-blue-800";
+      case "house":
+        return "bg-green-100 text-green-800";
+      case "condo":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -58,19 +58,19 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     <ScrollArea className="h-96 w-full" id="property-list">
       <div className="space-y-3">
         {properties.map((property) => (
-          <Card 
-            key={property.id} 
+          <Card
+            key={property.id}
             className={`cursor-pointer transition-all hover:shadow-md ${
-              selectedProperty?.id === property.id 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'hover:border-gray-300'
-            } ${isSelecting ? 'pointer-events-none opacity-60' : ''}`}
+              selectedProperty?.id === property.id
+                ? "border-blue-500 bg-blue-50"
+                : "hover:border-gray-300"
+            } ${isSelecting ? "pointer-events-none opacity-60" : ""}`}
             onClick={() => !isSelecting && onPropertySelect(property)}
             role="button"
             tabIndex={0}
             aria-label={`Select property ${property.property_name}`}
             onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && !isSelecting) {
+              if ((e.key === "Enter" || e.key === " ") && !isSelecting) {
                 e.preventDefault();
                 onPropertySelect(property);
               }
@@ -84,10 +84,10 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                       {property.property_name}
                     </h4>
                     <Badge className={getPropertyTypeColor(property.type)}>
-                      {property.type || 'rental'}
+                      {property.type || "rental"}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
                     <MapPin className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">{property.street_address}</span>

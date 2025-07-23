@@ -1,16 +1,16 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Video } from 'lucide-react';
-import { VideoPreview } from './video/VideoPreview';
-import { VideoControls } from './video/VideoControls';
-import { useVideoRecording } from './video/useVideoRecording';
-import { VideoRecordingStepProps } from './video/types';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Video } from "lucide-react";
+import { VideoPreview } from "./video/VideoPreview";
+import { VideoControls } from "./video/VideoControls";
+import { useVideoRecording } from "./video/useVideoRecording";
+import { VideoRecordingStepProps } from "./video/types";
 
 export const VideoRecordingStep: React.FC<VideoRecordingStepProps> = ({
   onVideoRecorded,
   recordedVideo,
   onStepComplete,
-  className = ''
+  className = "",
 }) => {
   const {
     videoRef,
@@ -19,7 +19,7 @@ export const VideoRecordingStep: React.FC<VideoRecordingStepProps> = ({
     startRecording,
     pauseResumeRecording,
     stopRecording,
-    resetRecording
+    resetRecording,
   } = useVideoRecording(onVideoRecorded);
 
   const hasRecordedVideo = !!recordedVideo || !!recordingState.recordedVideoUrl;
@@ -59,13 +59,17 @@ export const VideoRecordingStep: React.FC<VideoRecordingStepProps> = ({
         {recordingState.duration > 0 && (
           <div className="text-center">
             <div className="w-full bg-gray-200 rounded-full h-1">
-              <div 
+              <div
                 className="bg-blue-600 h-1 rounded-full transition-all duration-1000"
-                style={{ width: `${Math.min((recordingState.duration / 300) * 100, 100)}%` }}
+                style={{
+                  width: `${Math.min((recordingState.duration / 300) * 100, 100)}%`,
+                }}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Recommended: 3-5 minutes ({Math.floor(recordingState.duration / 60)}:{(recordingState.duration % 60).toString().padStart(2, '0')})
+              Recommended: 3-5 minutes (
+              {Math.floor(recordingState.duration / 60)}:
+              {(recordingState.duration % 60).toString().padStart(2, "0")})
             </p>
           </div>
         )}

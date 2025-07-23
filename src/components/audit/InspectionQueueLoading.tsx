@@ -1,11 +1,17 @@
 /**
  * Inspection Queue Loading - Focused Component
- * 
+ *
  * Displays loading state for inspection queue
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export const InspectionQueueLoading: React.FC = () => {
   return (

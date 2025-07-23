@@ -1,9 +1,9 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MapPin, Flag, Info } from 'lucide-react';
-import { VideoTimestamp } from './types';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MapPin, Flag, Info } from "lucide-react";
+import { VideoTimestamp } from "./types";
 
 interface VideoTimestampsProps {
   timestamps: VideoTimestamp[];
@@ -14,27 +14,33 @@ interface VideoTimestampsProps {
 export const VideoTimestamps: React.FC<VideoTimestampsProps> = ({
   timestamps,
   currentTime,
-  onTimestampClick
+  onTimestampClick,
 }) => {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getCategoryIcon = (category: VideoTimestamp['category']) => {
+  const getCategoryIcon = (category: VideoTimestamp["category"]) => {
     switch (category) {
-      case 'issue': return <Flag className="w-4 h-4 text-red-500" />;
-      case 'note': return <Info className="w-4 h-4 text-blue-500" />;
-      case 'highlight': return <MapPin className="w-4 h-4 text-green-500" />;
+      case "issue":
+        return <Flag className="w-4 h-4 text-red-500" />;
+      case "note":
+        return <Info className="w-4 h-4 text-blue-500" />;
+      case "highlight":
+        return <MapPin className="w-4 h-4 text-green-500" />;
     }
   };
 
-  const getCategoryColor = (category: VideoTimestamp['category']): string => {
+  const getCategoryColor = (category: VideoTimestamp["category"]): string => {
     switch (category) {
-      case 'issue': return 'border-red-200 bg-red-50';
-      case 'note': return 'border-blue-200 bg-blue-50';
-      case 'highlight': return 'border-green-200 bg-green-50';
+      case "issue":
+        return "border-red-200 bg-red-50";
+      case "note":
+        return "border-blue-200 bg-blue-50";
+      case "highlight":
+        return "border-green-200 bg-green-50";
     }
   };
 
@@ -45,18 +51,18 @@ export const VideoTimestamps: React.FC<VideoTimestampsProps> = ({
   return (
     <div id="video-timestamps" className="space-y-4">
       <h3 className="font-medium text-gray-900">Inspection Timeline</h3>
-      
+
       <ScrollArea className="h-[300px]">
         <div className="space-y-2">
           {timestamps.map((timestamp, index) => (
             <div
               key={index}
-              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                getCategoryColor(timestamp.category)
-              } ${
-                isNearCurrentTime(timestamp.time) 
-                  ? 'ring-2 ring-blue-500 ring-opacity-50' 
-                  : ''
+              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${getCategoryColor(
+                timestamp.category,
+              )} ${
+                isNearCurrentTime(timestamp.time)
+                  ? "ring-2 ring-blue-500 ring-opacity-50"
+                  : ""
               }`}
               onClick={() => onTimestampClick(timestamp)}
             >
@@ -73,7 +79,7 @@ export const VideoTimestamps: React.FC<VideoTimestampsProps> = ({
                   </Badge>
                 )}
               </div>
-              
+
               <p className="text-sm text-gray-700 leading-relaxed">
                 {timestamp.description}
               </p>

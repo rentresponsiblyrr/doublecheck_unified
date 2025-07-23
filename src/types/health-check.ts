@@ -5,14 +5,14 @@
 
 export interface HealthCheckResult {
   name: string;
-  status: 'pass' | 'fail' | 'warning' | 'running';
+  status: "pass" | "fail" | "warning" | "running";
   message: string;
   details?: string;
   error?: string;
 }
 
 export interface HealthCheckReport {
-  overall: 'healthy' | 'degraded' | 'critical';
+  overall: "healthy" | "degraded" | "critical";
   passedChecks: number;
   totalChecks: number;
   categories: {

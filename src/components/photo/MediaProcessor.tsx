@@ -1,12 +1,12 @@
 /**
  * Media Processor - Enterprise Grade
- * 
+ *
  * Handles image processing and optimization
  */
 
-import React, { useEffect } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Image } from 'lucide-react';
+import React, { useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Image } from "lucide-react";
 
 interface MediaProcessorProps {
   file: File;
@@ -17,23 +17,29 @@ interface MediaProcessorProps {
 export const MediaProcessor: React.FC<MediaProcessorProps> = ({
   file,
   onFileProcessed,
-  onProcessingError
+  onProcessingError,
 }) => {
   useEffect(() => {
     const processFile = async () => {
       try {
         // Mock processing delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         // In real implementation would compress/optimize the image
-        const processedFile = new File([file], file.name.replace('.jpg', '_processed.jpg'), {
-          type: file.type,
-          lastModified: Date.now()
-        });
-        
+        const processedFile = new File(
+          [file],
+          file.name.replace(".jpg", "_processed.jpg"),
+          {
+            type: file.type,
+            lastModified: Date.now(),
+          },
+        );
+
         await onFileProcessed(processedFile);
       } catch (error) {
-        onProcessingError(error instanceof Error ? error : new Error('Processing failed'));
+        onProcessingError(
+          error instanceof Error ? error : new Error("Processing failed"),
+        );
       }
     };
 

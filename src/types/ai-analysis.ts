@@ -6,7 +6,7 @@
 export interface AIAnalysisResult {
   id: string;
   confidence: number; // 0-1
-  classification: 'pass' | 'fail' | 'review' | 'pending';
+  classification: "pass" | "fail" | "review" | "pending";
   reasoning: string;
   suggestions?: string[];
   processingTime: number; // milliseconds
@@ -42,15 +42,15 @@ export interface DetectedObject {
 }
 
 export interface PhotoIssue {
-  type: 'blur' | 'lighting' | 'composition' | 'obstruction' | 'quality';
-  severity: 'low' | 'medium' | 'high';
+  type: "blur" | "lighting" | "composition" | "obstruction" | "quality";
+  severity: "low" | "medium" | "high";
   description: string;
   suggestedFix?: string;
 }
 
 export interface ComplianceCheck {
   requirement: string;
-  status: 'passed' | 'failed' | 'warning';
+  status: "passed" | "failed" | "warning";
   details: string;
   relevantRegulations?: string[];
 }
@@ -85,6 +85,6 @@ export interface AudioQuality {
 export interface MotionAnalysis {
   steadiness: number; // 0-1
   coverage: number; // 0-1 how much of property was covered
-  pacing: 'too_fast' | 'appropriate' | 'too_slow';
+  pacing: "too_fast" | "appropriate" | "too_slow";
   recommendations?: string[];
 }

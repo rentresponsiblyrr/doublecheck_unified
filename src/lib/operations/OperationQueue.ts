@@ -1,27 +1,27 @@
 /**
  * OPERATION QUEUE - RACE CONDITION ELIMINATION
- * 
+ *
  * Prevents race conditions in CRUD operations by queueing operations
  * and processing them sequentially. This ensures data integrity and
  * eliminates concurrent modification issues.
- * 
+ *
  * FEATURES:
  * - Sequential operation processing
  * - Automatic retry with exponential backoff
  * - Operation prioritization
  * - Dead letter queue for failed operations
  * - Performance monitoring and metrics
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface QueuedOperation<T = any> {
   id: string;
   operation: () => Promise<T>;
-  priority: 'high' | 'normal' | 'low';
+  priority: "high" | "normal" | "low";
   retryCount: number;
   maxRetries: number;
   timeout: number;
@@ -48,9 +48,13 @@ export class OperationQueue {
     failedOperations: 0,
     avgProcessingTime: 0,
     queueLength: 0,
-    isProcessing: false
+    isProcessing: false,
   };
-  private deadLetterQueue: Array<{ operation: QueuedOperation; error: Error; failedAt: number }> = [];
+  private deadLetterQueue: Array<{
+    operation: QueuedOperation;
+    error: Error;
+    failedAt: number;
+  }> = [];
   private readonly maxQueueSize = 1000;
   private readonly maxDeadLetterSize = 100;
 
@@ -60,27 +64,27 @@ export class OperationQueue {
   async add<T>(
     operation: () => Promise<T>,
     options: {
-      priority?: 'high' | 'normal' | 'low';
+      priority?: "high" | "normal" | "low";
       timeout?: number;
       maxRetries?: number;
       metadata?: Record<string, unknown>;
-    } = {}
+    } = {},
   ): Promise<T> {
     if (this.queue.length >= this.maxQueueSize) {
-      throw new Error('Operation queue is full. Please try again later.');
+      throw new Error("Operation queue is full. Please try again later.");
     }
 
     return new Promise<T>((resolve, reject) => {
       const queuedOp: QueuedOperation<T> = {
         id: `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         operation,
-        priority: options.priority || 'normal',
+        priority: options.priority || "normal",
         retryCount: 0,
         maxRetries: options.maxRetries || 3,
         timeout: options.timeout || 30000,
         onSuccess: resolve,
         onError: reject,
-        metadata: options.metadata || {}
+        metadata: options.metadata || {},
       };
 
       // Insert with priority ordering
@@ -88,10 +92,10 @@ export class OperationQueue {
       this.metrics.totalOperations++;
       this.metrics.queueLength = this.queue.length;
 
-      logger.debug('Operation queued', {
+      logger.debug("Operation queued", {
         operationId: queuedOp.id,
         priority: queuedOp.priority,
-        queueLength: this.queue.length
+        queueLength: this.queue.length,
       });
 
       // Start processing if not already processing
@@ -107,7 +111,7 @@ export class OperationQueue {
   private insertWithPriority(operation: QueuedOperation): void {
     const priorityOrder = { high: 0, normal: 1, low: 2 };
     const insertIndex = this.queue.findIndex(
-      op => priorityOrder[op.priority] > priorityOrder[operation.priority]
+      (op) => priorityOrder[op.priority] > priorityOrder[operation.priority],
     );
 
     if (insertIndex === -1) {
@@ -133,7 +137,7 @@ export class OperationQueue {
         this.metrics.queueLength = this.queue.length;
       }
     } catch (error) {
-      logger.error('Queue processing failed', { error });
+      logger.error("Queue processing failed", { error });
     } finally {
       this.processing = false;
       this.metrics.isProcessing = false;
@@ -149,64 +153,69 @@ export class OperationQueue {
     try {
       // Create timeout promise
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Operation timeout after ${operation.timeout}ms`)), operation.timeout)
+        setTimeout(
+          () =>
+            reject(new Error(`Operation timeout after ${operation.timeout}ms`)),
+          operation.timeout,
+        ),
       );
 
       // Race operation against timeout
       const result = await Promise.race([
         operation.operation(),
-        timeoutPromise
+        timeoutPromise,
       ]);
 
       // Operation succeeded
       const duration = Date.now() - startTime;
       this.updateMetrics(duration, true);
-      
+
       if (operation.onSuccess) {
         operation.onSuccess(result);
       }
 
-      logger.debug('Operation completed successfully', {
+      logger.debug("Operation completed successfully", {
         operationId: operation.id,
         duration,
-        retryCount: operation.retryCount
+        retryCount: operation.retryCount,
       });
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const err = error as Error;
 
-      logger.warn('Operation failed', {
+      logger.warn("Operation failed", {
         operationId: operation.id,
         error: err.message,
         retryCount: operation.retryCount,
         maxRetries: operation.maxRetries,
-        duration
+        duration,
       });
 
       // Retry logic
       if (operation.retryCount < operation.maxRetries) {
         operation.retryCount++;
-        
+
         // Exponential backoff
-        const backoffDelay = Math.min(1000 * Math.pow(2, operation.retryCount), 10000);
-        
+        const backoffDelay = Math.min(
+          1000 * Math.pow(2, operation.retryCount),
+          10000,
+        );
+
         setTimeout(() => {
           this.insertWithPriority(operation);
           this.metrics.queueLength = this.queue.length;
-          
+
           // Continue processing if queue stopped
           if (!this.processing) {
             this.processQueue();
           }
         }, backoffDelay);
 
-        logger.info('Operation scheduled for retry', {
+        logger.info("Operation scheduled for retry", {
           operationId: operation.id,
           retryCount: operation.retryCount,
-          backoffDelay
+          backoffDelay,
         });
-
       } else {
         // Max retries exceeded - move to dead letter queue
         this.moveToDeadLetter(operation, err);
@@ -231,13 +240,13 @@ export class OperationQueue {
     this.deadLetterQueue.push({
       operation,
       error,
-      failedAt: Date.now()
+      failedAt: Date.now(),
     });
 
-    logger.error('Operation moved to dead letter queue', {
+    logger.error("Operation moved to dead letter queue", {
       operationId: operation.id,
       error: error.message,
-      metadata: operation.metadata
+      metadata: operation.metadata,
     });
   }
 
@@ -254,10 +263,11 @@ export class OperationQueue {
     // Update average processing time
     const totalCompleted = this.metrics.completedOperations;
     const currentAvg = this.metrics.avgProcessingTime;
-    
-    this.metrics.avgProcessingTime = totalCompleted === 1 
-      ? duration 
-      : (currentAvg * (totalCompleted - 1) + duration) / totalCompleted;
+
+    this.metrics.avgProcessingTime =
+      totalCompleted === 1
+        ? duration
+        : (currentAvg * (totalCompleted - 1) + duration) / totalCompleted;
   }
 
   /**
@@ -270,7 +280,11 @@ export class OperationQueue {
   /**
    * Get dead letter queue for analysis
    */
-  getDeadLetterQueue(): Array<{ operation: QueuedOperation; error: Error; failedAt: number }> {
+  getDeadLetterQueue(): Array<{
+    operation: QueuedOperation;
+    error: Error;
+    failedAt: number;
+  }> {
     return [...this.deadLetterQueue];
   }
 
@@ -317,18 +331,20 @@ export class OperationQueue {
    */
   clear(): void {
     const cancelledOps = this.queue.length;
-    
+
     // Reject all pending operations
-    this.queue.forEach(op => {
+    this.queue.forEach((op) => {
       if (op.onError) {
-        op.onError(new Error('Operation cancelled - queue cleared'));
+        op.onError(new Error("Operation cancelled - queue cleared"));
       }
     });
-    
+
     this.queue = [];
     this.metrics.queueLength = 0;
 
-    logger.info('Operation queue cleared', { cancelledOperations: cancelledOps });
+    logger.info("Operation queue cleared", {
+      cancelledOperations: cancelledOps,
+    });
   }
 
   /**

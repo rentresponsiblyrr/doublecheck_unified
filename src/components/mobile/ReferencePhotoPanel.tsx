@@ -1,17 +1,13 @@
 /**
  * Reference Photo Panel - Focused Component
- * 
+ *
  * Displays reference photo controls with overlay opacity management
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { 
-  ChevronUp,
-  ChevronDown,
-  Maximize2
-} from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ChevronUp, ChevronDown, Maximize2 } from "lucide-react";
 
 interface ReferencePhotoPanelProps {
   referencePhotoUrl: string;
@@ -30,7 +26,7 @@ export const ReferencePhotoPanel: React.FC<ReferencePhotoPanelProps> = ({
   referenceOpacity,
   onReferenceOpacityChange,
   expandedView,
-  onToggleExpanded
+  onToggleExpanded,
 }) => {
   return (
     <Card className="p-4" id="reference-photo-panel">
@@ -41,9 +37,11 @@ export const ReferencePhotoPanel: React.FC<ReferencePhotoPanelProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onToggleReference(!showReference)}
-            aria-label={showReference ? 'Hide reference photo' : 'Show reference photo'}
+            aria-label={
+              showReference ? "Hide reference photo" : "Show reference photo"
+            }
           >
-            {showReference ? 'Hide' : 'Show'}
+            {showReference ? "Hide" : "Show"}
           </Button>
           <Button
             variant="ghost"
@@ -66,7 +64,9 @@ export const ReferencePhotoPanel: React.FC<ReferencePhotoPanelProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onReferenceOpacityChange(Math.max(0, referenceOpacity - 10))}
+              onClick={() =>
+                onReferenceOpacityChange(Math.max(0, referenceOpacity - 10))
+              }
               aria-label="Decrease opacity"
             >
               <ChevronDown className="w-4 h-4" />
@@ -80,7 +80,9 @@ export const ReferencePhotoPanel: React.FC<ReferencePhotoPanelProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onReferenceOpacityChange(Math.min(100, referenceOpacity + 10))}
+              onClick={() =>
+                onReferenceOpacityChange(Math.min(100, referenceOpacity + 10))
+              }
               aria-label="Increase opacity"
             >
               <ChevronUp className="w-4 h-4" />

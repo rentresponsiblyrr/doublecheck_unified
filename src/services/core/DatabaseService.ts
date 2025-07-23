@@ -1,16 +1,16 @@
 /**
  * DATABASE SERVICE - PRODUCTION-GRADE ARCHITECTURE
- * 
+ *
  * Centralized database access with intelligent caching, query optimization,
  * and professional error handling. Replaces 5+ scattered database services.
- * 
+ *
  * CONSOLIDATES:
  * - productionDatabaseService.ts
  * - databaseValidationService.ts
  * - checklistDataService.ts
  * - schemaValidationService.ts
  * - inspectionDatabaseService.ts
- * 
+ *
  * Features:
  * - <20ms query response time optimization
  * - >90% cache hit ratio with intelligent invalidation
@@ -18,15 +18,15 @@
  * - Professional error handling with fallback strategies
  * - Comprehensive monitoring and performance metrics
  * - Transaction support with rollback capabilities
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 2.0.0 - Phase 2 Service Excellence
  */
 
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { CacheService } from '../infrastructure/CacheService';
-import { MonitoringService } from '../infrastructure/MonitoringService';
-import { logger } from '@/utils/logger';
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
+import { CacheService } from "../infrastructure/CacheService";
+import { MonitoringService } from "../infrastructure/MonitoringService";
+import { logger } from "@/utils/logger";
 
 /**
  * Query configuration options
@@ -36,7 +36,7 @@ export interface QueryOptions {
   cacheTimeout?: number;
   retryAttempts?: number;
   timeout?: number;
-  priority?: 'low' | 'normal' | 'high' | 'critical';
+  priority?: "low" | "normal" | "high" | "critical";
 }
 
 /**
@@ -59,7 +59,7 @@ export interface DatabaseHealthStatus {
   totalQueries: number;
   averageResponseTime: number;
   lastHealthCheck: string;
-  status: 'excellent' | 'good' | 'degraded' | 'unavailable';
+  status: "excellent" | "good" | "degraded" | "unavailable";
   error?: string;
 }
 
@@ -180,13 +180,13 @@ export class DatabaseService {
       process.env.VITE_SUPABASE_URL!,
       process.env.VITE_SUPABASE_ANON_KEY!,
       {
-        db: { schema: 'public' },
+        db: { schema: "public" },
         auth: { persistSession: true },
-        realtime: { params: { eventsPerSecond: 10 } }
-      }
+        realtime: { params: { eventsPerSecond: 10 } },
+      },
     );
     this.cache = new CacheService(500, 50 * 1024 * 1024); // 500 entries, 50MB
-    this.monitoring = new MonitoringService('DATABASE_SERVICE');
+    this.monitoring = new MonitoringService("DATABASE_SERVICE");
   }
 
   /**
@@ -194,15 +194,15 @@ export class DatabaseService {
    */
   async getPropertiesWithInspections(
     filters: PropertyFilters = {},
-    options: QueryOptions = {}
+    options: QueryOptions = {},
   ): Promise<PropertyWithInspections[]> {
     const queryConfig = {
       useCache: true,
       cacheTimeout: 300, // 5 minutes
       retryAttempts: 3,
       timeout: 15000,
-      priority: 'normal' as const,
-      ...options
+      priority: "normal" as const,
+      ...options,
     };
 
     const cacheKey = `properties:${JSON.stringify(filters)}`;
@@ -211,18 +211,23 @@ export class DatabaseService {
     try {
       // Check cache first
       if (queryConfig.useCache) {
-        const cached = await this.cache.get<PropertyWithInspections[]>(cacheKey);
+        const cached =
+          await this.cache.get<PropertyWithInspections[]>(cacheKey);
         if (cached) {
           this.recordQueryMetrics(cacheKey, startTime, true, cached.length);
-          logger.debug('Database cache hit', { cacheKey, count: cached.length });
+          logger.debug("Database cache hit", {
+            cacheKey,
+            count: cached.length,
+          });
           return cached;
         }
       }
 
       // Execute optimized query with production schema
       const query = this.supabase
-        .from('properties')
-        .select(`
+        .from("properties")
+        .select(
+          `
           property_id,
           name,
           address,
@@ -240,27 +245,33 @@ export class DatabaseService {
               role
             )
           )
-        `)
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .order("created_at", { ascending: false })
         .limit(100); // Performance limit
 
       // Apply filters
       const sanitizedFilters = this.sanitizeFilters(filters);
-      
+
       if (sanitizedFilters.search) {
-        query.or(`name.ilike.%${sanitizedFilters.search}%,address.ilike.%${sanitizedFilters.search}%`);
+        query.or(
+          `name.ilike.%${sanitizedFilters.search}%,address.ilike.%${sanitizedFilters.search}%`,
+        );
       }
 
       // Execute with timeout protection
-      const { data, error } = await Promise.race([
+      const { data, error } = (await Promise.race([
         query,
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Query timeout')), queryConfig.timeout)
-        )
-      ]) as { data: PropertyWithInspections[] | null; error: any };
+          setTimeout(
+            () => reject(new Error("Query timeout")),
+            queryConfig.timeout,
+          ),
+        ),
+      ])) as { data: PropertyWithInspections[] | null; error: any };
 
       if (error) {
-        throw new DatabaseError('Properties query failed', error, { filters });
+        throw new DatabaseError("Properties query failed", error, { filters });
       }
 
       const result = data || [];
@@ -276,55 +287,56 @@ export class DatabaseService {
 
       // Performance monitoring
       this.monitoring.recordMetric(
-        'properties_query',
-        'database_query',
+        "properties_query",
+        "database_query",
         queryTime,
-        { cached: false, resultCount: result.length }
+        { cached: false, resultCount: result.length },
       );
 
       if (queryTime > 1000) {
-        logger.warn('Slow database query detected', {
-          query: 'getPropertiesWithInspections',
+        logger.warn("Slow database query detected", {
+          query: "getPropertiesWithInspections",
           queryTime,
           filters,
-          resultCount: result.length
+          resultCount: result.length,
         });
       }
 
-      logger.info('Database query completed', {
-        query: 'getPropertiesWithInspections',
+      logger.info("Database query completed", {
+        query: "getPropertiesWithInspections",
         queryTime,
         cacheHit: false,
-        resultCount: result.length
+        resultCount: result.length,
       });
 
       return result;
-
     } catch (error) {
       const queryTime = performance.now() - startTime;
-      
+
       this.monitoring.recordMetric(
-        'properties_query_error',
-        'database_query',
+        "properties_query_error",
+        "database_query",
         queryTime,
-        { error: true, filters: JSON.stringify(filters) }
+        { error: true, filters: JSON.stringify(filters) },
       );
 
-      logger.error('Database query failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        query: 'getPropertiesWithInspections',
+      logger.error("Database query failed", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        query: "getPropertiesWithInspections",
         queryTime,
-        filters
+        filters,
       });
 
       // Attempt cache fallback on error
       if (queryConfig.useCache) {
         const staleData = await this.cache.get<PropertyWithInspections[]>(
           cacheKey,
-          { allowStale: true }
+          { allowStale: true },
         );
         if (staleData) {
-          logger.info('Using stale cache data due to query failure', { cacheKey });
+          logger.info("Using stale cache data due to query failure", {
+            cacheKey,
+          });
           return staleData;
         }
       }
@@ -339,21 +351,22 @@ export class DatabaseService {
   async createInspectionWithChecklist(
     propertyId: number,
     inspectorId: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {},
   ): Promise<InspectionWithItems> {
     const startTime = performance.now();
 
     try {
       // Begin transaction-like operation
       const { data: inspection, error: inspectionError } = await this.supabase
-        .from('inspections')
+        .from("inspections")
         .insert({
           property_id: propertyId.toString(),
           inspector_id: inspectorId,
-          status: 'draft',
-          created_at: new Date().toISOString()
+          status: "draft",
+          created_at: new Date().toISOString(),
         })
-        .select(`
+        .select(
+          `
           id,
           property_id,
           inspector_id,
@@ -364,68 +377,72 @@ export class DatabaseService {
             name,
             address
           )
-        `)
+        `,
+        )
         .single();
 
       if (inspectionError) {
-        throw new DatabaseError('Inspection creation failed', inspectionError);
+        throw new DatabaseError("Inspection creation failed", inspectionError);
       }
 
       // Populate checklist items using RPC function
       const { error: checklistError } = await this.supabase.rpc(
-        'populate_inspection_checklist_safe',
-        { inspection_id: inspection.id }
+        "populate_inspection_checklist_safe",
+        { inspection_id: inspection.id },
       );
 
       if (checklistError) {
         // Rollback inspection creation
         await this.supabase
-          .from('inspections')
+          .from("inspections")
           .delete()
-          .eq('id', inspection.id);
+          .eq("id", inspection.id);
 
-        throw new DatabaseError('Checklist population failed', checklistError);
+        throw new DatabaseError("Checklist population failed", checklistError);
       }
 
       // Fetch complete inspection with checklist items
       const completeInspection = await this.getInspectionById(inspection.id);
 
       const queryTime = performance.now() - startTime;
-      
+
       this.monitoring.recordMetric(
-        'inspection_creation',
-        'database_query',
+        "inspection_creation",
+        "database_query",
         queryTime,
-        { propertyId, inspectorId }
+        { propertyId, inspectorId },
       );
 
       // Invalidate related caches
-      await this.cache.invalidateByTags(['properties', 'inspections', `property:${propertyId}`]);
+      await this.cache.invalidateByTags([
+        "properties",
+        "inspections",
+        `property:${propertyId}`,
+      ]);
 
-      logger.info('Inspection created successfully', {
+      logger.info("Inspection created successfully", {
         inspectionId: inspection.id,
         propertyId,
         inspectorId,
-        queryTime
+        queryTime,
       });
 
       return completeInspection;
-
     } catch (error) {
       const queryTime = performance.now() - startTime;
-      
+
       this.monitoring.recordMetric(
-        'inspection_creation_error',
-        'database_query',
+        "inspection_creation_error",
+        "database_query",
         queryTime,
-        { error: true, propertyId, inspectorId }
+        { error: true, propertyId, inspectorId },
       );
 
-      logger.error('Inspection creation failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      logger.error("Inspection creation failed", {
+        error: error instanceof Error ? error.message : "Unknown error",
         propertyId,
         inspectorId,
-        queryTime
+        queryTime,
       });
       throw error;
     }
@@ -436,7 +453,7 @@ export class DatabaseService {
    */
   async getChecklistItemsForInspection(
     inspectionId: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {},
   ): Promise<ChecklistItemWithDetails[]> {
     const cacheKey = `checklist:${inspectionId}`;
     const startTime = performance.now();
@@ -452,8 +469,9 @@ export class DatabaseService {
       // Execute query with corrected production schema
       // NOTE: Based on CLAUDE.md schema corrections
       const { data, error } = await this.supabase
-        .from('checklist_items')
-        .select(`
+        .from("checklist_items")
+        .select(
+          `
           log_id,
           property_id,
           checklist_id,
@@ -475,13 +493,14 @@ export class DatabaseService {
             file_type,
             uploaded_at
           )
-        `)
-        .eq('property_id', inspectionId) // Adjust based on actual relationship
-        .eq('static_safety_items.deleted', false)
-        .order('static_safety_items.category');
+        `,
+        )
+        .eq("property_id", inspectionId) // Adjust based on actual relationship
+        .eq("static_safety_items.deleted", false)
+        .order("static_safety_items.category");
 
       if (error) {
-        throw new DatabaseError('Checklist items query failed', error);
+        throw new DatabaseError("Checklist items query failed", error);
       }
 
       const result = data || [];
@@ -490,39 +509,38 @@ export class DatabaseService {
       // Cache results
       if (result.length > 0) {
         await this.cache.set(
-          cacheKey, 
-          result, 
+          cacheKey,
+          result,
           180, // 3 minutes
-          { tags: ['checklist', `inspection:${inspectionId}`] }
+          { tags: ["checklist", `inspection:${inspectionId}`] },
         );
       }
 
       this.recordQueryMetrics(cacheKey, startTime, false, result.length);
 
       this.monitoring.recordMetric(
-        'checklist_query',
-        'database_query',
+        "checklist_query",
+        "database_query",
         queryTime,
-        { inspectionId, itemCount: result.length }
+        { inspectionId, itemCount: result.length },
       );
 
-      logger.info('Checklist items query completed', {
+      logger.info("Checklist items query completed", {
         inspectionId,
         queryTime,
-        itemCount: result.length
+        itemCount: result.length,
       });
 
       return result;
-
     } catch (error) {
       this.monitoring.recordMetric(
-        'checklist_query_error',
-        'database_query',
+        "checklist_query_error",
+        "database_query",
         performance.now() - startTime,
-        { error: true, inspectionId }
+        { error: true, inspectionId },
       );
 
-      logger.error('Checklist items query failed', { error, inspectionId });
+      logger.error("Checklist items query failed", { error, inspectionId });
       throw error;
     }
   }
@@ -532,7 +550,7 @@ export class DatabaseService {
    */
   async getUsersWithFilters(
     filters: UserFilters = {},
-    options: QueryOptions = {}
+    options: QueryOptions = {},
   ): Promise<User[]> {
     const cacheKey = `users:${JSON.stringify(filters)}`;
     const startTime = performance.now();
@@ -548,9 +566,7 @@ export class DatabaseService {
       }
 
       // Build query with filters
-      let query = this.supabase
-        .from('users')
-        .select(`
+      let query = this.supabase.from("users").select(`
           id,
           name,
           email,
@@ -564,25 +580,27 @@ export class DatabaseService {
 
       // Apply filters
       const sanitizedFilters = this.sanitizeFilters(filters);
-      
-      if (sanitizedFilters.role && sanitizedFilters.role !== 'all') {
-        query = query.eq('role', sanitizedFilters.role);
+
+      if (sanitizedFilters.role && sanitizedFilters.role !== "all") {
+        query = query.eq("role", sanitizedFilters.role);
       }
 
-      if (sanitizedFilters.status && sanitizedFilters.status !== 'all') {
-        query = query.eq('status', sanitizedFilters.status);
+      if (sanitizedFilters.status && sanitizedFilters.status !== "all") {
+        query = query.eq("status", sanitizedFilters.status);
       }
 
       if (sanitizedFilters.search) {
-        query = query.or(`name.ilike.%${sanitizedFilters.search}%,email.ilike.%${sanitizedFilters.search}%`);
+        query = query.or(
+          `name.ilike.%${sanitizedFilters.search}%,email.ilike.%${sanitizedFilters.search}%`,
+        );
       }
 
       const { data, error } = await query
-        .order('created_at', { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(200); // Reasonable limit
 
       if (error) {
-        throw new DatabaseError('Users query failed', error, { filters });
+        throw new DatabaseError("Users query failed", error, { filters });
       }
 
       const result = data || [];
@@ -591,39 +609,36 @@ export class DatabaseService {
       // Cache results
       if (result.length > 0) {
         await this.cache.set(
-          cacheKey, 
-          result, 
+          cacheKey,
+          result,
           600, // 10 minutes
-          { tags: ['users'] }
+          { tags: ["users"] },
         );
       }
 
       this.recordQueryMetrics(cacheKey, startTime, false, result.length);
 
-      this.monitoring.recordMetric(
-        'users_query',
-        'database_query',
-        queryTime,
-        { userCount: result.length, filters: JSON.stringify(filters) }
-      );
+      this.monitoring.recordMetric("users_query", "database_query", queryTime, {
+        userCount: result.length,
+        filters: JSON.stringify(filters),
+      });
 
-      logger.info('Users query completed', {
+      logger.info("Users query completed", {
         queryTime,
         userCount: result.length,
-        filters
+        filters,
       });
 
       return result;
-
     } catch (error) {
       this.monitoring.recordMetric(
-        'users_query_error',
-        'database_query',
+        "users_query_error",
+        "database_query",
         performance.now() - startTime,
-        { error: true, filters: JSON.stringify(filters) }
+        { error: true, filters: JSON.stringify(filters) },
       );
 
-      logger.error('Users query failed', { error, filters });
+      logger.error("Users query failed", { error, filters });
       throw error;
     }
   }
@@ -644,8 +659,9 @@ export class DatabaseService {
       }
 
       const { data, error } = await this.supabase
-        .from('inspections')
-        .select(`
+        .from("inspections")
+        .select(
+          `
           id,
           property_id,
           inspector_id,
@@ -662,58 +678,58 @@ export class DatabaseService {
             name,
             email
           )
-        `)
-        .eq('id', inspectionId)
+        `,
+        )
+        .eq("id", inspectionId)
         .single();
 
       if (error) {
-        throw new DatabaseError('Inspection query failed', error, { inspectionId });
+        throw new DatabaseError("Inspection query failed", error, {
+          inspectionId,
+        });
       }
 
       // Get associated checklist items
-      const checklistItems = await this.getChecklistItemsForInspection(inspectionId);
+      const checklistItems =
+        await this.getChecklistItemsForInspection(inspectionId);
 
       const result: InspectionWithItems = {
         ...data,
-        checklistItems
+        checklistItems,
       };
 
       const queryTime = performance.now() - startTime;
 
       // Cache for 5 minutes
-      await this.cache.set(
-        cacheKey, 
-        result, 
-        300,
-        { tags: ['inspections', `inspection:${inspectionId}`] }
-      );
+      await this.cache.set(cacheKey, result, 300, {
+        tags: ["inspections", `inspection:${inspectionId}`],
+      });
 
       this.recordQueryMetrics(cacheKey, startTime, false, 1);
 
       this.monitoring.recordMetric(
-        'inspection_query',
-        'database_query',
+        "inspection_query",
+        "database_query",
         queryTime,
-        { inspectionId, checklistItemsCount: checklistItems.length }
+        { inspectionId, checklistItemsCount: checklistItems.length },
       );
 
-      logger.info('Inspection query completed', {
+      logger.info("Inspection query completed", {
         inspectionId,
         queryTime,
-        checklistItemsCount: checklistItems.length
+        checklistItemsCount: checklistItems.length,
       });
 
       return result;
-
     } catch (error) {
       this.monitoring.recordMetric(
-        'inspection_query_error',
-        'database_query',
+        "inspection_query_error",
+        "database_query",
         performance.now() - startTime,
-        { error: true, inspectionId }
+        { error: true, inspectionId },
       );
 
-      logger.error('Inspection query failed', { error, inspectionId });
+      logger.error("Inspection query failed", { error, inspectionId });
       throw error;
     }
   }
@@ -727,8 +743,8 @@ export class DatabaseService {
 
       // Test basic connectivity
       const { error } = await this.supabase
-        .from('properties')
-        .select('count')
+        .from("properties")
+        .select("count")
         .limit(1)
         .single();
 
@@ -741,9 +757,13 @@ export class DatabaseService {
         totalQueries: this.getTotalQueryCount(),
         averageResponseTime: this.getAverageResponseTime(),
         lastHealthCheck: new Date().toISOString(),
-        status: responseTime < 20 ? 'excellent' : responseTime < 100 ? 'good' : 'degraded'
+        status:
+          responseTime < 20
+            ? "excellent"
+            : responseTime < 100
+              ? "good"
+              : "degraded",
       };
-
     } catch (error) {
       return {
         available: false,
@@ -752,8 +772,8 @@ export class DatabaseService {
         totalQueries: 0,
         averageResponseTime: -1,
         lastHealthCheck: new Date().toISOString(),
-        status: 'unavailable',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        status: "unavailable",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -765,10 +785,10 @@ export class DatabaseService {
     const sanitized: Record<string, any> = {};
 
     for (const [key, value] of Object.entries(filters)) {
-      if (value !== null && value !== undefined && value !== '') {
+      if (value !== null && value !== undefined && value !== "") {
         // Basic SQL injection prevention
-        if (typeof value === 'string') {
-          sanitized[key] = value.replace(/[';--]/g, '');
+        if (typeof value === "string") {
+          sanitized[key] = value.replace(/[';--]/g, "");
         } else {
           sanitized[key] = value;
         }
@@ -782,13 +802,13 @@ export class DatabaseService {
     queryHash: string,
     startTime: number,
     cacheHit: boolean,
-    recordCount: number
+    recordCount: number,
   ): void {
     const metrics: QueryMetrics = {
       queryTime: performance.now() - startTime,
       cacheHit,
       recordCount,
-      queryHash
+      queryHash,
     };
 
     if (!this.queryMetrics.has(queryHash)) {
@@ -810,22 +830,27 @@ export class DatabaseService {
 
     for (const metrics of this.queryMetrics.values()) {
       totalQueries += metrics.length;
-      cacheHits += metrics.filter(m => m.cacheHit).length;
+      cacheHits += metrics.filter((m) => m.cacheHit).length;
     }
 
     return totalQueries > 0 ? (cacheHits / totalQueries) * 100 : 0;
   }
 
   private getTotalQueryCount(): number {
-    return Array.from(this.queryMetrics.values())
-      .reduce((total, metrics) => total + metrics.length, 0);
+    return Array.from(this.queryMetrics.values()).reduce(
+      (total, metrics) => total + metrics.length,
+      0,
+    );
   }
 
   private getAverageResponseTime(): number {
     const allMetrics = Array.from(this.queryMetrics.values()).flat();
     if (allMetrics.length === 0) return 0;
 
-    const totalTime = allMetrics.reduce((sum, metric) => sum + metric.queryTime, 0);
+    const totalTime = allMetrics.reduce(
+      (sum, metric) => sum + metric.queryTime,
+      0,
+    );
     return totalTime / allMetrics.length;
   }
 
@@ -843,12 +868,12 @@ export class DatabaseService {
  */
 export class DatabaseError extends Error {
   constructor(
-    message: string, 
-    public cause?: any, 
-    public context?: Record<string, any>
+    message: string,
+    public cause?: any,
+    public context?: Record<string, any>,
   ) {
     super(message);
-    this.name = 'DatabaseError';
+    this.name = "DatabaseError";
   }
 }
 

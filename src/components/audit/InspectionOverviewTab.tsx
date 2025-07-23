@@ -3,17 +3,19 @@
  * Extracted from InspectionReviewPanel.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import { Inspection } from '@/hooks/useInspectionReview';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { Inspection } from "@/hooks/useInspectionReview";
 
 interface InspectionOverviewTabProps {
   inspection: Inspection;
 }
 
-export const InspectionOverviewTab: React.FC<InspectionOverviewTabProps> = ({ inspection }) => {
+export const InspectionOverviewTab: React.FC<InspectionOverviewTabProps> = ({
+  inspection,
+}) => {
   return (
     <Card>
       <CardHeader>
@@ -24,17 +26,32 @@ export const InspectionOverviewTab: React.FC<InspectionOverviewTabProps> = ({ in
           <div>
             <h4 className="font-medium mb-2">Property Information</h4>
             <div className="space-y-1 text-sm">
-              <div><span className="font-medium">Address:</span> {inspection.propertyAddress}</div>
-              <div><span className="font-medium">Property ID:</span> {inspection.propertyId}</div>
+              <div>
+                <span className="font-medium">Address:</span>{" "}
+                {inspection.propertyAddress}
+              </div>
+              <div>
+                <span className="font-medium">Property ID:</span>{" "}
+                {inspection.propertyId}
+              </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-medium mb-2">Inspector Information</h4>
             <div className="space-y-1 text-sm">
-              <div><span className="font-medium">Name:</span> {inspection.inspectorName}</div>
-              <div><span className="font-medium">Inspector ID:</span> {inspection.inspectorId}</div>
-              <div><span className="font-medium">Submitted:</span> {new Date(inspection.submittedAt).toLocaleString()}</div>
+              <div>
+                <span className="font-medium">Name:</span>{" "}
+                {inspection.inspectorName}
+              </div>
+              <div>
+                <span className="font-medium">Inspector ID:</span>{" "}
+                {inspection.inspectorId}
+              </div>
+              <div>
+                <span className="font-medium">Submitted:</span>{" "}
+                {new Date(inspection.submittedAt).toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
@@ -44,7 +61,8 @@ export const InspectionOverviewTab: React.FC<InspectionOverviewTabProps> = ({ in
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Issues Require Attention</AlertTitle>
             <AlertDescription>
-              This inspection has {inspection.issuesFound} flagged issues that require careful review.
+              This inspection has {inspection.issuesFound} flagged issues that
+              require careful review.
             </AlertDescription>
           </Alert>
         )}

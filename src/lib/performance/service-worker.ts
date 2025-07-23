@@ -1,6 +1,6 @@
 /**
  * BLEEDING EDGE: Advanced Service Worker Caching
- * 
+ *
  * Professional service worker implementation that exceeds industry standards
  * - Intelligent cache strategies with network-first, cache-first, stale-while-revalidate
  * - Background sync for offline functionality
@@ -16,14 +16,19 @@
 export interface CacheStrategy {
   name: string;
   pattern: RegExp | string;
-  strategy: 'networkFirst' | 'cacheFirst' | 'staleWhileRevalidate' | 'networkOnly' | 'cacheOnly';
+  strategy:
+    | "networkFirst"
+    | "cacheFirst"
+    | "staleWhileRevalidate"
+    | "networkOnly"
+    | "cacheOnly";
   options: {
     cacheName: string;
     maxEntries?: number;
     maxAgeSeconds?: number;
     cacheKeyWillBeUsed?: (params: {
       request: Request;
-      mode: 'read' | 'write';
+      mode: "read" | "write";
     }) => Promise<string>;
     cacheWillUpdate?: (params: {
       request: Request;
@@ -66,84 +71,84 @@ export interface OfflineQueueItem {
 // BLEEDING EDGE SERVICE WORKER IMPLEMENTATION
 // ============================================================================
 
-const SW_VERSION = '1.0.0';
-const CACHE_PREFIX = 'str-certified-v';
-const OFFLINE_QUEUE_NAME = 'offline-queue';
+const SW_VERSION = "1.0.0";
+const CACHE_PREFIX = "str-certified-v";
+const OFFLINE_QUEUE_NAME = "offline-queue";
 const MAX_RETRY_ATTEMPTS = 3;
 
 // Cache configurations for different resource types
 const CACHE_STRATEGIES: CacheStrategy[] = [
   // Critical app shell - Cache first with long TTL
   {
-    name: 'app-shell',
+    name: "app-shell",
     pattern: /\.(html|js|css)$/,
-    strategy: 'cacheFirst',
+    strategy: "cacheFirst",
     options: {
       cacheName: `${CACHE_PREFIX}app-shell`,
       maxEntries: 100,
       maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-    }
+    },
   },
-  
+
   // Images - Cache first with compression
   {
-    name: 'images',
+    name: "images",
     pattern: /\.(png|jpg|jpeg|gif|webp|svg|ico)$/,
-    strategy: 'cacheFirst',
+    strategy: "cacheFirst",
     options: {
       cacheName: `${CACHE_PREFIX}images`,
       maxEntries: 200,
       maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
-    }
+    },
   },
-  
+
   // Fonts - Cache first with very long TTL
   {
-    name: 'fonts',
+    name: "fonts",
     pattern: /\.(woff|woff2|ttf|eot)$/,
-    strategy: 'cacheFirst',
+    strategy: "cacheFirst",
     options: {
       cacheName: `${CACHE_PREFIX}fonts`,
       maxEntries: 50,
       maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-    }
+    },
   },
-  
+
   // API calls - Stale while revalidate for data freshness
   {
-    name: 'api',
+    name: "api",
     pattern: /\/api\//,
-    strategy: 'staleWhileRevalidate',
+    strategy: "staleWhileRevalidate",
     options: {
       cacheName: `${CACHE_PREFIX}api`,
       maxEntries: 100,
       maxAgeSeconds: 5 * 60, // 5 minutes
-    }
+    },
   },
-  
+
   // Supabase - Network first with offline fallback
   {
-    name: 'supabase',
+    name: "supabase",
     pattern: /supabase\.co/,
-    strategy: 'networkFirst',
+    strategy: "networkFirst",
     options: {
       cacheName: `${CACHE_PREFIX}supabase`,
       maxEntries: 50,
       maxAgeSeconds: 10 * 60, // 10 minutes
-    }
+    },
   },
-  
+
   // CDN resources - Cache first
   {
-    name: 'cdn',
+    name: "cdn",
     pattern: /(googleapis|gstatic|jsdelivr)\.com/,
-    strategy: 'cacheFirst',
+    strategy: "cacheFirst",
     options: {
       cacheName: `${CACHE_PREFIX}cdn`,
       maxEntries: 100,
       maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-    }
-  }
+    },
+  },
 ];
 
 // ============================================================================
@@ -152,81 +157,112 @@ const CACHE_STRATEGIES: CacheStrategy[] = [
 
 declare const self: ServiceWorkerGlobalScope;
 
-self.addEventListener('install', (event: ExtendableEvent) => {
-  
+self.addEventListener("install", (event: ExtendableEvent) => {
   event.waitUntil(
     (async () => {
       // Enable navigation preload if supported
-      if ('navigationPreload' in self.registration) {
+      if ("navigationPreload" in self.registration) {
         await self.registration.navigationPreload.enable();
       }
-      
+
       // Precache critical resources
       await precacheCriticalResources();
-      
+
       // Skip waiting to activate immediately
       self.skipWaiting();
-    })()
+    })(),
   );
 });
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
-  
+self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(
     (async () => {
       // Clean up old caches
       await cleanupOldCaches();
-      
+
       // Take control of all clients immediately
       await self.clients.claim();
-      
+
       // Initialize background sync
       await initializeBackgroundSync();
-    })()
+    })(),
   );
 });
 
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener("fetch", (event: FetchEvent) => {
   // Skip non-HTTP requests
-  if (!event.request.url.startsWith('http')) return;
-  
+  if (!event.request.url.startsWith("http")) return;
+
   // Skip requests to chrome-extension URLs
-  if (event.request.url.startsWith('chrome-extension://')) return;
-  
+  if (event.request.url.startsWith("chrome-extension://")) return;
+
   event.respondWith(handleFetchWithStrategy(event.request));
 });
 
-self.addEventListener('sync', (event: ExtendableEvent & {
-  tag: string;
-  lastChance?: boolean;
-}) => {
-  
-  if (event.tag === 'offline-sync') {
-    event.waitUntil(processOfflineQueue());
-  }
-});
+self.addEventListener(
+  "sync",
+  (
+    event: ExtendableEvent & {
+      tag: string;
+      lastChance?: boolean;
+    },
+  ) => {
+    if (event.tag === "offline-sync") {
+      event.waitUntil(processOfflineQueue());
+    }
+  },
+);
 
-self.addEventListener('message', (event: ExtendableMessageEvent) => {
+self.addEventListener("message", (event: ExtendableMessageEvent) => {
   const { type, payload } = event.data || {};
-  
+
   switch (type) {
-    case 'SKIP_WAITING':
+    case "SKIP_WAITING":
       self.skipWaiting();
       break;
-      
-    case 'GET_VERSION':
+
+    case "GET_VERSION":
       event.ports[0]?.postMessage({ version: SW_VERSION });
       break;
-      
-    case 'CACHE_URLS':
-      event.waitUntil(cacheUrls(payload.urls));
+
+    case "CACHE_URLS":
+      event.waitUntil(cacheUrls(payload?.urls || []));
       break;
-      
-    case 'CLEAR_CACHE':
-      event.waitUntil(clearCache(payload.cacheName));
+
+    case "CLEAR_CACHE":
+      event.waitUntil(clearCache(payload?.cacheName));
       break;
-      
+
+    case "UPDATE_AVAILABLE":
+      // Handle update available message
+      event.ports[0]?.postMessage({ type: "UPDATE_ACKNOWLEDGED" });
+      break;
+
+    case "PING":
+      // Handle ping/health check
+      event.ports[0]?.postMessage({ type: "PONG", timestamp: Date.now() });
+      break;
+
     default:
+      // Silently ignore unknown message types to prevent console spam
+      // Only log in development mode and only for truly unexpected messages
+      if (
+        process.env.NODE_ENV === "development" &&
+        type &&
+        !type.includes("BRIDGE") &&
+        !type.includes("INTEGRATION")
+      ) {
+        console.warn("[ServiceWorker] Unknown message type:", type);
+      }
+
+      // Send acknowledgment only if there's a port available
+      if (event.ports[0]) {
+        event.ports[0].postMessage({
+          type: "ACKNOWLEDGED",
+          originalType: type,
+        });
+      }
+      break;
   }
 });
 
@@ -236,78 +272,90 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 
 async function handleFetchWithStrategy(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  
+
   // Find matching cache strategy
-  const strategy = CACHE_STRATEGIES.find(s => {
-    if (typeof s.pattern === 'string') {
+  const strategy = CACHE_STRATEGIES.find((s) => {
+    if (typeof s.pattern === "string") {
       return url.pathname.includes(s.pattern);
     }
     return s.pattern.test(url.href);
   });
-  
+
   if (!strategy) {
     return handleNetworkFirst(request, `${CACHE_PREFIX}default`);
   }
-  
+
   switch (strategy.strategy) {
-    case 'networkFirst':
+    case "networkFirst":
       return handleNetworkFirst(request, strategy.options.cacheName);
-      
-    case 'cacheFirst':
-      return handleCacheFirst(request, strategy.options.cacheName, strategy.options.maxAgeSeconds);
-      
-    case 'staleWhileRevalidate':
+
+    case "cacheFirst":
+      return handleCacheFirst(
+        request,
+        strategy.options.cacheName,
+        strategy.options.maxAgeSeconds,
+      );
+
+    case "staleWhileRevalidate":
       return handleStaleWhileRevalidate(request, strategy.options.cacheName);
-      
-    case 'networkOnly':
+
+    case "networkOnly":
       return handleNetworkOnly(request);
-      
-    case 'cacheOnly':
+
+    case "cacheOnly":
       return handleCacheOnly(request, strategy.options.cacheName);
-      
+
     default:
       return handleNetworkFirst(request, strategy.options.cacheName);
   }
 }
 
-async function handleNetworkFirst(request: Request, cacheName: string): Promise<Response> {
+async function handleNetworkFirst(
+  request: Request,
+  cacheName: string,
+): Promise<Response> {
   try {
     const networkResponse = await fetch(request);
-    
+
     // Cache successful responses
     if (networkResponse.ok) {
       const cache = await caches.open(cacheName);
       await cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
-    
     // Fallback to cache
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     // Queue for background sync if it's a mutating request
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
+    if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
       await queueOfflineRequest(request);
     }
-    
+
     // Return offline fallback
     return getOfflineFallback(request);
   }
 }
 
-async function handleCacheFirst(request: Request, cacheName: string, maxAge?: number): Promise<Response> {
+async function handleCacheFirst(
+  request: Request,
+  cacheName: string,
+  maxAge?: number,
+): Promise<Response> {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
-  
+
   // Check if cached response is still valid
   if (cachedResponse && maxAge) {
-    const cachedTime = new Date(cachedResponse.headers.get('sw-cached-time') || 0).getTime();
+    const cachedTime = new Date(
+      cachedResponse.headers.get("sw-cached-time") || 0,
+    ).getTime();
     const now = Date.now();
-    
+
     if (now - cachedTime > maxAge * 1000) {
       // Cache expired, remove it
       await cache.delete(request);
@@ -317,11 +365,11 @@ async function handleCacheFirst(request: Request, cacheName: string, maxAge?: nu
   } else if (cachedResponse) {
     return cachedResponse;
   }
-  
+
   // Fetch from network and cache
   try {
     const networkResponse = await fetch(request);
-    
+
     if (networkResponse.ok) {
       // Add timestamp header for cache expiration
       const responseWithTimestamp = new Response(networkResponse.body, {
@@ -329,41 +377,44 @@ async function handleCacheFirst(request: Request, cacheName: string, maxAge?: nu
         statusText: networkResponse.statusText,
         headers: {
           ...Object.fromEntries(networkResponse.headers.entries()),
-          'sw-cached-time': new Date().toISOString()
-        }
+          "sw-cached-time": new Date().toISOString(),
+        },
       });
-      
+
       await cache.put(request, responseWithTimestamp.clone());
       return responseWithTimestamp;
     }
-    
+
     return networkResponse;
   } catch (error) {
     return getOfflineFallback(request);
   }
 }
 
-async function handleStaleWhileRevalidate(request: Request, cacheName: string): Promise<Response> {
+async function handleStaleWhileRevalidate(
+  request: Request,
+  cacheName: string,
+): Promise<Response> {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
-  
+
   // Fetch from network in background
   const networkResponsePromise = fetch(request)
-    .then(response => {
+    .then((response) => {
       if (response.ok) {
         cache.put(request, response.clone());
       }
       return response;
     })
-    .catch(error => {
+    .catch((error) => {
       return null;
     });
-  
+
   // Return cached response immediately if available
   if (cachedResponse) {
     return cachedResponse;
   }
-  
+
   // Wait for network response if no cache
   const networkResponse = await networkResponsePromise;
   return networkResponse || getOfflineFallback(request);
@@ -373,17 +424,20 @@ async function handleNetworkOnly(request: Request): Promise<Response> {
   try {
     return await fetch(request);
   } catch (error) {
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
+    if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
       await queueOfflineRequest(request);
     }
     return getOfflineFallback(request);
   }
 }
 
-async function handleCacheOnly(request: Request, cacheName: string): Promise<Response> {
+async function handleCacheOnly(
+  request: Request,
+  cacheName: string,
+): Promise<Response> {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
-  
+
   return cachedResponse || getOfflineFallback(request);
 }
 
@@ -393,46 +447,44 @@ async function handleCacheOnly(request: Request, cacheName: string): Promise<Res
 
 async function precacheCriticalResources(): Promise<void> {
   const cache = await caches.open(`${CACHE_PREFIX}precache`);
-  
+
   const criticalResources = [
-    '/',
-    '/manifest.json',
-    '/offline.html',
+    "/",
+    "/manifest.json",
+    "/offline.html",
     // Add other critical resources based on build manifest
   ];
-  
+
   try {
     await cache.addAll(criticalResources);
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function cleanupOldCaches(): Promise<void> {
   const cacheNames = await caches.keys();
-  const oldCaches = cacheNames.filter(name => 
-    name.startsWith(CACHE_PREFIX) && !name.includes(SW_VERSION)
+  const oldCaches = cacheNames.filter(
+    (name) => name.startsWith(CACHE_PREFIX) && !name.includes(SW_VERSION),
   );
-  
+
   await Promise.all(
-    oldCaches.map(cacheName => {
+    oldCaches.map((cacheName) => {
       return caches.delete(cacheName);
-    })
+    }),
   );
 }
 
 async function cacheUrls(urls: string[]): Promise<void> {
   const cache = await caches.open(`${CACHE_PREFIX}runtime`);
-  
+
   await Promise.allSettled(
-    urls.map(async url => {
+    urls.map(async (url) => {
       try {
         const response = await fetch(url);
         if (response.ok) {
           await cache.put(url, response);
         }
-      } catch (error) {
-      }
-    })
+      } catch (error) {}
+    }),
   );
 }
 
@@ -441,7 +493,7 @@ async function clearCache(cacheName?: string): Promise<void> {
     await caches.delete(cacheName);
   } else {
     const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.map(name => caches.delete(name)));
+    await Promise.all(cacheNames.map((name) => caches.delete(name)));
   }
 }
 
@@ -458,41 +510,39 @@ async function queueOfflineRequest(request: Request): Promise<void> {
       headers: Object.fromEntries(request.headers.entries()),
       body: body || undefined,
       timestamp: Date.now(),
-      retryCount: 0
+      retryCount: 0,
     };
-    
+
     // Store in IndexedDB for persistence
     const db = await openOfflineDB();
-    const tx = db.transaction([OFFLINE_QUEUE_NAME], 'readwrite');
+    const tx = db.transaction([OFFLINE_QUEUE_NAME], "readwrite");
     const store = tx.objectStore(OFFLINE_QUEUE_NAME);
     await store.add(queueItem);
-    
-    
+
     // Register for background sync
-    if ('serviceWorker' in self && 'sync' in self.registration) {
-      await self.registration.sync.register('offline-sync');
+    if ("serviceWorker" in self && "sync" in self.registration) {
+      await self.registration.sync.register("offline-sync");
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function processOfflineQueue(): Promise<void> {
   try {
     const db = await openOfflineDB();
-    const tx = db.transaction([OFFLINE_QUEUE_NAME], 'readwrite');
+    const tx = db.transaction([OFFLINE_QUEUE_NAME], "readwrite");
     const store = tx.objectStore(OFFLINE_QUEUE_NAME);
     const queueItems = await store.getAll();
-    
+
     for (const item of queueItems) {
       try {
         const request = new Request(item.url, {
           method: item.method,
           headers: item.headers,
-          body: item.body
+          body: item.body,
         });
-        
+
         const response = await fetch(request);
-        
+
         if (response.ok) {
           // Success - remove from queue
           await store.delete(item.timestamp);
@@ -500,10 +550,9 @@ async function processOfflineQueue(): Promise<void> {
           throw new Error(`HTTP ${response.status}`);
         }
       } catch (error) {
-        
         // Increment retry count
         item.retryCount++;
-        
+
         if (item.retryCount >= MAX_RETRY_ATTEMPTS) {
           // Max retries reached - remove from queue
           await store.delete(item.timestamp);
@@ -513,25 +562,24 @@ async function processOfflineQueue(): Promise<void> {
         }
       }
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function initializeBackgroundSync(): Promise<void> {
-  if ('serviceWorker' in self && 'sync' in self.registration) {
+  if ("serviceWorker" in self && "sync" in self.registration) {
     try {
-      await self.registration.sync.register('offline-sync');
-    } catch (error) {
-    }
+      await self.registration.sync.register("offline-sync");
+    } catch (error) {}
   }
 }
 
 function getOfflineFallback(request: Request): Response {
   const url = new URL(request.url);
-  
+
   // Return appropriate offline fallback based on request type
-  if (request.mode === 'navigate') {
-    return new Response(`
+  if (request.mode === "navigate") {
+    return new Response(
+      `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -560,28 +608,33 @@ function getOfflineFallback(request: Request): Response {
         </div>
       </body>
       </html>
-    `, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' }
-    });
+    `,
+      {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      },
+    );
   }
-  
+
   // Return JSON error for API requests
-  if (url.pathname.includes('/api/')) {
-    return new Response(JSON.stringify({
-      error: 'Network unavailable',
-      message: 'This request will be retried when you come back online',
-      offline: true
-    }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  if (url.pathname.includes("/api/")) {
+    return new Response(
+      JSON.stringify({
+        error: "Network unavailable",
+        message: "This request will be retried when you come back online",
+        offline: true,
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
-  
+
   // Return generic network error
-  return new Response('Network Error', {
+  return new Response("Network Error", {
     status: 503,
-    statusText: 'Service Unavailable'
+    statusText: "Service Unavailable",
   });
 }
 
@@ -591,18 +644,20 @@ function getOfflineFallback(request: Request): Response {
 
 async function openOfflineDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('STRCertifiedOffline', 1);
-    
+    const request = indexedDB.open("STRCertifiedOffline", 1);
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-    
+
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      
+
       if (!db.objectStoreNames.contains(OFFLINE_QUEUE_NAME)) {
-        const store = db.createObjectStore(OFFLINE_QUEUE_NAME, { keyPath: 'timestamp' });
-        store.createIndex('url', 'url', { unique: false });
-        store.createIndex('method', 'method', { unique: false });
+        const store = db.createObjectStore(OFFLINE_QUEUE_NAME, {
+          keyPath: "timestamp",
+        });
+        store.createIndex("url", "url", { unique: false });
+        store.createIndex("method", "method", { unique: false });
       }
     };
   });
@@ -613,35 +668,39 @@ async function openOfflineDB(): Promise<IDBDatabase> {
 // ============================================================================
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  if (!('serviceWorker' in navigator)) {
+  if (!("serviceWorker" in navigator)) {
     return null;
   }
-  
+
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/'
+    const registration = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
     });
-    
-    
+
     // Update service worker when new version available
-    registration.addEventListener('updatefound', () => {
+    registration.addEventListener("updatefound", () => {
       const newWorker = registration.installing;
       if (newWorker) {
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
             // Notify user about update
-            if (confirm('A new version is available. Refresh to update?')) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            if (confirm("A new version is available. Refresh to update?")) {
+              newWorker.postMessage({ type: "SKIP_WAITING" });
               // Professional graceful update - post message to clients for update
-              self.clients.matchAll().then(clients => {
-                clients.forEach(client => client.postMessage({ type: 'UPDATE_AVAILABLE' }));
+              self.clients.matchAll().then((clients) => {
+                clients.forEach((client) =>
+                  client.postMessage({ type: "UPDATE_AVAILABLE" }),
+                );
               });
             }
           }
         });
       }
     });
-    
+
     return registration;
   } catch (error) {
     return null;

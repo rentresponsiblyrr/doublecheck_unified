@@ -1,6 +1,11 @@
 // Photo Deduplicator for STR Certified Property Scrapers
 
-import type { PhotoData, PhotoCategory, RoomType, PhotoDeduplicationResult } from './types';
+import type {
+  PhotoData,
+  PhotoCategory,
+  RoomType,
+  PhotoDeduplicationResult,
+} from "./types";
 
 export class PhotoDeduplicator {
   private similarityThreshold: number;
@@ -8,7 +13,7 @@ export class PhotoDeduplicator {
 
   constructor(
     similarityThreshold: number = 0.85,
-    enableAdvancedAnalysis: boolean = false
+    enableAdvancedAnalysis: boolean = false,
   ) {
     this.similarityThreshold = similarityThreshold;
     this.enableAdvancedAnalysis = enableAdvancedAnalysis;
@@ -19,28 +24,30 @@ export class PhotoDeduplicator {
    * @param photos - Array of photo data to process
    * @returns PhotoDeduplicationResult
    */
-  async deduplicatePhotos(photos: PhotoData[]): Promise<PhotoDeduplicationResult> {
+  async deduplicatePhotos(
+    photos: PhotoData[],
+  ): Promise<PhotoDeduplicationResult> {
     const originalCount = photos.length;
-    
+
     // Step 1: Remove exact duplicates (same URL)
     const urlDeduped = this.removeExactDuplicates(photos);
-    
+
     // Step 2: Remove similar photos (based on metadata and naming patterns)
     const similarityDeduped = await this.removeSimilarPhotos(urlDeduped);
-    
+
     // Step 3: Categorize photos by room and category
     const categorizedPhotos = this.categorizePhotos(similarityDeduped);
     const roomPhotos = this.groupPhotosByRoom(similarityDeduped);
-    
+
     // Step 4: Identify unique room angles
     const uniqueAngles = this.identifyUniqueAngles(similarityDeduped);
-    
+
     return {
       originalCount,
       uniquePhotos: uniqueAngles,
       duplicatesRemoved: originalCount - uniqueAngles.length,
       categorizedPhotos,
-      roomPhotos
+      roomPhotos,
     };
   }
 
@@ -51,7 +58,7 @@ export class PhotoDeduplicator {
    */
   private removeExactDuplicates(photos: PhotoData[]): PhotoData[] {
     const seen = new Set<string>();
-    return photos.filter(photo => {
+    return photos.filter((photo) => {
       if (seen.has(photo.url)) {
         return false;
       }
@@ -67,14 +74,14 @@ export class PhotoDeduplicator {
    */
   private async removeSimilarPhotos(photos: PhotoData[]): Promise<PhotoData[]> {
     const unique: PhotoData[] = [];
-    
+
     for (const photo of photos) {
       const isSimilar = await this.isSimilarToExisting(photo, unique);
       if (!isSimilar) {
         unique.push(photo);
       }
     }
-    
+
     return unique;
   }
 
@@ -84,7 +91,10 @@ export class PhotoDeduplicator {
    * @param existing - Existing unique photos
    * @returns Promise<boolean>
    */
-  private async isSimilarToExisting(photo: PhotoData, existing: PhotoData[]): Promise<boolean> {
+  private async isSimilarToExisting(
+    photo: PhotoData,
+    existing: PhotoData[],
+  ): Promise<boolean> {
     for (const existingPhoto of existing) {
       if (await this.arePhotosSimilar(photo, existingPhoto)) {
         return true;
@@ -99,35 +109,42 @@ export class PhotoDeduplicator {
    * @param photo2 - Second photo
    * @returns Promise<boolean>
    */
-  private async arePhotosSimilar(photo1: PhotoData, photo2: PhotoData): Promise<boolean> {
+  private async arePhotosSimilar(
+    photo1: PhotoData,
+    photo2: PhotoData,
+  ): Promise<boolean> {
     // Basic similarity checks
-    
+
     // Same category and room type
     if (photo1.category === photo2.category && photo1.room === photo2.room) {
       // Check filename similarity
       const filename1 = this.extractFilename(photo1.url);
       const filename2 = this.extractFilename(photo2.url);
-      
+
       if (this.areFilenamesSimilar(filename1, filename2)) {
         return true;
       }
-      
+
       // Check alt text similarity
-      if (photo1.alt && photo2.alt && this.areAltTextsSimilar(photo1.alt, photo2.alt)) {
+      if (
+        photo1.alt &&
+        photo2.alt &&
+        this.areAltTextsSimilar(photo1.alt, photo2.alt)
+      ) {
         return true;
       }
-      
+
       // Check size similarity (likely same photo in different resolutions)
       if (this.areSizesSimilar(photo1.size, photo2.size)) {
         return true;
       }
     }
-    
+
     // If advanced analysis is enabled, use more sophisticated methods
     if (this.enableAdvancedAnalysis) {
       return await this.performAdvancedSimilarityAnalysis(photo1, photo2);
     }
-    
+
     return false;
   }
 
@@ -140,7 +157,7 @@ export class PhotoDeduplicator {
     try {
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
-      return pathname.substring(pathname.lastIndexOf('/') + 1);
+      return pathname.substring(pathname.lastIndexOf("/") + 1);
     } catch {
       return url;
     }
@@ -154,16 +171,20 @@ export class PhotoDeduplicator {
    */
   private areFilenamesSimilar(filename1: string, filename2: string): boolean {
     // Remove extensions and common suffixes
-    const clean1 = filename1.replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/_\d+$/, '');
-    const clean2 = filename2.replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/_\d+$/, '');
-    
+    const clean1 = filename1
+      .replace(/\.(jpg|jpeg|png|webp)$/i, "")
+      .replace(/_\d+$/, "");
+    const clean2 = filename2
+      .replace(/\.(jpg|jpeg|png|webp)$/i, "")
+      .replace(/_\d+$/, "");
+
     // Check if base names are the same
     if (clean1 === clean2) return true;
-    
+
     // Check for common patterns like IMG_001, IMG_002
-    const pattern1 = clean1.replace(/\d+/g, 'X');
-    const pattern2 = clean2.replace(/\d+/g, 'X');
-    
+    const pattern1 = clean1.replace(/\d+/g, "X");
+    const pattern2 = clean2.replace(/\d+/g, "X");
+
     return pattern1 === pattern2;
   }
 
@@ -174,21 +195,27 @@ export class PhotoDeduplicator {
    * @returns boolean
    */
   private areAltTextsSimilar(alt1: string, alt2: string): boolean {
-    const normalized1 = alt1.toLowerCase().replace(/[^\w\s]/g, '').trim();
-    const normalized2 = alt2.toLowerCase().replace(/[^\w\s]/g, '').trim();
-    
+    const normalized1 = alt1
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .trim();
+    const normalized2 = alt2
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .trim();
+
     // Exact match
     if (normalized1 === normalized2) return true;
-    
+
     // Calculate word overlap
     const words1 = new Set(normalized1.split(/\s+/));
     const words2 = new Set(normalized2.split(/\s+/));
-    
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     const jaccard = intersection.size / union.size;
-    
+
     return jaccard > 0.7;
   }
 
@@ -200,19 +227,19 @@ export class PhotoDeduplicator {
    */
   private areSizesSimilar(
     size1: { width: number; height: number } | undefined,
-    size2: { width: number; height: number } | undefined
+    size2: { width: number; height: number } | undefined,
   ): boolean {
     if (!size1 || !size2) return false;
-    
+
     // Check for exact matches
     if (size1.width === size2.width && size1.height === size2.height) {
       return true;
     }
-    
+
     // Check for common aspect ratios (likely the same image resized)
     const ratio1 = size1.width / size1.height;
     const ratio2 = size2.width / size2.height;
-    
+
     return Math.abs(ratio1 - ratio2) < 0.05;
   }
 
@@ -223,8 +250,8 @@ export class PhotoDeduplicator {
    * @returns Promise<boolean>
    */
   private async performAdvancedSimilarityAnalysis(
-    photo1: PhotoData, 
-    photo2: PhotoData
+    photo1: PhotoData,
+    photo2: PhotoData,
   ): Promise<boolean> {
     // This would integrate with image analysis AI in the future
     // For now, return false to maintain conservative deduplication
@@ -236,7 +263,9 @@ export class PhotoDeduplicator {
    * @param photos - Photos to categorize
    * @returns Record<PhotoCategory, PhotoData[]>
    */
-  private categorizePhotos(photos: PhotoData[]): Record<PhotoCategory, PhotoData[]> {
+  private categorizePhotos(
+    photos: PhotoData[],
+  ): Record<PhotoCategory, PhotoData[]> {
     const categories: Record<PhotoCategory, PhotoData[]> = {
       exterior: [],
       interior: [],
@@ -247,10 +276,10 @@ export class PhotoDeduplicator {
       outdoor_space: [],
       amenity: [],
       view: [],
-      other: []
+      other: [],
     };
 
-    photos.forEach(photo => {
+    photos.forEach((photo) => {
       if (categories[photo.category]) {
         categories[photo.category].push(photo);
       } else {
@@ -266,7 +295,9 @@ export class PhotoDeduplicator {
    * @param photos - Photos to group
    * @returns Record<RoomType, PhotoData[]>
    */
-  private groupPhotosByRoom(photos: PhotoData[]): Record<RoomType, PhotoData[]> {
+  private groupPhotosByRoom(
+    photos: PhotoData[],
+  ): Record<RoomType, PhotoData[]> {
     const rooms: Record<RoomType, PhotoData[]> = {
       bedroom: [],
       bathroom: [],
@@ -280,10 +311,10 @@ export class PhotoDeduplicator {
       garage: [],
       basement: [],
       attic: [],
-      other: []
+      other: [],
     };
 
-    photos.forEach(photo => {
+    photos.forEach((photo) => {
       if (photo.room && rooms[photo.room]) {
         rooms[photo.room].push(photo);
       } else if (photo.room) {
@@ -302,9 +333,9 @@ export class PhotoDeduplicator {
   private identifyUniqueAngles(photos: PhotoData[]): PhotoData[] {
     // Group photos by room/category
     const grouped = new Map<string, PhotoData[]>();
-    
-    photos.forEach(photo => {
-      const key = `${photo.room || 'unknown'}_${photo.category}`;
+
+    photos.forEach((photo) => {
+      const key = `${photo.room || "unknown"}_${photo.category}`;
       if (!grouped.has(key)) {
         grouped.set(key, []);
       }
@@ -336,18 +367,18 @@ export class PhotoDeduplicator {
   private selectUniqueAnglesFromGroup(photos: PhotoData[]): PhotoData[] {
     // For now, implement a simple selection strategy
     // In production, this could use AI to identify different viewpoints
-    
+
     const selected: PhotoData[] = [];
-    
+
     // Always include the first photo
     selected.push(photos[0]);
-    
+
     // If there are multiple photos, try to select diverse ones
     if (photos.length > 1) {
       // Look for photos with different alt text patterns
       const altPatterns = new Set<string>();
-      
-      photos.forEach(photo => {
+
+      photos.forEach((photo) => {
         if (photo.alt) {
           const pattern = this.extractViewpointPattern(photo.alt);
           if (!altPatterns.has(pattern) && selected.length < 3) {
@@ -358,13 +389,13 @@ export class PhotoDeduplicator {
           }
         }
       });
-      
+
       // If still only one photo and we have more, add one more for variety
       if (selected.length === 1 && photos.length > 2) {
         selected.push(photos[Math.floor(photos.length / 2)]);
       }
     }
-    
+
     return selected;
   }
 
@@ -375,21 +406,34 @@ export class PhotoDeduplicator {
    */
   private extractViewpointPattern(alt: string): string {
     const keywords = [
-      'overview', 'detail', 'close-up', 'wide', 'angle', 'view', 
-      'corner', 'center', 'side', 'front', 'back', 'interior', 'exterior'
+      "overview",
+      "detail",
+      "close-up",
+      "wide",
+      "angle",
+      "view",
+      "corner",
+      "center",
+      "side",
+      "front",
+      "back",
+      "interior",
+      "exterior",
     ];
-    
+
     const lowerAlt = alt.toLowerCase();
-    const foundKeywords = keywords.filter(keyword => lowerAlt.includes(keyword));
-    
-    return foundKeywords.length > 0 ? foundKeywords.join('-') : 'general';
+    const foundKeywords = keywords.filter((keyword) =>
+      lowerAlt.includes(keyword),
+    );
+
+    return foundKeywords.length > 0 ? foundKeywords.join("-") : "general";
   }
 }
 
 // Export factory function
 export const createPhotoDeduplicator = (
   similarityThreshold?: number,
-  enableAdvancedAnalysis?: boolean
+  enableAdvancedAnalysis?: boolean,
 ): PhotoDeduplicator => {
   return new PhotoDeduplicator(similarityThreshold, enableAdvancedAnalysis);
 };
@@ -400,12 +444,12 @@ export const deduplicatePhotos = async (
   options: {
     similarityThreshold?: number;
     enableAdvancedAnalysis?: boolean;
-  } = {}
+  } = {},
 ): Promise<PhotoDeduplicationResult> => {
   const deduplicator = createPhotoDeduplicator(
     options.similarityThreshold,
-    options.enableAdvancedAnalysis
+    options.enableAdvancedAnalysis,
   );
-  
+
   return await deduplicator.deduplicatePhotos(photos);
 };

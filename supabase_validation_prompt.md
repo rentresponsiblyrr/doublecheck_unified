@@ -23,7 +23,7 @@ I'm debugging blank screen issues in an admin portal and need to validate my ass
 - `inspections.property_id → properties.id`
 - `inspections.inspector_id → users.id`
 - `inspection_checklist_items.inspection_id → inspections.id`
-- `inspection_checklist_items.static_safety_item_id → static_safety_items.id`
+- `inspection_checklist_items.static_item_id → static_safety_items.id`
 
 **Questions**:
 - Are these foreign key relationships correct?
@@ -101,7 +101,7 @@ Should this be `users:inspector_id`?
 
 **Pattern 2**: In `useUserManagement.ts`
 ```typescript
-.from('profiles').select('id, email, role')
+.from('users').select('id, email, role')
 ```
 Should this be `.from('users')`?
 

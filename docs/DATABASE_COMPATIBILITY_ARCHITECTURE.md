@@ -59,8 +59,8 @@ CREATE OR REPLACE VIEW properties_fixed AS
 SELECT 
     int_to_uuid(property_id) as id,
     property_id as original_property_id,
-    property_name as name,
-    CONCAT(street_address, ', ', city, ', ', state, ' ', zipcode) as address,
+    name as name,
+    CONCAT(address, ', ', city, ', ', state, ' ', zipcode) as address,
     vrbo_url,
     airbnb_url,
     -- ... all other fields
@@ -294,10 +294,10 @@ SELECT int_to_uuid(1), uuid_to_int(int_to_uuid(1));
 - Track usage patterns for optimization opportunities
 
 ## **📚 Related Documentation**
-- [Database Schema Reference](./DATABASE_SCHEMA.md)
+- [Database Schema Reference](../CORRECTED_DATABASE_SCHEMA.md)
 - [API Service Layer](./API_SERVICES.md)
 - [Testing Procedures](./TESTING_GUIDE.md)
-- [Deployment Guide](./DEPLOYMENT.md)
+- [Deployment Guide](../DEPLOYMENT.md)
 
 ---
 

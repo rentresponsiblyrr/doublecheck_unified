@@ -1,9 +1,9 @@
 /**
  * SECURITY MONITORING DASHBOARD - ARCHITECTURAL EXCELLENCE ACHIEVED
- * 
+ *
  * Refactored enterprise-grade security monitoring following ZERO_TOLERANCE_STANDARDS
  * Reduced from 782 lines to <200 lines through component decomposition
- * 
+ *
  * Architectural Excellence:
  * - Single Responsibility Principle - orchestration only
  * - Composed of focused sub-components (SecurityDataManager, SecurityMetricsOverview, etc.)
@@ -11,13 +11,13 @@
  * - Performance optimized with proper component separation
  * - Real-time threat detection with professional error handling
  * - Memory efficient with proper lifecycle management
- * 
+ *
  * Component Composition:
  * - SecurityDataManager: Data fetching and real-time updates
  * - SecurityMetricsOverview: Compliance and metrics display
  * - ThreatMonitoringPanel: Threat detection and incident management
  * - ComplianceReportingPanel: Compliance reporting
- * 
+ *
  * @example
  * ```typescript
  * <SecurityMonitoringDashboard
@@ -27,18 +27,18 @@
  * ```
  */
 
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, RefreshCw, XCircle, AlertTriangle } from 'lucide-react';
+import React, { useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, RefreshCw, XCircle, AlertTriangle } from "lucide-react";
 
 // Import decomposed components
-import { SecurityDataManager } from './monitoring/SecurityDataManager';
-import { SecurityMetricsOverview } from './SecurityMetricsOverview';
-import { ThreatMonitoringPanel } from './ThreatMonitoringPanel';
-import { ComplianceReportingPanel } from './ComplianceReportingPanel';
-import { ThreatDetection } from '@/lib/security/enterprise-security-manager';
+import { SecurityDataManager } from "./monitoring/SecurityDataManager";
+import { SecurityMetricsOverview } from "./SecurityMetricsOverview";
+import { ThreatMonitoringPanel } from "./ThreatMonitoringPanel";
+import { ComplianceReportingPanel } from "./ComplianceReportingPanel";
+import { ThreatDetection } from "@/lib/security/enterprise-security-manager";
 
 /**
  * Component props - simplified for orchestration
@@ -54,19 +54,20 @@ export interface SecurityMonitoringDashboardProps {
  * Main Security Monitoring Dashboard Component - Orchestration Only
  * Reduced from 782 lines to <200 lines through architectural excellence
  */
-const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = ({
-  refreshInterval = 5000,
-  onThreatResponse
-}) => {
+const SecurityMonitoringDashboard: React.FC<
+  SecurityMonitoringDashboardProps
+> = ({ refreshInterval = 5000, onThreatResponse }) => {
   // Local state for UI management only
-  const [activeTab, setActiveTab] = useState<'overview' | 'threats' | 'compliance'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "threats" | "compliance"
+  >("overview");
 
   /**
    * Handle threat investigation - delegates to parent handler
    */
   const handleThreatInvestigate = useCallback(async (threatId: string) => {
     // Implementation would depend on the threat ID lookup
-    console.log('Investigating threat:', threatId);
+    console.log("Investigating threat:", threatId);
   }, []);
 
   /**
@@ -74,11 +75,11 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
    */
   const handleThreatResolve = useCallback(async (threatId: string) => {
     // Implementation would depend on the threat ID lookup
-    console.log('Resolving threat:', threatId);
+    console.log("Resolving threat:", threatId);
   }, []);
 
   return (
-    <div 
+    <div
       id="security-monitoring-dashboard"
       className="space-y-6"
       role="main"
@@ -87,7 +88,10 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 id="security-title" className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1
+            id="security-title"
+            className="text-2xl font-bold text-gray-900 flex items-center"
+          >
             <Shield className="h-6 w-6 mr-2 text-blue-600" />
             Security Monitoring Dashboard
           </h1>
@@ -102,20 +106,20 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
         <CardContent className="p-4">
           <div className="flex space-x-4">
             <Button
-              variant={activeTab === 'overview' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('overview')}
+              variant={activeTab === "overview" ? "default" : "outline"}
+              onClick={() => setActiveTab("overview")}
             >
               Overview
             </Button>
             <Button
-              variant={activeTab === 'threats' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('threats')}
+              variant={activeTab === "threats" ? "default" : "outline"}
+              onClick={() => setActiveTab("threats")}
             >
               Threats
             </Button>
             <Button
-              variant={activeTab === 'compliance' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('compliance')}
+              variant={activeTab === "compliance" ? "default" : "outline"}
+              onClick={() => setActiveTab("compliance")}
             >
               Compliance
             </Button>
@@ -140,7 +144,7 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
           toggleRealTime,
           acknowledgeAlert,
           dismissAlert,
-          handleAlertAction
+          handleAlertAction,
         }) => (
           <>
             {/* Loading State */}
@@ -164,11 +168,19 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
             )}
 
             {/* Critical Alerts */}
-            {alerts.filter(alert => alert.severity === 'critical').length > 0 && (
+            {alerts.filter((alert) => alert.severity === "critical").length >
+              0 && (
               <Alert className="border-red-300 bg-red-50">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-700">
-                  <strong>{alerts.filter(alert => alert.severity === 'critical').length} critical security alerts</strong> require immediate attention.
+                  <strong>
+                    {
+                      alerts.filter((alert) => alert.severity === "critical")
+                        .length
+                    }{" "}
+                    critical security alerts
+                  </strong>{" "}
+                  require immediate attention.
                 </AlertDescription>
               </Alert>
             )}
@@ -177,7 +189,7 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
             {!isLoading && !error && dashboardData && (
               <>
                 {/* Overview Tab */}
-                {activeTab === 'overview' && (
+                {activeTab === "overview" && (
                   <div className="space-y-6">
                     {/* Real-time Status */}
                     <Card>
@@ -185,8 +197,10 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                         <CardTitle className="flex items-center justify-between">
                           <span>System Status</span>
                           <div className="flex items-center space-x-2">
-                            <span className={`text-sm ${isRealTime ? 'text-green-600' : 'text-gray-600'}`}>
-                              {isRealTime ? '● Live' : '● Static'}
+                            <span
+                              className={`text-sm ${isRealTime ? "text-green-600" : "text-gray-600"}`}
+                            >
+                              {isRealTime ? "● Live" : "● Static"}
                             </span>
                             <Button
                               variant="outline"
@@ -194,7 +208,9 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                               onClick={loadSecurityData}
                               disabled={isLoading}
                             >
-                              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                              <RefreshCw
+                                className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                              />
                               Refresh
                             </Button>
                             <Button
@@ -202,14 +218,15 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                               size="sm"
                               onClick={toggleRealTime}
                             >
-                              {isRealTime ? 'Pause' : 'Resume'} Live Updates
+                              {isRealTime ? "Pause" : "Resume"} Live Updates
                             </Button>
                           </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-gray-600">
-                          Last updated: {lastUpdate?.toLocaleString() || 'Never'}
+                          Last updated:{" "}
+                          {lastUpdate?.toLocaleString() || "Never"}
                         </p>
                       </CardContent>
                     </Card>
@@ -217,19 +234,46 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                     {/* Security Metrics Overview */}
                     <SecurityMetricsOverview
                       metrics={{
-                        overallScore: Math.round((1 - dashboardData.riskLevel.overall) * 100),
+                        overallScore: Math.round(
+                          (1 - dashboardData.riskLevel.overall) * 100,
+                        ),
                         complianceStatus: {
-                          soc2: { status: 'compliant', score: 95, lastAudit: '2024-01-15', nextAudit: '2024-04-15' },
-                          gdpr: { status: 'compliant', score: 92, lastAudit: '2024-01-10', nextAudit: '2024-04-10' },
-                          hipaa: { status: 'partial', score: 78, lastAudit: '2024-01-05', nextAudit: '2024-04-05' },
-                          pciDss: { status: 'compliant', score: 88, lastAudit: '2024-01-20', nextAudit: '2024-04-20' }
+                          soc2: {
+                            status: "compliant",
+                            score: 95,
+                            lastAudit: "2024-01-15",
+                            nextAudit: "2024-04-15",
+                          },
+                          gdpr: {
+                            status: "compliant",
+                            score: 92,
+                            lastAudit: "2024-01-10",
+                            nextAudit: "2024-04-10",
+                          },
+                          hipaa: {
+                            status: "partial",
+                            score: 78,
+                            lastAudit: "2024-01-05",
+                            nextAudit: "2024-04-05",
+                          },
+                          pciDss: {
+                            status: "compliant",
+                            score: 88,
+                            lastAudit: "2024-01-20",
+                            nextAudit: "2024-04-20",
+                          },
                         },
                         threatDetection: {
                           activeThreats: dashboardData.activeThreats.length,
-                          criticalThreats: dashboardData.activeThreats.filter(t => t.severity === 'critical').length,
-                          resolvedThreats: dashboardData.eventCounts.blockedRequests,
-                          lastUpdate: lastUpdate?.toISOString() || new Date().toISOString()
-                        }
+                          criticalThreats: dashboardData.activeThreats.filter(
+                            (t) => t.severity === "critical",
+                          ).length,
+                          resolvedThreats:
+                            dashboardData.eventCounts.blockedRequests,
+                          lastUpdate:
+                            lastUpdate?.toISOString() ||
+                            new Date().toISOString(),
+                        },
                       }}
                       isLoading={isLoading}
                     />
@@ -237,17 +281,17 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                 )}
 
                 {/* Threats Tab */}
-                {activeTab === 'threats' && (
+                {activeTab === "threats" && (
                   <ThreatMonitoringPanel
-                    threats={dashboardData.activeThreats.map(threat => ({
+                    threats={dashboardData.activeThreats.map((threat) => ({
                       id: threat.id,
                       type: threat.type as any,
                       severity: threat.severity,
                       timestamp: threat.timestamp,
                       source: threat.source,
                       description: threat.description,
-                      status: 'active' as const,
-                      affectedSystems: threat.affectedSystems
+                      status: "active" as const,
+                      affectedSystems: threat.affectedSystems,
                     }))}
                     onRefresh={loadSecurityData}
                     onInvestigate={handleThreatInvestigate}
@@ -257,9 +301,7 @@ const SecurityMonitoringDashboard: React.FC<SecurityMonitoringDashboardProps> = 
                 )}
 
                 {/* Compliance Tab */}
-                {activeTab === 'compliance' && (
-                  <ComplianceReportingPanel />
-                )}
+                {activeTab === "compliance" && <ComplianceReportingPanel />}
               </>
             )}
           </>

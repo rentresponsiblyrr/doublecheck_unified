@@ -1,39 +1,39 @@
 /**
  * PROFESSIONAL ERROR BOUNDARY TYPES - ZERO TOLERANCE STANDARDS
- * 
+ *
  * Comprehensive type definitions for the professional error boundary system.
  * All types are properly defined to ensure type safety and prevent runtime errors.
- * 
+ *
  * Features:
  * - Complete type coverage for all error scenarios
  * - Professional error context tracking
  * - Branded types for error IDs to prevent mixing
  * - Comprehensive fallback strategy types
- * 
+ *
  * Performance: Zero runtime overhead, compile-time safety
  * Bundle Size: <1KB (types are stripped in production)
  */
 
-import { ReactNode, ErrorInfo } from 'react';
+import { ReactNode, ErrorInfo } from "react";
 
 /**
  * Error boundary severity levels for escalation strategy
- * 
+ *
  * @description Defines the severity level for proper error escalation
  */
-export type ErrorLevel = 'component' | 'page' | 'application';
+export type ErrorLevel = "component" | "page" | "application";
 
 /**
  * Fallback strategies for error recovery
- * 
+ *
  * @description Different strategies for handling errors gracefully
  */
-export type FallbackStrategy = 'retry' | 'fallback' | 'redirect' | 'offline';
+export type FallbackStrategy = "retry" | "fallback" | "redirect" | "offline";
 
 /**
  * Network connection status
  */
-export type NetworkStatus = 'online' | 'offline';
+export type NetworkStatus = "online" | "offline";
 
 /**
  * Branded type for error IDs to prevent mixing with other string IDs
@@ -42,7 +42,7 @@ export type ErrorId = string & { readonly brand: unique symbol };
 
 /**
  * Professional error context for debugging and monitoring
- * 
+ *
  * @description Comprehensive context information for error reporting and debugging
  */
 export interface ErrorContext {
@@ -59,9 +59,9 @@ export interface ErrorContext {
   /** User agent string for browser/device identification */
   userAgent: string;
   /** Viewport dimensions at time of error */
-  viewport: { 
-    width: number; 
-    height: number; 
+  viewport: {
+    width: number;
+    height: number;
   };
   /** Network connection status */
   networkStatus: NetworkStatus;
@@ -71,7 +71,7 @@ export interface ErrorContext {
 
 /**
  * Professional error boundary component props
- * 
+ *
  * @description Complete props interface for the error boundary component
  */
 export interface ProfessionalErrorBoundaryProps {
@@ -105,7 +105,7 @@ export interface ProfessionalErrorBoundaryProps {
 
 /**
  * Professional error boundary internal state
- * 
+ *
  * @description Internal state management for error boundary
  */
 export interface ProfessionalErrorBoundaryState {
@@ -129,7 +129,7 @@ export interface ProfessionalErrorBoundaryState {
 
 /**
  * Error monitoring configuration
- * 
+ *
  * @description Configuration for error monitoring and reporting
  */
 export interface ErrorMonitoringConfig {
@@ -147,7 +147,7 @@ export interface ErrorMonitoringConfig {
 
 /**
  * Retry mechanism configuration
- * 
+ *
  * @description Configuration for retry logic with exponential backoff
  */
 export interface RetryConfig {
@@ -165,7 +165,7 @@ export interface RetryConfig {
 
 /**
  * Bug report data structure
- * 
+ *
  * @description Structured data for bug reporting
  */
 export interface BugReport {
@@ -191,7 +191,7 @@ export interface BugReport {
 
 /**
  * Error report for monitoring services
- * 
+ *
  * @description Structured error report for external monitoring
  */
 export interface ErrorReport {
@@ -213,7 +213,7 @@ export interface ErrorReport {
 
 /**
  * Fallback component props
- * 
+ *
  * @description Common props for all fallback components
  */
 export interface FallbackComponentProps {
@@ -243,7 +243,7 @@ export interface FallbackComponentProps {
 
 /**
  * Professional error handler hook return type
- * 
+ *
  * @description Return type for the error handler hook
  */
 export interface ProfessionalErrorHandler {
@@ -255,33 +255,35 @@ export interface ProfessionalErrorHandler {
 
 /**
  * Type guard to check if error is recoverable
- * 
+ *
  * @param error - Error to check
  * @returns Whether error is recoverable
  */
 export const isRecoverableError = (error: Error): boolean => {
   // Network errors, timeout errors, etc. are typically recoverable
-  return error.name === 'NetworkError' ||
-         error.name === 'TimeoutError' ||
-         error.message.includes('fetch') ||
-         error.message.includes('network');
+  return (
+    error.name === "NetworkError" ||
+    error.name === "TimeoutError" ||
+    error.message.includes("fetch") ||
+    error.message.includes("network")
+  );
 };
 
 /**
  * Type guard to check if error is a React error
- * 
+ *
  * @param error - Error to check
  * @returns Whether error is a React error
  */
 export const isReactError = (error: Error): boolean => {
-  return error.message.includes('React') ||
-         error.stack?.includes('React') ||
-         false;
+  return (
+    error.message.includes("React") || error.stack?.includes("React") || false
+  );
 };
 
 /**
  * Create a branded error ID
- * 
+ *
  * @returns Unique branded error ID
  */
 export const createErrorId = (): ErrorId => {

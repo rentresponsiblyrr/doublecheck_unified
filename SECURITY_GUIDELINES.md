@@ -626,7 +626,7 @@ class SecureQueryBuilder {
     let paramIndex = 1;
 
     let query = `
-      SELECT i.*, p.name as property_name, u.name as inspector_name
+      SELECT i.*, p.name as name, u.name as inspector_name
       FROM inspections i
       JOIN properties p ON i.property_id = p.id
       JOIN users u ON i.inspector_id = u.id

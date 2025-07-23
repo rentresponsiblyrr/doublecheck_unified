@@ -1,15 +1,15 @@
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, RotateCcw, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowRight, RotateCcw, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-import { CameraManager } from './CameraManager';
-import { PhotoCapture } from './PhotoCapture';
-import { FileUploadFallback } from './FileUploadFallback';
-import { CaptureProgress } from './CaptureProgress';
-import { FlashControls } from './FlashControls';
+import { CameraManager } from "./CameraManager";
+import { PhotoCapture } from "./PhotoCapture";
+import { FileUploadFallback } from "./FileUploadFallback";
+import { CaptureProgress } from "./CaptureProgress";
+import { FlashControls } from "./FlashControls";
 
 interface ChecklistItem {
   id: string;
@@ -33,18 +33,20 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
   checklist,
   onPhotosUpdate,
   onStepComplete,
-  className = ''
+  className = "",
 }) => {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [capturedPhotos, setCapturedPhotos] = useState<{ [itemId: string]: File[] }>({});
+  const [capturedPhotos, setCapturedPhotos] = useState<{
+    [itemId: string]: File[];
+  }>({});
   const [cameraError, setCameraError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const currentItem = checklist[currentItemIndex];
-  const completedItems = checklist.filter(item => 
-    capturedPhotos[item.id] && capturedPhotos[item.id].length > 0
+  const completedItems = checklist.filter(
+    (item) => capturedPhotos[item.id] && capturedPhotos[item.id].length > 0,
   ).length;
 
   const handleCameraReady = useCallback((stream: MediaStream) => {
@@ -52,50 +54,59 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
     setCameraError(null);
   }, []);
 
-  const handleCameraError = useCallback((error: { message: string; code?: string }) => {
-    setCameraError(error.message);
-    setCameraStream(null);
-  }, []);
+  const handleCameraError = useCallback(
+    (error: { message: string; code?: string }) => {
+      setCameraError(error.message);
+      setCameraStream(null);
+    },
+    [],
+  );
 
-  const handlePhotoTaken = useCallback(async (file: File) => {
-    if (!currentItem) return;
-    
-    setIsCapturing(true);
-    
-    try {
-      const currentPhotos = capturedPhotos[currentItem.id] || [];
-      const updatedPhotos = [...currentPhotos, file];
-      
-      const newCapturedPhotos = {
-        ...capturedPhotos,
-        [currentItem.id]: updatedPhotos
-      };
-      
-      setCapturedPhotos(newCapturedPhotos);
-      onPhotosUpdate(currentItem.id, updatedPhotos);
-      
-      toast({
-        title: 'Photo Captured',
-        description: `Photo added to ${currentItem.title}`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Upload Failed',
-        description: 'Failed to save photo. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsCapturing(false);
-    }
-  }, [currentItem, capturedPhotos, onPhotosUpdate, toast]);
+  const handlePhotoTaken = useCallback(
+    async (file: File) => {
+      if (!currentItem) return;
 
-  const handleCaptureError = useCallback((error: Error) => {
-    toast({
-      title: 'Capture Failed',
-      description: error.message,
-      variant: 'destructive',
-    });
-  }, [toast]);
+      setIsCapturing(true);
+
+      try {
+        const currentPhotos = capturedPhotos[currentItem.id] || [];
+        const updatedPhotos = [...currentPhotos, file];
+
+        const newCapturedPhotos = {
+          ...capturedPhotos,
+          [currentItem.id]: updatedPhotos,
+        };
+
+        setCapturedPhotos(newCapturedPhotos);
+        onPhotosUpdate(currentItem.id, updatedPhotos);
+
+        toast({
+          title: "Photo Captured",
+          description: `Photo added to ${currentItem.title}`,
+        });
+      } catch (error) {
+        toast({
+          title: "Upload Failed",
+          description: "Failed to save photo. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCapturing(false);
+      }
+    },
+    [currentItem, capturedPhotos, onPhotosUpdate, toast],
+  );
+
+  const handleCaptureError = useCallback(
+    (error: Error) => {
+      toast({
+        title: "Capture Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+    [toast],
+  );
 
   const handleFlashToggle = useCallback((enabled: boolean) => {
     // Flash state handled by FlashControls component
@@ -118,20 +129,21 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
   };
 
   const completeStep = () => {
-    const requiredItems = checklist.filter(item => item.required);
-    const completedRequired = requiredItems.filter(item => 
-      capturedPhotos[item.id] && capturedPhotos[item.id].length > 0
+    const requiredItems = checklist.filter((item) => item.required);
+    const completedRequired = requiredItems.filter(
+      (item) => capturedPhotos[item.id] && capturedPhotos[item.id].length > 0,
     );
-    
+
     if (completedRequired.length < requiredItems.length) {
       toast({
-        title: 'Required Photos Missing',
-        description: 'Please complete all required photo items before proceeding.',
-        variant: 'destructive',
+        title: "Required Photos Missing",
+        description:
+          "Please complete all required photo items before proceeding.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     onStepComplete();
   };
 
@@ -145,7 +157,7 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
           onItemSelect={handleItemSelect}
         />
       </div>
-      
+
       <div id="camera-section" className="grid lg:grid-cols-2 gap-6">
         <Card id="camera-display-card">
           <CardContent className="p-6">
@@ -161,14 +173,17 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
                   onCameraReady={handleCameraReady}
                   onCameraError={handleCameraError}
                 />
-                
-                <div id="camera-controls" className="flex items-center justify-between">
+
+                <div
+                  id="camera-controls"
+                  className="flex items-center justify-between"
+                >
                   <FlashControls
                     cameraStream={cameraStream}
                     onFlashToggle={handleFlashToggle}
                     disabled={isCapturing}
                   />
-                  
+
                   <Button
                     onClick={() => window.location.reload()}
                     variant="outline"
@@ -179,7 +194,7 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
                     Retry Camera
                   </Button>
                 </div>
-                
+
                 <PhotoCapture
                   cameraStream={cameraStream!}
                   onPhotoTaken={handlePhotoTaken}
@@ -190,7 +205,7 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
             )}
           </CardContent>
         </Card>
-        
+
         <Card id="upload-fallback-card">
           <CardContent className="p-6">
             <FileUploadFallback
@@ -200,8 +215,11 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
           </CardContent>
         </Card>
       </div>
-      
-      <div id="navigation-section" className="flex items-center justify-between">
+
+      <div
+        id="navigation-section"
+        className="flex items-center justify-between"
+      >
         <div id="navigation-buttons" className="space-x-2">
           <Button
             onClick={previousItem}
@@ -211,7 +229,7 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
           >
             Previous Item
           </Button>
-          
+
           <Button
             onClick={nextItem}
             disabled={currentItemIndex === checklist.length - 1}
@@ -222,7 +240,7 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-        
+
         <Button
           onClick={completeStep}
           size="lg"

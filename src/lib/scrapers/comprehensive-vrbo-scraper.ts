@@ -1,11 +1,11 @@
 // Comprehensive VRBO Scraper - Phase 3 Complete Implementation
 // Integrates production HTTP client, advanced image extraction, and comprehensive data extraction
 
-import { VRBODataExtractor } from './vrbo-data-extractor';
-import { VRBOImageScraper } from './vrbo-image-scraper';
-import { aiDecisionLogger } from '../ai/decision-logger';
-import { logger } from '../../utils/logger';
-import { errorReporter } from '../monitoring/error-reporter';
+import { VRBODataExtractor } from "./vrbo-data-extractor";
+import { VRBOImageScraper } from "./vrbo-image-scraper";
+import { aiDecisionLogger } from "../ai/decision-logger";
+import { logger } from "../../utils/logger";
+import { errorReporter } from "../monitoring/error-reporter";
 import type {
   ScrapedPropertyData,
   VRBOPropertyData,
@@ -17,8 +17,8 @@ import type {
   PropertySpecifications,
   PropertyLocation,
   PhotoData,
-  ScraperConfig
-} from './types';
+  ScraperConfig,
+} from "./types";
 
 interface ComprehensiveScrapingOptions {
   includeImages: boolean;
@@ -51,7 +51,7 @@ interface ComprehensiveScrapingResult {
 
 export class ComprehensiveVRBOScraper extends VRBODataExtractor {
   private imageScraper: VRBOImageScraper;
-  
+
   private defaultOptions: ComprehensiveScrapingOptions = {
     includeImages: true,
     includeAdvancedAmenities: true,
@@ -59,7 +59,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
     includeRoomData: true,
     maxImages: 50,
     verifyWithAI: false,
-    generateReport: true
+    generateReport: true,
   };
 
   constructor(config: Partial<ScraperConfig> = {}) {
@@ -75,89 +75,110 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    */
   async scrapeComprehensiveProperty(
     url: string,
-    options: Partial<ComprehensiveScrapingOptions> = {}
+    options: Partial<ComprehensiveScrapingOptions> = {},
   ): Promise<ScrapingResult<ComprehensiveScrapingResult>> {
     const finalOptions = { ...this.defaultOptions, ...options };
     const startTime = Date.now();
     const errors: ScrapingError[] = [];
-    
+
     const metadata: ScrapingMetadata = {
       scrapedAt: new Date(),
       duration: 0,
       sourceUrl: url,
-      userAgent: this.httpClient.defaults.headers['User-Agent'] as string,
+      userAgent: this.httpClient.defaults.headers["User-Agent"] as string,
       rateLimited: false,
       dataCompleteness: 0,
       fieldsScraped: [],
-      fieldsFailed: []
+      fieldsFailed: [],
     };
 
     try {
       // Log comprehensive scraping start
       await aiDecisionLogger.logSimpleDecision(
         `Starting comprehensive VRBO property scraping: ${url}`,
-        'comprehensive_scraping',
+        "comprehensive_scraping",
         `Full property scraping with images, amenities, descriptions, and room data`,
         [url],
-        'high'
+        "high",
       );
 
       // Validate URL
       if (!this.isValidVRBOUrl(url)) {
-        throw new Error('Invalid VRBO URL provided');
+        throw new Error("Invalid VRBO URL provided");
       }
 
       // Step 1: Extract basic property data
-      logger.info('Step 1: Extracting basic property data', { url }, 'COMPREHENSIVE_VRBO_SCRAPER');
+      logger.info(
+        "Step 1: Extracting basic property data",
+        { url },
+        "COMPREHENSIVE_VRBO_SCRAPER",
+      );
       const propertyResult = await this.scrapePropertyDetails(url);
-      
+
       if (!propertyResult.success) {
         errors.push(...propertyResult.errors);
-        metadata.fieldsFailed.push('property_data');
+        metadata.fieldsFailed.push("property_data");
       } else {
-        metadata.fieldsScraped.push('property_data');
+        metadata.fieldsScraped.push("property_data");
       }
 
       // Step 2: Extract comprehensive data (amenities, descriptions, rooms)
-      logger.info('Step 2: Extracting comprehensive data', { url }, 'COMPREHENSIVE_VRBO_SCRAPER');
-      const comprehensiveResult = await this.extractComprehensiveData(url, {
-        includeHidden: finalOptions.includeAdvancedAmenities,
-        expandCollapsed: finalOptions.includeAdvancedAmenities,
-        verifyWithAI: finalOptions.verifyWithAI
-      }, {
-        includeFormatting: finalOptions.includeDetailedDescriptions,
-        extractHighlights: finalOptions.includeDetailedDescriptions,
-        parseStructuredData: finalOptions.includeDetailedDescriptions
-      }, {
-        detectRoomTypes: finalOptions.includeRoomData,
-        extractDimensions: finalOptions.includeRoomData,
-        includeFeatures: finalOptions.includeRoomData
-      });
+      logger.info(
+        "Step 2: Extracting comprehensive data",
+        { url },
+        "COMPREHENSIVE_VRBO_SCRAPER",
+      );
+      const comprehensiveResult = await this.extractComprehensiveData(
+        url,
+        {
+          includeHidden: finalOptions.includeAdvancedAmenities,
+          expandCollapsed: finalOptions.includeAdvancedAmenities,
+          verifyWithAI: finalOptions.verifyWithAI,
+        },
+        {
+          includeFormatting: finalOptions.includeDetailedDescriptions,
+          extractHighlights: finalOptions.includeDetailedDescriptions,
+          parseStructuredData: finalOptions.includeDetailedDescriptions,
+        },
+        {
+          detectRoomTypes: finalOptions.includeRoomData,
+          extractDimensions: finalOptions.includeRoomData,
+          includeFeatures: finalOptions.includeRoomData,
+        },
+      );
 
       if (!comprehensiveResult.success) {
         errors.push(...comprehensiveResult.errors);
-        metadata.fieldsFailed.push('comprehensive_data');
+        metadata.fieldsFailed.push("comprehensive_data");
       } else {
-        metadata.fieldsScraped.push('comprehensive_data');
+        metadata.fieldsScraped.push("comprehensive_data");
       }
 
       // Step 3: Extract images if enabled
-      let imageResult: ScrapingResult<PhotoData[]> = { success: true, data: [], errors: [] };
+      let imageResult: ScrapingResult<PhotoData[]> = {
+        success: true,
+        data: [],
+        errors: [],
+      };
       if (finalOptions.includeImages) {
-        logger.info('Step 3: Extracting property images', { url }, 'COMPREHENSIVE_VRBO_SCRAPER');
+        logger.info(
+          "Step 3: Extracting property images",
+          { url },
+          "COMPREHENSIVE_VRBO_SCRAPER",
+        );
         imageResult = await this.imageScraper.scrapeAllImages(url, {
           maxImages: finalOptions.maxImages,
           includeHighRes: true,
           expandGalleries: true,
           deduplicateImages: true,
-          roomCategorization: true
+          roomCategorization: true,
         });
 
         if (!imageResult.success) {
           errors.push(...imageResult.errors);
-          metadata.fieldsFailed.push('images');
+          metadata.fieldsFailed.push("images");
         } else {
-          metadata.fieldsScraped.push('images');
+          metadata.fieldsScraped.push("images");
         }
       }
 
@@ -166,7 +187,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
         propertyResult,
         comprehensiveResult,
         imageResult,
-        finalOptions
+        finalOptions,
       );
 
       // Generate extraction report
@@ -174,56 +195,66 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
         combinedResult,
         startTime,
         errors.length,
-        finalOptions
+        finalOptions,
       );
 
       // Calculate final metadata
       metadata.duration = Date.now() - startTime;
       metadata.dataCompleteness = extractionReport.completenessScore;
 
-      logger.info('Comprehensive VRBO scraping completed', {
-        url,
-        completenessScore: extractionReport.completenessScore,
-        totalDataPoints: extractionReport.totalDataPoints,
-        duration: metadata.duration,
-        errorsCount: errors.length
-      }, 'COMPREHENSIVE_VRBO_SCRAPER');
+      logger.info(
+        "Comprehensive VRBO scraping completed",
+        {
+          url,
+          completenessScore: extractionReport.completenessScore,
+          totalDataPoints: extractionReport.totalDataPoints,
+          duration: metadata.duration,
+          errorsCount: errors.length,
+        },
+        "COMPREHENSIVE_VRBO_SCRAPER",
+      );
 
       const finalResult: ComprehensiveScrapingResult = {
         ...combinedResult,
-        extractionReport
+        extractionReport,
       };
 
       return {
         success: errors.length === 0 || extractionReport.completenessScore > 50,
         data: finalResult,
         errors,
-        metadata
+        metadata,
       };
-
     } catch (error) {
       const scrapingError: ScrapingError = {
-        code: 'COMPREHENSIVE_SCRAPING_FAILED',
-        message: error instanceof Error ? error.message : 'Unknown comprehensive scraping error',
-        severity: 'high',
-        recoverable: true
+        code: "COMPREHENSIVE_SCRAPING_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown comprehensive scraping error",
+        severity: "high",
+        recoverable: true,
       };
-      
+
       metadata.duration = Date.now() - startTime;
-      metadata.fieldsFailed = ['all'];
-      
-      logger.error('Comprehensive VRBO scraping failed', error, 'COMPREHENSIVE_VRBO_SCRAPER');
-      
+      metadata.fieldsFailed = ["all"];
+
+      logger.error(
+        "Comprehensive VRBO scraping failed",
+        error,
+        "COMPREHENSIVE_VRBO_SCRAPER",
+      );
+
       errorReporter.reportError(error, {
-        context: 'COMPREHENSIVE_VRBO_SCRAPER',
+        context: "COMPREHENSIVE_VRBO_SCRAPER",
         url,
-        metadata
+        metadata,
       });
 
       return {
         success: false,
         errors: [scrapingError],
-        metadata
+        metadata,
       };
     }
   }
@@ -240,22 +271,22 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
     propertyResult: ScrapingResult<VRBOPropertyData>,
     comprehensiveResult: ScrapingResult<ScrapedPropertyData>,
     imageResult: ScrapingResult<PhotoData[]>,
-    options: ComprehensiveScrapingOptions
-  ): Omit<ComprehensiveScrapingResult, 'extractionReport'> {
+    options: ComprehensiveScrapingOptions,
+  ): Omit<ComprehensiveScrapingResult, "extractionReport"> {
     // Start with basic property data
-    const propertyData: VRBOPropertyData = propertyResult.success 
-      ? propertyResult.data 
+    const propertyData: VRBOPropertyData = propertyResult.success
+      ? propertyResult.data
       : this.createFallbackPropertyData();
 
     // Enhance with comprehensive data
     if (comprehensiveResult.success) {
       const compData = comprehensiveResult.data;
-      
+
       // Merge amenities (prioritize comprehensive data)
       if (compData.amenities?.length > 0) {
         propertyData.amenities = this.mergeAmenities(
           propertyData.amenities || [],
-          compData.amenities
+          compData.amenities,
         );
       }
 
@@ -263,7 +294,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
       if (compData.specifications) {
         propertyData.specifications = {
           ...propertyData.specifications,
-          ...compData.specifications
+          ...compData.specifications,
         };
       }
 
@@ -271,7 +302,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
       if (compData.location) {
         propertyData.location = {
           ...propertyData.location,
-          ...compData.location
+          ...compData.location,
         };
       }
 
@@ -288,7 +319,7 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
 
     // Add images
     const images: PhotoData[] = imageResult.success ? imageResult.data : [];
-    
+
     // If we have images, update the property data photos
     if (images.length > 0) {
       propertyData.photos = images;
@@ -299,11 +330,13 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
       images,
       amenities: propertyData.amenities || [],
       rooms: propertyData.rooms || [],
-      descriptions: comprehensiveResult.success ? comprehensiveResult.data.descriptions : {
-        main: propertyData.description || '',
-        highlights: [],
-        structured: {}
-      }
+      descriptions: comprehensiveResult.success
+        ? comprehensiveResult.data.descriptions
+        : {
+            main: propertyData.description || "",
+            highlights: [],
+            structured: {},
+          },
     };
   }
 
@@ -313,16 +346,19 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    * @param comprehensiveAmenities - Comprehensive amenities from advanced extraction
    * @returns Merged amenity list
    */
-  private mergeAmenities(basicAmenities: PropertyAmenity[], comprehensiveAmenities: PropertyAmenity[]): PropertyAmenity[] {
+  private mergeAmenities(
+    basicAmenities: PropertyAmenity[],
+    comprehensiveAmenities: PropertyAmenity[],
+  ): PropertyAmenity[] {
     const amenityMap = new Map<string, PropertyAmenity>();
-    
+
     // Add basic amenities first
-    basicAmenities.forEach(amenity => {
+    basicAmenities.forEach((amenity) => {
       amenityMap.set(amenity.name.toLowerCase(), amenity);
     });
-    
+
     // Add/override with comprehensive amenities (they're more detailed)
-    comprehensiveAmenities.forEach(amenity => {
+    comprehensiveAmenities.forEach((amenity) => {
       const existing = amenityMap.get(amenity.name.toLowerCase());
       if (existing) {
         // Merge properties, prioritizing comprehensive data
@@ -330,13 +366,13 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
           ...existing,
           ...amenity,
           verified: amenity.verified || existing.verified,
-          description: amenity.description || existing.description
+          description: amenity.description || existing.description,
         });
       } else {
         amenityMap.set(amenity.name.toLowerCase(), amenity);
       }
     });
-    
+
     return Array.from(amenityMap.values());
   }
 
@@ -346,19 +382,19 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    */
   private createFallbackPropertyData(): VRBOPropertyData {
     return {
-      vrboId: 'unknown',
-      sourceUrl: '',
-      title: 'Property Title Not Available',
-      description: 'Property description not available',
+      vrboId: "unknown",
+      sourceUrl: "",
+      title: "Property Title Not Available",
+      description: "Property description not available",
       amenities: [],
       photos: [],
       rooms: [],
       specifications: this.getDefaultSpecifications(),
       location: this.getDefaultLocation(),
       instantBook: false,
-      cancellationPolicy: 'Policy not specified',
+      cancellationPolicy: "Policy not specified",
       houseRules: [],
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
@@ -371,16 +407,16 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    * @returns Extraction report
    */
   private generateExtractionReport(
-    result: Omit<ComprehensiveScrapingResult, 'extractionReport'>,
+    result: Omit<ComprehensiveScrapingResult, "extractionReport">,
     startTime: number,
     errorCount: number,
-    options: ComprehensiveScrapingOptions
-  ): ComprehensiveScrapingResult['extractionReport'] {
+    options: ComprehensiveScrapingOptions,
+  ): ComprehensiveScrapingResult["extractionReport"] {
     const processingTime = Date.now() - startTime;
-    
+
     // Count total data points extracted
     let totalDataPoints = 0;
-    
+
     // Basic property data points
     if (result.propertyData.title) totalDataPoints++;
     if (result.propertyData.description) totalDataPoints++;
@@ -388,24 +424,24 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
     if (result.propertyData.specifications?.bathrooms) totalDataPoints++;
     if (result.propertyData.specifications?.maxGuests) totalDataPoints++;
     if (result.propertyData.location?.city) totalDataPoints++;
-    
+
     // Amenities
     totalDataPoints += result.amenities.length;
-    
+
     // Images
     totalDataPoints += result.images.length;
-    
+
     // Rooms
     totalDataPoints += result.rooms.length;
-    
+
     // Descriptions
     if (result.descriptions.main) totalDataPoints++;
     totalDataPoints += result.descriptions.highlights.length;
     totalDataPoints += Object.keys(result.descriptions.structured).length;
-    
+
     // Calculate completeness score
     let completenessScore = 0;
-    
+
     // Required data scoring (70%)
     if (result.propertyData.title) completenessScore += 10;
     if (result.propertyData.description) completenessScore += 10;
@@ -413,28 +449,33 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
     if (result.images.length > 0) completenessScore += 15;
     if (result.propertyData.specifications?.bedrooms) completenessScore += 10;
     if (result.propertyData.specifications?.bathrooms) completenessScore += 10;
-    
+
     // Optional data scoring (30%)
     if (result.rooms.length > 0) completenessScore += 10;
     if (result.descriptions.highlights.length > 0) completenessScore += 5;
-    if (Object.keys(result.descriptions.structured).length > 0) completenessScore += 5;
-    if (result.propertyData.location?.city && result.propertyData.location.city !== 'Unknown') completenessScore += 5;
+    if (Object.keys(result.descriptions.structured).length > 0)
+      completenessScore += 5;
+    if (
+      result.propertyData.location?.city &&
+      result.propertyData.location.city !== "Unknown"
+    )
+      completenessScore += 5;
     if (result.images.length >= 10) completenessScore += 5;
-    
+
     // Determine verification status
-    let verificationStatus = 'completed';
+    let verificationStatus = "completed";
     if (errorCount > 0 && completenessScore < 50) {
-      verificationStatus = 'failed';
+      verificationStatus = "failed";
     } else if (errorCount > 0 || completenessScore < 80) {
-      verificationStatus = 'partial';
+      verificationStatus = "partial";
     }
-    
+
     return {
       totalDataPoints,
       completenessScore: Math.round(Math.min(completenessScore, 100)),
       verificationStatus,
       processingTime,
-      errorsEncountered: errorCount
+      errorsEncountered: errorCount,
     };
   }
 
@@ -455,57 +496,64 @@ export class ComprehensiveVRBOScraper extends VRBODataExtractor {
    */
   async batchScrape(
     urls: string[],
-    options: Partial<ComprehensiveScrapingOptions> = {}
+    options: Partial<ComprehensiveScrapingOptions> = {},
   ): Promise<ScrapingResult<ComprehensiveScrapingResult>[]> {
     const results: ScrapingResult<ComprehensiveScrapingResult>[] = [];
-    
+
     for (const url of urls) {
       try {
         const result = await this.scrapeComprehensiveProperty(url, options);
         results.push(result);
-        
+
         // Add delay between requests to respect rate limits
         await this.delay(2000);
       } catch (error) {
         results.push({
           success: false,
-          errors: [{
-            code: 'BATCH_SCRAPING_FAILED',
-            message: error instanceof Error ? error.message : 'Batch scraping failed',
-            severity: 'medium',
-            recoverable: true
-          }],
+          errors: [
+            {
+              code: "BATCH_SCRAPING_FAILED",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Batch scraping failed",
+              severity: "medium",
+              recoverable: true,
+            },
+          ],
           metadata: {
             scrapedAt: new Date(),
             duration: 0,
             sourceUrl: url,
-            userAgent: this.httpClient.defaults.headers['User-Agent'] as string,
+            userAgent: this.httpClient.defaults.headers["User-Agent"] as string,
             rateLimited: false,
             dataCompleteness: 0,
             fieldsScraped: [],
-            fieldsFailed: ['all']
-          }
+            fieldsFailed: ["all"],
+          },
         });
       }
     }
-    
+
     return results;
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
 // Export factory function
-export const createComprehensiveVRBOScraper = (config?: Partial<ScraperConfig>): ComprehensiveVRBOScraper => {
+export const createComprehensiveVRBOScraper = (
+  config?: Partial<ScraperConfig>,
+): ComprehensiveVRBOScraper => {
   return new ComprehensiveVRBOScraper(config);
 };
 
 // Export convenience function for quick property scraping
 export const scrapeVRBOProperty = async (
-  url: string, 
-  options: Partial<ComprehensiveScrapingOptions> = {}
+  url: string,
+  options: Partial<ComprehensiveScrapingOptions> = {},
 ): Promise<ScrapingResult<ComprehensiveScrapingResult>> => {
   const scraper = createComprehensiveVRBOScraper();
   return scraper.scrapeComprehensiveProperty(url, options);

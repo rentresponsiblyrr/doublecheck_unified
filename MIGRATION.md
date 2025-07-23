@@ -11,7 +11,7 @@ This document details the complete migration from database compatibility layer v
 
 ## Problem Statement
 The application was experiencing 404 errors due to missing compatibility layer views (`properties_fixed`, `inspections_fixed`, etc.) that bridged between:
-- **Production Schema**: Integer IDs, specific column names (`property_name`, `street_address`)
+- **Production Schema**: Integer IDs, specific column names (`name`, `address`)
 - **Application Expectations**: UUID-based schema with different column names
 
 ## Migration Phases
@@ -38,7 +38,7 @@ The application was experiencing 404 errors due to missing compatibility layer v
 
 // After (Production Schema)
 .from('properties')
-.select('property_id, property_name, street_address')
+.select('property_id, name, address')
 ```
 
 ### Phase 3: React Components Migration ✅
@@ -86,8 +86,8 @@ The application was experiencing 404 errors due to missing compatibility layer v
 | Old Column | New Column | Table | Notes |
 |------------|------------|-------|-------|
 | `id` | `property_id` | properties | Integer ID converted to string |
-| `name` | `property_name` | properties | Property name field |
-| `address` | `street_address` | properties | Address field |
+| `name` | `name` | properties | Property name field |
+| `address` | `address` | properties | Address field |
 | `name` | `full_name` | profiles | User name field |
 
 ### Relationship Mappings
@@ -138,8 +138,8 @@ SELECT COUNT(*) FROM information_schema.views WHERE table_name = 'users';
 -- Properties table (Integer IDs)
 properties (
   property_id INTEGER PRIMARY KEY,
-  property_name TEXT,
-  street_address TEXT,
+  name TEXT,
+  address TEXT,
   vrbo_url TEXT,
   airbnb_url TEXT,
   created_by UUID REFERENCES profiles(id),
@@ -167,7 +167,7 @@ inspections (
 logs (
   id UUID PRIMARY KEY,
   inspection_id UUID REFERENCES inspections(id),
-  static_safety_item_id INTEGER,
+  static_item_id INTEGER,
   status TEXT,
   inspector_notes TEXT
 );

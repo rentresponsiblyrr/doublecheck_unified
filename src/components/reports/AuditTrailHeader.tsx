@@ -1,14 +1,14 @@
 /**
  * Audit Trail Header - Focused Component
- * 
+ *
  * Displays header with title and export functionality
  */
 
-import React from 'react';
-import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, Download } from 'lucide-react';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import React from "react";
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Download } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface AuditTrailHeaderProps {
   isExporting: boolean;
@@ -19,7 +19,7 @@ interface AuditTrailHeaderProps {
 export const AuditTrailHeader: React.FC<AuditTrailHeaderProps> = ({
   isExporting,
   hasEntries,
-  onExport
+  onExport,
 }) => {
   return (
     <CardHeader id="audit-trail-header">

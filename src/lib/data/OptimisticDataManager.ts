@@ -1,24 +1,24 @@
 /**
  * OPTIMISTIC DATA MANAGER - TRANSACTION ROLLBACK SYSTEM
- * 
+ *
  * Provides optimistic updates with automatic rollback mechanisms for
  * better user experience while maintaining data integrity. Eliminates
  * database/UI state divergence through careful state management.
- * 
+ *
  * FEATURES:
  * - Optimistic UI updates
  * - Automatic rollback on server failures
  * - Conflict resolution strategies
  * - State synchronization
  * - Performance optimization
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0 - Production Ready
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
-export type OptimisticOperation = 'create' | 'update' | 'delete' | 'batch';
+export type OptimisticOperation = "create" | "update" | "delete" | "batch";
 
 export interface OptimisticState<T> {
   items: T[];
@@ -38,7 +38,7 @@ export interface PendingOperation<T> {
 }
 
 export interface ConflictResolutionStrategy<T> {
-  name: 'client-wins' | 'server-wins' | 'merge' | 'manual';
+  name: "client-wins" | "server-wins" | "merge" | "manual";
   resolver?: (clientData: T, serverData: T) => T;
 }
 
@@ -47,12 +47,19 @@ export interface OptimisticUpdateOptions<T> {
   maxRetries?: number;
   timeout?: number;
   onConflict?: (clientData: T, serverData: T) => Promise<T>;
-  onRollback?: (originalData: T | undefined, operation: OptimisticOperation) => void;
+  onRollback?: (
+    originalData: T | undefined,
+    operation: OptimisticOperation,
+  ) => void;
 }
 
 export class OptimisticDataManager<T extends { id: string }> {
   private state: OptimisticState<T>;
-  private conflictQueue: Array<{ clientData: T; serverData: T; resolver: (result: T) => void }> = [];
+  private conflictQueue: Array<{
+    clientData: T;
+    serverData: T;
+    resolver: (result: T) => void;
+  }> = [];
   private maxPendingOperations = 100;
 
   constructor(initialItems: T[] = []) {
@@ -60,7 +67,7 @@ export class OptimisticDataManager<T extends { id: string }> {
       items: [...initialItems],
       pendingOperations: new Map(),
       lastSyncTime: Date.now(),
-      version: 1
+      version: 1,
     };
   }
 
@@ -71,11 +78,13 @@ export class OptimisticDataManager<T extends { id: string }> {
     operation: OptimisticOperation,
     data: Partial<T> & { id: string },
     serverOperation: () => Promise<T | void>,
-    options: OptimisticUpdateOptions<T> = {}
+    options: OptimisticUpdateOptions<T> = {},
   ): Promise<T[]> {
     // Validate operation
     if (this.state.pendingOperations.size >= this.maxPendingOperations) {
-      throw new Error('Too many pending operations. Please wait for completion.');
+      throw new Error(
+        "Too many pending operations. Please wait for completion.",
+      );
     }
 
     const operationId = `${operation}_${data.id}_${Date.now()}`;
@@ -83,33 +92,45 @@ export class OptimisticDataManager<T extends { id: string }> {
 
     try {
       // Apply optimistic update
-      const optimisticItems = this.applyOptimisticUpdate(operation, data, operationId);
+      const optimisticItems = this.applyOptimisticUpdate(
+        operation,
+        data,
+        operationId,
+      );
       rollbackData = this.findOriginalData(data.id);
 
       // Track pending operation
-      this.trackPendingOperation(operationId, operation, data, rollbackData, options.maxRetries);
+      this.trackPendingOperation(
+        operationId,
+        operation,
+        data,
+        rollbackData,
+        options.maxRetries,
+      );
 
       // Attempt server operation with timeout
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Server operation timeout')), options.timeout || 30000)
+        setTimeout(
+          () => reject(new Error("Server operation timeout")),
+          options.timeout || 30000,
+        ),
       );
 
       const serverResult = await Promise.race([
         serverOperation(),
-        timeoutPromise
+        timeoutPromise,
       ]);
 
       // Server operation succeeded
       this.completePendingOperation(operationId, serverResult);
-      
-      logger.debug('Optimistic update confirmed by server', {
+
+      logger.debug("Optimistic update confirmed by server", {
         operation,
         itemId: data.id,
-        operationId
+        operationId,
       });
 
       return this.state.items;
-
     } catch (error) {
       // Server operation failed - initiate rollback
       return await this.handleOperationFailure(
@@ -118,7 +139,7 @@ export class OptimisticDataManager<T extends { id: string }> {
         data,
         rollbackData,
         error as Error,
-        options
+        options,
       );
     }
   }
@@ -129,30 +150,34 @@ export class OptimisticDataManager<T extends { id: string }> {
   private applyOptimisticUpdate(
     operation: OptimisticOperation,
     data: Partial<T> & { id: string },
-    operationId: string
+    operationId: string,
   ): T[] {
     switch (operation) {
-      case 'create': {
+      case "create": {
         const newItem = data as T;
         this.state.items = [...this.state.items, newItem];
         break;
       }
-      
-      case 'update': {
-        this.state.items = this.state.items.map(item =>
-          item.id === data.id ? { ...item, ...data } : item
+
+      case "update": {
+        this.state.items = this.state.items.map((item) =>
+          item.id === data.id ? { ...item, ...data } : item,
         );
         break;
       }
-      
-      case 'delete': {
-        this.state.items = this.state.items.filter(item => item.id !== data.id);
+
+      case "delete": {
+        this.state.items = this.state.items.filter(
+          (item) => item.id !== data.id,
+        );
         break;
       }
-      
-      case 'batch': {
+
+      case "batch": {
         // Handle batch operations - implementation depends on specific needs
-        logger.warn('Batch optimistic updates not fully implemented', { operationId });
+        logger.warn("Batch optimistic updates not fully implemented", {
+          operationId,
+        });
         break;
       }
     }
@@ -165,7 +190,7 @@ export class OptimisticDataManager<T extends { id: string }> {
    * Find original data for rollback
    */
   private findOriginalData(itemId: string): T | undefined {
-    return this.state.items.find(item => item.id === itemId);
+    return this.state.items.find((item) => item.id === itemId);
   }
 
   /**
@@ -176,7 +201,7 @@ export class OptimisticDataManager<T extends { id: string }> {
     operation: OptimisticOperation,
     data: Partial<T> & { id: string },
     originalData: T | undefined,
-    maxRetries = 3
+    maxRetries = 3,
   ): void {
     this.state.pendingOperations.set(operationId, {
       id: operationId,
@@ -185,21 +210,24 @@ export class OptimisticDataManager<T extends { id: string }> {
       originalData,
       timestamp: Date.now(),
       retryCount: 0,
-      maxRetries
+      maxRetries,
     });
   }
 
   /**
    * Complete pending operation successfully
    */
-  private completePendingOperation(operationId: string, serverResult?: T | void): void {
+  private completePendingOperation(
+    operationId: string,
+    serverResult?: T | void,
+  ): void {
     const pendingOp = this.state.pendingOperations.get(operationId);
     if (!pendingOp) return;
 
     // If server returned updated data, merge it
-    if (serverResult && typeof serverResult === 'object') {
-      this.state.items = this.state.items.map(item =>
-        item.id === pendingOp.data.id ? serverResult : item
+    if (serverResult && typeof serverResult === "object") {
+      this.state.items = this.state.items.map((item) =>
+        item.id === pendingOp.data.id ? serverResult : item,
       );
     }
 
@@ -217,38 +245,41 @@ export class OptimisticDataManager<T extends { id: string }> {
     data: Partial<T> & { id: string },
     rollbackData: T | undefined,
     error: Error,
-    options: OptimisticUpdateOptions<T>
+    options: OptimisticUpdateOptions<T>,
   ): Promise<T[]> {
     const pendingOp = this.state.pendingOperations.get(operationId);
     if (!pendingOp) {
-      logger.error('Pending operation not found for rollback', { operationId });
+      logger.error("Pending operation not found for rollback", { operationId });
       return this.state.items;
     }
 
-    logger.warn('Optimistic operation failed, considering rollback', {
+    logger.warn("Optimistic operation failed, considering rollback", {
       operation,
       itemId: data.id,
       error: error.message,
       retryCount: pendingOp.retryCount,
-      maxRetries: pendingOp.maxRetries
+      maxRetries: pendingOp.maxRetries,
     });
 
     // Check if we should retry
-    if (pendingOp.retryCount < pendingOp.maxRetries && !error.message.includes('timeout')) {
+    if (
+      pendingOp.retryCount < pendingOp.maxRetries &&
+      !error.message.includes("timeout")
+    ) {
       pendingOp.retryCount++;
-      
+
       // Don't rollback yet - operation will be retried by OperationQueue
-      logger.info('Optimistic operation will be retried', {
+      logger.info("Optimistic operation will be retried", {
         operationId,
-        retryCount: pendingOp.retryCount
+        retryCount: pendingOp.retryCount,
       });
-      
+
       return this.state.items;
     }
 
     // Max retries exceeded or non-retryable error - perform rollback
     await this.performRollback(operationId, operation, rollbackData, options);
-    
+
     return this.state.items;
   }
 
@@ -259,7 +290,7 @@ export class OptimisticDataManager<T extends { id: string }> {
     operationId: string,
     operation: OptimisticOperation,
     rollbackData: T | undefined,
-    options: OptimisticUpdateOptions<T>
+    options: OptimisticUpdateOptions<T>,
   ): Promise<void> {
     const pendingOp = this.state.pendingOperations.get(operationId);
     if (!pendingOp) return;
@@ -267,23 +298,25 @@ export class OptimisticDataManager<T extends { id: string }> {
     try {
       // Perform rollback based on operation type
       switch (operation) {
-        case 'create': {
+        case "create": {
           // Remove the optimistically created item
-          this.state.items = this.state.items.filter(item => item.id !== pendingOp.data.id);
+          this.state.items = this.state.items.filter(
+            (item) => item.id !== pendingOp.data.id,
+          );
           break;
         }
-        
-        case 'update': {
+
+        case "update": {
           if (rollbackData) {
             // Restore original data
-            this.state.items = this.state.items.map(item =>
-              item.id === pendingOp.data.id ? rollbackData : item
+            this.state.items = this.state.items.map((item) =>
+              item.id === pendingOp.data.id ? rollbackData : item,
             );
           }
           break;
         }
-        
-        case 'delete': {
+
+        case "delete": {
           if (rollbackData) {
             // Re-add the deleted item
             this.state.items = [...this.state.items, rollbackData];
@@ -301,19 +334,18 @@ export class OptimisticDataManager<T extends { id: string }> {
         options.onRollback(rollbackData, operation);
       }
 
-      logger.info('Optimistic update rolled back successfully', {
+      logger.info("Optimistic update rolled back successfully", {
         operationId,
         operation,
-        itemId: pendingOp.data.id
+        itemId: pendingOp.data.id,
+      });
+    } catch (rollbackError) {
+      logger.error("Rollback operation failed", {
+        operationId,
+        operation,
+        error: rollbackError,
       });
 
-    } catch (rollbackError) {
-      logger.error('Rollback operation failed', {
-        operationId,
-        operation,
-        error: rollbackError
-      });
-      
       // If rollback fails, we need to sync with server
       await this.forceSync();
     }
@@ -323,11 +355,11 @@ export class OptimisticDataManager<T extends { id: string }> {
    * Force synchronization with server (nuclear option)
    */
   private async forceSync(): Promise<void> {
-    logger.warn('Forcing data synchronization due to rollback failure');
-    
+    logger.warn("Forcing data synchronization due to rollback failure");
+
     // Clear all pending operations
     this.state.pendingOperations.clear();
-    
+
     // This would typically trigger a full data refresh from server
     // Implementation depends on specific data layer architecture
   }
@@ -376,7 +408,7 @@ export class OptimisticDataManager<T extends { id: string }> {
       items: [...items],
       pendingOperations: new Map(),
       lastSyncTime: Date.now(),
-      version: 1
+      version: 1,
     };
   }
 }

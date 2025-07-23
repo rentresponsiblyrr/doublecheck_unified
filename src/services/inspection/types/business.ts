@@ -1,10 +1,10 @@
 /**
  * BUSINESS LOGIC TYPES - PHASE 2 QUERY STANDARDIZATION
- * 
+ *
  * Clean, application-focused interfaces that abstract database complexity.
  * These types provide a consistent API for components while hiding
  * the underlying schema details and compatibility layer complexity.
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
@@ -18,17 +18,17 @@
  * Includes all data needed for property selection and inspection resumption
  */
 export interface ActiveInspection {
-  inspectionId: string;             // Always UUID for consistency
-  propertyId: string;               // Always UUID for consistency  
-  propertyName: string;             // Human-readable property name
-  propertyAddress: string;          // Full formatted address
-  status: InspectionStatus;         // Current inspection state
-  progress: ProgressMetrics;        // Completion tracking
-  lastActivity: Date;               // When last worked on
+  inspectionId: string; // Always UUID for consistency
+  propertyId: string; // Always UUID for consistency
+  propertyName: string; // Human-readable property name
+  propertyAddress: string; // Full formatted address
+  status: InspectionStatus; // Current inspection state
+  progress: ProgressMetrics; // Completion tracking
+  lastActivity: Date; // When last worked on
   estimatedCompletion: Date | null; // AI-predicted completion time
-  hasOfflineChanges: boolean;       // Unsynchronized local changes
-  inspector: InspectorInfo;         // Assigned inspector details
-  priority: InspectionPriority;     // Business priority level
+  hasOfflineChanges: boolean; // Unsynchronized local changes
+  inspector: InspectorInfo; // Assigned inspector details
+  priority: InspectionPriority; // Business priority level
   conditions: InspectionConditions; // Special requirements/notes
 }
 
@@ -59,11 +59,11 @@ export interface InspectionSummary {
   propertyAddress: string;
   status: InspectionStatus;
   progressPercentage: number;
-  inspector: string;               // Inspector name
+  inspector: string; // Inspector name
   startDate: Date;
   targetCompletion: Date;
   isOverdue: boolean;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: "low" | "medium" | "high";
 }
 
 // ========================================
@@ -83,8 +83,8 @@ export interface PropertyWithStatus {
   stats: PropertyStats;
   lastInspection: InspectionSummary | null;
   nextInspectionDue: Date | null;
-  complianceRating: number;        // 0-100 score
-  riskFactors: string[];           // Identified risk areas
+  complianceRating: number; // 0-100 score
+  riskFactors: string[]; // Identified risk areas
 }
 
 /**
@@ -96,11 +96,11 @@ export interface AvailableProperty {
   name: string;
   address: string;
   type: PropertyType;
-  estimatedDuration: number;       // Minutes for typical inspection
-  specialRequirements: string[];   // Access codes, keys, etc.
+  estimatedDuration: number; // Minutes for typical inspection
+  specialRequirements: string[]; // Access codes, keys, etc.
   lastInspected: Date | null;
-  urgency: 'low' | 'medium' | 'high' | 'critical';
-  preferredInspectors: string[];   // Inspector IDs with property familiarity
+  urgency: "low" | "medium" | "high" | "critical";
+  preferredInspectors: string[]; // Inspector IDs with property familiarity
 }
 
 /**
@@ -138,9 +138,9 @@ export interface ChecklistItem {
   result: ChecklistItemResult | null;
   media: MediaItem[];
   notes: string;
-  estimatedTime: number;           // Minutes to complete
-  dependencies: string[];          // Other item IDs that must be completed first
-  aiGuidance: AIGuidance | null;   // AI-provided hints and validation
+  estimatedTime: number; // Minutes to complete
+  dependencies: string[]; // Other item IDs that must be completed first
+  aiGuidance: AIGuidance | null; // AI-provided hints and validation
 }
 
 /**
@@ -157,9 +157,9 @@ export interface ProgressMetrics {
   photosCaptured: number;
   videosRequired: number;
   videosRecorded: number;
-  estimatedTimeRemaining: number;  // Minutes based on AI analysis
-  actualTimeSpent: number;         // Minutes tracked
-  efficiencyScore: number;         // 0-100 based on historical data
+  estimatedTimeRemaining: number; // Minutes based on AI analysis
+  actualTimeSpent: number; // Minutes tracked
+  efficiencyScore: number; // 0-100 based on historical data
 }
 
 /**
@@ -173,7 +173,7 @@ export interface ChecklistProgress {
   criticalIssues: CriticalIssue[];
   recommendations: string[];
   estimatedCompletion: Date;
-  qualityScore: number;            // 0-100 based on completeness and accuracy
+  qualityScore: number; // 0-100 based on completeness and accuracy
 }
 
 // ========================================
@@ -191,9 +191,9 @@ export interface MediaItem {
   url: string;
   thumbnailUrl: string | null;
   filename: string;
-  size: number;                    // Bytes
+  size: number; // Bytes
   dimensions: MediaDimensions | null;
-  duration: number | null;         // Seconds for video/audio
+  duration: number | null; // Seconds for video/audio
   capturedAt: Date;
   location: GeolocationCoords | null;
   aiAnalysis: MediaAIAnalysis | null;
@@ -207,13 +207,13 @@ export interface MediaItem {
  */
 export interface MediaCollection {
   totalCount: number;
-  totalSize: number;               // Total bytes
+  totalSize: number; // Total bytes
   photos: MediaItem[];
   videos: MediaItem[];
   documents: MediaItem[];
   byCategory: Record<ChecklistCategory, MediaItem[]>;
-  featured: MediaItem[];           // Key/representative media
-  issues: MediaItem[];             // Media flagged as issues
+  featured: MediaItem[]; // Key/representative media
+  issues: MediaItem[]; // Media flagged as issues
 }
 
 // ========================================
@@ -243,11 +243,11 @@ export interface InspectorInfo {
  */
 export interface InspectorPerformance {
   completedInspections: number;
-  averageTime: number;             // Minutes per inspection
-  qualityScore: number;            // 0-100 based on audit feedback
-  onTimeRate: number;              // Percentage of on-time completions
-  accuracyRate: number;            // Percentage matching audit results
-  customerRating: number;          // 0-5 stars from property owners
+  averageTime: number; // Minutes per inspection
+  qualityScore: number; // 0-100 based on audit feedback
+  onTimeRate: number; // Percentage of on-time completions
+  accuracyRate: number; // Percentage matching audit results
+  customerRating: number; // 0-5 stars from property owners
   lastMonth: PerformanceTrend;
   lastYear: PerformanceTrend;
 }
@@ -266,9 +266,9 @@ export interface InspectionStats {
   completedInspections: number;
   pendingInspections: number;
   overdueInspections: number;
-  averageCompletionTime: number;   // Minutes
-  qualityScoreAverage: number;     // 0-100
-  inspectorUtilization: number;    // Percentage
+  averageCompletionTime: number; // Minutes
+  qualityScoreAverage: number; // 0-100
+  inspectorUtilization: number; // Percentage
   trendData: TrendPoint[];
   categoryBreakdown: CategoryStats[];
   issueFrequency: IssueFrequencyMap;
@@ -296,37 +296,37 @@ export interface PropertyStats {
 /**
  * Inspection Status - All possible inspection states
  */
-export type InspectionStatus = 
-  | 'draft'                    // Created but not started
-  | 'in_progress'             // Currently being worked on  
-  | 'paused'                  // Temporarily suspended
-  | 'completed'               // Finished by inspector
-  | 'under_review'            // Being audited
-  | 'approved'                // Passed audit
-  | 'rejected'                // Failed audit, needs rework
-  | 'cancelled';              // Cancelled before completion
+export type InspectionStatus =
+  | "draft" // Created but not started
+  | "in_progress" // Currently being worked on
+  | "paused" // Temporarily suspended
+  | "completed" // Finished by inspector
+  | "under_review" // Being audited
+  | "approved" // Passed audit
+  | "rejected" // Failed audit, needs rework
+  | "cancelled"; // Cancelled before completion
 
 /**
  * Checklist Item Status - Individual item completion states
  */
 export type ChecklistItemStatus =
-  | 'pending'                 // Not yet started
-  | 'in_progress'            // Currently being worked on
-  | 'completed'              // Finished with result
-  | 'skipped'                // Marked as not applicable
-  | 'flagged';               // Requires attention/review
+  | "pending" // Not yet started
+  | "in_progress" // Currently being worked on
+  | "completed" // Finished with result
+  | "skipped" // Marked as not applicable
+  | "flagged"; // Requires attention/review
 
 /**
  * Checklist Item Result - Outcome of inspection item
  */
 export interface ChecklistItemResult {
   passed: boolean;
-  score: number | null;        // 0-100 if applicable
-  issues: string[];           // Identified problems
-  recommendations: string[];   // Suggested fixes
-  confidence: number;          // AI confidence 0-100
-  reviewRequired: boolean;     // Needs human review
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  score: number | null; // 0-100 if applicable
+  issues: string[]; // Identified problems
+  recommendations: string[]; // Suggested fixes
+  confidence: number; // AI confidence 0-100
+  reviewRequired: boolean; // Needs human review
+  riskLevel: "low" | "medium" | "high" | "critical";
 }
 
 /**
@@ -338,7 +338,7 @@ export interface PropertyAddress {
   state: string;
   zipCode: string;
   country: string;
-  formatted: string;           // Full formatted address
+  formatted: string; // Full formatted address
   coordinates: GeolocationCoords | null;
 }
 
@@ -346,10 +346,10 @@ export interface PropertyAddress {
  * Property URLs - All listing URLs for the property
  */
 export interface PropertyUrls {
-  primary: string | null;      // Main listing URL
-  airbnb: string | null;       // Airbnb listing
-  vrbo: string | null;         // VRBO listing
-  booking: string | null;      // Booking.com listing
+  primary: string | null; // Main listing URL
+  airbnb: string | null; // Airbnb listing
+  vrbo: string | null; // VRBO listing
+  booking: string | null; // Booking.com listing
   other: Record<string, string>; // Additional platforms
 }
 
@@ -393,8 +393,8 @@ export interface GeolocationCoords {
 /**
  * Media-related types
  */
-export type MediaType = 'photo' | 'video' | 'audio' | 'document';
-export type EvidenceType = 'photo' | 'video' | 'both' | 'document' | 'none';
+export type MediaType = "photo" | "video" | "audio" | "document";
+export type EvidenceType = "photo" | "video" | "both" | "document" | "none";
 
 export interface MediaDimensions {
   width: number;
@@ -402,15 +402,18 @@ export interface MediaDimensions {
 }
 
 export interface MediaQuality {
-  resolution: string;           // e.g., "1920x1080"
-  clarity: number;             // 0-100 AI assessment
-  lighting: number;            // 0-100 lighting quality
-  angle: 'good' | 'poor' | 'unclear';
-  issues: string[];            // Blurry, dark, etc.
+  resolution: string; // e.g., "1920x1080"
+  clarity: number; // 0-100 AI assessment
+  lighting: number; // 0-100 lighting quality
+  angle: "good" | "poor" | "unclear";
+  issues: string[]; // Blurry, dark, etc.
 }
 
-export type MediaProcessingStatus = 
-  | 'uploading' | 'processing' | 'ready' | 'failed';
+export type MediaProcessingStatus =
+  | "uploading"
+  | "processing"
+  | "ready"
+  | "failed";
 
 /**
  * AI Analysis types
@@ -420,16 +423,16 @@ export interface AIGuidance {
   tips: string[];
   commonMistakes: string[];
   qualityChecks: string[];
-  estimatedTime: number;       // Minutes
+  estimatedTime: number; // Minutes
 }
 
 export interface MediaAIAnalysis {
   objects: DetectedObject[];
-  text: string | null;         // OCR text if applicable
+  text: string | null; // OCR text if applicable
   issues: DetectedIssue[];
   compliance: ComplianceCheck[];
-  confidence: number;          // 0-100 overall confidence
-  processingTime: number;      // Milliseconds
+  confidence: number; // 0-100 overall confidence
+  processingTime: number; // Milliseconds
 }
 
 export interface DetectedObject {
@@ -441,7 +444,7 @@ export interface DetectedObject {
 
 export interface DetectedIssue {
   type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   location: BoundingBox | null;
   confidence: number;
@@ -458,8 +461,8 @@ export interface BoundingBox {
  * Compliance and audit types
  */
 export interface ComplianceStatus {
-  overall: 'compliant' | 'non_compliant' | 'pending';
-  score: number;               // 0-100
+  overall: "compliant" | "non_compliant" | "pending";
+  score: number; // 0-100
   requirements: ComplianceRequirement[];
   violations: ComplianceViolation[];
   recommendations: string[];
@@ -469,52 +472,52 @@ export interface ComplianceStatus {
 export interface ComplianceRequirement {
   id: string;
   title: string;
-  status: 'met' | 'not_met' | 'partial' | 'not_applicable';
-  evidence: string[];          // Media item IDs
+  status: "met" | "not_met" | "partial" | "not_applicable";
+  evidence: string[]; // Media item IDs
   notes: string;
 }
 
 export interface ComplianceViolation {
   id: string;
-  severity: 'minor' | 'major' | 'critical';
+  severity: "minor" | "major" | "critical";
   description: string;
   requirement: string;
   correctiveAction: string;
   deadline: Date | null;
-  status: 'open' | 'in_progress' | 'resolved';
+  status: "open" | "in_progress" | "resolved";
 }
 
 /**
  * Category and classification types
  */
-export type ChecklistCategory = 
-  | 'safety'
-  | 'cleanliness'  
-  | 'amenities'
-  | 'maintenance'
-  | 'compliance'
-  | 'accessibility'
-  | 'security'
-  | 'outdoor'
-  | 'other';
+export type ChecklistCategory =
+  | "safety"
+  | "cleanliness"
+  | "amenities"
+  | "maintenance"
+  | "compliance"
+  | "accessibility"
+  | "security"
+  | "outdoor"
+  | "other";
 
-export type PropertyType = 
-  | 'apartment'
-  | 'house' 
-  | 'condo'
-  | 'townhouse'
-  | 'cabin'
-  | 'villa'
-  | 'other';
+export type PropertyType =
+  | "apartment"
+  | "house"
+  | "condo"
+  | "townhouse"
+  | "cabin"
+  | "villa"
+  | "other";
 
-export type InspectionPriority = 
-  | 'low'
-  | 'medium' 
-  | 'high'
-  | 'urgent'
-  | 'critical';
+export type InspectionPriority =
+  | "low"
+  | "medium"
+  | "high"
+  | "urgent"
+  | "critical";
 
-export type TrendDirection = 'improving' | 'declining' | 'stable';
+export type TrendDirection = "improving" | "declining" | "stable";
 
 /**
  * Performance and analytics types
@@ -524,7 +527,7 @@ export interface CategoryProgress {
   completed: number;
   total: number;
   issues: number;
-  score: number;              // 0-100
+  score: number; // 0-100
 }
 
 export interface TrendPoint {
@@ -534,9 +537,9 @@ export interface TrendPoint {
 }
 
 export interface PerformanceTrend {
-  change: number;             // Percentage change
+  change: number; // Percentage change
   direction: TrendDirection;
-  significance: 'significant' | 'minor' | 'none';
+  significance: "significant" | "minor" | "none";
 }
 
 /**
@@ -552,8 +555,8 @@ export interface InspectionConditions {
 }
 
 export interface TimeConstraint {
-  type: 'must_start_by' | 'must_complete_by' | 'available_hours';
-  value: string;              // Time or description
+  type: "must_start_by" | "must_complete_by" | "available_hours";
+  value: string; // Time or description
   reason: string;
 }
 
@@ -561,8 +564,8 @@ export interface ContactInfo {
   name: string;
   phone: string | null;
   email: string | null;
-  role: 'owner' | 'manager' | 'tenant' | 'other';
-  preferredContact: 'phone' | 'email' | 'text';
+  role: "owner" | "manager" | "tenant" | "other";
+  preferredContact: "phone" | "email" | "text";
 }
 
 // ========================================
@@ -581,8 +584,8 @@ export interface ActiveInspectionOptions {
   status?: InspectionStatus[];
   inspectorId?: string;
   priorityLevel?: InspectionPriority[];
-  sortBy?: 'updated_at' | 'created_at' | 'progress' | 'priority';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "updated_at" | "created_at" | "progress" | "priority";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -591,16 +594,16 @@ export interface ActiveInspectionOptions {
 export interface TimeRange {
   start: Date;
   end: Date;
-  granularity?: 'hour' | 'day' | 'week' | 'month';
+  granularity?: "hour" | "day" | "week" | "month";
 }
 
 /**
  * Data freshness and caching preferences
  */
 export interface DataFreshnessOptions {
-  maxAge?: number;             // Seconds
-  allowStale?: boolean;        // Accept cached data past max age
-  forceRefresh?: boolean;      // Bypass cache entirely
+  maxAge?: number; // Seconds
+  allowStale?: boolean; // Accept cached data past max age
+  forceRefresh?: boolean; // Bypass cache entirely
   backgroundRefresh?: boolean; // Update cache in background
 }
 
@@ -624,16 +627,16 @@ export interface InspectionServiceError extends Error {
 }
 
 export type InspectionErrorCode =
-  | 'INSPECTION_NOT_FOUND'
-  | 'PROPERTY_NOT_FOUND'
-  | 'INSPECTOR_NOT_AVAILABLE'
-  | 'CHECKLIST_INCOMPLETE'
-  | 'MEDIA_UPLOAD_FAILED'
-  | 'SYNC_CONFLICT'
-  | 'PERMISSION_DENIED'
-  | 'VALIDATION_FAILED'
-  | 'NETWORK_ERROR'
-  | 'DATA_CORRUPTION';
+  | "INSPECTION_NOT_FOUND"
+  | "PROPERTY_NOT_FOUND"
+  | "INSPECTOR_NOT_AVAILABLE"
+  | "CHECKLIST_INCOMPLETE"
+  | "MEDIA_UPLOAD_FAILED"
+  | "SYNC_CONFLICT"
+  | "PERMISSION_DENIED"
+  | "VALIDATION_FAILED"
+  | "NETWORK_ERROR"
+  | "DATA_CORRUPTION";
 
 // ========================================
 // SUCCESS RESPONSE TYPES
@@ -649,7 +652,7 @@ export interface ServiceResult<T> {
   error: InspectionServiceError | null;
   metadata: {
     timestamp: Date;
-    duration: number;          // Milliseconds
+    duration: number; // Milliseconds
     fromCache: boolean;
     queryCount: number;
   };

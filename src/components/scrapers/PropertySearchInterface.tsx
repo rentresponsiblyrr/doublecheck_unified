@@ -1,14 +1,14 @@
 /**
  * Property Search Interface - Enterprise Grade
- * 
+ *
  * Search interface with accessibility and performance optimization
  */
 
-import React, { useCallback, useRef } from 'react';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { useOptimizedScreenReaderAnnouncements } from '@/hooks/useBatchedScreenReaderAnnouncements';
-import type { PropertyData } from './PropertyDataManager';
+import React, { useCallback, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useOptimizedScreenReaderAnnouncements } from "@/hooks/useBatchedScreenReaderAnnouncements";
+import type { PropertyData } from "./PropertyDataManager";
 
 interface SearchStats {
   isFiltered: boolean;
@@ -25,12 +25,14 @@ interface PropertySearchInterfaceProps {
   searchStats: SearchStats;
 }
 
-export const PropertySearchInterface: React.FC<PropertySearchInterfaceProps> = ({
+export const PropertySearchInterface: React.FC<
+  PropertySearchInterfaceProps
+> = ({
   searchQuery,
   onSearchChange,
   properties,
   filteredProperties,
-  searchStats
+  searchStats,
 }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { announceToScreenReader } = useOptimizedScreenReaderAnnouncements();
@@ -38,43 +40,52 @@ export const PropertySearchInterface: React.FC<PropertySearchInterfaceProps> = (
   /**
    * Optimized search handler with debouncing
    */
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value;
-    onSearchChange(newQuery);
-    
-    // Announce search results to screen readers
-    if (newQuery.trim()) {
-      const resultCount = properties.filter(p => 
-        p.property_name?.toLowerCase().includes(newQuery.toLowerCase()) ||
-        p.property_address?.toLowerCase().includes(newQuery.toLowerCase())
-      ).length;
-      
-      announceToScreenReader(
-        `Search updated. ${resultCount} ${resultCount === 1 ? 'property' : 'properties'} found for "${newQuery}"`,
-        'polite'
-      );
-    } else {
-      announceToScreenReader(
-        `Search cleared. Showing all ${properties.length} properties`,
-        'polite'
-      );
-    }
-  }, [onSearchChange, properties, announceToScreenReader]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newQuery = e.target.value;
+      onSearchChange(newQuery);
+
+      // Announce search results to screen readers
+      if (newQuery.trim()) {
+        const resultCount = properties.filter(
+          (p) =>
+            p.property_name?.toLowerCase().includes(newQuery.toLowerCase()) ||
+            p.property_address?.toLowerCase().includes(newQuery.toLowerCase()),
+        ).length;
+
+        announceToScreenReader(
+          `Search updated. ${resultCount} ${resultCount === 1 ? "property" : "properties"} found for "${newQuery}"`,
+          "polite",
+        );
+      } else {
+        announceToScreenReader(
+          `Search cleared. Showing all ${properties.length} properties`,
+          "polite",
+        );
+      }
+    },
+    [onSearchChange, properties, announceToScreenReader],
+  );
 
   /**
    * Handle keyboard navigation in search input
    */
-  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown' && filteredProperties.length > 0) {
-      e.preventDefault();
-      // Focus first property card
-      const firstCard = document.querySelector('[data-testid^="property-card-"]') as HTMLElement;
-      firstCard?.focus();
-    } else if (e.key === 'Escape') {
-      onSearchChange('');
-      announceToScreenReader('Search cleared', 'polite');
-    }
-  }, [filteredProperties.length, onSearchChange, announceToScreenReader]);
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowDown" && filteredProperties.length > 0) {
+        e.preventDefault();
+        // Focus first property card
+        const firstCard = document.querySelector(
+          '[data-testid^="property-card-"]',
+        ) as HTMLElement;
+        firstCard?.focus();
+      } else if (e.key === "Escape") {
+        onSearchChange("");
+        announceToScreenReader("Search cleared", "polite");
+      }
+    },
+    [filteredProperties.length, onSearchChange, announceToScreenReader],
+  );
 
   return (
     <div id="property-search-interface" className="space-y-4">
@@ -96,18 +107,19 @@ export const PropertySearchInterface: React.FC<PropertySearchInterfaceProps> = (
           aria-controls="property-list"
           aria-expanded={filteredProperties.length > 0}
         />
-        <div 
-          id="search-help" 
+        <div
+          id="search-help"
           className="sr-only"
           role="status"
           aria-live="polite"
         >
-          Use arrow keys to navigate search results. Press Escape to clear search.
+          Use arrow keys to navigate search results. Press Escape to clear
+          search.
         </div>
       </div>
 
       {/* Search Results Status */}
-      <div 
+      <div
         id="search-results"
         className="sr-only"
         role="status"
@@ -115,9 +127,8 @@ export const PropertySearchInterface: React.FC<PropertySearchInterfaceProps> = (
         aria-atomic="true"
       >
         {searchStats.isFiltered
-          ? `Found ${searchStats.filteredCount} ${searchStats.filteredCount === 1 ? 'property' : 'properties'} matching "${searchQuery}"`
-          : `Showing all ${searchStats.totalProperties} properties`
-        }
+          ? `Found ${searchStats.filteredCount} ${searchStats.filteredCount === 1 ? "property" : "properties"} matching "${searchQuery}"`
+          : `Showing all ${searchStats.totalProperties} properties`}
       </div>
     </div>
   );

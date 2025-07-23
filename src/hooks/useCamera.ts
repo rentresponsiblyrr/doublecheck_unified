@@ -1,10 +1,16 @@
 // Camera Hook for STR Certified Mobile Photo Capture
 
-import { useState, useEffect, useCallback, useRef, MutableRefObject } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  MutableRefObject,
+} from "react";
 
 export interface CameraOptions {
   videoRef: MutableRefObject<HTMLVideoElement | null>;
-  facingMode?: 'user' | 'environment';
+  facingMode?: "user" | "environment";
   resolution?: {
     width: number;
     height: number;
@@ -35,9 +41,9 @@ export interface UseCameraReturn extends CameraState {
 export const useCamera = (options: CameraOptions): UseCameraReturn => {
   const {
     videoRef,
-    facingMode = 'environment',
+    facingMode = "environment",
     resolution = { width: 1920, height: 1080 },
-    autoStart = true
+    autoStart = true,
   } = options;
 
   // State
@@ -48,7 +54,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
     hasPermission: false,
     isLoading: true,
     currentDeviceId: null,
-    availableDevices: []
+    availableDevices: [],
   });
 
   // Refs
@@ -61,10 +67,12 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
   }, []);
 
   // Get available camera devices
-  const getAvailableDevices = useCallback(async (): Promise<MediaDeviceInfo[]> => {
+  const getAvailableDevices = useCallback(async (): Promise<
+    MediaDeviceInfo[]
+  > => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      return devices.filter(device => device.kind === 'videoinput');
+      return devices.filter((device) => device.kind === "videoinput");
     } catch (error) {
       return [];
     }
@@ -73,11 +81,11 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
   // Check camera permission
   const checkPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported()) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: 'Camera not supported on this device',
+        error: "Camera not supported on this device",
         hasPermission: false,
-        isLoading: false
+        isLoading: false,
       }));
       return false;
     }
@@ -85,13 +93,13 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
     try {
       // Check if we already have permission by looking at device labels
       const devices = await getAvailableDevices();
-      const hasLabels = devices.some(device => device.label !== '');
-      
+      const hasLabels = devices.some((device) => device.label !== "");
+
       if (hasLabels) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           hasPermission: true,
-          availableDevices: devices
+          availableDevices: devices,
         }));
         return true;
       }
@@ -99,11 +107,13 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       // Try to check permission state if available (Chrome 64+)
       if (navigator.permissions && navigator.permissions.query) {
         try {
-          const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-          const granted = result.state === 'granted';
-          setState(prev => ({
+          const result = await navigator.permissions.query({
+            name: "camera" as PermissionName,
+          });
+          const granted = result.state === "granted";
+          setState((prev) => ({
             ...prev,
-            hasPermission: granted
+            hasPermission: granted,
           }));
           return granted;
         } catch (e) {
@@ -120,56 +130,68 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
   // Request camera permission
   const requestPermission = useCallback(async (): Promise<void> => {
     if (!isSupported()) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: 'Camera not supported on this device',
+        error: "Camera not supported on this device",
         hasPermission: false,
-        isLoading: false
+        isLoading: false,
       }));
       return;
     }
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       // Request a temporary stream to trigger permission prompt
       const tempStream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: false
+        audio: false,
       });
 
       // Stop the temporary stream
-      tempStream.getTracks().forEach(track => track.stop());
+      tempStream.getTracks().forEach((track) => track.stop());
 
       // Update available devices
       const devices = await getAvailableDevices();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         hasPermission: true,
         availableDevices: devices,
-        isLoading: false
+        isLoading: false,
       }));
 
       // Note: Auto-start is handled in separate useEffect to avoid circular dependency
     } catch (error: any) {
-      let errorMessage = 'Failed to access camera';
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        errorMessage = 'Camera permission denied';
-      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        errorMessage = 'No camera found on this device';
-      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-        errorMessage = 'Camera is already in use by another application';
-      } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-        errorMessage = 'Camera does not support the requested resolution';
+      let errorMessage = "Failed to access camera";
+
+      if (
+        error.name === "NotAllowedError" ||
+        error.name === "PermissionDeniedError"
+      ) {
+        errorMessage = "Camera permission denied";
+      } else if (
+        error.name === "NotFoundError" ||
+        error.name === "DevicesNotFoundError"
+      ) {
+        errorMessage = "No camera found on this device";
+      } else if (
+        error.name === "NotReadableError" ||
+        error.name === "TrackStartError"
+      ) {
+        errorMessage = "Camera is already in use by another application";
+      } else if (
+        error.name === "OverconstrainedError" ||
+        error.name === "ConstraintNotSatisfiedError"
+      ) {
+        errorMessage = "Camera does not support the requested resolution";
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: errorMessage,
         hasPermission: false,
-        isLoading: false
+        isLoading: false,
       }));
     }
   }, [isSupported, getAvailableDevices, autoStart]);
@@ -180,12 +202,12 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       return;
     }
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       // Stop existing stream if any
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       // Build constraints
@@ -193,10 +215,12 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         audio: false,
         video: {
           facingMode: state.currentDeviceId ? undefined : facingMode,
-          deviceId: state.currentDeviceId ? { exact: state.currentDeviceId } : undefined,
+          deviceId: state.currentDeviceId
+            ? { exact: state.currentDeviceId }
+            : undefined,
           width: { ideal: resolution.width },
-          height: { ideal: resolution.height }
-        }
+          height: { ideal: resolution.height },
+        },
       };
 
       // Get stream
@@ -206,7 +230,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       // Attach to video element
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
+
         // Wait for video to be ready
         await new Promise<void>((resolve) => {
           if (videoRef.current) {
@@ -221,29 +245,34 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       // Get current device ID
       const videoTrack = stream.getVideoTracks()[0];
       const settings = videoTrack.getSettings();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         stream,
         isReady: true,
         isLoading: false,
-        currentDeviceId: settings.deviceId || null
+        currentDeviceId: settings.deviceId || null,
       }));
     } catch (error: any) {
-      
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: error.message || 'Failed to start camera',
+        error: error.message || "Failed to start camera",
         isReady: false,
-        isLoading: false
+        isLoading: false,
       }));
     }
-  }, [state.hasPermission, state.currentDeviceId, facingMode, resolution, videoRef]);
+  }, [
+    state.hasPermission,
+    state.currentDeviceId,
+    facingMode,
+    resolution,
+    videoRef,
+  ]);
 
   // Stop camera
   const stopCamera = useCallback((): void => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
@@ -251,33 +280,33 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       videoRef.current.srcObject = null;
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       stream: null,
-      isReady: false
+      isReady: false,
     }));
   }, [videoRef]);
 
   // Switch between front and back camera
   const switchCamera = useCallback(async (): Promise<void> => {
     if (state.availableDevices.length < 2) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: 'Only one camera available'
+        error: "Only one camera available",
       }));
       return;
     }
 
     // Find next device
     const currentIndex = state.availableDevices.findIndex(
-      device => device.deviceId === state.currentDeviceId
+      (device) => device.deviceId === state.currentDeviceId,
     );
     const nextIndex = (currentIndex + 1) % state.availableDevices.length;
     const nextDevice = state.availableDevices[nextIndex];
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      currentDeviceId: nextDevice.deviceId
+      currentDeviceId: nextDevice.deviceId,
     }));
 
     // Restart camera with new device
@@ -292,18 +321,18 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
 
     try {
       // Create canvas
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       const video = videoRef.current;
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
-      const ctx = canvas.getContext('2d');
+
+      const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-      
+
       // Draw video frame
       ctx.drawImage(video, 0, 0);
-      
+
       // Convert to blob
       return new Promise<Blob | null>((resolve) => {
         canvas.toBlob(
@@ -312,8 +341,8 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             resolve(blob);
           },
-          'image/jpeg',
-          0.95
+          "image/jpeg",
+          0.95,
         );
       });
     } catch (error) {
@@ -324,30 +353,34 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
   // Get current camera info
   const getCurrentCamera = useCallback((): MediaDeviceInfo | null => {
     if (!state.currentDeviceId) return null;
-    return state.availableDevices.find(device => device.deviceId === state.currentDeviceId) || null;
+    return (
+      state.availableDevices.find(
+        (device) => device.deviceId === state.currentDeviceId,
+      ) || null
+    );
   }, [state.currentDeviceId, state.availableDevices]);
 
   // Get camera capabilities
-  const getCameraCapabilities = useCallback((): MediaTrackCapabilities | null => {
-    if (!state.stream) return null;
-    
-    try {
-      const videoTrack = state.stream.getVideoTracks()[0];
-      if (videoTrack && 'getCapabilities' in videoTrack) {
-        return videoTrack.getCapabilities();
-      }
-    } catch (error) {
-    }
-    
-    return null;
-  }, [state.stream]);
+  const getCameraCapabilities =
+    useCallback((): MediaTrackCapabilities | null => {
+      if (!state.stream) return null;
+
+      try {
+        const videoTrack = state.stream.getVideoTracks()[0];
+        if (videoTrack && "getCapabilities" in videoTrack) {
+          return videoTrack.getCapabilities();
+        }
+      } catch (error) {}
+
+      return null;
+    }, [state.stream]);
 
   // Initial permission check
   useEffect(() => {
     if (!permissionCheckRef.current) {
       permissionCheckRef.current = true;
-      checkPermission().then(hasPermission => {
-        setState(prev => ({ ...prev, isLoading: false }));
+      checkPermission().then((hasPermission) => {
+        setState((prev) => ({ ...prev, isLoading: false }));
         if (hasPermission && autoStart) {
           startCamera();
         }
@@ -357,10 +390,21 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
 
   // Handle auto-start when permission is granted
   useEffect(() => {
-    if (autoStart && state.hasPermission && !state.isReady && !state.isLoading) {
+    if (
+      autoStart &&
+      state.hasPermission &&
+      !state.isReady &&
+      !state.isLoading
+    ) {
       startCamera();
     }
-  }, [autoStart, state.hasPermission, state.isReady, state.isLoading, startCamera]);
+  }, [
+    autoStart,
+    state.hasPermission,
+    state.isReady,
+    state.isLoading,
+    startCamera,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -377,7 +421,7 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
     switchCamera,
     takePhoto,
     getCurrentCamera,
-    getCameraCapabilities
+    getCameraCapabilities,
   };
 };
 
@@ -388,7 +432,9 @@ export const useCameraSupport = () => {
 
   useEffect(() => {
     const checkSupport = async () => {
-      const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      const supported = !!(
+        navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+      );
       setIsSupported(supported);
       setCheckedSupport(true);
     };

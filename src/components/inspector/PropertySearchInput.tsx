@@ -1,12 +1,12 @@
 /**
  * Property Search Input - Focused Component
- * 
+ *
  * Handles property search with accessibility and performance optimization
  */
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface PropertySearchInputProps {
   searchQuery: string;
@@ -17,7 +17,7 @@ interface PropertySearchInputProps {
 export const PropertySearchInput: React.FC<PropertySearchInputProps> = ({
   searchQuery,
   onSearch,
-  placeholder = "Search properties..."
+  placeholder = "Search properties...",
 }) => {
   return (
     <div className="relative" id="property-search-input">

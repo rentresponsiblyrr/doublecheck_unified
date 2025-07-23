@@ -1,6 +1,6 @@
 // TEMPORARILY DISABLE TO FIX CRASH
 // import { env } from '../config/environment';
-import { supabase } from '../supabase';
+import { supabase } from "../supabase";
 
 export interface ErrorReport {
   id: string;
@@ -8,7 +8,7 @@ export interface ErrorReport {
   message: string;
   stack?: string;
   type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   category: string;
   url: string;
   userAgent: string;
@@ -26,10 +26,17 @@ export interface ErrorReport {
 
 export interface Breadcrumb {
   timestamp: string;
-  type: 'navigation' | 'click' | 'console' | 'xhr' | 'fetch' | 'error' | 'custom';
+  type:
+    | "navigation"
+    | "click"
+    | "console"
+    | "xhr"
+    | "fetch"
+    | "error"
+    | "custom";
   category: string;
   message: string;
-  level: 'debug' | 'info' | 'warning' | 'error';
+  level: "debug" | "info" | "warning" | "error";
   data?: Record<string, unknown>;
 }
 
@@ -72,9 +79,9 @@ const DEFAULT_CONFIG: ErrorReporterConfig = {
     /ssn/i,
   ],
   ignoredErrors: [
-    'ResizeObserver loop limit exceeded',
-    'ResizeObserver loop completed with undelivered notifications',
-    'Non-Error promise rejection captured',
+    "ResizeObserver loop limit exceeded",
+    "ResizeObserver loop completed with undelivered notifications",
+    "Non-Error promise rejection captured",
     /^Script error/,
   ],
 };
@@ -128,29 +135,29 @@ export class ErrorReporter {
   reportError(
     error: Error | string,
     context?: Record<string, unknown>,
-    severity: ErrorReport['severity'] = 'medium'
+    severity: ErrorReport["severity"] = "medium",
   ): string {
     // Create error object if string provided
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    
+    const errorObj = typeof error === "string" ? new Error(error) : error;
+
     // Check if error should be ignored
     if (this.shouldIgnoreError(errorObj)) {
-      return '';
+      return "";
     }
 
     const report = this.createErrorReport(errorObj, context, severity);
-    
+
     // Apply beforeSend hook
     if (this.config.beforeSend) {
       const modifiedReport = this.config.beforeSend(report);
-      if (!modifiedReport) return '';
+      if (!modifiedReport) return "";
     }
 
     // Add to queue
     this.errorQueue.push(report);
 
     // Flush immediately for critical errors
-    if (severity === 'critical') {
+    if (severity === "critical") {
       this.flush();
     } else if (this.errorQueue.length >= (this.config.maxQueueSize || 10)) {
       this.flush();
@@ -164,21 +171,21 @@ export class ErrorReporter {
    */
   setUser(user: UserContext | null) {
     this.userContext = user;
-    
+
     // Add breadcrumb for user change
     if (user) {
       this.addBreadcrumb({
-        type: 'custom',
-        category: 'auth',
+        type: "custom",
+        category: "auth",
         message: `User logged in: ${user.email || user.id}`,
-        level: 'info',
+        level: "info",
       });
     } else {
       this.addBreadcrumb({
-        type: 'custom',
-        category: 'auth',
-        message: 'User logged out',
-        level: 'info',
+        type: "custom",
+        category: "auth",
+        message: "User logged out",
+        level: "info",
       });
     }
   }
@@ -186,7 +193,7 @@ export class ErrorReporter {
   /**
    * Add a custom breadcrumb
    */
-  addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'>) {
+  addBreadcrumb(breadcrumb: Omit<Breadcrumb, "timestamp">) {
     const crumb: Breadcrumb = {
       ...breadcrumb,
       timestamp: new Date().toISOString(),
@@ -206,7 +213,7 @@ export class ErrorReporter {
   private createErrorReport(
     error: Error,
     context?: Record<string, unknown>,
-    severity: ErrorReport['severity'] = 'medium'
+    severity: ErrorReport["severity"] = "medium",
   ): ErrorReport {
     const fingerprint = this.generateFingerprint(error);
     const groupingKey = this.generateGroupingKey(error);
@@ -216,9 +223,9 @@ export class ErrorReporter {
       timestamp: new Date().toISOString(),
       message: error.message,
       stack: error.stack,
-      type: error.name || 'Error',
+      type: error.name || "Error",
       severity,
-      category: context?.category || 'general',
+      category: context?.category || "general",
       url: window.location.href,
       userAgent: navigator.userAgent,
       userId: this.userContext?.id,
@@ -240,7 +247,7 @@ export class ErrorReporter {
       fingerprint,
       groupingKey,
       environment: import.meta.env.MODE,
-      release: import.meta.env.VITE_APP_VERSION || '1.0.0',
+      release: import.meta.env.VITE_APP_VERSION || "1.0.0",
       tags: {
         browser: this.getBrowserName(),
         os: this.getOSName(),
@@ -261,25 +268,34 @@ export class ErrorReporter {
    */
   private setupGlobalHandlers() {
     // Window error handler
-    window.addEventListener('error', (event) => {
-      this.reportError(event.error || new Error(event.message), {
-        type: 'unhandled_error',
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-      }, 'high');
+    window.addEventListener("error", (event) => {
+      this.reportError(
+        event.error || new Error(event.message),
+        {
+          type: "unhandled_error",
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+        },
+        "high",
+      );
     });
 
     // Promise rejection handler
-    window.addEventListener('unhandledrejection', (event) => {
-      const error = event.reason instanceof Error 
-        ? event.reason 
-        : new Error(String(event.reason));
-      
-      this.reportError(error, {
-        type: 'unhandled_promise_rejection',
-        promise: event.promise,
-      }, 'high');
+    window.addEventListener("unhandledrejection", (event) => {
+      const error =
+        event.reason instanceof Error
+          ? event.reason
+          : new Error(String(event.reason));
+
+      this.reportError(
+        error,
+        {
+          type: "unhandled_promise_rejection",
+          promise: event.promise,
+        },
+        "high",
+      );
     });
   }
 
@@ -299,7 +315,7 @@ export class ErrorReporter {
 
     // Click capture
     if (this.config.enableClickCapture) {
-      document.addEventListener('click', this.handleClick.bind(this), true);
+      document.addEventListener("click", this.handleClick.bind(this), true);
     }
 
     // Navigation capture
@@ -312,15 +328,17 @@ export class ErrorReporter {
    * Wrap console methods for breadcrumb capture
    */
   private wrapConsole() {
-    ['log', 'info', 'warn', 'error'].forEach((level) => {
+    ["log", "info", "warn", "error"].forEach((level) => {
       this.originalConsole[level] = console[level as keyof Console];
-      
-      (console as Record<string, (...args: unknown[]) => void>)[level] = (...args: unknown[]) => {
+
+      (console as Record<string, (...args: unknown[]) => void>)[level] = (
+        ...args: unknown[]
+      ) => {
         this.addBreadcrumb({
-          type: 'console',
-          category: 'console',
-          message: args.map(arg => String(arg)).join(' '),
-          level: level as Breadcrumb['level'],
+          type: "console",
+          category: "console",
+          message: args.map((arg) => String(arg)).join(" "),
+          level: level as Breadcrumb["level"],
           data: { arguments: args },
         });
 
@@ -340,19 +358,19 @@ export class ErrorReporter {
   private wrapFetch() {
     window.fetch = async (...args) => {
       const [input, init] = args;
-      const url = typeof input === 'string' ? input : input.url;
-      const method = init?.method || 'GET';
+      const url = typeof input === "string" ? input : input.url;
+      const method = init?.method || "GET";
 
       const startTime = Date.now();
 
       try {
         const response = await this.originalFetch.apply(window, args);
-        
+
         this.addBreadcrumb({
-          type: 'fetch',
-          category: 'fetch',
+          type: "fetch",
+          category: "fetch",
           message: `${method} ${url}`,
-          level: response.ok ? 'info' : 'error',
+          level: response.ok ? "info" : "error",
           data: {
             method,
             url,
@@ -364,10 +382,10 @@ export class ErrorReporter {
         return response;
       } catch (error) {
         this.addBreadcrumb({
-          type: 'fetch',
-          category: 'fetch',
+          type: "fetch",
+          category: "fetch",
           message: `${method} ${url} failed`,
-          level: 'error',
+          level: "error",
           data: {
             method,
             url,
@@ -389,10 +407,10 @@ export class ErrorReporter {
     const selector = this.getElementSelector(target);
 
     this.addBreadcrumb({
-      type: 'click',
-      category: 'ui',
+      type: "click",
+      category: "ui",
       message: `Click on ${selector}`,
-      level: 'info',
+      level: "info",
       data: {
         selector,
         text: target.textContent?.substring(0, 100),
@@ -410,10 +428,10 @@ export class ErrorReporter {
 
     history.pushState = (...args) => {
       this.addBreadcrumb({
-        type: 'navigation',
-        category: 'navigation',
+        type: "navigation",
+        category: "navigation",
         message: `Navigation to ${args[2]}`,
-        level: 'info',
+        level: "info",
         data: { to: args[2] },
       });
       return originalPushState.apply(history, args);
@@ -421,21 +439,21 @@ export class ErrorReporter {
 
     history.replaceState = (...args) => {
       this.addBreadcrumb({
-        type: 'navigation',
-        category: 'navigation',
+        type: "navigation",
+        category: "navigation",
         message: `Navigation to ${args[2]}`,
-        level: 'info',
+        level: "info",
         data: { to: args[2] },
       });
       return originalReplaceState.apply(history, args);
     };
 
-    window.addEventListener('popstate', () => {
+    window.addEventListener("popstate", () => {
       this.addBreadcrumb({
-        type: 'navigation',
-        category: 'navigation',
+        type: "navigation",
+        category: "navigation",
         message: `Navigation to ${window.location.pathname}`,
-        level: 'info',
+        level: "info",
         data: { to: window.location.pathname },
       });
     });
@@ -450,15 +468,15 @@ export class ErrorReporter {
     const sanitized = JSON.parse(JSON.stringify(data));
 
     const sanitizeObject = (obj: Record<string, unknown>) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         // Check if key matches sensitive pattern
-        const isSensitive = this.config.sensitiveDataPatterns?.some(
-          pattern => pattern.test(key)
+        const isSensitive = this.config.sensitiveDataPatterns?.some((pattern) =>
+          pattern.test(key),
         );
 
         if (isSensitive) {
-          obj[key] = '[REDACTED]';
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          obj[key] = "[REDACTED]";
+        } else if (typeof obj[key] === "object" && obj[key] !== null) {
           sanitizeObject(obj[key]);
         }
       });
@@ -474,8 +492,8 @@ export class ErrorReporter {
   private shouldIgnoreError(error: Error): boolean {
     if (!this.config.ignoredErrors) return false;
 
-    return this.config.ignoredErrors.some(pattern => {
-      if (typeof pattern === 'string') {
+    return this.config.ignoredErrors.some((pattern) => {
+      if (typeof pattern === "string") {
         return error.message.includes(pattern);
       }
       return pattern.test(error.message);
@@ -538,13 +556,13 @@ export class ErrorReporter {
     // Temporarily disabled to avoid 404 errors
     return;
 
-    const { error } = await supabase
-      .from('error_logs')
-      .insert(errors.map(err => ({
+    const { error } = await supabase.from("error_logs").insert(
+      errors.map((err) => ({
         ...err,
         user_id: err.userId,
         session_id: err.sessionId,
-      })));
+      })),
+    );
 
     if (error) {
     }
@@ -576,15 +594,15 @@ export class ErrorReporter {
     const parts = [
       error.name,
       error.message.substring(0, 100),
-      error.stack?.split('\n')[1]?.trim() || '',
+      error.stack?.split("\n")[1]?.trim() || "",
     ];
-    return parts.join('|');
+    return parts.join("|");
   }
 
   private generateGroupingKey(error: Error): string {
     // Group similar errors together
-    const stackLines = error.stack?.split('\n') || [];
-    const relevantLine = stackLines.find(line => line.includes('at ')) || '';
+    const stackLines = error.stack?.split("\n") || [];
+    const relevantLine = stackLines.find((line) => line.includes("at ")) || "";
     return `${error.name}-${relevantLine}`;
   }
 
@@ -594,16 +612,17 @@ export class ErrorReporter {
 
     while (current && parts.length < 5) {
       let selector = current.tagName.toLowerCase();
-      
+
       if (current.id) {
         selector += `#${current.id}`;
       } else if (current.className) {
         // Handle both regular elements (string) and SVG elements (SVGAnimatedString)
-        const classNames = typeof current.className === 'string' 
-          ? current.className 
-          : current.className?.baseVal || '';
+        const classNames =
+          typeof current.className === "string"
+            ? current.className
+            : current.className?.baseVal || "";
         if (classNames) {
-          selector += `.${classNames.split(' ').filter(Boolean).join('.')}`;
+          selector += `.${classNames.split(" ").filter(Boolean).join(".")}`;
         }
       }
 
@@ -611,44 +630,46 @@ export class ErrorReporter {
       current = current.parentElement;
     }
 
-    return parts.join(' > ');
+    return parts.join(" > ");
   }
 
   private getBrowserName(): string {
     const ua = navigator.userAgent;
-    if (ua.includes('Chrome')) return 'Chrome';
-    if (ua.includes('Firefox')) return 'Firefox';
-    if (ua.includes('Safari')) return 'Safari';
-    if (ua.includes('Edge')) return 'Edge';
-    return 'Unknown';
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("Safari")) return "Safari";
+    if (ua.includes("Edge")) return "Edge";
+    return "Unknown";
   }
 
   private getOSName(): string {
     const ua = navigator.userAgent;
-    if (ua.includes('Windows')) return 'Windows';
-    if (ua.includes('Mac')) return 'macOS';
-    if (ua.includes('Linux')) return 'Linux';
-    if (ua.includes('Android')) return 'Android';
-    if (ua.includes('iOS')) return 'iOS';
-    return 'Unknown';
+    if (ua.includes("Windows")) return "Windows";
+    if (ua.includes("Mac")) return "macOS";
+    if (ua.includes("Linux")) return "Linux";
+    if (ua.includes("Android")) return "Android";
+    if (ua.includes("iOS")) return "iOS";
+    return "Unknown";
   }
 
   private getDeviceType(): string {
     const ua = navigator.userAgent;
-    if (ua.includes('Mobile')) return 'Mobile';
-    if (ua.includes('Tablet')) return 'Tablet';
-    return 'Desktop';
+    if (ua.includes("Mobile")) return "Mobile";
+    if (ua.includes("Tablet")) return "Tablet";
+    return "Desktop";
   }
 
   private getMemoryInfo(): Record<string, number> {
-    if ('memory' in performance) {
-      const memory = (performance as Performance & {
-        memory: {
-          usedJSHeapSize: number;
-          totalJSHeapSize: number;
-          jsHeapSizeLimit: number;
-        };
-      }).memory;
+    if ("memory" in performance) {
+      const memory = (
+        performance as Performance & {
+          memory: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }
+      ).memory;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
@@ -659,14 +680,16 @@ export class ErrorReporter {
   }
 
   private getConnectionInfo(): Record<string, string | number> {
-    if ('connection' in navigator) {
-      const connection = (navigator as Navigator & {
-        connection: {
-          effectiveType: string;
-          downlink: number;
-          rtt: number;
-        };
-      }).connection;
+    if ("connection" in navigator) {
+      const connection = (
+        navigator as Navigator & {
+          connection: {
+            effectiveType: string;
+            downlink: number;
+            rtt: number;
+          };
+        }
+      ).connection;
       return {
         effectiveType: connection.effectiveType,
         downlink: connection.downlink,
@@ -686,8 +709,9 @@ export class ErrorReporter {
     }
 
     // Restore original methods
-    Object.keys(this.originalConsole).forEach(level => {
-      (console as Record<string, (...args: unknown[]) => void>)[level] = this.originalConsole[level];
+    Object.keys(this.originalConsole).forEach((level) => {
+      (console as Record<string, (...args: unknown[]) => void>)[level] =
+        this.originalConsole[level];
     });
 
     window.fetch = this.originalFetch;
@@ -701,6 +725,6 @@ export class ErrorReporter {
 export const errorReporter = ErrorReporter.getInstance();
 
 // Initialize on import if in browser
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   errorReporter.initialize();
 }

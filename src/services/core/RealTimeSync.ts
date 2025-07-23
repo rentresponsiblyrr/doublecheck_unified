@@ -1,25 +1,25 @@
 /**
  * REAL-TIME SYNC - PHASE 2 COLLABORATIVE FEATURES
- * 
+ *
  * Enterprise-grade real-time synchronization system enabling live collaboration
  * across multiple inspectors, auditors, and devices with conflict resolution
  * and offline-first architecture.
- * 
+ *
  * FEATURES:
  * - Live inspection progress updates
  * - Multi-user collaboration with conflict resolution
  * - Offline-first with automatic sync when online
  * - Real-time audit trail and change tracking
  * - Mobile-optimized with battery efficiency
- * 
+ *
  * @author STR Certified Engineering Team
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
-import { supabase } from '@/lib/supabase';
-import { logger } from '@/utils/logger';
-import { queryCache } from './QueryCache';
-import { performanceMonitor } from './PerformanceMonitor';
+import { supabase } from "@/lib/supabase";
+import { logger } from "@/utils/logger";
+import { queryCache } from "./QueryCache";
+import { performanceMonitor } from "./PerformanceMonitor";
 
 // ========================================
 // REAL-TIME EVENT TYPES
@@ -28,7 +28,7 @@ import { performanceMonitor } from './PerformanceMonitor';
 export interface RealTimeEvent<T = Record<string, unknown>> {
   id: string;
   type: RealTimeEventType;
-  entityType: 'property' | 'inspection' | 'checklist_item' | 'user';
+  entityType: "property" | "inspection" | "checklist_item" | "user";
   entityId: string;
   data: T;
   userId: string;
@@ -42,15 +42,15 @@ export interface RealTimeEvent<T = Record<string, unknown>> {
 }
 
 export type RealTimeEventType =
-  | 'created'
-  | 'updated' 
-  | 'deleted'
-  | 'progress_updated'
-  | 'status_changed'
-  | 'user_joined'
-  | 'user_left'
-  | 'conflict_detected'
-  | 'sync_complete';
+  | "created"
+  | "updated"
+  | "deleted"
+  | "progress_updated"
+  | "status_changed"
+  | "user_joined"
+  | "user_left"
+  | "conflict_detected"
+  | "sync_complete";
 
 export interface ConflictResolution<T = Record<string, unknown>> {
   conflictId: string;
@@ -58,7 +58,7 @@ export interface ConflictResolution<T = Record<string, unknown>> {
   entityId: string;
   localVersion: T;
   remoteVersion: T;
-  resolution: 'local' | 'remote' | 'merged' | 'manual';
+  resolution: "local" | "remote" | "merged" | "manual";
   mergedData?: T;
   resolvedBy?: string;
   resolvedAt: Date;
@@ -70,7 +70,7 @@ export interface SyncStatus {
   pendingChanges: number;
   conflictsCount: number;
   syncInProgress: boolean;
-  connectionQuality: 'good' | 'poor' | 'offline';
+  connectionQuality: "good" | "poor" | "offline";
 }
 
 // ========================================
@@ -79,7 +79,7 @@ export interface SyncStatus {
 
 /**
  * RealTimeSync - Comprehensive real-time collaboration system
- * 
+ *
  * Manages all real-time updates, conflict resolution, and offline synchronization
  * across the STR Certified platform with enterprise-grade reliability.
  */
@@ -94,9 +94,9 @@ export class RealTimeSync {
     pendingChanges: 0,
     conflictsCount: 0,
     syncInProgress: false,
-    connectionQuality: 'good',
+    connectionQuality: "good",
   };
-  
+
   private heartbeatTimer?: NodeJS.Timeout;
   private syncTimer?: NodeJS.Timeout;
   private deviceId: string;
@@ -117,12 +117,12 @@ export class RealTimeSync {
    * Subscribe to real-time updates for a specific entity
    */
   subscribe<T>(
-    entityType: RealTimeEvent['entityType'],
+    entityType: RealTimeEvent["entityType"],
     entityId: string,
-    callback: (event: RealTimeEvent<T>) => void
+    callback: (event: RealTimeEvent<T>) => void,
   ): () => void {
     const subscriptionKey = `${entityType}:${entityId}`;
-    
+
     // Add callback to handlers
     if (!this.eventHandlers.has(subscriptionKey)) {
       this.eventHandlers.set(subscriptionKey, new Set());
@@ -134,7 +134,7 @@ export class RealTimeSync {
       this.createSupabaseSubscription(entityType, entityId);
     }
 
-    logger.debug('Real-time subscription created', { entityType, entityId });
+    logger.debug("Real-time subscription created", { entityType, entityId });
 
     // Return unsubscribe function
     return () => {
@@ -160,10 +160,10 @@ export class RealTimeSync {
       progressPercentage: number;
       lastUpdated: Date;
       updatedBy: string;
-    }) => void
+    }) => void,
   ): () => void {
-    return this.subscribe('inspection', inspectionId, (event) => {
-      if (event.type === 'progress_updated') {
+    return this.subscribe("inspection", inspectionId, (event) => {
+      if (event.type === "progress_updated") {
         callback(event.data);
       }
     });
@@ -174,9 +174,9 @@ export class RealTimeSync {
    */
   subscribeToChecklistItem(
     itemId: string,
-    callback: (event: RealTimeEvent) => void
+    callback: (event: RealTimeEvent) => void,
   ): () => void {
-    return this.subscribe('checklist_item', itemId, callback);
+    return this.subscribe("checklist_item", itemId, callback);
   }
 
   /**
@@ -184,16 +184,18 @@ export class RealTimeSync {
    */
   subscribeToUserPresence(
     inspectionId: string,
-    callback: (users: Array<{
-      userId: string;
-      name: string;
-      status: 'active' | 'idle' | 'offline';
-      lastSeen: Date;
-      currentItem?: string;
-    }>) => void
+    callback: (
+      users: Array<{
+        userId: string;
+        name: string;
+        status: "active" | "idle" | "offline";
+        lastSeen: Date;
+        currentItem?: string;
+      }>,
+    ) => void,
   ): () => void {
     // Implementation would track user activity
-    logger.debug('User presence subscription created', { inspectionId });
+    logger.debug("User presence subscription created", { inspectionId });
     return () => {}; // Placeholder return
   }
 
@@ -204,7 +206,9 @@ export class RealTimeSync {
   /**
    * Publish real-time event to other connected clients
    */
-  async publishEvent<T>(event: Omit<RealTimeEvent<T>, 'id' | 'timestamp' | 'userId'>): Promise<void> {
+  async publishEvent<T>(
+    event: Omit<RealTimeEvent<T>, "id" | "timestamp" | "userId">,
+  ): Promise<void> {
     const fullEvent: RealTimeEvent<T> = {
       id: this.generateEventId(),
       timestamp: new Date(),
@@ -220,15 +224,23 @@ export class RealTimeSync {
     try {
       if (this.syncStatus.isOnline) {
         await this.publishToSupabase(fullEvent);
-        logger.debug('Real-time event published', { eventId: fullEvent.id, type: fullEvent.type });
+        logger.debug("Real-time event published", {
+          eventId: fullEvent.id,
+          type: fullEvent.type,
+        });
       } else {
         // Queue for offline sync
         this.pendingChanges.push(fullEvent);
         this.updateSyncStatus();
-        logger.debug('Event queued for offline sync', { eventId: fullEvent.id });
+        logger.debug("Event queued for offline sync", {
+          eventId: fullEvent.id,
+        });
       }
     } catch (error) {
-      logger.error('Failed to publish real-time event', { error, event: fullEvent });
+      logger.error("Failed to publish real-time event", {
+        error,
+        event: fullEvent,
+      });
       // Queue for retry
       this.pendingChanges.push(fullEvent);
       this.updateSyncStatus();
@@ -244,11 +256,11 @@ export class RealTimeSync {
       completedItems: number;
       totalItems: number;
       progressPercentage: number;
-    }
+    },
   ): Promise<void> {
     await this.publishEvent({
-      type: 'progress_updated',
-      entityType: 'inspection',
+      type: "progress_updated",
+      entityType: "inspection",
       entityId: inspectionId,
       data: {
         ...progress,
@@ -258,7 +270,7 @@ export class RealTimeSync {
     });
 
     // Invalidate related caches
-    queryCache.invalidateRelated('inspection', inspectionId);
+    queryCache.invalidateRelated("inspection", inspectionId);
   }
 
   /**
@@ -266,17 +278,17 @@ export class RealTimeSync {
    */
   async publishChecklistUpdate(
     itemId: string,
-    updates: Record<string, unknown>
+    updates: Record<string, unknown>,
   ): Promise<void> {
     await this.publishEvent({
-      type: 'updated',
-      entityType: 'checklist_item', 
+      type: "updated",
+      entityType: "checklist_item",
       entityId: itemId,
       data: updates,
     });
 
     // Invalidate related caches
-    queryCache.invalidateRelated('checklist_item', itemId);
+    queryCache.invalidateRelated("checklist_item", itemId);
   }
 
   // ========================================
@@ -290,21 +302,21 @@ export class RealTimeSync {
     entityType: string,
     entityId: string,
     localData: Record<string, unknown>,
-    remoteData: Record<string, unknown>
+    remoteData: Record<string, unknown>,
   ): Promise<ConflictResolution> {
     const conflictId = this.generateConflictId();
-    
-    logger.warn('Data conflict detected', { 
-      conflictId, 
-      entityType, 
+
+    logger.warn("Data conflict detected", {
+      conflictId,
+      entityType,
       entityId,
       localVersion: localData.updated_at,
-      remoteVersion: remoteData.updated_at 
+      remoteVersion: remoteData.updated_at,
     });
 
     // Auto-resolve simple conflicts
     const resolution = await this.autoResolveConflict(localData, remoteData);
-    
+
     const conflictResolution: ConflictResolution = {
       conflictId,
       entityType,
@@ -313,7 +325,7 @@ export class RealTimeSync {
       remoteVersion: remoteData,
       resolution: resolution.type,
       mergedData: resolution.data,
-      resolvedBy: resolution.type === 'manual' ? undefined : 'system',
+      resolvedBy: resolution.type === "manual" ? undefined : "system",
       resolvedAt: new Date(),
     };
 
@@ -323,11 +335,11 @@ export class RealTimeSync {
     // Emit conflict event for UI handling
     this.emitEvent(`${entityType}:${entityId}`, {
       id: conflictId,
-      type: 'conflict_detected',
+      type: "conflict_detected",
       entityType,
       entityId,
       data: conflictResolution,
-      userId: 'system',
+      userId: "system",
       timestamp: new Date(),
     });
 
@@ -335,27 +347,33 @@ export class RealTimeSync {
   }
 
   private async autoResolveConflict(
-    localData: Record<string, unknown>, 
-    remoteData: Record<string, unknown>
-  ): Promise<{ type: ConflictResolution['resolution']; data?: Record<string, unknown> }> {
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Promise<{
+    type: ConflictResolution["resolution"];
+    data?: Record<string, unknown>;
+  }> {
     // Simple timestamp-based resolution for now
     // In production, this would be more sophisticated based on data type
-    
+
     const localTime = new Date(localData.updated_at).getTime();
     const remoteTime = new Date(remoteData.updated_at).getTime();
 
     if (localTime > remoteTime) {
-      return { type: 'local' };
+      return { type: "local" };
     } else if (remoteTime > localTime) {
-      return { type: 'remote' };
+      return { type: "remote" };
     } else {
       // Try to merge non-conflicting fields
       const merged = this.mergeData(localData, remoteData);
-      return { type: 'merged', data: merged };
+      return { type: "merged", data: merged };
     }
   }
 
-  private mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
+  private mergeData(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Record<string, unknown> {
     // Simple merge strategy - in production would be more sophisticated
     return {
       ...remoteData,
@@ -380,17 +398,22 @@ export class RealTimeSync {
     this.updateSyncStatus();
 
     const startTime = performance.now();
-    
+
     try {
-      logger.info('Starting offline sync', { pendingChanges: this.pendingChanges.length });
+      logger.info("Starting offline sync", {
+        pendingChanges: this.pendingChanges.length,
+      });
 
       // Process changes in order
       for (const event of this.pendingChanges) {
         try {
           await this.publishToSupabase(event);
-          logger.debug('Synced offline event', { eventId: event.id });
+          logger.debug("Synced offline event", { eventId: event.id });
         } catch (error) {
-          logger.error('Failed to sync offline event', { error, eventId: event.id });
+          logger.error("Failed to sync offline event", {
+            error,
+            eventId: event.id,
+          });
           // Keep in pending for retry
           continue;
         }
@@ -400,13 +423,12 @@ export class RealTimeSync {
       this.pendingChanges.length = 0;
       this.syncStatus.lastSync = new Date();
 
-      logger.info('Offline sync completed', { 
+      logger.info("Offline sync completed", {
         duration: performance.now() - startTime,
-        changesSynced: this.pendingChanges.length 
+        changesSynced: this.pendingChanges.length,
       });
-
     } catch (error) {
-      logger.error('Offline sync failed', { error });
+      logger.error("Offline sync failed", { error });
     } finally {
       this.syncStatus.syncInProgress = false;
       this.updateSyncStatus();
@@ -424,79 +446,89 @@ export class RealTimeSync {
    * Get pending conflicts that need manual resolution
    */
   getPendingConflicts(): ConflictResolution[] {
-    return this.conflicts.filter(c => c.resolution === 'manual');
+    return this.conflicts.filter((c) => c.resolution === "manual");
   }
 
   /**
    * Manually resolve a conflict
    */
   async resolveConflict(
-    conflictId: string, 
-    resolution: 'local' | 'remote' | 'custom',
-    customData?: Record<string, unknown>
+    conflictId: string,
+    resolution: "local" | "remote" | "custom",
+    customData?: Record<string, unknown>,
   ): Promise<void> {
-    const conflict = this.conflicts.find(c => c.conflictId === conflictId);
+    const conflict = this.conflicts.find((c) => c.conflictId === conflictId);
     if (!conflict) {
       throw new Error(`Conflict ${conflictId} not found`);
     }
 
-    conflict.resolution = resolution === 'custom' ? 'merged' : resolution;
+    conflict.resolution = resolution === "custom" ? "merged" : resolution;
     conflict.resolvedBy = await this.getCurrentUserId();
     conflict.resolvedAt = new Date();
 
-    if (resolution === 'custom' && customData) {
+    if (resolution === "custom" && customData) {
       conflict.mergedData = customData;
     }
 
     // Apply resolution
-    const dataToApply = resolution === 'local' ? conflict.localVersion :
-                       resolution === 'remote' ? conflict.remoteVersion :
-                       conflict.mergedData;
+    const dataToApply =
+      resolution === "local"
+        ? conflict.localVersion
+        : resolution === "remote"
+          ? conflict.remoteVersion
+          : conflict.mergedData;
 
     // Update the entity with resolved data
-    await this.applyResolvedData(conflict.entityType, conflict.entityId, dataToApply);
+    await this.applyResolvedData(
+      conflict.entityType,
+      conflict.entityId,
+      dataToApply,
+    );
 
-    logger.info('Conflict resolved', { conflictId, resolution });
+    logger.info("Conflict resolved", { conflictId, resolution });
   }
 
   // ========================================
   // SUPABASE REAL-TIME INTEGRATION
   // ========================================
 
-  private createSupabaseSubscription(entityType: string, entityId: string): void {
+  private createSupabaseSubscription(
+    entityType: string,
+    entityId: string,
+  ): void {
     const subscriptionKey = `${entityType}:${entityId}`;
-    
+
     // Map entity types to table names
     const tableMap: Record<string, string> = {
-      'property': 'properties',
-      'inspection': 'inspections', 
-      'checklist_item': 'checklist_items',
-      'user': 'users',
+      property: "properties",
+      inspection: "inspections",
+      checklist_item: "checklist_items",
+      user: "users",
     };
 
     const tableName = tableMap[entityType];
     if (!tableName) {
-      logger.error('Unknown entity type for subscription', { entityType });
+      logger.error("Unknown entity type for subscription", { entityType });
       return;
     }
 
     const subscription = supabase
       .channel(`${tableName}:${entityId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
+          event: "*",
+          schema: "public",
           table: tableName,
           filter: `id=eq.${entityId}`,
         },
-        (payload) => this.handleSupabaseEvent(entityType, payload)
+        (payload) => this.handleSupabaseEvent(entityType, payload),
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          logger.debug('Supabase subscription active', { subscriptionKey });
-        } else if (status === 'CHANNEL_ERROR') {
-          logger.error('Supabase subscription error', { subscriptionKey });
+        if (status === "SUBSCRIBED") {
+          logger.debug("Supabase subscription active", { subscriptionKey });
+        } else if (status === "CHANNEL_ERROR") {
+          logger.error("Supabase subscription error", { subscriptionKey });
         }
       });
 
@@ -508,25 +540,32 @@ export class RealTimeSync {
     if (subscription) {
       supabase.removeChannel(subscription);
       this.subscriptions.delete(subscriptionKey);
-      logger.debug('Supabase subscription removed', { subscriptionKey });
+      logger.debug("Supabase subscription removed", { subscriptionKey });
     }
   }
 
-  private handleSupabaseEvent(entityType: string, payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }): void {
+  private handleSupabaseEvent(
+    entityType: string,
+    payload: {
+      eventType: string;
+      new: Record<string, unknown>;
+      old: Record<string, unknown>;
+    },
+  ): void {
     const event: RealTimeEvent = {
       id: this.generateEventId(),
       type: this.mapSupabaseEventType(payload.eventType),
-      entityType: entityType as RealTimeEvent['entityType'],
+      entityType: entityType as RealTimeEvent["entityType"],
       entityId: payload.new?.id || payload.old?.id,
       data: payload.new || payload.old,
-      userId: payload.new?.updated_by || 'system',
+      userId: payload.new?.updated_by || "system",
       timestamp: new Date(),
     };
 
     // Track performance
     performanceMonitor.trackQuery({
-      service: 'RealTimeSync',
-      operation: 'handleEvent',
+      service: "RealTimeSync",
+      operation: "handleEvent",
       startTime: performance.now(),
       endTime: performance.now(),
       fromCache: false,
@@ -539,17 +578,17 @@ export class RealTimeSync {
 
   private mapSupabaseEventType(supabaseEventType: string): RealTimeEventType {
     const mapping: Record<string, RealTimeEventType> = {
-      'INSERT': 'created',
-      'UPDATE': 'updated',
-      'DELETE': 'deleted',
+      INSERT: "created",
+      UPDATE: "updated",
+      DELETE: "deleted",
     };
-    return mapping[supabaseEventType] || 'updated';
+    return mapping[supabaseEventType] || "updated";
   }
 
   private async publishToSupabase<T>(event: RealTimeEvent<T>): Promise<void> {
     // In a production system, this would publish to a real-time events table
     // or use Supabase's broadcast functionality
-    logger.debug('Publishing to Supabase real-time', { eventId: event.id });
+    logger.debug("Publishing to Supabase real-time", { eventId: event.id });
   }
 
   // ========================================
@@ -557,24 +596,24 @@ export class RealTimeSync {
   // ========================================
 
   private initializeRealTime(): void {
-    logger.info('Real-time sync initialized', { deviceId: this.deviceId });
+    logger.info("Real-time sync initialized", { deviceId: this.deviceId });
   }
 
   private setupOfflineHandling(): void {
     // Listen for online/offline events
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.syncStatus.isOnline = true;
-      this.syncStatus.connectionQuality = 'good';
+      this.syncStatus.connectionQuality = "good";
       this.updateSyncStatus();
       this.syncOfflineChanges();
-      logger.info('Device came online - starting sync');
+      logger.info("Device came online - starting sync");
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.syncStatus.isOnline = false;
-      this.syncStatus.connectionQuality = 'offline';
+      this.syncStatus.connectionQuality = "offline";
       this.updateSyncStatus();
-      logger.warn('Device went offline - queuing changes');
+      logger.warn("Device went offline - queuing changes");
     });
   }
 
@@ -585,43 +624,48 @@ export class RealTimeSync {
   }
 
   private startPeriodicSync(): void {
-    this.syncTimer = setInterval(() => {
-      if (this.syncStatus.isOnline && this.pendingChanges.length > 0) {
-        this.syncOfflineChanges();
-      }
-    }, 2 * 60 * 1000); // Every 2 minutes
+    this.syncTimer = setInterval(
+      () => {
+        if (this.syncStatus.isOnline && this.pendingChanges.length > 0) {
+          this.syncOfflineChanges();
+        }
+      },
+      2 * 60 * 1000,
+    ); // Every 2 minutes
   }
 
   private updateConnectionQuality(): void {
     if (!this.syncStatus.isOnline) {
-      this.syncStatus.connectionQuality = 'offline';
+      this.syncStatus.connectionQuality = "offline";
       return;
     }
 
     // Simple ping test to determine connection quality
     const startTime = performance.now();
-    fetch('/api/ping', { method: 'HEAD' })
+    fetch("/api/ping", { method: "HEAD" })
       .then(() => {
         const latency = performance.now() - startTime;
-        this.syncStatus.connectionQuality = latency > 1000 ? 'poor' : 'good';
+        this.syncStatus.connectionQuality = latency > 1000 ? "poor" : "good";
       })
       .catch(() => {
-        this.syncStatus.connectionQuality = 'poor';
+        this.syncStatus.connectionQuality = "poor";
       });
   }
 
   private updateSyncStatus(): void {
     this.syncStatus.pendingChanges = this.pendingChanges.length;
-    this.syncStatus.conflictsCount = this.conflicts.filter(c => c.resolution === 'manual').length;
-    
+    this.syncStatus.conflictsCount = this.conflicts.filter(
+      (c) => c.resolution === "manual",
+    ).length;
+
     // Emit sync status update
-    this.emitEvent('sync:status', {
-      id: 'sync_status',
-      type: 'sync_complete',
-      entityType: 'inspection', // Placeholder
-      entityId: 'system',
+    this.emitEvent("sync:status", {
+      id: "sync_status",
+      type: "sync_complete",
+      entityType: "inspection", // Placeholder
+      entityId: "system",
       data: this.syncStatus,
-      userId: 'system',
+      userId: "system",
       timestamp: new Date(),
     });
   }
@@ -629,11 +673,15 @@ export class RealTimeSync {
   private emitEvent(subscriptionKey: string, event: RealTimeEvent): void {
     const handlers = this.eventHandlers.get(subscriptionKey);
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           handler(event);
         } catch (error) {
-          logger.error('Event handler error', { error, subscriptionKey, eventId: event.id });
+          logger.error("Event handler error", {
+            error,
+            subscriptionKey,
+            eventId: event.id,
+          });
         }
       });
     }
@@ -641,25 +689,28 @@ export class RealTimeSync {
 
   private async getCurrentUserId(): Promise<string> {
     // Get current user from Supabase auth
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || 'anonymous';
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user?.id || "anonymous";
   }
 
-  private async applyResolvedData(entityType: string, entityId: string, data: Record<string, unknown>): Promise<void> {
+  private async applyResolvedData(
+    entityType: string,
+    entityId: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
     // Apply resolved conflict data to the database
     const tableMap: Record<string, string> = {
-      'property': 'properties',
-      'inspection': 'inspections',
-      'checklist_item': 'checklist_items', 
-      'user': 'users',
+      property: "properties",
+      inspection: "inspections",
+      checklist_item: "checklist_items",
+      user: "users",
     };
 
     const tableName = tableMap[entityType];
     if (tableName) {
-      await supabase
-        .from(tableName)
-        .update(data)
-        .eq('id', entityId);
+      await supabase.from(tableName).update(data).eq("id", entityId);
     }
   }
 
@@ -673,19 +724,22 @@ export class RealTimeSync {
 
   private generateDeviceId(): string {
     // Generate or retrieve persistent device ID
-    let deviceId = localStorage.getItem('device_id');
+    let deviceId = localStorage.getItem("device_id");
     if (!deviceId) {
       deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      localStorage.setItem('device_id', deviceId);
+      localStorage.setItem("device_id", deviceId);
     }
     return deviceId;
   }
 
   private getConnectionType(): string {
-    if (typeof navigator !== 'undefined' && 'connection' in navigator) {
-      return (navigator as { connection?: { effectiveType?: string } }).connection?.effectiveType || 'unknown';
+    if (typeof navigator !== "undefined" && "connection" in navigator) {
+      return (
+        (navigator as { connection?: { effectiveType?: string } }).connection
+          ?.effectiveType || "unknown"
+      );
     }
-    return 'unknown';
+    return "unknown";
   }
 
   /**
@@ -705,7 +759,7 @@ export class RealTimeSync {
     // Clear event handlers
     this.eventHandlers.clear();
 
-    logger.info('RealTimeSync destroyed');
+    logger.info("RealTimeSync destroyed");
   }
 }
 

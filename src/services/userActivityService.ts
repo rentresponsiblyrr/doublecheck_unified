@@ -1,17 +1,17 @@
 /**
  * @fileoverview User Activity Tracking Service
  * Tracks user interactions for bug reporting and debugging purposes
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface UserAction {
   id: string;
   timestamp: string;
-  type: 'click' | 'navigation' | 'input' | 'error' | 'custom';
+  type: "click" | "navigation" | "input" | "error" | "custom";
   element: string;
   path: string;
   details: {
@@ -30,8 +30,8 @@ export interface UserAction {
 export interface BugReportData {
   title: string;
   description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  category: 'ui' | 'functionality' | 'performance' | 'security' | 'other';
+  severity: "low" | "medium" | "high" | "critical";
+  category: "ui" | "functionality" | "performance" | "security" | "other";
   steps: string[];
   screenshot?: string;
   userActions: UserAction[];
@@ -66,20 +66,23 @@ class UserActivityService {
   }
 
   private initializeTracking() {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Track clicks
-    document.addEventListener('click', this.handleClick.bind(this), true);
-    
+    document.addEventListener("click", this.handleClick.bind(this), true);
+
     // Track navigation
-    window.addEventListener('popstate', this.handleNavigation.bind(this));
-    
+    window.addEventListener("popstate", this.handleNavigation.bind(this));
+
     // Track input changes
-    document.addEventListener('input', this.handleInput.bind(this), true);
-    
+    document.addEventListener("input", this.handleInput.bind(this), true);
+
     // Track errors
-    window.addEventListener('error', this.handleError.bind(this));
-    window.addEventListener('unhandledrejection', this.handleUnhandledRejection.bind(this));
+    window.addEventListener("error", this.handleError.bind(this));
+    window.addEventListener(
+      "unhandledrejection",
+      this.handleUnhandledRejection.bind(this),
+    );
 
     // Track route changes for SPA
     this.trackRouteChanges();
@@ -89,9 +92,9 @@ class UserActivityService {
     if (!this.isTracking) return;
 
     const target = event.target as HTMLElement;
-    
+
     this.addAction({
-      type: 'click',
+      type: "click",
       element: this.getElementSelector(target),
       details: {
         elementId: target.id || undefined,
@@ -99,13 +102,13 @@ class UserActivityService {
         elementText: target.textContent?.trim().substring(0, 100) || undefined,
         coordinates: {
           x: event.clientX,
-          y: event.clientY
+          y: event.clientY,
         },
         viewport: {
           width: window.innerWidth,
-          height: window.innerHeight
-        }
-      }
+          height: window.innerHeight,
+        },
+      },
     });
   }
 
@@ -113,11 +116,11 @@ class UserActivityService {
     if (!this.isTracking) return;
 
     this.addAction({
-      type: 'navigation',
-      element: 'window',
+      type: "navigation",
+      element: "window",
       details: {
-        url: window.location.href
-      }
+        url: window.location.href,
+      },
     });
   }
 
@@ -125,41 +128,42 @@ class UserActivityService {
     if (!this.isTracking) return;
 
     const target = event.target as HTMLInputElement;
-    
+
     // Don't log sensitive input values
-    const isSensitive = target.type === 'password' || 
-                       target.name?.toLowerCase().includes('password') ||
-                       target.name?.toLowerCase().includes('secret') ||
-                       target.name?.toLowerCase().includes('token');
+    const isSensitive =
+      target.type === "password" ||
+      target.name?.toLowerCase().includes("password") ||
+      target.name?.toLowerCase().includes("secret") ||
+      target.name?.toLowerCase().includes("token");
 
     this.addAction({
-      type: 'input',
+      type: "input",
       element: this.getElementSelector(target),
       details: {
         elementId: target.id || undefined,
         elementClass: target.className || undefined,
-        value: isSensitive ? '[REDACTED]' : target.value?.substring(0, 100)
-      }
+        value: isSensitive ? "[REDACTED]" : target.value?.substring(0, 100),
+      },
     });
   }
 
   private handleError(event: ErrorEvent) {
     this.addAction({
-      type: 'error',
-      element: 'window',
+      type: "error",
+      element: "window",
       details: {
-        errorMessage: `${event.message} at ${event.filename}:${event.lineno}:${event.colno}`
-      }
+        errorMessage: `${event.message} at ${event.filename}:${event.lineno}:${event.colno}`,
+      },
     });
   }
 
   private handleUnhandledRejection(event: PromiseRejectionEvent) {
     this.addAction({
-      type: 'error',
-      element: 'window',
+      type: "error",
+      element: "window",
       details: {
-        errorMessage: `Unhandled Promise Rejection: ${event.reason}`
-      }
+        errorMessage: `Unhandled Promise Rejection: ${event.reason}`,
+      },
     });
   }
 
@@ -177,19 +181,23 @@ class UserActivityService {
   private getElementSelector(element: HTMLElement): string {
     // Create a simple selector for the element
     const tag = element.tagName.toLowerCase();
-    const id = element.id ? `#${element.id}` : '';
-    const classes = element.className ? `.${element.className.split(' ').join('.')}` : '';
-    
+    const id = element.id ? `#${element.id}` : "";
+    const classes = element.className
+      ? `.${element.className.split(" ").join(".")}`
+      : "";
+
     return `${tag}${id}${classes}`.substring(0, 200);
   }
 
-  private addAction(actionData: Omit<UserAction, 'id' | 'timestamp' | 'path' | 'sessionId'>) {
+  private addAction(
+    actionData: Omit<UserAction, "id" | "timestamp" | "path" | "sessionId">,
+  ) {
     const action: UserAction = {
       id: `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
       path: window.location.pathname,
       sessionId: this.sessionId,
-      ...actionData
+      ...actionData,
     };
 
     this.actions.push(action);
@@ -199,7 +207,7 @@ class UserActivityService {
       this.actions = this.actions.slice(-this.maxActions);
     }
 
-    logger.debug('User action tracked', action, 'USER_ACTIVITY');
+    logger.debug("User action tracked", action, "USER_ACTIVITY");
   }
 
   /**
@@ -207,9 +215,9 @@ class UserActivityService {
    */
   public trackCustomAction(element: string, details: Record<string, any>) {
     this.addAction({
-      type: 'custom',
+      type: "custom",
       element,
-      details
+      details,
     });
   }
 
@@ -223,14 +231,14 @@ class UserActivityService {
   /**
    * Get system information for bug reports
    */
-  public getSystemInfo(): BugReportData['systemInfo'] {
+  public getSystemInfo(): BugReportData["systemInfo"] {
     return {
       userAgent: navigator.userAgent,
       platform: navigator.platform,
       language: navigator.language,
       screenResolution: `${screen.width}x${screen.height}`,
       timestamp: new Date().toISOString(),
-      url: window.location.href
+      url: window.location.href,
     };
   }
 

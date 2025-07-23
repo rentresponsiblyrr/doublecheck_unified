@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { VideoPlayerState, VideoControls, VideoBookmark } from './types';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { VideoPlayerState, VideoControls, VideoBookmark } from "./types";
 
 export const useVideoPlayer = (videoUrl: string) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [bookmarks, setBookmarks] = useState<VideoBookmark[]>([]);
-  
+
   const [state, setState] = useState<VideoPlayerState>({
     isPlaying: false,
     currentTime: 0,
@@ -13,38 +13,44 @@ export const useVideoPlayer = (videoUrl: string) => {
     isMuted: false,
     isFullscreen: false,
     playbackRate: 1,
-    isLoading: true
+    isLoading: true,
   });
 
   const play = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.play();
-      setState(prev => ({ ...prev, isPlaying: true }));
+      setState((prev) => ({ ...prev, isPlaying: true }));
     }
   }, []);
 
   const pause = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.pause();
-      setState(prev => ({ ...prev, isPlaying: false }));
+      setState((prev) => ({ ...prev, isPlaying: false }));
     }
   }, []);
 
-  const seek = useCallback((time: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(0, Math.min(time, state.duration));
-      setState(prev => ({ ...prev, currentTime: time }));
-    }
-  }, [state.duration]);
+  const seek = useCallback(
+    (time: number) => {
+      if (videoRef.current) {
+        videoRef.current.currentTime = Math.max(
+          0,
+          Math.min(time, state.duration),
+        );
+        setState((prev) => ({ ...prev, currentTime: time }));
+      }
+    },
+    [state.duration],
+  );
 
   const setVolume = useCallback((volume: number) => {
     if (videoRef.current) {
       const clampedVolume = Math.max(0, Math.min(1, volume));
       videoRef.current.volume = clampedVolume;
-      setState(prev => ({ 
-        ...prev, 
+      setState((prev) => ({
+        ...prev,
         volume: clampedVolume,
-        isMuted: clampedVolume === 0 
+        isMuted: clampedVolume === 0,
       }));
     }
   }, []);
@@ -53,7 +59,7 @@ export const useVideoPlayer = (videoUrl: string) => {
     if (videoRef.current) {
       const newMuted = !state.isMuted;
       videoRef.current.muted = newMuted;
-      setState(prev => ({ ...prev, isMuted: newMuted }));
+      setState((prev) => ({ ...prev, isMuted: newMuted }));
     }
   }, [state.isMuted]);
 
@@ -64,14 +70,14 @@ export const useVideoPlayer = (videoUrl: string) => {
       } else {
         document.exitFullscreen();
       }
-      setState(prev => ({ ...prev, isFullscreen: !prev.isFullscreen }));
+      setState((prev) => ({ ...prev, isFullscreen: !prev.isFullscreen }));
     }
   }, [state.isFullscreen]);
 
   const setPlaybackRate = useCallback((rate: number) => {
     if (videoRef.current) {
       videoRef.current.playbackRate = rate;
-      setState(prev => ({ ...prev, playbackRate: rate }));
+      setState((prev) => ({ ...prev, playbackRate: rate }));
     }
   }, []);
 
@@ -80,48 +86,54 @@ export const useVideoPlayer = (videoUrl: string) => {
       id: Date.now().toString(),
       time,
       description,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
-    setBookmarks(prev => [...prev, newBookmark]);
+    setBookmarks((prev) => [...prev, newBookmark]);
   }, []);
 
   const deleteBookmark = useCallback((bookmarkId: string) => {
-    setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+    setBookmarks((prev) => prev.filter((b) => b.id !== bookmarkId));
   }, []);
 
-  const seekToBookmark = useCallback((time: number) => {
-    seek(time);
-  }, [seek]);
+  const seekToBookmark = useCallback(
+    (time: number) => {
+      seek(time);
+    },
+    [seek],
+  );
 
   const handleTimeUpdate = useCallback((currentTime: number) => {
-    setState(prev => ({ ...prev, currentTime }));
+    setState((prev) => ({ ...prev, currentTime }));
   }, []);
 
   const handleDurationChange = useCallback((duration: number) => {
-    setState(prev => ({ ...prev, duration }));
+    setState((prev) => ({ ...prev, duration }));
   }, []);
 
   const handleLoadStart = useCallback(() => {
-    setState(prev => ({ ...prev, isLoading: true }));
+    setState((prev) => ({ ...prev, isLoading: true }));
   }, []);
 
   const handleCanPlay = useCallback(() => {
-    setState(prev => ({ ...prev, isLoading: false }));
+    setState((prev) => ({ ...prev, isLoading: false }));
   }, []);
 
   const handleEnded = useCallback(() => {
-    setState(prev => ({ ...prev, isPlaying: false }));
+    setState((prev) => ({ ...prev, isPlaying: false }));
   }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
         return; // Don't handle shortcuts when typing in inputs
       }
 
       switch (e.key.toLowerCase()) {
-        case ' ':
+        case " ":
           e.preventDefault();
           if (state.isPlaying) {
             pause();
@@ -129,37 +141,53 @@ export const useVideoPlayer = (videoUrl: string) => {
             play();
           }
           break;
-        case 'arrowleft':
+        case "arrowleft":
           e.preventDefault();
           seek(state.currentTime - 10);
           break;
-        case 'arrowright':
+        case "arrowright":
           e.preventDefault();
           seek(state.currentTime + 10);
           break;
-        case 'arrowup':
+        case "arrowup":
           e.preventDefault();
           setVolume(Math.min(1, state.volume + 0.1));
           break;
-        case 'arrowdown':
+        case "arrowdown":
           e.preventDefault();
           setVolume(Math.max(0, state.volume - 0.1));
           break;
-        case 'm':
+        case "m":
           toggleMute();
           break;
-        case 'f':
+        case "f":
           toggleFullscreen();
           break;
-        case 'b':
-          addBookmark(state.currentTime, `Bookmark at ${Math.floor(state.currentTime / 60)}:${Math.floor(state.currentTime % 60).toString().padStart(2, '0')}`);
+        case "b":
+          addBookmark(
+            state.currentTime,
+            `Bookmark at ${Math.floor(state.currentTime / 60)}:${Math.floor(
+              state.currentTime % 60,
+            )
+              .toString()
+              .padStart(2, "0")}`,
+          );
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [state, play, pause, seek, setVolume, toggleMute, toggleFullscreen, addBookmark]);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [
+    state,
+    play,
+    pause,
+    seek,
+    setVolume,
+    toggleMute,
+    toggleFullscreen,
+    addBookmark,
+  ]);
 
   const controls: VideoControls = {
     play,
@@ -168,7 +196,7 @@ export const useVideoPlayer = (videoUrl: string) => {
     setVolume,
     toggleMute,
     toggleFullscreen,
-    setPlaybackRate
+    setPlaybackRate,
   };
 
   return {
@@ -183,6 +211,6 @@ export const useVideoPlayer = (videoUrl: string) => {
     handleDurationChange,
     handleLoadStart,
     handleCanPlay,
-    handleEnded
+    handleEnded,
   };
 };

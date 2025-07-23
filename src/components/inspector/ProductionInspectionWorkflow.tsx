@@ -1,12 +1,12 @@
 /**
  * Production Inspection Workflow Component - SURGICALLY REFACTORED
- * 
+ *
  * PRODUCTION-READY INSPECTOR WORKFLOW
- * 
+ *
  * This component provides a fully functional inspection workflow that works
  * with the actual database schema and handles all the critical issues
  * identified in the production readiness audit.
- * 
+ *
  * SURGICAL REFACTORING APPLIED:
  * ✅ Extracted business logic to useProductionInspection hook
  * ✅ Decomposed into focused sub-components
@@ -15,19 +15,19 @@
  * ✅ Reduced from 508 lines to <300 lines using composition
  */
 
-import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, AlertTriangle } from 'lucide-react';
+import React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 
 // Extracted business logic hook
-import { useProductionInspection } from '@/hooks/useProductionInspection';
+import { useProductionInspection } from "@/hooks/useProductionInspection";
 
 // Extracted UI components
-import { InspectionHeader } from './InspectionHeader';
-import { InspectionProgressCard } from './InspectionProgressCard';
-import { PropertySelectionPanel } from './PropertySelectionPanel';
-import { ActiveInspectionPanel } from './ActiveInspectionPanel';
-import { SubmissionCompletePanel } from './SubmissionCompletePanel';
+import { InspectionHeader } from "./InspectionHeader";
+import { InspectionProgressCard } from "./InspectionProgressCard";
+import { PropertySelectionPanel } from "./PropertySelectionPanel";
+import { ActiveInspectionPanel } from "./ActiveInspectionPanel";
+import { SubmissionCompletePanel } from "./SubmissionCompletePanel";
 
 export const ProductionInspectionWorkflow: React.FC = () => {
   const {
@@ -41,7 +41,7 @@ export const ProductionInspectionWorkflow: React.FC = () => {
     handleItemCompletion,
     handleInspectionSubmission,
     resetWorkflow,
-    getCompletionPercentage
+    getCompletionPercentage,
   } = useProductionInspection();
 
   // Loading state for initial data
@@ -59,7 +59,9 @@ export const ProductionInspectionWorkflow: React.FC = () => {
       {/* Header */}
       <InspectionHeader
         currentUser={currentUser}
-        showNewInspectionButton={inspectionState.currentStep !== 'property-selection'}
+        showNewInspectionButton={
+          inspectionState.currentStep !== "property-selection"
+        }
         onNewInspection={resetWorkflow}
       />
 
@@ -70,14 +72,12 @@ export const ProductionInspectionWorkflow: React.FC = () => {
       {error && (
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="w-4 h-4" />
-          <AlertDescription className="text-red-600">
-            {error}
-          </AlertDescription>
+          <AlertDescription className="text-red-600">{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Property Selection Step */}
-      {inspectionState.currentStep === 'property-selection' && (
+      {inspectionState.currentStep === "property-selection" && (
         <PropertySelectionPanel
           properties={properties}
           loading={loading}
@@ -87,21 +87,22 @@ export const ProductionInspectionWorkflow: React.FC = () => {
       )}
 
       {/* Active Inspection Step */}
-      {inspectionState.currentStep === 'inspection-active' && inspectionState.selectedProperty && (
-        <ActiveInspectionPanel
-          selectedProperty={inspectionState.selectedProperty}
-          inspectionId={inspectionState.inspectionId!}
-          checklistItems={inspectionState.checklistItems}
-          completedItems={inspectionState.completedItems}
-          completionPercentage={getCompletionPercentage()}
-          loading={loading}
-          onItemCompletion={handleItemCompletion}
-          onSubmitInspection={handleInspectionSubmission}
-        />
-      )}
+      {inspectionState.currentStep === "inspection-active" &&
+        inspectionState.selectedProperty && (
+          <ActiveInspectionPanel
+            selectedProperty={inspectionState.selectedProperty}
+            inspectionId={inspectionState.inspectionId!}
+            checklistItems={inspectionState.checklistItems}
+            completedItems={inspectionState.completedItems}
+            completionPercentage={getCompletionPercentage()}
+            loading={loading}
+            onItemCompletion={handleItemCompletion}
+            onSubmitInspection={handleInspectionSubmission}
+          />
+        )}
 
       {/* Submission Complete */}
-      {inspectionState.currentStep === 'submission' && (
+      {inspectionState.currentStep === "submission" && (
         <SubmissionCompletePanel
           selectedProperty={inspectionState.selectedProperty}
           inspectionId={inspectionState.inspectionId}

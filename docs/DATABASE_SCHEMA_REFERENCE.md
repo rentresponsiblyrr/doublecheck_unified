@@ -11,7 +11,7 @@
 ### **🔑 KEY PRINCIPLE: DIRECT SCHEMA ACCESS**
 - **COMPATIBILITY LAYER REMOVED**: All code now uses direct table access
 - **CORRECT TABLE NAMES**: Use `checklist_items` (not `logs`), `users` (not `profiles`)
-- **CORRECT FIELD NAMES**: Properties use `id`, `name`, `address` (not `property_id`, `property_name`, `street_address`)
+- **CORRECT FIELD NAMES**: Properties use `id`, `name`, `address` (not `property_id`, `name`, `address`)
 - **SCHEMA ALIGNMENT COMPLETE**: July 22, 2025 - All 75+ files with schema mismatches have been fixed
 
 ## 🗂️ CORE TABLES STRUCTURE
@@ -70,7 +70,7 @@ Source: properties table with int_to_uuid() conversion
 |--------|------|--------|---------|
 | `id` | `uuid` | `int_to_uuid(property_id)` | UUID version of property_id |
 | `original_property_id` | `integer` | `property_id` | Original integer ID |
-| `name` | `text` | `property_name` | Property display name |
+| `name` | `text` | `name` | Property display name |
 | `address` | `text` | Concatenated address | Full formatted address |
 | All other columns | Various | Direct mapping | Same as base table |
 

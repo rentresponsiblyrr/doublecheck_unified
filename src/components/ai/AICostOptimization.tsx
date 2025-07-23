@@ -1,14 +1,27 @@
 /**
- * AI Cost Optimization Component  
+ * AI Cost Optimization Component
  * Cost analysis, optimization recommendations, and savings opportunities
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, TrendingDown, Lightbulb, Settings, CheckCircle, AlertTriangle } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  DollarSign,
+  TrendingDown,
+  Lightbulb,
+  Settings,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 
 interface OptimizationData {
   potentialSavings: number;
@@ -18,7 +31,7 @@ interface OptimizationData {
     type: string;
     description: string;
     savings: number;
-    effort: 'low' | 'medium' | 'high';
+    effort: "low" | "medium" | "high";
   }>;
 }
 
@@ -35,34 +48,34 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
   onImplementOptimization,
   onAutoOptimizeToggle,
   autoOptimizeEnabled = false,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const getEffortColor = (effort: 'low' | 'medium' | 'high') => {
+  const getEffortColor = (effort: "low" | "medium" | "high") => {
     switch (effort) {
-      case 'low':
-        return 'bg-green-100 text-green-700';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'high':
-        return 'bg-red-100 text-red-700';
+      case "low":
+        return "bg-green-100 text-green-700";
+      case "medium":
+        return "bg-yellow-100 text-yellow-700";
+      case "high":
+        return "bg-red-100 text-red-700";
     }
   };
 
-  const getEffortIcon = (effort: 'low' | 'medium' | 'high') => {
+  const getEffortIcon = (effort: "low" | "medium" | "high") => {
     switch (effort) {
-      case 'low':
+      case "low":
         return <CheckCircle className="w-4 h-4" />;
-      case 'medium':
+      case "medium":
         return <Settings className="w-4 h-4" />;
-      case 'high':
+      case "high":
         return <AlertTriangle className="w-4 h-4" />;
     }
   };
 
   const getSavingsLevel = (savings: number) => {
-    if (savings > 50) return 'High Impact';
-    if (savings > 20) return 'Medium Impact';
-    return 'Low Impact';
+    if (savings > 50) return "High Impact";
+    if (savings > 20) return "Medium Impact";
+    return "Low Impact";
   };
 
   if (isLoading) {
@@ -86,7 +99,9 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Potential Savings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Potential Savings
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -136,17 +151,18 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
         <AlertDescription className="text-blue-800">
           <div className="flex items-center justify-between">
             <span>
-              Auto-optimization is {autoOptimizeEnabled ? 'enabled' : 'disabled'}. 
-              {autoOptimizeEnabled 
-                ? ' The system will automatically implement low-effort optimizations.' 
-                : ' Enable to automatically apply cost-saving measures.'}
+              Auto-optimization is{" "}
+              {autoOptimizeEnabled ? "enabled" : "disabled"}.
+              {autoOptimizeEnabled
+                ? " The system will automatically implement low-effort optimizations."
+                : " Enable to automatically apply cost-saving measures."}
             </span>
             <Button
               size="sm"
               variant={autoOptimizeEnabled ? "outline" : "default"}
               onClick={() => onAutoOptimizeToggle?.(!autoOptimizeEnabled)}
             >
-              {autoOptimizeEnabled ? 'Disable' : 'Enable'} Auto-Optimize
+              {autoOptimizeEnabled ? "Disable" : "Enable"} Auto-Optimize
             </Button>
           </div>
         </AlertDescription>
@@ -166,7 +182,10 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
         <CardContent>
           <div className="space-y-3">
             {optimization.recommendedActions.map((action, index) => (
-              <div key={index} className="flex items-center p-3 border rounded-lg">
+              <div
+                key={index}
+                className="flex items-center p-3 border rounded-lg"
+              >
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
                 <span className="text-sm">{action}</span>
               </div>
@@ -191,14 +210,24 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
             {optimization.costReductionOpportunities
               .sort((a, b) => b.savings - a.savings)
               .map((opportunity, index) => (
-                <div key={index} className="p-4 border rounded-lg hover:bg-gray-50">
+                <div
+                  key={index}
+                  className="p-4 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium">{opportunity.type.replace('-', ' ').toUpperCase()}</h4>
-                        <Badge variant="outline" className={getEffortColor(opportunity.effort)}>
+                        <h4 className="font-medium">
+                          {opportunity.type.replace("-", " ").toUpperCase()}
+                        </h4>
+                        <Badge
+                          variant="outline"
+                          className={getEffortColor(opportunity.effort)}
+                        >
                           {getEffortIcon(opportunity.effort)}
-                          <span className="ml-1">{opportunity.effort} effort</span>
+                          <span className="ml-1">
+                            {opportunity.effort} effort
+                          </span>
                         </Badge>
                         <Badge variant="secondary">
                           {getSavingsLevel(opportunity.savings)}
@@ -209,23 +238,26 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
                       </p>
                       <div className="text-sm">
                         <span className="font-medium text-green-600">
-                          Potential savings: ${opportunity.savings.toFixed(2)}/month
+                          Potential savings: ${opportunity.savings.toFixed(2)}
+                          /month
                         </span>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onImplementOptimization?.(opportunity.type)}
+                      onClick={() =>
+                        onImplementOptimization?.(opportunity.type)
+                      }
                       className="ml-4"
                     >
                       Implement
                     </Button>
                   </div>
-                  
+
                   {/* Progress indicator for implementation */}
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.random() * 30}%` }}
                     ></div>
@@ -251,11 +283,16 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
           <CardContent>
             <div className="space-y-2">
               {optimization.costReductionOpportunities
-                .filter(opp => opp.effort === 'low')
+                .filter((opp) => opp.effort === "low")
                 .slice(0, 3)
                 .map((opp, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded">
-                    <span className="text-sm">{opp.type.replace('-', ' ')}</span>
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-green-50 rounded"
+                  >
+                    <span className="text-sm">
+                      {opp.type.replace("-", " ")}
+                    </span>
                     <span className="text-sm font-medium text-green-600">
                       ${opp.savings.toFixed(0)}/mo
                     </span>
@@ -275,11 +312,16 @@ export const AICostOptimization: React.FC<AICostOptimizationProps> = ({
           <CardContent>
             <div className="space-y-2">
               {optimization.costReductionOpportunities
-                .filter(opp => opp.effort === 'high')
+                .filter((opp) => opp.effort === "high")
                 .slice(0, 3)
                 .map((opp, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-orange-50 rounded">
-                    <span className="text-sm">{opp.type.replace('-', ' ')}</span>
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-orange-50 rounded"
+                  >
+                    <span className="text-sm">
+                      {opp.type.replace("-", " ")}
+                    </span>
                     <span className="text-sm font-medium text-orange-600">
                       ${opp.savings.toFixed(0)}/mo
                     </span>

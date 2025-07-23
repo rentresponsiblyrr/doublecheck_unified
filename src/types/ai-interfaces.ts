@@ -1,9 +1,9 @@
 /**
  * @fileoverview AI System Type Definitions
  * Professional TypeScript interfaces for AI/ML systems
- * 
+ *
  * Eliminates amateur 'any' types in AI prediction and validation systems
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
@@ -35,7 +35,7 @@ export interface AuditorCorrection {
   originalPrediction: string;
   correctedPrediction: string;
   feedback: string;
-  category: 'accuracy' | 'relevance' | 'completeness' | 'safety';
+  category: "accuracy" | "relevance" | "completeness" | "safety";
   confidence: number; // 0-1
   reasoning?: string;
   tags?: string[];
@@ -57,10 +57,10 @@ export interface AIValidationResult {
  * Validation issue details
  */
 export interface ValidationIssue {
-  type: 'error' | 'warning' | 'info';
+  type: "error" | "warning" | "info";
   category: string;
   message: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   field?: string;
   value?: unknown;
   suggestion?: string;
@@ -74,8 +74,8 @@ export interface ChecklistItemForAI {
   title: string;
   description?: string;
   category: string;
-  requiredEvidence: 'photo' | 'video' | 'text' | 'none';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  requiredEvidence: "photo" | "video" | "text" | "none";
+  priority: "low" | "medium" | "high" | "critical";
   tags?: string[];
   metadata?: Record<string, unknown>;
 }
@@ -130,10 +130,10 @@ export interface AILearningFeedback {
  */
 export function isAIPrediction(obj: unknown): obj is AIPrediction {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    typeof (obj as AIPrediction).prediction === 'string' &&
-    typeof (obj as AIPrediction).confidence === 'number'
+    typeof (obj as AIPrediction).prediction === "string" &&
+    typeof (obj as AIPrediction).confidence === "number"
   );
 }
 
@@ -142,11 +142,11 @@ export function isAIPrediction(obj: unknown): obj is AIPrediction {
  */
 export function isAuditorCorrection(obj: unknown): obj is AuditorCorrection {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    typeof (obj as AuditorCorrection).originalPrediction === 'string' &&
-    typeof (obj as AuditorCorrection).correctedPrediction === 'string' &&
-    typeof (obj as AuditorCorrection).feedback === 'string'
+    typeof (obj as AuditorCorrection).originalPrediction === "string" &&
+    typeof (obj as AuditorCorrection).correctedPrediction === "string" &&
+    typeof (obj as AuditorCorrection).feedback === "string"
   );
 }
 
@@ -155,10 +155,10 @@ export function isAuditorCorrection(obj: unknown): obj is AuditorCorrection {
  */
 export function isAIValidationResult(obj: unknown): obj is AIValidationResult {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    typeof (obj as AIValidationResult).isValid === 'boolean' &&
-    typeof (obj as AIValidationResult).score === 'number' &&
+    typeof (obj as AIValidationResult).isValid === "boolean" &&
+    typeof (obj as AIValidationResult).score === "number" &&
     Array.isArray((obj as AIValidationResult).issues)
   );
 }

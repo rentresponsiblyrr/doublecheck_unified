@@ -3,11 +3,17 @@
  * Extracted from InspectionWorkflowContainer.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Home } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Home } from "lucide-react";
 
 interface WorkflowErrorBoundaryProps {
   error: Error;
@@ -18,10 +24,13 @@ interface WorkflowErrorBoundaryProps {
 export const WorkflowErrorBoundary: React.FC<WorkflowErrorBoundaryProps> = ({
   error,
   onClearError,
-  onSafeReturn
+  onSafeReturn,
 }) => {
   return (
-    <div id="workflow-error-boundary" className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div
+      id="workflow-error-boundary"
+      className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+    >
       <Card className="max-w-md w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600">

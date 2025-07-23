@@ -1,17 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Code } from 'lucide-react';
-import { createClaudeService, ClaudeCodeReviewRequest } from '@/lib/ai/claude-service';
+import React, { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Code } from "lucide-react";
+import {
+  createClaudeService,
+  ClaudeCodeReviewRequest,
+} from "@/lib/ai/claude-service";
 
 interface ClaudeCodeReview {
   overallRating: number;
   issues: Array<{
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    category: 'security' | 'performance' | 'accessibility' | 'type-safety' | 'style';
+    severity: "low" | "medium" | "high" | "critical";
+    category:
+      | "security"
+      | "performance"
+      | "accessibility"
+      | "type-safety"
+      | "style";
     description: string;
     line?: number;
     suggestion?: string;
@@ -35,16 +43,16 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
   result,
   onReviewStart,
   onReviewComplete,
-  onError
+  onError,
 }) => {
-  const [codeInput, setCodeInput] = useState('');
-  const [filePath, setFilePath] = useState('');
+  const [codeInput, setCodeInput] = useState("");
+  const [filePath, setFilePath] = useState("");
 
   const claudeService = createClaudeService();
 
   const handleCodeReview = useCallback(async () => {
     if (!codeInput.trim()) {
-      onError('Please enter code to review');
+      onError("Please enter code to review");
       return;
     }
 
@@ -54,37 +62,60 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
       const request: ClaudeCodeReviewRequest = {
         prompt: codeInput,
         context: {
-          filePath: filePath || 'untitled.tsx',
-          focusAreas: ['security', 'performance', 'accessibility', 'type-safety'],
-          reviewLevel: 'comprehensive'
-        }
+          filePath: filePath || "untitled.tsx",
+          focusAreas: [
+            "security",
+            "performance",
+            "accessibility",
+            "type-safety",
+          ],
+          reviewLevel: "comprehensive",
+        },
       };
 
       const response = await claudeService.reviewCode(request);
       onReviewComplete(response);
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Code review failed');
+      onError(err instanceof Error ? err.message : "Code review failed");
     }
-  }, [codeInput, filePath, claudeService, onReviewStart, onReviewComplete, onError]);
+  }, [
+    codeInput,
+    filePath,
+    claudeService,
+    onReviewStart,
+    onReviewComplete,
+    onError,
+  ]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'outline';
-      case 'low': return 'secondary';
-      default: return 'secondary';
+      case "critical":
+        return "destructive";
+      case "high":
+        return "destructive";
+      case "medium":
+        return "outline";
+      case "low":
+        return "secondary";
+      default:
+        return "secondary";
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'security': return 'destructive';
-      case 'performance': return 'outline';
-      case 'accessibility': return 'secondary';
-      case 'type-safety': return 'default';
-      case 'style': return 'outline';
-      default: return 'secondary';
+      case "security":
+        return "destructive";
+      case "performance":
+        return "outline";
+      case "accessibility":
+        return "secondary";
+      case "type-safety":
+        return "default";
+      case "style":
+        return "outline";
+      default:
+        return "secondary";
     }
   };
 
@@ -100,7 +131,10 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
         <CardContent id="code-input-content">
           <div className="space-y-4">
             <div>
-              <label htmlFor="file-path-input" className="text-sm font-medium mb-2 block">
+              <label
+                htmlFor="file-path-input"
+                className="text-sm font-medium mb-2 block"
+              >
                 File Path (Optional)
               </label>
               <input
@@ -112,9 +146,12 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
                 className="w-full px-3 py-2 border rounded-md text-sm"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="code-input-textarea" className="text-sm font-medium mb-2 block">
+              <label
+                htmlFor="code-input-textarea"
+                className="text-sm font-medium mb-2 block"
+              >
                 Code to Review
               </label>
               <Textarea
@@ -139,7 +176,7 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
                   Reviewing...
                 </>
               ) : (
-                'Review Code'
+                "Review Code"
               )}
             </Button>
           </div>
@@ -157,12 +194,16 @@ export const CodeReviewSection: React.FC<CodeReviewSectionProps> = ({
           <CardContent id="code-review-results-content">
             <div className="space-y-4">
               <p className="text-sm">{result.summary}</p>
-              
+
               {result.issues.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium">Issues Found:</h4>
                   {result.issues.map((issue, index) => (
-                    <div key={index} className="p-3 border rounded-lg" id={`issue-${index}`}>
+                    <div
+                      key={index}
+                      className="p-3 border rounded-lg"
+                      id={`issue-${index}`}
+                    >
                       <div className="flex items-center space-x-2 mb-2">
                         <Badge variant={getSeverityColor(issue.severity)}>
                           {issue.severity}

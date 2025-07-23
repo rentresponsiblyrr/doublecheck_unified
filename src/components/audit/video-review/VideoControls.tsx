@@ -1,19 +1,25 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  Volume2, 
-  VolumeX, 
-  Maximize2, 
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  Maximize2,
   Minimize2,
-  Settings 
-} from 'lucide-react';
-import { VideoPlayerState } from './types';
+  Settings,
+} from "lucide-react";
+import { VideoPlayerState } from "./types";
 
 interface VideoControlsProps {
   state: VideoPlayerState;
@@ -34,16 +40,19 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
   onVolumeChange,
   onToggleMute,
   onToggleFullscreen,
-  onPlaybackRateChange
+  onPlaybackRateChange,
 }) => {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div id="video-controls" className="bg-black bg-opacity-80 text-white p-4 space-y-3">
+    <div
+      id="video-controls"
+      className="bg-black bg-opacity-80 text-white p-4 space-y-3"
+    >
       {/* Progress Bar */}
       <div className="flex items-center gap-3">
         <span className="text-sm font-mono min-w-[45px]">
@@ -71,7 +80,11 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
             onClick={state.isPlaying ? onPause : onPlay}
             disabled={state.isLoading}
           >
-            {state.isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+            {state.isPlaying ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Play className="w-5 h-5" />
+            )}
           </Button>
 
           {/* Skip Controls */}
@@ -82,25 +95,27 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
           >
             <SkipBack className="w-4 h-4" />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onSeek(Math.min(state.duration, state.currentTime + 10))}
+            onClick={() =>
+              onSeek(Math.min(state.duration, state.currentTime + 10))
+            }
           >
             <SkipForward className="w-4 h-4" />
           </Button>
 
           {/* Volume Controls */}
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleMute}
-            >
-              {state.isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            <Button variant="ghost" size="sm" onClick={onToggleMute}>
+              {state.isMuted ? (
+                <VolumeX className="w-4 h-4" />
+              ) : (
+                <Volume2 className="w-4 h-4" />
+              )}
             </Button>
-            
+
             <Slider
               value={[state.isMuted ? 0 : state.volume]}
               max={1}
@@ -130,12 +145,12 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
           </Select>
 
           {/* Fullscreen */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleFullscreen}
-          >
-            {state.isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          <Button variant="ghost" size="sm" onClick={onToggleFullscreen}>
+            {state.isFullscreen ? (
+              <Minimize2 className="w-4 h-4" />
+            ) : (
+              <Maximize2 className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>

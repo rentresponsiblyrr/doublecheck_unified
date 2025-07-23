@@ -1,25 +1,35 @@
 /**
  * @fileoverview Enterprise Security Middleware
  * Comprehensive security middleware layer for request/response security
- * 
+ *
  * Features:
  * - OWASP Top 10 protection middleware
  * - Request/response security scanning
  * - Real-time threat detection integration
  * - Automated security response
  * - Security headers management
- * 
+ *
  * @author STR Certified Engineering Team
  * @version 1.0.0
  */
 
-import { log } from '../logging/enterprise-logger';
-import { enterpriseServiceTracer } from '../services/enterprise-service-tracer';
-import { EnterpriseSecurityManager } from './enterprise-security-manager';
-import { ThreatDetectionEngine, type SecurityEvent } from './threat-detection-engine';
+import { log } from "../logging/enterprise-logger";
+import { enterpriseServiceTracer } from "../services/enterprise-service-tracer";
+import { EnterpriseSecurityManager } from "./enterprise-security-manager";
+import {
+  ThreatDetectionEngine,
+  type SecurityEvent,
+} from "./threat-detection-engine";
 
 // Type definitions for request/response bodies
-type RequestBody = string | Record<string, unknown> | FormData | ArrayBuffer | Blob | null | undefined;
+type RequestBody =
+  | string
+  | Record<string, unknown>
+  | FormData
+  | ArrayBuffer
+  | Blob
+  | null
+  | undefined;
 type ResponseBody = string | Record<string, unknown> | null | undefined;
 type SanitizedData = string | Record<string, unknown> | null;
 
@@ -32,7 +42,7 @@ export interface SecurityMiddlewareConfig {
     maxRequestSize: number;
     maxResponseSize: number;
   };
-  
+
   // Header security settings
   headers: {
     enableSecurityHeaders: boolean;
@@ -42,7 +52,7 @@ export interface SecurityMiddlewareConfig {
     enableXContentType: boolean;
     customHeaders: Record<string, string>;
   };
-  
+
   // Request validation settings
   validation: {
     enableInputSanitization: boolean;
@@ -51,7 +61,7 @@ export interface SecurityMiddlewareConfig {
     enableCSRFProtection: boolean;
     enableFileUploadSecurity: boolean;
   };
-  
+
   // Response protection settings
   response: {
     enableDataLeakPrevention: boolean;
@@ -59,7 +69,7 @@ export interface SecurityMiddlewareConfig {
     enableErrorSanitization: boolean;
     enableResponseValidation: boolean;
   };
-  
+
   // Rate limiting settings
   rateLimiting: {
     enableGlobalRateLimit: boolean;
@@ -78,18 +88,18 @@ export interface SecurityContext {
   ipAddress: string;
   userAgent: string;
   timestamp: number;
-  
+
   // Security state
   riskScore: number;
-  threatLevel: 'none' | 'low' | 'medium' | 'high' | 'critical';
+  threatLevel: "none" | "low" | "medium" | "high" | "critical";
   securityFlags: string[];
-  
+
   // Request metadata
   method: string;
   path: string;
   contentType?: string;
   contentLength?: number;
-  
+
   // Authentication context
   isAuthenticated: boolean;
   authMethod?: string;
@@ -107,8 +117,15 @@ export interface SecurityScanResult {
 }
 
 export interface SecurityViolation {
-  type: 'sql_injection' | 'xss' | 'csrf' | 'file_upload' | 'data_leak' | 'rate_limit' | 'authorization';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "sql_injection"
+    | "xss"
+    | "csrf"
+    | "file_upload"
+    | "data_leak"
+    | "rate_limit"
+    | "authorization";
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   location: string; // 'header' | 'body' | 'query' | 'path'
   details: Record<string, unknown>;
@@ -126,7 +143,10 @@ class SecurityMiddleware {
   private config: SecurityMiddlewareConfig;
   private securityManager: EnterpriseSecurityManager;
   private threatDetection: ThreatDetectionEngine;
-  private rateLimitCounters = new Map<string, { count: number; resetTime: number }>();
+  private rateLimitCounters = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
 
   private constructor(config: SecurityMiddlewareConfig) {
     this.config = config;
@@ -143,7 +163,9 @@ class SecurityMiddleware {
 
   static getInstance(): SecurityMiddleware {
     if (!SecurityMiddleware.instance) {
-      throw new Error('SecurityMiddleware not initialized. Call initialize() first.');
+      throw new Error(
+        "SecurityMiddleware not initialized. Call initialize() first.",
+      );
     }
     return SecurityMiddleware.instance;
   }
@@ -156,9 +178,9 @@ class SecurityMiddleware {
     path: string,
     headers: Record<string, string>,
     body?: RequestBody,
-    query?: Record<string, string>
-  ): Promise<{ 
-    context: SecurityContext; 
+    query?: Record<string, string>,
+  ): Promise<{
+    context: SecurityContext;
     result: SecurityScanResult;
     modifiedRequest?: {
       headers: Record<string, string>;
@@ -167,14 +189,19 @@ class SecurityMiddleware {
     };
   }> {
     return enterpriseServiceTracer.traceServiceOperation(
-      'security-middleware',
-      'processRequest',
+      "security-middleware",
+      "processRequest",
       async () => {
         const startTime = performance.now();
-        
+
         // Extract security context
-        const context = this.extractSecurityContext(method, path, headers, body);
-        
+        const context = this.extractSecurityContext(
+          method,
+          path,
+          headers,
+          body,
+        );
+
         // Initialize scan result
         const result: SecurityScanResult = {
           passed: true,
@@ -183,32 +210,32 @@ class SecurityMiddleware {
           warnings: [],
           blocked: false,
         };
-        
+
         // 1. Rate limiting check
         if (!this.checkRateLimits(context, result)) {
           return { context, result };
         }
-        
+
         // 2. Authentication and authorization validation
         await this.validateAuthAndAuthz(context, result);
-        
+
         // 3. Input validation and sanitization
         const sanitizedRequest = await this.validateAndSanitizeInput(
           { headers, body, query },
           context,
-          result
+          result,
         );
-        
+
         // 4. CSRF protection
         if (this.config.validation.enableCSRFProtection) {
           this.validateCSRFToken(headers, context, result);
         }
-        
+
         // 5. File upload security (if applicable)
         if (this.config.validation.enableFileUploadSecurity && body) {
           await this.validateFileUploads(body, context, result);
         }
-        
+
         // 6. Create security event for threat detection
         if (this.config.scanning.enableRealTimeAnalysis) {
           const securityEvent = this.createSecurityEvent(context, {
@@ -216,19 +243,23 @@ class SecurityMiddleware {
             body,
             query,
           });
-          
-          const threatAnalysis = await this.threatDetection.analyzeEvent(securityEvent);
-          
+
+          const threatAnalysis =
+            await this.threatDetection.analyzeEvent(securityEvent);
+
           // Update context with threat analysis
-          context.riskScore = Math.max(context.riskScore, threatAnalysis.anomalyScore * 100);
+          context.riskScore = Math.max(
+            context.riskScore,
+            threatAnalysis.anomalyScore * 100,
+          );
           context.threatLevel = threatAnalysis.severityLevel;
-          
+
           if (threatAnalysis.isAnomaly) {
             result.violations.push({
-              type: 'authorization', // Generic type for anomalies
+              type: "authorization", // Generic type for anomalies
               severity: threatAnalysis.severityLevel,
               description: threatAnalysis.explanation,
-              location: 'request',
+              location: "request",
               details: {
                 threatVectors: threatAnalysis.threatVectors,
                 confidence: threatAnalysis.confidence,
@@ -237,20 +268,20 @@ class SecurityMiddleware {
             });
           }
         }
-        
+
         // 7. Determine final security state
         this.finalizeSecurityResult(context, result);
-        
+
         // 8. Log security events
         this.logSecurityEvent(context, result, performance.now() - startTime);
-        
+
         return {
           context,
           result,
           modifiedRequest: sanitizedRequest,
         };
       },
-      { critical: true }
+      { critical: true },
     );
   }
 
@@ -261,21 +292,21 @@ class SecurityMiddleware {
     context: SecurityContext,
     statusCode: number,
     headers: Record<string, string>,
-    body?: ResponseBody
+    body?: ResponseBody,
   ): Promise<{
     secureHeaders: Record<string, string>;
     sanitizedBody?: ResponseBody;
     violations: SecurityViolation[];
   }> {
     return enterpriseServiceTracer.traceServiceOperation(
-      'security-middleware',
-      'processResponse',
+      "security-middleware",
+      "processResponse",
       async () => {
         const violations: SecurityViolation[] = [];
-        
+
         // 1. Add security headers
         const secureHeaders = this.addSecurityHeaders(headers, context);
-        
+
         // 2. Scan response for sensitive data leaks
         let sanitizedBody = body;
         if (this.config.response.enableDataLeakPrevention && body) {
@@ -285,25 +316,28 @@ class SecurityMiddleware {
             sanitizedBody = leakScan.sanitized;
           }
         }
-        
+
         // 3. Sanitize error responses
         if (this.config.response.enableErrorSanitization && statusCode >= 400) {
           sanitizedBody = this.sanitizeErrorResponse(sanitizedBody, context);
         }
-        
+
         // 4. Validate response content
         if (this.config.response.enableResponseValidation) {
-          const validationResult = this.validateResponseContent(sanitizedBody, context);
+          const validationResult = this.validateResponseContent(
+            sanitizedBody,
+            context,
+          );
           violations.push(...validationResult.violations);
         }
-        
+
         return {
           secureHeaders,
           sanitizedBody,
           violations,
         };
       },
-      { critical: true }
+      { critical: true },
     );
   }
 
@@ -314,17 +348,17 @@ class SecurityMiddleware {
     method: string,
     path: string,
     headers: Record<string, string>,
-    body?: RequestBody
+    body?: RequestBody,
   ): SecurityContext {
-    const requestId = headers['x-request-id'] || this.generateRequestId();
+    const requestId = headers["x-request-id"] || this.generateRequestId();
     const ipAddress = this.extractClientIP(headers);
-    const userAgent = headers['user-agent'] || 'unknown';
-    
+    const userAgent = headers["user-agent"] || "unknown";
+
     // Extract user context (simplified - would integrate with actual auth system)
-    const userId = headers['x-user-id'];
-    const sessionId = headers['x-session-id'];
-    const authToken = headers['authorization'];
-    
+    const userId = headers["x-user-id"];
+    const sessionId = headers["x-session-id"];
+    const authToken = headers["authorization"];
+
     return {
       requestId,
       userId,
@@ -333,14 +367,14 @@ class SecurityMiddleware {
       userAgent,
       timestamp: Date.now(),
       riskScore: 0,
-      threatLevel: 'none',
+      threatLevel: "none",
       securityFlags: [],
       method: method.toUpperCase(),
       path,
-      contentType: headers['content-type'],
+      contentType: headers["content-type"],
       contentLength: body ? JSON.stringify(body).length : 0,
       isAuthenticated: !!authToken,
-      authMethod: authToken ? 'bearer' : undefined,
+      authMethod: authToken ? "bearer" : undefined,
       permissions: [], // Would be populated from user session
     };
   }
@@ -348,68 +382,73 @@ class SecurityMiddleware {
   /**
    * Rate limiting validation
    */
-  private checkRateLimits(context: SecurityContext, result: SecurityScanResult): boolean {
+  private checkRateLimits(
+    context: SecurityContext,
+    result: SecurityScanResult,
+  ): boolean {
     if (!this.config.rateLimiting.enableGlobalRateLimit) return true;
-    
+
     // Global rate limit
     if (this.config.rateLimiting.enableGlobalRateLimit) {
-      if (!this.checkRateLimit('global', this.config.rateLimiting.globalLimit)) {
+      if (
+        !this.checkRateLimit("global", this.config.rateLimiting.globalLimit)
+      ) {
         result.violations.push({
-          type: 'rate_limit',
-          severity: 'medium',
-          description: 'Global rate limit exceeded',
-          location: 'request',
+          type: "rate_limit",
+          severity: "medium",
+          description: "Global rate limit exceeded",
+          location: "request",
           details: { limit: this.config.rateLimiting.globalLimit },
           mitigated: true,
         });
         result.blocked = true;
-        result.reason = 'rate_limit_exceeded';
+        result.reason = "rate_limit_exceeded";
         return false;
       }
     }
-    
+
     // Per-IP rate limit
     if (this.config.rateLimiting.enablePerIPRateLimit) {
       const ipKey = `ip:${context.ipAddress}`;
       if (!this.checkRateLimit(ipKey, this.config.rateLimiting.ipLimit)) {
         result.violations.push({
-          type: 'rate_limit',
-          severity: 'high',
-          description: 'IP rate limit exceeded',
-          location: 'request',
-          details: { 
+          type: "rate_limit",
+          severity: "high",
+          description: "IP rate limit exceeded",
+          location: "request",
+          details: {
             ipAddress: context.ipAddress,
             limit: this.config.rateLimiting.ipLimit,
           },
           mitigated: true,
         });
         result.blocked = true;
-        result.reason = 'ip_rate_limit_exceeded';
+        result.reason = "ip_rate_limit_exceeded";
         return false;
       }
     }
-    
+
     // Per-user rate limit
     if (this.config.rateLimiting.enablePerUserRateLimit && context.userId) {
       const userKey = `user:${context.userId}`;
       if (!this.checkRateLimit(userKey, this.config.rateLimiting.userLimit)) {
         result.violations.push({
-          type: 'rate_limit',
-          severity: 'medium',
-          description: 'User rate limit exceeded',
-          location: 'request',
-          details: { 
+          type: "rate_limit",
+          severity: "medium",
+          description: "User rate limit exceeded",
+          location: "request",
+          details: {
             userId: context.userId,
             limit: this.config.rateLimiting.userLimit,
           },
           mitigated: true,
         });
         result.blocked = true;
-        result.reason = 'user_rate_limit_exceeded';
+        result.reason = "user_rate_limit_exceeded";
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -417,48 +456,61 @@ class SecurityMiddleware {
    * Input validation and sanitization
    */
   private async validateAndSanitizeInput(
-    request: { headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> },
+    request: {
+      headers: Record<string, string>;
+      body?: RequestBody;
+      query?: Record<string, string>;
+    },
     context: SecurityContext,
-    result: SecurityScanResult
-  ): Promise<{ headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> }> {
+    result: SecurityScanResult,
+  ): Promise<{
+    headers: Record<string, string>;
+    body?: RequestBody;
+    query?: Record<string, string>;
+  }> {
     const sanitized = { ...request };
-    
+
     // Validate and sanitize query parameters
     if (request.query && this.config.validation.enableInputSanitization) {
       for (const [key, value] of Object.entries(request.query)) {
-        const validation = this.securityManager.validateInput(value, 'html', {
+        const validation = this.securityManager.validateInput(value, "html", {
           ipAddress: context.ipAddress,
           location: `query.${key}`,
         });
-        
+
         if (!validation.isValid) {
           result.violations.push({
-            type: validation.threats.includes('sql_injection_attempt') ? 'sql_injection' : 'xss',
-            severity: 'high',
+            type: validation.threats.includes("sql_injection_attempt")
+              ? "sql_injection"
+              : "xss",
+            severity: "high",
             description: `Malicious input detected in query parameter: ${key}`,
-            location: 'query',
+            location: "query",
             details: { parameter: key, threats: validation.threats },
             mitigated: true,
           });
         }
-        
+
         if (sanitized.query) {
           sanitized.query[key] = validation.sanitized;
         }
-        
+
         result.riskScore += validation.threats.length * 10;
       }
     }
-    
+
     // Validate and sanitize request body
     if (request.body && this.config.validation.enableInputSanitization) {
-      const bodyValidation = await this.validateRequestBody(request.body, context);
+      const bodyValidation = await this.validateRequestBody(
+        request.body,
+        context,
+      );
       result.violations.push(...bodyValidation.violations);
       result.warnings.push(...bodyValidation.warnings);
       result.riskScore += bodyValidation.riskScore;
       sanitized.body = bodyValidation.sanitized;
     }
-    
+
     return sanitized;
   }
 
@@ -467,7 +519,7 @@ class SecurityMiddleware {
    */
   private async validateRequestBody(
     body: RequestBody,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<{
     violations: SecurityViolation[];
     warnings: SecurityWarning[];
@@ -478,36 +530,39 @@ class SecurityMiddleware {
     const warnings: SecurityWarning[] = [];
     let riskScore = 0;
     let sanitized = body;
-    
-    if (typeof body === 'string') {
+
+    if (typeof body === "string") {
       // Validate string content
-      const validation = this.securityManager.validateInput(body, 'html', {
+      const validation = this.securityManager.validateInput(body, "html", {
         ipAddress: context.ipAddress,
-        location: 'body',
+        location: "body",
       });
-      
+
       if (!validation.isValid) {
-        validation.threats.forEach(threat => {
+        validation.threats.forEach((threat) => {
           violations.push({
-            type: threat.includes('sql') ? 'sql_injection' : 'xss',
-            severity: 'high',
+            type: threat.includes("sql") ? "sql_injection" : "xss",
+            severity: "high",
             description: `${threat} detected in request body`,
-            location: 'body',
+            location: "body",
             details: { threat },
             mitigated: true,
           });
         });
       }
-      
+
       riskScore += validation.threats.length * 15;
       sanitized = validation.sanitized;
-      
-    } else if (typeof body === 'object' && body !== null) {
+    } else if (typeof body === "object" && body !== null) {
       // Recursively validate object properties
-      sanitized = await this.sanitizeObjectRecursively(body, context, violations);
+      sanitized = await this.sanitizeObjectRecursively(
+        body,
+        context,
+        violations,
+      );
       riskScore = violations.length * 10;
     }
-    
+
     return { violations, warnings, riskScore, sanitized };
   }
 
@@ -516,40 +571,43 @@ class SecurityMiddleware {
    */
   private addSecurityHeaders(
     existingHeaders: Record<string, string>,
-    context: SecurityContext
+    context: SecurityContext,
   ): Record<string, string> {
     const secureHeaders = { ...existingHeaders };
-    
+
     if (this.config.headers.enableSecurityHeaders) {
       // Strict Transport Security
       if (this.config.headers.enableHSTS) {
-        secureHeaders['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
+        secureHeaders["Strict-Transport-Security"] =
+          "max-age=31536000; includeSubDomains; preload";
       }
-      
+
       // Content Security Policy
       if (this.config.headers.enableCSP) {
-        secureHeaders['Content-Security-Policy'] = this.generateCSPHeader(context);
+        secureHeaders["Content-Security-Policy"] =
+          this.generateCSPHeader(context);
       }
-      
+
       // X-Frame-Options
       if (this.config.headers.enableXFrameOptions) {
-        secureHeaders['X-Frame-Options'] = 'DENY';
+        secureHeaders["X-Frame-Options"] = "DENY";
       }
-      
+
       // X-Content-Type-Options
       if (this.config.headers.enableXContentType) {
-        secureHeaders['X-Content-Type-Options'] = 'nosniff';
+        secureHeaders["X-Content-Type-Options"] = "nosniff";
       }
-      
+
       // Additional security headers
-      secureHeaders['X-XSS-Protection'] = '1; mode=block';
-      secureHeaders['Referrer-Policy'] = 'strict-origin-when-cross-origin';
-      secureHeaders['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()';
-      
+      secureHeaders["X-XSS-Protection"] = "1; mode=block";
+      secureHeaders["Referrer-Policy"] = "strict-origin-when-cross-origin";
+      secureHeaders["Permissions-Policy"] =
+        "geolocation=(), microphone=(), camera=()";
+
       // Custom headers
       Object.assign(secureHeaders, this.config.headers.customHeaders);
     }
-    
+
     return secureHeaders;
   }
 
@@ -558,45 +616,51 @@ class SecurityMiddleware {
    */
   private async scanForDataLeaks(
     body: ResponseBody,
-    context: SecurityContext
+    context: SecurityContext,
   ): Promise<{
     violations: SecurityViolation[];
     sanitized: ResponseBody;
   }> {
     const violations: SecurityViolation[] = [];
     let sanitized = body;
-    
-    if (typeof body === 'string') {
+
+    if (typeof body === "string") {
       // Check for sensitive patterns
       const sensitivePatterns = [
-        { pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, type: 'email' },
-        { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, type: 'ssn' },
-        { pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, type: 'credit_card' },
-        { pattern: /\b[A-Za-z0-9]{32,}\b/g, type: 'api_key' },
+        {
+          pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+          type: "email",
+        },
+        { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, type: "ssn" },
+        {
+          pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
+          type: "credit_card",
+        },
+        { pattern: /\b[A-Za-z0-9]{32,}\b/g, type: "api_key" },
       ];
-      
+
       for (const { pattern, type } of sensitivePatterns) {
         const matches = body.match(pattern);
         if (matches) {
           violations.push({
-            type: 'data_leak',
-            severity: 'high',
+            type: "data_leak",
+            severity: "high",
             description: `Potential ${type} leak detected in response`,
-            location: 'body',
-            details: { 
+            location: "body",
+            details: {
               type,
               matchCount: matches.length,
-              preview: matches[0].substring(0, 10) + '...',
+              preview: matches[0].substring(0, 10) + "...",
             },
             mitigated: true,
           });
-          
+
           // Mask sensitive data
-          sanitized = body.replace(pattern, '[REDACTED]');
+          sanitized = body.replace(pattern, "[REDACTED]");
         }
       }
     }
-    
+
     return { violations, sanitized };
   }
 
@@ -605,7 +669,11 @@ class SecurityMiddleware {
    */
   private createSecurityEvent(
     context: SecurityContext,
-    request: { headers: Record<string, string>; body?: RequestBody; query?: Record<string, string> }
+    request: {
+      headers: Record<string, string>;
+      body?: RequestBody;
+      query?: Record<string, string>;
+    },
   ): SecurityEvent {
     return {
       id: `event_${context.requestId}`,
@@ -614,7 +682,7 @@ class SecurityMiddleware {
       sessionId: context.sessionId,
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
-      eventType: 'http_request',
+      eventType: "http_request",
       operation: `${context.method} ${context.path}`,
       resource: context.path,
       parameters: {
@@ -627,7 +695,7 @@ class SecurityMiddleware {
       initialRiskScore: context.riskScore,
       correlationId: context.requestId,
       traceId: context.requestId,
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env.NODE_ENV || "development",
     };
   }
 
@@ -637,19 +705,21 @@ class SecurityMiddleware {
   }
 
   private extractClientIP(headers: Record<string, string>): string {
-    return headers['x-forwarded-for']?.split(',')[0] || 
-           headers['x-real-ip'] || 
-           headers['x-client-ip'] || 
-           'unknown';
+    return (
+      headers["x-forwarded-for"]?.split(",")[0] ||
+      headers["x-real-ip"] ||
+      headers["x-client-ip"] ||
+      "unknown"
+    );
   }
 
   private checkRateLimit(
     key: string,
-    limit: { requests: number; windowMs: number }
+    limit: { requests: number; windowMs: number },
   ): boolean {
     const now = Date.now();
     const counter = this.rateLimitCounters.get(key);
-    
+
     if (!counter || now > counter.resetTime) {
       this.rateLimitCounters.set(key, {
         count: 1,
@@ -657,26 +727,26 @@ class SecurityMiddleware {
       });
       return true;
     }
-    
+
     if (counter.count >= limit.requests) {
       return false;
     }
-    
+
     counter.count++;
     return true;
   }
 
   private async validateAuthAndAuthz(
     context: SecurityContext,
-    result: SecurityScanResult
+    result: SecurityScanResult,
   ): Promise<void> {
     // Authentication validation would integrate with actual auth system
     if (!context.isAuthenticated && this.requiresAuthentication(context.path)) {
       result.violations.push({
-        type: 'authorization',
-        severity: 'high',
-        description: 'Authentication required for this resource',
-        location: 'request',
+        type: "authorization",
+        severity: "high",
+        description: "Authentication required for this resource",
+        location: "request",
         details: { path: context.path },
         mitigated: false,
       });
@@ -686,16 +756,16 @@ class SecurityMiddleware {
   private validateCSRFToken(
     headers: Record<string, string>,
     context: SecurityContext,
-    result: SecurityScanResult
+    result: SecurityScanResult,
   ): void {
     if (this.requiresCSRFProtection(context.method, context.path)) {
-      const csrfToken = headers['x-csrf-token'];
+      const csrfToken = headers["x-csrf-token"];
       if (!csrfToken || !this.validateCSRFTokenValue(csrfToken, context)) {
         result.violations.push({
-          type: 'csrf',
-          severity: 'high',
-          description: 'Invalid or missing CSRF token',
-          location: 'header',
+          type: "csrf",
+          severity: "high",
+          description: "Invalid or missing CSRF token",
+          location: "header",
           details: { method: context.method, path: context.path },
           mitigated: false,
         });
@@ -706,10 +776,10 @@ class SecurityMiddleware {
   private async validateFileUploads(
     body: RequestBody,
     context: SecurityContext,
-    result: SecurityScanResult
+    result: SecurityScanResult,
   ): Promise<void> {
     // File upload validation logic
-    if (body && typeof body === 'object' && body.files) {
+    if (body && typeof body === "object" && body.files) {
       // Validate file types, sizes, etc.
     }
   }
@@ -717,42 +787,46 @@ class SecurityMiddleware {
   private async sanitizeObjectRecursively(
     obj: Record<string, unknown>,
     context: SecurityContext,
-    violations: SecurityViolation[]
+    violations: SecurityViolation[],
   ): Promise<Record<string, unknown>> {
-    if (typeof obj !== 'object' || obj === null) {
+    if (typeof obj !== "object" || obj === null) {
       return obj;
     }
-    
+
     const sanitized: Record<string, unknown> = Array.isArray(obj) ? [] : {};
-    
+
     for (const [key, value] of Object.entries(obj)) {
-      if (typeof value === 'string') {
-        const validation = this.securityManager.validateInput(value, 'html', {
+      if (typeof value === "string") {
+        const validation = this.securityManager.validateInput(value, "html", {
           ipAddress: context.ipAddress,
           location: `body.${key}`,
         });
-        
+
         if (!validation.isValid) {
-          validation.threats.forEach(threat => {
+          validation.threats.forEach((threat) => {
             violations.push({
-              type: threat.includes('sql') ? 'sql_injection' : 'xss',
-              severity: 'high',
+              type: threat.includes("sql") ? "sql_injection" : "xss",
+              severity: "high",
               description: `${threat} detected in field: ${key}`,
-              location: 'body',
+              location: "body",
               details: { field: key, threat },
               mitigated: true,
             });
           });
         }
-        
+
         sanitized[key] = validation.sanitized;
-      } else if (typeof value === 'object') {
-        sanitized[key] = await this.sanitizeObjectRecursively(value, context, violations);
+      } else if (typeof value === "object") {
+        sanitized[key] = await this.sanitizeObjectRecursively(
+          value,
+          context,
+          violations,
+        );
       } else {
         sanitized[key] = value;
       }
     }
-    
+
     return sanitized;
   }
 
@@ -761,12 +835,15 @@ class SecurityMiddleware {
     return "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;";
   }
 
-  private sanitizeErrorResponse(body: ResponseBody, context: SecurityContext): ResponseBody {
+  private sanitizeErrorResponse(
+    body: ResponseBody,
+    context: SecurityContext,
+  ): ResponseBody {
     // Sanitize error responses to prevent information disclosure
-    if (typeof body === 'object' && body.error) {
+    if (typeof body === "object" && body.error) {
       return {
-        error: 'An error occurred',
-        code: body.code || 'GENERIC_ERROR',
+        error: "An error occurred",
+        code: body.code || "GENERIC_ERROR",
         timestamp: Date.now(),
       };
     }
@@ -775,7 +852,7 @@ class SecurityMiddleware {
 
   private validateResponseContent(
     body: ResponseBody,
-    context: SecurityContext
+    context: SecurityContext,
   ): { violations: SecurityViolation[] } {
     // Validate response content
     return { violations: [] };
@@ -783,67 +860,87 @@ class SecurityMiddleware {
 
   private finalizeSecurityResult(
     context: SecurityContext,
-    result: SecurityScanResult
+    result: SecurityScanResult,
   ): void {
     // Determine if request should be blocked
-    const criticalViolations = result.violations.filter(v => v.severity === 'critical');
-    const highViolations = result.violations.filter(v => v.severity === 'high');
-    
+    const criticalViolations = result.violations.filter(
+      (v) => v.severity === "critical",
+    );
+    const highViolations = result.violations.filter(
+      (v) => v.severity === "high",
+    );
+
     if (criticalViolations.length > 0 || highViolations.length > 2) {
       result.blocked = true;
-      result.reason = 'security_violations';
+      result.reason = "security_violations";
     }
-    
+
     result.passed = !result.blocked && result.violations.length === 0;
-    
+
     // Update context threat level
     if (result.riskScore > 80) {
-      context.threatLevel = 'critical';
+      context.threatLevel = "critical";
     } else if (result.riskScore > 60) {
-      context.threatLevel = 'high';
+      context.threatLevel = "high";
     } else if (result.riskScore > 40) {
-      context.threatLevel = 'medium';
+      context.threatLevel = "medium";
     } else if (result.riskScore > 20) {
-      context.threatLevel = 'low';
+      context.threatLevel = "low";
     }
   }
 
   private logSecurityEvent(
     context: SecurityContext,
     result: SecurityScanResult,
-    processingTime: number
+    processingTime: number,
   ): void {
-    const logLevel = result.blocked ? 'warn' : result.violations.length > 0 ? 'info' : 'debug';
-    
-    log[logLevel]('Security middleware processed request', {
-      component: 'security-middleware',
-      requestId: context.requestId,
-      userId: context.userId,
-      method: context.method,
-      path: context.path,
-      ipAddress: context.ipAddress,
-      threatLevel: context.threatLevel,
-      riskScore: result.riskScore,
-      violationCount: result.violations.length,
-      warningCount: result.warnings.length,
-      blocked: result.blocked,
-      reason: result.reason,
-      processingTimeMs: Math.round(processingTime),
-    }, result.blocked ? 'SECURITY_REQUEST_BLOCKED' : 'SECURITY_REQUEST_PROCESSED');
+    const logLevel = result.blocked
+      ? "warn"
+      : result.violations.length > 0
+        ? "info"
+        : "debug";
+
+    log[logLevel](
+      "Security middleware processed request",
+      {
+        component: "security-middleware",
+        requestId: context.requestId,
+        userId: context.userId,
+        method: context.method,
+        path: context.path,
+        ipAddress: context.ipAddress,
+        threatLevel: context.threatLevel,
+        riskScore: result.riskScore,
+        violationCount: result.violations.length,
+        warningCount: result.warnings.length,
+        blocked: result.blocked,
+        reason: result.reason,
+        processingTimeMs: Math.round(processingTime),
+      },
+      result.blocked
+        ? "SECURITY_REQUEST_BLOCKED"
+        : "SECURITY_REQUEST_PROCESSED",
+    );
   }
 
   private requiresAuthentication(path: string): boolean {
     // Define paths that require authentication
-    const protectedPaths = ['/admin', '/api/user', '/api/properties'];
-    return protectedPaths.some(p => path.startsWith(p));
+    const protectedPaths = ["/admin", "/api/user", "/api/properties"];
+    return protectedPaths.some((p) => path.startsWith(p));
   }
 
   private requiresCSRFProtection(method: string, path: string): boolean {
     // CSRF protection for state-changing operations
-    return ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method) && !path.startsWith('/api/auth');
+    return (
+      ["POST", "PUT", "DELETE", "PATCH"].includes(method) &&
+      !path.startsWith("/api/auth")
+    );
   }
 
-  private validateCSRFTokenValue(token: string, context: SecurityContext): boolean {
+  private validateCSRFTokenValue(
+    token: string,
+    context: SecurityContext,
+  ): boolean {
     // CSRF token validation logic
     return token.length >= 32; // Simplified validation
   }

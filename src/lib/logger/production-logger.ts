@@ -46,28 +46,28 @@ export class ProductionLogger {
   }
 
   error(message: string, context?: LogContext): void {
-    this.log('ERROR', message, context);
+    this.log("ERROR", message, context);
 
     // Production: Send to error tracking
     if (!this.isDevelopment) {
-      this.sendToErrorTracking('error', message, context);
+      this.sendToErrorTracking("error", message, context);
     }
   }
 
   warn(message: string, context?: LogContext): void {
     if (this.logLevel >= 1) {
-      this.log('WARN', message, context);
+      this.log("WARN", message, context);
     }
 
     // Production: Send warnings to monitoring
     if (!this.isDevelopment) {
-      this.sendToErrorTracking('warning', message, context);
+      this.sendToErrorTracking("warning", message, context);
     }
   }
 
   info(message: string, context?: LogContext): void {
     if (this.logLevel >= 2) {
-      this.log('INFO', message, context);
+      this.log("INFO", message, context);
     }
 
     // Production: Send to analytics service
@@ -78,7 +78,7 @@ export class ProductionLogger {
 
   debug(message: string, context?: LogContext): void {
     if (this.logLevel >= 3) {
-      this.log('DEBUG', message, context);
+      this.log("DEBUG", message, context);
     }
   }
 
@@ -88,22 +88,24 @@ export class ProductionLogger {
       const enrichedContext = {
         ...context,
         sessionId: this.sessionId,
-        timestamp
+        timestamp,
       };
-      
-      const contextStr = enrichedContext ? JSON.stringify(enrichedContext, null, 2) : '';
-      
+
+      const contextStr = enrichedContext
+        ? JSON.stringify(enrichedContext, null, 2)
+        : "";
+
       switch (level) {
-        case 'ERROR':
+        case "ERROR":
           console.error(`[${timestamp}] [${level}] ${message}`, contextStr);
           break;
-        case 'WARN':
+        case "WARN":
           console.warn(`[${timestamp}] [${level}] ${message}`, contextStr);
           break;
-        case 'INFO':
+        case "INFO":
           console.info(`[${timestamp}] [${level}] ${message}`, contextStr);
           break;
-        case 'DEBUG':
+        case "DEBUG":
           console.log(`[${timestamp}] [${level}] ${message}`, contextStr);
           break;
         default:
@@ -112,21 +114,25 @@ export class ProductionLogger {
     }
   }
 
-  private sendToErrorTracking(level: string, message: string, context?: LogContext): void {
+  private sendToErrorTracking(
+    level: string,
+    message: string,
+    context?: LogContext,
+  ): void {
     try {
       const payload: ErrorTrackingPayload = {
         level,
         message,
         context: {
           ...context,
-          sessionId: this.sessionId
+          sessionId: this.sessionId,
         },
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href,
-        buildVersion: import.meta.env.VITE_BUILD_VERSION || 'unknown',
+        buildVersion: import.meta.env.VITE_BUILD_VERSION || "unknown",
         userId: context?.userId,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       };
 
       // In production, this would integrate with services like:
@@ -134,14 +140,14 @@ export class ProductionLogger {
       // - DataDog: DD_LOGS.logger.error(message, context)
       // - CloudWatch: cloudWatchLogs.putLogEvents(payload)
       // - LogRocket: LogRocket.captureException(new Error(message))
-      
-      fetch('/api/logs/errors', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId
+
+      fetch("/api/logs/errors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-ID": this.sessionId,
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       }).catch(() => {
         // Fail silently if logging service is down
         // Could implement local storage buffering here
@@ -154,7 +160,7 @@ export class ProductionLogger {
   private sendToAnalytics(message: string, context?: LogContext): void {
     try {
       const analyticsPayload = {
-        event: context?.action || 'user_action',
+        event: context?.action || "user_action",
         properties: {
           message,
           component: context?.component,
@@ -162,8 +168,8 @@ export class ProductionLogger {
           sessionId: this.sessionId,
           timestamp: new Date().toISOString(),
           url: window.location.pathname,
-          metadata: context?.metadata
-        }
+          metadata: context?.metadata,
+        },
       };
 
       // In production, integrate with analytics services like:
@@ -172,13 +178,13 @@ export class ProductionLogger {
       // - Amplitude: amplitude.getInstance().logEvent(event_name, properties)
       // - PostHog: posthog.capture(event_name, properties)
 
-      fetch('/api/analytics/events', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId
+      fetch("/api/analytics/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-ID": this.sessionId,
         },
-        body: JSON.stringify(analyticsPayload)
+        body: JSON.stringify(analyticsPayload),
       }).catch(() => {
         // Fail silently for analytics
       });
@@ -191,8 +197,8 @@ export class ProductionLogger {
   performance(operation: string, duration: number, context?: LogContext): void {
     this.info(`Performance: ${operation} completed in ${duration}ms`, {
       ...context,
-      action: 'performance_measurement',
-      metadata: { operation, duration }
+      action: "performance_measurement",
+      metadata: { operation, duration },
     });
 
     // Send performance data to monitoring
@@ -201,13 +207,17 @@ export class ProductionLogger {
     }
   }
 
-  private sendPerformanceMetrics(operation: string, duration: number, context?: LogContext): void {
+  private sendPerformanceMetrics(
+    operation: string,
+    duration: number,
+    context?: LogContext,
+  ): void {
     try {
-      fetch('/api/metrics/performance', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId
+      fetch("/api/metrics/performance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-ID": this.sessionId,
         },
         body: JSON.stringify({
           operation,
@@ -215,8 +225,8 @@ export class ProductionLogger {
           timestamp: new Date().toISOString(),
           component: context?.component,
           sessionId: this.sessionId,
-          metadata: context?.metadata
-        })
+          metadata: context?.metadata,
+        }),
       }).catch(() => {
         // Fail silently
       });
@@ -226,25 +236,35 @@ export class ProductionLogger {
   }
 
   // User action tracking
-  userAction(action: string, component: string, metadata?: Record<string, unknown>): void {
+  userAction(
+    action: string,
+    component: string,
+    metadata?: Record<string, unknown>,
+  ): void {
     this.info(`User action: ${action}`, {
       component,
-      action: 'user_interaction',
-      metadata
+      action: "user_interaction",
+      metadata,
     });
   }
 
   // API request logging
-  apiRequest(method: string, url: string, status: number, duration: number, context?: LogContext): void {
-    const level = status >= 400 ? 'error' : status >= 300 ? 'warn' : 'info';
+  apiRequest(
+    method: string,
+    url: string,
+    status: number,
+    duration: number,
+    context?: LogContext,
+  ): void {
+    const level = status >= 400 ? "error" : status >= 300 ? "warn" : "info";
     const message = `API ${method} ${url} - ${status} (${duration}ms)`;
-    
-    if (level === 'error') {
-      this.error(message, { ...context, action: 'api_request' });
-    } else if (level === 'warn') {
-      this.warn(message, { ...context, action: 'api_request' });
+
+    if (level === "error") {
+      this.error(message, { ...context, action: "api_request" });
+    } else if (level === "warn") {
+      this.warn(message, { ...context, action: "api_request" });
     } else {
-      this.info(message, { ...context, action: 'api_request' });
+      this.info(message, { ...context, action: "api_request" });
     }
   }
 }

@@ -1,21 +1,27 @@
 /**
  * Inspection Queue Filters - Focused Component
- * 
+ *
  * Handles search and filter controls for inspection queue
  */
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 interface InspectionQueueFiltersProps {
   searchQuery: string;
   filterStatus: string;
   filterPriority: string;
   sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
   onSearchChange: (query: string) => void;
   onFilterStatusChange: (status: string) => void;
   onFilterPriorityChange: (priority: string) => void;
@@ -33,7 +39,7 @@ export const InspectionQueueFilters: React.FC<InspectionQueueFiltersProps> = ({
   onFilterStatusChange,
   onFilterPriorityChange,
   onSortChange,
-  onSortOrderToggle
+  onSortOrderToggle,
 }) => {
   return (
     <div className="space-y-4" id="inspection-queue-filters">
@@ -92,9 +98,9 @@ export const InspectionQueueFilters: React.FC<InspectionQueueFiltersProps> = ({
           variant="outline"
           size="sm"
           onClick={onSortOrderToggle}
-          aria-label={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
+          aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
         >
-          {sortOrder === 'asc' ? '↑' : '↓'}
+          {sortOrder === "asc" ? "↑" : "↓"}
         </Button>
       </div>
     </div>

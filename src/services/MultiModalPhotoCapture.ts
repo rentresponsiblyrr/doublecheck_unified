@@ -1,9 +1,9 @@
 /**
  * MULTI-MODAL PHOTO CAPTURE - ELITE LEVEL MEDIA ACQUISITION
- * 
+ *
  * Bulletproof photo capture system that NEVER fails to capture media.
  * Implements multiple capture methods with intelligent fallbacks and quality optimization.
- * 
+ *
  * Features:
  * - Multiple capture methods (native camera, WebRTC, file upload, drag-drop)
  * - Intelligent fallback strategy based on device capabilities
@@ -13,23 +13,23 @@
  * - Automatic image compression and format conversion
  * - EXIF data preservation and privacy protection
  * - Accessibility support for all capture methods
- * 
+ *
  * @author STR Certified Engineering Team
  */
 
-import { logger } from '@/utils/logger';
-import { bulletproofUploadQueue } from './BulletproofUploadQueue';
+import { logger } from "@/utils/logger";
+import { bulletproofUploadQueue } from "./BulletproofUploadQueue";
 
 export interface CaptureOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  format?: 'jpeg' | 'webp' | 'png';
+  format?: "jpeg" | "webp" | "png";
   enableCompression?: boolean;
   preserveEXIF?: boolean;
   requireHighQuality?: boolean;
   enableFlash?: boolean;
-  facingMode?: 'user' | 'environment';
+  facingMode?: "user" | "environment";
   allowMultiple?: boolean;
   acceptedTypes?: string[];
 }
@@ -64,8 +64,8 @@ export interface QualityAssessment {
 }
 
 export interface QualityIssue {
-  type: 'blur' | 'darkness' | 'overexposure' | 'lowResolution' | 'compression';
-  severity: 'low' | 'medium' | 'high';
+  type: "blur" | "darkness" | "overexposure" | "lowResolution" | "compression";
+  severity: "low" | "medium" | "high";
   description: string;
   suggestion: string;
 }
@@ -109,9 +109,14 @@ export interface ExifData {
   timestamp?: Date;
 }
 
-export type CaptureMethod = 'native_camera' | 'webrtc' | 'file_input' | 'drag_drop' | 'clipboard';
+export type CaptureMethod =
+  | "native_camera"
+  | "webrtc"
+  | "file_input"
+  | "drag_drop"
+  | "clipboard";
 
-export type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'unavailable';
+export type PermissionStatus = "granted" | "denied" | "prompt" | "unavailable";
 
 /**
  * Elite multi-modal photo capture service
@@ -121,31 +126,35 @@ export class MultiModalPhotoCapture {
   private deviceCapabilities: DeviceCapabilities;
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
-  private permissionStatus: PermissionStatus = 'prompt';
-  
+  private permissionStatus: PermissionStatus = "prompt";
+
   private readonly defaultOptions: CaptureOptions = {
     maxWidth: 1920,
     maxHeight: 1080,
     quality: 0.9,
-    format: 'jpeg',
+    format: "jpeg",
     enableCompression: true,
     preserveEXIF: false, // Privacy first by default
     requireHighQuality: true,
     enableFlash: false,
-    facingMode: 'environment',
+    facingMode: "environment",
     allowMultiple: false,
-    acceptedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp", "image/heic"],
   };
 
   constructor() {
-    this.canvas = document.createElement('canvas');
-    this.context = this.canvas.getContext('2d')!;
+    this.canvas = document.createElement("canvas");
+    this.context = this.canvas.getContext("2d")!;
     this.deviceCapabilities = this.detectDeviceCapabilities();
-    
+
     this.initializeCapture();
-    logger.info('Multi-modal photo capture initialized', { 
-      capabilities: this.deviceCapabilities 
-    }, 'PHOTO_CAPTURE');
+    logger.info(
+      "Multi-modal photo capture initialized",
+      {
+        capabilities: this.deviceCapabilities,
+      },
+      "PHOTO_CAPTURE",
+    );
   }
 
   /**
@@ -155,47 +164,60 @@ export class MultiModalPhotoCapture {
     try {
       // Check camera permissions
       await this.checkCameraPermissions();
-      
+
       // Setup drag and drop support
       this.setupDragAndDrop();
-      
+
       // Setup clipboard support
       this.setupClipboardSupport();
 
-      logger.info('Photo capture initialization completed', {
-        permissions: this.permissionStatus,
-        methods: this.getAvailableMethods()
-      }, 'PHOTO_CAPTURE');
-
+      logger.info(
+        "Photo capture initialization completed",
+        {
+          permissions: this.permissionStatus,
+          methods: this.getAvailableMethods(),
+        },
+        "PHOTO_CAPTURE",
+      );
     } catch (error) {
-      logger.warn('Photo capture initialization had issues', error, 'PHOTO_CAPTURE');
+      logger.warn(
+        "Photo capture initialization had issues",
+        error,
+        "PHOTO_CAPTURE",
+      );
     }
   }
 
   /**
    * Capture photo with intelligent method selection
    */
-  public async capturePhoto(options: CaptureOptions = {}): Promise<CaptureResult> {
+  public async capturePhoto(
+    options: CaptureOptions = {},
+  ): Promise<CaptureResult> {
     const mergedOptions = { ...this.defaultOptions, ...options };
     const startTime = Date.now();
 
     try {
-      logger.info('Starting photo capture', { options: mergedOptions }, 'PHOTO_CAPTURE');
+      logger.info(
+        "Starting photo capture",
+        { options: mergedOptions },
+        "PHOTO_CAPTURE",
+      );
 
       // Determine best capture method
       const method = await this.selectOptimalCaptureMethod(mergedOptions);
-      
+
       let result: CaptureResult;
 
       // Execute capture based on selected method
       switch (method) {
-        case 'native_camera':
+        case "native_camera":
           result = await this.captureWithNativeCamera(mergedOptions);
           break;
-        case 'webrtc':
+        case "webrtc":
           result = await this.captureWithWebRTC(mergedOptions);
           break;
-        case 'file_input':
+        case "file_input":
           result = await this.captureWithFileInput(mergedOptions);
           break;
         default:
@@ -207,31 +229,34 @@ export class MultiModalPhotoCapture {
       result.metadata.deviceInfo = this.deviceCapabilities;
       result.metadata.permissions = this.permissionStatus;
 
-      logger.info('Photo capture completed', {
-        method: result.method,
-        fileCount: result.files.length,
-        success: result.success,
-        processingTime: result.metadata.processingTime
-      }, 'PHOTO_CAPTURE');
+      logger.info(
+        "Photo capture completed",
+        {
+          method: result.method,
+          fileCount: result.files.length,
+          success: result.success,
+          processingTime: result.metadata.processingTime,
+        },
+        "PHOTO_CAPTURE",
+      );
 
       return result;
-
     } catch (error) {
-      logger.error('Photo capture failed', error, 'PHOTO_CAPTURE');
-      
+      logger.error("Photo capture failed", error, "PHOTO_CAPTURE");
+
       return {
         success: false,
         files: [],
-        method: 'file_input', // Fallback method
-        error: error instanceof Error ? error.message : 'Capture failed',
+        method: "file_input", // Fallback method
+        error: error instanceof Error ? error.message : "Capture failed",
         warnings: [],
         metadata: {
-          method: 'file_input',
+          method: "file_input",
           deviceInfo: this.deviceCapabilities,
           permissions: this.permissionStatus,
           processingTime: Date.now() - startTime,
-          enhancementsApplied: []
-        }
+          enhancementsApplied: [],
+        },
       };
     }
   }
@@ -241,20 +266,28 @@ export class MultiModalPhotoCapture {
    */
   private detectDeviceCapabilities(): DeviceCapabilities {
     const userAgent = navigator.userAgent.toLowerCase();
-    const isIOSSafari = /iphone|ipad/.test(userAgent) && /safari/.test(userAgent) && !/chrome/.test(userAgent);
-    const isAndroidChrome = /android/.test(userAgent) && /chrome/.test(userAgent);
-    const isDesktop = !(/android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent));
+    const isIOSSafari =
+      /iphone|ipad/.test(userAgent) &&
+      /safari/.test(userAgent) &&
+      !/chrome/.test(userAgent);
+    const isAndroidChrome =
+      /android/.test(userAgent) && /chrome/.test(userAgent);
+    const isDesktop =
+      !/android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
+        userAgent,
+      );
 
     return {
-      hasCamera: 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices,
+      hasCamera:
+        "mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices,
       hasFlash: false, // Will be detected during stream setup
       supportedFormats: this.getSupportedFormats(),
       maxResolution: { width: 4096, height: 4096 }, // Conservative default
-      facingModes: ['user', 'environment'],
+      facingModes: ["user", "environment"],
       isIOSSafari,
       isAndroidChrome,
       isDesktop,
-      touchSupport: 'ontouchstart' in window
+      touchSupport: "ontouchstart" in window,
     };
   }
 
@@ -262,15 +295,15 @@ export class MultiModalPhotoCapture {
    * Get supported image formats
    */
   private getSupportedFormats(): string[] {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     const formats = [];
 
     // Test common formats
     const testFormats = [
-      { mime: 'image/jpeg', ext: 'jpeg' },
-      { mime: 'image/png', ext: 'png' },
-      { mime: 'image/webp', ext: 'webp' },
-      { mime: 'image/avif', ext: 'avif' }
+      { mime: "image/jpeg", ext: "jpeg" },
+      { mime: "image/png", ext: "png" },
+      { mime: "image/webp", ext: "webp" },
+      { mime: "image/avif", ext: "avif" },
     ];
 
     for (const format of testFormats) {
@@ -292,77 +325,92 @@ export class MultiModalPhotoCapture {
    */
   private async checkCameraPermissions(): Promise<void> {
     try {
-      if (!('mediaDevices' in navigator)) {
-        this.permissionStatus = 'unavailable';
+      if (!("mediaDevices" in navigator)) {
+        this.permissionStatus = "unavailable";
         return;
       }
 
       // Try to get permission status
-      if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      if ("permissions" in navigator) {
+        const permission = await navigator.permissions.query({
+          name: "camera" as PermissionName,
+        });
         this.permissionStatus = permission.state as PermissionStatus;
-        
+
         permission.onchange = () => {
           this.permissionStatus = permission.state as PermissionStatus;
-          logger.info('Camera permission changed', { status: this.permissionStatus }, 'PHOTO_CAPTURE');
+          logger.info(
+            "Camera permission changed",
+            { status: this.permissionStatus },
+            "PHOTO_CAPTURE",
+          );
         };
       } else {
         // Fallback: try to access camera to determine permission
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { width: 1, height: 1 } 
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1, height: 1 },
           });
-          stream.getTracks().forEach(track => track.stop());
-          this.permissionStatus = 'granted';
+          stream.getTracks().forEach((track) => track.stop());
+          this.permissionStatus = "granted";
         } catch (error) {
-          this.permissionStatus = 'denied';
+          this.permissionStatus = "denied";
         }
       }
-
     } catch (error) {
-      logger.warn('Could not check camera permissions', error, 'PHOTO_CAPTURE');
-      this.permissionStatus = 'prompt';
+      logger.warn("Could not check camera permissions", error, "PHOTO_CAPTURE");
+      this.permissionStatus = "prompt";
     }
   }
 
   /**
    * Select optimal capture method based on capabilities and requirements
    */
-  private async selectOptimalCaptureMethod(options: CaptureOptions): Promise<CaptureMethod> {
+  private async selectOptimalCaptureMethod(
+    options: CaptureOptions,
+  ): Promise<CaptureMethod> {
     // Native camera API (if available and permissions granted)
-    if (this.deviceCapabilities.hasCamera && this.permissionStatus === 'granted') {
-      if (this.deviceCapabilities.isIOSSafari && 'capture' in HTMLInputElement.prototype) {
-        return 'native_camera';
+    if (
+      this.deviceCapabilities.hasCamera &&
+      this.permissionStatus === "granted"
+    ) {
+      if (
+        this.deviceCapabilities.isIOSSafari &&
+        "capture" in HTMLInputElement.prototype
+      ) {
+        return "native_camera";
       }
     }
 
     // WebRTC (modern browsers with camera access)
-    if (this.deviceCapabilities.hasCamera && 
-        this.permissionStatus !== 'denied' && 
-        !this.deviceCapabilities.isIOSSafari) {
-      return 'webrtc';
+    if (
+      this.deviceCapabilities.hasCamera &&
+      this.permissionStatus !== "denied" &&
+      !this.deviceCapabilities.isIOSSafari
+    ) {
+      return "webrtc";
     }
 
     // File input (universal fallback)
-    return 'file_input';
+    return "file_input";
   }
 
   /**
    * Get available capture methods
    */
   public getAvailableMethods(): CaptureMethod[] {
-    const methods: CaptureMethod[] = ['file_input', 'drag_drop'];
+    const methods: CaptureMethod[] = ["file_input", "drag_drop"];
 
     if (this.deviceCapabilities.hasCamera) {
       if (this.deviceCapabilities.isIOSSafari) {
-        methods.push('native_camera');
+        methods.push("native_camera");
       } else {
-        methods.push('webrtc');
+        methods.push("webrtc");
       }
     }
 
-    if ('clipboard' in navigator) {
-      methods.push('clipboard');
+    if ("clipboard" in navigator) {
+      methods.push("clipboard");
     }
 
     return methods;
@@ -371,12 +419,14 @@ export class MultiModalPhotoCapture {
   /**
    * Capture with native camera API (iOS Safari)
    */
-  private async captureWithNativeCamera(options: CaptureOptions): Promise<CaptureResult> {
+  private async captureWithNativeCamera(
+    options: CaptureOptions,
+  ): Promise<CaptureResult> {
     return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = options.acceptedTypes?.join(',') || 'image/*';
-      input.capture = 'environment';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = options.acceptedTypes?.join(",") || "image/*";
+      input.capture = "environment";
       input.multiple = options.allowMultiple || false;
 
       input.onchange = async () => {
@@ -385,50 +435,52 @@ export class MultiModalPhotoCapture {
             resolve({
               success: false,
               files: [],
-              method: 'native_camera',
-              error: 'No files selected',
+              method: "native_camera",
+              error: "No files selected",
               warnings: [],
               metadata: {
-                method: 'native_camera',
+                method: "native_camera",
                 deviceInfo: this.deviceCapabilities,
                 permissions: this.permissionStatus,
                 processingTime: 0,
-                enhancementsApplied: []
-              }
+                enhancementsApplied: [],
+              },
             });
             return;
           }
 
-          const files = await this.processFiles(Array.from(input.files), options);
-          
+          const files = await this.processFiles(
+            Array.from(input.files),
+            options,
+          );
+
           resolve({
             success: true,
             files,
-            method: 'native_camera',
+            method: "native_camera",
             warnings: [],
             metadata: {
-              method: 'native_camera',
+              method: "native_camera",
               deviceInfo: this.deviceCapabilities,
               permissions: this.permissionStatus,
               processingTime: 0,
-              enhancementsApplied: []
-            }
+              enhancementsApplied: [],
+            },
           });
-
         } catch (error) {
           resolve({
             success: false,
             files: [],
-            method: 'native_camera',
-            error: error instanceof Error ? error.message : 'Processing failed',
+            method: "native_camera",
+            error: error instanceof Error ? error.message : "Processing failed",
             warnings: [],
             metadata: {
-              method: 'native_camera',
+              method: "native_camera",
               deviceInfo: this.deviceCapabilities,
               permissions: this.permissionStatus,
               processingTime: 0,
-              enhancementsApplied: []
-            }
+              enhancementsApplied: [],
+            },
           });
         }
       };
@@ -441,19 +493,21 @@ export class MultiModalPhotoCapture {
   /**
    * Capture with WebRTC
    */
-  private async captureWithWebRTC(options: CaptureOptions): Promise<CaptureResult> {
+  private async captureWithWebRTC(
+    options: CaptureOptions,
+  ): Promise<CaptureResult> {
     try {
       // Request camera access
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: options.maxWidth },
           height: { ideal: options.maxHeight },
-          facingMode: options.facingMode
-        }
+          facingMode: options.facingMode,
+        },
       });
 
       // Create video element
-      const video = document.createElement('video');
+      const video = document.createElement("video");
       video.srcObject = this.stream;
       video.autoplay = true;
       video.playsInline = true;
@@ -475,17 +529,17 @@ export class MultiModalPhotoCapture {
             if (blob) {
               resolve(blob);
             } else {
-              reject(new Error('Failed to create blob'));
+              reject(new Error("Failed to create blob"));
             }
           },
           `image/${options.format}`,
-          options.quality
+          options.quality,
         );
       });
 
       // Create file
       const file = new File([blob], `capture_${Date.now()}.${options.format}`, {
-        type: blob.type
+        type: blob.type,
       });
 
       // Process captured file
@@ -497,17 +551,16 @@ export class MultiModalPhotoCapture {
       return {
         success: true,
         files: processedFiles,
-        method: 'webrtc',
+        method: "webrtc",
         warnings: [],
         metadata: {
-          method: 'webrtc',
+          method: "webrtc",
           deviceInfo: this.deviceCapabilities,
           permissions: this.permissionStatus,
           processingTime: 0,
-          enhancementsApplied: []
-        }
+          enhancementsApplied: [],
+        },
       };
-
     } catch (error) {
       this.stopStream();
       throw error;
@@ -517,11 +570,13 @@ export class MultiModalPhotoCapture {
   /**
    * Capture with file input
    */
-  private async captureWithFileInput(options: CaptureOptions): Promise<CaptureResult> {
+  private async captureWithFileInput(
+    options: CaptureOptions,
+  ): Promise<CaptureResult> {
     return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = options.acceptedTypes?.join(',') || 'image/*';
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = options.acceptedTypes?.join(",") || "image/*";
       input.multiple = options.allowMultiple || false;
 
       input.onchange = async () => {
@@ -530,50 +585,52 @@ export class MultiModalPhotoCapture {
             resolve({
               success: false,
               files: [],
-              method: 'file_input',
-              error: 'No files selected',
+              method: "file_input",
+              error: "No files selected",
               warnings: [],
               metadata: {
-                method: 'file_input',
+                method: "file_input",
                 deviceInfo: this.deviceCapabilities,
                 permissions: this.permissionStatus,
                 processingTime: 0,
-                enhancementsApplied: []
-              }
+                enhancementsApplied: [],
+              },
             });
             return;
           }
 
-          const files = await this.processFiles(Array.from(input.files), options);
-          
+          const files = await this.processFiles(
+            Array.from(input.files),
+            options,
+          );
+
           resolve({
             success: true,
             files,
-            method: 'file_input',
+            method: "file_input",
             warnings: [],
             metadata: {
-              method: 'file_input',
+              method: "file_input",
               deviceInfo: this.deviceCapabilities,
               permissions: this.permissionStatus,
               processingTime: 0,
-              enhancementsApplied: []
-            }
+              enhancementsApplied: [],
+            },
           });
-
         } catch (error) {
           resolve({
             success: false,
             files: [],
-            method: 'file_input',
-            error: error instanceof Error ? error.message : 'Processing failed',
+            method: "file_input",
+            error: error instanceof Error ? error.message : "Processing failed",
             warnings: [],
             metadata: {
-              method: 'file_input',
+              method: "file_input",
               deviceInfo: this.deviceCapabilities,
               permissions: this.permissionStatus,
               processingTime: 0,
-              enhancementsApplied: []
-            }
+              enhancementsApplied: [],
+            },
           });
         }
       };
@@ -602,7 +659,10 @@ export class MultiModalPhotoCapture {
   /**
    * Process captured files
    */
-  private async processFiles(files: File[], options: CaptureOptions): Promise<CapturedFile[]> {
+  private async processFiles(
+    files: File[],
+    options: CaptureOptions,
+  ): Promise<CapturedFile[]> {
     const processedFiles: CapturedFile[] = [];
 
     for (const file of files) {
@@ -610,7 +670,11 @@ export class MultiModalPhotoCapture {
         const processed = await this.processIndividualFile(file, options);
         processedFiles.push(processed);
       } catch (error) {
-        logger.warn('Failed to process file', { fileName: file.name, error }, 'PHOTO_CAPTURE');
+        logger.warn(
+          "Failed to process file",
+          { fileName: file.name, error },
+          "PHOTO_CAPTURE",
+        );
       }
     }
 
@@ -620,20 +684,25 @@ export class MultiModalPhotoCapture {
   /**
    * Process individual file
    */
-  private async processIndividualFile(file: File, options: CaptureOptions): Promise<CapturedFile> {
+  private async processIndividualFile(
+    file: File,
+    options: CaptureOptions,
+  ): Promise<CapturedFile> {
     // Load image
     const img = await this.loadImage(file);
-    
+
     // Get dimensions
     const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
-    
+
     // Compress if needed
     let processedFile = file;
     let processedBlob: Blob = file;
-    
-    if (options.enableCompression || dimensions.width > (options.maxWidth || 1920) || 
-        dimensions.height > (options.maxHeight || 1080)) {
-      
+
+    if (
+      options.enableCompression ||
+      dimensions.width > (options.maxWidth || 1920) ||
+      dimensions.height > (options.maxHeight || 1080)
+    ) {
       const compressed = await this.compressImage(img, options);
       processedFile = compressed.file;
       processedBlob = compressed.blob;
@@ -641,10 +710,10 @@ export class MultiModalPhotoCapture {
 
     // Generate data URL
     const dataUrl = await this.fileToDataUrl(processedFile);
-    
+
     // Assess quality
     const quality = await this.assessImageQuality(img, options);
-    
+
     // Extract EXIF data if requested
     let exifData: ExifData | undefined;
     if (options.preserveEXIF) {
@@ -661,7 +730,7 @@ export class MultiModalPhotoCapture {
       format: processedFile.type,
       quality,
       exifData,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -672,7 +741,7 @@ export class MultiModalPhotoCapture {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => reject(new Error("Failed to load image"));
       img.src = URL.createObjectURL(file);
     });
   }
@@ -680,13 +749,16 @@ export class MultiModalPhotoCapture {
   /**
    * Compress image
    */
-  private async compressImage(img: HTMLImageElement, options: CaptureOptions): Promise<{ file: File; blob: Blob }> {
+  private async compressImage(
+    img: HTMLImageElement,
+    options: CaptureOptions,
+  ): Promise<{ file: File; blob: Blob }> {
     // Calculate new dimensions
     const { width, height } = this.calculateCompressedDimensions(
-      img.naturalWidth, 
-      img.naturalHeight, 
-      options.maxWidth || 1920, 
-      options.maxHeight || 1080
+      img.naturalWidth,
+      img.naturalHeight,
+      options.maxWidth || 1920,
+      options.maxHeight || 1080,
     );
 
     // Draw compressed image
@@ -701,18 +773,22 @@ export class MultiModalPhotoCapture {
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('Failed to compress image'));
+            reject(new Error("Failed to compress image"));
           }
         },
         `image/${options.format}`,
-        options.quality
+        options.quality,
       );
     });
 
     // Create file
-    const file = new File([blob], `compressed_${Date.now()}.${options.format}`, {
-      type: blob.type
-    });
+    const file = new File(
+      [blob],
+      `compressed_${Date.now()}.${options.format}`,
+      {
+        type: blob.type,
+      },
+    );
 
     return { file, blob };
   }
@@ -721,27 +797,26 @@ export class MultiModalPhotoCapture {
    * Calculate compressed dimensions maintaining aspect ratio
    */
   private calculateCompressedDimensions(
-    originalWidth: number, 
-    originalHeight: number, 
-    maxWidth: number, 
-    maxHeight: number
+    originalWidth: number,
+    originalHeight: number,
+    maxWidth: number,
+    maxHeight: number,
   ): { width: number; height: number } {
-    
     if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
       return { width: originalWidth, height: originalHeight };
     }
 
     const aspectRatio = originalWidth / originalHeight;
-    
+
     if (originalWidth > originalHeight) {
       return {
         width: Math.min(maxWidth, originalWidth),
-        height: Math.min(maxWidth / aspectRatio, maxHeight)
+        height: Math.min(maxWidth / aspectRatio, maxHeight),
       };
     } else {
       return {
         width: Math.min(maxHeight * aspectRatio, maxWidth),
-        height: Math.min(maxHeight, originalHeight)
+        height: Math.min(maxHeight, originalHeight),
       };
     }
   }
@@ -753,7 +828,7 @@ export class MultiModalPhotoCapture {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsDataURL(file);
     });
   }
@@ -761,62 +836,73 @@ export class MultiModalPhotoCapture {
   /**
    * Assess image quality
    */
-  private async assessImageQuality(img: HTMLImageElement, options: CaptureOptions): Promise<QualityAssessment> {
+  private async assessImageQuality(
+    img: HTMLImageElement,
+    options: CaptureOptions,
+  ): Promise<QualityAssessment> {
     const issues: QualityIssue[] = [];
     const recommendations: string[] = [];
 
     // Check resolution
     if (img.naturalWidth < 800 || img.naturalHeight < 600) {
       issues.push({
-        type: 'lowResolution',
-        severity: 'medium',
-        description: 'Image resolution is below recommended minimum',
-        suggestion: 'Use a higher resolution setting or move closer to the subject'
+        type: "lowResolution",
+        severity: "medium",
+        description: "Image resolution is below recommended minimum",
+        suggestion:
+          "Use a higher resolution setting or move closer to the subject",
       });
     }
 
     // Basic brightness analysis
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
     canvas.width = 100; // Small sample
     canvas.height = 100;
     ctx.drawImage(img, 0, 0, 100, 100);
-    
+
     const imageData = ctx.getImageData(0, 0, 100, 100);
     const data = imageData.data;
-    
+
     let totalBrightness = 0;
     for (let i = 0; i < data.length; i += 4) {
       // Calculate luminance
-      const brightness = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      const brightness =
+        0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       totalBrightness += brightness;
     }
-    
+
     const averageBrightness = totalBrightness / (data.length / 4);
-    
+
     if (averageBrightness < 50) {
       issues.push({
-        type: 'darkness',
-        severity: 'high',
-        description: 'Image appears too dark',
-        suggestion: 'Improve lighting or use flash if available'
+        type: "darkness",
+        severity: "high",
+        description: "Image appears too dark",
+        suggestion: "Improve lighting or use flash if available",
       });
     } else if (averageBrightness > 200) {
       issues.push({
-        type: 'overexposure',
-        severity: 'medium',
-        description: 'Image appears overexposed',
-        suggestion: 'Reduce lighting or adjust camera settings'
+        type: "overexposure",
+        severity: "medium",
+        description: "Image appears overexposed",
+        suggestion: "Reduce lighting or adjust camera settings",
       });
     }
 
     // Calculate quality score
     let score = 100;
-    issues.forEach(issue => {
+    issues.forEach((issue) => {
       switch (issue.severity) {
-        case 'high': score -= 30; break;
-        case 'medium': score -= 20; break;
-        case 'low': score -= 10; break;
+        case "high":
+          score -= 30;
+          break;
+        case "medium":
+          score -= 20;
+          break;
+        case "low":
+          score -= 10;
+          break;
       }
     });
 
@@ -826,7 +912,7 @@ export class MultiModalPhotoCapture {
       score,
       issues,
       recommendations,
-      acceptable: score >= (options.requireHighQuality ? 70 : 50)
+      acceptable: score >= (options.requireHighQuality ? 70 : 50),
     };
   }
 
@@ -838,10 +924,10 @@ export class MultiModalPhotoCapture {
     // This is a placeholder implementation
     try {
       return {
-        timestamp: new Date(file.lastModified)
+        timestamp: new Date(file.lastModified),
       };
     } catch (error) {
-      logger.warn('Failed to extract EXIF data', error, 'PHOTO_CAPTURE');
+      logger.warn("Failed to extract EXIF data", error, "PHOTO_CAPTURE");
       return undefined;
     }
   }
@@ -851,7 +937,7 @@ export class MultiModalPhotoCapture {
    */
   private stopStream(): void {
     if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
+      this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
     }
   }
@@ -865,21 +951,20 @@ export class MultiModalPhotoCapture {
         return false;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
       });
-      
-      // Permission granted
-      this.permissionStatus = 'granted';
-      
-      // Stop stream immediately
-      stream.getTracks().forEach(track => track.stop());
-      
-      return true;
 
+      // Permission granted
+      this.permissionStatus = "granted";
+
+      // Stop stream immediately
+      stream.getTracks().forEach((track) => track.stop());
+
+      return true;
     } catch (error) {
-      this.permissionStatus = 'denied';
-      logger.warn('Camera permission denied', error, 'PHOTO_CAPTURE');
+      this.permissionStatus = "denied";
+      logger.warn("Camera permission denied", error, "PHOTO_CAPTURE");
       return false;
     }
   }
@@ -903,13 +988,17 @@ export class MultiModalPhotoCapture {
    */
   public cleanup(): void {
     this.stopStream();
-    
+
     if (this.canvas) {
       this.canvas.width = 1;
       this.canvas.height = 1;
     }
 
-    logger.info('Multi-modal photo capture cleanup completed', {}, 'PHOTO_CAPTURE');
+    logger.info(
+      "Multi-modal photo capture cleanup completed",
+      {},
+      "PHOTO_CAPTURE",
+    );
   }
 }
 

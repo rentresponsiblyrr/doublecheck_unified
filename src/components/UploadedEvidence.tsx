@@ -16,11 +16,17 @@ interface UploadedEvidenceProps {
   checklistItemId: string;
 }
 
-export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => {
-  const [selectedMedia, setSelectedMedia] = useState<MediaUploadWithAttribution | null>(null);
-  const [mediaItems, setMediaItems] = useState<MediaUploadWithAttribution[]>([]);
+export const UploadedEvidence = ({
+  checklistItemId,
+}: UploadedEvidenceProps) => {
+  const [selectedMedia, setSelectedMedia] =
+    useState<MediaUploadWithAttribution | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaUploadWithAttribution[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const { createChannel, subscribeChannel, cleanupChannel } = useChannelManager();
+  const { createChannel, subscribeChannel, cleanupChannel } =
+    useChannelManager();
   const isMountedRef = useRef(true);
 
   // Load media items with user attribution
@@ -29,26 +35,31 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
 
     const loadMediaItems = async () => {
       if (!isMountedRef.current) return;
-      
+
       try {
         const { data, error } = await supabase
-          .from('media')
-          .select('*')
-          .eq('checklist_item_id', checklistItemId)
-          .order('created_at', { ascending: false });
+          .from("media")
+          .select("*")
+          .eq("checklist_item_id", checklistItemId)
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
 
         // Transform and properly type the data
-        const transformedData: MediaUploadWithAttribution[] = (data || []).map(item => ({
-          id: item.id,
-          checklist_item_id: item.checklist_item_id,
-          type: (item.type === 'photo' || item.type === 'video') ? item.type : 'photo',
-          url: item.url || '',
-          user_id: item.user_id || undefined,
-          uploaded_by_name: item.uploaded_by_name || undefined,
-          created_at: item.created_at || new Date().toISOString()
-        }));
+        const transformedData: MediaUploadWithAttribution[] = (data || []).map(
+          (item) => ({
+            id: item.id,
+            checklist_item_id: item.checklist_item_id,
+            type:
+              item.type === "photo" || item.type === "video"
+                ? item.type
+                : "photo",
+            url: item.url || "",
+            user_id: item.user_id || undefined,
+            uploaded_by_name: item.uploaded_by_name || undefined,
+            created_at: item.created_at || new Date().toISOString(),
+          }),
+        );
 
         if (isMountedRef.current) {
           setMediaItems(transformedData);
@@ -72,11 +83,11 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
   useEffect(() => {
     // Temporarily disable realtime to prevent WebSocket connection failures
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
-    
+
     if (!ENABLE_REALTIME) {
       return;
     }
-    
+
     isMountedRef.current = true;
 
     const setupSubscription = async () => {
@@ -87,74 +98,90 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
         const channel = createChannel(channelName, {
           mediaChanges: {
             filter: {
-              event: '*',
-              schema: 'public',
-              table: 'media',
-              filter: `checklist_item_id=eq.${checklistItemId}`
+              event: "*",
+              schema: "public",
+              table: "media",
+              filter: `checklist_item_id=eq.${checklistItemId}`,
             },
-            callback: (payload: { eventType: string; new: MediaUpload; old?: MediaUpload }) => {
-              
+            callback: (payload: {
+              eventType: string;
+              new: MediaUpload;
+              old?: MediaUpload;
+            }) => {
               if (!isMountedRef.current) return;
-              
-              if (payload.eventType === 'INSERT') {
+
+              if (payload.eventType === "INSERT") {
                 const newItem: MediaUploadWithAttribution = {
                   id: payload.new.id,
                   checklist_item_id: payload.new.checklist_item_id,
-                  type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
-                  url: payload.new.url || '',
+                  type:
+                    payload.new.type === "photo" || payload.new.type === "video"
+                      ? payload.new.type
+                      : "photo",
+                  url: payload.new.url || "",
                   user_id: payload.new.user_id || undefined,
                   uploaded_by_name: payload.new.uploaded_by_name || undefined,
-                  created_at: payload.new.created_at || new Date().toISOString()
+                  created_at:
+                    payload.new.created_at || new Date().toISOString(),
                 };
-                setMediaItems(prev => [newItem, ...prev]);
-              } else if (payload.eventType === 'DELETE') {
-                setMediaItems(prev => prev.filter(item => item.id !== payload.old.id));
-              } else if (payload.eventType === 'UPDATE') {
+                setMediaItems((prev) => [newItem, ...prev]);
+              } else if (payload.eventType === "DELETE") {
+                setMediaItems((prev) =>
+                  prev.filter((item) => item.id !== payload.old.id),
+                );
+              } else if (payload.eventType === "UPDATE") {
                 const updatedItem: MediaUploadWithAttribution = {
                   id: payload.new.id,
                   checklist_item_id: payload.new.checklist_item_id,
-                  type: (payload.new.type === 'photo' || payload.new.type === 'video') ? payload.new.type : 'photo',
-                  url: payload.new.url || '',
+                  type:
+                    payload.new.type === "photo" || payload.new.type === "video"
+                      ? payload.new.type
+                      : "photo",
+                  url: payload.new.url || "",
                   user_id: payload.new.user_id || undefined,
                   uploaded_by_name: payload.new.uploaded_by_name || undefined,
-                  created_at: payload.new.created_at || new Date().toISOString()
+                  created_at:
+                    payload.new.created_at || new Date().toISOString(),
                 };
-                setMediaItems(prev => prev.map(item => 
-                  item.id === payload.new.id ? updatedItem : item
-                ));
+                setMediaItems((prev) =>
+                  prev.map((item) =>
+                    item.id === payload.new.id ? updatedItem : item,
+                  ),
+                );
               }
-            }
-          }
+            },
+          },
         });
 
         // Subscribe to the channel with comprehensive error handling
         await subscribeChannel(channelName, (status: string) => {
-          if (status === 'CHANNEL_ERROR') {
+          if (status === "CHANNEL_ERROR") {
             // App will continue to work with manual refreshes
-            console.warn('Channel error, continuing with manual refresh capability');
-          } else if (status === 'CLOSED') {
-            console.info('Channel closed');
+            console.warn(
+              "Channel error, continuing with manual refresh capability",
+            );
+          } else if (status === "CLOSED") {
+            console.info("Channel closed");
           }
         });
-
       } catch (error) {
         // Continue without realtime - component will still work with initial data load
       }
     };
 
-    setupSubscription().catch(error => {
+    setupSubscription().catch((error) => {
       // Gracefully continue without realtime capabilities
     });
 
     return () => {
       isMountedRef.current = false;
-      
+
       // Clean up channel with error handling
       try {
         const channelName = `media-${checklistItemId}`;
         cleanupChannel(channelName);
       } catch (error) {
-        console.warn('Error cleaning up media channel:', error);
+        console.warn("Error cleaning up media channel:", error);
       }
     };
   }, [checklistItemId, createChannel, subscribeChannel, cleanupChannel]);
@@ -164,15 +191,15 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
       const response = await fetch(media.url);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `evidence-${media.id}.${media.type === 'photo' ? 'jpg' : 'mp4'}`;
+      a.download = `evidence-${media.id}.${media.type === "photo" ? "jpg" : "mp4"}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.warn('Error downloading media file:', error);
+      console.warn("Error downloading media file:", error);
     }
   };
 
@@ -205,7 +232,7 @@ export const UploadedEvidence = ({ checklistItemId }: UploadedEvidenceProps) => 
             </div>
           )}
         </div>
-        
+
         <div className="grid grid-cols-1 gap-3">
           {mediaItems.map((media) => (
             <MediaItem

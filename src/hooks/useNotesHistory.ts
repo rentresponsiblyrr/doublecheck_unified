@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,9 +21,9 @@ export const useNotesHistory = (itemId: string) => {
     const loadNotesHistory = async () => {
       try {
         const { data, error } = await supabase
-          .from('checklist_items')
-          .select('notes_history')
-          .eq('id', itemId)
+          .from("checklist_items")
+          .select("notes_history")
+          .eq("id", itemId)
           .single();
 
         if (error) throw error;
@@ -32,13 +31,16 @@ export const useNotesHistory = (itemId: string) => {
         // Properly validate and cast the JSON data
         let history: NotesHistoryEntry[] = [];
         if (data.notes_history && Array.isArray(data.notes_history)) {
-          history = (data.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
-            entry && 
-            typeof entry === 'object' && 
-            'text' in entry && 
-            'user_id' in entry && 
-            'user_name' in entry && 
-            'timestamp' in entry
+          history = (
+            data.notes_history as unknown as NotesHistoryEntry[]
+          ).filter(
+            (entry) =>
+              entry &&
+              typeof entry === "object" &&
+              "text" in entry &&
+              "user_id" in entry &&
+              "user_name" in entry &&
+              "timestamp" in entry,
           );
         }
         setNotesHistory(history);
@@ -55,43 +57,49 @@ export const useNotesHistory = (itemId: string) => {
   useEffect(() => {
     // Temporarily disable realtime to prevent WebSocket connection failures
     const ENABLE_REALTIME = false; // Can be enabled later when WebSocket issues are resolved
-    
+
     if (!ENABLE_REALTIME) {
       return;
     }
-    
+
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    
+
     const setupRealtimeSubscription = () => {
       try {
         channel = supabase
           .channel(`inspection-checklist-item-${itemId}`)
           .on(
-            'postgres_changes',
+            "postgres_changes",
             {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'logs',
-              filter: `id=eq.${itemId}`
+              event: "UPDATE",
+              schema: "public",
+              table: "logs",
+              filter: `id=eq.${itemId}`,
             },
             (payload) => {
               // Properly validate and cast the payload data
               let newHistory: NotesHistoryEntry[] = [];
-              if (payload.new.notes_history && Array.isArray(payload.new.notes_history)) {
-                newHistory = (payload.new.notes_history as unknown as NotesHistoryEntry[]).filter(entry => 
-                  entry && 
-                  typeof entry === 'object' && 
-                  'text' in entry && 
-                  'user_id' in entry && 
-                  'user_name' in entry && 
-                  'timestamp' in entry
+              if (
+                payload.new.notes_history &&
+                Array.isArray(payload.new.notes_history)
+              ) {
+                newHistory = (
+                  payload.new.notes_history as unknown as NotesHistoryEntry[]
+                ).filter(
+                  (entry) =>
+                    entry &&
+                    typeof entry === "object" &&
+                    "text" in entry &&
+                    "user_id" in entry &&
+                    "user_name" in entry &&
+                    "timestamp" in entry,
                 );
               }
               setNotesHistory(newHistory);
-            }
+            },
           )
           .subscribe((status: string) => {
-            if (status === 'CHANNEL_ERROR') {
+            if (status === "CHANNEL_ERROR") {
             }
           });
       } catch (error) {
@@ -105,8 +113,7 @@ export const useNotesHistory = (itemId: string) => {
       if (channel) {
         try {
           supabase.removeChannel(channel);
-        } catch (error) {
-        }
+        } catch (error) {}
       }
     };
   }, [itemId]);
@@ -124,13 +131,16 @@ export const useNotesHistory = (itemId: string) => {
     }
 
     try {
-      const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown Inspector';
-      
-      const { error } = await supabase.rpc('append_user_note', {
+      const userName =
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Unknown Inspector";
+
+      const { error } = await supabase.rpc("append_user_note", {
         item_id: itemId,
         note_text: noteText.trim(),
         user_id: user.id,
-        user_name: userName
+        user_name: userName,
       });
 
       if (error) throw error;
@@ -154,6 +164,6 @@ export const useNotesHistory = (itemId: string) => {
     notesHistory,
     isLoading,
     saveNote,
-    user
+    user,
   };
 };

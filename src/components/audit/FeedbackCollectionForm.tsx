@@ -1,12 +1,12 @@
 /**
  * FOCUSED FEEDBACK COLLECTION FORM - PROFESSIONAL ARCHITECTURE
- * 
+ *
  * Modular feedback collection system with clean separation of concerns.
  * Each aspect handled by focused sub-components for maintainability.
- * 
+ *
  * @example
  * ```typescript
- * <FeedbackCollectionForm 
+ * <FeedbackCollectionForm
  *   inspectionId="123"
  *   auditorId="456"
  *   aiPredictions={predictions}
@@ -15,24 +15,24 @@
  * ```
  */
 
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import type {
   FeedbackFormData,
   FeedbackItem,
   FeedbackCategory,
-  AuditorFeedback
-} from '@/types/learning';
-import { createFeedbackProcessor } from '@/lib/ai/feedback-processor';
-import { useMutation } from '@tanstack/react-query';
+  AuditorFeedback,
+} from "@/types/learning";
+import { createFeedbackProcessor } from "@/lib/ai/feedback-processor";
+import { useMutation } from "@tanstack/react-query";
 
 // Focused sub-components
-import { FeedbackHeader } from './feedback/FeedbackHeader';
-import { FeedbackStats } from './feedback/FeedbackStats';
-import { FeedbackFilters } from './feedback/FeedbackFilters';
-import { FeedbackItemsList } from './feedback/FeedbackItemsList';
-import { OverallFeedback } from './feedback/OverallFeedback';
-import { SubmissionStatus } from './feedback/SubmissionStatus';
+import { FeedbackHeader } from "./feedback/FeedbackHeader";
+import { FeedbackStats } from "./feedback/FeedbackStats";
+import { FeedbackFilters } from "./feedback/FeedbackFilters";
+import { FeedbackItemsList } from "./feedback/FeedbackItemsList";
+import { OverallFeedback } from "./feedback/OverallFeedback";
+import { SubmissionStatus } from "./feedback/SubmissionStatus";
 
 interface FeedbackCollectionFormProps {
   inspectionId: string;
@@ -62,45 +62,53 @@ export const FeedbackCollectionForm: React.FC<FeedbackCollectionFormProps> = ({
   onSubmit,
   onSaveDraft,
   initialDraft,
-  className
+  className,
 }) => {
   // Core state management
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [overallRating, setOverallRating] = useState(3);
-  const [comments, setComments] = useState('');
-  const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
-  const [newImprovement, setNewImprovement] = useState('');
+  const [comments, setComments] = useState("");
+  const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>(
+    [],
+  );
+  const [newImprovement, setNewImprovement] = useState("");
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [filterCategory, setFilterCategory] = useState<FeedbackCategory | 'all'>('all');
+  const [filterCategory, setFilterCategory] = useState<
+    FeedbackCategory | "all"
+  >("all");
   const [showOnlyErrors, setShowOnlyErrors] = useState(false);
 
   const feedbackProcessor = React.useMemo(() => createFeedbackProcessor(), []);
 
   // Initialize feedback items from AI predictions
   useEffect(() => {
-    const items: FeedbackItem[] = aiPredictions.map(prediction => ({
+    const items: FeedbackItem[] = aiPredictions.map((prediction) => ({
       id: prediction.id,
       type: prediction.category,
       aiValue: prediction.value,
       correctValue: prediction.value,
       confidenceRating: prediction.confidence,
-      severity: 'minor',
-      explanation: '',
+      severity: "minor",
+      explanation: "",
       evidence: {
-        photoIds: prediction.context?.photoId ? [prediction.context.photoId] : undefined,
+        photoIds: prediction.context?.photoId
+          ? [prediction.context.photoId]
+          : undefined,
         videoTimestamp: prediction.context?.videoTimestamp,
-        checklistItemId: prediction.context?.checklistItemId
-      }
+        checklistItemId: prediction.context?.checklistItemId,
+      },
     }));
 
     if (initialDraft) {
-      const draftMap = new Map(initialDraft.feedbackItems.map(item => [item.id, item]));
-      items.forEach(item => {
+      const draftMap = new Map(
+        initialDraft.feedbackItems.map((item) => [item.id, item]),
+      );
+      items.forEach((item) => {
         const draft = draftMap.get(item.id);
         if (draft) Object.assign(item, draft);
       });
       setOverallRating(initialDraft.overallRating);
-      setComments(initialDraft.comments || '');
+      setComments(initialDraft.comments || "");
       setSuggestedImprovements(initialDraft.suggestedImprovements || []);
     }
 
@@ -112,39 +120,51 @@ export const FeedbackCollectionForm: React.FC<FeedbackCollectionFormProps> = ({
     mutationFn: async () => {
       const formData: FeedbackFormData = {
         inspectionId,
-        feedbackItems: feedbackItems.filter(item => 
-          JSON.stringify(item.aiValue) !== JSON.stringify(item.correctValue) || item.explanation
+        feedbackItems: feedbackItems.filter(
+          (item) =>
+            JSON.stringify(item.aiValue) !==
+              JSON.stringify(item.correctValue) || item.explanation,
         ),
         overallRating,
         comments,
-        suggestedImprovements
+        suggestedImprovements,
       };
-      return await feedbackProcessor.collectFeedback(formData, auditorId, inspectionId);
+      return await feedbackProcessor.collectFeedback(
+        formData,
+        auditorId,
+        inspectionId,
+      );
     },
-    onSuccess: (feedback) => onSubmit?.(feedback)
+    onSuccess: (feedback) => onSubmit?.(feedback),
   });
 
   // Computed values
-  const filteredItems = feedbackItems.filter(item => {
-    if (filterCategory !== 'all' && item.type !== filterCategory) return false;
-    if (showOnlyErrors && JSON.stringify(item.aiValue) === JSON.stringify(item.correctValue)) return false;
+  const filteredItems = feedbackItems.filter((item) => {
+    if (filterCategory !== "all" && item.type !== filterCategory) return false;
+    if (
+      showOnlyErrors &&
+      JSON.stringify(item.aiValue) === JSON.stringify(item.correctValue)
+    )
+      return false;
     return true;
   });
 
   const stats = {
     total: feedbackItems.length,
-    corrections: feedbackItems.filter(item => 
-      JSON.stringify(item.aiValue) !== JSON.stringify(item.correctValue)
+    corrections: feedbackItems.filter(
+      (item) =>
+        JSON.stringify(item.aiValue) !== JSON.stringify(item.correctValue),
     ).length,
-    reviewed: feedbackItems.filter(item => item.explanation).length,
-    highSeverity: feedbackItems.filter(item => item.severity === 'major').length
+    reviewed: feedbackItems.filter((item) => item.explanation).length,
+    highSeverity: feedbackItems.filter((item) => item.severity === "major")
+      .length,
   };
 
   // Event handlers
   const updateFeedbackItem = (id: string, updates: Partial<FeedbackItem>) => {
-    setFeedbackItems(prev => prev.map(item =>
-      item.id === id ? { ...item, ...updates } : item
-    ));
+    setFeedbackItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    );
   };
 
   const handleSaveDraft = () => {
@@ -153,13 +173,13 @@ export const FeedbackCollectionForm: React.FC<FeedbackCollectionFormProps> = ({
       feedbackItems,
       overallRating,
       comments,
-      suggestedImprovements
+      suggestedImprovements,
     };
     onSaveDraft?.(draft);
   };
 
   const toggleExpanded = (id: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -172,17 +192,17 @@ export const FeedbackCollectionForm: React.FC<FeedbackCollectionFormProps> = ({
 
   const addImprovement = () => {
     if (newImprovement.trim()) {
-      setSuggestedImprovements(prev => [...prev, newImprovement.trim()]);
-      setNewImprovement('');
+      setSuggestedImprovements((prev) => [...prev, newImprovement.trim()]);
+      setNewImprovement("");
     }
   };
 
   const removeImprovement = (index: number) => {
-    setSuggestedImprovements(prev => prev.filter((_, i) => i !== index));
+    setSuggestedImprovements((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn("space-y-6", className)}>
       <FeedbackHeader
         onSaveDraft={handleSaveDraft}
         onSubmit={() => submitMutation.mutate()}

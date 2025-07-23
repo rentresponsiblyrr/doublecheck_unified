@@ -3,19 +3,22 @@
  * Extracted from chart.tsx
  */
 
-import React from 'react';
-import { ChartConfig } from '@/components/ui/chart';
+import React from "react";
+import { ChartConfig } from "@/components/ui/chart";
 
 interface ChartStyleInjectProps {
   id: string;
   config: ChartConfig;
 }
 
-export const ChartStyleInject: React.FC<ChartStyleInjectProps> = ({ id, config }) => {
+export const ChartStyleInject: React.FC<ChartStyleInjectProps> = ({
+  id,
+  config,
+}) => {
   const THEMES = { light: "", dark: ".dark" } as const;
-  
+
   const colorConfig = Object.entries(config).filter(
-    ([_, config]) => config.theme || config.color
+    ([_, config]) => config.theme || config.color,
   );
 
   if (!colorConfig.length) {
@@ -35,7 +38,7 @@ ${colorConfig
   })
   .join("\n")}
 }
-`
+`,
     )
     .join("\n");
 

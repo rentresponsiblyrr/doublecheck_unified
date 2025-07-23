@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { logger, logError, logInfo } from '@/utils/logger';
+import { logger, logError, logInfo } from "@/utils/logger";
 
 interface SimpleAuthFormProps {
   onAuthSuccess?: () => void;
   initialError?: string | null;
 }
 
-export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, initialError }) => {
+export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
+  onAuthSuccess,
+  initialError,
+}) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -23,30 +26,32 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
     setSuccessMessage(null);
 
     try {
-      logInfo('Attempting authentication', {
-        component: 'SimpleAuthForm',
-        action: 'handleSubmit',
+      logInfo("Attempting authentication", {
+        component: "SimpleAuthForm",
+        action: "handleSubmit",
         email,
         isSignUp,
-        isResetPassword
+        isResetPassword,
       });
-      
+
       if (isResetPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`
+          redirectTo: `${window.location.origin}/reset-password`,
         });
-        
+
         if (error) {
-          logError('Password reset error', error, {
-            component: 'SimpleAuthForm',
-            action: 'handleSubmit',
+          logError("Password reset error", error, {
+            component: "SimpleAuthForm",
+            action: "handleSubmit",
             email,
-            operation: 'resetPassword'
+            operation: "resetPassword",
           });
           throw error;
         }
-        
-        setSuccessMessage('Password reset email sent! Check your inbox and follow the instructions.');
+
+        setSuccessMessage(
+          "Password reset email sent! Check your inbox and follow the instructions.",
+        );
         setIsResetPassword(false);
       } else if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({
@@ -54,92 +59,97 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
           password,
           options: {
             data: {
-              role: 'inspector' // Default role
-            }
-          }
+              role: "inspector", // Default role
+            },
+          },
         });
-        logInfo('Sign up result', {
-          component: 'SimpleAuthForm',
-          action: 'handleSubmit',
+        logInfo("Sign up result", {
+          component: "SimpleAuthForm",
+          action: "handleSubmit",
           email,
           hasData: !!data,
           hasError: !!error,
-          userId: data?.user?.id
+          userId: data?.user?.id,
         });
-        
+
         if (error) {
-          logError('Sign up error', error, {
-            component: 'SimpleAuthForm',
-            action: 'handleSubmit',
+          logError("Sign up error", error, {
+            component: "SimpleAuthForm",
+            action: "handleSubmit",
             email,
-            operation: 'signUp'
+            operation: "signUp",
           });
           throw error;
         }
-        setSuccessMessage('Check your email for verification link');
+        setSuccessMessage("Check your email for verification link");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        logInfo('Sign in result', {
-          component: 'SimpleAuthForm',
-          action: 'handleSubmit',
+        logInfo("Sign in result", {
+          component: "SimpleAuthForm",
+          action: "handleSubmit",
           email,
           hasData: !!data,
           hasError: !!error,
-          userId: data?.user?.id
+          userId: data?.user?.id,
         });
-        
+
         if (error) {
-          logError('Sign in error', error, {
-            component: 'SimpleAuthForm',
-            action: 'handleSubmit',
+          logError("Sign in error", error, {
+            component: "SimpleAuthForm",
+            action: "handleSubmit",
             email,
-            operation: 'signIn'
+            operation: "signIn",
           });
           throw error;
         }
-        
+
         if (data.user) {
-          logInfo('Authentication successful', {
-            component: 'SimpleAuthForm',
-            action: 'handleSubmit',
+          logInfo("Authentication successful", {
+            component: "SimpleAuthForm",
+            action: "handleSubmit",
             userId: data.user.id,
             userEmail: data.user.email,
-            operation: 'signIn'
+            operation: "signIn",
           });
           onAuthSuccess?.();
         } else {
-          throw new Error('Authentication succeeded but no user data received');
+          throw new Error("Authentication succeeded but no user data received");
         }
       }
     } catch (error: unknown) {
-      logError('Authentication error caught', error, {
-        component: 'SimpleAuthForm',
-        action: 'handleSubmit',
+      logError("Authentication error caught", error, {
+        component: "SimpleAuthForm",
+        action: "handleSubmit",
         email,
         isSignUp,
         isResetPassword,
         errorCode: error?.code,
-        errorStatus: error?.status
+        errorStatus: error?.status,
       });
-      
+
       // Handle specific Supabase auth errors with user-friendly messages
       let errorMessage = error.message;
-      
-      if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. This might be an account from the previous system. Try using "Forgot your password?" to reset your password, or sign up for a new account.';
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Please check your email and click the confirmation link before signing in.';
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
-      } else if (error.message?.includes('User not found')) {
-        errorMessage = 'No account found with this email address. Please sign up for a new account.';
-      } else if (error.message?.includes('User already registered')) {
-        errorMessage = 'An account with this email already exists. Please sign in instead.';
+
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage =
+          'Invalid email or password. This might be an account from the previous system. Try using "Forgot your password?" to reset your password, or sign up for a new account.';
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage =
+          "Please check your email and click the confirmation link before signing in.";
+      } else if (error.message?.includes("Too many requests")) {
+        errorMessage =
+          "Too many login attempts. Please wait a moment and try again.";
+      } else if (error.message?.includes("User not found")) {
+        errorMessage =
+          "No account found with this email address. Please sign up for a new account.";
+      } else if (error.message?.includes("User already registered")) {
+        errorMessage =
+          "An account with this email already exists. Please sign in instead.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -160,7 +170,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="auth-email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="auth-email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <input
@@ -177,7 +190,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
 
             {!isResetPassword && (
               <div>
-                <label htmlFor="auth-password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="auth-password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Password
                 </label>
                 <input
@@ -195,9 +211,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
             )}
 
             {error && (
-              <div className="text-red-600 text-sm text-center">
-                {error}
-              </div>
+              <div className="text-red-600 text-sm text-center">{error}</div>
             )}
 
             {successMessage && (
@@ -212,10 +226,13 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
               disabled={loading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Loading...' : (
-                isResetPassword ? 'Send Reset Email' : 
-                isSignUp ? 'Sign Up' : 'Sign In'
-              )}
+              {loading
+                ? "Loading..."
+                : isResetPassword
+                  ? "Send Reset Email"
+                  : isSignUp
+                    ? "Sign Up"
+                    : "Sign In"}
             </button>
 
             <div className="text-center space-y-2">
@@ -226,10 +243,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-blue-600 hover:text-blue-800 text-sm block"
                 >
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                  {isSignUp
+                    ? "Already have an account? Sign in"
+                    : "Don't have an account? Sign up"}
                 </button>
               )}
-              
+
               <button
                 id="toggle-password-reset"
                 type="button"
@@ -241,7 +260,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ onAuthSuccess, i
                 }}
                 className="text-blue-600 hover:text-blue-800 text-sm block"
               >
-                {isResetPassword ? 'Back to sign in' : 'Forgot your password?'}
+                {isResetPassword ? "Back to sign in" : "Forgot your password?"}
               </button>
             </div>
           </form>

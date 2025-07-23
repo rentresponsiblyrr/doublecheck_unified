@@ -3,11 +3,17 @@
  * Individual AI model performance comparison and detailed metrics
  */
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Cpu, Database, Zap, Clock, DollarSign, Target } from 'lucide-react';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Cpu, Database, Zap, Clock, DollarSign, Target } from "lucide-react";
 
 interface ModelMetrics {
   id: string;
@@ -25,7 +31,11 @@ interface UsageData {
   hourlyDistribution: Array<{ hour: number; requests: number; cost: number }>;
   userSegments: Array<{ segment: string; usage: number; cost: number }>;
   contentTypes: Array<{ type: string; percentage: number; avgCost: number }>;
-  geographicDistribution: Array<{ region: string; requests: number; cost: number }>;
+  geographicDistribution: Array<{
+    region: string;
+    requests: number;
+    cost: number;
+  }>;
 }
 
 interface AIModelAnalyticsProps {
@@ -37,18 +47,18 @@ interface AIModelAnalyticsProps {
 export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
   models,
   usage,
-  isLoading = false
+  isLoading = false,
 }) => {
   const getEfficiencyColor = (efficiency: number) => {
-    if (efficiency >= 80) return 'text-green-600';
-    if (efficiency >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (efficiency >= 80) return "text-green-600";
+    if (efficiency >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getUtilizationBadge = (utilization: number) => {
-    if (utilization >= 80) return 'default';
-    if (utilization >= 50) return 'secondary';
-    return 'outline';
+    if (utilization >= 80) return "default";
+    if (utilization >= 50) return "secondary";
+    return "outline";
   };
 
   if (isLoading) {
@@ -91,14 +101,18 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                   <div>
                     <h4 className="font-medium text-lg">{model.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {model.requests.toLocaleString()} requests • ${model.cost.toFixed(2)} cost
+                      {model.requests.toLocaleString()} requests • $
+                      {model.cost.toFixed(2)} cost
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant={getUtilizationBadge(model.utilization)}>
                       {model.utilization.toFixed(0)}% utilized
                     </Badge>
-                    <Badge variant="outline" className={getEfficiencyColor(model.efficiency)}>
+                    <Badge
+                      variant="outline"
+                      className={getEfficiencyColor(model.efficiency)}
+                    >
                       {model.efficiency.toFixed(0)}% efficient
                     </Badge>
                   </div>
@@ -110,10 +124,12 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                       <Clock className="w-4 h-4 text-blue-500" />
                       <span className="text-sm font-medium">Response Time</span>
                     </div>
-                    <div className="text-lg font-bold">{model.avgResponseTime.toFixed(0)}ms</div>
-                    <Progress 
-                      value={Math.min(100, (3000 - model.avgResponseTime) / 30)} 
-                      className="h-2" 
+                    <div className="text-lg font-bold">
+                      {model.avgResponseTime.toFixed(0)}ms
+                    </div>
+                    <Progress
+                      value={Math.min(100, (3000 - model.avgResponseTime) / 30)}
+                      className="h-2"
                     />
                   </div>
 
@@ -122,7 +138,9 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                       <Target className="w-4 h-4 text-green-500" />
                       <span className="text-sm font-medium">Accuracy</span>
                     </div>
-                    <div className="text-lg font-bold">{model.avgAccuracy.toFixed(1)}%</div>
+                    <div className="text-lg font-bold">
+                      {model.avgAccuracy.toFixed(1)}%
+                    </div>
                     <Progress value={model.avgAccuracy} className="h-2" />
                   </div>
 
@@ -144,7 +162,9 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                       <Zap className="w-4 h-4 text-purple-500" />
                       <span className="text-sm font-medium">Efficiency</span>
                     </div>
-                    <div className={`text-lg font-bold ${getEfficiencyColor(model.efficiency)}`}>
+                    <div
+                      className={`text-lg font-bold ${getEfficiencyColor(model.efficiency)}`}
+                    >
                       {model.efficiency.toFixed(0)}%
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -177,7 +197,9 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">{type.type}</span>
                     <div className="text-right">
-                      <div className="text-sm font-bold">{type.percentage}%</div>
+                      <div className="text-sm font-bold">
+                        {type.percentage}%
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         ${type.avgCost.toFixed(3)}/req
                       </div>
@@ -200,7 +222,10 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
           <CardContent>
             <div className="space-y-4">
               {usage.userSegments.map((segment) => (
-                <div key={segment.segment} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={segment.segment}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div>
                     <div className="font-medium">{segment.segment}</div>
                     <div className="text-sm text-muted-foreground">
@@ -209,7 +234,9 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="font-bold">${segment.cost.toFixed(1)}</div>
-                    <div className="text-xs text-muted-foreground">total cost</div>
+                    <div className="text-xs text-muted-foreground">
+                      total cost
+                    </div>
                   </div>
                 </div>
               ))}
@@ -229,7 +256,10 @@ export const AIModelAnalytics: React.FC<AIModelAnalyticsProps> = ({
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             {usage.geographicDistribution.map((region) => (
-              <div key={region.region} className="text-center p-4 border rounded-lg">
+              <div
+                key={region.region}
+                className="text-center p-4 border rounded-lg"
+              >
                 <div className="font-medium mb-2">{region.region}</div>
                 <div className="text-2xl font-bold mb-1">
                   {region.requests.toLocaleString()}

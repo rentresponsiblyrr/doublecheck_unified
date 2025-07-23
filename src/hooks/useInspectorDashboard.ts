@@ -7,7 +7,15 @@ import { normalizeStatus } from "@/types/inspection-status";
 export interface InspectorInspection {
   id: string;
   property_id: string;
-  status: 'draft' | 'in_progress' | 'in-progress' | 'completed' | 'pending_review' | 'pending-review' | 'approved' | 'rejected';
+  status:
+    | "draft"
+    | "in_progress"
+    | "in-progress"
+    | "completed"
+    | "pending_review"
+    | "pending-review"
+    | "approved"
+    | "rejected";
   start_time: string | null;
   end_time: string | null;
   completed: boolean;
@@ -25,62 +33,68 @@ export interface InspectorInspection {
 async function fetchPropertiesWithInspections(userId: string) {
   try {
     // Try RPC function first
-    const result = await supabase.rpc('get_properties_with_inspections', {
-      _user_id: userId
+    const result = await supabase.rpc("get_properties_with_inspections", {
+      _user_id: userId,
     });
-    
+
     if (!result.error) {
       // CRITICAL FIX: Filter out properties with completed inspections
-      const filteredData = (result.data || []).filter(property => {
-        // Hide properties with completed inspections
-        return !property.latest_inspection_completed;
-      }).map(property => {
-        // CRITICAL FIX: Show only 1 inspection per property for inspector view
-        return {
-          ...property,
-          inspection_count: property.inspection_count > 0 ? 1 : 0
-        };
-      });
-      
+      const filteredData = (result.data || [])
+        .filter((property) => {
+          // Hide properties with completed inspections
+          return !property.latest_inspection_completed;
+        })
+        .map((property) => {
+          // CRITICAL FIX: Show only 1 inspection per property for inspector view
+          return {
+            ...property,
+            inspection_count: property.inspection_count > 0 ? 1 : 0,
+          };
+        });
+
       // REMOVED: Property filtering logging to prevent infinite loops
       //   original: result.data?.length || 0,
       //   filtered: filteredData.length,
       //   removed: (result.data?.length || 0) - filteredData.length
       // });
-      
+
       return { ...result, data: filteredData };
     }
-    
-    
+
     // Fallback to direct query using properties
     const { data: properties, error } = await supabase
-      .from('properties')
-      .select(`
+      .from("properties")
+      .select(
+        `
         id,
         name,
         address,
         vrbo_url,
         airbnb_url,
         created_at
-      `)
-      .eq('added_by', userId);
-      // Removed status filter - properties table doesn't have status column
-    
+      `,
+      )
+      .eq("added_by", userId);
+    // Removed status filter - properties table doesn't have status column
+
     if (error) throw error;
-    
+
     // Add inspection count data manually
     const enrichedProperties = await Promise.all(
       (properties || []).map(async (property) => {
         const { data: inspections } = await supabase
-          .from('inspections')
-          .select('id, status, completed')
-          .eq('property_id', property.id);
-        
+          .from("inspections")
+          .select("id, status, completed")
+          .eq("property_id", property.id);
+
         const inspection_count = inspections?.length || 0;
-        const completed_inspection_count = inspections?.filter(i => i.status === 'completed').length || 0;
-        const active_inspection_count = inspections?.filter(i => i.status === 'in_progress').length || 0;
-        const draft_inspection_count = inspections?.filter(i => i.status === 'draft').length || 0;
-        
+        const completed_inspection_count =
+          inspections?.filter((i) => i.status === "completed").length || 0;
+        const active_inspection_count =
+          inspections?.filter((i) => i.status === "in_progress").length || 0;
+        const draft_inspection_count =
+          inspections?.filter((i) => i.status === "draft").length || 0;
+
         return {
           ...property,
           inspection_count,
@@ -88,11 +102,11 @@ async function fetchPropertiesWithInspections(userId: string) {
           active_inspection_count,
           draft_inspection_count,
           latest_inspection_id: inspections?.[0]?.id || null,
-          latest_inspection_completed: inspections?.[0]?.completed || false
+          latest_inspection_completed: inspections?.[0]?.completed || false,
         };
-      })
+      }),
     );
-    
+
     return { data: enrichedProperties, error: null };
   } catch (error) {
     return { data: [], error };
@@ -102,8 +116,13 @@ async function fetchPropertiesWithInspections(userId: string) {
 export const useInspectorDashboard = () => {
   const { user } = useAuth();
 
-  const { data: dashboardData = { inspections: [], properties: [] }, isLoading, error, refetch } = useQuery({
-    queryKey: ['inspector-dashboard', user?.id],
+  const {
+    data: dashboardData = { inspections: [], properties: [] },
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["inspector-dashboard", user?.id],
     queryFn: async () => {
       if (!user?.id) {
         return { inspections: [], properties: [] };
@@ -113,10 +132,11 @@ export const useInspectorDashboard = () => {
 
       // Fetch both inspections and properties in parallel
       const [inspectionsResult, propertiesResult] = await Promise.all([
-          // Fetch inspections
-          supabase
-            .from('inspections')
-            .select(`
+        // Fetch inspections
+        supabase
+          .from("inspections")
+          .select(
+            `
               id,
               property_id,
               status,
@@ -129,76 +149,87 @@ export const useInspectorDashboard = () => {
                 name,
                 address
               )
-            `)
-            .eq('inspector_id', user.id)
-            .order('start_time', { ascending: false, nullsFirst: false }),
-          
-          // Fetch properties with inspection counts
-          fetchPropertiesWithInspections(user.id)
-        ]);
+            `,
+          )
+          .eq("inspector_id", user.id)
+          .order("start_time", { ascending: false, nullsFirst: false }),
 
-        const { data: inspectionsData, error: inspectionsError } = inspectionsResult;
-        const { data: propertiesData, error: propertiesError } = propertiesResult;
+        // Fetch properties with inspection counts
+        fetchPropertiesWithInspections(user.id),
+      ]);
 
-        if (inspectionsError) {
-          
-          // Handle permission errors gracefully
-          if (inspectionsError.code === 'PGRST116' || 
-              inspectionsError.message?.includes('permission') ||
-              inspectionsError.message?.includes('RLS')) {
-            return { inspections: [], properties: propertiesData || [] };
+      const { data: inspectionsData, error: inspectionsError } =
+        inspectionsResult;
+      const { data: propertiesData, error: propertiesError } = propertiesResult;
+
+      if (inspectionsError) {
+        // Handle permission errors gracefully
+        if (
+          inspectionsError.code === "PGRST116" ||
+          inspectionsError.message?.includes("permission") ||
+          inspectionsError.message?.includes("RLS")
+        ) {
+          return { inspections: [], properties: propertiesData || [] };
+        }
+
+        throw new Error(`Database error: ${inspectionsError.message}`);
+      }
+
+      if (propertiesError) {
+        // Continue with inspections only if properties fail
+      }
+
+      // REMOVED: Success logging to prevent infinite loops
+
+      // Transform inspections with progress calculation
+      const inspectionsWithProgress = await Promise.all(
+        inspectionsData.map(async (inspection) => {
+          try {
+            const { data: checklistItems } = await supabase
+              .from("checklist_items")
+              .select("id, status")
+              .eq("inspection_id", inspection.id);
+
+            const totalItems = checklistItems?.length || 0;
+            const completedItems =
+              checklistItems?.filter((item) => item.status === "completed")
+                .length || 0;
+            const progressPercentage =
+              totalItems > 0
+                ? Math.round((completedItems / totalItems) * 100)
+                : 0;
+
+            return {
+              ...inspection,
+              property: inspection.properties,
+              checklist_items_count: totalItems,
+              completed_items_count: completedItems,
+              progress_percentage: progressPercentage,
+            } as InspectorInspection;
+          } catch (error) {
+            return {
+              ...inspection,
+              property: inspection.properties,
+              checklist_items_count: 0,
+              completed_items_count: 0,
+              progress_percentage: 0,
+            } as InspectorInspection;
           }
-          
-          throw new Error(`Database error: ${inspectionsError.message}`);
-        }
+        }),
+      );
 
-        if (propertiesError) {
-          // Continue with inspections only if properties fail
-        }
-
-        // REMOVED: Success logging to prevent infinite loops
-
-        // Transform inspections with progress calculation
-        const inspectionsWithProgress = await Promise.all(
-          inspectionsData.map(async (inspection) => {
-            try {
-              const { data: checklistItems } = await supabase
-                .from('checklist_items')
-                .select('id, status')
-                .eq('inspection_id', inspection.id);
-
-              const totalItems = checklistItems?.length || 0;
-              const completedItems = checklistItems?.filter(item => item.status === 'completed').length || 0;
-              const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-              return {
-                ...inspection,
-                property: inspection.properties,
-                checklist_items_count: totalItems,
-                completed_items_count: completedItems,
-                progress_percentage: progressPercentage,
-              } as InspectorInspection;
-            } catch (error) {
-              return {
-                ...inspection,
-                property: inspection.properties,
-                checklist_items_count: 0,
-                completed_items_count: 0,
-                progress_percentage: 0,
-              } as InspectorInspection;
-            }
-          })
-        );
-
-      return { 
-        inspections: inspectionsWithProgress, 
-        properties: propertiesData || [] 
+      return {
+        inspections: inspectionsWithProgress,
+        properties: propertiesData || [],
       };
     },
     enabled: !!user?.id,
     retry: (failureCount, error) => {
       // Don't retry permission errors
-      if (error?.message?.includes('permission') || error?.message?.includes('RLS')) {
+      if (
+        error?.message?.includes("permission") ||
+        error?.message?.includes("RLS")
+      ) {
         return false;
       }
       return failureCount < 2;
@@ -217,26 +248,26 @@ export const useInspectorDashboard = () => {
     in_progress: 0,
     completed: 0,
     pending_review: 0,
-    approved: 0
+    approved: 0,
   };
 
   // Count inspections with normalized status handling
   inspections.forEach((inspection: InspectorInspection) => {
     const normalizedStatus = normalizeStatus(inspection.status);
     switch (normalizedStatus) {
-      case 'draft':
+      case "draft":
         statusCounts.draft++;
         break;
-      case 'in_progress':
+      case "in_progress":
         statusCounts.in_progress++;
         break;
-      case 'completed':
+      case "completed":
         statusCounts.completed++;
         break;
-      case 'pending_review':
+      case "pending_review":
         statusCounts.pending_review++;
         break;
-      case 'approved':
+      case "approved":
         statusCounts.approved++;
         break;
     }
@@ -245,17 +276,28 @@ export const useInspectorDashboard = () => {
   // REMOVED: Status counts logging to prevent infinite loops
 
   // Calculate property-level aggregations with fallback handling
-  let propertyStats = { totalInspections: 0, activeInspections: 0, completedInspections: 0 };
-  
+  let propertyStats = {
+    totalInspections: 0,
+    activeInspections: 0,
+    completedInspections: 0,
+  };
+
   try {
     propertyStats = statusCountService.calculatePropertyStats(properties);
   } catch (error) {
     // Fallback calculation
-    propertyStats = properties.reduce((stats, property) => ({
-      totalInspections: stats.totalInspections + (property.inspection_count || 0),
-      activeInspections: stats.activeInspections + (property.active_inspection_count || 0),
-      completedInspections: stats.completedInspections + (property.completed_inspection_count || 0)
-    }), { totalInspections: 0, activeInspections: 0, completedInspections: 0 });
+    propertyStats = properties.reduce(
+      (stats, property) => ({
+        totalInspections:
+          stats.totalInspections + (property.inspection_count || 0),
+        activeInspections:
+          stats.activeInspections + (property.active_inspection_count || 0),
+        completedInspections:
+          stats.completedInspections +
+          (property.completed_inspection_count || 0),
+      }),
+      { totalInspections: 0, activeInspections: 0, completedInspections: 0 },
+    );
   }
 
   const summary = {
@@ -267,7 +309,7 @@ export const useInspectorDashboard = () => {
   };
 
   // REMOVED: Debug logging that was causing infinite console loops
-  //   id: p.property_id, 
+  //   id: p.property_id,
   //   name: p.property_name,
   //   total: p.inspection_count,
   //   active: p.active_inspection_count,
@@ -280,13 +322,15 @@ export const useInspectorDashboard = () => {
   // }
 
   // Get recent inspections (last 7 days)
-  const recentInspections = inspections.filter((inspection: InspectorInspection) => {
-    if (!inspection.start_time) return false;
-    const inspectionDate = new Date(inspection.start_time);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    return inspectionDate >= sevenDaysAgo;
-  });
+  const recentInspections = inspections.filter(
+    (inspection: InspectorInspection) => {
+      if (!inspection.start_time) return false;
+      const inspectionDate = new Date(inspection.start_time);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return inspectionDate >= sevenDaysAgo;
+    },
+  );
 
   return {
     inspections,

@@ -1,10 +1,10 @@
 /**
  * BACKGROUND SYNC MANAGER - BULLETPROOF OFFLINE RESILIENCE
- * 
+ *
  * Enterprise-grade background sync implementation designed for construction sites
  * with unreliable network conditions. Provides conflict resolution, intelligent
  * retry mechanisms, and zero-data-loss guarantees for critical inspection data.
- * 
+ *
  * CORE CAPABILITIES:
  * - Intelligent conflict resolution for concurrent edits
  * - Exponential backoff retry with circuit breaker patterns
@@ -12,33 +12,33 @@
  * - Offline-first data persistence with IndexedDB
  * - Network condition-aware sync strategies
  * - Battery-optimized background processing
- * 
+ *
  * SYNC STRATEGIES:
  * 1. Immediate Sync - Critical data (authentication, safety issues)
  * 2. High Priority - Inspection submissions, photo uploads
- * 3. Normal Priority - Checklist updates, user preferences  
+ * 3. Normal Priority - Checklist updates, user preferences
  * 4. Low Priority - Analytics, usage metrics
  * 5. Batch Sync - Non-critical bulk operations
- * 
+ *
  * CONFLICT RESOLUTION:
  * - Last-Writer-Wins with timestamp comparison
  * - Operational Transform for complex data structures
  * - User-mediated resolution for critical conflicts
  * - Automatic merge for non-conflicting changes
- * 
+ *
  * SUCCESS METRICS:
  * - 99.9%+ sync success rate under normal conditions
  * - <5s sync time for critical operations
  * - Zero data loss during network transitions
  * - Automatic recovery from failed sync attempts
  * - Intelligent conflict resolution without user intervention
- * 
- * @author STR Certified Engineering Team  
+ *
+ * @author STR Certified Engineering Team
  * @version 3.0.0 - Phase 3 Elite PWA Excellence
  */
 
-import { logger } from '@/utils/logger';
-import { EventEmitter } from 'events';
+import { logger } from "@/utils/logger";
+import { EventEmitter } from "events";
 
 // Sync data type definitions
 export interface InspectionSyncData {
@@ -60,7 +60,7 @@ export interface ChecklistItemSyncData {
 
 export interface MediaSyncData {
   id: string;
-  type: 'photo' | 'video' | 'document';
+  type: "photo" | "video" | "document";
   file_path: string;
   size: number;
   metadata: Record<string, unknown>;
@@ -72,7 +72,12 @@ export interface UserActionSyncData {
   data: Record<string, unknown>;
 }
 
-export type SyncDataPayload = InspectionSyncData | ChecklistItemSyncData | MediaSyncData | UserActionSyncData | Record<string, unknown>;
+export type SyncDataPayload =
+  | InspectionSyncData
+  | ChecklistItemSyncData
+  | MediaSyncData
+  | UserActionSyncData
+  | Record<string, unknown>;
 
 interface ConflictDataInternal {
   localVersion: SyncDataPayload;
@@ -98,8 +103,8 @@ interface MediaUploadData {
 export interface SyncTask {
   id: string;
   queueName: string;
-  type: 'inspection' | 'media' | 'checklist' | 'user_data';
-  priority: 'immediate' | 'high' | 'normal' | 'low';
+  type: "inspection" | "media" | "checklist" | "user_data";
+  priority: "immediate" | "high" | "normal" | "low";
   data: SyncDataPayload;
   retryCount: number;
   maxRetries: number;
@@ -129,8 +134,14 @@ export interface BackgroundSyncConfig {
 
 export interface BackgroundSyncTask {
   id: string;
-  type: 'inspection_data' | 'photo_upload' | 'checklist_update' | 'user_action' | 'analytics' | 'batch_operation';
-  priority: 'immediate' | 'high' | 'normal' | 'low' | 'batch';
+  type:
+    | "inspection_data"
+    | "photo_upload"
+    | "checklist_update"
+    | "user_action"
+    | "analytics"
+    | "batch_operation";
+  priority: "immediate" | "high" | "normal" | "low" | "batch";
   data: SyncDataPayload;
   metadata: {
     timestamp: number;
@@ -140,9 +151,12 @@ export interface BackgroundSyncTask {
     originalDeviceId: string;
     userId: string;
     entityVersion?: number;
-    conflictResolutionStrategy?: 'last-writer-wins' | 'operational-transform' | 'user-mediated';
+    conflictResolutionStrategy?:
+      | "last-writer-wins"
+      | "operational-transform"
+      | "user-mediated";
   };
-  status: 'pending' | 'syncing' | 'completed' | 'failed' | 'conflicted';
+  status: "pending" | "syncing" | "completed" | "failed" | "conflicted";
   networkRequirements?: {
     minConnectionType?: string;
     maxRetryOnMetered?: boolean;
@@ -218,7 +232,7 @@ export class BackgroundSyncManager extends EventEmitter {
     lastFailure: 0,
     isOpen: false,
     threshold: 5,
-    cooldownPeriod: 30000 // 30 seconds
+    cooldownPeriod: 30000, // 30 seconds
   };
 
   constructor() {
@@ -234,7 +248,7 @@ export class BackgroundSyncManager extends EventEmitter {
       queueSize: 0,
       networkFailures: 0,
       conflictResolutions: 0,
-      retryAttempts: 0
+      retryAttempts: 0,
     };
   }
 
@@ -244,14 +258,22 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   async initialize(registration: ServiceWorkerRegistration): Promise<void> {
     if (this.isInitialized) {
-      logger.warn('BackgroundSyncManager already initialized', {}, 'SYNC_MANAGER');
+      logger.warn(
+        "BackgroundSyncManager already initialized",
+        {},
+        "SYNC_MANAGER",
+      );
       return;
     }
 
     try {
-      logger.info('🚀 Initializing Background Sync Manager', {
-        scope: registration.scope
-      }, 'SYNC_MANAGER');
+      logger.info(
+        "🚀 Initializing Background Sync Manager",
+        {
+          scope: registration.scope,
+        },
+        "SYNC_MANAGER",
+      );
 
       this.registration = registration;
 
@@ -278,15 +300,24 @@ export class BackgroundSyncManager extends EventEmitter {
 
       this.isInitialized = true;
 
-      logger.info('✅ Background Sync Manager initialized successfully', {
-        queueSize: this.syncQueue.size,
-        networkOnline: navigator.onLine,
-        batteryLevel: Math.round(this.batteryLevel * 100)
-      }, 'SYNC_MANAGER');
-
+      logger.info(
+        "✅ Background Sync Manager initialized successfully",
+        {
+          queueSize: this.syncQueue.size,
+          networkOnline: navigator.onLine,
+          batteryLevel: Math.round(this.batteryLevel * 100),
+        },
+        "SYNC_MANAGER",
+      );
     } catch (error) {
-      logger.error('❌ Background Sync Manager initialization failed', { error }, 'SYNC_MANAGER');
-      throw new Error(`Background Sync initialization failed: ${error.message}`);
+      logger.error(
+        "❌ Background Sync Manager initialization failed",
+        { error },
+        "SYNC_MANAGER",
+      );
+      throw new Error(
+        `Background Sync initialization failed: ${error.message}`,
+      );
     }
   }
 
@@ -294,14 +325,16 @@ export class BackgroundSyncManager extends EventEmitter {
    * INTELLIGENT SYNC TASK QUEUING
    * Queues tasks with priority-based ordering and conflict detection
    */
-  async queueSyncTask(task: Omit<BackgroundSyncTask, 'id' | 'status' | 'metadata'> & {
-    metadata?: Partial<BackgroundSyncTask['metadata']>
-  }): Promise<string> {
+  async queueSyncTask(
+    task: Omit<BackgroundSyncTask, "id" | "status" | "metadata"> & {
+      metadata?: Partial<BackgroundSyncTask["metadata"]>;
+    },
+  ): Promise<string> {
     const taskId = this.generateTaskId();
-    
+
     const fullTask: BackgroundSyncTask = {
       id: taskId,
-      status: 'pending',
+      status: "pending",
       ...task,
       metadata: {
         timestamp: Date.now(),
@@ -309,19 +342,23 @@ export class BackgroundSyncManager extends EventEmitter {
         maxRetries: this.getMaxRetriesForPriority(task.priority),
         originalDeviceId: this.getDeviceId(),
         userId: this.getCurrentUserId(),
-        conflictResolutionStrategy: 'last-writer-wins',
-        ...task.metadata
-      }
+        conflictResolutionStrategy: "last-writer-wins",
+        ...task.metadata,
+      },
     };
 
     // Check for potential conflicts before queuing
     const conflictCheck = await this.checkForConflicts(fullTask);
     if (conflictCheck.hasConflict) {
-      logger.warn('Potential conflict detected for task', {
-        taskId,
-        type: fullTask.type,
-        conflictReason: conflictCheck.reason
-      }, 'SYNC_MANAGER');
+      logger.warn(
+        "Potential conflict detected for task",
+        {
+          taskId,
+          type: fullTask.type,
+          conflictReason: conflictCheck.reason,
+        },
+        "SYNC_MANAGER",
+      );
     }
 
     // Add to in-memory queue
@@ -334,15 +371,19 @@ export class BackgroundSyncManager extends EventEmitter {
     this.metrics.totalTasks++;
     this.metrics.queueSize = this.syncQueue.size;
 
-    logger.info('Sync task queued', {
-      taskId,
-      type: fullTask.type,
-      priority: fullTask.priority,
-      queueSize: this.syncQueue.size
-    }, 'SYNC_MANAGER');
+    logger.info(
+      "Sync task queued",
+      {
+        taskId,
+        type: fullTask.type,
+        priority: fullTask.priority,
+        queueSize: this.syncQueue.size,
+      },
+      "SYNC_MANAGER",
+    );
 
     // Trigger immediate sync for high-priority tasks if online
-    if (fullTask.priority === 'immediate' || fullTask.priority === 'high') {
+    if (fullTask.priority === "immediate" || fullTask.priority === "high") {
       if (navigator.onLine && !this.circuitBreaker.isOpen) {
         this.processSyncQueue();
       }
@@ -360,28 +401,38 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   private async processSyncQueue(): Promise<void> {
     if (this.activeSync.size > 0) {
-      logger.debug('Sync already in progress, skipping', {
-        activeSyncs: this.activeSync.size
-      }, 'SYNC_MANAGER');
+      logger.debug(
+        "Sync already in progress, skipping",
+        {
+          activeSyncs: this.activeSync.size,
+        },
+        "SYNC_MANAGER",
+      );
       return;
     }
 
     // Check circuit breaker
     if (this.isCircuitBreakerOpen()) {
-      logger.debug('Circuit breaker is open, skipping sync', {
-        failures: this.circuitBreaker.failures,
-        cooldownRemaining: this.circuitBreaker.cooldownPeriod - (Date.now() - this.circuitBreaker.lastFailure)
-      }, 'SYNC_MANAGER');
+      logger.debug(
+        "Circuit breaker is open, skipping sync",
+        {
+          failures: this.circuitBreaker.failures,
+          cooldownRemaining:
+            this.circuitBreaker.cooldownPeriod -
+            (Date.now() - this.circuitBreaker.lastFailure),
+        },
+        "SYNC_MANAGER",
+      );
       return;
     }
 
     // Get tasks ready for sync
     const readyTasks = Array.from(this.syncQueue.values())
-      .filter(task => this.isTaskReadyForSync(task))
+      .filter((task) => this.isTaskReadyForSync(task))
       .sort((a, b) => this.compareTasks(a, b));
 
     if (readyTasks.length === 0) {
-      logger.debug('No tasks ready for sync', {}, 'SYNC_MANAGER');
+      logger.debug("No tasks ready for sync", {}, "SYNC_MANAGER");
       return;
     }
 
@@ -389,17 +440,24 @@ export class BackgroundSyncManager extends EventEmitter {
     const maxConcurrent = this.getMaxConcurrentSyncs();
     const tasksToProcess = readyTasks.slice(0, maxConcurrent);
 
-    logger.info('Processing sync queue', {
-      totalReady: readyTasks.length,
-      processing: tasksToProcess.length,
-      maxConcurrent
-    }, 'SYNC_MANAGER');
+    logger.info(
+      "Processing sync queue",
+      {
+        totalReady: readyTasks.length,
+        processing: tasksToProcess.length,
+        maxConcurrent,
+      },
+      "SYNC_MANAGER",
+    );
 
     // PWA Context Integration - Notify sync started
-    this.notifyPWAContext('backgroundSync', 'started', { queueSize: readyTasks.length, processing: tasksToProcess.length });
+    this.notifyPWAContext("backgroundSync", "started", {
+      queueSize: readyTasks.length,
+      processing: tasksToProcess.length,
+    });
 
     await Promise.allSettled(
-      tasksToProcess.map(task => this.processSingleTask(task))
+      tasksToProcess.map((task) => this.processSingleTask(task)),
     );
   }
 
@@ -412,15 +470,19 @@ export class BackgroundSyncManager extends EventEmitter {
     this.activeSync.add(task.id);
 
     try {
-      logger.debug('Processing sync task', {
-        taskId: task.id,
-        type: task.type,
-        priority: task.priority,
-        retryCount: task.metadata.retryCount
-      }, 'SYNC_MANAGER');
+      logger.debug(
+        "Processing sync task",
+        {
+          taskId: task.id,
+          type: task.type,
+          priority: task.priority,
+          retryCount: task.metadata.retryCount,
+        },
+        "SYNC_MANAGER",
+      );
 
       // Update task status
-      task.status = 'syncing';
+      task.status = "syncing";
       await this.updateTaskInStorage(task);
 
       // Execute the sync operation
@@ -428,7 +490,7 @@ export class BackgroundSyncManager extends EventEmitter {
 
       if (syncResult.success) {
         // Sync successful
-        task.status = 'completed';
+        task.status = "completed";
         this.syncQueue.delete(task.id);
         await this.removeTaskFromStorage(task.id);
 
@@ -437,45 +499,59 @@ export class BackgroundSyncManager extends EventEmitter {
         this.updateAverageSyncTime(Date.now() - startTime);
         this.resetCircuitBreaker();
 
-        logger.info('Sync task completed successfully', {
-          taskId: task.id,
-          type: task.type,
-          syncTime: Date.now() - startTime
-        }, 'SYNC_MANAGER');
+        logger.info(
+          "Sync task completed successfully",
+          {
+            taskId: task.id,
+            type: task.type,
+            syncTime: Date.now() - startTime,
+          },
+          "SYNC_MANAGER",
+        );
 
         // PWA Context Integration - Notify successful sync completion
-        this.notifyPWAContext('backgroundSync', 'completed', { taskId: task.id, type: task.type, syncTime: Date.now() - startTime });
-
+        this.notifyPWAContext("backgroundSync", "completed", {
+          taskId: task.id,
+          type: task.type,
+          syncTime: Date.now() - startTime,
+        });
       } else if (syncResult.hasConflict) {
         // Handle conflict
-        const resolution = await this.resolveConflict(task, syncResult.conflictData);
-        
+        const resolution = await this.resolveConflict(
+          task,
+          syncResult.conflictData,
+        );
+
         if (resolution.resolved) {
           if (resolution.requiresUserIntervention) {
-            task.status = 'conflicted';
+            task.status = "conflicted";
             this.metrics.conflictedTasks++;
-            
+
             // Emit conflict event for UI handling
             this.emitConflictEvent(task, resolution);
           } else {
             // Auto-resolved, retry with merged data
             task.data = resolution.mergedData;
             task.metadata.retryCount = 0; // Reset retry count for resolved conflict
-            task.status = 'pending';
+            task.status = "pending";
           }
-          
+
           this.metrics.conflictResolutions++;
           await this.updateTaskInStorage(task);
         } else {
           // Failed to resolve conflict
-          await this.handleSyncFailure(task, new Error('Conflict resolution failed'));
+          await this.handleSyncFailure(
+            task,
+            new Error("Conflict resolution failed"),
+          );
         }
-
       } else {
         // Sync failed
-        await this.handleSyncFailure(task, syncResult.error || new Error('Sync operation failed'));
+        await this.handleSyncFailure(
+          task,
+          syncResult.error || new Error("Sync operation failed"),
+        );
       }
-
     } catch (error) {
       await this.handleSyncFailure(task, error as Error);
     } finally {
@@ -495,31 +571,31 @@ export class BackgroundSyncManager extends EventEmitter {
   }> {
     try {
       switch (task.type) {
-        case 'inspection_data':
+        case "inspection_data":
           return await this.syncInspectionData(task);
-        
-        case 'photo_upload':
+
+        case "photo_upload":
           return await this.syncPhotoUpload(task);
-        
-        case 'checklist_update':
+
+        case "checklist_update":
           return await this.syncChecklistUpdate(task);
-        
-        case 'user_action':
+
+        case "user_action":
           return await this.syncUserAction(task);
-        
-        case 'analytics':
+
+        case "analytics":
           return await this.syncAnalytics(task);
-        
-        case 'batch_operation':
+
+        case "batch_operation":
           return await this.syncBatchOperation(task);
-        
+
         default:
           throw new Error(`Unknown sync task type: ${task.type}`);
       }
     } catch (error) {
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -535,11 +611,11 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     const { data } = task;
-    
+
     try {
       // Check for server-side conflicts first
       const serverVersion = await this.fetchServerVersion(data.inspectionId);
-      
+
       if (serverVersion && serverVersion.version !== data.expectedVersion) {
         return {
           success: false,
@@ -547,26 +623,26 @@ export class BackgroundSyncManager extends EventEmitter {
           conflictData: {
             localData: data,
             serverData: serverVersion,
-            conflictType: 'version_mismatch'
-          }
+            conflictType: "version_mismatch",
+          },
         };
       }
 
       // Perform the sync operation
-      const response = await fetch('/api/inspections/sync', {
-        method: 'POST',
+      const response = await fetch("/api/inspections/sync", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
         body: JSON.stringify({
           ...data,
           syncMetadata: {
             deviceId: task.metadata.originalDeviceId,
             timestamp: task.metadata.timestamp,
-            version: data.expectedVersion
-          }
-        })
+            version: data.expectedVersion,
+          },
+        }),
       });
 
       if (response.status === 409) {
@@ -575,7 +651,7 @@ export class BackgroundSyncManager extends EventEmitter {
         return {
           success: false,
           hasConflict: true,
-          conflictData
+          conflictData,
         };
       }
 
@@ -585,18 +661,17 @@ export class BackgroundSyncManager extends EventEmitter {
 
       const result = await response.json();
       return {
-        success: true
+        success: true,
       };
-
     } catch (error) {
-      if (error.name === 'TypeError' && !navigator.onLine) {
+      if (error.name === "TypeError" && !navigator.onLine) {
         // Network error - will retry later
         this.metrics.networkFailures++;
       }
-      
+
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -612,20 +687,20 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     const { photoData, metadata } = task.data;
-    
+
     try {
       const formData = new FormData();
-      formData.append('photo', photoData);
-      formData.append('metadata', JSON.stringify(metadata));
-      formData.append('deviceId', task.metadata.originalDeviceId);
-      formData.append('timestamp', task.metadata.timestamp.toString());
+      formData.append("photo", photoData);
+      formData.append("metadata", JSON.stringify(metadata));
+      formData.append("deviceId", task.metadata.originalDeviceId);
+      formData.append("timestamp", task.metadata.timestamp.toString());
 
-      const response = await fetch('/api/photos/upload', {
-        method: 'POST',
+      const response = await fetch("/api/photos/upload", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -633,15 +708,14 @@ export class BackgroundSyncManager extends EventEmitter {
       }
 
       return { success: true };
-
     } catch (error) {
-      if (error.name === 'TypeError' && !navigator.onLine) {
+      if (error.name === "TypeError" && !navigator.onLine) {
         this.metrics.networkFailures++;
       }
-      
+
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -657,21 +731,21 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     const { checklistId, updates } = task.data;
-    
+
     try {
       const response = await fetch(`/api/checklists/${checklistId}/sync`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
         body: JSON.stringify({
           updates,
           syncMetadata: {
             deviceId: task.metadata.originalDeviceId,
-            timestamp: task.metadata.timestamp
-          }
-        })
+            timestamp: task.metadata.timestamp,
+          },
+        }),
       });
 
       if (response.status === 409) {
@@ -679,24 +753,25 @@ export class BackgroundSyncManager extends EventEmitter {
         return {
           success: false,
           hasConflict: true,
-          conflictData
+          conflictData,
         };
       }
 
       if (!response.ok) {
-        throw new Error(`Checklist sync failed with status: ${response.status}`);
+        throw new Error(
+          `Checklist sync failed with status: ${response.status}`,
+        );
       }
 
       return { success: true };
-
     } catch (error) {
-      if (error.name === 'TypeError' && !navigator.onLine) {
+      if (error.name === "TypeError" && !navigator.onLine) {
         this.metrics.networkFailures++;
       }
-      
+
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -712,29 +787,30 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     try {
-      const response = await fetch('/api/user/actions', {
-        method: 'POST',
+      const response = await fetch("/api/user/actions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
-        body: JSON.stringify(task.data)
+        body: JSON.stringify(task.data),
       });
 
       if (!response.ok) {
-        throw new Error(`User action sync failed with status: ${response.status}`);
+        throw new Error(
+          `User action sync failed with status: ${response.status}`,
+        );
       }
 
       return { success: true };
-
     } catch (error) {
-      if (error.name === 'TypeError' && !navigator.onLine) {
+      if (error.name === "TypeError" && !navigator.onLine) {
         this.metrics.networkFailures++;
       }
-      
+
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -750,28 +826,35 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     try {
-      const response = await fetch('/api/analytics/batch', {
-        method: 'POST',
+      const response = await fetch("/api/analytics/batch", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
-        body: JSON.stringify(task.data)
+        body: JSON.stringify(task.data),
       });
 
       // Analytics sync failures are not critical
       if (!response.ok) {
-        logger.warn('Analytics sync failed (non-critical)', {
-          status: response.status,
-          taskId: task.id
-        }, 'SYNC_MANAGER');
+        logger.warn(
+          "Analytics sync failed (non-critical)",
+          {
+            status: response.status,
+            taskId: task.id,
+          },
+          "SYNC_MANAGER",
+        );
       }
 
       return { success: response.ok };
-
     } catch (error) {
       // Analytics errors are non-critical
-      logger.warn('Analytics sync error (non-critical)', { error }, 'SYNC_MANAGER');
+      logger.warn(
+        "Analytics sync error (non-critical)",
+        { error },
+        "SYNC_MANAGER",
+      );
       return { success: false, error: error as Error };
     }
   }
@@ -787,19 +870,19 @@ export class BackgroundSyncManager extends EventEmitter {
     error?: Error;
   }> {
     const { operations } = task.data;
-    
+
     try {
-      const response = await fetch('/api/batch/sync', {
-        method: 'POST',
+      const response = await fetch("/api/batch/sync", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
         body: JSON.stringify({
           operations,
           batchId: task.id,
-          deviceId: task.metadata.originalDeviceId
-        })
+          deviceId: task.metadata.originalDeviceId,
+        }),
       });
 
       if (!response.ok) {
@@ -807,15 +890,14 @@ export class BackgroundSyncManager extends EventEmitter {
       }
 
       return { success: true };
-
     } catch (error) {
-      if (error.name === 'TypeError' && !navigator.onLine) {
+      if (error.name === "TypeError" && !navigator.onLine) {
         this.metrics.networkFailures++;
       }
-      
+
       return {
         success: false,
-        error: error as Error
+        error: error as Error,
       };
     }
   }
@@ -825,26 +907,27 @@ export class BackgroundSyncManager extends EventEmitter {
    * Resolves data conflicts using various strategies
    */
   private async resolveConflict(
-    task: BackgroundSyncTask, 
-    conflictData: ConflictDataInternal
+    task: BackgroundSyncTask,
+    conflictData: ConflictDataInternal,
   ): Promise<ConflictResolutionResult> {
-    const strategy = task.metadata.conflictResolutionStrategy || 'last-writer-wins';
-    
+    const strategy =
+      task.metadata.conflictResolutionStrategy || "last-writer-wins";
+
     switch (strategy) {
-      case 'last-writer-wins':
+      case "last-writer-wins":
         return this.resolveLastWriterWins(task, conflictData);
-      
-      case 'operational-transform':
+
+      case "operational-transform":
         return this.resolveOperationalTransform(task, conflictData);
-      
-      case 'user-mediated':
+
+      case "user-mediated":
         return this.resolveUserMediated(task, conflictData);
-      
+
       default:
         return {
           resolved: false,
           strategy,
-          requiresUserIntervention: true
+          requiresUserIntervention: true,
         };
     }
   }
@@ -854,8 +937,8 @@ export class BackgroundSyncManager extends EventEmitter {
    * Simple timestamp-based conflict resolution
    */
   private async resolveLastWriterWins(
-    task: BackgroundSyncTask, 
-    conflictData: ConflictDataInternal
+    task: BackgroundSyncTask,
+    conflictData: ConflictDataInternal,
   ): Promise<ConflictResolutionResult> {
     const localTimestamp = task.metadata.timestamp;
     const serverTimestamp = conflictData.serverData?.timestamp || 0;
@@ -864,17 +947,17 @@ export class BackgroundSyncManager extends EventEmitter {
       // Local version is newer, keep local data
       return {
         resolved: true,
-        strategy: 'last-writer-wins',
+        strategy: "last-writer-wins",
         mergedData: task.data,
-        requiresUserIntervention: false
+        requiresUserIntervention: false,
       };
     } else {
       // Server version is newer, use server data
       return {
         resolved: true,
-        strategy: 'last-writer-wins',
+        strategy: "last-writer-wins",
         mergedData: conflictData.serverData,
-        requiresUserIntervention: false
+        requiresUserIntervention: false,
       };
     }
   }
@@ -884,36 +967,38 @@ export class BackgroundSyncManager extends EventEmitter {
    * Intelligent merging of concurrent changes
    */
   private async resolveOperationalTransform(
-    task: BackgroundSyncTask, 
-    conflictData: ConflictDataInternal
+    task: BackgroundSyncTask,
+    conflictData: ConflictDataInternal,
   ): Promise<ConflictResolutionResult> {
     try {
       // Implement operational transform logic based on data type
       const mergedData = await this.performOperationalTransform(
         task.data,
         conflictData.serverData,
-        conflictData.baseData
+        conflictData.baseData,
       );
 
       return {
         resolved: true,
-        strategy: 'operational-transform',
+        strategy: "operational-transform",
         mergedData,
-        requiresUserIntervention: false
+        requiresUserIntervention: false,
       };
-
     } catch (error) {
-      logger.error('Operational transform failed', { error }, 'SYNC_MANAGER');
-      
+      logger.error("Operational transform failed", { error }, "SYNC_MANAGER");
+
       return {
         resolved: false,
-        strategy: 'operational-transform',
+        strategy: "operational-transform",
         requiresUserIntervention: true,
         conflictDetails: {
           localVersion: task.data,
           serverVersion: conflictData.serverData,
-          conflictFields: this.identifyConflictFields(task.data, conflictData.serverData)
-        }
+          conflictFields: this.identifyConflictFields(
+            task.data,
+            conflictData.serverData,
+          ),
+        },
       };
     }
   }
@@ -923,18 +1008,21 @@ export class BackgroundSyncManager extends EventEmitter {
    * Requires user intervention to resolve conflicts
    */
   private async resolveUserMediated(
-    task: BackgroundSyncTask, 
-    conflictData: ConflictDataInternal
+    task: BackgroundSyncTask,
+    conflictData: ConflictDataInternal,
   ): Promise<ConflictResolutionResult> {
     return {
       resolved: true, // Will be resolved by user
-      strategy: 'user-mediated',
+      strategy: "user-mediated",
       requiresUserIntervention: true,
       conflictDetails: {
         localVersion: task.data,
         serverVersion: conflictData.serverData,
-        conflictFields: this.identifyConflictFields(task.data, conflictData.serverData)
-      }
+        conflictFields: this.identifyConflictFields(
+          task.data,
+          conflictData.serverData,
+        ),
+      },
     };
   }
 
@@ -942,32 +1030,47 @@ export class BackgroundSyncManager extends EventEmitter {
    * SYNC FAILURE HANDLING
    * Handles failed sync operations with intelligent retry
    */
-  private async handleSyncFailure(task: BackgroundSyncTask, error: Error): Promise<void> {
+  private async handleSyncFailure(
+    task: BackgroundSyncTask,
+    error: Error,
+  ): Promise<void> {
     task.metadata.retryCount++;
     this.metrics.retryAttempts++;
 
-    logger.warn('Sync task failed', {
-      taskId: task.id,
-      type: task.type,
-      retryCount: task.metadata.retryCount,
-      maxRetries: task.metadata.maxRetries,
-      error: error.message
-    }, 'SYNC_MANAGER');
+    logger.warn(
+      "Sync task failed",
+      {
+        taskId: task.id,
+        type: task.type,
+        retryCount: task.metadata.retryCount,
+        maxRetries: task.metadata.maxRetries,
+        error: error.message,
+      },
+      "SYNC_MANAGER",
+    );
 
     if (task.metadata.retryCount >= task.metadata.maxRetries) {
       // Max retries exceeded
-      task.status = 'failed';
+      task.status = "failed";
       this.metrics.failedTasks++;
       this.recordCircuitBreakerFailure();
 
-      logger.error('Sync task failed permanently', {
-        taskId: task.id,
-        type: task.type,
-        finalError: error.message
-      }, 'SYNC_MANAGER');
+      logger.error(
+        "Sync task failed permanently",
+        {
+          taskId: task.id,
+          type: task.type,
+          finalError: error.message,
+        },
+        "SYNC_MANAGER",
+      );
 
       // PWA Context Integration - Notify sync failure
-      this.notifyPWAContext('backgroundSync', 'failed', { taskId: task.id, type: task.type, error: error.message });
+      this.notifyPWAContext("backgroundSync", "failed", {
+        taskId: task.id,
+        type: task.type,
+        error: error.message,
+      });
 
       // Emit failure event
       this.emitSyncFailureEvent(task, error);
@@ -975,35 +1078,47 @@ export class BackgroundSyncManager extends EventEmitter {
       // Remove from queue
       this.syncQueue.delete(task.id);
       await this.removeTaskFromStorage(task.id);
-
     } else {
       // Schedule retry with exponential backoff
-      const backoffDelay = Math.min(1000 * Math.pow(2, task.metadata.retryCount), 30000);
+      const backoffDelay = Math.min(
+        1000 * Math.pow(2, task.metadata.retryCount),
+        30000,
+      );
       task.metadata.nextRetryAt = Date.now() + backoffDelay;
-      task.status = 'pending';
-      
+      task.status = "pending";
+
       await this.updateTaskInStorage(task);
 
-      logger.debug('Sync task scheduled for retry', {
-        taskId: task.id,
-        retryCount: task.metadata.retryCount,
-        nextRetryAt: new Date(task.metadata.nextRetryAt).toISOString()
-      }, 'SYNC_MANAGER');
+      logger.debug(
+        "Sync task scheduled for retry",
+        {
+          taskId: task.id,
+          retryCount: task.metadata.retryCount,
+          nextRetryAt: new Date(task.metadata.nextRetryAt).toISOString(),
+        },
+        "SYNC_MANAGER",
+      );
     }
   }
 
   // Helper methods for task management
   private isTaskReadyForSync(task: BackgroundSyncTask): boolean {
-    if (task.status !== 'pending') return false;
-    if (task.metadata.nextRetryAt && Date.now() < task.metadata.nextRetryAt) return false;
-    
+    if (task.status !== "pending") return false;
+    if (task.metadata.nextRetryAt && Date.now() < task.metadata.nextRetryAt)
+      return false;
+
     // Check network requirements
     if (task.networkRequirements) {
-      if (task.networkRequirements.requiresOnline && !navigator.onLine) return false;
+      if (task.networkRequirements.requiresOnline && !navigator.onLine)
+        return false;
       if (this.networkContext && task.networkRequirements.minConnectionType) {
-        const connectionTypes = ['slow-2g', '2g', '3g', '4g'];
-        const requiredIndex = connectionTypes.indexOf(task.networkRequirements.minConnectionType);
-        const currentIndex = connectionTypes.indexOf(this.networkContext.effectiveType);
+        const connectionTypes = ["slow-2g", "2g", "3g", "4g"];
+        const requiredIndex = connectionTypes.indexOf(
+          task.networkRequirements.minConnectionType,
+        );
+        const currentIndex = connectionTypes.indexOf(
+          this.networkContext.effectiveType,
+        );
         if (currentIndex < requiredIndex) return false;
       }
     }
@@ -1012,39 +1127,47 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   private compareTasks(a: BackgroundSyncTask, b: BackgroundSyncTask): number {
-    const priorityOrder = { immediate: 0, high: 1, normal: 2, low: 3, batch: 4 };
+    const priorityOrder = {
+      immediate: 0,
+      high: 1,
+      normal: 2,
+      low: 3,
+      batch: 4,
+    };
     const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
     if (priorityDiff !== 0) return priorityDiff;
-    
+
     return a.metadata.timestamp - b.metadata.timestamp;
   }
 
   private getMaxConcurrentSyncs(): number {
     if (!this.networkContext) return 2;
-    
+
     // Adjust concurrency based on network conditions
     switch (this.networkContext.effectiveType) {
-      case 'slow-2g':
-      case '2g':
+      case "slow-2g":
+      case "2g":
         return 1;
-      case '3g':
+      case "3g":
         return 2;
-      case '4g':
+      case "4g":
       default:
         return 3;
     }
   }
 
-  private getMaxRetriesForPriority(priority: BackgroundSyncTask['priority']): number {
+  private getMaxRetriesForPriority(
+    priority: BackgroundSyncTask["priority"],
+  ): number {
     switch (priority) {
-      case 'immediate':
+      case "immediate":
         return 5;
-      case 'high':
+      case "high":
         return 3;
-      case 'normal':
+      case "normal":
         return 2;
-      case 'low':
-      case 'batch':
+      case "low":
+      case "batch":
         return 1;
       default:
         return 2;
@@ -1054,28 +1177,32 @@ export class BackgroundSyncManager extends EventEmitter {
   // Circuit breaker implementation
   private isCircuitBreakerOpen(): boolean {
     if (!this.circuitBreaker.isOpen) return false;
-    
+
     const timeSinceLastFailure = Date.now() - this.circuitBreaker.lastFailure;
     if (timeSinceLastFailure > this.circuitBreaker.cooldownPeriod) {
       this.circuitBreaker.isOpen = false;
       this.circuitBreaker.failures = 0;
-      logger.info('Circuit breaker reset', {}, 'SYNC_MANAGER');
+      logger.info("Circuit breaker reset", {}, "SYNC_MANAGER");
       return false;
     }
-    
+
     return true;
   }
 
   private recordCircuitBreakerFailure(): void {
     this.circuitBreaker.failures++;
     this.circuitBreaker.lastFailure = Date.now();
-    
+
     if (this.circuitBreaker.failures >= this.circuitBreaker.threshold) {
       this.circuitBreaker.isOpen = true;
-      logger.warn('Circuit breaker opened', {
-        failures: this.circuitBreaker.failures,
-        cooldownPeriod: this.circuitBreaker.cooldownPeriod
-      }, 'SYNC_MANAGER');
+      logger.warn(
+        "Circuit breaker opened",
+        {
+          failures: this.circuitBreaker.failures,
+          cooldownPeriod: this.circuitBreaker.cooldownPeriod,
+        },
+        "SYNC_MANAGER",
+      );
     }
   }
 
@@ -1087,22 +1214,24 @@ export class BackgroundSyncManager extends EventEmitter {
   // Storage management
   private async initializePersistentStorage(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('BackgroundSyncStorage', 1);
-      
+      const request = indexedDB.open("BackgroundSyncStorage", 1);
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         this.db = request.result;
         resolve();
       };
-      
+
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
-        if (!db.objectStoreNames.contains('syncQueue')) {
-          const store = db.createObjectStore('syncQueue', { keyPath: 'id' });
-          store.createIndex('status', 'status', { unique: false });
-          store.createIndex('priority', 'priority', { unique: false });
-          store.createIndex('timestamp', 'metadata.timestamp', { unique: false });
+
+        if (!db.objectStoreNames.contains("syncQueue")) {
+          const store = db.createObjectStore("syncQueue", { keyPath: "id" });
+          store.createIndex("status", "status", { unique: false });
+          store.createIndex("priority", "priority", { unique: false });
+          store.createIndex("timestamp", "metadata.timestamp", {
+            unique: false,
+          });
         }
       };
     });
@@ -1110,23 +1239,27 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private async loadSyncQueueFromStorage(): Promise<void> {
     if (!this.db) return;
-    
+
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['syncQueue'], 'readonly');
-      const store = transaction.objectStore('syncQueue');
+      const transaction = this.db!.transaction(["syncQueue"], "readonly");
+      const store = transaction.objectStore("syncQueue");
       const request = store.getAll();
-      
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const tasks = request.result as BackgroundSyncTask[];
-        tasks.forEach(task => {
+        tasks.forEach((task) => {
           this.syncQueue.set(task.id, task);
         });
-        
-        logger.info('Loaded sync queue from storage', {
-          taskCount: tasks.length
-        }, 'SYNC_MANAGER');
-        
+
+        logger.info(
+          "Loaded sync queue from storage",
+          {
+            taskCount: tasks.length,
+          },
+          "SYNC_MANAGER",
+        );
+
         resolve();
       };
     });
@@ -1134,12 +1267,12 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private async persistTaskToStorage(task: BackgroundSyncTask): Promise<void> {
     if (!this.db) return;
-    
+
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['syncQueue'], 'readwrite');
-      const store = transaction.objectStore('syncQueue');
+      const transaction = this.db!.transaction(["syncQueue"], "readwrite");
+      const store = transaction.objectStore("syncQueue");
       const request = store.put(task);
-      
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve();
     });
@@ -1151,12 +1284,12 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private async removeTaskFromStorage(taskId: string): Promise<void> {
     if (!this.db) return;
-    
+
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['syncQueue'], 'readwrite');
-      const store = transaction.objectStore('syncQueue');
+      const transaction = this.db!.transaction(["syncQueue"], "readwrite");
+      const store = transaction.objectStore("syncQueue");
       const request = store.delete(taskId);
-      
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve();
     });
@@ -1164,36 +1297,36 @@ export class BackgroundSyncManager extends EventEmitter {
 
   // Network and battery monitoring
   private initializeNetworkMonitoring(): void {
-    if ('connection' in navigator) {
+    if ("connection" in navigator) {
       const connection = (navigator as any).connection;
-      
+
       this.networkContext = {
-        effectiveType: connection.effectiveType || '4g',
+        effectiveType: connection.effectiveType || "4g",
         downlink: connection.downlink || 10,
         rtt: connection.rtt || 50,
         saveData: connection.saveData || false,
-        isOnline: navigator.onLine
+        isOnline: navigator.onLine,
       };
 
-      connection.addEventListener('change', () => {
+      connection.addEventListener("change", () => {
         this.networkContext = {
-          effectiveType: connection.effectiveType || '4g',
+          effectiveType: connection.effectiveType || "4g",
           downlink: connection.downlink || 10,
           rtt: connection.rtt || 50,
           saveData: connection.saveData || false,
-          isOnline: navigator.onLine
+          isOnline: navigator.onLine,
         };
       });
     }
 
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       if (this.networkContext) {
         this.networkContext.isOnline = true;
       }
       this.processSyncQueue();
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       if (this.networkContext) {
         this.networkContext.isOnline = false;
       }
@@ -1202,30 +1335,30 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private async initializeBatteryMonitoring(): Promise<void> {
     try {
-      if ('getBattery' in navigator) {
+      if ("getBattery" in navigator) {
         const battery = await (navigator as any).getBattery();
         this.batteryLevel = battery.level;
 
-        battery.addEventListener('levelchange', () => {
+        battery.addEventListener("levelchange", () => {
           this.batteryLevel = battery.level;
         });
       }
     } catch (error) {
-      logger.debug('Battery API not available', {}, 'SYNC_MANAGER');
+      logger.debug("Battery API not available", {}, "SYNC_MANAGER");
     }
   }
 
   // Service worker integration
   private setupServiceWorkerMessaging(): void {
     if (this.registration) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
+      navigator.serviceWorker.addEventListener("message", (event) => {
         const { type, data } = event.data || {};
-        
+
         switch (type) {
-          case 'BACKGROUND_SYNC_SUCCESS':
+          case "BACKGROUND_SYNC_SUCCESS":
             this.handleBackgroundSyncSuccess(data.taskId);
             break;
-          case 'BACKGROUND_SYNC_FAILED':
+          case "BACKGROUND_SYNC_FAILED":
             this.handleBackgroundSyncFailure(data.taskId, data.error);
             break;
         }
@@ -1234,37 +1367,47 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   private async registerBackgroundSyncEvents(): Promise<void> {
-    if (!this.registration || !('sync' in this.registration)) {
-      logger.warn('Background Sync not supported', {}, 'SYNC_MANAGER');
+    if (!this.registration || !("sync" in this.registration)) {
+      logger.warn("Background Sync not supported", {}, "SYNC_MANAGER");
       return;
     }
 
     try {
-      await this.registration.sync.register('inspection-data-sync');
-      await this.registration.sync.register('photo-upload-sync');
-      await this.registration.sync.register('checklist-update-sync');
-      await this.registration.sync.register('user-action-sync');
-      await this.registration.sync.register('analytics-sync');
-      await this.registration.sync.register('batch-operation-sync');
+      await this.registration.sync.register("inspection-data-sync");
+      await this.registration.sync.register("photo-upload-sync");
+      await this.registration.sync.register("checklist-update-sync");
+      await this.registration.sync.register("user-action-sync");
+      await this.registration.sync.register("analytics-sync");
+      await this.registration.sync.register("batch-operation-sync");
 
-      logger.info('Background sync events registered', {}, 'SYNC_MANAGER');
+      logger.info("Background sync events registered", {}, "SYNC_MANAGER");
     } catch (error) {
-      logger.error('Failed to register background sync events', { error }, 'SYNC_MANAGER');
+      logger.error(
+        "Failed to register background sync events",
+        { error },
+        "SYNC_MANAGER",
+      );
     }
   }
 
-  private async registerBackgroundSync(task: BackgroundSyncTask): Promise<void> {
-    if (!this.registration || !('sync' in this.registration)) return;
+  private async registerBackgroundSync(
+    task: BackgroundSyncTask,
+  ): Promise<void> {
+    if (!this.registration || !("sync" in this.registration)) return;
 
     const syncTag = `${task.type}-sync`;
-    
+
     try {
       await this.registration.sync.register(syncTag);
     } catch (error) {
-      logger.warn('Failed to register background sync', {
-        syncTag,
-        error: error.message
-      }, 'SYNC_MANAGER');
+      logger.warn(
+        "Failed to register background sync",
+        {
+          syncTag,
+          error: error.message,
+        },
+        "SYNC_MANAGER",
+      );
     }
   }
 
@@ -1279,35 +1422,44 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private updateMetrics(): void {
     this.metrics.queueSize = this.syncQueue.size;
-    
-    const totalAttempts = this.metrics.completedTasks + this.metrics.failedTasks;
+
+    const totalAttempts =
+      this.metrics.completedTasks + this.metrics.failedTasks;
     if (totalAttempts > 0) {
-      this.metrics.successRate = (this.metrics.completedTasks / totalAttempts) * 100;
+      this.metrics.successRate =
+        (this.metrics.completedTasks / totalAttempts) * 100;
     }
   }
 
   private updateAverageSyncTime(syncTime: number): void {
-    this.metrics.averageSyncTime = 
+    this.metrics.averageSyncTime =
       (this.metrics.averageSyncTime + syncTime) / 2;
   }
 
   // Event handling
-  private emitConflictEvent(task: BackgroundSyncTask, resolution: ConflictResolutionResult): void {
-    window.dispatchEvent(new CustomEvent('background-sync-conflict', {
-      detail: { task, resolution }
-    }));
+  private emitConflictEvent(
+    task: BackgroundSyncTask,
+    resolution: ConflictResolutionResult,
+  ): void {
+    window.dispatchEvent(
+      new CustomEvent("background-sync-conflict", {
+        detail: { task, resolution },
+      }),
+    );
   }
 
   private emitSyncFailureEvent(task: BackgroundSyncTask, error: Error): void {
-    window.dispatchEvent(new CustomEvent('background-sync-failed', {
-      detail: { task, error: error.message }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("background-sync-failed", {
+        detail: { task, error: error.message },
+      }),
+    );
   }
 
   private handleBackgroundSyncSuccess(taskId: string): void {
     const task = this.syncQueue.get(taskId);
     if (task) {
-      task.status = 'completed';
+      task.status = "completed";
       this.syncQueue.delete(taskId);
       this.removeTaskFromStorage(taskId);
       this.metrics.completedTasks++;
@@ -1328,31 +1480,31 @@ export class BackgroundSyncManager extends EventEmitter {
 
   private getDeviceId(): string {
     // Implementation would return a unique device identifier
-    return localStorage.getItem('deviceId') || 'unknown';
+    return localStorage.getItem("deviceId") || "unknown";
   }
 
   private getCurrentUserId(): string {
     // Implementation would return current user ID
-    return 'user_' + (localStorage.getItem('userId') || 'anonymous');
+    return "user_" + (localStorage.getItem("userId") || "anonymous");
   }
 
   private getAuthToken(): string {
     // Implementation would return current auth token
-    return localStorage.getItem('authToken') || '';
+    return localStorage.getItem("authToken") || "";
   }
 
   private async fetchServerVersion(entityId: string): Promise<any> {
     try {
       const response = await fetch(`/api/entities/${entityId}/version`, {
         headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        }
+          Authorization: `Bearer ${this.getAuthToken()}`,
+        },
       });
-      
+
       if (response.ok) {
         return await response.json();
       }
-      
+
       return null;
     } catch (error) {
       return null;
@@ -1370,22 +1522,28 @@ export class BackgroundSyncManager extends EventEmitter {
   private async performOperationalTransform(
     localData: SyncDataPayload,
     serverData: SyncDataPayload,
-    baseData?: SyncDataPayload
+    baseData?: SyncDataPayload,
   ): Promise<any> {
     // Implementation would perform operational transform
     // For now, return simple merge
     return { ...serverData, ...localData };
   }
 
-  private identifyConflictFields(localData: SyncDataPayload, serverData: SyncDataPayload): string[] {
+  private identifyConflictFields(
+    localData: SyncDataPayload,
+    serverData: SyncDataPayload,
+  ): string[] {
     const conflicts: string[] = [];
-    
-    Object.keys(localData).forEach(key => {
-      if (Object.prototype.hasOwnProperty.call(serverData, key) && localData[key] !== serverData[key]) {
+
+    Object.keys(localData).forEach((key) => {
+      if (
+        Object.prototype.hasOwnProperty.call(serverData, key) &&
+        localData[key] !== serverData[key]
+      ) {
         conflicts.push(key);
       }
     });
-    
+
     return conflicts;
   }
 
@@ -1400,80 +1558,95 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   async clearCompletedTasks(): Promise<void> {
-    const completedTasks = Array.from(this.syncQueue.values())
-      .filter(task => task.status === 'completed');
-    
+    const completedTasks = Array.from(this.syncQueue.values()).filter(
+      (task) => task.status === "completed",
+    );
+
     for (const task of completedTasks) {
       this.syncQueue.delete(task.id);
       await this.removeTaskFromStorage(task.id);
     }
-    
-    logger.info('Completed tasks cleared', { count: completedTasks.length }, 'SYNC_MANAGER');
+
+    logger.info(
+      "Completed tasks cleared",
+      { count: completedTasks.length },
+      "SYNC_MANAGER",
+    );
   }
 
   async cancelTask(taskId: string): Promise<boolean> {
     const task = this.syncQueue.get(taskId);
     if (!task) return false;
-    
-    if (task.status === 'syncing') {
-      logger.warn('Cannot cancel task in progress', { taskId }, 'SYNC_MANAGER');
+
+    if (task.status === "syncing") {
+      logger.warn("Cannot cancel task in progress", { taskId }, "SYNC_MANAGER");
       return false;
     }
-    
+
     this.syncQueue.delete(taskId);
     await this.removeTaskFromStorage(taskId);
-    
-    logger.info('Task cancelled', { taskId }, 'SYNC_MANAGER');
+
+    logger.info("Task cancelled", { taskId }, "SYNC_MANAGER");
     return true;
   }
 
   async retryFailedTasks(): Promise<void> {
-    const failedTasks = Array.from(this.syncQueue.values())
-      .filter(task => task.status === 'failed');
-    
+    const failedTasks = Array.from(this.syncQueue.values()).filter(
+      (task) => task.status === "failed",
+    );
+
     for (const task of failedTasks) {
-      task.status = 'pending';
+      task.status = "pending";
       task.metadata.retryCount = 0;
       task.metadata.nextRetryAt = undefined;
       await this.updateTaskInStorage(task);
     }
-    
-    logger.info('Failed tasks reset for retry', { count: failedTasks.length }, 'SYNC_MANAGER');
-    
+
+    logger.info(
+      "Failed tasks reset for retry",
+      { count: failedTasks.length },
+      "SYNC_MANAGER",
+    );
+
     if (navigator.onLine) {
       this.processSyncQueue();
     }
   }
 
   // PHASE 4B: Add missing methods for verification requirements
-  
+
   /**
    * QUEUE SYNC TASK
    * Adds a task to the sync queue with priority-based ordering
    */
-  async queueSync(task: Omit<SyncTask, 'id' | 'retryCount' | 'createdAt'>): Promise<string> {
+  async queueSync(
+    task: Omit<SyncTask, "id" | "retryCount" | "createdAt">,
+  ): Promise<string> {
     const syncTask: SyncTask = {
       ...task,
       id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       retryCount: 0,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
 
     // Convert to BackgroundSyncTask format
     const backgroundTask: BackgroundSyncTask = {
       id: syncTask.id,
       type: this.mapTaskType(syncTask.type),
-      priority: syncTask.priority === 'immediate' ? 'immediate' : syncTask.priority as any,
+      priority:
+        syncTask.priority === "immediate"
+          ? "immediate"
+          : (syncTask.priority as any),
       data: syncTask.data,
       metadata: {
         timestamp: syncTask.createdAt,
         retryCount: 0,
         maxRetries: syncTask.maxRetries || 3,
-        originalDeviceId: 'current_device',
-        queueName: syncTask.queueName
+        originalDeviceId: "current_device",
+        queueName: syncTask.queueName,
       },
-      status: 'pending',
-      conflictResolution: 'last-writer-wins'
+      status: "pending",
+      conflictResolution: "last-writer-wins",
     };
 
     await this.addTask(backgroundTask);
@@ -1486,11 +1659,15 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   async triggerSync(queueName?: string): Promise<void> {
     if (queueName) {
-      logger.info('Triggering sync for specific queue', { queueName }, 'SYNC_MANAGER');
+      logger.info(
+        "Triggering sync for specific queue",
+        { queueName },
+        "SYNC_MANAGER",
+      );
       // Filter tasks by queue and process
       this.processSyncQueue();
     } else {
-      logger.info('Triggering sync for all queues', {}, 'SYNC_MANAGER');
+      logger.info("Triggering sync for all queues", {}, "SYNC_MANAGER");
       this.processSyncQueue();
     }
   }
@@ -1500,13 +1677,21 @@ export class BackgroundSyncManager extends EventEmitter {
    * Processes sync tasks in priority order
    */
   async processQueue(queueName: string, queue: SyncTask[]): Promise<void> {
-    logger.info('Processing sync queue', { queueName, queueLength: queue.length }, 'SYNC_MANAGER');
-    
+    logger.info(
+      "Processing sync queue",
+      { queueName, queueLength: queue.length },
+      "SYNC_MANAGER",
+    );
+
     for (const task of queue) {
       try {
         await this.executeTask(task);
       } catch (error) {
-        logger.error('Task execution failed', { taskId: task.id, error }, 'SYNC_MANAGER');
+        logger.error(
+          "Task execution failed",
+          { taskId: task.id, error },
+          "SYNC_MANAGER",
+        );
       }
     }
   }
@@ -1524,22 +1709,25 @@ export class BackgroundSyncManager extends EventEmitter {
     try {
       const result = await this.executeTask(backgroundTask);
       if (!result.success) {
-        throw new Error(result.error?.message || 'Task execution failed');
+        throw new Error(result.error?.message || "Task execution failed");
       }
     } catch (error) {
-      logger.error('Task execution failed', { taskId: task.id, error }, 'SYNC_MANAGER');
+      logger.error(
+        "Task execution failed",
+        { taskId: task.id, error },
+        "SYNC_MANAGER",
+      );
       throw error;
     }
   }
-
 
   /**
    * SYNC MEDIA DATA
    * Syncs media files with compression and retry logic
    */
   private async syncMediaData(data: MediaUploadData): Promise<void> {
-    logger.info('Syncing media data', { mediaId: data.id }, 'SYNC_MANAGER');
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    logger.info("Syncing media data", { mediaId: data.id }, "SYNC_MANAGER");
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 
   /**
@@ -1550,8 +1738,10 @@ export class BackgroundSyncManager extends EventEmitter {
     const priorities = { immediate: 4, high: 3, normal: 2, low: 1 };
     const taskPriority = priorities[task.priority];
 
-    const insertIndex = queue.findIndex(t => priorities[t.priority] < taskPriority);
-    
+    const insertIndex = queue.findIndex(
+      (t) => priorities[t.priority] < taskPriority,
+    );
+
     if (insertIndex === -1) {
       queue.push(task);
     } else {
@@ -1569,10 +1759,10 @@ export class BackgroundSyncManager extends EventEmitter {
 
     return {
       isOnline: navigator.onLine,
-      connectionType: connection?.effectiveType || 'unknown',
+      connectionType: connection?.effectiveType || "unknown",
       batteryLevel: Math.round((battery?.level || 1) * 100),
       isCharging: battery?.charging || false,
-      backgroundMode: document.hidden
+      backgroundMode: document.hidden,
     };
   }
 
@@ -1592,15 +1782,23 @@ export class BackgroundSyncManager extends EventEmitter {
    * MAP TASK TYPE
    * Maps SyncTask type to BackgroundSyncTask type
    */
-  private mapTaskType(type: string): 'inspection_data' | 'photo_upload' | 'checklist_update' | 'user_action' | 'analytics' | 'batch_operation' {
+  private mapTaskType(
+    type: string,
+  ):
+    | "inspection_data"
+    | "photo_upload"
+    | "checklist_update"
+    | "user_action"
+    | "analytics"
+    | "batch_operation" {
     const typeMap = {
-      'inspection': 'inspection_data',
-      'media': 'photo_upload',
-      'checklist': 'checklist_update',
-      'user_data': 'user_action'
+      inspection: "inspection_data",
+      media: "photo_upload",
+      checklist: "checklist_update",
+      user_data: "user_action",
     } as const;
 
-    return typeMap[type as keyof typeof typeMap] || 'user_action';
+    return typeMap[type as keyof typeof typeMap] || "user_action";
   }
 
   /**
@@ -1608,7 +1806,7 @@ export class BackgroundSyncManager extends EventEmitter {
    * Gets battery information for optimization decisions
    */
   private async getBatteryInfo(): Promise<any> {
-    if ('getBattery' in navigator) {
+    if ("getBattery" in navigator) {
       try {
         return await (navigator as any).getBattery();
       } catch (error) {
@@ -1624,28 +1822,37 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   enableBatchingMode(): void {
     this.batchingEnabled = true;
-    logger.info('Batching mode enabled for performance optimization', {}, 'SYNC_MANAGER');
-    this.emit('batchingEnabled', { timestamp: Date.now() });
+    logger.info(
+      "Batching mode enabled for performance optimization",
+      {},
+      "SYNC_MANAGER",
+    );
+    this.emit("batchingEnabled", { timestamp: Date.now() });
   }
 
   // PHASE 4C: PWA Context Integration Methods
   public getContextStatus(): BackgroundSyncStatus {
     return {
-      isSupported: this.registration !== null && 'sync' in ServiceWorkerRegistration.prototype,
+      isSupported:
+        this.registration !== null &&
+        "sync" in ServiceWorkerRegistration.prototype,
       isRegistered: this.isInitialized,
       registeredTags: Array.from(this.syncQueue.keys()),
       pendingSyncs: this.getTotalQueueSize(),
       syncInProgress: this.activeSync.size > 0,
       failedSyncs: this.circuitBreaker.failures,
       circuitBreakerOpen: this.circuitBreaker.isOpen,
-      lastSyncTime: this.metrics.lastSyncTime
+      lastSyncTime: this.metrics.lastSyncTime,
     };
   }
 
   // ADD context update notifications
   private notifyContextUpdate(): void {
-    if (typeof window !== 'undefined' && (window as any).__PWA_CONTEXT_UPDATE__) {
-      (window as any).__PWA_CONTEXT_UPDATE__('sync', this.getContextStatus());
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__PWA_CONTEXT_UPDATE__
+    ) {
+      (window as any).__PWA_CONTEXT_UPDATE__("sync", this.getContextStatus());
     }
   }
 
@@ -1654,32 +1861,38 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   // PWA Context Integration - Add after sync completion
-  private notifyPWAContext(operation: string, status: 'started' | 'completed' | 'failed', data?: Record<string, unknown>): void {
+  private notifyPWAContext(
+    operation: string,
+    status: "started" | "completed" | "failed",
+    data?: Record<string, unknown>,
+  ): void {
     try {
       // Dispatch PWA context update event
-      window.dispatchEvent(new CustomEvent('pwa-context-update', {
-        detail: {
-          component: 'BackgroundSyncManager',
-          operation,
-          status,
-          data,
-          timestamp: Date.now()
-        }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("pwa-context-update", {
+          detail: {
+            component: "BackgroundSyncManager",
+            operation,
+            status,
+            data,
+            timestamp: Date.now(),
+          },
+        }),
+      );
 
       // Update global PWA status
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const pwaStatus = (window as any).__PWA_STATUS__ || {};
-        pwaStatus.backgroundSyncActive = status === 'started';
+        pwaStatus.backgroundSyncActive = status === "started";
         pwaStatus.lastSyncOperation = {
           operation,
           status,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
         (window as any).__PWA_STATUS__ = pwaStatus;
       }
     } catch (error) {
-      console.warn('PWA context notification failed:', error);
+      console.warn("PWA context notification failed:", error);
     }
   }
 
@@ -1687,15 +1900,15 @@ export class BackgroundSyncManager extends EventEmitter {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
     }
-    
+
     if (this.db) {
       this.db.close();
     }
-    
+
     this.syncQueue.clear();
     this.isInitialized = false;
-    
-    logger.info('Background Sync Manager destroyed', {}, 'SYNC_MANAGER');
+
+    logger.info("Background Sync Manager destroyed", {}, "SYNC_MANAGER");
   }
 }
 

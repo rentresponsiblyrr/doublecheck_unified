@@ -3,7 +3,7 @@
  * Replaces all 'any' types with proper TypeScript interfaces
  */
 
-import { PropertyId, InspectionId, UserId } from './branded-types';
+import { PropertyId, InspectionId, UserId } from "./branded-types";
 
 // Core metric interfaces
 export interface BoundingBox {
@@ -31,7 +31,7 @@ export interface GroundTruthData {
 export interface UserFeedback {
   userId: UserId;
   rating: number;
-  correctness: 'correct' | 'incorrect' | 'partially_correct';
+  correctness: "correct" | "incorrect" | "partially_correct";
   suggestedCorrection?: PredictionData;
   notes?: string;
 }
@@ -44,7 +44,7 @@ export interface MetricValue {
 
 export interface PerformanceMetric {
   value: number;
-  unit: 'ms' | 'seconds' | 'count' | 'percentage';
+  unit: "ms" | "seconds" | "count" | "percentage";
   timestamp: string;
   metadata?: Record<string, string | number>;
 }
@@ -66,7 +66,7 @@ export interface AlertData {
   metric: string;
   threshold: number;
   currentValue: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   metadata: Record<string, string | number>;
 }
@@ -88,7 +88,7 @@ export interface ModelComparison {
 }
 
 export interface TrendData {
-  direction: 'increasing' | 'decreasing' | 'stable';
+  direction: "increasing" | "decreasing" | "stable";
   slope: number;
   correlation: number;
   significance: number;

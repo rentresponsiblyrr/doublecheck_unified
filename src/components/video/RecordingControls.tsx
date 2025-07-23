@@ -3,9 +3,9 @@
  * Extracted from VideoRecorder.tsx
  */
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Circle, Pause, Play, Square } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Circle, Pause, Play, Square } from "lucide-react";
 
 interface RecordingControlsProps {
   isRecording: boolean;
@@ -24,7 +24,7 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
   onStart,
   onStop,
   onPause,
-  onResume
+  onResume,
 }) => {
   return (
     <div id="recording-controls" className="space-y-4">

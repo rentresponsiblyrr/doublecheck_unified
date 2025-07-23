@@ -3,10 +3,10 @@
  * Content-specific components extracted from monolithic sidebar
  */
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 export const SidebarInput = React.forwardRef<
   React.ElementRef<typeof Input>,
@@ -18,13 +18,13 @@ export const SidebarInput = React.forwardRef<
       data-sidebar="input"
       className={cn(
         "h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        className
+        className,
       )}
       {...props}
     />
-  )
-})
-SidebarInput.displayName = "SidebarInput"
+  );
+});
+SidebarInput.displayName = "SidebarInput";
 
 export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
@@ -37,9 +37,9 @@ export const SidebarHeader = React.forwardRef<
       className={cn("flex flex-col gap-2 p-2", className)}
       {...props}
     />
-  )
-})
-SidebarHeader.displayName = "SidebarHeader"
+  );
+});
+SidebarHeader.displayName = "SidebarHeader";
 
 export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
@@ -52,9 +52,9 @@ export const SidebarFooter = React.forwardRef<
       className={cn("flex flex-col gap-2 p-2", className)}
       {...props}
     />
-  )
-})
-SidebarFooter.displayName = "SidebarFooter"
+  );
+});
+SidebarFooter.displayName = "SidebarFooter";
 
 export const SidebarSeparator = React.forwardRef<
   React.ElementRef<typeof Separator>,
@@ -67,9 +67,9 @@ export const SidebarSeparator = React.forwardRef<
       className={cn("mx-2 w-auto bg-sidebar-border", className)}
       {...props}
     />
-  )
-})
-SidebarSeparator.displayName = "SidebarSeparator"
+  );
+});
+SidebarSeparator.displayName = "SidebarSeparator";
 
 export const SidebarContent = React.forwardRef<
   HTMLDivElement,
@@ -81,10 +81,10 @@ export const SidebarContent = React.forwardRef<
       data-sidebar="content"
       className={cn(
         "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        className
+        className,
       )}
       {...props}
     />
-  )
-})
-SidebarContent.displayName = "SidebarContent"
+  );
+});
+SidebarContent.displayName = "SidebarContent";

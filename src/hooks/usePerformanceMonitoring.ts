@@ -1,8 +1,8 @@
 // Performance Monitoring Hook for STR Certified
 // Tracks component renders, AI processing, and user interactions
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface PerformanceMetrics {
   renderTime: number;
@@ -14,8 +14,13 @@ interface PerformanceMetrics {
 
 interface PerformanceAlert {
   id: string;
-  type: 'slow_render' | 'ai_delay' | 'memory_warning' | 'fps_drop' | 'interaction_lag';
-  severity: 'warning' | 'error' | 'critical';
+  type:
+    | "slow_render"
+    | "ai_delay"
+    | "memory_warning"
+    | "fps_drop"
+    | "interaction_lag";
+  severity: "warning" | "error" | "critical";
   message: string;
   timestamp: Date;
   metrics: Partial<PerformanceMetrics>;
@@ -26,11 +31,11 @@ interface UsePerformanceMonitoringOptions {
   componentName: string;
   enableAlerts?: boolean;
   thresholds?: {
-    renderTime?: number;      // ms
+    renderTime?: number; // ms
     aiProcessingTime?: number; // ms
-    interactionTime?: number;  // ms
-    memoryUsage?: number;      // MB
-    fps?: number;             // frames per second
+    interactionTime?: number; // ms
+    memoryUsage?: number; // MB
+    fps?: number; // frames per second
   };
   sampleRate?: number; // 0-1, percentage of events to track
   onAlert?: (alert: PerformanceAlert) => void;
@@ -40,23 +45,23 @@ interface UsePerformanceMonitoringReturn {
   // Current metrics
   metrics: PerformanceMetrics;
   isPerformant: boolean;
-  
+
   // Tracking methods
   trackRender: () => void;
   trackAIProcessing: (operation: string) => PerformanceTracker;
   trackInteraction: (interaction: string) => PerformanceTracker;
-  
+
   // Alerts
   alerts: PerformanceAlert[];
   clearAlerts: () => void;
-  
+
   // Analysis
   getReport: () => PerformanceReport;
   optimize: () => OptimizationSuggestion[];
 }
 
 export const usePerformanceMonitoring = (
-  options: UsePerformanceMonitoringOptions
+  options: UsePerformanceMonitoringOptions,
 ): UsePerformanceMonitoringReturn => {
   // State
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -64,7 +69,7 @@ export const usePerformanceMonitoring = (
     aiProcessingTime: 0,
     interactionTime: 0,
     memoryUsage: 0,
-    fps: 60
+    fps: 60,
   });
   const [alerts, setAlerts] = useState<PerformanceAlert[]>([]);
 
@@ -77,24 +82,27 @@ export const usePerformanceMonitoring = (
   const animationFrame = useRef<number>();
 
   // Default thresholds
-  const thresholds = useMemo(() => ({
-    renderTime: 16.67,      // 60fps target
-    aiProcessingTime: 1000, // 1 second
-    interactionTime: 100,   // 100ms for responsive feel
-    memoryUsage: 100,       // 100MB
-    fps: 30,                // Minimum acceptable FPS
-    ...options.thresholds
-  }), [options.thresholds]);
+  const thresholds = useMemo(
+    () => ({
+      renderTime: 16.67, // 60fps target
+      aiProcessingTime: 1000, // 1 second
+      interactionTime: 100, // 100ms for responsive feel
+      memoryUsage: 100, // 100MB
+      fps: 30, // Minimum acceptable FPS
+      ...options.thresholds,
+    }),
+    [options.thresholds],
+  );
 
   // Initialize performance observer
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Track render time
     renderStartTime.current = performance.now();
 
     // Create Performance Observer for long tasks
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
@@ -104,11 +112,10 @@ export const usePerformanceMonitoring = (
           }
         });
 
-        observer.observe({ entryTypes: ['measure', 'navigation'] });
+        observer.observe({ entryTypes: ["measure", "navigation"] });
 
         return () => observer.disconnect();
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   }, [thresholds.renderTime]);
 
@@ -129,19 +136,22 @@ export const usePerformanceMonitoring = (
       }
 
       // Update average FPS
-      const avgFPS = fpsFrames.current.reduce((a, b) => a + b, 0) / fpsFrames.current.length;
-      
-      setMetrics(prev => {
+      const avgFPS =
+        fpsFrames.current.reduce((a, b) => a + b, 0) / fpsFrames.current.length;
+
+      setMetrics((prev) => {
         const updated = { ...prev, fps: Math.round(avgFPS) };
-        
+
         // Check for FPS drops
         if (avgFPS < thresholds.fps && options.enableAlerts) {
-          createAlert('fps_drop', 'critical', 
+          createAlert(
+            "fps_drop",
+            "critical",
             `FPS dropped to ${Math.round(avgFPS)}`,
-            { fps: avgFPS }
+            { fps: avgFPS },
           );
         }
-        
+
         return updated;
       });
 
@@ -159,28 +169,30 @@ export const usePerformanceMonitoring = (
 
   // Monitor memory usage
   useEffect(() => {
-    if (!('memory' in performance)) return;
+    if (!("memory" in performance)) return;
 
     const checkMemory = () => {
       const memory = (performance as any).memory;
       const usedMB = memory.usedJSHeapSize / 1024 / 1024;
-      
-      setMetrics(prev => {
+
+      setMetrics((prev) => {
         const updated = { ...prev, memoryUsage: Math.round(usedMB) };
-        
+
         // Check for high memory usage
         if (usedMB > thresholds.memoryUsage && options.enableAlerts) {
-          createAlert('memory_warning', 'warning',
+          createAlert(
+            "memory_warning",
+            "warning",
             `High memory usage: ${Math.round(usedMB)}MB`,
             { memoryUsage: usedMB },
             [
-              'Consider lazy loading components',
-              'Implement virtualization for long lists',
-              'Clear unused cache data'
-            ]
+              "Consider lazy loading components",
+              "Implement virtualization for long lists",
+              "Clear unused cache data",
+            ],
           );
         }
-        
+
         return updated;
       });
     };
@@ -194,34 +206,36 @@ export const usePerformanceMonitoring = (
   // Track component renders
   const trackRender = useCallback(() => {
     renderCount.current++;
-    
+
     // Sample based on rate
     if (Math.random() > (options.sampleRate || 1)) return;
 
     const renderTime = performance.now() - renderStartTime.current;
-    
-    setMetrics(prev => {
+
+    setMetrics((prev) => {
       const updated = { ...prev, renderTime };
       metricsHistory.current.push(updated);
-      
+
       // Keep only last 100 entries
       if (metricsHistory.current.length > 100) {
         metricsHistory.current.shift();
       }
-      
+
       // Check for slow renders
       if (renderTime > thresholds.renderTime && options.enableAlerts) {
-        createAlert('slow_render', 'warning',
+        createAlert(
+          "slow_render",
+          "warning",
           `Slow render detected: ${renderTime.toFixed(2)}ms`,
           { renderTime },
           [
-            'Use React.memo for expensive components',
-            'Optimize re-renders with useMemo/useCallback',
-            'Consider code splitting'
-          ]
+            "Use React.memo for expensive components",
+            "Optimize re-renders with useMemo/useCallback",
+            "Consider code splitting",
+          ],
         );
       }
-      
+
       return updated;
     });
 
@@ -230,134 +244,150 @@ export const usePerformanceMonitoring = (
   }, [options.sampleRate, options.enableAlerts, thresholds.renderTime]);
 
   // Track AI processing
-  const trackAIProcessing = useCallback((operation: string): PerformanceTracker => {
-    const startTime = performance.now();
-    let completed = false;
+  const trackAIProcessing = useCallback(
+    (operation: string): PerformanceTracker => {
+      const startTime = performance.now();
+      let completed = false;
 
-    const tracker: PerformanceTracker = {
-      complete: () => {
-        if (completed) return;
-        completed = true;
+      const tracker: PerformanceTracker = {
+        complete: () => {
+          if (completed) return;
+          completed = true;
 
-        const duration = performance.now() - startTime;
-        
-        setMetrics(prev => {
-          const updated = { ...prev, aiProcessingTime: duration };
-          
-          // Check for slow AI processing
-          if (duration > thresholds.aiProcessingTime && options.enableAlerts) {
-            createAlert('ai_delay', 'error',
-              `Slow AI processing for ${operation}: ${duration.toFixed(0)}ms`,
-              { aiProcessingTime: duration },
-              [
-                'Enable response caching',
-                'Use smaller model variants',
-                'Implement progressive loading'
-              ]
-            );
-          }
-          
-          // Log to performance timeline
-          if ('performance' in window && 'measure' in performance) {
-            try {
-              performance.mark(`ai-${operation}-end`);
-              performance.measure(
-                `AI: ${operation}`,
-                `ai-${operation}-start`,
-                `ai-${operation}-end`
+          const duration = performance.now() - startTime;
+
+          setMetrics((prev) => {
+            const updated = { ...prev, aiProcessingTime: duration };
+
+            // Check for slow AI processing
+            if (
+              duration > thresholds.aiProcessingTime &&
+              options.enableAlerts
+            ) {
+              createAlert(
+                "ai_delay",
+                "error",
+                `Slow AI processing for ${operation}: ${duration.toFixed(0)}ms`,
+                { aiProcessingTime: duration },
+                [
+                  "Enable response caching",
+                  "Use smaller model variants",
+                  "Implement progressive loading",
+                ],
               );
-            } catch (e) {
-              // Marks might not exist
             }
-          }
-          
-          return updated;
-        });
-      },
-      
-      cancel: () => {
-        completed = true;
+
+            // Log to performance timeline
+            if ("performance" in window && "measure" in performance) {
+              try {
+                performance.mark(`ai-${operation}-end`);
+                performance.measure(
+                  `AI: ${operation}`,
+                  `ai-${operation}-start`,
+                  `ai-${operation}-end`,
+                );
+              } catch (e) {
+                // Marks might not exist
+              }
+            }
+
+            return updated;
+          });
+        },
+
+        cancel: () => {
+          completed = true;
+        },
+      };
+
+      // Mark start
+      if ("performance" in window && "mark" in performance) {
+        performance.mark(`ai-${operation}-start`);
       }
-    };
 
-    // Mark start
-    if ('performance' in window && 'mark' in performance) {
-      performance.mark(`ai-${operation}-start`);
-    }
-
-    return tracker;
-  }, [thresholds.aiProcessingTime, options.enableAlerts]);
+      return tracker;
+    },
+    [thresholds.aiProcessingTime, options.enableAlerts],
+  );
 
   // Track user interactions
-  const trackInteraction = useCallback((interaction: string): PerformanceTracker => {
-    const startTime = performance.now();
-    let completed = false;
+  const trackInteraction = useCallback(
+    (interaction: string): PerformanceTracker => {
+      const startTime = performance.now();
+      let completed = false;
 
-    const tracker: PerformanceTracker = {
-      complete: () => {
-        if (completed) return;
-        completed = true;
+      const tracker: PerformanceTracker = {
+        complete: () => {
+          if (completed) return;
+          completed = true;
 
-        const duration = performance.now() - startTime;
-        
-        setMetrics(prev => {
-          const updated = { ...prev, interactionTime: duration };
-          
-          // Check for laggy interactions
-          if (duration > thresholds.interactionTime && options.enableAlerts) {
-            createAlert('interaction_lag', 'warning',
-              `Slow interaction "${interaction}": ${duration.toFixed(0)}ms`,
-              { interactionTime: duration },
-              [
-                'Debounce expensive operations',
-                'Use optimistic updates',
-                'Move heavy computation to Web Workers'
-              ]
-            );
-          }
-          
-          // Log interaction
-          logInteraction(interaction, duration);
-          
-          return updated;
-        });
-      },
-      
-      cancel: () => {
-        completed = true;
-      }
-    };
+          const duration = performance.now() - startTime;
 
-    return tracker;
-  }, [thresholds.interactionTime, options.enableAlerts]);
+          setMetrics((prev) => {
+            const updated = { ...prev, interactionTime: duration };
+
+            // Check for laggy interactions
+            if (duration > thresholds.interactionTime && options.enableAlerts) {
+              createAlert(
+                "interaction_lag",
+                "warning",
+                `Slow interaction "${interaction}": ${duration.toFixed(0)}ms`,
+                { interactionTime: duration },
+                [
+                  "Debounce expensive operations",
+                  "Use optimistic updates",
+                  "Move heavy computation to Web Workers",
+                ],
+              );
+            }
+
+            // Log interaction
+            logInteraction(interaction, duration);
+
+            return updated;
+          });
+        },
+
+        cancel: () => {
+          completed = true;
+        },
+      };
+
+      return tracker;
+    },
+    [thresholds.interactionTime, options.enableAlerts],
+  );
 
   // Create performance alert
-  const createAlert = useCallback((
-    type: PerformanceAlert['type'],
-    severity: PerformanceAlert['severity'],
-    message: string,
-    metrics: Partial<PerformanceMetrics>,
-    suggestions?: string[]
-  ) => {
-    const alert: PerformanceAlert = {
-      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type,
-      severity,
-      message,
-      timestamp: new Date(),
-      metrics,
-      suggestions
-    };
+  const createAlert = useCallback(
+    (
+      type: PerformanceAlert["type"],
+      severity: PerformanceAlert["severity"],
+      message: string,
+      metrics: Partial<PerformanceMetrics>,
+      suggestions?: string[],
+    ) => {
+      const alert: PerformanceAlert = {
+        id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type,
+        severity,
+        message,
+        timestamp: new Date(),
+        metrics,
+        suggestions,
+      };
 
-    setAlerts(prev => [...prev.slice(-9), alert]); // Keep last 10 alerts
-    
-    // Notify callback
-    options.onAlert?.(alert);
-    
-    // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-    }
-  }, [options]);
+      setAlerts((prev) => [...prev.slice(-9), alert]); // Keep last 10 alerts
+
+      // Notify callback
+      options.onAlert?.(alert);
+
+      // Log to console in development
+      if (process.env.NODE_ENV === "development") {
+      }
+    },
+    [options],
+  );
 
   // Clear alerts
   const clearAlerts = useCallback(() => {
@@ -367,7 +397,7 @@ export const usePerformanceMonitoring = (
   // Generate performance report
   const getReport = useCallback((): PerformanceReport => {
     const history = metricsHistory.current;
-    
+
     if (history.length === 0) {
       return {
         componentName: options.componentName,
@@ -378,27 +408,27 @@ export const usePerformanceMonitoring = (
           p75: { ...metrics },
           p90: { ...metrics },
           p95: { ...metrics },
-          p99: { ...metrics }
+          p99: { ...metrics },
         },
         alerts: alerts.length,
-        suggestions: []
+        suggestions: [],
       };
     }
 
     // Calculate averages
     const averages = history.reduce((acc, m) => {
-      Object.keys(m).forEach(key => {
+      Object.keys(m).forEach((key) => {
         acc[key] = (acc[key] || 0) + m[key as keyof PerformanceMetrics];
       });
       return acc;
     }, {} as any);
 
-    Object.keys(averages).forEach(key => {
+    Object.keys(averages).forEach((key) => {
       averages[key] /= history.length;
     });
 
     // Calculate percentiles for render time
-    const renderTimes = history.map(m => m.renderTime).sort((a, b) => a - b);
+    const renderTimes = history.map((m) => m.renderTime).sort((a, b) => a - b);
     const getPercentile = (p: number) => {
       const index = Math.ceil((p / 100) * renderTimes.length) - 1;
       return renderTimes[Math.max(0, index)];
@@ -409,7 +439,7 @@ export const usePerformanceMonitoring = (
       p75: { ...averages, renderTime: getPercentile(75) },
       p90: { ...averages, renderTime: getPercentile(90) },
       p95: { ...averages, renderTime: getPercentile(95) },
-      p99: { ...averages, renderTime: getPercentile(99) }
+      p99: { ...averages, renderTime: getPercentile(99) },
     };
 
     // Generate suggestions
@@ -421,7 +451,7 @@ export const usePerformanceMonitoring = (
       averages,
       percentiles,
       alerts: alerts.length,
-      suggestions
+      suggestions,
     };
   }, [options.componentName, metrics, alerts]);
 
@@ -442,15 +472,15 @@ export const usePerformanceMonitoring = (
     );
   }, [
     metrics.renderTime,
-    metrics.aiProcessingTime, 
+    metrics.aiProcessingTime,
     metrics.interactionTime,
     metrics.memoryUsage,
     metrics.fps,
     thresholds.renderTime,
     thresholds.aiProcessingTime,
-    thresholds.interactionTime, 
+    thresholds.interactionTime,
     thresholds.memoryUsage,
-    thresholds.fps
+    thresholds.fps,
   ]); // Individual dependencies instead of object references
 
   // Track initial render
@@ -467,7 +497,7 @@ export const usePerformanceMonitoring = (
     alerts,
     clearAlerts,
     getReport,
-    optimize
+    optimize,
   };
 };
 
@@ -487,86 +517,86 @@ function handlePerformanceEntry(entry: PerformanceEntry): void {
 
 function logInteraction(interaction: string, duration: number): void {
   // Log to analytics
-  if (typeof window !== 'undefined' && 'gtag' in window) {
-    (window as any).gtag('event', 'timing_complete', {
+  if (typeof window !== "undefined" && "gtag" in window) {
+    (window as any).gtag("event", "timing_complete", {
       name: interaction,
       value: Math.round(duration),
-      event_category: 'User Interaction'
+      event_category: "User Interaction",
     });
   }
 }
 
 function generateOptimizationSuggestions(
   averages: PerformanceMetrics,
-  percentiles: any
+  percentiles: any,
 ): OptimizationSuggestion[] {
   const suggestions: OptimizationSuggestion[] = [];
 
   // Render performance
   if (averages.renderTime > 16.67) {
     suggestions.push({
-      category: 'rendering',
-      priority: 'high',
+      category: "rendering",
+      priority: "high",
       issue: `Average render time is ${averages.renderTime.toFixed(2)}ms`,
-      suggestion: 'Optimize component rendering',
+      suggestion: "Optimize component rendering",
       actions: [
-        'Use React.memo for expensive child components',
-        'Move state closer to where it\'s used',
-        'Use useMemo for expensive computations',
-        'Consider virtualization for long lists'
+        "Use React.memo for expensive child components",
+        "Move state closer to where it's used",
+        "Use useMemo for expensive computations",
+        "Consider virtualization for long lists",
       ],
-      estimatedImpact: 'high'
+      estimatedImpact: "high",
     });
   }
 
   // AI performance
   if (averages.aiProcessingTime > 500) {
     suggestions.push({
-      category: 'ai_processing',
-      priority: 'medium',
+      category: "ai_processing",
+      priority: "medium",
       issue: `AI processing takes ${averages.aiProcessingTime.toFixed(0)}ms on average`,
-      suggestion: 'Optimize AI operations',
+      suggestion: "Optimize AI operations",
       actions: [
-        'Implement response caching',
-        'Use progressive loading for results',
-        'Consider using faster model variants',
-        'Batch similar requests'
+        "Implement response caching",
+        "Use progressive loading for results",
+        "Consider using faster model variants",
+        "Batch similar requests",
       ],
-      estimatedImpact: 'medium'
+      estimatedImpact: "medium",
     });
   }
 
   // Memory usage
   if (averages.memoryUsage > 50) {
     suggestions.push({
-      category: 'memory',
-      priority: 'medium',
+      category: "memory",
+      priority: "medium",
       issue: `Memory usage is ${averages.memoryUsage.toFixed(0)}MB`,
-      suggestion: 'Reduce memory footprint',
+      suggestion: "Reduce memory footprint",
       actions: [
-        'Implement lazy loading',
-        'Clear unused data from state',
-        'Use weak references for cache',
-        'Optimize image sizes'
+        "Implement lazy loading",
+        "Clear unused data from state",
+        "Use weak references for cache",
+        "Optimize image sizes",
       ],
-      estimatedImpact: 'medium'
+      estimatedImpact: "medium",
     });
   }
 
   // FPS
   if (averages.fps < 50) {
     suggestions.push({
-      category: 'animation',
-      priority: 'high',
+      category: "animation",
+      priority: "high",
       issue: `FPS is ${averages.fps}, below smooth threshold`,
-      suggestion: 'Improve animation performance',
+      suggestion: "Improve animation performance",
       actions: [
-        'Use CSS transforms instead of position',
-        'Reduce DOM mutations during animation',
-        'Use will-change CSS property',
-        'Consider using Web Animations API'
+        "Use CSS transforms instead of position",
+        "Reduce DOM mutations during animation",
+        "Use will-change CSS property",
+        "Consider using Web Animations API",
       ],
-      estimatedImpact: 'high'
+      estimatedImpact: "high",
     });
   }
 
@@ -583,39 +613,42 @@ export const useAIPerformanceMonitoring = (operationName: string) => {
     maxTime: 0,
     errors: 0,
     cacheHits: 0,
-    cacheMisses: 0
+    cacheMisses: 0,
   });
 
-  const track = useCallback(async <T,>(
-    operation: () => Promise<T>,
-    options?: { cached?: boolean }
-  ): Promise<T> => {
-    const startTime = performance.now();
-    
-    try {
-      const result = await operation();
-      const duration = performance.now() - startTime;
-      
-      setMetrics(prev => ({
-        callCount: prev.callCount + 1,
-        totalTime: prev.totalTime + duration,
-        averageTime: (prev.totalTime + duration) / (prev.callCount + 1),
-        minTime: Math.min(prev.minTime, duration),
-        maxTime: Math.max(prev.maxTime, duration),
-        errors: prev.errors,
-        cacheHits: prev.cacheHits + (options?.cached ? 1 : 0),
-        cacheMisses: prev.cacheMisses + (options?.cached ? 0 : 1)
-      }));
-      
-      return result;
-    } catch (error) {
-      setMetrics(prev => ({
-        ...prev,
-        errors: prev.errors + 1
-      }));
-      throw error;
-    }
-  }, []);
+  const track = useCallback(
+    async <T>(
+      operation: () => Promise<T>,
+      options?: { cached?: boolean },
+    ): Promise<T> => {
+      const startTime = performance.now();
+
+      try {
+        const result = await operation();
+        const duration = performance.now() - startTime;
+
+        setMetrics((prev) => ({
+          callCount: prev.callCount + 1,
+          totalTime: prev.totalTime + duration,
+          averageTime: (prev.totalTime + duration) / (prev.callCount + 1),
+          minTime: Math.min(prev.minTime, duration),
+          maxTime: Math.max(prev.maxTime, duration),
+          errors: prev.errors,
+          cacheHits: prev.cacheHits + (options?.cached ? 1 : 0),
+          cacheMisses: prev.cacheMisses + (options?.cached ? 0 : 1),
+        }));
+
+        return result;
+      } catch (error) {
+        setMetrics((prev) => ({
+          ...prev,
+          errors: prev.errors + 1,
+        }));
+        throw error;
+      }
+    },
+    [],
+  );
 
   const reset = useCallback(() => {
     setMetrics({
@@ -626,7 +659,7 @@ export const useAIPerformanceMonitoring = (operationName: string) => {
       maxTime: 0,
       errors: 0,
       cacheHits: 0,
-      cacheMisses: 0
+      cacheMisses: 0,
     });
   }, []);
 
@@ -642,19 +675,19 @@ export const useComponentLifecycleMonitoring = (componentName: string) => {
     mountDuration: 0,
     updates: 0,
     lastUpdateDuration: 0,
-    totalUpdateTime: 0
+    totalUpdateTime: 0,
   });
 
   useEffect(() => {
     // Component mounted
     const mountDuration = performance.now() - mountTime.current;
-    setLifecycle(prev => ({ ...prev, mountDuration }));
+    setLifecycle((prev) => ({ ...prev, mountDuration }));
 
     return () => {
       // Component unmounting
       const lifetime = performance.now() - mountTime.current;
     };
-  }, []);  
+  }, []);
 
   useEffect(() => {
     // Track updates
@@ -663,11 +696,11 @@ export const useComponentLifecycleMonitoring = (componentName: string) => {
 
     return () => {
       const updateDuration = performance.now() - updateStart;
-      setLifecycle(prev => ({
+      setLifecycle((prev) => ({
         ...prev,
         updates: updateCount.current,
         lastUpdateDuration: updateDuration,
-        totalUpdateTime: prev.totalUpdateTime + updateDuration
+        totalUpdateTime: prev.totalUpdateTime + updateDuration,
       }));
     };
   });
@@ -693,12 +726,17 @@ interface PerformanceReport {
 }
 
 interface OptimizationSuggestion {
-  category: 'rendering' | 'ai_processing' | 'memory' | 'animation' | 'interaction';
-  priority: 'low' | 'medium' | 'high';
+  category:
+    | "rendering"
+    | "ai_processing"
+    | "memory"
+    | "animation"
+    | "interaction";
+  priority: "low" | "medium" | "high";
   issue: string;
   suggestion: string;
   actions: string[];
-  estimatedImpact: 'low' | 'medium' | 'high';
+  estimatedImpact: "low" | "medium" | "high";
 }
 
 interface AIOperationMetrics {

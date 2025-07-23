@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Users } from 'lucide-react';
-import { ProductionUser } from '@/services/productionDatabaseService';
-import { UserFormDialogNew } from './UserFormDialogNew';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Edit, Users } from "lucide-react";
+import { ProductionUser } from "@/services/productionDatabaseService";
+import { UserFormDialogNew } from "./UserFormDialogNew";
 
 interface UserFormData {
   name: string;
@@ -25,34 +25,34 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   users,
   loading,
   onUpdateUser,
-  onDeleteUser
+  onDeleteUser,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<ProductionUser | null>(null);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role?.toLowerCase()) {
-      case 'admin':
-        return 'destructive';
-      case 'inspector':
-        return 'default';
-      case 'auditor':
-        return 'secondary';
+      case "admin":
+        return "destructive";
+      case "inspector":
+        return "default";
+      case "auditor":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const getStatusBadgeColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'active':
-        return 'default';
-      case 'inactive':
-        return 'secondary';
-      case 'suspended':
-        return 'destructive';
+      case "active":
+        return "default";
+      case "inactive":
+        return "secondary";
+      case "suspended":
+        return "destructive";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
@@ -62,7 +62,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
       await onDeleteUser(id);
     }
   };
@@ -96,7 +96,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       </CardHeader>
       <CardContent>
         {users.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground" id="no-users-message">
+          <div
+            className="text-center py-8 text-muted-foreground"
+            id="no-users-message"
+          >
             No users found. Create the first user to get started.
           </div>
         ) : (
@@ -119,15 +122,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   </div>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                   {user.phone && (
-                    <p className="text-sm text-muted-foreground">{user.phone}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {user.phone}
+                    </p>
                   )}
                   {user.last_login_at && (
                     <p className="text-xs text-muted-foreground">
-                      Last login: {new Date(user.last_login_at).toLocaleDateString()}
+                      Last login:{" "}
+                      {new Date(user.last_login_at).toLocaleDateString()}
                     </p>
                   )}
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"

@@ -1,18 +1,20 @@
 /**
  * Mobile Auth Loading Component
- * 
+ *
  * Simple loading component for mobile authentication.
  * Created to fix build issues.
  */
 
-import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import React from "react";
+import { RefreshCw } from "lucide-react";
 
 interface MobileAuthLoadingProps {
   onRefresh?: () => void;
 }
 
-export const MobileAuthLoading: React.FC<MobileAuthLoadingProps> = ({ onRefresh }) => {
+export const MobileAuthLoading: React.FC<MobileAuthLoadingProps> = ({
+  onRefresh,
+}) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <RefreshCw className="w-8 h-8 animate-spin text-blue-500 mb-4" />

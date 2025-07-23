@@ -3,20 +3,20 @@
  * Displays authentication and user table health status
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Database, 
-  Shield, 
-  CheckCircle, 
-  XCircle, 
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Database,
+  Shield,
+  CheckCircle,
+  XCircle,
   RefreshCw,
   Lock,
-  AlertCircle 
-} from 'lucide-react';
-import { SystemDiagnostic } from './types';
+  AlertCircle,
+} from "lucide-react";
+import { SystemDiagnostic } from "./types";
 
 interface UserSystemDiagnosticProps {
   diagnostic: SystemDiagnostic;
@@ -27,20 +27,23 @@ interface UserSystemDiagnosticProps {
 export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
   diagnostic,
   isRefreshing,
-  onRefresh
+  onRefresh,
 }) => {
   const getHealthStatus = () => {
-    const allHealthy = diagnostic.usersTableExists && 
-                     diagnostic.profilesTableExists && 
-                     diagnostic.authEnabled && 
-                     diagnostic.hasPermissions;
-    return allHealthy ? 'healthy' : 'warning';
+    const allHealthy =
+      diagnostic.usersTableExists &&
+      diagnostic.profilesTableExists &&
+      diagnostic.authEnabled &&
+      diagnostic.hasPermissions;
+    return allHealthy ? "healthy" : "warning";
   };
 
   const healthStatus = getHealthStatus();
 
   return (
-    <Card className={`mb-6 ${healthStatus === 'warning' ? 'border-yellow-200 bg-yellow-50' : 'border-green-200 bg-green-50'}`}>
+    <Card
+      className={`mb-6 ${healthStatus === "warning" ? "border-yellow-200 bg-yellow-50" : "border-green-200 bg-green-50"}`}
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center text-sm">
@@ -53,12 +56,14 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
             onClick={onRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* System Status Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -72,7 +77,7 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-xs font-medium">
-                  {diagnostic.profilesTableExists ? 'Available' : 'Missing'}
+                  {diagnostic.profilesTableExists ? "Available" : "Missing"}
                 </span>
               </div>
             </div>
@@ -88,7 +93,7 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-xs font-medium">
-                  {diagnostic.authEnabled ? 'Enabled' : 'Disabled'}
+                  {diagnostic.authEnabled ? "Enabled" : "Disabled"}
                 </span>
               </div>
             </div>
@@ -104,7 +109,7 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
                   <AlertCircle className="h-4 w-4 text-yellow-500" />
                 )}
                 <span className="text-xs font-medium">
-                  {diagnostic.rlsEnabled ? 'Active' : 'Warning'}
+                  {diagnostic.rlsEnabled ? "Active" : "Warning"}
                 </span>
               </div>
             </div>
@@ -120,7 +125,7 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
                   <Lock className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-xs font-medium">
-                  {diagnostic.hasPermissions ? 'Valid' : 'Limited'}
+                  {diagnostic.hasPermissions ? "Valid" : "Limited"}
                 </span>
               </div>
             </div>
@@ -130,26 +135,32 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
         {/* Status Summary */}
         <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
           <div className="flex items-center space-x-3">
-            {healthStatus === 'healthy' ? (
+            {healthStatus === "healthy" ? (
               <CheckCircle className="h-5 w-5 text-green-500" />
             ) : (
               <AlertCircle className="h-5 w-5 text-yellow-500" />
             )}
             <div>
               <div className="font-medium text-sm">
-                {healthStatus === 'healthy' ? 'All Systems Operational' : 'System Warnings Detected'}
+                {healthStatus === "healthy"
+                  ? "All Systems Operational"
+                  : "System Warnings Detected"}
               </div>
               <div className="text-xs text-gray-600">
                 Last checked: {diagnostic.lastChecked.toLocaleTimeString()}
               </div>
             </div>
           </div>
-          
-          <Badge 
-            variant={healthStatus === 'healthy' ? 'default' : 'secondary'}
-            className={healthStatus === 'healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
+
+          <Badge
+            variant={healthStatus === "healthy" ? "default" : "secondary"}
+            className={
+              healthStatus === "healthy"
+                ? "bg-green-100 text-green-800"
+                : "bg-yellow-100 text-yellow-800"
+            }
           >
-            {healthStatus === 'healthy' ? 'Healthy' : 'Warnings'}
+            {healthStatus === "healthy" ? "Healthy" : "Warnings"}
           </Badge>
         </div>
 
@@ -159,7 +170,9 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
             <div className="flex items-start space-x-2">
               <XCircle className="h-4 w-4 text-red-500 mt-0.5" />
               <div>
-                <div className="text-sm font-medium text-red-800">System Error</div>
+                <div className="text-sm font-medium text-red-800">
+                  System Error
+                </div>
                 <div className="text-xs text-red-600 mt-1 font-mono">
                   {diagnostic.errorDetails}
                 </div>
@@ -169,18 +182,25 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
         )}
 
         {/* Recommendations */}
-        {healthStatus === 'warning' && (
+        {healthStatus === "warning" && (
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start space-x-2">
               <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5" />
               <div>
-                <div className="text-sm font-medium text-blue-800">Recommendations</div>
+                <div className="text-sm font-medium text-blue-800">
+                  Recommendations
+                </div>
                 <ul className="text-xs text-blue-600 mt-1 space-y-1">
                   {!diagnostic.profilesTableExists && (
-                    <li>• Ensure the profiles table exists and is properly configured</li>
+                    <li>
+                      • Ensure the profiles table exists and is properly
+                      configured
+                    </li>
                   )}
                   {!diagnostic.authEnabled && (
-                    <li>• Enable Supabase authentication for user management</li>
+                    <li>
+                      • Enable Supabase authentication for user management
+                    </li>
                   )}
                   {!diagnostic.rlsEnabled && (
                     <li>• Enable Row Level Security for data protection</li>

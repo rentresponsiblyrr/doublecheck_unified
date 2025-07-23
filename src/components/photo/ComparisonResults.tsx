@@ -3,34 +3,50 @@
  * Extracted from PhotoComparisonView.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, XCircle, AlertTriangle, Target, Sparkles } from 'lucide-react';
-import type { PhotoComparisonResult } from '../../types/photo-comparison';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Target,
+  Sparkles,
+} from "lucide-react";
+import type { PhotoComparisonResult } from "../../types/photo-comparison";
 
 interface ComparisonResultsProps {
   result: PhotoComparisonResult;
 }
 
-export const ComparisonResults: React.FC<ComparisonResultsProps> = ({ result }) => {
+export const ComparisonResults: React.FC<ComparisonResultsProps> = ({
+  result,
+}) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'match': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'mismatch': return <XCircle className="w-5 h-5 text-red-500" />;
-      case 'partial': return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      default: return <Target className="w-5 h-5 text-blue-500" />;
+      case "match":
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case "mismatch":
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      case "partial":
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <Target className="w-5 h-5 text-blue-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'match': return <Badge className="bg-green-100 text-green-800">Match</Badge>;
-      case 'mismatch': return <Badge variant="destructive">Mismatch</Badge>;
-      case 'partial': return <Badge variant="secondary">Partial Match</Badge>;
-      default: return <Badge variant="outline">Unknown</Badge>;
+      case "match":
+        return <Badge className="bg-green-100 text-green-800">Match</Badge>;
+      case "mismatch":
+        return <Badge variant="destructive">Mismatch</Badge>;
+      case "partial":
+        return <Badge variant="secondary">Partial Match</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
@@ -54,7 +70,7 @@ export const ComparisonResults: React.FC<ComparisonResultsProps> = ({ result }) 
               </div>
               <Progress value={result.similarityScore * 100} className="h-2" />
             </div>
-            
+
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span>Confidence Level</span>
@@ -77,8 +93,10 @@ export const ComparisonResults: React.FC<ComparisonResultsProps> = ({ result }) 
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <p className="text-sm text-gray-700">{result.aiAnalysis.summary}</p>
-              
+              <p className="text-sm text-gray-700">
+                {result.aiAnalysis.summary}
+              </p>
+
               {result.aiAnalysis.keyFindings.length > 0 && (
                 <div>
                   <h4 className="font-medium mb-2">Key Findings:</h4>
@@ -113,7 +131,10 @@ export const ComparisonResults: React.FC<ComparisonResultsProps> = ({ result }) 
                       <p className="text-sm">{discrepancy.description}</p>
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Severity: {discrepancy.severity}</span>
-                        <span>Confidence: {Math.round(discrepancy.confidence * 100)}%</span>
+                        <span>
+                          Confidence: {Math.round(discrepancy.confidence * 100)}
+                          %
+                        </span>
                       </div>
                     </div>
                   </AlertDescription>

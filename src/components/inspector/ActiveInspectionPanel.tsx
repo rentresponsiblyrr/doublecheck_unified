@@ -3,22 +3,25 @@
  * Extracted from ProductionInspectionWorkflow.tsx
  */
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Building, 
-  MapPin, 
-  Calendar, 
-  FileText, 
-  CheckCircle, 
-  Camera, 
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Building,
+  MapPin,
+  Calendar,
+  FileText,
+  CheckCircle,
+  Camera,
   Video,
-  RefreshCw 
-} from 'lucide-react';
-import { ProductionProperty, ProductionSafetyItem } from '@/services/productionDatabaseService';
+  RefreshCw,
+} from "lucide-react";
+import {
+  ProductionProperty,
+  ProductionSafetyItem,
+} from "@/services/productionDatabaseService";
 
 interface ActiveInspectionPanelProps {
   selectedProperty: ProductionProperty;
@@ -39,14 +42,18 @@ export const ActiveInspectionPanel: React.FC<ActiveInspectionPanelProps> = ({
   completionPercentage,
   loading,
   onItemCompletion,
-  onSubmitInspection
+  onSubmitInspection,
 }) => {
   const getEvidenceIcon = (evidenceType: string) => {
     switch (evidenceType) {
-      case 'photo': return Camera;
-      case 'video': return Video;
-      case 'documentation': return FileText;
-      default: return CheckCircle;
+      case "photo":
+        return Camera;
+      case "video":
+        return Video;
+      case "documentation":
+        return FileText;
+      default:
+        return CheckCircle;
     }
   };
 
@@ -75,7 +82,7 @@ export const ActiveInspectionPanel: React.FC<ActiveInspectionPanelProps> = ({
               <span>ID: {inspectionId.substring(0, 8)}...</span>
             </div>
           </div>
-          
+
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Checklist Progress</span>
@@ -98,12 +105,14 @@ export const ActiveInspectionPanel: React.FC<ActiveInspectionPanelProps> = ({
             {checklistItems.map((item) => {
               const isCompleted = completedItems.includes(item.id);
               const EvidenceIcon = getEvidenceIcon(item.evidence_type);
-              
+
               return (
                 <div
                   key={item.id}
                   className={`p-4 border rounded-lg ${
-                    isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+                    isCompleted
+                      ? "bg-green-50 border-green-200"
+                      : "bg-white border-gray-200"
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -115,19 +124,23 @@ export const ActiveInspectionPanel: React.FC<ActiveInspectionPanelProps> = ({
                           {item.category}
                         </Badge>
                         {item.required && (
-                          <Badge className="bg-red-100 text-red-800">Required</Badge>
+                          <Badge className="bg-red-100 text-red-800">
+                            Required
+                          </Badge>
                         )}
                       </div>
-                      
+
                       {item.notes && (
-                        <p className="text-gray-600 text-sm mb-2">{item.notes}</p>
+                        <p className="text-gray-600 text-sm mb-2">
+                          {item.notes}
+                        </p>
                       )}
-                      
+
                       <div className="text-xs text-gray-500">
                         Evidence Required: {item.evidence_type}
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2 ml-4">
                       {!isCompleted ? (
                         <Button
@@ -154,10 +167,10 @@ export const ActiveInspectionPanel: React.FC<ActiveInspectionPanelProps> = ({
               );
             })}
           </div>
-          
+
           {checklistItems.length > 0 && (
             <div className="mt-6 flex justify-end">
-              <Button 
+              <Button
                 onClick={onSubmitInspection}
                 disabled={completedItems.length === 0 || loading}
               >

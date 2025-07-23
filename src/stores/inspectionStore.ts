@@ -1,9 +1,9 @@
 /**
  * PROFESSIONAL INSPECTION WORKFLOW STORE - ZUSTAND ARCHITECTURE
- * 
+ *
  * World-class state management for inspection workflows that replaces 13+ useState chaos.
  * Designed for complex mobile inspection processes with offline capabilities.
- * 
+ *
  * Features:
  * - Single source of truth for inspection workflow
  * - Optimistic updates with rollback on failure
@@ -12,32 +12,32 @@
  * - Media upload queue management
  * - Offline sync capabilities
  * - Type-safe throughout
- * 
+ *
  * Replaces:
  * - 13+ useState calls in InspectorWorkflow
  * - Scattered inspection state across components
  * - Amateur progress tracking
  * - Manual media upload management
- * 
+ *
  * @example
  * ```typescript
  * const { currentStep, selectProperty, addMedia, nextStep } = useInspectionStore();
  * ```
  */
 
-import { create } from 'zustand';
-import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import type { 
-  InspectionStore, 
-  InspectionWorkflowState, 
-  Property, 
-  ChecklistItem, 
-  MediaItem 
-} from './types';
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
-import { useAppStore } from './appStore';
+import { create } from "zustand";
+import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import type {
+  InspectionStore,
+  InspectionWorkflowState,
+  Property,
+  ChecklistItem,
+  MediaItem,
+} from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
+import { useAppStore } from "./appStore";
 
 /**
  * Initial inspection workflow state
@@ -66,7 +66,7 @@ const initialInspectionState: InspectionWorkflowState = {
 
 /**
  * Professional Inspection Workflow Store
- * 
+ *
  * Centralized state management for the complete inspection process.
  * NO amateur useState chaos, ONLY professional workflow management.
  */
@@ -85,7 +85,11 @@ export const useInspectionStore = create<InspectionStore>()(
             set((state) => {
               if (step >= 0 && step < state.totalSteps) {
                 state.currentStep = step;
-                logger.info('Inspection step changed', { step }, 'INSPECTION_STORE');
+                logger.info(
+                  "Inspection step changed",
+                  { step },
+                  "INSPECTION_STORE",
+                );
               }
             });
           },
@@ -94,7 +98,11 @@ export const useInspectionStore = create<InspectionStore>()(
             set((state) => {
               if (state.currentStep < state.totalSteps - 1) {
                 state.currentStep += 1;
-                logger.info('Advanced to next step', { step: state.currentStep }, 'INSPECTION_STORE');
+                logger.info(
+                  "Advanced to next step",
+                  { step: state.currentStep },
+                  "INSPECTION_STORE",
+                );
               }
             });
           },
@@ -103,7 +111,11 @@ export const useInspectionStore = create<InspectionStore>()(
             set((state) => {
               if (state.currentStep > 0) {
                 state.currentStep -= 1;
-                logger.info('Returned to previous step', { step: state.currentStep }, 'INSPECTION_STORE');
+                logger.info(
+                  "Returned to previous step",
+                  { step: state.currentStep },
+                  "INSPECTION_STORE",
+                );
               }
             });
           },
@@ -111,7 +123,7 @@ export const useInspectionStore = create<InspectionStore>()(
           resetWorkflow: () => {
             set((state) => {
               Object.assign(state, initialInspectionState);
-              logger.info('Inspection workflow reset', {}, 'INSPECTION_STORE');
+              logger.info("Inspection workflow reset", {}, "INSPECTION_STORE");
             });
           },
 
@@ -123,12 +135,16 @@ export const useInspectionStore = create<InspectionStore>()(
               state.selectedProperty = property;
               state.currentStep = 1; // Move to checklist generation
               state.error = null;
-              
-              logger.info('Property selected for inspection', {
-                propertyId: property.id,
-                propertyName: property.name,
-                address: property.address,
-              }, 'INSPECTION_STORE');
+
+              logger.info(
+                "Property selected for inspection",
+                {
+                  propertyId: property.id,
+                  propertyName: property.name,
+                  address: property.address,
+                },
+                "INSPECTION_STORE",
+              );
             });
           },
 
@@ -139,35 +155,54 @@ export const useInspectionStore = create<InspectionStore>()(
             set((state) => {
               state.checklist = items;
               state.checklistGenerated = true;
-              state.photosRequired = items.filter(item => item.evidence_type === 'photo').length;
+              state.photosRequired = items.filter(
+                (item) => item.evidence_type === "photo",
+              ).length;
               state.estimatedTimeMinutes = items.length * 3; // 3 minutes per item estimate
               state.currentStep = 2; // Move to photo capture
-              
-              logger.info('Checklist generated', {
-                itemCount: items.length,
-                photosRequired: state.photosRequired,
-                estimatedTime: state.estimatedTimeMinutes,
-              }, 'INSPECTION_STORE');
+
+              logger.info(
+                "Checklist generated",
+                {
+                  itemCount: items.length,
+                  photosRequired: state.photosRequired,
+                  estimatedTime: state.estimatedTimeMinutes,
+                },
+                "INSPECTION_STORE",
+              );
             });
           },
 
-          updateChecklistItem: (id: string, updates: Partial<ChecklistItem>) => {
+          updateChecklistItem: (
+            id: string,
+            updates: Partial<ChecklistItem>,
+          ) => {
             set((state) => {
               if (!state.checklist) return;
-              
-              const itemIndex = state.checklist.findIndex(item => item.id === id);
+
+              const itemIndex = state.checklist.findIndex(
+                (item) => item.id === id,
+              );
               if (itemIndex >= 0) {
                 Object.assign(state.checklist[itemIndex], updates);
-                
+
                 // Update progress tracking
-                const completedItems = state.checklist.filter(item => item.status === 'completed');
-                state.photosCompleted = completedItems.filter(item => item.evidence_type === 'photo').length;
-                
-                logger.info('Checklist item updated', {
-                  itemId: id,
-                  status: updates.status,
-                  progress: `${state.photosCompleted}/${state.photosRequired}`,
-                }, 'INSPECTION_STORE');
+                const completedItems = state.checklist.filter(
+                  (item) => item.status === "completed",
+                );
+                state.photosCompleted = completedItems.filter(
+                  (item) => item.evidence_type === "photo",
+                ).length;
+
+                logger.info(
+                  "Checklist item updated",
+                  {
+                    itemId: id,
+                    status: updates.status,
+                    progress: `${state.photosCompleted}/${state.photosRequired}`,
+                  },
+                  "INSPECTION_STORE",
+                );
               }
             });
           },
@@ -175,7 +210,7 @@ export const useInspectionStore = create<InspectionStore>()(
           completeChecklistItem: (id: string, notes?: string) => {
             const { updateChecklistItem } = get();
             updateChecklistItem(id, {
-              status: 'completed',
+              status: "completed",
               inspector_notes: notes,
               completed_at: new Date(),
             });
@@ -187,30 +222,38 @@ export const useInspectionStore = create<InspectionStore>()(
           addMedia: (media: MediaItem) => {
             set((state) => {
               state.photosCaptured.push(media);
-              
-              logger.info('Media added to inspection', {
-                mediaId: media.id,
-                type: media.type,
-                totalCaptured: state.photosCaptured.length,
-              }, 'INSPECTION_STORE');
+
+              logger.info(
+                "Media added to inspection",
+                {
+                  mediaId: media.id,
+                  type: media.type,
+                  totalCaptured: state.photosCaptured.length,
+                },
+                "INSPECTION_STORE",
+              );
             });
           },
 
           updateMediaUpload: (id: string, progress: number) => {
             set((state) => {
-              const mediaIndex = state.photosCaptured.findIndex(item => item.id === id);
+              const mediaIndex = state.photosCaptured.findIndex(
+                (item) => item.id === id,
+              );
               if (mediaIndex >= 0) {
                 state.photosCaptured[mediaIndex].upload_progress = progress;
-                state.photosCaptured[mediaIndex].upload_status = 'uploading';
+                state.photosCaptured[mediaIndex].upload_status = "uploading";
               }
             });
           },
 
           completeMediaUpload: (id: string, url: string) => {
             set((state) => {
-              const mediaIndex = state.photosCaptured.findIndex(item => item.id === id);
+              const mediaIndex = state.photosCaptured.findIndex(
+                (item) => item.id === id,
+              );
               if (mediaIndex >= 0) {
-                state.photosCaptured[mediaIndex].upload_status = 'completed';
+                state.photosCaptured[mediaIndex].upload_status = "completed";
                 state.photosCaptured[mediaIndex].upload_progress = 100;
                 state.photosCaptured[mediaIndex].public_url = url;
               }
@@ -219,9 +262,11 @@ export const useInspectionStore = create<InspectionStore>()(
 
           failMediaUpload: (id: string, error: string) => {
             set((state) => {
-              const mediaIndex = state.photosCaptured.findIndex(item => item.id === id);
+              const mediaIndex = state.photosCaptured.findIndex(
+                (item) => item.id === id,
+              );
               if (mediaIndex >= 0) {
-                state.photosCaptured[mediaIndex].upload_status = 'failed';
+                state.photosCaptured[mediaIndex].upload_status = "failed";
                 state.photosCaptured[mediaIndex].upload_error = error;
               }
             });
@@ -238,22 +283,24 @@ export const useInspectionStore = create<InspectionStore>()(
 
               const user = useAppStore.getState().user;
               if (!user) {
-                throw new Error('User not authenticated');
+                throw new Error("User not authenticated");
               }
 
               // Create inspection record in database
               const { data: inspection, error } = await supabase
-                .from('inspections')
+                .from("inspections")
                 .insert({
                   property_id: propertyId, // Note: Inspections table still uses property_id as foreign key
                   inspector_id: user.id,
-                  status: 'in_progress',
+                  status: "in_progress",
                 })
                 .select()
                 .single();
 
               if (error) {
-                throw new Error(`Failed to create inspection: ${error.message}`);
+                throw new Error(
+                  `Failed to create inspection: ${error.message}`,
+                );
               }
 
               set((state) => {
@@ -262,22 +309,32 @@ export const useInspectionStore = create<InspectionStore>()(
                 state.currentStep = 1; // Move to checklist generation
               });
 
-              logger.info('Inspection started', {
-                inspectionId: inspection.id,
-                propertyId,
-                inspectorId: user.id,
-              }, 'INSPECTION_STORE');
+              logger.info(
+                "Inspection started",
+                {
+                  inspectionId: inspection.id,
+                  propertyId,
+                  inspectorId: user.id,
+                },
+                "INSPECTION_STORE",
+              );
 
               return inspection.id;
-
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Failed to start inspection';
-              
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to start inspection";
+
               set((state) => {
                 state.error = errorMessage;
               });
 
-              logger.error('Failed to start inspection', error, 'INSPECTION_STORE');
+              logger.error(
+                "Failed to start inspection",
+                error,
+                "INSPECTION_STORE",
+              );
               throw error;
             }
           },
@@ -285,9 +342,9 @@ export const useInspectionStore = create<InspectionStore>()(
           completeInspection: async () => {
             try {
               const state = get();
-              
+
               if (!state.inspectionId) {
-                throw new Error('No active inspection');
+                throw new Error("No active inspection");
               }
 
               set((currentState) => {
@@ -297,15 +354,17 @@ export const useInspectionStore = create<InspectionStore>()(
 
               // Update inspection status in database
               const { error } = await supabase
-                .from('inspections')
+                .from("inspections")
                 .update({
-                  status: 'completed',
+                  status: "completed",
                   completed_at: new Date().toISOString(),
                 })
-                .eq('id', state.inspectionId);
+                .eq("id", state.inspectionId);
 
               if (error) {
-                throw new Error(`Failed to complete inspection: ${error.message}`);
+                throw new Error(
+                  `Failed to complete inspection: ${error.message}`,
+                );
               }
 
               set((currentState) => {
@@ -314,22 +373,34 @@ export const useInspectionStore = create<InspectionStore>()(
                 currentState.lastSyncTime = new Date();
               });
 
-              logger.info('Inspection completed', {
-                inspectionId: state.inspectionId,
-                duration: state.startTime ? Date.now() - state.startTime.getTime() : 0,
-                photosCompleted: state.photosCompleted,
-              }, 'INSPECTION_STORE');
-
+              logger.info(
+                "Inspection completed",
+                {
+                  inspectionId: state.inspectionId,
+                  duration: state.startTime
+                    ? Date.now() - state.startTime.getTime()
+                    : 0,
+                  photosCompleted: state.photosCompleted,
+                },
+                "INSPECTION_STORE",
+              );
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Failed to complete inspection';
-              
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to complete inspection";
+
               set((state) => {
                 state.error = errorMessage;
                 state.isSyncing = false;
                 state.retryCount += 1;
               });
 
-              logger.error('Failed to complete inspection', error, 'INSPECTION_STORE');
+              logger.error(
+                "Failed to complete inspection",
+                error,
+                "INSPECTION_STORE",
+              );
               throw error;
             }
           },
@@ -340,17 +411,17 @@ export const useInspectionStore = create<InspectionStore>()(
           startRecording: () => {
             set((state) => {
               state.isRecording = true;
-              logger.info('Video recording started', {}, 'INSPECTION_STORE');
+              logger.info("Video recording started", {}, "INSPECTION_STORE");
             });
           },
 
           stopRecording: (videoFile: File) => {
             const videoItem: MediaItem = {
               id: `video_${Date.now()}`,
-              type: 'video',
+              type: "video",
               file: videoFile,
               blob_url: URL.createObjectURL(videoFile),
-              upload_status: 'pending',
+              upload_status: "pending",
               upload_progress: 0,
               created_at: new Date(),
             };
@@ -360,11 +431,15 @@ export const useInspectionStore = create<InspectionStore>()(
               state.videoRecorded = videoItem;
               state.photosCaptured.push(videoItem);
               state.currentStep = 4; // Move to upload step
-              
-              logger.info('Video recording completed', {
-                videoId: videoItem.id,
-                fileSize: videoFile.size,
-              }, 'INSPECTION_STORE');
+
+              logger.info(
+                "Video recording completed",
+                {
+                  videoId: videoItem.id,
+                  fileSize: videoFile.size,
+                },
+                "INSPECTION_STORE",
+              );
             });
           },
 
@@ -374,7 +449,7 @@ export const useInspectionStore = create<InspectionStore>()(
           syncToServer: async () => {
             try {
               const state = get();
-              
+
               set((currentState) => {
                 currentState.isSyncing = true;
                 currentState.syncProgress = 0;
@@ -385,10 +460,10 @@ export const useInspectionStore = create<InspectionStore>()(
               if (state.checklist && state.inspectionId) {
                 for (let i = 0; i < state.checklist.length; i++) {
                   const item = state.checklist[i];
-                  
+
                   // Update checklist item in database
                   const { error } = await supabase
-                    .from('checklist_items')
+                    .from("checklist_items")
                     .upsert({
                       inspection_id: state.inspectionId,
                       static_item_id: item.checklist_id,
@@ -398,7 +473,9 @@ export const useInspectionStore = create<InspectionStore>()(
                     });
 
                   if (error) {
-                    throw new Error(`Failed to sync checklist item: ${error.message}`);
+                    throw new Error(
+                      `Failed to sync checklist item: ${error.message}`,
+                    );
                   }
 
                   // Update progress
@@ -411,17 +488,19 @@ export const useInspectionStore = create<InspectionStore>()(
 
               // Sync media files
               const pendingUploads = state.photosCaptured.filter(
-                item => item.upload_status === 'pending' || item.upload_status === 'failed'
+                (item) =>
+                  item.upload_status === "pending" ||
+                  item.upload_status === "failed",
               );
 
               for (let i = 0; i < pendingUploads.length; i++) {
                 const media = pendingUploads[i];
-                
+
                 try {
                   // Upload to Supabase storage
-                  const fileName = `${state.inspectionId}/${media.id}.${media.type === 'video' ? 'mp4' : 'jpg'}`;
+                  const fileName = `${state.inspectionId}/${media.id}.${media.type === "video" ? "mp4" : "jpg"}`;
                   const { data, error: uploadError } = await supabase.storage
-                    .from('inspection-media')
+                    .from("inspection-media")
                     .upload(fileName, media.file);
 
                   if (uploadError) {
@@ -430,13 +509,15 @@ export const useInspectionStore = create<InspectionStore>()(
 
                   // Get public URL
                   const { data: publicUrlData } = supabase.storage
-                    .from('inspection-media')
+                    .from("inspection-media")
                     .getPublicUrl(fileName);
 
                   get().completeMediaUpload(media.id, publicUrlData.publicUrl);
-
                 } catch (error) {
-                  get().failMediaUpload(media.id, error instanceof Error ? error.message : 'Upload failed');
+                  get().failMediaUpload(
+                    media.id,
+                    error instanceof Error ? error.message : "Upload failed",
+                  );
                 }
 
                 // Update progress
@@ -452,22 +533,26 @@ export const useInspectionStore = create<InspectionStore>()(
                 state.lastSyncTime = new Date();
               });
 
-              logger.info('Sync completed successfully', {
-                inspectionId: state.inspectionId,
-                checklistItems: state.checklist?.length || 0,
-                mediaFiles: state.photosCaptured.length,
-              }, 'INSPECTION_STORE');
-
+              logger.info(
+                "Sync completed successfully",
+                {
+                  inspectionId: state.inspectionId,
+                  checklistItems: state.checklist?.length || 0,
+                  mediaFiles: state.photosCaptured.length,
+                },
+                "INSPECTION_STORE",
+              );
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Sync failed';
-              
+              const errorMessage =
+                error instanceof Error ? error.message : "Sync failed";
+
               set((state) => {
                 state.error = errorMessage;
                 state.isSyncing = false;
                 state.retryCount += 1;
               });
 
-              logger.error('Sync failed', error, 'INSPECTION_STORE');
+              logger.error("Sync failed", error, "INSPECTION_STORE");
               throw error;
             }
           },
@@ -476,14 +561,18 @@ export const useInspectionStore = create<InspectionStore>()(
             set((state) => {
               state.error = error;
               if (error) {
-                logger.error('Inspection error set', { error }, 'INSPECTION_STORE');
+                logger.error(
+                  "Inspection error set",
+                  { error },
+                  "INSPECTION_STORE",
+                );
               }
             });
           },
-        }))
+        })),
       ),
       {
-        name: 'str-certified-inspection-store',
+        name: "str-certified-inspection-store",
         version: 1,
         partialize: (state) => ({
           // Persist workflow state but not temporary data
@@ -492,44 +581,49 @@ export const useInspectionStore = create<InspectionStore>()(
           checklistGenerated: state.checklistGenerated,
           inspectionId: state.inspectionId,
           startTime: state.startTime,
-          photosCaptured: state.photosCaptured.filter(item => item.upload_status === 'completed'),
+          photosCaptured: state.photosCaptured.filter(
+            (item) => item.upload_status === "completed",
+          ),
         }),
-      }
+      },
     ),
     {
-      name: 'inspection-store',
-      enabled: process.env.NODE_ENV === 'development',
-    }
-  )
+      name: "inspection-store",
+      enabled: process.env.NODE_ENV === "development",
+    },
+  ),
 );
 
 /**
  * Professional store selectors for performance optimization
  */
-export const useInspectionWorkflow = () => useInspectionStore((state) => ({
-  currentStep: state.currentStep,
-  totalSteps: state.totalSteps,
-  isComplete: state.isComplete,
-  selectedProperty: state.selectedProperty,
-  progress: (state.currentStep / state.totalSteps) * 100,
-}));
+export const useInspectionWorkflow = () =>
+  useInspectionStore((state) => ({
+    currentStep: state.currentStep,
+    totalSteps: state.totalSteps,
+    isComplete: state.isComplete,
+    selectedProperty: state.selectedProperty,
+    progress: (state.currentStep / state.totalSteps) * 100,
+  }));
 
-export const useInspectionProgress = () => useInspectionStore((state) => ({
-  photosRequired: state.photosRequired,
-  photosCompleted: state.photosCompleted,
-  syncProgress: state.syncProgress,
-  isSyncing: state.isSyncing,
-  lastSyncTime: state.lastSyncTime,
-}));
+export const useInspectionProgress = () =>
+  useInspectionStore((state) => ({
+    photosRequired: state.photosRequired,
+    photosCompleted: state.photosCompleted,
+    syncProgress: state.syncProgress,
+    isSyncing: state.isSyncing,
+    lastSyncTime: state.lastSyncTime,
+  }));
 
-export const useInspectionActions = () => useInspectionStore((state) => ({
-  selectProperty: state.selectProperty,
-  setChecklist: state.setChecklist,
-  addMedia: state.addMedia,
-  nextStep: state.nextStep,
-  previousStep: state.previousStep,
-  completeInspection: state.completeInspection,
-  syncToServer: state.syncToServer,
-}));
+export const useInspectionActions = () =>
+  useInspectionStore((state) => ({
+    selectProperty: state.selectProperty,
+    setChecklist: state.setChecklist,
+    addMedia: state.addMedia,
+    nextStep: state.nextStep,
+    previousStep: state.previousStep,
+    completeInspection: state.completeInspection,
+    syncToServer: state.syncToServer,
+  }));
 
 export default useInspectionStore;

@@ -3,17 +3,17 @@
  * Handles creating and editing user accounts
  */
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -21,11 +21,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Loader2, Shield } from 'lucide-react';
-import { User, UserFormData, USER_ROLES } from './types';
-import { sanitizeFormInput, validateEmail } from '@/utils/validation';
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Loader2, Shield } from "lucide-react";
+import { User, UserFormData, USER_ROLES } from "./types";
+import { sanitizeFormInput, validateEmail } from "@/utils/validation";
 
 interface UserFormDialogProps {
   isOpen: boolean;
@@ -36,10 +36,10 @@ interface UserFormDialogProps {
 }
 
 const defaultFormData: UserFormData = {
-  email: '',
-  name: '',
-  role: 'inspector',
-  phone: ''
+  email: "",
+  name: "",
+  role: "inspector",
+  phone: "",
 };
 
 export const UserFormDialog: React.FC<UserFormDialogProps> = ({
@@ -47,10 +47,12 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   onClose,
   onSave,
   editingUser,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [formData, setFormData] = useState<UserFormData>(defaultFormData);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Reset form when dialog opens/closes or editing user changes
@@ -61,7 +63,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
           email: editingUser.email,
           name: editingUser.full_name,
           role: editingUser.role,
-          phone: editingUser.phone || ''
+          phone: editingUser.phone || "",
         });
       } else {
         setFormData(defaultFormData);
@@ -75,32 +77,32 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
     // Validate email
     if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = "Please enter a valid email address";
     }
 
     // Validate name
     if (!formData.name.trim()) {
-      errors.name = 'Full name is required';
+      errors.name = "Full name is required";
     } else if (formData.name.length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+      errors.name = "Name must be at least 2 characters";
     } else if (formData.name.length > 100) {
-      errors.name = 'Name must be less than 100 characters';
+      errors.name = "Name must be less than 100 characters";
     }
 
     // Validate role
     if (!formData.role) {
-      errors.role = 'Role is required';
-    } else if (!USER_ROLES.find(r => r.value === formData.role)) {
-      errors.role = 'Please select a valid role';
+      errors.role = "Role is required";
+    } else if (!USER_ROLES.find((r) => r.value === formData.role)) {
+      errors.role = "Please select a valid role";
     }
 
     // Validate phone (optional but must be valid if provided)
     if (formData.phone && formData.phone.trim()) {
       const phoneRegex = /^[+]?[\d\s\-()]{10,}$/;
       if (!phoneRegex.test(formData.phone.trim())) {
-        errors.phone = 'Please enter a valid phone number';
+        errors.phone = "Please enter a valid phone number";
       }
     }
 
@@ -115,20 +117,20 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
     try {
       setIsSaving(true);
-      
+
       // Sanitize form inputs
       const sanitizedData: UserFormData = {
         email: sanitizeFormInput(formData.email.toLowerCase().trim()),
         name: sanitizeFormInput(formData.name.trim()),
         role: formData.role,
-        phone: sanitizeFormInput(formData.phone.trim())
+        phone: sanitizeFormInput(formData.phone.trim()),
       };
 
       await onSave(sanitizedData);
       onClose();
     } catch (error) {
       setValidationErrors({
-        form: error instanceof Error ? error.message : 'Failed to save user'
+        form: error instanceof Error ? error.message : "Failed to save user",
       });
     } finally {
       setIsSaving(false);
@@ -137,13 +139,13 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
   const updateFormData = <K extends keyof UserFormData>(
     key: K,
-    value: UserFormData[K]
+    value: UserFormData[K],
   ) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
-    
+    setFormData((prev) => ({ ...prev, [key]: value }));
+
     // Clear validation error for this field
     if (validationErrors[key]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const { [key]: _, ...rest } = prev;
         return rest;
       });
@@ -151,7 +153,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   const getSelectedRole = () => {
-    return USER_ROLES.find(role => role.value === formData.role);
+    return USER_ROLES.find((role) => role.value === formData.role);
   };
 
   return (
@@ -159,13 +161,12 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {editingUser ? 'Edit User Account' : 'Create New User Account'}
+            {editingUser ? "Edit User Account" : "Create New User Account"}
           </DialogTitle>
           <DialogDescription>
-            {editingUser 
-              ? 'Update the user account details below.'
-              : 'Add a new user to the STR Certified platform.'
-            }
+            {editingUser
+              ? "Update the user account details below."
+              : "Add a new user to the STR Certified platform."}
           </DialogDescription>
         </DialogHeader>
 
@@ -188,15 +189,17 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
               type="email"
               placeholder="user@company.com"
               value={formData.email}
-              onChange={(e) => updateFormData('email', e.target.value)}
-              className={validationErrors.email ? 'border-red-500' : ''}
+              onChange={(e) => updateFormData("email", e.target.value)}
+              className={validationErrors.email ? "border-red-500" : ""}
               disabled={!!editingUser} // Email shouldn't be changed after creation
             />
             {validationErrors.email && (
               <p className="text-red-500 text-sm">{validationErrors.email}</p>
             )}
             {editingUser && (
-              <p className="text-xs text-gray-500">Email cannot be changed after account creation</p>
+              <p className="text-xs text-gray-500">
+                Email cannot be changed after account creation
+              </p>
             )}
           </div>
 
@@ -209,8 +212,8 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
               id="name"
               placeholder="John Doe"
               value={formData.name}
-              onChange={(e) => updateFormData('name', e.target.value)}
-              className={validationErrors.name ? 'border-red-500' : ''}
+              onChange={(e) => updateFormData("name", e.target.value)}
+              className={validationErrors.name ? "border-red-500" : ""}
             />
             {validationErrors.name && (
               <p className="text-red-500 text-sm">{validationErrors.name}</p>
@@ -224,9 +227,13 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
             </Label>
             <Select
               value={formData.role}
-              onValueChange={(value) => updateFormData('role', value as UserFormData['role'])}
+              onValueChange={(value) =>
+                updateFormData("role", value as UserFormData["role"])
+              }
             >
-              <SelectTrigger className={validationErrors.role ? 'border-red-500' : ''}>
+              <SelectTrigger
+                className={validationErrors.role ? "border-red-500" : ""}
+              >
                 <SelectValue placeholder="Select user role" />
               </SelectTrigger>
               <SelectContent>
@@ -236,7 +243,9 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
                       <Shield className="h-4 w-4" />
                       <div>
                         <div className="font-medium">{role.label}</div>
-                        <div className="text-xs text-gray-500">{role.description}</div>
+                        <div className="text-xs text-gray-500">
+                          {role.description}
+                        </div>
                       </div>
                     </div>
                   </SelectItem>
@@ -247,7 +256,9 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
               <p className="text-red-500 text-sm">{validationErrors.role}</p>
             )}
             {getSelectedRole() && (
-              <p className="text-xs text-gray-600">{getSelectedRole()?.description}</p>
+              <p className="text-xs text-gray-600">
+                {getSelectedRole()?.description}
+              </p>
             )}
           </div>
 
@@ -261,8 +272,8 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
               type="tel"
               placeholder="+1 (555) 123-4567"
               value={formData.phone}
-              onChange={(e) => updateFormData('phone', e.target.value)}
-              className={validationErrors.phone ? 'border-red-500' : ''}
+              onChange={(e) => updateFormData("phone", e.target.value)}
+              className={validationErrors.phone ? "border-red-500" : ""}
             />
             {validationErrors.phone && (
               <p className="text-red-500 text-sm">{validationErrors.phone}</p>
@@ -279,9 +290,12 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
                     {getSelectedRole()?.label} Permissions
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
-                    {formData.role === 'admin' && 'Full system access, user management, and configuration'}
-                    {formData.role === 'auditor' && 'Review inspections, provide feedback, and generate reports'}
-                    {formData.role === 'inspector' && 'Conduct property inspections and submit reports'}
+                    {formData.role === "admin" &&
+                      "Full system access, user management, and configuration"}
+                    {formData.role === "auditor" &&
+                      "Review inspections, provide feedback, and generate reports"}
+                    {formData.role === "inspector" &&
+                      "Conduct property inspections and submit reports"}
                   </div>
                 </div>
               </div>
@@ -304,7 +318,7 @@ export const UserFormDialog: React.FC<UserFormDialogProps> = ({
             disabled={isSaving || isLoading}
           >
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {editingUser ? 'Update User' : 'Create User'}
+            {editingUser ? "Update User" : "Create User"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Video, AlertCircle } from "lucide-react";
@@ -9,20 +8,23 @@ interface DualUploadInterfaceProps {
   category: string;
   label: string;
   isUploading: boolean;
-  onFileSelect: (file: File, type: 'photo' | 'video') => void;
+  onFileSelect: (file: File, type: "photo" | "video") => void;
 }
 
-export const DualUploadInterface = ({ 
-  category, 
-  label, 
-  isUploading, 
-  onFileSelect 
+export const DualUploadInterface = ({
+  category,
+  label,
+  isUploading,
+  onFileSelect,
 }: DualUploadInterfaceProps) => {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const isOnline = useNetworkStatus();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "photo" | "video",
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file, type);
@@ -33,28 +35,28 @@ export const DualUploadInterface = ({
     <div className="space-y-4">
       {/* Photo Guidelines */}
       <PhotoCaptureGuide category={category} label={label} />
-      
+
       {/* Hidden file inputs */}
       <input
         ref={photoInputRef}
         type="file"
         accept="image/*"
-        onChange={(e) => handleFileChange(e, 'photo')}
+        onChange={(e) => handleFileChange(e, "photo")}
         capture="environment"
         className="hidden"
         disabled={isUploading}
       />
-      
+
       <input
         ref={videoInputRef}
         type="file"
         accept="video/*"
-        onChange={(e) => handleFileChange(e, 'video')}
+        onChange={(e) => handleFileChange(e, "video")}
         capture="user"
         className="hidden"
         disabled={isUploading}
       />
-      
+
       <div className="space-y-3">
         <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
           <div className="flex flex-col items-center gap-3">
@@ -78,7 +80,7 @@ export const DualUploadInterface = ({
             </div>
           </div>
         </div>
-        
+
         {/* Photo and Video buttons */}
         <div className="grid grid-cols-2 gap-3">
           <Button
@@ -90,7 +92,7 @@ export const DualUploadInterface = ({
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 <span className="text-xs">
-                  {isOnline ? 'Uploading...' : 'Saving...'}
+                  {isOnline ? "Uploading..." : "Saving..."}
                 </span>
               </>
             ) : (
@@ -100,7 +102,7 @@ export const DualUploadInterface = ({
               </>
             )}
           </Button>
-          
+
           <Button
             onClick={() => videoInputRef.current?.click()}
             disabled={isUploading}
@@ -110,7 +112,7 @@ export const DualUploadInterface = ({
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 <span className="text-xs">
-                  {isOnline ? 'Uploading...' : 'Saving...'}
+                  {isOnline ? "Uploading..." : "Saving..."}
                 </span>
               </>
             ) : (
@@ -121,10 +123,13 @@ export const DualUploadInterface = ({
             )}
           </Button>
         </div>
-        
+
         <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
           <AlertCircle className="w-3 h-3" />
-          <span>Max file size: 10MB • Photos: JPG, PNG, WebP • Videos: MP4, MOV, WebM</span>
+          <span>
+            Max file size: 10MB • Photos: JPG, PNG, WebP • Videos: MP4, MOV,
+            WebM
+          </span>
         </div>
       </div>
     </div>
