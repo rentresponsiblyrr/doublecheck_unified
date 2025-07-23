@@ -181,19 +181,22 @@ export class VRBOURLValidator {
       result.warnings.push("Added missing www");
     }
 
-    // Fix common misspellings
+    // Fix common misspellings - use more precise regex patterns to avoid false matches
     const misspellings = [
-      ["vrbo.co/", "vrbo.com/"],
-      ["vrbo.co", "vrbo.com"],
-      ["verbo.com", "vrbo.com"],
-      ["vbro.com", "vrbo.com"],
-      ["vrbo.om", "vrbo.com"],
+      // Use word boundaries and specific patterns to avoid replacing vrbo.com with vrbo.comm
+      [/\bvrbo\.co(?=\/|$|\?|#)/, "vrbo.com"], // Only replace vrbo.co when followed by /, end of string, or query params
+      [/\bverbo\.com\b/, "vrbo.com"],
+      [/\bvbro\.com\b/, "vrbo.com"],
+      [/\bvrbo\.om\b/, "vrbo.com"],
     ];
 
-    for (const [wrong, correct] of misspellings) {
-      if (fixed.includes(wrong)) {
-        fixed = fixed.replace(wrong, correct);
-        result.warnings.push(`Fixed misspelling: ${wrong} → ${correct}`);
+    for (const [wrongPattern, correct] of misspellings) {
+      if (fixed.match(wrongPattern)) {
+        const originalFixed = fixed;
+        fixed = fixed.replace(wrongPattern, correct);
+        // Extract the actual wrong text that was replaced for the warning
+        const wrongText = originalFixed.match(wrongPattern)?.[0] || "unknown";
+        result.warnings.push(`Fixed misspelling: ${wrongText} → ${correct}`);
       }
     }
 

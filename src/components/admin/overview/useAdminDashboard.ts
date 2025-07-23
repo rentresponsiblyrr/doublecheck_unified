@@ -138,8 +138,7 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
       setData((prev) => ({ ...prev, isLoading: false }));
-    }
-  }, [loadBusinessMetrics, loadTrendData, loadRegionalData]);
+    }  }, [timeRange]);
 
   useEffect(() => {
     loadDashboardData();
