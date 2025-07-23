@@ -47,8 +47,8 @@ export const useOptimizedInspectionData = (inspectionId: string) => {
         // Use checklist_items table (correct schema)
         const checklistResult = await supabase
           .from('checklist_items')
-          .select('id, inspection_id, title, category, evidence_type, status, created_at')
-          .eq('inspection_id', inspection.id)
+          .select('id, inspection_id, label, category, evidence_type, status, created_at')
+          .eq('inspection_id', inspectionId)
           .order('created_at', { ascending: true});
         
         data = checklistResult.data;

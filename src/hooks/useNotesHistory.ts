@@ -60,7 +60,7 @@ export const useNotesHistory = (itemId: string) => {
       return;
     }
     
-    let channel: any = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     
     const setupRealtimeSubscription = () => {
       try {

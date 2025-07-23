@@ -45,14 +45,14 @@ import { logger } from '@/utils/logger';
  * Future-proofed with optional fields and validation
  */
 interface PropertyData extends PropertyWithInspections {
-  // Core property fields (required)
-  property_id: string;
-  property_name: string;
-  property_address: string;
+  // Core property fields (required) - CORRECTED SCHEMA
+  id: string;
+  name: string;
+  address: string;
   
-  // Optional listing URLs
-  property_vrbo_url?: string | null;
-  property_airbnb_url?: string | null;
+  // Optional listing URLs - CORRECTED SCHEMA
+  vrbo_url?: string | null;
+  airbnb_url?: string | null;
   
   // Inspection statistics (all optional for defensive programming)
   inspection_count?: number;
@@ -63,9 +63,9 @@ interface PropertyData extends PropertyWithInspections {
   approved_inspection_count?: number;
   rejected_inspection_count?: number;
   
-  // Enhanced metadata for better UX
-  property_status?: string;
-  property_created_at?: string;
+  // Enhanced metadata for better UX - CORRECTED SCHEMA
+  status?: string;
+  created_at?: string;
   latest_inspection_id?: string;
   latest_inspection_status?: string;
   latest_inspection_updated_at?: string;

@@ -6,9 +6,9 @@ import { syncService } from './syncService';
 import type { Database } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
-type ChecklistItemRecord = Tables['logs']['Row'];
-type ChecklistItemInsert = Tables['logs']['Insert'];
-type ChecklistItemUpdate = Tables['logs']['Update'];
+type ChecklistItemRecord = Tables['checklist_items']['Row'];
+type ChecklistItemInsert = Tables['checklist_items']['Insert'];
+type ChecklistItemUpdate = Tables['checklist_items']['Update'];
 type MediaFileRecord = Tables['media']['Row'];
 
 export interface ChecklistItemWithMedia extends ChecklistItemRecord {
@@ -47,30 +47,14 @@ export class ChecklistService {
     try {
       logger.info('Fetching checklist items', { inspectionId }, 'CHECKLIST_SERVICE');
 
-      // First get the property_id from the inspection (logs table uses property_id, not inspection_id)
-      const { data: inspectionData, error: inspectionError } = await supabase
-        .from('inspections')
-        .select('property_id')
-        .eq('id', inspectionId)
-        .single();
-
-      if (inspectionError) {
-        logger.error('Failed to fetch inspection for property_id', inspectionError, 'CHECKLIST_SERVICE');
-        return { success: false, error: inspectionError.message };
-      }
-
-      if (!inspectionData) {
-        return { success: false, error: 'Inspection not found' };
-      }
-
-      // Now get checklist items using property_id (verified schema approach)
+      // Get checklist items using inspection_id directly (correct schema)
       const { data, error } = await supabase
         .from('checklist_items')
         .select(`
           *,
           media (*)
         `)
-        .eq('property_id', inspectionData.property_id)
+        .eq('inspection_id', inspectionId)
         .order('created_at', { ascending: true });
 
       if (error) {

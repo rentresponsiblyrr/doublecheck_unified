@@ -178,7 +178,7 @@ STR Certified Team`);
     setManagerInfo(prev => ({ ...prev, [field]: value }));
   };
 
-  const updateDeliveryOption = (field: keyof DeliveryOptions, value: any) => {
+  const updateDeliveryOption = (field: keyof DeliveryOptions, value: boolean | string) => {
     setDeliveryOptions(prev => ({ ...prev, [field]: value }));
   };
 

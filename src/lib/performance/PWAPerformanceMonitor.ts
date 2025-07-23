@@ -408,6 +408,18 @@ export class PWAPerformanceMonitor {
 
       const { onCLS, onFID, onFCP, onLCP, onTTFB } = webVitals;
 
+      // Initialize metrics object if not exists
+      if (!this.currentMetrics) {
+        this.currentMetrics = {
+          timestamp: new Date(),
+          coreWebVitals: { lcp: 0, fid: 0, cls: 0, fcp: 0, ttfb: 0 },
+          pwaSpecific: { cacheHitRate: 0, installPromptConversion: 0, offlineCapability: true, serviceWorkerActivation: 0, backgroundSyncEfficiency: 0, updateAvailable: false },
+          constructionSiteMetrics: { networkQuality: '4g', loadTimeUnder2G: 0, batteryImpact: 'low', offlineUsageTime: 0, signalStrength: 100 },
+          userExperience: { taskCompletionRate: 0, errorRecoveryRate: 0, userSatisfactionScore: 0, inspectionWorkflowTime: 0, photoUploadSuccess: 0 },
+          businessImpact: { conversionRate: 0, retentionRate: 0, engagementScore: 0, revenueImpact: 0 }
+        };
+      }
+
     // Enhanced LCP tracking with PWA context
     onLCP((metric) => {
       const pwaContext = {
@@ -465,13 +477,24 @@ export class PWAPerformanceMonitor {
       logger.warn('Web-vitals library not available, using mock metrics', { error }, 'PWA_PERFORMANCE');
       
       // Set up mock Core Web Vitals for testing
-      this.currentMetrics.coreWebVitals = {
-        lcp: 2200,
-        fid: 65,
-        cls: 0.08,
-        fcp: 1800,
-        ttfb: 400
-      };
+      if (!this.currentMetrics) {
+        this.currentMetrics = {
+          timestamp: new Date(),
+          coreWebVitals: { lcp: 2200, fid: 65, cls: 0.08, fcp: 1800, ttfb: 400 },
+          pwaSpecific: { cacheHitRate: 87, installPromptConversion: 12, offlineCapability: true },
+          constructionSiteMetrics: { networkQuality: '4g', loadTimeUnder2G: 4200, batteryImpact: 'low' },
+          userExperience: { taskCompletionRate: 93, errorRecoveryRate: 96, userSatisfactionScore: 88 },
+          businessImpact: { conversionRate: 8.5, retentionRate: 78, engagementScore: 85 }
+        };
+      } else {
+        this.currentMetrics.coreWebVitals = {
+          lcp: 2200,
+          fid: 65,
+          cls: 0.08,
+          fcp: 1800,
+          ttfb: 400
+        };
+      }
     }
   }
 

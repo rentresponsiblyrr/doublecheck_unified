@@ -102,7 +102,7 @@ export interface StaticSafetyItem {
 
 export interface MediaRecord {
   id: string;
-  log_id: number;
+  checklist_item_id: string; // UUID referencing checklist_items.id
   file_name: string;
   file_path: string;
   file_type: string;
@@ -549,8 +549,8 @@ export class UnifiedDatabaseService {
       // Get property data separately
       const { data: property } = await this.supabase
         .from('properties')
-        .select('property_id, property_name, street_address')
-        .eq('property_id', parseInt(inspection.property_id))
+        .select('id, name, address')
+        .eq('id', inspection.property_id)
         .single();
       
       // Get user data separately  
@@ -560,21 +560,21 @@ export class UnifiedDatabaseService {
         .eq('id', inspection.inspector_id)
         .single();
       
-      // Get logs data separately
-      const { data: logs } = await this.supabase
-        .from('logs')
+      // Get checklist items data separately using correct schema
+      const { data: checklistItems } = await this.supabase
+        .from('checklist_items')
         .select(`
           *,
-          static_safety_items!checklist_id (id, label, category),
+          static_safety_items!static_item_id (id, label, category),
           media (*)
         `)
-        .eq('property_id', parseInt(inspection.property_id));
+        .eq('inspection_id', inspection.id);
       
       const data = {
         ...inspection,
         properties: property,
         users: user,
-        logs: logs || []
+        checklist_items: checklistItems || []
       };
       
       const inspection = data as InspectionWithItems;

@@ -27,10 +27,10 @@ import { logger } from '@/utils/logger';
  * Designed to be future-proof and handle optional fields gracefully
  */
 export interface PropertyWithInspections {
-  property_id: string;
+  id: string;  // CORRECTED: UUID primary key
   name: string;
-  property_address?: string;
-  property_status?: string;
+  address?: string;  // CORRECTED: Unified address field
+  status?: string;  // CORRECTED: Simplified status field
   
   // Inspection count fields - all optional for defensive programming
   inspection_count?: number;
@@ -46,8 +46,8 @@ export interface PropertyWithInspections {
   latest_inspection_status?: string;
   latest_inspection_completed?: boolean;
   
-  // Timestamps for age-based calculations
-  property_created_at?: string;
+  // Timestamps for age-based calculations - CORRECTED SCHEMA
+  created_at?: string;
   latest_inspection_updated_at?: string;
 }
 
@@ -92,7 +92,7 @@ class PropertyStatusService {
     
     try {
       logger.debug('Calculating property status', { 
-        propertyId: property.property_id,
+        propertyId: property.id,
         propertyName: property.name 
       }, 'PROPERTY_STATUS_SERVICE');
 
