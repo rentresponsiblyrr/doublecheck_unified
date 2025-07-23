@@ -406,7 +406,8 @@ export class PWAPerformanceMonitor {
         };
       }
 
-      const { onCLS, onFID, onFCP, onLCP, onTTFB } = webVitals;
+      // FIXED: Safely destructure web vitals functions with fallback
+      const { onCLS, onFID, onFCP, onLCP, onTTFB } = webVitals || {};
 
       // Initialize metrics object if not exists
       if (!this.currentMetrics) {
@@ -420,8 +421,9 @@ export class PWAPerformanceMonitor {
         };
       }
 
-    // Enhanced LCP tracking with PWA context
-    onLCP((metric) => {
+    // Enhanced LCP tracking with PWA context (with safety check)
+    if (onLCP && typeof onLCP === 'function') {
+      onLCP((metric) => {
       const pwaContext = {
         serviceWorkerActive: serviceWorkerManager.getStatus().isControlling,
         networkQuality: offlineStatusManager.getNetworkStatus().quality?.category || 'unknown',
@@ -429,49 +431,59 @@ export class PWAPerformanceMonitor {
         installState: this.getPWAInstallState()
       };
       
-      this.recordMetric('lcp', metric.value, pwaContext);
-      this.checkPerformanceThreshold('lcp', metric.value);
-    });
+        this.recordMetric('lcp', metric.value, pwaContext);
+        this.checkPerformanceThreshold('lcp', metric.value);
+      });
+    }
 
-    // Enhanced FID tracking with interaction context
-    onFID((metric) => {
+    // Enhanced FID tracking with interaction context (with safety check)
+    if (onFID && typeof onFID === 'function') {
+      onFID((metric) => {
       const interactionContext = {
         duringInspection: this.isInspectionWorkflow(),
         offlineMode: !navigator.onLine,
         serviceWorkerOverhead: this.getServiceWorkerOverhead()
       };
       
-      this.recordMetric('fid', metric.value, interactionContext);
-      this.checkPerformanceThreshold('fid', metric.value);
-    });
+        this.recordMetric('fid', metric.value, interactionContext);
+        this.checkPerformanceThreshold('fid', metric.value);
+      });
+    }
 
-    // Enhanced CLS tracking with component correlation
-    onCLS((metric) => {
+    // Enhanced CLS tracking with component correlation (with safety check)
+    if (onCLS && typeof onCLS === 'function') {
+      onCLS((metric) => {
       const layoutContext = {
         componentType: this.getCurrentComponentType(),
         pwaInstalled: this.isPWAInstalled(),
         dynamicContent: this.hasDynamicContent()
       };
       
-      this.recordMetric('cls', metric.value, layoutContext);
-      this.checkPerformanceThreshold('cls', metric.value);
-    });
+        this.recordMetric('cls', metric.value, layoutContext);
+        this.checkPerformanceThreshold('cls', metric.value);
+      });
+    }
 
-    // FCP and TTFB tracking
-    onFCP((metric) => {
+    // FCP tracking (with safety check)
+    if (onFCP && typeof onFCP === 'function') {
+      onFCP((metric) => {
       this.recordMetric('fcp', metric.value, {
         cacheStrategy: this.getCurrentCacheStrategy()
       });
-      this.checkPerformanceThreshold('fcp', metric.value);
-    });
+        this.checkPerformanceThreshold('fcp', metric.value);
+      });
+    }
 
-    onTTFB((metric) => {
+    // TTFB tracking (with safety check)
+    if (onTTFB && typeof onTTFB === 'function') {
+      onTTFB((metric) => {
       this.recordMetric('ttfb', metric.value, {
         serverLocation: this.getServerLocation(),
         cdnHit: this.wasCDNHit()
       });
-      this.checkPerformanceThreshold('ttfb', metric.value);
-    });
+        this.checkPerformanceThreshold('ttfb', metric.value);
+      });
+    }
     } catch (error) {
       // Handle web-vitals import failure in test environments
       logger.warn('Web-vitals library not available, using mock metrics', { error }, 'PWA_PERFORMANCE');

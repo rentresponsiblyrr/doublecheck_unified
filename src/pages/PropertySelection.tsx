@@ -84,11 +84,12 @@ const PropertySelection = () => {
       .filter(property => property.latest_inspection_id)
       .map(property => ({
         id: property.latest_inspection_id!,
-        property_id: property.id,
+        property_id: property.property_id,  // FIXED: Use correct field from RPC function
         completed: property.latest_inspection_completed || false,
         start_time: null,
-        // Use proper status from the RPC response instead of oversimplified mapping
-        status: property.latest_inspection_status || (property.latest_inspection_completed ? 'completed' : 'in_progress')
+        // FIXED: RPC function doesn't return latest_inspection_status, derive from available fields
+        status: property.latest_inspection_completed ? 'completed' : 
+               (property.latest_inspection_id ? 'in_progress' : 'draft')
       }));
   }, [properties]);
 
