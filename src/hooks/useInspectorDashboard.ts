@@ -132,8 +132,8 @@ export const useInspectorDashboard = () => {
       // REMOVED: Dashboard fetching logging to prevent infinite loops
 
       // Determine if user should see all inspections or just their own
-      const isInspectorRole = userRole === 'inspector';
-      
+      const isInspectorRole = userRole === "inspector";
+
       // Fetch both inspections and properties in parallel
       const [inspectionsResult, propertiesResult] = await Promise.all([
         // Fetch inspections - all inspections for admin/auditor, own inspections for inspector
@@ -318,19 +318,9 @@ export const useInspectorDashboard = () => {
     pending_review: statusCounts.pending_review + statusCounts.approved,
   };
 
-  // Debug: Log summary values to console for troubleshooting
-  React.useEffect(() => {
-    if (!isLoading && user?.id) {
-      console.log('📊 Dashboard Summary:', {
-        userRole,
-        isInspectorRole: userRole === 'inspector',
-        propertiesCount: properties.length,
-        inspectionsCount: inspections.length,
-        statusCounts,
-        summary
-      });
-    }
-  }, [summary, statusCounts, properties.length, inspections.length, userRole, isLoading, user?.id]);
+  // REMOVED: Debug logging that was causing infinite console loops when navigating between admin/inspector views
+  // The useEffect with object dependencies was triggering continuously due to object recreation on each render
+  // To re-enable for debugging, add proper memoization with useMemo for statusCounts and summary objects
 
   // REMOVED: Debug logging that was causing infinite console loops
   //   id: p.property_id,

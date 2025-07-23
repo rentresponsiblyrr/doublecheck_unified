@@ -44,8 +44,24 @@ export const QuickStatsCards: React.FC<QuickStatsCardsProps> = ({
             <Target className="h-8 w-8 text-green-500" />
           </div>
           <div className="mt-2 flex items-center text-xs text-gray-500">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            +2.3% from last week
+            {modelPerformance?.accuracy_trend &&
+            modelPerformance.accuracy_trend > 0 ? (
+              <>
+                <TrendingUp className="h-3 w-3 mr-1" />+
+                {modelPerformance.accuracy_trend.toFixed(1)}% from last week
+              </>
+            ) : modelPerformance?.accuracy_trend &&
+              modelPerformance.accuracy_trend < 0 ? (
+              <>
+                <TrendingDown className="h-3 w-3 mr-1" />
+                {modelPerformance.accuracy_trend.toFixed(1)}% from last week
+              </>
+            ) : (
+              <>
+                <Target className="h-3 w-3 mr-1" />
+                No change from last week
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -64,8 +80,24 @@ export const QuickStatsCards: React.FC<QuickStatsCardsProps> = ({
             <Users className="h-8 w-8 text-blue-500" />
           </div>
           <div className="mt-2 flex items-center text-xs text-gray-500">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            +15% from last week
+            {modelPerformance?.feedback_trend &&
+            modelPerformance.feedback_trend > 0 ? (
+              <>
+                <TrendingUp className="h-3 w-3 mr-1" />+
+                {modelPerformance.feedback_trend.toFixed(1)}% from last week
+              </>
+            ) : modelPerformance?.feedback_trend &&
+              modelPerformance.feedback_trend < 0 ? (
+              <>
+                <TrendingDown className="h-3 w-3 mr-1" />
+                {modelPerformance.feedback_trend.toFixed(1)}% from last week
+              </>
+            ) : (
+              <>
+                <Users className="h-3 w-3 mr-1" />
+                No change from last week
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -84,8 +116,26 @@ export const QuickStatsCards: React.FC<QuickStatsCardsProps> = ({
             <Zap className="h-8 w-8 text-purple-500" />
           </div>
           <div className="mt-2 flex items-center text-xs text-gray-500">
-            <TrendingDown className="h-3 w-3 mr-1" />
-            -8% from last week
+            {modelPerformance?.processing_time_trend &&
+            modelPerformance.processing_time_trend > 0 ? (
+              <>
+                <TrendingUp className="h-3 w-3 mr-1 text-red-500" />+
+                {modelPerformance.processing_time_trend.toFixed(1)}% from last
+                week
+              </>
+            ) : modelPerformance?.processing_time_trend &&
+              modelPerformance.processing_time_trend < 0 ? (
+              <>
+                <TrendingDown className="h-3 w-3 mr-1 text-green-500" />
+                {modelPerformance.processing_time_trend.toFixed(1)}% from last
+                week
+              </>
+            ) : (
+              <>
+                <Zap className="h-3 w-3 mr-1" />
+                No change from last week
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

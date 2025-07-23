@@ -53,7 +53,7 @@ vi.mock("@/lib/pwa/ServiceWorkerManager", () => ({
       missRate: 13,
       backgroundSyncSuccess: 95,
     })),
-    updateCacheStrategy: vi.fn(),
+    updateCacheStrategy: vi.fn().mockResolvedValue(undefined),
     onUpdateAvailable: vi.fn(),
   },
 }));

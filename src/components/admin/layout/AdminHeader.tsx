@@ -93,7 +93,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           )}
         >
           {/* System Status - Hidden on mobile to save space */}
-          {!isMobile && <SystemStatusPanel />}
+          {!isMobile && <SystemStatusPanel compact />}
 
           {/* User Menu */}
           <DropdownMenu>
@@ -142,7 +142,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               {isMobile && (
                 <>
                   <DropdownMenuItem id="system-status-mobile" className="p-2">
-                    <SystemStatusPanel />
+                    <SystemStatusPanel compact />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>

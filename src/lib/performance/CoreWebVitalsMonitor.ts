@@ -1070,7 +1070,19 @@ export class CoreWebVitalsMonitor {
     const recentAverage = this.calculateRecentAverage(metric);
     if (recentAverage === null) return;
 
-    const regressionThreshold = recentAverage * 1.2; // 20% worse than recent average
+    // Use metric-specific thresholds to reduce false positives
+    const getThresholdMultiplier = (metric: string): number => {
+      const thresholds = {
+        lcp: 1.4, // 40% for LCP (loading performance)
+        fid: 1.6, // 60% for FID (more variable)
+        cls: 1.3, // 30% for CLS (layout stability)
+        fcp: 1.4, // 40% for FCP
+        ttfb: 1.5, // 50% for TTFB (network dependent)
+        tbt: 1.6, // 60% for TBT (more variable)
+      };
+      return thresholds[metric] || 1.4; // Default 40% threshold
+    };
+    const regressionThreshold = recentAverage * getThresholdMultiplier(metric);
 
     if (value > regressionThreshold) {
       logger.warn(
@@ -1090,12 +1102,12 @@ export class CoreWebVitalsMonitor {
 
   private calculateRecentAverage(metric: string): number | null {
     const recentValues = this.metricHistory
-      .slice(-10) // Last 10 measurements
+      .slice(-20) // Last 20 measurements for more stable baseline
       .map((m) => m[metric as keyof CoreWebVitalsMetrics] as PerformanceMetric)
       .filter((m) => m && m.value)
       .map((m) => m.value);
 
-    return recentValues.length > 0
+    return recentValues.length >= 5 // Require at least 5 measurements for stable average
       ? recentValues.reduce((a, b) => a + b, 0) / recentValues.length
       : null;
   }

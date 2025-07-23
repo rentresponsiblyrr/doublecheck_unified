@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AdminHeader } from "./AdminHeader";
+import { AdminNavigation } from "../AdminNavigation";
+import { AdminNavigationErrorBoundary } from "../AdminNavigationErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger/production-logger";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -40,13 +42,11 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
         } = await supabase.auth.getUser();
 
         if (user) {
-          // Try to get profile data from users table with better error handling and timeout
+          // Try to get profile data using RPC function to avoid RLS recursion
           try {
-            const profilePromise = supabase
-              .from("users")
-              .select("name, email")
-              .eq("id", user.id)
-              .single();
+            const profilePromise = supabase.rpc("get_user_profile", {
+              _user_id: user.id,
+            });
 
             // Add timeout to prevent hanging requests
             const timeoutPromise = new Promise((_, reject) =>
@@ -72,10 +72,10 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
 
             setUserProfile({
               full_name:
-                profile?.name ||
+                profile?.[0]?.name ||
                 user.user_metadata?.full_name ||
                 user.email?.split("@")[0],
-              email: profile?.email || user.email,
+              email: profile?.[0]?.email || user.email,
               avatar_url: user.user_metadata?.avatar_url,
             });
 
@@ -140,6 +140,11 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
       >
         {/* Header */}
         <AdminHeader userProfile={userProfile} isMobile={isMobile} />
+
+        {/* Admin Navigation */}
+        <AdminNavigationErrorBoundary>
+          <AdminNavigation isMobile={isMobile} />
+        </AdminNavigationErrorBoundary>
 
         {/* Main Content */}
         <main

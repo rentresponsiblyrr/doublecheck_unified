@@ -749,6 +749,41 @@ class IntelligentBugReportService {
   }
 
   /**
+   * COMPATIBILITY METHOD: createIntelligentReport (alias for createIntelligentBugReport)
+   *
+   * This method exists to maintain compatibility with existing code that calls
+   * intelligentBugReportService.createIntelligentReport() instead of createIntelligentBugReport()
+   */
+  async createIntelligentReport(basicBugReport: BugReportData): Promise<any> {
+    logger.info("createIntelligentReport called (compatibility method)", {
+      title: basicBugReport.title,
+      category: basicBugReport.category,
+    });
+
+    try {
+      const result = await this.createIntelligentBugReport(basicBugReport, {
+        autoSubmitToGitHub: true,
+        skipAIAnalysis: false,
+        includeScreenshot: true,
+      });
+
+      // Return format expected by BugReportDialog
+      return {
+        number: result.githubIssue?.number || 0,
+        title: result.githubIssue?.title || basicBugReport.title,
+        html_url: result.githubIssue?.html_url || "",
+        state: result.githubIssue?.state || "open",
+        labels: result.githubIssue?.labels || [],
+      };
+    } catch (error) {
+      logger.error("createIntelligentReport failed", error);
+      throw new Error(
+        `Bug report submission failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Clear stored data (for testing)
    */
   clearData() {

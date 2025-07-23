@@ -36,7 +36,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ kpis }) => {
       count: kpis.flaggedInspections,
       icon: AlertCircle,
       variant: "destructive" as const,
-      action: () => navigate("/admin/flagged"),
+      action: () => navigate("/admin/inspections"),
     },
     {
       title: "Manage Users",

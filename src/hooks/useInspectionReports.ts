@@ -62,7 +62,7 @@ export const useInspectionReports = () => {
       }
 
       // Determine if user should see all inspections or just their own
-      const isInspectorRole = userRole === 'inspector';
+      const isInspectorRole = userRole === "inspector";
 
       // Fetch inspections with property data and basic counts
       const { data: inspectionsData, error: inspectionsError } = await supabase

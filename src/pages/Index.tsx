@@ -137,7 +137,9 @@ const Index = () => {
                   <p className="text-sm font-medium text-gray-600">
                     Properties
                   </p>
-                  <p className="text-2xl font-bold">{summary.properties ?? 0}</p>
+                  <p className="text-2xl font-bold">
+                    {summary.properties ?? 0}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -195,7 +197,9 @@ const Index = () => {
                   <p className="text-sm font-medium text-gray-600">
                     Pending Review
                   </p>
-                  <p className="text-2xl font-bold">{summary.pending_review ?? 0}</p>
+                  <p className="text-2xl font-bold">
+                    {summary.pending_review ?? 0}
+                  </p>
                 </div>
               </div>
             </CardContent>

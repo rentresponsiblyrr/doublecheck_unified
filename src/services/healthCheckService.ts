@@ -106,7 +106,7 @@ class HealthCheckService {
     const tables = [
       "users", // Fixed: was "profiles"
       "properties",
-      "inspections", 
+      "inspections",
       "checklist_items", // Fixed: was "logs"
       "static_safety_items",
     ];

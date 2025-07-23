@@ -142,7 +142,8 @@ export class ProductionLogger {
       // - LogRocket: LogRocket.captureException(new Error(message))
 
       // Only send to external logging service in production
-      if (!this.isDevelopment) {
+      // DISABLED: No backend API endpoints available in current architecture
+      if (false && !this.isDevelopment) {
         fetch("/api/logs/errors", {
           method: "POST",
           headers: {
@@ -182,7 +183,8 @@ export class ProductionLogger {
       // - PostHog: posthog.capture(event_name, properties)
 
       // Only send to external analytics service in production
-      if (!this.isDevelopment) {
+      // DISABLED: No backend API endpoints available in current architecture
+      if (false && !this.isDevelopment) {
         fetch("/api/analytics/events", {
           method: "POST",
           headers: {
@@ -219,23 +221,26 @@ export class ProductionLogger {
     context?: LogContext,
   ): void {
     try {
-      fetch("/api/metrics/performance", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Session-ID": this.sessionId,
-        },
-        body: JSON.stringify({
-          operation,
-          duration,
-          timestamp: new Date().toISOString(),
-          component: context?.component,
-          sessionId: this.sessionId,
-          metadata: context?.metadata,
-        }),
-      }).catch(() => {
-        // Fail silently
-      });
+      // DISABLED: No backend API endpoints available in current architecture
+      if (false) {
+        fetch("/api/metrics/performance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Session-ID": this.sessionId,
+          },
+          body: JSON.stringify({
+            operation,
+            duration,
+            timestamp: new Date().toISOString(),
+            component: context?.component,
+            sessionId: this.sessionId,
+            metadata: context?.metadata,
+          }),
+        }).catch(() => {
+          // Fail silently
+        });
+      }
     } catch {
       // Fail silently in production
     }

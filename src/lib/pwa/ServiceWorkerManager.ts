@@ -83,6 +83,7 @@ export class ServiceWorkerManager {
   private cacheStrategies: CacheStrategy[] = [];
   private performanceMetrics: CachePerformanceMetrics;
   private messageChannel: MessageChannel | null = null;
+  private deferredCacheStrategy: string | null = null;
 
   private constructor() {
     this.performanceMetrics = {
@@ -198,8 +199,20 @@ export class ServiceWorkerManager {
     });
 
     // Handle controller change (new SW takes control)
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
+    navigator.serviceWorker.addEventListener("controllerchange", async () => {
       logger.info("Service Worker controller changed", {}, "SERVICE_WORKER");
+
+      // Apply any deferred cache strategy updates
+      if (this.deferredCacheStrategy) {
+        logger.info(
+          "Applying deferred cache strategy",
+          { strategy: this.deferredCacheStrategy },
+          "SERVICE_WORKER",
+        );
+        await this.updateCacheStrategy(this.deferredCacheStrategy as any);
+        this.deferredCacheStrategy = null;
+      }
+
       // Reload the page to ensure all resources are from the new SW
       if (!window.location.pathname.includes("/inspection/")) {
         // Only reload if not in middle of inspection
@@ -229,6 +242,26 @@ export class ServiceWorkerManager {
       navigator.serviceWorker.controller.postMessage({ type: "INIT_PORT" }, [
         this.messageChannel.port2,
       ]);
+
+      // Apply any deferred cache strategy updates now that controller is available
+      if (this.deferredCacheStrategy) {
+        logger.info(
+          "Applying deferred cache strategy via message channel setup",
+          { strategy: this.deferredCacheStrategy },
+          "SERVICE_WORKER",
+        );
+        // Fire and forget - don't wait for this async operation to complete
+        this.updateCacheStrategy(this.deferredCacheStrategy as any).catch(
+          (error) => {
+            logger.warn(
+              "Failed to apply deferred cache strategy",
+              { error },
+              "SERVICE_WORKER",
+            );
+          },
+        );
+        this.deferredCacheStrategy = null;
+      }
     }
 
     // Listen for SW messages on main channel
@@ -726,14 +759,50 @@ export class ServiceWorkerManager {
    * Update cache strategy dynamically (for Network Adaptation Engine)
    * @param strategy - The caching strategy to apply
    */
-  updateCacheStrategy(
+  async updateCacheStrategy(
     strategy:
       | "cache-first"
       | "cache-only"
       | "network-first"
       | "stale-while-revalidate",
-  ): void {
+  ): Promise<void> {
     try {
+      // Wait for service worker to be ready if it's not already controlling
+      if (!navigator.serviceWorker.controller) {
+        logger.info(
+          "Service worker not controlling yet, waiting for initialization",
+          { strategy },
+          "SERVICE_WORKER",
+        );
+
+        // Wait for service worker to be ready with timeout
+        try {
+          await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Service worker timeout")),
+                5000,
+              ),
+            ),
+          ]);
+
+          // Additional check after ready - controller might still be null immediately
+          if (!navigator.serviceWorker.controller) {
+            // Wait a bit more for controller to be available
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        } catch (timeoutError) {
+          logger.warn(
+            "Service worker not ready within timeout, caching strategy update skipped",
+            { strategy, error: timeoutError },
+            "SERVICE_WORKER",
+          );
+          return;
+        }
+      }
+
+      // Try again after waiting
       if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
           type: "UPDATE_CACHE_STRATEGY",
@@ -743,10 +812,13 @@ export class ServiceWorkerManager {
         logger.info("Cache strategy updated", { strategy }, "SERVICE_WORKER");
       } else {
         logger.warn(
-          "No service worker controller available to update cache strategy",
+          "Service worker controller still not available after waiting, strategy update deferred",
           { strategy },
           "SERVICE_WORKER",
         );
+
+        // Store strategy to apply later when service worker becomes available
+        this.deferredCacheStrategy = strategy;
       }
     } catch (error) {
       logger.error(

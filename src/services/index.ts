@@ -49,7 +49,7 @@ let initializationPromise: Promise<void> | null = null;
 async function exposeServiceStatusToWindow(): Promise<void> {
   try {
     const status = await getServiceStatus();
-    
+
     // Expose to global window for integration bridge
     (window as any).__ENHANCED_SERVICES__ = {
       initialized: status.initialized,
@@ -60,11 +60,14 @@ async function exposeServiceStatusToWindow(): Promise<void> {
       migration: status.services.migration,
       lastUpdate: status.timestamp,
     };
-    
-    logger.info("✅ Enhanced Services status exposed to window.__ENHANCED_SERVICES__", status);
+
+    logger.info(
+      "✅ Enhanced Services status exposed to window.__ENHANCED_SERVICES__",
+      status,
+    );
   } catch (error) {
     logger.error("❌ Failed to expose service status to window:", error);
-    
+
     // Expose error state
     (window as any).__ENHANCED_SERVICES__ = {
       initialized: false,
@@ -118,10 +121,10 @@ async function initializeEnhancedServices(): Promise<void> {
       }
 
       isInitialized = true;
-      
+
       // Expose service status to global window for integration bridge
       await exposeServiceStatusToWindow();
-      
+
       logger.info("🎉 Enhanced Services Full Switchover Complete!");
     } catch (error) {
       logger.error("💥 Enhanced Services initialization failed:", error);

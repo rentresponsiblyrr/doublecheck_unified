@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { AdminLayoutContainer } from "./layout/AdminLayoutContainer";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
+import { ADMIN_ROUTES, AdminRouteUtils } from "./config/adminRoutes";
+import { logger } from "@/utils/logger";
 
 // Direct imports - no lazy loading
 import AdminOverview from "./AdminOverview";
@@ -62,93 +64,100 @@ export default function DirectAdminRouter() {
     });
   }, [currentPath]);
 
-  // Direct component rendering based on path
+  // Direct component rendering based on path using centralized route configuration
   const renderComponent = () => {
-    const path = currentPath.toLowerCase();
+    const currentRoute = AdminRouteUtils.getActiveRoute(currentPath);
 
-    // Health monitoring
-    if (path.includes("health")) {
-      return (
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              🏥 System Health Monitor
-            </h1>
-            <p className="text-gray-600">
-              Real-time system health monitoring and diagnostics
-            </p>
-          </div>
-          <SystemHealthCheck />
-        </div>
-      );
-    }
+    // Log route access for production monitoring
+    logger.info("Admin route accessed", {
+      path: currentPath,
+      routeId: currentRoute?.id || "unknown",
+      timestamp: new Date().toISOString(),
+      component: "DirectAdminRouter",
+    });
 
-    // User management
-    if (path.includes("users")) {
-      return (
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              👥 User Management
-            </h1>
-            <p className="text-gray-600">
-              Manage user accounts, roles, and permissions
-            </p>
-          </div>
-          <UserManagementRedesigned />
-        </div>
-      );
-    }
+    // Route-specific component rendering using centralized configuration
+    if (currentRoute) {
+      switch (currentRoute.id) {
+        case "health":
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  🏥 System Health Monitor
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <SystemHealthCheck />
+            </div>
+          );
 
-    // Audit center
-    if (path.includes("audit")) {
-      return (
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              🔍 Audit Center
-            </h1>
-            <p className="text-gray-600">
-              Review and analyze inspection reports and system activity
-            </p>
-          </div>
-          <UnifiedAdminManagement initialTab="reports" />
-        </div>
-      );
-    }
+        case "users":
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  👥 User Management
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <UserManagementRedesigned />
+            </div>
+          );
 
-    // Checklist management
-    if (path.includes("checklist")) {
-      return (
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              📋 Checklist Management
-            </h1>
-            <p className="text-gray-600">
-              Configure and manage inspection checklist items and categories
-            </p>
-          </div>
-          <UnifiedAdminManagement initialTab="inspections" />
-        </div>
-      );
-    }
+        case "audit":
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  🔍 Audit Center
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <UnifiedAdminManagement initialTab="reports" />
+            </div>
+          );
 
-    // Admin overview (default)
-    if (path === "/admin" || path === "/admin/" || path.includes("overview")) {
-      return (
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              🏠 Admin Dashboard
-            </h1>
-            <p className="text-gray-600">
-              System overview and administrative controls
-            </p>
-          </div>
-          <AdminOverview />
-        </div>
-      );
+        case "checklist":
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  📋 Checklist Management
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <UnifiedAdminManagement initialTab="inspections" />
+            </div>
+          );
+
+        case "reports":
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  📊 Reports & Analytics
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <UnifiedAdminManagement initialTab="reports" />
+            </div>
+          );
+
+        case "overview":
+        default:
+          return (
+            <div className="p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  🏠 Admin Dashboard
+                </h1>
+                <p className="text-gray-600">{currentRoute.description}</p>
+              </div>
+              <AdminOverview />
+            </div>
+          );
+      }
     }
 
     // Unknown path - comprehensive diagnostic
@@ -175,11 +184,11 @@ export default function DirectAdminRouter() {
               <h3 className="font-semibold text-red-800 mb-2">
                 Available Routes
               </h3>
-              <div>• /admin/health - Health Monitor</div>
-              <div>• /admin/users - User Management</div>
-              <div>• /admin/audit - Audit Center</div>
-              <div>• /admin/checklists - Checklist Management</div>
-              <div>• /admin - Overview</div>
+              {ADMIN_ROUTES.map((route) => (
+                <div key={route.id}>
+                  • {route.path} - {route.label}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -187,63 +196,35 @@ export default function DirectAdminRouter() {
             <h3 className="font-semibold text-red-800 mb-2">
               Quick Navigation
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button
-                onClick={() => {
-                  try {
-                    window.history.pushState(null, "", "/admin/health");
-                    window.dispatchEvent(new PopStateEvent("popstate"));
-                  } catch (error) {
-                    // Professional navigation: update state and trigger re-render
-                    setCurrentPath("/admin/health");
-                  }
-                }}
-                className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-              >
-                Health Monitor
-              </button>
-              <button
-                onClick={() => {
-                  try {
-                    window.history.pushState(null, "", "/admin/users");
-                    window.dispatchEvent(new PopStateEvent("popstate"));
-                  } catch (error) {
-                    // Professional navigation: update state and trigger re-render
-                    setCurrentPath("/admin/users");
-                  }
-                }}
-                className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-              >
-                User Management
-              </button>
-              <button
-                onClick={() => {
-                  try {
-                    window.history.pushState(null, "", "/admin/audit");
-                    window.dispatchEvent(new PopStateEvent("popstate"));
-                  } catch (error) {
-                    // Professional navigation: update state and trigger re-render
-                    setCurrentPath("/admin/audit");
-                  }
-                }}
-                className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-              >
-                Audit Center
-              </button>
-              <button
-                onClick={() => {
-                  try {
-                    window.history.pushState(null, "", "/admin");
-                    window.dispatchEvent(new PopStateEvent("popstate"));
-                  } catch (error) {
-                    // Professional navigation: update state and trigger re-render
-                    setCurrentPath("/admin");
-                  }
-                }}
-                className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
-              >
-                Overview
-              </button>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+              {ADMIN_ROUTES.map((route, index) => {
+                const colors = [
+                  "bg-green-600 hover:bg-green-700",
+                  "bg-blue-600 hover:bg-blue-700",
+                  "bg-purple-600 hover:bg-purple-700",
+                  "bg-orange-600 hover:bg-orange-700",
+                  "bg-yellow-600 hover:bg-yellow-700",
+                  "bg-indigo-600 hover:bg-indigo-700",
+                ];
+                return (
+                  <button
+                    key={route.id}
+                    onClick={() => {
+                      try {
+                        window.history.pushState(null, "", route.path);
+                        window.dispatchEvent(new PopStateEvent("popstate"));
+                      } catch (error) {
+                        // Professional navigation: update state and trigger re-render
+                        setCurrentPath(route.path);
+                      }
+                    }}
+                    className={`px-3 py-2 text-white rounded text-sm ${colors[index % colors.length]}`}
+                    title={route.description}
+                  >
+                    {route.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

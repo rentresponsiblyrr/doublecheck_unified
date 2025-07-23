@@ -509,11 +509,11 @@ export class NetworkAdaptationEngine {
         break;
 
       case "aggressive-caching":
-        this.applyAggressiveCachingOptimization();
+        await this.applyAggressiveCachingOptimization();
         break;
 
       case "offline-first-strategy":
-        this.applyOfflineFirstOptimization();
+        await this.applyOfflineFirstOptimization();
         break;
 
       case "reduce-animations":
@@ -665,8 +665,8 @@ export class NetworkAdaptationEngine {
     );
   }
 
-  private applyAggressiveCachingOptimization(): void {
-    serviceWorkerManager.updateCacheStrategy("cache-first");
+  private async applyAggressiveCachingOptimization(): Promise<void> {
+    await serviceWorkerManager.updateCacheStrategy("cache-first");
     window.dispatchEvent(
       new CustomEvent("network-optimization-caching", {
         detail: { strategy: "cache-first", ttl: "7d" },
@@ -674,8 +674,8 @@ export class NetworkAdaptationEngine {
     );
   }
 
-  private applyOfflineFirstOptimization(): void {
-    serviceWorkerManager.updateCacheStrategy("cache-only");
+  private async applyOfflineFirstOptimization(): Promise<void> {
+    await serviceWorkerManager.updateCacheStrategy("cache-only");
     window.dispatchEvent(
       new CustomEvent("network-optimization-offline-first", {
         detail: { strategy: "cache-only", networkFallback: false },

@@ -198,7 +198,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         title={`Delete ${property.name}`}
                         aria-label={`Delete property ${property.name}`}
                       >
-                        <Trash2 className={`h-4 w-4 ${actionState.isLoading ? 'animate-pulse' : ''}`} />
+                        <Trash2
+                          className={`h-4 w-4 ${actionState.isLoading ? "animate-pulse" : ""}`}
+                        />
                       </Button>
                     </div>
                   </div>

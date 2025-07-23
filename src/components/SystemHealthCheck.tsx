@@ -78,23 +78,24 @@ export const SystemHealthCheck: React.FC<{
       } else {
         status.details.push("Authentication: OK");
 
-        // Check user profile
-        const { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("name, email")
-          .eq("id", user.id)
-          .single();
+        // Check user profile using RPC to avoid RLS recursion
+        const { data: profile, error: profileError } = await supabase.rpc(
+          "get_user_profile",
+          { _user_id: user.id },
+        );
 
         if (profileError) {
           status.authentication = "warning";
           status.details.push("User profile access warning");
           status.details.push(profileError.message);
-        } else if (!profile) {
+        } else if (!profile?.[0]) {
           status.authentication = "warning";
           status.details.push("User profile not found");
           status.suggestions.push("Complete user profile setup");
         } else {
-          status.details.push(`User profile: ${profile.name || profile.email}`);
+          status.details.push(
+            `User profile: ${profile[0]?.name || profile[0]?.email}`,
+          );
         }
       }
 

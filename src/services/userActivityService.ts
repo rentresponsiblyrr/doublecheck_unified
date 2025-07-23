@@ -182,9 +182,22 @@ class UserActivityService {
     // Create a simple selector for the element
     const tag = element.tagName.toLowerCase();
     const id = element.id ? `#${element.id}` : "";
-    const classes = element.className
-      ? `.${element.className.split(" ").join(".")}`
-      : "";
+
+    // FIXED: Handle className safely - it might be DOMTokenList, null, or string
+    let classes = "";
+    if (element.className) {
+      const classNameStr =
+        typeof element.className === "string"
+          ? element.className
+          : element.className.toString();
+
+      if (classNameStr.trim()) {
+        classes = `.${classNameStr
+          .split(" ")
+          .filter((c) => c.trim())
+          .join(".")}`;
+      }
+    }
 
     return `${tag}${id}${classes}`.substring(0, 200);
   }
