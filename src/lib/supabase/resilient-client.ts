@@ -25,6 +25,32 @@ interface DatabaseError {
   status?: number;
 }
 
+interface SupabaseUser {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+  created_at: string;
+}
+
+interface SupabaseSession {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
+  user: SupabaseUser;
+}
+
+interface ConnectionTestResult {
+  success: boolean;
+  error?: string;
+  details?: {
+    latency?: number;
+    serverVersion?: string;
+    connectionPool?: string;
+  };
+}
+
 interface RetryConfig {
   maxRetries: number;
   baseDelay: number;
@@ -91,7 +117,7 @@ class ResilientSupabaseClient {
     const originalRequest = (client as any).rest.request;
 
     // Override with enhanced error handling
-    (client as any).rest.request = async (...args: any[]) => {
+    (client as SupabaseClient & { rest: { request: (...args: unknown[]) => Promise<unknown> } }).rest.request = async (...args: unknown[]) => {
       const endpoint = args[0];
       const retryCount = args[3]?.retryCount || 0;
 
@@ -108,7 +134,7 @@ class ResilientSupabaseClient {
         }
 
         return response;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const enhancedError = this.enhanceError(error, endpoint);
         
         // Determine if request should be retried
@@ -152,7 +178,7 @@ class ResilientSupabaseClient {
     };
   }
 
-  private enhanceError(error: any, endpoint?: string): DatabaseError {
+  private enhanceError(error: Error | { code?: string; message: string; details?: string; hint?: string }, endpoint?: string): DatabaseError {
     const baseError: DatabaseError = {
       code: error.code || 'UNKNOWN_ERROR',
       message: error.message || 'Unknown database error',
@@ -220,7 +246,7 @@ class ResilientSupabaseClient {
     }
   }
 
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: Error | { code?: string; status?: number }): boolean {
     // Don't retry on authentication/authorization errors
     if (error.code === '42501' || error.status === 401 || error.status === 403) {
       return false;
@@ -249,7 +275,7 @@ class ResilientSupabaseClient {
   /**
    * Test database connectivity
    */
-  async testConnection(): Promise<{ success: boolean; error?: string; details?: any }> {
+  async testConnection(): Promise<ConnectionTestResult> {
     try {
       logger.info('Testing database connectivity');
       
@@ -269,7 +295,7 @@ class ResilientSupabaseClient {
 
       logger.info('Database connectivity test passed', { recordCount: data?.length });
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Database connectivity test failed', { error: error.message });
       return {
         success: false,
@@ -284,8 +310,8 @@ class ResilientSupabaseClient {
    */
   async getAuthStatus(): Promise<{
     authenticated: boolean;
-    user?: any;
-    session?: any;
+    user?: SupabaseUser;
+    session?: SupabaseSession;
     error?: string;
   }> {
     try {
@@ -297,7 +323,7 @@ class ResilientSupabaseClient {
         session,
         error: error?.message
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         authenticated: false,
         error: error.message

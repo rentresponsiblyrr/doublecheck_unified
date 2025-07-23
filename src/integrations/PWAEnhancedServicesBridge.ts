@@ -16,6 +16,37 @@
 
 import { logger } from '@/utils/logger';
 
+// Service type definitions
+interface CacheManager {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  invalidate(key: string): Promise<void>;
+  clear(): Promise<void>;
+  getStats(): { hits: number; misses: number; size: number };
+}
+
+interface SyncManager {
+  sync(data: Record<string, unknown>): Promise<void>;
+  queue(task: { id: string; data: Record<string, unknown>; priority: number }): Promise<void>;
+  getStatus(): { pending: number; syncing: boolean; lastSync: Date };
+  pause(): Promise<void>;
+  resume(): Promise<void>;
+}
+
+interface OfflineStore {
+  store(key: string, data: Record<string, unknown>): Promise<void>;
+  retrieve<T>(key: string): Promise<T | null>;
+  remove(key: string): Promise<void>;
+  list(): Promise<string[]>;
+  size(): Promise<number>;
+}
+
+interface ServiceLayer {
+  execute<T>(operation: string, params: Record<string, unknown>): Promise<T>;
+  getHealth(): { status: 'healthy' | 'degraded' | 'unhealthy'; details: Record<string, unknown> };
+  reset(): Promise<void>;
+}
+
 interface IntegrationState {
   servicesReady: boolean;
   pwaReady: boolean;
@@ -26,18 +57,18 @@ interface IntegrationState {
 
 interface ServicePWAMapping {
   cache: {
-    pwaCache: any; // PWA Service Worker cache
-    enhancedCache: any; // Enhanced Query Cache
+    pwaCache: CacheManager; // PWA Service Worker cache
+    enhancedCache: CacheManager; // Enhanced Query Cache
     strategy: 'pwa-first' | 'enhanced-first' | 'hybrid';
   };
   sync: {
-    backgroundSync: any; // PWA Background Sync Manager
-    enhancedSync: any; // Enhanced Real-Time Sync
+    backgroundSync: SyncManager; // PWA Background Sync Manager
+    enhancedSync: SyncManager; // Enhanced Real-Time Sync
     coordination: 'sequential' | 'parallel' | 'primary-secondary';
   };
   data: {
-    serviceLayer: any; // Enhanced Unified Service Layer
-    pwaOfflineStore: any; // PWA Offline Store
+    serviceLayer: ServiceLayer; // Enhanced Unified Service Layer
+    pwaOfflineStore: OfflineStore; // PWA Offline Store
     conflictResolution: 'enhanced-wins' | 'pwa-wins' | 'merge-strategy';
   };
 }
@@ -126,8 +157,9 @@ export class PWAEnhancedServicesBridge {
   }
 
   private async waitForEnhancedServices(): Promise<void> {
-    // Wait for Enhanced Services to be initialized
-    const maxWaitTime = 10000; // 10 seconds
+    // FIXED: Don't wait for Enhanced Services if they're not available
+    // This prevents startup timeouts and allows app to function without Enhanced Services
+    const maxWaitTime = 2000; // Reduced to 2 seconds
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWaitTime) {
@@ -139,12 +171,13 @@ export class PWAEnhancedServicesBridge {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    throw new Error('Enhanced Services not ready within timeout period');
+    // GRACEFUL DEGRADATION: Don't fail if Enhanced Services aren't ready
+    logger.warn('Enhanced Services not ready, continuing with basic functionality', {}, 'INTEGRATION_BRIDGE');
   }
 
   private async waitForPWAComponents(): Promise<void> {
-    // Wait for PWA components to be initialized
-    const maxWaitTime = 10000; // 10 seconds
+    // FIXED: Graceful degradation for PWA components
+    const maxWaitTime = 2000; // Reduced to 2 seconds
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWaitTime) {
@@ -159,7 +192,8 @@ export class PWAEnhancedServicesBridge {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    throw new Error('PWA Components not ready within timeout period');
+    // GRACEFUL DEGRADATION: Don't fail if PWA Components aren't ready
+    logger.warn('PWA Components not ready, continuing with basic functionality', {}, 'INTEGRATION_BRIDGE');
   }
 
   private async createServiceMapping(): Promise<void> {

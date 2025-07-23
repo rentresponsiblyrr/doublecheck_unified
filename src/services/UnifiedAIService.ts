@@ -51,7 +51,7 @@ export interface AIRequest {
   type: 'photo_analysis' | 'text_generation' | 'issue_classification' | 'code_review';
   priority: 'low' | 'normal' | 'high' | 'critical';
   timeout?: number;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export interface PhotoAnalysisRequest extends AIRequest {
@@ -85,10 +85,48 @@ export interface CodeReviewRequest extends AIRequest {
   reviewType: 'security' | 'performance' | 'maintainability' | 'all';
 }
 
+// AI response data types
+type PhotoAnalysisData = {
+  decision: 'pass' | 'fail' | 'needs_attention';
+  confidence: number;
+  reasoning: string;
+  issues: string[];
+  recommendations: string[];
+};
+
+type IssueClassificationData = {
+  category: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  actionable: boolean;
+  suggestedFix: string;
+};
+
+type TextGenerationData = {
+  text: string;
+  metadata: {
+    tokensUsed: number;
+    model: string;
+  };
+};
+
+type CodeReviewData = {
+  score: number;
+  issues: Array<{
+    type: 'security' | 'performance' | 'maintainability';
+    severity: 'low' | 'medium' | 'high';
+    line: number;
+    description: string;
+    suggestion: string;
+  }>;
+  summary: string;
+};
+
+type AIResponseData = PhotoAnalysisData | IssueClassificationData | TextGenerationData | CodeReviewData;
+
 // Response interfaces
 export interface AIResponse<T extends AIRequest = AIRequest> {
   success: boolean;
-  data?: any;
+  data?: AIResponseData;
   error?: string;
   provider: 'openai' | 'claude' | 'custom';
   confidence: number;
@@ -221,8 +259,8 @@ export interface LearningData {
   id: string;
   timestamp: Date;
   requestType: string;
-  aiPrediction: any;
-  actualOutcome?: any;
+  aiPrediction: AIResponseData;
+  actualOutcome?: AIResponseData;
   auditorFeedback?: AuditorFeedback;
   confidence: number;
   processingTime: number;
@@ -232,8 +270,8 @@ export interface LearningData {
 export interface AuditorFeedback {
   inspectionId: string;
   checklistItemId: string;
-  aiAssessment: any;
-  auditorCorrection: any;
+  aiAssessment: AIResponseData;
+  auditorCorrection: AIResponseData;
   feedbackCategory: 'accuracy' | 'relevance' | 'completeness';
   notes?: string;
   timestamp: Date;
@@ -339,7 +377,7 @@ class OpenAIProvider extends BaseAIProvider {
       }
 
       const startTime = performance.now();
-      let result: any;
+      let result: AIResponseData;
       
       try {
         switch (request.type) {
@@ -633,7 +671,7 @@ class OpenAIProvider extends BaseAIProvider {
     };
   }
 
-  private parseCodeReviewResponse(content: string): any {
+  private parseCodeReviewResponse(content: string): CodeReviewData {
     // Parse OpenAI response into structured code review
     return {
       overall_score: 8.5,
@@ -911,7 +949,7 @@ export class UnifiedAIService {
     }
   }
 
-  private calculateAccuracy(prediction: any, actual: any): number {
+  private calculateAccuracy(prediction: AIResponseData, actual: AIResponseData): number {
     // Simplified accuracy calculation - would be more sophisticated in practice
     if (!prediction || !actual) return 0;
     

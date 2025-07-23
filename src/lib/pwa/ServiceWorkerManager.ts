@@ -625,6 +625,27 @@ export class ServiceWorkerManager {
       maxRetries: 3
     });
   }
+
+  /**
+   * Update cache strategy dynamically (for Network Adaptation Engine)
+   * @param strategy - The caching strategy to apply
+   */
+  updateCacheStrategy(strategy: 'cache-first' | 'cache-only' | 'network-first' | 'stale-while-revalidate'): void {
+    try {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'UPDATE_CACHE_STRATEGY',
+          strategy: strategy
+        });
+
+        logger.info('Cache strategy updated', { strategy }, 'SERVICE_WORKER');
+      } else {
+        logger.warn('No service worker controller available to update cache strategy', { strategy }, 'SERVICE_WORKER');
+      }
+    } catch (error) {
+      logger.error('Failed to update cache strategy', { error, strategy }, 'SERVICE_WORKER');
+    }
+  }
 }
 
 // Export singleton instance

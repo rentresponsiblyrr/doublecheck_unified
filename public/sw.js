@@ -95,12 +95,14 @@ const STALE_WHILE_REVALIDATE_PATTERNS = [
   /\/$/, // Root path
 ];
 
-// Background sync tags
+// Background sync tags - FIXED: Match the tags being registered from the app
 const SYNC_TAGS = {
-  INSPECTION_DATA: 'inspection-sync',
-  MEDIA_UPLOAD: 'media-sync',
-  USER_PREFERENCES: 'preferences-sync',
+  INSPECTION_DATA: 'inspection-data-sync',
+  MEDIA_UPLOAD: 'photo-upload-sync', 
+  CHECKLIST_UPDATE: 'checklist-update-sync',
+  USER_ACTION: 'user-action-sync',
   ANALYTICS: 'analytics-sync',
+  BATCH_OPERATION: 'batch-operation-sync'
 };
 
 // ========================================
@@ -675,8 +677,16 @@ self.addEventListener('sync', event => {
       event.waitUntil(syncMediaFiles());
       break;
       
-    case SYNC_TAGS.USER_PREFERENCES:
-      event.waitUntil(syncUserPreferences());
+    case SYNC_TAGS.CHECKLIST_UPDATE:
+      event.waitUntil(syncChecklistUpdates());
+      break;
+      
+    case SYNC_TAGS.USER_ACTION:
+      event.waitUntil(syncUserActions());
+      break;
+      
+    case SYNC_TAGS.BATCH_OPERATION:
+      event.waitUntil(syncBatchOperations());
       break;
       
     case SYNC_TAGS.ANALYTICS:
@@ -739,10 +749,10 @@ async function syncMediaFiles() {
 }
 
 /**
- * Sync user preferences
+ * Sync checklist updates with server
  */
-async function syncUserPreferences() {
-  log('info', 'Starting user preferences sync');
+async function syncChecklistUpdates() {
+  log('info', 'Starting checklist updates sync');
   
   try {
     const clients = await self.clients.matchAll({ type: 'window' });
@@ -750,15 +760,66 @@ async function syncUserPreferences() {
     for (const client of clients) {
       client.postMessage({
         type: 'SYNC_REQUEST',
-        tag: SYNC_TAGS.USER_PREFERENCES,
+        tag: SYNC_TAGS.CHECKLIST_UPDATE,
         timestamp: Date.now(),
       });
     }
     
-    log('info', 'User preferences sync initiated');
+    log('info', 'Checklist updates sync initiated', { clientCount: clients.length });
     
   } catch (error) {
-    log('error', 'User preferences sync failed', { error: error.message });
+    log('error', 'Checklist updates sync failed', { error: error.message });
+    throw error;
+  }
+}
+
+/**
+ * Sync user actions with server
+ */
+async function syncUserActions() {
+  log('info', 'Starting user actions sync');
+  
+  try {
+    const clients = await self.clients.matchAll({ type: 'window' });
+    
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_REQUEST',
+        tag: SYNC_TAGS.USER_ACTION,
+        timestamp: Date.now(),
+      });
+    }
+    
+    log('info', 'User actions sync initiated', { clientCount: clients.length });
+    
+  } catch (error) {
+    log('error', 'User actions sync failed', { error: error.message });
+    throw error;
+  }
+}
+
+/**
+ * Sync batch operations with server
+ */
+async function syncBatchOperations() {
+  log('info', 'Starting batch operations sync');
+  
+  try {
+    const clients = await self.clients.matchAll({ type: 'window' });
+    
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_REQUEST',
+        tag: SYNC_TAGS.BATCH_OPERATION,
+        timestamp: Date.now(),
+      });
+    }
+    
+    log('info', 'Batch operations sync initiated', { clientCount: clients.length });
+    
+  } catch (error) {
+    log('error', 'Batch operations sync failed', { error: error.message });
+    throw error;
   }
 }
 

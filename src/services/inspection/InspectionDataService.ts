@@ -50,6 +50,28 @@ import type {
   QueryMetrics
 } from './types/database';
 
+// Additional type definitions
+interface ChecklistItemProgress {
+  total: number;
+  completed: number;
+  percentage: number;
+  byCategory: Record<string, { total: number; completed: number }>;
+}
+
+interface MediaCollectionResult {
+  photos: Array<{ id: string; url: string; category: string; timestamp: string }>;
+  videos: Array<{ id: string; url: string; category: string; duration: number }>;
+  totalCount: number;
+  sizeBytes: number;
+}
+
+interface CircuitBreakerState {
+  isOpen: boolean;
+  failureCount: number;
+  lastFailureTime: Date;
+  nextAttemptTime: Date;
+}
+
 // ========================================
 // SERVICE CONFIGURATION
 // ========================================
@@ -857,7 +879,7 @@ export class InspectionDataService {
     };
   }
 
-  private formatAddress(property: any): string {
+  private formatAddress(property: DatabaseProperty): string {
     if (!property) return 'Unknown Address';
     
     const parts = [
@@ -869,7 +891,7 @@ export class InspectionDataService {
     return parts.join(', ');
   }
 
-  private calculateEstimatedCompletion(inspection: any, progress: ProgressMetrics): Date | null {
+  private calculateEstimatedCompletion(inspection: DatabaseInspection, progress: ProgressMetrics): Date | null {
     // Simple estimation - would be more sophisticated in practice
     if (progress.estimatedTimeRemaining > 0) {
       return new Date(Date.now() + progress.estimatedTimeRemaining * 60 * 1000);
@@ -958,7 +980,7 @@ export class InspectionDataService {
     });
   }
 
-  private transformPropertyAddress(property: any): any {
+  private transformPropertyAddress(property: DatabaseProperty): { street: string; city: string; state: string; zipCode: string } {
     return {
       street: property.address || '',
       city: property.city || '',
@@ -970,7 +992,7 @@ export class InspectionDataService {
     };
   }
 
-  private transformPropertyUrls(property: any): any {
+  private transformPropertyUrls(property: DatabaseProperty): { primary?: string; airbnb?: string; vrbo?: string } {
     return {
       primary: property.listing_url,
       airbnb: property.airbnb_url,
@@ -980,7 +1002,7 @@ export class InspectionDataService {
     };
   }
 
-  private async transformChecklistProgress(checklistItems: any[]): Promise<any> {
+  private async transformChecklistProgress(checklistItems: DatabaseLog[]): Promise<ChecklistItemProgress> {
     return {
       totalItems: checklistItems.length,
       completedItems: checklistItems.filter(item => item.ai_status === 'pass').length,
@@ -992,7 +1014,7 @@ export class InspectionDataService {
     };
   }
 
-  private transformMediaCollection(checklistItems: any[]): any {
+  private transformMediaCollection(checklistItems: DatabaseLog[]): MediaCollectionResult {
     return {
       totalCount: 0,
       totalSize: 0,
@@ -1005,7 +1027,7 @@ export class InspectionDataService {
     };
   }
 
-  private calculateAverageCompletionTime(inspections: any[]): number {
+  private calculateAverageCompletionTime(inspections: DatabaseInspection[]): number {
     const completed = inspections.filter(i => i.start_time && i.end_time);
     if (completed.length === 0) return 0;
     
@@ -1130,8 +1152,8 @@ export class InspectionDataService {
    * Get performance metrics for monitoring
    */
   getPerformanceMetrics(): {
-    cacheStats: any;
-    circuitBreaker: any;
+    cacheStats: { hits: number; misses: number; hitRate: number };
+    circuitBreaker: CircuitBreakerState;
     queryMetrics: QueryMetrics[];
   } {
     return {

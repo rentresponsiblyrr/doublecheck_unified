@@ -74,6 +74,26 @@ export interface UserActionSyncData {
 
 export type SyncDataPayload = InspectionSyncData | ChecklistItemSyncData | MediaSyncData | UserActionSyncData | Record<string, unknown>;
 
+interface ConflictDataInternal {
+  localVersion: SyncDataPayload;
+  serverVersion: SyncDataPayload;
+  conflictFields: string[];
+  timestamp: number;
+  entityType: string;
+  entityId: string;
+  serverData?: SyncDataPayload;
+}
+
+interface MediaUploadData {
+  file: File;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  entityId: string;
+  entityType: string;
+  uploadProgress?: number;
+}
+
 // PHASE 4B: Add missing type exports for verification
 export interface SyncTask {
   id: string;
@@ -806,7 +826,7 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   private async resolveConflict(
     task: BackgroundSyncTask, 
-    conflictData: any
+    conflictData: ConflictDataInternal
   ): Promise<ConflictResolutionResult> {
     const strategy = task.metadata.conflictResolutionStrategy || 'last-writer-wins';
     
@@ -835,7 +855,7 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   private async resolveLastWriterWins(
     task: BackgroundSyncTask, 
-    conflictData: any
+    conflictData: ConflictDataInternal
   ): Promise<ConflictResolutionResult> {
     const localTimestamp = task.metadata.timestamp;
     const serverTimestamp = conflictData.serverData?.timestamp || 0;
@@ -865,7 +885,7 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   private async resolveOperationalTransform(
     task: BackgroundSyncTask, 
-    conflictData: any
+    conflictData: ConflictDataInternal
   ): Promise<ConflictResolutionResult> {
     try {
       // Implement operational transform logic based on data type
@@ -904,7 +924,7 @@ export class BackgroundSyncManager extends EventEmitter {
    */
   private async resolveUserMediated(
     task: BackgroundSyncTask, 
-    conflictData: any
+    conflictData: ConflictDataInternal
   ): Promise<ConflictResolutionResult> {
     return {
       resolved: true, // Will be resolved by user
@@ -1348,16 +1368,16 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   private async performOperationalTransform(
-    localData: any,
-    serverData: any,
-    baseData?: any
+    localData: SyncDataPayload,
+    serverData: SyncDataPayload,
+    baseData?: SyncDataPayload
   ): Promise<any> {
     // Implementation would perform operational transform
     // For now, return simple merge
     return { ...serverData, ...localData };
   }
 
-  private identifyConflictFields(localData: any, serverData: any): string[] {
+  private identifyConflictFields(localData: SyncDataPayload, serverData: SyncDataPayload): string[] {
     const conflicts: string[] = [];
     
     Object.keys(localData).forEach(key => {
@@ -1517,7 +1537,7 @@ export class BackgroundSyncManager extends EventEmitter {
    * SYNC MEDIA DATA
    * Syncs media files with compression and retry logic
    */
-  private async syncMediaData(data: any): Promise<void> {
+  private async syncMediaData(data: MediaUploadData): Promise<void> {
     logger.info('Syncing media data', { mediaId: data.id }, 'SYNC_MANAGER');
     await new Promise(resolve => setTimeout(resolve, 3000));
   }
@@ -1634,7 +1654,7 @@ export class BackgroundSyncManager extends EventEmitter {
   }
 
   // PWA Context Integration - Add after sync completion
-  private notifyPWAContext(operation: string, status: 'started' | 'completed' | 'failed', data?: any): void {
+  private notifyPWAContext(operation: string, status: 'started' | 'completed' | 'failed', data?: Record<string, unknown>): void {
     try {
       // Dispatch PWA context update event
       window.dispatchEvent(new CustomEvent('pwa-context-update', {
