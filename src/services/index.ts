@@ -44,6 +44,38 @@ let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
 
 /**
+ * Expose service status to global window for integration bridge monitoring
+ */
+async function exposeServiceStatusToWindow(): Promise<void> {
+  try {
+    const status = await getServiceStatus();
+    
+    // Expose to global window for integration bridge
+    (window as any).__ENHANCED_SERVICES__ = {
+      initialized: status.initialized,
+      healthy: status.healthy,
+      queryCache: status.services.queryCache,
+      realTimeSync: status.services.realTimeSync,
+      performanceMonitor: status.services.performanceMonitor,
+      migration: status.services.migration,
+      lastUpdate: status.timestamp,
+    };
+    
+    logger.info("✅ Enhanced Services status exposed to window.__ENHANCED_SERVICES__", status);
+  } catch (error) {
+    logger.error("❌ Failed to expose service status to window:", error);
+    
+    // Expose error state
+    (window as any).__ENHANCED_SERVICES__ = {
+      initialized: false,
+      healthy: false,
+      error: error.message,
+      lastUpdate: new Date().toISOString(),
+    };
+  }
+}
+
+/**
  * Initialize Enhanced services with full validation
  */
 async function initializeEnhancedServices(): Promise<void> {
@@ -86,6 +118,10 @@ async function initializeEnhancedServices(): Promise<void> {
       }
 
       isInitialized = true;
+      
+      // Expose service status to global window for integration bridge
+      await exposeServiceStatusToWindow();
+      
       logger.info("🎉 Enhanced Services Full Switchover Complete!");
     } catch (error) {
       logger.error("💥 Enhanced Services initialization failed:", error);
@@ -93,6 +129,9 @@ async function initializeEnhancedServices(): Promise<void> {
       // Ensure fallback mode is enabled
       FeatureFlagManager.setFlag("fallbackOnError", true);
       isInitialized = true; // Mark as initialized to prevent retry loops
+
+      // Expose error state to window even on failure
+      await exposeServiceStatusToWindow();
 
       throw error;
     }

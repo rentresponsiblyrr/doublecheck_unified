@@ -102,12 +102,12 @@ class HealthCheckService {
       });
     }
 
-    // Table Access
+    // Table Access - Updated to use production schema table names
     const tables = [
-      "profiles",
+      "users", // Fixed: was "profiles"
       "properties",
-      "inspections",
-      "logs",
+      "inspections", 
+      "checklist_items", // Fixed: was "logs"
       "static_safety_items",
     ];
     for (const table of tables) {

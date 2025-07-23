@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +31,7 @@ export interface InspectorInspection {
 }
 
 // Helper function to fetch properties with inspection counts
-async function fetchPropertiesWithInspections(userId: string) {
+async function fetchPropertiesWithInspections(userId: string | null) {
   try {
     // Try RPC function first
     const result = await supabase.rpc("get_properties_with_inspections", {
@@ -114,7 +115,7 @@ async function fetchPropertiesWithInspections(userId: string) {
 }
 
 export const useInspectorDashboard = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
 
   const {
     data: dashboardData = { inspections: [], properties: [] },
@@ -122,7 +123,7 @@ export const useInspectorDashboard = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["inspector-dashboard", user?.id],
+    queryKey: ["inspector-dashboard", user?.id, userRole],
     queryFn: async () => {
       if (!user?.id) {
         return { inspections: [], properties: [] };
@@ -130,9 +131,12 @@ export const useInspectorDashboard = () => {
 
       // REMOVED: Dashboard fetching logging to prevent infinite loops
 
+      // Determine if user should see all inspections or just their own
+      const isInspectorRole = userRole === 'inspector';
+      
       // Fetch both inspections and properties in parallel
       const [inspectionsResult, propertiesResult] = await Promise.all([
-        // Fetch inspections
+        // Fetch inspections - all inspections for admin/auditor, own inspections for inspector
         supabase
           .from("inspections")
           .select(
@@ -151,11 +155,17 @@ export const useInspectorDashboard = () => {
               )
             `,
           )
-          .eq("inspector_id", user.id)
+          .modify((query) => {
+            // Only filter by inspector_id if user is an inspector
+            if (isInspectorRole) {
+              return query.eq("inspector_id", user.id);
+            }
+            return query;
+          })
           .order("start_time", { ascending: false, nullsFirst: false }),
 
-        // Fetch properties with inspection counts
-        fetchPropertiesWithInspections(user.id),
+        // Fetch properties with inspection counts - all properties for admin/auditor
+        fetchPropertiesWithInspections(isInspectorRole ? user.id : null),
       ]);
 
       const { data: inspectionsData, error: inspectionsError } =
@@ -223,7 +233,7 @@ export const useInspectorDashboard = () => {
         properties: propertiesData || [],
       };
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!userRole,
     retry: (failureCount, error) => {
       // Don't retry permission errors
       if (
@@ -307,6 +317,20 @@ export const useInspectorDashboard = () => {
     completed_property_inspections: statusCounts.completed,
     pending_review: statusCounts.pending_review + statusCounts.approved,
   };
+
+  // Debug: Log summary values to console for troubleshooting
+  React.useEffect(() => {
+    if (!isLoading && user?.id) {
+      console.log('📊 Dashboard Summary:', {
+        userRole,
+        isInspectorRole: userRole === 'inspector',
+        propertiesCount: properties.length,
+        inspectionsCount: inspections.length,
+        statusCounts,
+        summary
+      });
+    }
+  }, [summary, statusCounts, properties.length, inspections.length, userRole, isLoading, user?.id]);
 
   // REMOVED: Debug logging that was causing infinite console loops
   //   id: p.property_id,

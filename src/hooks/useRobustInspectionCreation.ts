@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { InspectionCreationService } from "@/services/inspectionCreationService";
+import { logger } from "@/utils/logger";
 
 export const useRobustInspectionCreation = () => {
   const [isCreating, setIsCreating] = useState(false);

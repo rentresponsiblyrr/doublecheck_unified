@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { usePropertyActions } from "@/hooks/usePropertyActions";
 import { MapPin, ExternalLink, Trash2, WifiOff } from "lucide-react";
 
 // Import focused components
@@ -89,6 +90,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onInspectionStart,
 }) => {
   const { user } = useAuth();
+  const { deleteProperty, actionState } = usePropertyActions();
 
   /**
    * Handle card click for selection
@@ -108,10 +110,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       if (
         window.confirm(`Are you sure you want to delete "${property.name}"?`)
       ) {
-        onPropertyDeleted();
+        const success = await deleteProperty(property.id);
+        if (success) {
+          // Call the callback to refresh the UI after successful deletion
+          onPropertyDeleted();
+        }
       }
     },
-    [property.name, onPropertyDeleted],
+    [property.name, property.id, deleteProperty, onPropertyDeleted],
   );
 
   return (
@@ -187,11 +193,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={handleDelete}
-                        className="h-8 w-8 p-0 hover:bg-red-50 text-red-600 hover:text-red-700 focus:ring-2 focus:ring-red-500"
+                        disabled={actionState.isLoading}
+                        className="h-8 w-8 p-0 hover:bg-red-50 text-red-600 hover:text-red-700 focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                         title={`Delete ${property.name}`}
                         aria-label={`Delete property ${property.name}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className={`h-4 w-4 ${actionState.isLoading ? 'animate-pulse' : ''}`} />
                       </Button>
                     </div>
                   </div>

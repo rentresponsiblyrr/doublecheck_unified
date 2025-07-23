@@ -137,7 +137,7 @@ const Index = () => {
                   <p className="text-sm font-medium text-gray-600">
                     Properties
                   </p>
-                  <p className="text-2xl font-bold">{summary.properties}</p>
+                  <p className="text-2xl font-bold">{summary.properties ?? 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -152,7 +152,7 @@ const Index = () => {
                     Total Inspections
                   </p>
                   <p className="text-2xl font-bold">
-                    {summary.total_property_inspections}
+                    {summary.total_property_inspections ?? 0}
                   </p>
                 </div>
               </div>
@@ -166,7 +166,7 @@ const Index = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Active</p>
                   <p className="text-2xl font-bold">
-                    {summary.active_property_inspections}
+                    {summary.active_property_inspections ?? 0}
                   </p>
                 </div>
               </div>
@@ -180,7 +180,7 @@ const Index = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Completed</p>
                   <p className="text-2xl font-bold">
-                    {summary.completed_property_inspections}
+                    {summary.completed_property_inspections ?? 0}
                   </p>
                 </div>
               </div>
@@ -195,7 +195,7 @@ const Index = () => {
                   <p className="text-sm font-medium text-gray-600">
                     Pending Review
                   </p>
-                  <p className="text-2xl font-bold">{summary.pending_review}</p>
+                  <p className="text-2xl font-bold">{summary.pending_review ?? 0}</p>
                 </div>
               </div>
             </CardContent>

@@ -47,7 +47,7 @@ export interface ReportsSummary {
 }
 
 export const useInspectionReports = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
 
   const {
     data: rawData = [],
@@ -55,11 +55,14 @@ export const useInspectionReports = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["inspection-reports", user?.id],
+    queryKey: ["inspection-reports", user?.id, userRole],
     queryFn: async () => {
       if (!user?.id) {
         return [];
       }
+
+      // Determine if user should see all inspections or just their own
+      const isInspectorRole = userRole === 'inspector';
 
       // Fetch inspections with property data and basic counts
       const { data: inspectionsData, error: inspectionsError } = await supabase
@@ -81,7 +84,13 @@ export const useInspectionReports = () => {
             )
           `,
         )
-        .eq("inspector_id", user.id)
+        .modify((query) => {
+          // Only filter by inspector_id if user is an inspector
+          if (isInspectorRole) {
+            return query.eq("inspector_id", user.id);
+          }
+          return query;
+        })
         .order("start_time", { ascending: false, nullsFirst: false });
 
       if (inspectionsError) {
@@ -215,7 +224,7 @@ export const useInspectionReports = () => {
 
       return enrichedInspections;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!userRole,
     retry: (failureCount, error) => {
       // Don't retry permission errors
       if (

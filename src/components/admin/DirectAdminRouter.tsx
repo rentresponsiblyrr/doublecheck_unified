@@ -4,7 +4,7 @@ import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider
 
 // Direct imports - no lazy loading
 import AdminOverview from "./AdminOverview";
-// import { ComponentHealthMonitor } from './ComponentHealthMonitor';
+import { SystemHealthCheck } from "../SystemHealthCheck";
 // Fallback components not found - using UnifiedAdminManagement instead
 import UnifiedAdminManagement from "./UnifiedAdminManagement";
 
@@ -70,19 +70,15 @@ export default function DirectAdminRouter() {
     if (path.includes("health")) {
       return (
         <div className="p-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <h1 className="text-2xl font-bold text-green-800 mb-2">
-              ✅ DIRECT ROUTER: HEALTH MONITOR
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              🏥 System Health Monitor
             </h1>
-            <p className="text-green-700">
-              Successfully bypassed React Router and directly mounted component.
+            <p className="text-gray-600">
+              Real-time system health monitoring and diagnostics
             </p>
-            <div className="mt-4 text-sm text-green-600">
-              <div>Path: {currentPath}</div>
-              <div>Time: {new Date().toLocaleString()}</div>
-            </div>
           </div>
-          {/* <ComponentHealthMonitor /> */}
+          <SystemHealthCheck />
         </div>
       );
     }
@@ -91,17 +87,13 @@ export default function DirectAdminRouter() {
     if (path.includes("users")) {
       return (
         <div className="p-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h1 className="text-2xl font-bold text-blue-800 mb-2">
-              👥 DIRECT ROUTER: USER MANAGEMENT
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              👥 User Management
             </h1>
-            <p className="text-blue-700">
-              Direct user management component loaded without React Router.
+            <p className="text-gray-600">
+              Manage user accounts, roles, and permissions
             </p>
-            <div className="mt-4 text-sm text-blue-600">
-              <div>Path: {currentPath}</div>
-              <div>Router: BYPASSED</div>
-            </div>
           </div>
           <UnifiedAdminManagement initialTab="users" />
         </div>
@@ -112,12 +104,12 @@ export default function DirectAdminRouter() {
     if (path.includes("audit")) {
       return (
         <div className="p-6">
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-            <h1 className="text-2xl font-bold text-purple-800 mb-2">
-              🔍 DIRECT ROUTER: AUDIT CENTER
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              🔍 Audit Center
             </h1>
-            <p className="text-purple-700">
-              Direct audit center component loaded without React Router.
+            <p className="text-gray-600">
+              Review and analyze inspection reports and system activity
             </p>
           </div>
           <UnifiedAdminManagement initialTab="reports" />
@@ -129,12 +121,12 @@ export default function DirectAdminRouter() {
     if (path.includes("checklist")) {
       return (
         <div className="p-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h1 className="text-2xl font-bold text-yellow-800 mb-2">
-              📋 DIRECT ROUTER: CHECKLIST MANAGEMENT
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              📋 Checklist Management
             </h1>
-            <p className="text-yellow-700">
-              Direct checklist management component loaded without React Router.
+            <p className="text-gray-600">
+              Configure and manage inspection checklist items and categories
             </p>
           </div>
           <UnifiedAdminManagement initialTab="inspections" />
@@ -146,12 +138,12 @@ export default function DirectAdminRouter() {
     if (path === "/admin" || path === "/admin/" || path.includes("overview")) {
       return (
         <div className="p-6">
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
-            <h1 className="text-2xl font-bold text-indigo-800 mb-2">
-              🏠 DIRECT ROUTER: ADMIN OVERVIEW
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              🏠 Admin Dashboard
             </h1>
-            <p className="text-indigo-700">
-              Direct admin overview component loaded without React Router.
+            <p className="text-gray-600">
+              System overview and administrative controls
             </p>
           </div>
           <AdminOverview />

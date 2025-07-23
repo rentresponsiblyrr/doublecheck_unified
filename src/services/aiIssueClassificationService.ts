@@ -125,7 +125,7 @@ class AIIssueClassificationService {
 
   private getApiKey(): string {
     // SECURITY: Direct AI integration disabled for security
-    logger.warn(
+    log.warn(
       "AI classification disabled for security. Use AIProxyService instead.",
       {},
       "AI_CLASSIFICATION",
@@ -143,7 +143,7 @@ class AIIssueClassificationService {
       // Check cache first
       const cacheKey = this.generateCacheKey(context);
       if (this.cache.has(cacheKey)) {
-        logger.info(
+        log.info(
           "Using cached AI classification",
           { cacheKey },
           "AI_CLASSIFICATION",
@@ -407,7 +407,7 @@ Focus on:
         return data.choices[0].message.content;
       } catch (error) {
         lastError = error as Error;
-        logger.warn(
+        log.warn(
           `OpenAI API attempt ${attempt} failed`,
           { error, attempt },
           "AI_CLASSIFICATION",
@@ -478,7 +478,7 @@ Focus on:
 
       return result;
     } catch (error) {
-      logger.error(
+      log.error(
         "Failed to parse AI response",
         { error, aiResponse },
         "AI_CLASSIFICATION",
