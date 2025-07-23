@@ -30,6 +30,19 @@ export const InspectionProgressTracker = ({
   inspectionId,
   className = "" 
 }: InspectionProgressTrackerProps) => {
+  // FIXED: Add null checking for stats to prevent crashes
+  if (!stats) {
+    return (
+      <Card id="inspection-progress-tracker-container" className={className}>
+        <CardContent>
+          <div className="text-center text-gray-500">
+            Loading progress statistics...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const completionPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
   return (

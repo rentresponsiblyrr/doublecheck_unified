@@ -563,9 +563,11 @@ export class PWAPerformanceMonitor {
         });
       }
 
-      installPromptHandler.onInstallDismissed(() => {
-        this.recordInstallConversion(false);
-      });
+      if (installPromptHandler && typeof installPromptHandler.onInstallDismissed === 'function') {
+        installPromptHandler.onInstallDismissed(() => {
+          this.recordInstallConversion(false);
+        });
+      }
     } catch (error) {
       logger.warn('Install prompt tracking setup failed', { error }, 'PWA_PERFORMANCE');
     }

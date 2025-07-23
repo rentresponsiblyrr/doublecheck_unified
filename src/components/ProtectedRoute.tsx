@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthForm } from '@/components/AuthForm';
-import { isRoleAllowed } from '@/lib/config/app-type';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,10 +11,32 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
   const { user, loading, error } = useAuth();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [roleChecking, setRoleChecking] = useState(false);
 
-  // REMOVED: ProtectedRoute logging to prevent infinite render loops
+  // Check user role using RPC function (same as AdminAccessButton)
+  useEffect(() => {
+    if (user?.id && requiredRole && !userRole) {
+      setRoleChecking(true);
+      supabase
+        .rpc('get_user_role_simple', { _user_id: user.id })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setUserRole(data);
+          } else {
+            setUserRole('inspector'); // Default fallback
+          }
+        })
+        .catch(() => {
+          setUserRole('inspector'); // Error fallback
+        })
+        .finally(() => {
+          setRoleChecking(false);
+        });
+    }
+  }, [user?.id, requiredRole, userRole]);
 
-  if (loading) {
+  if (loading || roleChecking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
@@ -30,8 +52,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <AuthForm />;
   }
 
-  // Check role-based access - Use original app-type logic
-  if (requiredRole && !isRoleAllowed(requiredRole)) {
+  // Check role-based access using RPC-verified role
+  if (requiredRole && userRole && userRole !== requiredRole && 
+      userRole !== 'super_admin' && userRole !== 'admin') {
     // REMOVED: Role denial logging to prevent infinite render loops
     
     return (
