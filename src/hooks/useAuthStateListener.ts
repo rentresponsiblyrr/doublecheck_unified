@@ -4,8 +4,8 @@ import { getCachedRole } from "@/utils/mobileCacheUtils";
 import { log } from "@/lib/logging/enterprise-logger";
 
 interface UseAuthStateListenerProps {
-  setSession: (session: any) => void;
-  setUser: (user: any) => void;
+  setSession: (session: unknown) => void;
+  setUser: (user: unknown) => void;
   setUserRole: (role: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;

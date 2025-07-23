@@ -78,25 +78,24 @@ export const SystemHealthCheck: React.FC<{
       } else {
         status.details.push("Authentication: OK");
 
-        // Check user profile directly from users table (post-migration schema)
-        const { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("name, email, role")
-          .eq("id", user.id)
-          .single();
+        // Check user role using RPC function (avoids 503 table access errors)
+        const { data: userRole, error: roleError } = await supabase.rpc(
+          "get_user_role_simple",
+          {
+            _user_id: user.id,
+          },
+        );
 
-        if (profileError) {
+        if (roleError) {
           status.authentication = "warning";
-          status.details.push("User profile access warning");
-          status.details.push(profileError.message);
-        } else if (!profile) {
+          status.details.push("User role access warning");
+          status.details.push(roleError.message);
+        } else if (!userRole) {
           status.authentication = "warning";
-          status.details.push("User profile not found");
+          status.details.push("User role not found");
           status.suggestions.push("Complete user profile setup");
         } else {
-          status.details.push(
-            `User profile: ${profile?.name || profile?.email}`,
-          );
+          status.details.push(`User role: ${userRole}`);
         }
       }
 

@@ -438,7 +438,7 @@ export class InspectionErrorMonitor {
 
   private sanitizeUserContext(
     context?: InspectionErrorEvent["userContext"],
-  ): any {
+  ): Record<string, unknown> | undefined {
     if (!context) return undefined;
 
     return {

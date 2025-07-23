@@ -21,13 +21,13 @@ interface PropertyData {
 
 interface VirtualListData {
   properties: PropertyData[];
-  selectedProperty: any;
+  selectedProperty: PropertyData | null;
   onPropertySelect: (property: PropertyData) => void;
 }
 
 interface PropertyListProps {
   properties: PropertyData[];
-  selectedProperty: any;
+  selectedProperty: PropertyData | null;
   onPropertySelect: (property: PropertyData) => void;
   isLoading?: boolean;
   searchQuery?: string;

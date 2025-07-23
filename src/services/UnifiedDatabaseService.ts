@@ -531,8 +531,8 @@ export class UnifiedDatabaseService {
       const { data, error } = await this.supabase.rpc(
         "create_inspection_compatibility",
         {
-          property_id: propertyId,
-          inspector_id: inspectorId,
+          _property_id: propertyId,
+          _inspector_id: inspectorId,
         },
       );
 

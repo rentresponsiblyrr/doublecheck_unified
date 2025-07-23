@@ -280,7 +280,7 @@ export class GlobalErrorBoundary extends Component<
     }
   }
 
-  private storeErrorOffline(errorReport: any): void {
+  private storeErrorOffline(errorReport: Record<string, unknown>): void {
     try {
       const offlineErrors = JSON.parse(
         localStorage.getItem("offline_errors") || "[]",

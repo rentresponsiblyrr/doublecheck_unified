@@ -118,7 +118,7 @@ export interface PrefetchPrediction {
 export interface PredictionSource {
   type: "route_pattern" | "user_behavior" | "time_based" | "context_based";
   weight: number;
-  data: any;
+  data: Record<string, unknown>;
 }
 
 export interface LoadingState {
@@ -841,7 +841,7 @@ export class LazyLoadManager {
     ]);
   }
 
-  private cacheComponent(id: string, module: any): void {
+  private cacheComponent(id: string, module: unknown): void {
     // Implementation would cache the component based on strategy
     const cacheKey = `lazy_component_${id}`;
 
@@ -863,7 +863,7 @@ export class LazyLoadManager {
     }
   }
 
-  private getFromCache(id: string): any {
+  private getFromCache(id: string): unknown {
     const cacheKey = `lazy_component_${id}`;
 
     try {

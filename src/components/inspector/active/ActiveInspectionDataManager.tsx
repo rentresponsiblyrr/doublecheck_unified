@@ -92,13 +92,11 @@ class ActiveInspectionService {
       const inspections = await emergencyDatabaseFallback.executeWithFallback(
         async () => {
           // Try RPC function first (will fail with 404)
-          const { data: rpcInspections, error: inspectionsError } = await supabase.rpc(
-            "get_user_active_inspections",
-            {
+          const { data: rpcInspections, error: inspectionsError } =
+            await supabase.rpc("get_user_active_inspections", {
               user_id: userId,
               max_items: maxItems,
-            },
-          );
+            });
 
           if (inspectionsError) {
             logger.error(
@@ -121,7 +119,7 @@ class ActiveInspectionService {
           return rpcInspections || [];
         },
         [], // Emergency fallback: return empty array instead of crashing
-        "getActiveInspections"
+        "getActiveInspections",
       );
 
       if (!inspections || inspections.length === 0) {
@@ -175,7 +173,7 @@ class ActiveInspectionService {
             {
               error: checklistError,
               inspectionId: inspection.id,
-              propertyId: property.id,
+              propertyId: propertyId,
             },
             "ACTIVE_INSPECTIONS",
           );

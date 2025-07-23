@@ -36,9 +36,9 @@ interface FormValidationHookResult {
   isValid: boolean;
 
   // Field methods
-  setValue: (field: string, value: any) => void;
-  getValue: (field: string) => any;
-  setValues: (data: Record<string, any>) => void;
+  setValue: (field: string, value: unknown) => void;
+  getValue: (field: string) => unknown;
+  setValues: (data: Record<string, unknown>) => void;
 
   // Validation methods
   validateField: (field: string) => Promise<FieldValidationState>;
@@ -58,7 +58,7 @@ interface FormValidationHookResult {
 
   // Accessibility helpers
   getFieldProps: (field: string) => {
-    value: any;
+    value: unknown;
     onChange: (
       e: React.ChangeEvent<
         HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -136,7 +136,7 @@ export const useFormValidation = (
 
   // Set individual field value
   const setValue = useCallback(
-    (field: string, value: any) => {
+    (field: string, value: unknown) => {
       setFormData((prev) => {
         const newData = { ...prev, [field]: value };
 

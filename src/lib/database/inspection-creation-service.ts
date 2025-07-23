@@ -411,7 +411,7 @@ export class EnterpriseInspectionCreationService {
     inspectorId: string,
     status: string = "draft",
   ): Promise<InspectionCreationResult> {
-    let lastError: any = null;
+    let lastError: unknown = null;
 
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       try {
@@ -618,7 +618,7 @@ export class EnterpriseInspectionCreationService {
    * Provides actionable error messages instead of generic failures
    */
   private handleRPCError(
-    rpcError: any,
+    rpcError: unknown,
     context: Record<string, unknown>,
   ): InspectionCreationResult {
     logger.error(

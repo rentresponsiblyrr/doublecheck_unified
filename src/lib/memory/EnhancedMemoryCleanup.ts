@@ -90,8 +90,8 @@ export const useEnhancedMemoryCleanup = (componentName?: string) => {
   // Safe observer with automatic cleanup
   const safeCreateObserver = useCallback(
     <T extends IntersectionObserver | MutationObserver | ResizeObserver>(
-      ObserverClass: new (...args: any[]) => T,
-      ...args: any[]
+      ObserverClass: new (...args: unknown[]) => T,
+      ...args: unknown[]
     ): T => {
       const observer = new ObserverClass(...args);
 
@@ -257,7 +257,7 @@ export const useSafeDOMRef = <T extends HTMLElement = HTMLElement>() => {
 /**
  * Hook for safe closure management
  */
-export const useSafeClosure = <T extends (...args: any[]) => any>(
+export const useSafeClosure = <T extends (...args: unknown[]) => unknown>(
   callback: T,
   dependencies: React.DependencyList,
 ): T => {

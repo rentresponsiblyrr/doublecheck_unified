@@ -209,8 +209,8 @@ export function useSafeFetch() {
       try {
         const response = await fetch(url, fetchOptions);
         return response;
-      } catch (error: any) {
-        if (error.name === "AbortError") {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
         }
         throw error;
       } finally {

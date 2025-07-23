@@ -57,7 +57,7 @@ export interface RecoveryResult {
   success: boolean;
   strategy: string;
   timeTaken: number;
-  result?: any;
+  result?: unknown;
   error?: Error;
   requiresUserAction: boolean;
   message?: string;

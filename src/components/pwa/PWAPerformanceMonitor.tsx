@@ -223,7 +223,7 @@ export const PWAPerformanceMonitor: React.FC = () => {
     }
   };
 
-  const updatePWAMetric = (metric: string, value: any) => {
+  const updatePWAMetric = (metric: string, value: unknown) => {
     if (typeof window !== "undefined") {
       (window as any).__PWA_METRICS__ = (window as any).__PWA_METRICS__ || {};
       (window as any).__PWA_METRICS__[`pwa_${metric}`] = value;
@@ -234,7 +234,7 @@ export const PWAPerformanceMonitor: React.FC = () => {
     return (window as any).__PWA_METRICS__?.[metric] || 0;
   };
 
-  const getCurrentPWAMetric = (metric: string): any => {
+  const getCurrentPWAMetric = (metric: string): unknown => {
     return (window as any).__PWA_METRICS__?.[`pwa_${metric}`] || false;
   };
 
@@ -246,16 +246,21 @@ export const PWAPerformanceMonitor: React.FC = () => {
     switch (metric) {
       case "bundleSize": {
         return resources.reduce(
-          (total, resource: any) => total + (resource.transferSize || 0),
+          (total, resource: Record<string, unknown>) =>
+            total + ((resource.transferSize as number) || 0),
           0,
         );
       }
       case "imageOptimization": {
-        const images = resources.filter((r: any) => r.initiatorType === "img");
+        const images = resources.filter(
+          (r: Record<string, unknown>) => r.initiatorType === "img",
+        );
         return images.length > 0
           ? (images.reduce(
-              (acc: number, img: any) =>
-                acc + (img.decodedBodySize || 0) / (img.transferSize || 1),
+              (acc: number, img: Record<string, unknown>) =>
+                acc +
+                ((img.decodedBodySize as number) || 0) /
+                  ((img.transferSize as number) || 1),
               0,
             ) /
               images.length) *

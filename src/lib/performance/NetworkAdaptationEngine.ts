@@ -81,7 +81,7 @@ export interface AdaptationEvent {
     | "optimization_applied"
     | "performance_impact";
   timestamp: Date;
-  details: any;
+  details: Record<string, unknown>;
 }
 
 /**
@@ -718,9 +718,12 @@ export class NetworkAdaptationEngine {
   }
 
   // Helper methods
-  private getNetworkInformation(): any {
+  private getNetworkInformation(): Record<string, unknown> {
     if ("connection" in navigator) {
-      return (navigator as any).connection;
+      return (navigator as Record<string, unknown>).connection as Record<
+        string,
+        unknown
+      >;
     }
     return {
       downlink: 1,
@@ -742,12 +745,15 @@ export class NetworkAdaptationEngine {
   }
 
   private assessNetworkQuality(
-    networkInfo: any,
+    networkInfo: Record<string, unknown>,
     signalStrength: number,
   ): "excellent" | "good" | "poor" | "critical" {
-    if (signalStrength > 80 && networkInfo.downlink > 5) return "excellent";
-    if (signalStrength > 60 && networkInfo.downlink > 1) return "good";
-    if (signalStrength > 40 && networkInfo.downlink > 0.5) return "poor";
+    if (signalStrength > 80 && (networkInfo.downlink as number) > 5)
+      return "excellent";
+    if (signalStrength > 60 && (networkInfo.downlink as number) > 1)
+      return "good";
+    if (signalStrength > 40 && (networkInfo.downlink as number) > 0.5)
+      return "poor";
     return "critical";
   }
 

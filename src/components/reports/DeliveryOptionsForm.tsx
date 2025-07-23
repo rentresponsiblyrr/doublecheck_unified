@@ -16,7 +16,10 @@ import { DeliveryOptions } from "@/hooks/usePropertyManagerDelivery";
 
 interface DeliveryOptionsFormProps {
   deliveryOptions: DeliveryOptions;
-  onUpdateDeliveryOption: (field: keyof DeliveryOptions, value: any) => void;
+  onUpdateDeliveryOption: (
+    field: keyof DeliveryOptions,
+    value: unknown,
+  ) => void;
 }
 
 export const DeliveryOptionsForm: React.FC<DeliveryOptionsFormProps> = ({

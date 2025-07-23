@@ -30,7 +30,7 @@ interface ChecklistStateManagerProps {
   children: (stateData: {
     saveState: SaveState;
     errorMessage: string;
-    conflictData: any;
+    conflictData: Record<string, unknown>;
     lastSaveAttempt: Date | null;
     autoSaveEnabled: boolean;
     retryCount: number;
@@ -206,7 +206,7 @@ export const ChecklistStateManager: React.FC<ChecklistStateManagerProps> = ({
             variant: "destructive",
           });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (!mountedRef.current) return;
 
         setSaveState("error");
@@ -298,12 +298,13 @@ export const ChecklistStateManager: React.FC<ChecklistStateManagerProps> = ({
     [conflictData, itemId, toast],
   );
 
-  const determineErrorType = (error: any): ErrorType => {
+  const determineErrorType = (error: Error | unknown): ErrorType => {
     if (!isOnline) return "network_offline";
-    if (error.message?.includes("timeout")) return "network_timeout";
-    if (error.message?.includes("auth")) return "authentication_expired";
-    if (error.message?.includes("concurrent")) return "concurrent_edit";
-    if (error.message?.includes("database")) return "database_error";
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes("timeout")) return "network_timeout";
+    if (errorMessage.includes("auth")) return "authentication_expired";
+    if (errorMessage.includes("concurrent")) return "concurrent_edit";
+    if (errorMessage.includes("database")) return "database_error";
     return "unknown";
   };
 

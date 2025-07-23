@@ -515,11 +515,14 @@ export class PWAIntegrationTester {
     };
   }
 
-  private generateRecommendations(results: any, avgScore: number): string[] {
+  private generateRecommendations(
+    results: Record<string, unknown>,
+    avgScore: number,
+  ): string[] {
     const recommendations = [];
 
     if (avgScore < 90) {
-      if (!results.serviceWorker.passed) {
+      if (!(results.serviceWorker as Record<string, unknown>)?.passed) {
         recommendations.push(
           "Service Worker initialization failed - check browser support and HTTPS",
         );

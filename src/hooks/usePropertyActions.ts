@@ -38,8 +38,14 @@ export const usePropertyActions = () => {
   const navigate = useNavigate();
   const { invalidatePropertyData } = useSmartCache();
 
-  const classifyError = (error: any, action: string): PropertyActionError => {
-    const errorMessage = error?.message || "Unknown error occurred";
+  const classifyError = (
+    error: unknown,
+    action: string,
+  ): PropertyActionError => {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : String(error) || "Unknown error occurred";
 
     if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
       return {

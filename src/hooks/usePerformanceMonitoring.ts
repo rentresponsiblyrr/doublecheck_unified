@@ -528,7 +528,7 @@ function logInteraction(interaction: string, duration: number): void {
 
 function generateOptimizationSuggestions(
   averages: PerformanceMetrics,
-  percentiles: any,
+  percentiles: Record<string, number>,
 ): OptimizationSuggestion[] {
   const suggestions: OptimizationSuggestion[] = [];
 

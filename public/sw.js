@@ -460,7 +460,13 @@ async function cacheFirstStrategy(request) {
     }
     
     // Fetch from network and cache
-    const networkResponse = await fetch(request);
+    let networkResponse;
+    try {
+      networkResponse = await fetch(request);
+    } catch (fetchError) {
+      log('warn', 'Network fetch failed', { url: url.toString(), error: fetchError.message });
+      networkResponse = null;
+    }
     
     if (networkResponse && networkResponse.status === 200) {
       const responseToCache = addCacheMetadata(networkResponse, CACHE_TTL.static);
@@ -504,9 +510,10 @@ async function networkFirstStrategy(request) {
   const url = new URL(request.url);
   const runtimeCache = await caches.open(RUNTIME_CACHE);
   
+  let networkResponse;
   try {
     // Try network first
-    const networkResponse = await fetch(request);
+    networkResponse = await fetch(request);
     
     if (networkResponse && networkResponse.status === 200) {
       // Cache successful responses (except for certain endpoints)
@@ -521,13 +528,13 @@ async function networkFirstStrategy(request) {
       return networkResponse;
     }
     
-    throw new Error(`Network response failed with status: ${networkResponse.status}`);
+    throw new Error(`Network response failed with status: ${networkResponse?.status || 'undefined'}`);
     
   } catch (error) {
     log('info', 'Network request failed', { 
       url: url.toString(), 
       error: error.message,
-      status: networkResponse?.status 
+      status: networkResponse?.status || 'undefined'
     });
     
     // CRITICAL FIX: Don't mask authentication/authorization errors

@@ -42,13 +42,11 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
         } = await supabase.auth.getUser();
 
         if (user) {
-          // Get profile data directly from users table (post-migration schema)
+          // Get profile data using RPC function (avoids 503 table access errors)
           try {
-            const profilePromise = supabase
-              .from("users")
-              .select("name, email, role")
-              .eq("id", user.id)
-              .single();
+            const rolePromise = supabase.rpc("get_user_role_simple", {
+              _user_id: user.id,
+            });
 
             // Add timeout to prevent hanging requests
             const timeoutPromise = new Promise((_, reject) =>
@@ -58,27 +56,29 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
               ),
             );
 
-            const { data: profile, error: profileError } = (await Promise.race([
-              profilePromise,
+            const { data: userRole, error: roleError } = (await Promise.race([
+              rolePromise,
               timeoutPromise,
             ])) as any;
 
-            if (profileError) {
-              logger.warn("User profile query failed, using fallback data", {
+            if (roleError) {
+              logger.warn("User role query failed, using fallback data", {
                 component: "AdminLayoutContainer",
-                error: profileError.message,
+                error: roleError.message,
                 userId: user.id,
-                action: "profile_load_fallback",
+                action: "role_load_fallback",
               });
             }
 
+            // Use auth user data + RPC role data (get_user_role_simple only returns role)
             setUserProfile({
               full_name:
-                profile?.name ||
                 user.user_metadata?.full_name ||
-                user.email?.split("@")[0],
-              email: profile?.email || user.email,
+                user.email?.split("@")[0] ||
+                "Admin User",
+              email: user.email || "admin@example.com",
               avatar_url: user.user_metadata?.avatar_url,
+              role: userRole || "admin", // RPC returns just the role string
             });
 
             logger.info("User profile loaded in admin", {

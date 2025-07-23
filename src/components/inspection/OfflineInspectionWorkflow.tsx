@@ -84,7 +84,7 @@ export interface OfflineInspection {
   };
   metadata: {
     version: string;
-    deviceInfo: any;
+    deviceInfo: Record<string, unknown>; // Device information object
     networkCondition: string;
     batteryLevel?: number;
   };
@@ -1259,7 +1259,7 @@ export const OfflineInspectionWorkflow: React.FC<
     };
   };
 
-  const queueForSync = (syncItem: any): void => {
+  const queueForSync = (syncItem: Record<string, unknown>): void => {
     if (syncWorkerRef.current) {
       syncWorkerRef.current.postMessage({
         type: "QUEUE_SYNC",
@@ -1309,15 +1309,15 @@ export const OfflineInspectionWorkflow: React.FC<
     }
   };
 
-  const handleSyncSuccess = (payload: any): void => {
+  const handleSyncSuccess = (payload: Record<string, unknown>): void => {
     logger.info("Sync operation succeeded", { payload }, "OFFLINE_WORKFLOW");
   };
 
-  const handleSyncError = (payload: any): void => {
+  const handleSyncError = (payload: Record<string, unknown>): void => {
     logger.error("Sync operation failed", { payload }, "OFFLINE_WORKFLOW");
   };
 
-  const updateSyncStatus = (status: any): void => {
+  const updateSyncStatus = (status: Record<string, unknown>): void => {
     // Update sync status in UI
   };
 

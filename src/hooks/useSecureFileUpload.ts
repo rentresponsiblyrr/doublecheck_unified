@@ -185,7 +185,7 @@ import type { SecurityEvent } from '../types/business-logic';\n\n  const logSecu
 
       return result;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 
@@ -219,7 +219,7 @@ import type { SecurityEvent } from '../types/business-logic';\n\n  const logSecu
       // Use the regular upload function
       return await uploadFile(validatedImage, customPath || 'images');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       
       const errorMessage = error instanceof ValidationError 
         ? error.message 

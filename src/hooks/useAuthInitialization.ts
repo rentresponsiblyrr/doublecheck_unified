@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCachedRole } from "@/utils/mobileCacheUtils";
 
 interface UseAuthInitializationProps {
-  setSession: (session: any) => void;
-  setUser: (user: any) => void;
+  setSession: (session: unknown) => void;
+  setUser: (user: unknown) => void;
   setUserRole: (role: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;

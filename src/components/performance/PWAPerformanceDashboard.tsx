@@ -51,8 +51,8 @@ import { logger } from "@/utils/logger";
 
 // Dashboard interfaces
 interface DashboardState {
-  performanceReport: any | null;
-  alerts: any[];
+  performanceReport: Record<string, unknown> | null;
+  alerts: Record<string, unknown>[];
   isLoading: boolean;
   lastUpdated: Date | null;
   connectionStatus: "online" | "offline" | "slow";
@@ -70,7 +70,7 @@ interface MetricCardProps {
 }
 
 interface AlertPanelProps {
-  alerts: any[];
+  alerts: Record<string, unknown>[];
   onDismiss: (alertId: string) => void;
 }
 

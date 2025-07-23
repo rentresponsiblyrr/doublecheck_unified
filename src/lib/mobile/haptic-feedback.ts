@@ -8,7 +8,7 @@ type HapticPattern = "success" | "warning" | "error" | "impact" | "selection";
 
 class HapticFeedbackService {
   private isSupported: boolean = false;
-  private vibrationAPI: any = null;
+  private vibrationAPI: ((pattern: number | number[]) => boolean) | null = null;
 
   constructor() {
     this.initialize();

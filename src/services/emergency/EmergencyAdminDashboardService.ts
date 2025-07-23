@@ -7,6 +7,7 @@
 
 import { emergencyDatabaseFallback } from "./EmergencyDatabaseFallback";
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BusinessKPIs {
   totalProperties: number;
@@ -39,11 +40,87 @@ interface RegionalData {
 
 class EmergencyAdminDashboardService {
   async loadDashboardMetrics(timeRange: string = "30d"): Promise<BusinessKPIs> {
+    logger.info("🔍 DEBUGGING: Starting loadDashboardMetrics", { timeRange });
+
     return emergencyDatabaseFallback.executeWithFallback(
       async () => {
-        // This would normally call the real database
-        // But since we're getting 503 errors, it will fallback
-        throw new Error("503 Service Unavailable");
+        logger.info(
+          "🔍 DEBUGGING: Calling supabase.rpc('get_admin_dashboard_metrics')",
+        );
+
+        // Call the real RPC function for admin dashboard metrics
+        const { data, error } = await supabase.rpc(
+          "get_admin_dashboard_metrics",
+          {
+            _time_range: timeRange,
+          },
+        );
+
+        logger.info("🔍 DEBUGGING: RPC response received", {
+          hasData: !!data,
+          hasError: !!error,
+          errorDetails: error
+            ? {
+                message: error.message,
+                code: error.code,
+                status: error.status,
+                details: error.details,
+              }
+            : null,
+        });
+
+        if (error) {
+          logger.error("🔍 DEBUGGING: RPC returned error, throwing exception", {
+            error,
+          });
+          throw new Error(
+            `Database RPC error: ${error.message} (Code: ${error.code}, Status: ${error.status})`,
+          );
+        }
+
+        if (!data) {
+          logger.error(
+            "🔍 DEBUGGING: RPC returned no data, throwing exception",
+          );
+          throw new Error(
+            "No data returned from get_admin_dashboard_metrics RPC",
+          );
+        }
+
+        logger.info("🔍 DEBUGGING: RPC data structure", {
+          keys: Object.keys(data),
+          inspectionCounts: data.inspection_counts,
+          userMetrics: data.user_metrics,
+          revenueMetrics: data.revenue_metrics,
+        });
+
+        // Transform the RPC response to match BusinessKPIs interface
+        const transformed = {
+          totalProperties: data.property_metrics?.total_properties || 0,
+          totalInspections: data.inspection_counts?.total || 0,
+          activeInspectors: data.user_metrics?.active_inspectors || 0,
+          completionRate: data.inspection_counts?.completed
+            ? (data.inspection_counts.completed /
+                data.inspection_counts.total) *
+              100
+            : 0,
+          avgInspectionTime: data.time_analytics?.avg_duration_minutes || 0,
+          customerSatisfaction: data.ai_metrics?.accuracy_rate
+            ? (data.ai_metrics.accuracy_rate / 100) * 5
+            : 0,
+          monthlyRevenue: data.revenue_metrics?.monthly_revenue || 0,
+          growthRate: data.revenue_metrics?.growth_rate || 0,
+          pendingAudits: data.inspection_counts?.auditing || 0,
+          flaggedInspections: data.inspection_counts?.flagged || 0,
+          avgPhotosPerInspection:
+            data.media_metrics?.avg_photos_per_inspection || 0,
+          aiAccuracy: data.ai_metrics?.accuracy_rate || 0,
+        };
+
+        logger.info("🔍 DEBUGGING: Transformed data successfully", {
+          transformed,
+        });
+        return transformed;
       },
       emergencyDatabaseFallback.getFallbackDashboardMetrics(),
       "loadDashboardMetrics",
@@ -53,8 +130,32 @@ class EmergencyAdminDashboardService {
   async loadTrendData(timeRange: string = "30d"): Promise<TrendData[]> {
     return emergencyDatabaseFallback.executeWithFallback(
       async () => {
-        // This would normally call the real database
-        throw new Error("503 Service Unavailable");
+        // Try to get trend data from admin dashboard metrics with time range
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(
+          endDate.getDate() -
+            (timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90),
+        );
+
+        const { data, error } = await supabase.rpc(
+          "get_admin_dashboard_metrics_timerange",
+          {
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+          },
+        );
+
+        if (error) {
+          throw new Error(`Database RPC error: ${error.message}`);
+        }
+
+        // If time-range function doesn't exist, use the fallback data
+        if (!data || !data.inspection_trends) {
+          return this.generateFallbackTrendData(timeRange);
+        }
+
+        return data.inspection_trends;
       },
       this.generateFallbackTrendData(timeRange),
       "loadTrendData",
@@ -64,8 +165,21 @@ class EmergencyAdminDashboardService {
   async loadRegionalData(): Promise<RegionalData[]> {
     return emergencyDatabaseFallback.executeWithFallback(
       async () => {
-        // This would normally call the real database
-        throw new Error("503 Service Unavailable");
+        // Try to get regional data from admin dashboard metrics
+        const { data, error } = await supabase.rpc(
+          "get_admin_dashboard_metrics",
+          {
+            _time_range: "30d",
+          },
+        );
+
+        if (error) {
+          throw new Error(`Database RPC error: ${error.message}`);
+        }
+
+        // Since regional data isn't in the standard admin metrics,
+        // use fallback data for now until regional analytics are implemented
+        return this.generateFallbackRegionalData();
       },
       this.generateFallbackRegionalData(),
       "loadRegionalData",

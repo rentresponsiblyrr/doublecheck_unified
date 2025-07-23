@@ -37,6 +37,16 @@
  * @author STR Certified Engineering Team
  */
 
+// PWA BeforeInstallPromptEvent interface
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 import { logger } from "@/utils/logger";
 
 // Core interfaces for install prompt management
@@ -130,7 +140,7 @@ export interface InstallationBenefit {
 
 export class InstallPromptHandler {
   private static instance: InstallPromptHandler;
-  private deferredPrompt: any = null;
+  private deferredPrompt: BeforeInstallPromptEvent | null = null;
   private installPromptState: InstallPromptState;
   private config: InstallPromptConfig;
   private metrics: InstallationMetrics;

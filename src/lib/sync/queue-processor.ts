@@ -39,8 +39,11 @@ export class QueueProcessor<T> {
     try {
       const result = await processingPromise;
       return { success: true, result };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     } finally {
       // Clean up processing state
       this.processing.delete(itemId);

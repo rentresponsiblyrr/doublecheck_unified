@@ -87,16 +87,17 @@ export const useAppStore = create<AppStore>()(
                 state.error = null;
               });
 
-              // Fetch user role from database
-              const { data: profile, error: profileError } = await supabase
-                .from("users")
-                .select("role, name")
-                .eq("id", user.id)
-                .single();
+              // Fetch user role using RPC function (avoids 503 table access errors)
+              const { data: userRole, error: roleError } = await supabase.rpc(
+                "get_user_role_simple",
+                {
+                  _user_id: user.id,
+                },
+              );
 
-              if (profileError) {
+              if (roleError) {
                 throw new Error(
-                  `Failed to fetch user profile: ${profileError.message}`,
+                  `Failed to fetch user role: ${roleError.message}`,
                 );
               }
 
@@ -110,7 +111,7 @@ export const useAppStore = create<AppStore>()(
                 state.isLoading = false;
                 state.user = user;
                 state.role =
-                  (profile?.role as "inspector" | "auditor" | "admin") || null;
+                  (userRole as "inspector" | "auditor" | "admin") || null;
                 state.sessionExpiresAt = expiresAt;
                 state.error = null;
               });
@@ -120,7 +121,7 @@ export const useAppStore = create<AppStore>()(
                 {
                   userId: user.id,
                   email: user.email,
-                  role: profile?.role,
+                  role: userRole,
                   expiresAt,
                 },
                 "APP_STORE",

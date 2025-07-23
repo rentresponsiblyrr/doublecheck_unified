@@ -55,9 +55,9 @@ interface BulletproofAIAnalysisPanelProps {
   /** Photo file for AI analysis */
   photo: File;
   /** Checklist item being analyzed */
-  checklistItem: any;
+  checklistItem: Record<string, unknown>; // Checklist item data
   /** Context for the analysis */
-  analysisContext: any;
+  analysisContext: Record<string, unknown>; // Analysis context data
   /** Callback when analysis is complete */
   onAnalysisComplete: (result: ReliabilityAnalysis) => void;
   /** Show advanced technical details */

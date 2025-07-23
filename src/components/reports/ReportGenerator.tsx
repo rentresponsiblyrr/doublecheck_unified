@@ -123,7 +123,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     }
   };
 
-  const updateReportOption = (key: keyof ReportOptions, value: any) => {
+  const updateReportOption = (key: keyof ReportOptions, value: unknown) => {
     setReportOptions((prev) => ({ ...prev, [key]: value }));
   };
 

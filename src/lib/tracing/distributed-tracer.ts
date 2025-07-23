@@ -470,7 +470,7 @@ class DistributedTracer {
   /**
    * Generate OpenTelemetry-compatible trace data
    */
-  getOTLPTraces(): any[] {
+  getOTLPTraces(): Record<string, unknown>[] {
     const traces = correlationManager.getCompletedTraces();
 
     return traces.map((span) => ({

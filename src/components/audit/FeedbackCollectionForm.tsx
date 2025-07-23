@@ -40,7 +40,7 @@ interface FeedbackCollectionFormProps {
   aiPredictions: Array<{
     id: string;
     category: FeedbackCategory;
-    value: any;
+    value: unknown; // AI prediction value
     confidence: number;
     context?: {
       roomType?: string;

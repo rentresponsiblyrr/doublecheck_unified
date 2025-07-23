@@ -78,7 +78,7 @@ export interface AIAnalysisOptions {
 export interface AIError {
   code: string;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   retryable: boolean;
 }
 

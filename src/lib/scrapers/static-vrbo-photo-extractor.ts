@@ -358,14 +358,20 @@ export class StaticVRBOPhotoExtractor {
                   ? obj[prop]
                   : [obj[prop]];
 
-                imageData.forEach((img: any) => {
+                imageData.forEach((img: unknown) => {
                   let imageUrl: string;
 
                   if (typeof img === "string") {
                     imageUrl = img;
-                  } else if (img && typeof img === "object") {
-                    imageUrl =
-                      img.url || img.contentUrl || img.thumbnailUrl || img.src;
+                  } else if (img && typeof img === "object" && img !== null) {
+                    const imgObj = img as Record<string, unknown>;
+                    imageUrl = String(
+                      imgObj.url ||
+                        imgObj.contentUrl ||
+                        imgObj.thumbnailUrl ||
+                        imgObj.src ||
+                        "",
+                    );
                   } else {
                     return;
                   }

@@ -13,7 +13,10 @@ interface UploadManagerProps {
   file: File;
   inspectionId: string;
   checklistItemId: string;
-  onUploadComplete: (itemId: string, uploadResult: any) => void;
+  onUploadComplete: (
+    itemId: string,
+    uploadResult: Record<string, unknown>,
+  ) => void;
   onUploadError: (error: Error) => void;
 }
 

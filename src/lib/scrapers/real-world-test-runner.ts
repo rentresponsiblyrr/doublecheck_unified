@@ -38,7 +38,7 @@ interface TestResult {
   dataCompleteness: number;
   errorMessage?: string;
   propertyData?: VRBOPropertyData;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export class RealWorldVRBOTestRunner {
@@ -274,7 +274,7 @@ export class RealWorldVRBOTestRunner {
   /**
    * Check if a field has meaningful content
    */
-  private isFieldComplete(value: any): boolean {
+  private isFieldComplete(value: unknown): boolean {
     if (value === null || value === undefined) return false;
     if (typeof value === "string") return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;

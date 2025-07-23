@@ -59,7 +59,7 @@ export interface SyncQueueItem {
   id: string;
   store: string;
   operation: "create" | "update" | "delete";
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   retryCount: number;
   maxRetries: number;
@@ -335,7 +335,7 @@ export class OfflineDataManager {
    */
   async get<T>(
     storeName: string,
-    key: any,
+    key: IDBValidKey,
   ): Promise<OfflineOperationResult<T>> {
     const startTime = performance.now();
 
@@ -504,7 +504,7 @@ export class OfflineDataManager {
    */
   async delete(
     storeName: string,
-    key: any,
+    key: IDBValidKey,
     options: SyncOptions = {},
   ): Promise<OfflineOperationResult<boolean>> {
     try {
@@ -554,7 +554,9 @@ export class OfflineDataManager {
   /**
    * Store inspection with related data
    */
-  async storeInspection(inspection: any): Promise<OfflineOperationResult<any>> {
+  async storeInspection(
+    inspection: Record<string, unknown>,
+  ): Promise<OfflineOperationResult<Record<string, unknown>>> {
     try {
       this.ensureInitialized();
 
@@ -696,7 +698,7 @@ export class OfflineDataManager {
   private async addToSyncQueue(options: {
     store: string;
     operation: "create" | "update" | "delete";
-    data: any;
+    data: Record<string, unknown>;
     priority?: "high" | "medium" | "low";
     conflictResolution?: ConflictResolutionStrategy;
   }): Promise<void> {
@@ -858,7 +860,7 @@ export class OfflineDataManager {
    */
   private async updateSyncStatus(
     storeName: string,
-    data: any,
+    data: Record<string, unknown>,
     status: string,
   ): Promise<void> {
     try {

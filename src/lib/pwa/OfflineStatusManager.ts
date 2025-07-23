@@ -84,7 +84,7 @@ export interface RetryQueueItem {
   id: string;
   type: "api_request" | "file_upload" | "data_sync" | "inspection_save";
   priority: "critical" | "high" | "medium" | "low";
-  data: any;
+  data: Record<string, unknown>;
   url: string;
   method: string;
   headers: Record<string, string>;
@@ -119,7 +119,7 @@ export interface OfflineEvent {
   timestamp: Date;
   networkStatus: NetworkStatus;
   queueSize: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export type ConnectionType =
@@ -384,7 +384,7 @@ export class OfflineStatusManager {
   /**
    * Subscribe to network status and queue events
    */
-  subscribe(callback: (event: any) => void): () => void {
+  subscribe(callback: (event: Record<string, unknown>) => void): () => void {
     this.listeners.add(callback);
 
     // Return unsubscribe function
@@ -1166,7 +1166,7 @@ export class OfflineStatusManager {
     }
   }
 
-  private notifyListeners(event: any): void {
+  private notifyListeners(event: Record<string, unknown>): void {
     this.listeners.forEach((callback) => {
       try {
         callback(event);

@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { MobileInspectionOptimizer } from "@/services/mobileInspectionOptimizer";
 
 // Enhanced error classification for better user feedback
-const getErrorDetails = (error: any) => {
+const getErrorDetails = (error: unknown) => {
   const errorMessage = error instanceof Error ? error.message : String(error);
 
   // Network-related errors

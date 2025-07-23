@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, ArrowRight, Users } from "lucide-react";
 
 interface ChecklistConflictResolverProps {
-  conflictData: any;
+  conflictData: Record<string, unknown>;
   onResolve: (
     resolution: "accept_local" | "accept_remote" | "merge",
   ) => Promise<void>;

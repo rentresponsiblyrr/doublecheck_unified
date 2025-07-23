@@ -48,7 +48,10 @@ interface PhotoWorkflowManagerProps {
     onPhotoCapture: (photoBlob: Blob) => Promise<void>;
     onFileProcessed: (processedFile: File) => Promise<void>;
     onAnalysisComplete: (analysisResult: PhotoAnalysis) => void;
-    onUploadComplete: (itemId: string, uploadResult: any) => void;
+    onUploadComplete: (
+      itemId: string,
+      uploadResult: Record<string, unknown>,
+    ) => void;
     onCameraError: (error: Error) => void;
     onProcessingError: (error: Error) => void;
     onAnalysisError: (error: Error) => void;
@@ -204,7 +207,7 @@ export const PhotoWorkflowManager: React.FC<PhotoWorkflowManagerProps> = ({
 
   // Handle upload completion
   const handleUploadComplete = useCallback(
-    (itemId: string, uploadResult: any) => {
+    (itemId: string, uploadResult: Record<string, unknown>) => {
       if (!mountedRef.current) return;
 
       try {

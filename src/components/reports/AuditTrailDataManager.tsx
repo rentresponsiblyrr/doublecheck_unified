@@ -82,7 +82,7 @@ export const AuditTrailDataManager: React.FC<AuditTrailDataManagerProps> = ({
 
       // Transform logs into audit trail entries
       const trailEntries: AuditTrailEntry[] =
-        logs?.map((log: any) => ({
+        logs?.map((log: Record<string, any>) => ({
           id: log.log_id?.toString() || log.id,
           timestamp: log.created_at || new Date().toISOString(),
           action: `Checked: ${log.static_safety_items?.title || "Safety Item"}`,
@@ -137,7 +137,7 @@ export const AuditTrailDataManager: React.FC<AuditTrailDataManagerProps> = ({
       );
 
       setAuditTrail(allEntries);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = "Failed to load inspection audit trail";
       logger.error(errorMessage, error, "AUDIT_TRAIL_DATA_MANAGER");
       setError(errorMessage);
@@ -190,7 +190,7 @@ export const AuditTrailDataManager: React.FC<AuditTrailDataManagerProps> = ({
         description: "Audit trail has been downloaded as CSV file.",
         duration: 3000,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(
         "Failed to export audit trail",
         error,

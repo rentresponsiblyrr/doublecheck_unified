@@ -67,7 +67,7 @@ export interface ManifestData {
   scope?: string;
   short_name?: string;
   name?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface IconData {

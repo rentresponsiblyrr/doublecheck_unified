@@ -457,7 +457,12 @@ export class VRBOGalleryAutomation {
 
     const images = await page.evaluate(() => {
       const imageElements = document.querySelectorAll("img");
-      const extractedImages: any[] = [];
+      const extractedImages: {
+        src: string;
+        alt: string;
+        dimensions: { width: number; height: number };
+        position: { x: number; y: number };
+      }[] = [];
 
       imageElements.forEach((img, index) => {
         const src = img.src;

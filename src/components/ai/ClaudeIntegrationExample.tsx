@@ -45,7 +45,7 @@ export interface ClaudeExampleProps {
   /** Optional inspection ID for context */
   inspectionId?: string;
   /** Callback when analysis is completed */
-  onAnalysisComplete?: (result: any) => void;
+  onAnalysisComplete?: (result: Record<string, unknown>) => void;
 }
 
 /**

@@ -59,7 +59,7 @@ export type ServiceWorkerMessageType =
  */
 export interface ServiceWorkerMessage {
   type: ServiceWorkerMessageType;
-  data?: any;
+  data?: Record<string, unknown>;
   timestamp: number;
 }
 
@@ -110,7 +110,7 @@ export interface ServiceWorkerEvents {
   updateAvailable: (update: ServiceWorkerUpdate) => void;
   updateReady: () => void;
   syncComplete: (tag: string, success: boolean) => void;
-  notificationReceived: (notification: any) => void;
+  notificationReceived: (notification: Record<string, unknown>) => void;
   error: (error: Error) => void;
 }
 
@@ -807,9 +807,12 @@ export function isOffline(): boolean {
 /**
  * Get network information (if available)
  */
-export function getNetworkInfo(): any {
+export function getNetworkInfo(): Record<string, unknown> | null {
   if ("connection" in navigator) {
-    return (navigator as any).connection;
+    return (navigator as Record<string, unknown>).connection as Record<
+      string,
+      unknown
+    >;
   }
   return null;
 }

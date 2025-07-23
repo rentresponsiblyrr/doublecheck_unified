@@ -14,66 +14,75 @@ export const useChannelManager = () => {
   const channelsRef = useRef<Map<string, any>>(new Map());
   const isMountedRef = useRef(true);
 
-  const createChannel = useCallback((channelName: string, config: any) => {
-    debugLogger.debug("ChannelManager", "Creating channel", { channelName });
+  const createChannel = useCallback(
+    (channelName: string, config: Record<string, unknown>) => {
+      debugLogger.debug("ChannelManager", "Creating channel", { channelName });
 
-    // Check if channel already exists globally
-    if (channelRegistry.has(channelName)) {
-      const existingChannel = channelRegistry.get(channelName);
-      debugLogger.info("ChannelManager", "Reusing existing channel", {
+      // Check if channel already exists globally
+      if (channelRegistry.has(channelName)) {
+        const existingChannel = channelRegistry.get(channelName);
+        debugLogger.info("ChannelManager", "Reusing existing channel", {
+          channelName,
+        });
+
+        // Store reference locally too
+        if (!channelsRef.current.has(channelName)) {
+          channelsRef.current.set(channelName, existingChannel);
+        }
+
+        return existingChannel;
+      }
+
+      // Clean up any existing channel with this name (defensive)
+      if (channelsRef.current.has(channelName)) {
+        const existingChannel = channelsRef.current.get(channelName);
+        try {
+          supabase.removeChannel(existingChannel);
+          debugLogger.debug("ChannelManager", "Cleaned up existing channel", {
+            channelName,
+          });
+        } catch (error) {
+          debugLogger.warn(
+            "ChannelManager",
+            "Error removing existing channel",
+            {
+              channelName,
+              error,
+            },
+          );
+        }
+      }
+
+      debugLogger.info("ChannelManager", "Creating new channel", {
         channelName,
       });
 
-      // Store reference locally too
-      if (!channelsRef.current.has(channelName)) {
-        channelsRef.current.set(channelName, existingChannel);
-      }
+      // Create new channel
+      const channel = supabase.channel(channelName);
 
-      return existingChannel;
-    }
+      // Apply configuration
+      Object.keys(config).forEach((key) => {
+        if (typeof config[key] === "function") {
+          channel.on(
+            "postgres_changes",
+            config[key].filter,
+            config[key].callback,
+          );
+        }
+      });
 
-    // Clean up any existing channel with this name (defensive)
-    if (channelsRef.current.has(channelName)) {
-      const existingChannel = channelsRef.current.get(channelName);
-      try {
-        supabase.removeChannel(existingChannel);
-        debugLogger.debug("ChannelManager", "Cleaned up existing channel", {
-          channelName,
-        });
-      } catch (error) {
-        debugLogger.warn("ChannelManager", "Error removing existing channel", {
-          channelName,
-          error,
-        });
-      }
-    }
+      // Store in registries
+      channelsRef.current.set(channelName, channel);
+      channelRegistry.set(channelName, channel);
+      subscriptionRegistry.set(channelName, "pending");
 
-    debugLogger.info("ChannelManager", "Creating new channel", { channelName });
-
-    // Create new channel
-    const channel = supabase.channel(channelName);
-
-    // Apply configuration
-    Object.keys(config).forEach((key) => {
-      if (typeof config[key] === "function") {
-        channel.on(
-          "postgres_changes",
-          config[key].filter,
-          config[key].callback,
-        );
-      }
-    });
-
-    // Store in registries
-    channelsRef.current.set(channelName, channel);
-    channelRegistry.set(channelName, channel);
-    subscriptionRegistry.set(channelName, "pending");
-
-    debugLogger.debug("ChannelManager", "Channel created and stored", {
-      channelName,
-    });
-    return channel;
-  }, []);
+      debugLogger.debug("ChannelManager", "Channel created and stored", {
+        channelName,
+      });
+      return channel;
+    },
+    [],
+  );
 
   const subscribeChannel = useCallback(
     async (channelName: string, onStatusChange?: (status: string) => void) => {

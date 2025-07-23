@@ -507,7 +507,7 @@ class MemoryLeakDetector {
     window.setTimeout = (
       handler: TimerHandler,
       timeout?: number,
-      ...args: any[]
+      ...args: unknown[]
     ) => {
       const timer = originalSetTimeout(handler, timeout, ...args);
       this.trackTimer(timer, "timeout");
@@ -519,7 +519,7 @@ class MemoryLeakDetector {
     window.setInterval = (
       handler: TimerHandler,
       timeout?: number,
-      ...args: any[]
+      ...args: unknown[]
     ) => {
       const timer = originalSetInterval(handler, timeout, ...args);
       this.trackTimer(timer, "interval");
@@ -533,12 +533,15 @@ class MemoryLeakDetector {
   private setupMemoryMonitoring(): void {
     // Monitor for memory pressure
     if ("memory" in performance && "onmemory" in window) {
-      (window as any).addEventListener("memory", (event: any) => {
-        if (event.memoryPressure === "high") {
-          logger.warn("High memory pressure detected, executing cleanup");
-          this.emergencyCleanup();
-        }
-      });
+      (window as Record<string, unknown>).addEventListener(
+        "memory",
+        (event: Record<string, unknown>) => {
+          if ((event as Record<string, unknown>).memoryPressure === "high") {
+            logger.warn("High memory pressure detected, executing cleanup");
+            this.emergencyCleanup();
+          }
+        },
+      );
     }
 
     // Monitor for page visibility changes

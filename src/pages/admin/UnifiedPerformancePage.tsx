@@ -147,7 +147,7 @@ export const UnifiedPerformancePage: React.FC = () => {
 
   // Collect comprehensive system status
   const collectSystemStatus = async (
-    globalStatus?: any,
+    globalStatus?: Record<string, unknown>,
   ): Promise<AdminSystemStatus> => {
     try {
       // Get current metrics from all services

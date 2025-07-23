@@ -24,7 +24,7 @@ import type {
 
 export class VRBOScraper {
   private config: ScraperConfig;
-  private comprehensiveScraper: any;
+  private comprehensiveScraper: Record<string, unknown>;
 
   constructor(config: Partial<ScraperConfig> = {}) {
     this.config = {
@@ -572,7 +572,7 @@ export class VRBOScraper {
    * @param value - Field value to check
    * @returns boolean
    */
-  private isFieldComplete(value: any): boolean {
+  private isFieldComplete(value: unknown): boolean {
     if (value === null || value === undefined) return false;
     if (typeof value === "string") return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AdminLayoutContainer } from "./layout/AdminLayoutContainer";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
 import { ADMIN_ROUTES, AdminRouteUtils } from "./config/adminRoutes";
@@ -54,29 +54,42 @@ export default function DirectAdminRouter() {
     };
   }, []);
 
-  // Collect debug information
+  // Track previous path to prevent duplicate logging
+  const previousPathRef = useRef<string>();
+
+  // Collect debug information and log route changes (only on actual path change)
   useEffect(() => {
-    setDebugInfo({
-      pathname: window.location.pathname,
-      search: window.location.search,
-      hash: window.location.hash,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      referrer: document.referrer,
-    });
+    // Only log if path has actually changed
+    if (previousPathRef.current !== currentPath) {
+      const currentRoute = AdminRouteUtils.getActiveRoute(currentPath);
+
+      setDebugInfo({
+        pathname: window.location.pathname,
+        search: window.location.search,
+        hash: window.location.hash,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        referrer: document.referrer,
+      });
+
+      // Log route access only when path actually changes
+      logger.info("Admin route accessed", {
+        path: currentPath,
+        previousPath: previousPathRef.current || "initial",
+        routeId: currentRoute?.id || "unknown",
+        timestamp: new Date().toISOString(),
+        component: "DirectAdminRouter",
+      });
+
+      previousPathRef.current = currentPath;
+    }
   }, [currentPath]);
 
   // Direct component rendering based on path using centralized route configuration
   const renderComponent = () => {
     const currentRoute = AdminRouteUtils.getActiveRoute(currentPath);
 
-    // Log route access for production monitoring
-    logger.info("Admin route accessed", {
-      path: currentPath,
-      routeId: currentRoute?.id || "unknown",
-      timestamp: new Date().toISOString(),
-      component: "DirectAdminRouter",
-    });
+    // Log route access only on initial mount and path changes (moved to useEffect above)
 
     // Route-specific component rendering using centralized configuration
     if (currentRoute) {

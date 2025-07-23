@@ -47,7 +47,7 @@ export class UserDataService {
         return usersData || [];
       },
       [], // Emergency fallback: return empty array instead of crashing
-      "loadUsers"
+      "loadUsers",
     );
   }
 
@@ -75,16 +75,26 @@ export class UserDataService {
           if (error) throw error;
 
           this.toast.success("User account updated successfully.");
-          logger.info(`Updated user: ${editingUser.id}`, {}, "USER_DATA_SERVICE");
+          logger.info(
+            `Updated user: ${editingUser.id}`,
+            {},
+            "USER_DATA_SERVICE",
+          );
         } else {
           // For new users, we would typically integrate with Supabase Auth
-          this.toast.info("User creation requires admin API integration. Please use Supabase dashboard for now.");
-          logger.warn("User creation attempted - requires admin API integration", {}, "USER_DATA_SERVICE");
+          this.toast.info(
+            "User creation requires admin API integration. Please use Supabase dashboard for now.",
+          );
+          logger.warn(
+            "User creation attempted - requires admin API integration",
+            {},
+            "USER_DATA_SERVICE",
+          );
           return;
         }
       },
       undefined, // Emergency fallback: do nothing instead of crashing
-      "saveUser"
+      "saveUser",
     );
   }
 
@@ -108,7 +118,7 @@ export class UserDataService {
         logger.info(`Deactivated user: ${userId}`, {}, "USER_DATA_SERVICE");
       },
       undefined, // Emergency fallback: do nothing instead of crashing
-      "deleteUser"
+      "deleteUser",
     );
   }
 }

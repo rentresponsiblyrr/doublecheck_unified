@@ -284,7 +284,7 @@ export class CoreWebVitalsMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
 
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           const fidMetric: PerformanceMetric = {
             value: entry.processingStart - entry.startTime,
             rating: this.getRating(
@@ -338,12 +338,12 @@ export class CoreWebVitalsMonitor {
     try {
       let clsValue = 0;
       let sessionValue = 0;
-      let sessionEntries: any[] = [];
+      let sessionEntries: PerformanceEntry[] = [];
 
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
 
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           // Only count layout shifts without recent user input
           if (!entry.hadRecentInput) {
             const firstSessionEntry = sessionEntries[0];
@@ -413,7 +413,7 @@ export class CoreWebVitalsMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const fcpEntry = entries.find(
-          (entry: any) => entry.name === "first-contentful-paint",
+          (entry: PerformanceEntry) => entry.name === "first-contentful-paint",
         );
 
         if (fcpEntry) {
@@ -458,8 +458,8 @@ export class CoreWebVitalsMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const navEntry = entries.find(
-          (entry: any) => entry.entryType === "navigation",
-        ) as any;
+          (entry: PerformanceEntry) => entry.entryType === "navigation",
+        ) as PerformanceNavigationTiming;
 
         if (navEntry) {
           const ttfbValue = navEntry.responseStart - navEntry.fetchStart;
@@ -507,7 +507,7 @@ export class CoreWebVitalsMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
 
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           // Long tasks that block the main thread
           if (entry.duration > 50) {
             tbt += entry.duration - 50;
@@ -1196,7 +1196,7 @@ export class CoreWebVitalsMonitor {
     }
   }
 
-  private convertToCSV(data: any): string {
+  private convertToCSV(data: Record<string, unknown>): string {
     // Simple CSV conversion - would implement full CSV export
     return "Performance data export in CSV format - not implemented";
   }

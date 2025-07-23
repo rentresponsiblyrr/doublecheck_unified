@@ -162,12 +162,13 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
       }));
 
       // Note: Auto-start is handled in separate useEffect to avoid circular dependency
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = "Failed to access camera";
 
       if (
-        error.name === "NotAllowedError" ||
-        error.name === "PermissionDeniedError"
+        error instanceof Error &&
+        (error.name === "NotAllowedError" ||
+          error.name === "PermissionDeniedError")
       ) {
         errorMessage = "Camera permission denied";
       } else if (
@@ -253,10 +254,11 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         isLoading: false,
         currentDeviceId: settings.deviceId || null,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState((prev) => ({
         ...prev,
-        error: error.message || "Failed to start camera",
+        error:
+          error instanceof Error ? error.message : "Failed to start camera",
         isReady: false,
         isLoading: false,
       }));

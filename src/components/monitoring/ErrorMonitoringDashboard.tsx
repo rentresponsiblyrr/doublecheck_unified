@@ -649,10 +649,10 @@ const ErrorItem: React.FC<{
   );
 };
 
-const CircuitBreakerItem: React.FC<{ type: string; breaker: any }> = ({
-  type,
-  breaker,
-}) => {
+const CircuitBreakerItem: React.FC<{
+  type: string;
+  breaker: Record<string, unknown>;
+}> = ({ type, breaker }) => {
   const getStateColor = (state: string) => {
     switch (state) {
       case "closed":
@@ -744,7 +744,9 @@ function getActiveErrorBoundariesCount(): number {
   return Math.floor(Math.random() * 3) + 1;
 }
 
-function calculateCacheHitRate(cacheStats: any): number {
+function calculateCacheHitRate(
+  cacheStats: Record<string, unknown> | null,
+): number {
   return cacheStats?.successRate || 85 + Math.random() * 10;
 }
 

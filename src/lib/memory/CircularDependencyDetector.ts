@@ -399,7 +399,7 @@ class CircularDependencyDetector {
     const Module = require("module");
     const originalRequire = Module.prototype.require;
 
-    Module.prototype.require = function (this: any, id: string) {
+    Module.prototype.require = function (this: NodeJS.Module, id: string) {
       const requiringModule = this.filename || "unknown";
       const resolvedPath = require.resolve(id, { paths: this.paths });
 

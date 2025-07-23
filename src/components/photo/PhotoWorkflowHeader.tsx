@@ -16,8 +16,8 @@ interface WorkflowState {
   currentStep: "capture" | "processing" | "analysis" | "upload" | "complete";
   capturedFile: File | null;
   processedFile: File | null;
-  analysisResult: any | null;
-  uploadResult: any | null;
+  analysisResult: Record<string, unknown> | null;
+  uploadResult: Record<string, unknown> | null;
   error: string | null;
   isExpanded: boolean;
 }

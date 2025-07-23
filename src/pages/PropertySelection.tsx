@@ -82,23 +82,30 @@ const PropertySelection = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes - prevent infinite refetch loop
   });
 
-  // Properly derive inspections from properties data - no circular dependencies
+  // FIXED: Use computed_status from RPC instead of incorrectly deriving status
   const inspections = React.useMemo(() => {
     if (!properties?.length) return [];
 
     return properties
-      .filter((property) => property.latest_inspection_id)
+      .filter(
+        (property) =>
+          property.latest_inspection_id ||
+          property.computed_status !== "not_started",
+      )
       .map((property) => ({
-        id: property.latest_inspection_id!,
+        id: property.latest_inspection_id || `temp-${property.property_id}`,
         property_id: property.property_id, // FIXED: Use correct field from RPC function
         completed: property.latest_inspection_completed || false,
         start_time: null,
-        // FIXED: RPC function doesn't return latest_inspection_status, derive from available fields
-        status: property.latest_inspection_completed
-          ? "completed"
-          : property.latest_inspection_id
+        // CRITICAL FIX: Use computed_status from RPC function instead of deriving incorrectly
+        status:
+          property.computed_status === "in_progress"
             ? "in_progress"
-            : "draft",
+            : property.computed_status === "completed"
+              ? "completed"
+              : property.computed_status === "not_started"
+                ? "draft"
+                : "draft",
       }));
   }, [properties]);
 

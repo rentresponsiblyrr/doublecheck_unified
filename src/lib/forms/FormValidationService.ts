@@ -17,8 +17,8 @@ export interface ValidationRule {
   schema: ZodSchema;
   dependencies?: string[];
   asyncValidator?: (
-    value: any,
-    formData: Record<string, any>,
+    value: unknown,
+    formData: Record<string, unknown>,
   ) => Promise<string | null>;
   debounceMs?: number;
   validateOnChange?: boolean;
@@ -125,8 +125,8 @@ class FormValidationService {
   async validateField(
     formId: string,
     fieldName: string,
-    value: any,
-    formData: Record<string, any> = {},
+    value: unknown,
+    formData: Record<string, unknown> = {},
     options: { force?: boolean; trigger?: "change" | "blur" | "submit" } = {},
   ): Promise<FieldValidationState> {
     const rules = this.validationRules.get(formId);
@@ -272,7 +272,7 @@ class FormValidationService {
     } = {},
   ): Promise<{
     success: boolean;
-    data?: any;
+    data?: unknown;
     error?: Error;
     validationResult?: ValidationResult;
   }> {
@@ -416,8 +416,8 @@ class FormValidationService {
   private async performFieldValidation(
     formId: string,
     fieldName: string,
-    value: any,
-    formData: Record<string, any>,
+    value: unknown,
+    formData: Record<string, unknown>,
     rule: ValidationRule,
   ): Promise<FieldValidationState> {
     const fieldState =
@@ -499,8 +499,8 @@ class FormValidationService {
   private debounceValidation(
     formId: string,
     fieldName: string,
-    value: any,
-    formData: Record<string, any>,
+    value: unknown,
+    formData: Record<string, unknown>,
     rule: ValidationRule,
   ): Promise<FieldValidationState> {
     const debounceKey = `${formId}_${fieldName}`;

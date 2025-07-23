@@ -76,7 +76,7 @@ export interface UnifiedSystemStatus {
     };
     constructionOptimizer: {
       isInitialized: boolean;
-      environmentDetected: any;
+      environmentDetected: Record<string, unknown>;
       optimizationsApplied: number;
       error?: string;
     };
@@ -1066,7 +1066,7 @@ export class ElitePWAIntegrator {
     return active;
   }
 
-  private validateSuccessCriteria(): any {
+  private validateSuccessCriteria(): Record<string, unknown> {
     return {
       serviceWorkerRegistered:
         this.systemStatus.components.serviceWorker.isActive,
@@ -1083,7 +1083,9 @@ export class ElitePWAIntegrator {
     };
   }
 
-  private calculateCoreWebVitalsScore(metrics: any): number {
+  private calculateCoreWebVitalsScore(
+    metrics: Record<string, unknown> | null,
+  ): number {
     if (!metrics) return 0;
 
     let score = 0;

@@ -30,7 +30,10 @@ export const VideoReviewPlayer: React.FC<VideoReviewPlayerProps> = ({
     handleEnded,
   } = useVideoPlayer(videoUrl);
 
-  const handleTimestampClick = (timestamp: any) => {
+  const handleTimestampClick = (timestamp: {
+    time: number;
+    [key: string]: unknown;
+  }) => {
     controls.seek(timestamp.time);
     onTimestampClick?.(timestamp);
   };

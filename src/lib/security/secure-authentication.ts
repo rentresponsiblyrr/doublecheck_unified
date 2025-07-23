@@ -28,7 +28,7 @@ const AUTH_CONFIG = {
 interface AuthValidationResult {
   valid: boolean;
   user: SanitizedUser | null;
-  session: any | null;
+  session: Record<string, unknown> | null;
   requiresRefresh?: boolean;
   lockoutRemaining?: number;
 }
@@ -434,12 +434,15 @@ export class SecureAuthManager {
   /**
    * ELITE: Sanitize user data to prevent information leakage
    */
-  private sanitizeUserData(user: any): SanitizedUser {
+  private sanitizeUserData(user: Record<string, unknown>): SanitizedUser {
+    const userMetadata = (user.user_metadata as Record<string, unknown>) || {};
+    const appMetadata = (user.app_metadata as Record<string, unknown>) || {};
+
     return {
-      id: user.id,
-      email: user.email,
-      role: user.user_metadata?.role || user.app_metadata?.role,
-      lastLoginAt: user.last_sign_in_at,
+      id: String(user.id || ""),
+      email: String(user.email || ""),
+      role: String(userMetadata.role || appMetadata.role || ""),
+      lastLoginAt: String(user.last_sign_in_at || ""),
       // Explicitly exclude sensitive fields like phone, raw_user_meta_data, etc.
     };
   }

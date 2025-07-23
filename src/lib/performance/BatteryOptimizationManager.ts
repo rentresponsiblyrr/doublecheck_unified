@@ -32,6 +32,24 @@
 import { logger } from "@/utils/logger";
 import { networkAdaptationEngine } from "./NetworkAdaptationEngine";
 
+// Browser API interfaces
+interface BatteryManager extends EventTarget {
+  charging: boolean;
+  chargingTime: number;
+  dischargingTime: number;
+  level: number;
+  onchargingchange: ((this: BatteryManager, ev: Event) => unknown) | null;
+  onchargingtimechange: ((this: BatteryManager, ev: Event) => unknown) | null;
+  ondischargingtimechange:
+    | ((this: BatteryManager, ev: Event) => unknown)
+    | null;
+  onlevelchange: ((this: BatteryManager, ev: Event) => unknown) | null;
+}
+
+interface NavigatorWithBattery extends Navigator {
+  getBattery(): Promise<BatteryManager>;
+}
+
 // Battery interfaces
 export interface BatteryState {
   level: number; // 0-100
@@ -69,7 +87,7 @@ export interface BatteryEvent {
     | "charging_change"
     | "optimization_applied";
   timestamp: Date;
-  details: any;
+  details: Record<string, unknown>;
 }
 
 /**
@@ -374,11 +392,11 @@ export class BatteryOptimizationManager {
    */
   private async updateBatteryState(): Promise<void> {
     try {
-      let battery: any = null;
+      let battery: BatteryManager | null = null;
 
       // Try to get battery information
       if ("getBattery" in navigator) {
-        battery = await (navigator as any).getBattery();
+        battery = await (navigator as NavigatorWithBattery).getBattery();
       }
 
       if (battery) {
@@ -682,9 +700,9 @@ export class BatteryOptimizationManager {
    */
   private setupBatteryEventListeners(): void {
     if ("getBattery" in navigator) {
-      (navigator as any)
+      (navigator as NavigatorWithBattery)
         .getBattery()
-        .then((battery: any) => {
+        .then((battery: BatteryManager) => {
           battery.addEventListener("levelchange", async () => {
             logger.info("🔋 Battery level changed", {}, "BATTERY_OPTIMIZATION");
             await this.updateBatteryState();
@@ -713,7 +731,7 @@ export class BatteryOptimizationManager {
             });
           });
         })
-        .catch((error: any) => {
+        .catch((error: unknown) => {
           logger.error(
             "Failed to setup battery event listeners",
             { error },
