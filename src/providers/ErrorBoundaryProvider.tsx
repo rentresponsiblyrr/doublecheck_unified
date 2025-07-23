@@ -17,7 +17,7 @@ import { errorRecoveryService } from '@/lib/error/ErrorRecoveryService';
 import { logger } from '@/utils/logger';
 
 interface ErrorBoundaryContextValue {
-  reportError: (error: Error, context?: any) => void;
+  reportError: (error: Error, context?: Record<string, unknown>) => void;
   clearErrors: () => void;
   retryLastOperation: () => void;
   showErrorMonitor: () => void;
@@ -35,7 +35,7 @@ interface ErrorBoundaryProviderProps {
   enableAsyncErrorHandling?: boolean;
   developmentMode?: boolean;
   errorReportingEndpoint?: string;
-  fallbackComponent?: React.ComponentType<any>;
+  fallbackComponent?: React.ComponentType<Record<string, unknown>>;
 }
 
 export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
@@ -52,7 +52,7 @@ export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
   const [lastOperation, setLastOperation] = useState<() => void | null>(null);
 
   // Global error handler for the context
-  const handleGlobalError = useCallback(async (error: Error, errorInfo: any) => {
+  const handleGlobalError = useCallback(async (error: Error, errorInfo: Record<string, unknown>) => {
     setErrorCount(prev => prev + 1);
     setLastError(error);
 
@@ -110,7 +110,7 @@ export const ErrorBoundaryProvider: React.FC<ErrorBoundaryProviderProps> = ({
   }, [errorReportingEndpoint, errorCount]);
 
   // Context methods
-  const reportError = useCallback((error: Error, context?: any) => {
+  const reportError = useCallback((error: Error, context?: Record<string, unknown>) => {
     handleGlobalError(error, context);
   }, [handleGlobalError]);
 
@@ -219,8 +219,8 @@ export const useErrorReporting = () => {
   const { reportError } = useErrorBoundary();
   
   const reportAsyncError = useCallback(async (
-    operation: () => Promise<any>,
-    context?: any
+    operation: () => Promise<unknown>,
+    context?: Record<string, unknown>
   ) => {
     try {
       return await operation();
@@ -236,7 +236,7 @@ export const useErrorReporting = () => {
 
   const reportFormError = useCallback((
     error: Error,
-    formData?: any,
+    formData?: Record<string, unknown>,
     fieldName?: string
   ) => {
     reportError(error, {
@@ -358,8 +358,8 @@ const DevelopmentErrorOverlay: React.FC<{
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   options: {
-    fallback?: React.ComponentType<any>;
-    onError?: (error: Error, errorInfo: any) => void;
+    fallback?: React.ComponentType<Record<string, unknown>>;
+    onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
     enableRetry?: boolean;
     context?: string;
   } = {}
@@ -367,7 +367,7 @@ export const withErrorBoundary = <P extends object>(
   return React.forwardRef<any, P>((props, ref) => {
     const { reportError } = useErrorBoundary();
 
-    const handleError = useCallback((error: Error, errorInfo: any) => {
+    const handleError = useCallback((error: Error, errorInfo: Record<string, unknown>) => {
       reportError(error, {
         ...errorInfo,
         component: options.context || Component.displayName || Component.name,

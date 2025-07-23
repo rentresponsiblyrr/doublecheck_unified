@@ -28,138 +28,55 @@ import { coreWebVitalsMonitor } from '@/lib/performance/CoreWebVitalsMonitor';
 let backgroundSyncManager: BackgroundSyncManager | null = null;
 let pushNotificationManager: PushNotificationManager | null = null;
 
-// NEW: Elite unified PWA + Performance initialization
+// OPTIMIZED: Fast startup initialization (Enterprise Performance Standards)
 async function initializeUnifiedPerformanceSystem() {
   try {
-    logger.info('🚀 Initializing Unified PWA + Performance System', {}, 'UNIFIED_SYSTEM');
+    logger.info('🚀 Fast startup: Initializing critical systems only', {}, 'UNIFIED_SYSTEM');
 
-    // Phase 1: Initialize Core Web Vitals monitoring FIRST
-    const performanceInitialized = await coreWebVitalsMonitor.initialize();
-    if (performanceInitialized) {
-      logger.info('✅ Core Web Vitals monitoring initialized', {}, 'UNIFIED_SYSTEM');
-    }
+    // CRITICAL OPTIMIZATION: Initialize only essential components first
+    // Move heavy PWA components to background initialization
+    const coreInitPromises = [
+      serviceWorkerManager.initialize(),
+      offlineStatusManager.initialize(),
+      coreWebVitalsMonitor.initialize()
+    ];
 
-    // Phase 2: Initialize PWA managers with performance integration
-    const swInitialized = await serviceWorkerManager.initialize();
-    const offlineInitialized = await offlineStatusManager.initialize();
-    const installInitialized = await installPromptHandler.initialize();
-
-    // PHASE 4B: Initialize background sync and push notifications
-    let backgroundSyncInitialized = false;
-    let pushNotificationInitialized = false;
-
-    if (swInitialized) {
-      try {
-        // Initialize Background Sync Manager
-        backgroundSyncManager = new BackgroundSyncManager({
-          enableBatching: true,
-          enableRetry: true,
-          enableCircuitBreaker: true,
-          maxRetryAttempts: 3,
-          retryDelays: [1000, 5000, 15000],
-          batchSize: 10,
-          batchInterval: 30000,
-          circuitBreakerThreshold: 5,
-          circuitBreakerTimeout: 60000
-        });
-        
-        const registration = await navigator.serviceWorker.ready;
-        await backgroundSyncManager.initialize(registration);
-        backgroundSyncInitialized = true;
-        
-        logger.info('✅ Background Sync Manager initialized', {}, 'UNIFIED_SYSTEM');
-
-        // Initialize Push Notification Manager
-        pushNotificationManager = new PushNotificationManager({
-          vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || '',
-          enableBatching: true,
-          enableConstructionSiteMode: true,
-          enableEmergencyOverride: true,
-          batchInterval: 30000,
-          maxBatchSize: 10,
-          retryAttempts: 3,
-          notificationTTL: 24 * 60 * 60 * 1000,
-          vibrationPatterns: {
-            critical: [200, 100, 200, 100, 200],
-            high: [100, 50, 100],
-            medium: [100],
-            low: [50]
-          }
-        });
-        
-        await pushNotificationManager.initialize(registration);
-        pushNotificationInitialized = true;
-        
-        logger.info('✅ Push Notification Manager initialized', {}, 'UNIFIED_SYSTEM');
-
-        // Store managers globally for component access
-        (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
-        (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
-
-        // PHASE 4C: Bridge for context updates
-        (window as any).__PWA_CONTEXT_UPDATE__ = (component: string, status: any) => {
-          const event = new CustomEvent('pwa-context-update', {
-            detail: { component, status }
-          });
-          window.dispatchEvent(event);
-        };
-
-        logger.info('✅ PWA Context bridge established', {
-          backgroundSync: !!backgroundSyncManager,
-          pushNotifications: !!pushNotificationManager,
-          integrationBridge: true
-        }, 'PWA_BRIDGE');
-
-        // PHASE 4C: Initialize PWA-Enhanced Services Integration Bridge
-        if (backgroundSyncManager && pushNotificationManager) {
-          try {
-            await pwaEnhancedBridge.initialize();
-            logger.info('✅ PWA-Enhanced Services integration bridge active', {}, 'MAIN_INTEGRATION');
-          } catch (error) {
-            logger.error('❌ Integration bridge failed to initialize', { error }, 'MAIN_INTEGRATION');
-          }
-        }
-
-      } catch (error) {
-        logger.error('❌ Phase 4B PWA component initialization failed', { error }, 'UNIFIED_SYSTEM');
-      }
-    }
-
-    // Phase 3: Cross-system performance correlation setup
-    if (performanceInitialized && swInitialized) {
-      await setupPWAPerformanceCorrelation();
-    }
-
-    const unifiedStatus = {
-      performance: {
-        coreWebVitals: performanceInitialized,
-        realTimeMonitoring: performanceInitialized,
-        budgetEnforcement: performanceInitialized
-      },
-      pwa: {
-        serviceWorker: swInitialized,
-        offlineManager: offlineInitialized,
-        installPrompt: installInitialized,
-        backgroundSync: backgroundSyncInitialized,
-        pushNotifications: pushNotificationInitialized,
-        allSystemsReady: swInitialized && offlineInitialized && installInitialized && backgroundSyncInitialized && pushNotificationInitialized,
-        phase4bComplete: backgroundSyncInitialized && pushNotificationInitialized
-      },
-      integration: {
-        crossSystemMonitoring: performanceInitialized && swInitialized,
-        constructionSiteReady: true,
-        productionReady: performanceInitialized && swInitialized && backgroundSyncInitialized,
-        phase4bIntegration: backgroundSyncInitialized && pushNotificationInitialized
-      }
+    const [swInitialized, offlineInitialized, performanceInitialized] = await Promise.allSettled(coreInitPromises);
+    
+    const coreSystemsReady = {
+      serviceWorker: swInitialized.status === 'fulfilled' ? swInitialized.value : false,
+      offline: offlineInitialized.status === 'fulfilled' ? offlineInitialized.value : false,
+      performance: performanceInitialized.status === 'fulfilled' ? performanceInitialized.value : false
     };
 
-    if (unifiedStatus.integration.productionReady) {
-      logger.info('✅ Unified PWA + Performance System initialized successfully', unifiedStatus, 'UNIFIED_SYSTEM');
-    } else {
-      logger.warn('⚠️ Unified system partially initialized - degraded experience', unifiedStatus, 'UNIFIED_SYSTEM');
-    }
+    logger.info('✅ Core systems initialized in parallel', coreSystemsReady, 'UNIFIED_SYSTEM');
 
-    return unifiedStatus;
+    // BACKGROUND INITIALIZATION: Heavy PWA components load after app renders
+    setTimeout(() => initializeHeavyPWAComponents(coreSystemsReady.serviceWorker), 100);
+    
+    // Fast response for app startup
+    return {
+      performance: {
+        coreWebVitals: coreSystemsReady.performance,
+        realTimeMonitoring: coreSystemsReady.performance,
+        budgetEnforcement: coreSystemsReady.performance
+      },
+      pwa: {
+        serviceWorker: coreSystemsReady.serviceWorker,
+        offlineManager: coreSystemsReady.offline,
+        installPrompt: false, // Will be initialized in background
+        backgroundSync: false, // Will be initialized in background
+        pushNotifications: false, // Will be initialized in background
+        allSystemsReady: false, // Will be updated in background
+        phase4bComplete: false // Will be updated in background
+      },
+      integration: {
+        crossSystemMonitoring: coreSystemsReady.performance && coreSystemsReady.serviceWorker,
+        constructionSiteReady: true,
+        productionReady: coreSystemsReady.performance && coreSystemsReady.serviceWorker,
+        phase4bIntegration: false // Will be updated in background
+      }
+    };
 
   } catch (error) {
     logger.error('❌ Unified system initialization failed', { error }, 'UNIFIED_SYSTEM');
@@ -184,6 +101,134 @@ async function initializeUnifiedPerformanceSystem() {
       },
       error: error instanceof Error ? error.message : 'Unknown error'
     };
+  }
+}
+
+// BACKGROUND INITIALIZATION: Heavy PWA components (non-blocking)
+async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
+  try {
+    logger.info('🔄 Background: Initializing heavy PWA components', {}, 'UNIFIED_SYSTEM');
+    
+    // Initialize install prompt handler in background
+    const installPromptReady = await installPromptHandler.initialize();
+    
+    if (!swReady) {
+      logger.warn('Service Worker not ready - skipping PWA components', {}, 'UNIFIED_SYSTEM');
+      return;
+    }
+
+    // PHASE 4B: Initialize background sync and push notifications
+    let backgroundSyncInitialized = false;
+    let pushNotificationInitialized = false;
+
+    try {
+      // Initialize Background Sync Manager with timeout
+      const syncPromise = Promise.race([
+        (async () => {
+          backgroundSyncManager = new BackgroundSyncManager({
+            enableBatching: true,
+            enableRetry: true,
+            enableCircuitBreaker: true,
+            maxRetryAttempts: 2, // Reduced for faster initialization
+            retryDelays: [1000, 3000], // Shorter delays
+            batchSize: 10,
+            batchInterval: 30000,
+            circuitBreakerThreshold: 3, // More sensitive
+            circuitBreakerTimeout: 30000 // Shorter timeout
+          });
+          
+          const registration = await navigator.serviceWorker.ready;
+          await backgroundSyncManager.initialize(registration);
+          return true;
+        })(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Background sync timeout')), 5000))
+      ]);
+      
+      backgroundSyncInitialized = await syncPromise;
+      logger.info('✅ Background Sync Manager initialized', {}, 'UNIFIED_SYSTEM');
+
+      // Initialize Push Notification Manager with timeout
+      const pushPromise = Promise.race([
+        (async () => {
+          pushNotificationManager = new PushNotificationManager({
+            vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || '',
+            enableBatching: true,
+            enableConstructionSiteMode: true,
+            enableEmergencyOverride: true,
+            batchInterval: 60000, // Longer batch interval for less overhead
+            maxBatchSize: 5, // Smaller batches
+            retryAttempts: 2, // Fewer retries
+            notificationTTL: 24 * 60 * 60 * 1000,
+            vibrationPatterns: {
+              critical: [200, 100, 200],
+              high: [100, 50],
+              medium: [50],
+              low: [25]
+            }
+          });
+          
+          const registration = await navigator.serviceWorker.ready;
+          await pushNotificationManager.initialize(registration);
+          return true;
+        })(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Push notification timeout')), 5000))
+      ]);
+      
+      pushNotificationInitialized = await pushPromise;
+      logger.info('✅ Push Notification Manager initialized', {}, 'UNIFIED_SYSTEM');
+
+      // Store managers globally only after successful initialization
+      if (backgroundSyncManager) {
+        (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
+      }
+      if (pushNotificationManager) {
+        (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
+      }
+
+      // Setup PWA context bridge
+      (window as any).__PWA_CONTEXT_UPDATE__ = (component: string, status: any) => {
+        const event = new CustomEvent('pwa-context-update', {
+          detail: { component, status }
+        });
+        window.dispatchEvent(event);
+      };
+
+      // Initialize integration bridge with timeout
+      if (backgroundSyncManager && pushNotificationManager) {
+        try {
+          await Promise.race([
+            pwaEnhancedBridge.initialize(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Bridge timeout')), 3000))
+          ]);
+          logger.info('✅ PWA-Enhanced Services integration bridge active', {}, 'MAIN_INTEGRATION');
+        } catch (error) {
+          logger.warn('⚠️ Integration bridge failed - app still functional', { error }, 'MAIN_INTEGRATION');
+        }
+      }
+
+      // Update global status
+      const updatedStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
+      if (updatedStatus) {
+        updatedStatus.pwa.installPrompt = installPromptReady;
+        updatedStatus.pwa.backgroundSync = backgroundSyncInitialized;
+        updatedStatus.pwa.pushNotifications = pushNotificationInitialized;
+        updatedStatus.pwa.allSystemsReady = backgroundSyncInitialized && pushNotificationInitialized;
+        updatedStatus.pwa.phase4bComplete = backgroundSyncInitialized && pushNotificationInitialized;
+        updatedStatus.integration.phase4bIntegration = backgroundSyncInitialized && pushNotificationInitialized;
+      }
+
+      logger.info('✅ Background PWA component initialization completed', {
+        backgroundSync: backgroundSyncInitialized,
+        pushNotifications: pushNotificationInitialized,
+        integrationBridge: true
+      }, 'UNIFIED_SYSTEM');
+
+    } catch (error) {
+      logger.warn('⚠️ Background PWA initialization failed - app still functional', { error }, 'UNIFIED_SYSTEM');
+    }
+
+  } catch (error) {
+    logger.warn('⚠️ Background initialization failed - app remains functional', { error }, 'UNIFIED_SYSTEM');
   }
 }
 

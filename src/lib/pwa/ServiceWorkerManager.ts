@@ -44,7 +44,7 @@ export interface CacheStrategy {
 export interface BackgroundSyncTask {
   id: string;
   type: 'inspection_data' | 'photo_upload' | 'checklist_update' | 'user_action';
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   retryCount: number;
   maxRetries: number;
@@ -217,7 +217,7 @@ export class ServiceWorkerManager {
   /**
    * Handle messages from service worker
    */
-  private handleServiceWorkerMessage(data: any): void {
+  private handleServiceWorkerMessage(data: Record<string, unknown>): void {
     switch (data.type) {
       case 'CACHE_HIT':
         this.updatePerformanceMetrics('hit', data.responseTime);
@@ -409,7 +409,7 @@ export class ServiceWorkerManager {
   /**
    * Handle failed background sync
    */
-  private handleBackgroundSyncFailure(taskId: string, error: any): void {
+  private handleBackgroundSyncFailure(taskId: string, error: unknown): void {
     const task = this.syncQueue.find(t => t.id === taskId);
     
     if (task) {
@@ -593,7 +593,7 @@ export class ServiceWorkerManager {
   /**
    * Cache inspection data for offline access
    */
-  async cacheInspectionData(inspectionId: string, data: any): Promise<void> {
+  async cacheInspectionData(inspectionId: string, data: Record<string, unknown>): Promise<void> {
     await this.queueBackgroundSync({
       type: 'inspection_data',
       data: { inspectionId, ...data },
@@ -605,7 +605,7 @@ export class ServiceWorkerManager {
   /**
    * Queue photo upload for background sync
    */
-  async queuePhotoUpload(photo: File, metadata: any): Promise<string> {
+  async queuePhotoUpload(photo: File, metadata: Record<string, unknown>): Promise<string> {
     return this.queueBackgroundSync({
       type: 'photo_upload',
       data: { photo, metadata },
@@ -617,7 +617,7 @@ export class ServiceWorkerManager {
   /**
    * Update checklist item with offline support
    */
-  async updateChecklistItem(itemId: string, updates: any): Promise<string> {
+  async updateChecklistItem(itemId: string, updates: Record<string, unknown>): Promise<string> {
     return this.queueBackgroundSync({
       type: 'checklist_update',
       data: { itemId, updates },

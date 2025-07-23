@@ -115,7 +115,7 @@ export interface PWAMetrics {
   installPromptConversion: number;
   backgroundSyncEfficiency: number;
   updateAvailable: boolean;
-  [key: string]: any;
+  additionalMetrics?: Record<string, unknown>;
 }
 
 export interface ConstructionSiteMetrics {
@@ -124,7 +124,7 @@ export interface ConstructionSiteMetrics {
   batteryImpact: 'low' | 'medium' | 'high';
   offlineUsageTime: number;
   signalStrength: number;
-  [key: string]: any;
+  additionalMetrics?: Record<string, unknown>;
 }
 
 export interface UserExperienceMetrics {
@@ -133,7 +133,7 @@ export interface UserExperienceMetrics {
   photoUploadSuccess: number;
   errorRecoveryRate: number;
   userSatisfactionScore: number;
-  [key: string]: any;
+  additionalMetrics?: Record<string, unknown>;
 }
 
 export interface BusinessImpactMetrics {
@@ -141,20 +141,25 @@ export interface BusinessImpactMetrics {
   retentionRate: number;
   engagementScore: number;
   revenueImpact: number;
-  [key: string]: any;
+  additionalMetrics?: Record<string, unknown>;
 }
 
 export interface MetricContext {
-  [key: string]: any;
+  metadata: Record<string, unknown>;
+  timestamp: number;
+  sessionId?: string;
+  userId?: string;
 }
 
 export interface PerformanceBudgetViolation {
   budget: {
     metric: string;
-    [key: string]: any;
+    threshold: number;
+    actual: number;
+    unit?: string;
   };
   severity: 'warning' | 'error' | 'critical';
-  [key: string]: any;
+  context?: Record<string, unknown>;
 }
 
 export interface PWAPerformanceReport {
@@ -388,13 +393,16 @@ export class PWAPerformanceMonitor {
       } catch (importError) {
         logger.warn('Web-vitals library not available, using mock metrics', { error: importError }, 'PWA_PERFORMANCE');
         
+        // Web vitals callback type definition
+        type WebVitalsCallback = (metric: { value: number; entries: PerformanceEntry[] }) => void;
+        
         // Create mock web vitals for development/fallback
         webVitals = {
-          onCLS: (callback: any) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
-          onFID: (callback: any) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
-          onFCP: (callback: any) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
-          onLCP: (callback: any) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
-          onTTFB: (callback: any) => setTimeout(() => callback({ value: 0, entries: [] }), 100)
+          onCLS: (callback: WebVitalsCallback) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
+          onFID: (callback: WebVitalsCallback) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
+          onFCP: (callback: WebVitalsCallback) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
+          onLCP: (callback: WebVitalsCallback) => setTimeout(() => callback({ value: 0, entries: [] }), 100),
+          onTTFB: (callback: WebVitalsCallback) => setTimeout(() => callback({ value: 0, entries: [] }), 100)
         };
       }
 

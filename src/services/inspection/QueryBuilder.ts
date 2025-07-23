@@ -83,7 +83,7 @@ interface SortConfig {
 interface FilterConfig {
   column: string;
   operator: FilterOperator;
-  value: any;
+  value: string | number | boolean | null | string[] | number[] | Record<string, unknown>;
 }
 
 /**
@@ -107,7 +107,7 @@ interface JoinConfig {
  * automatic caching, performance monitoring, and error handling. Abstracts
  * Supabase-specific query patterns while maintaining type safety.
  */
-export class QueryBuilder<T = any> {
+export class QueryBuilder<T = Record<string, unknown>> {
   private tableName: TableName;
   private selectFields: string[] = ['*'];
   private filters: FilterConfig[] = [];
@@ -157,7 +157,7 @@ export class QueryBuilder<T = any> {
    * @param value - Filter value
    * @returns QueryBuilder instance for chaining
    */
-  filter(column: string, operator: FilterOperator, value: any): QueryBuilder<T> {
+  filter(column: string, operator: FilterOperator, value: string | number | boolean | null | string[] | number[] | Record<string, unknown>): QueryBuilder<T> {
     this.filters.push({ column, operator, value });
     return this;
   }
@@ -169,7 +169,7 @@ export class QueryBuilder<T = any> {
    * @param value - Equal to value
    * @returns QueryBuilder instance for chaining
    */
-  eq(column: string, value: any): QueryBuilder<T> {
+  eq(column: string, value: string | number | boolean | null): QueryBuilder<T> {
     return this.filter(column, 'eq', value);
   }
 
@@ -180,7 +180,7 @@ export class QueryBuilder<T = any> {
    * @param value - Not equal to value
    * @returns QueryBuilder instance for chaining
    */
-  neq(column: string, value: any): QueryBuilder<T> {
+  neq(column: string, value: string | number | boolean | null): QueryBuilder<T> {
     return this.filter(column, 'neq', value);
   }
 
@@ -191,7 +191,7 @@ export class QueryBuilder<T = any> {
    * @param values - Array of values to match
    * @returns QueryBuilder instance for chaining
    */
-  in(column: string, values: any[]): QueryBuilder<T> {
+  in(column: string, values: (string | number)[]): QueryBuilder<T> {
     return this.filter(column, 'in', values);
   }
 
@@ -556,7 +556,7 @@ export class QueryBuilder<T = any> {
    * Build Supabase query from configuration
    * Applies all filters, sorts, joins, and limits
    */
-  private buildSupabaseQuery(): any {
+  private buildSupabaseQuery(): unknown {
     let query = supabase.from(this.tableName);
 
     // Apply select
@@ -638,7 +638,7 @@ export class QueryBuilder<T = any> {
    * Execute query with retry logic and timeout handling
    * Provides resilience against temporary failures
    */
-  private async executeWithRetry(query: any): Promise<DatabaseQueryResult<any>> {
+  private async executeWithRetry(query: unknown): Promise<DatabaseQueryResult<unknown>> {
     let lastError: any;
     const maxRetries = this.options.maxRetries || 3;
 

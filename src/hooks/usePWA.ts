@@ -140,7 +140,7 @@ export interface PWAError {
   component: string;
   message: string;
   stack?: string;
-  context: Record<string, any>;
+  context: Record<string, unknown>;
 }
 
 export interface InstallPromptResult {
@@ -194,7 +194,7 @@ export interface OptimizationResult {
 
 export interface RetryQueueItem {
   type: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   priority: 'critical' | 'high' | 'medium' | 'low';
   url: string;
   method: string;
@@ -288,7 +288,7 @@ export function usePWA(): [PWAState, PWAActions] {
       }));
 
       // Get PWA status from global initialization
-      const globalPWAStatus = (window as any).__PWA_STATUS__;
+      const globalPWAStatus = (window as Record<string, unknown>).__PWA_STATUS__;
       
       if (!globalPWAStatus?.allSystemsReady) {
         throw new Error('PWA Foundation not properly initialized');
@@ -871,11 +871,11 @@ export function useNetworkStatus(): OfflineStatus {
   
   return {
     isOnline: state.isOnline,
-    connectionType: state.connectionType as any,
-    effectiveType: (navigator as any)?.connection?.effectiveType || 'unknown',
-    downlink: (navigator as any)?.connection?.downlink || 0,
-    rtt: (navigator as any)?.connection?.rtt || 0,
-    saveData: (navigator as any)?.connection?.saveData || false,
+    connectionType: state.connectionType as 'wifi' | 'cellular' | 'ethernet' | 'unknown',
+    effectiveType: (navigator as Record<string, unknown>)?.connection?.effectiveType as string || 'unknown',
+    downlink: (navigator as Record<string, unknown>)?.connection?.downlink as number || 0,
+    rtt: (navigator as Record<string, unknown>)?.connection?.rtt as number || 0,
+    saveData: (navigator as Record<string, unknown>)?.connection?.saveData as boolean || false,
     lastOnlineAt: state.lastOnlineTime,
     lastOfflineAt: state.lastOfflineTime
   };
@@ -896,7 +896,7 @@ export function useInstallPrompt(): [InstallPromptState, {
     isAvailable: state.isInstallable,
     hasBeenDismissed: state.installPromptDismissed,
     isInstalling: state.isInstallingPWA,
-    installationMethod: state.installationMethod as any || 'native',
+    installationMethod: (state.installationMethod as 'native' | 'browser' | 'custom') || 'native',
     lastShown: state.lastInstallPromptShown,
     dismissalCount: state.installPromptDismissCount,
     userEngagementScore: state.userEngagementScore
@@ -954,7 +954,7 @@ export interface MediaMetadata {
     longitude: number;
   };
   timestamp?: Date;
-  [key: string]: any;
+  [key: string]: unknown;
 ] {
   const [inspections, setInspections] = useState<OfflineInspection[]>([]);
   const [isLoading, setIsLoading] = useState(false);

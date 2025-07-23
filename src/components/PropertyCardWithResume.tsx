@@ -103,28 +103,44 @@ export const PropertyCardWithResume = ({
     }
 
     try {
+      // CORRECTED: Using actual production database schema
       const { data: inspection, error } = await supabase
         .from('inspections')
         .select(`
           id,
           status,
           created_at,
-          updated_at,
-          logs!inner (
-            id,
-            status,
-            static_safety_items!inner (
-              id,
-              label,
-              evidence_type
-            )
-          )
+          updated_at
         `)
         .eq('property_id', property.property_id.toString())
         .eq('inspector_id', user.id)
         .in('status', ['draft', 'in_progress'])
         .order('created_at', { ascending: false })
         .limit(1);
+
+      // Get checklist items separately using correct schema
+      let checklistItems = [];
+      if (inspection && inspection.length > 0) {
+        const { data: logs, error: logsError } = await supabase
+          .from('logs')
+          .select(`
+            log_id,
+            pass,
+            inspector_remarks,
+            static_safety_items!checklist_id (
+              id,
+              label,
+              evidence_type
+            )
+          `)
+          .eq('property_id', property.property_id);
+
+        if (logsError) {
+          logger.warn('Error fetching checklist items', { error: logsError, propertyId: property.property_id }, 'PROPERTY_CARD');
+        } else {
+          checklistItems = logs || [];
+        }
+      }
 
       if (error) {
         logger.warn('Error checking for active inspection', { error, propertyId: property.property_id }, 'PROPERTY_CARD');
@@ -134,10 +150,10 @@ export const PropertyCardWithResume = ({
 
       if (inspection && inspection.length > 0) {
         const inspectionData = inspection[0];
-        const checklistItems = inspectionData.logs || [];
         
-        const completedItems = checklistItems.filter((item: { status: string }) => 
-          item.status === 'completed' || item.status === 'failed' || item.status === 'not_applicable'
+        // Calculate completed items based on corrected schema
+        const completedItems = checklistItems.filter((item: { pass?: boolean | null }) => 
+          item.pass === true || item.pass === false // Item has been evaluated (true = pass, false = fail)
         ).length;
 
         const photosRequired = checklistItems.filter((item: { static_safety_items?: { evidence_type: string } }) => 
@@ -151,7 +167,7 @@ export const PropertyCardWithResume = ({
           updated_at: inspectionData.updated_at,
           completed_items: completedItems,
           total_items: checklistItems.length,
-          last_step: Math.floor((completedItems / checklistItems.length) * 5), // Assume 5 total steps
+          last_step: checklistItems.length > 0 ? Math.floor((completedItems / checklistItems.length) * 5) : 0,
           total_steps: 5,
           photos_captured: 0, // This would need to be calculated from media table
           photos_required: photosRequired
@@ -163,7 +179,8 @@ export const PropertyCardWithResume = ({
         logger.info('Active inspection found', {
           inspectionId: activeInspectionData.id,
           completedItems,
-          totalItems: checklistItems.length
+          totalItems: checklistItems.length,
+          status: inspectionData.status
         }, 'PROPERTY_CARD');
       }
 

@@ -76,7 +76,7 @@ class ActiveInspectionService {
     try {
       logger.debug('Fetching active inspections', { userId, maxItems }, 'ACTIVE_INSPECTIONS');
       
-      // Query active inspections with property and checklist data
+      // Query active inspections with property data
       // CORRECTED: Using actual production database schema
       const { data: inspections, error: inspectionsError } = await supabase
         .from('inspections')
@@ -87,23 +87,13 @@ class ActiveInspectionService {
           created_at,
           updated_at,
           properties!inner (
-            id,
-            name,
-            address
-          ),
-          checklist_items (
-            id,
-            status,
-            notes,
-            static_safety_items!static_item_id (
-              id,
-              label,
-              evidence_type
-            )
+            property_id,
+            property_name,
+            street_address
           )
         `)
         .eq('inspector_id', userId)
-        .eq('status', 'in_progress')
+        .in('status', ['draft', 'in_progress'])
         .order('updated_at', { ascending: false })
         .limit(maxItems);
 
@@ -128,10 +118,34 @@ class ActiveInspectionService {
       
       for (const inspection of inspections) {
         const property = inspection.properties;
-        const checklistItems = inspection.checklist_items || [];
+        
+        // Get checklist items separately using correct schema
+        const { data: logs, error: logsError } = await supabase
+          .from('logs')
+          .select(`
+            log_id,
+            pass,
+            inspector_remarks,
+            static_safety_items!checklist_id (
+              id,
+              label,
+              evidence_type
+            )
+          `)
+          .eq('property_id', property.property_id);
+
+        const checklistItems = logs || [];
+        
+        if (logsError) {
+          logger.warn('Error fetching checklist items for inspection', { 
+            error: logsError, 
+            inspectionId: inspection.id,
+            propertyId: property.property_id
+          }, 'ACTIVE_INSPECTIONS');
+        }
         
         const completedItems = checklistItems.filter((item: any) => 
-          item.status === 'completed' || item.status === 'failed' // Item has been evaluated
+          item.pass === true || item.pass === false // Item has been evaluated (true = pass, false = fail)
         ).length;
 
         const photosRequired = checklistItems.filter((item: any) => 
@@ -139,7 +153,7 @@ class ActiveInspectionService {
         ).length;
 
         // Check for offline changes
-        const hasOfflineChanges = await this.checkOfflineChanges(property.id, inspection.id);
+        const hasOfflineChanges = await this.checkOfflineChanges(property.property_id.toString(), inspection.id);
         
         const progressPercentage = checklistItems.length > 0 
           ? Math.round((completedItems / checklistItems.length) * 100) 
@@ -147,9 +161,9 @@ class ActiveInspectionService {
 
         inspectionSummaries.push({
           inspectionId: inspection.id,
-          propertyId: property.id,
-          propertyName: property.name,
-          propertyAddress: property.address,
+          propertyId: property.property_id.toString(),
+          propertyName: property.property_name,
+          propertyAddress: property.street_address,
           status: inspection.status as 'draft' | 'in_progress' | 'completed',
           completedItems,
           totalItems: checklistItems.length,

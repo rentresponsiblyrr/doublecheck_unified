@@ -159,7 +159,7 @@ export const realTimeSync = {
     return compatibleRealTimeSync.subscribe(entityType, entityId, callback);
   },
 
-  publishEvent: async <T>(event: any): Promise<void> => {
+  publishEvent: async <T>(event: Record<string, unknown>): Promise<void> => {
     await initializeEnhancedServices();
     return compatibleRealTimeSync.publishEvent(event);
   },
@@ -173,15 +173,15 @@ export const realTimeSync = {
  * Performance Monitor - Enhanced with resource tracking
  */
 export const performanceMonitor = {
-  trackQuery: (metrics: any): void => {
+  trackQuery: (metrics: Record<string, unknown>): void => {
     compatiblePerformanceMonitor.trackQuery(metrics);
   },
 
-  getRealTimeMetrics: (): any => {
+  getRealTimeMetrics: (): Record<string, unknown> => {
     return compatiblePerformanceMonitor.getRealTimeMetrics();
   },
 
-  getHealthStatus: (): any => {
+  getHealthStatus: (): Record<string, unknown> => {
     return enhancedPerformanceMonitor.getHealthStatus();
   }
 };
@@ -192,16 +192,16 @@ export const performanceMonitor = {
 export const propertyService = {
   getProperty: async (id: string) => {
     await initializeEnhancedServices();
-    const propertyId = id as any;
+    const propertyId = id as string | number;
     return await enhancedPropertyService.getProperty(propertyId);
   },
 
-  getProperties: async (options: any = {}) => {
+  getProperties: async (options: Record<string, unknown> = {}) => {
     await initializeEnhancedServices();
     return await enhancedPropertyService.getProperties(options);
   },
 
-  createProperty: async (propertyData: any) => {
+  createProperty: async (propertyData: Record<string, unknown>) => {
     await initializeEnhancedServices();
     return await enhancedPropertyService.createProperty(propertyData);
   }
@@ -213,13 +213,13 @@ export const propertyService = {
 export const checklistService = {
   getChecklistItem: async (id: string) => {
     await initializeEnhancedServices();
-    const itemId = id as any;
+    const itemId = id as string | number;
     return await enhancedChecklistService.getChecklistItem(itemId);
   },
 
-  updateChecklistItem: async (id: string, updates: any) => {
+  updateChecklistItem: async (id: string, updates: Record<string, unknown>) => {
     await initializeEnhancedServices();
-    const itemId = id as any;
+    const itemId = id as string | number;
     return await enhancedChecklistService.updateChecklistItem(itemId, updates);
   }
 };
