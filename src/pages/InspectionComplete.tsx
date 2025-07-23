@@ -78,7 +78,7 @@ const InspectionComplete = () => {
       try {
         
         const { data, error } = await supabase
-          .from('logs')
+          .from('checklist_items')
           .select('status, static_safety_items(category)')
           .eq('inspection_id', inspectionId);
 

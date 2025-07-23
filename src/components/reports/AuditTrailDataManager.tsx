@@ -52,14 +52,14 @@ export const AuditTrailDataManager: React.FC<AuditTrailDataManagerProps> = ({
       setError(null);
       logger.info('Fetching audit trail', { inspectionId }, 'AUDIT_TRAIL_DATA_MANAGER');
 
-      // Query inspection logs and related audit data
+      // Query checklist items and related audit data
       const { data: logs, error: logsError } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select(`
           *,
-          static_safety_items!inner (
+          static_safety_items!static_item_id (
             id,
-            title,
+            label,
             category
           ),
           users!inner (

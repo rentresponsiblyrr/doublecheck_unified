@@ -52,12 +52,12 @@ export function PhotoComparisonReport({
 
       // Fetch checklist items with media information
       const { data: logs, error } = await supabase
-        .from('logs')
+        .from('checklist_items')
         .select(`
           *,
-          static_safety_items!inner (
+          static_safety_items!static_item_id (
             id,
-            title,
+            label,
             category
           ),
           media (*)

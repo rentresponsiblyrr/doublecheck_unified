@@ -1,0 +1,29 @@
+{
+  "scripts": {
+    "quality:check": "npm run quality:schema && npm run quality:types && npm run quality:standards",
+    "quality:schema": "node critical-schema-validation.cjs",
+    "quality:types": "npm run typecheck",
+    "quality:standards": "node engineering-standards-enforcer.cjs", 
+    "quality:docs": "node markdown-consistency-auditor.cjs",
+    "quality:fix": "npm run quality:fix-docs && npm run quality:fix-eslint",
+    "quality:fix-docs": "./update-markdown-docs.sh",
+    "quality:fix-eslint": "eslint --config .eslintrc.engineering-standards.js src/ --fix",
+    
+    "precommit": "./pre-commit-quality-gate.sh",
+    "pre-push": "npm run quality:check",
+    
+    "validate:deployment": "npm run quality:check && npm run build && echo '✅ DEPLOYMENT VALIDATION PASSED'",
+    
+    "build:production": "npm run quality:check && vite build --mode production",
+    
+    "typecheck:strict": "tsc --noEmit --strict",
+    "lint:engineering": "eslint --config .eslintrc.engineering-standards.js src/",
+    "lint:fix-all": "eslint --config .eslintrc.engineering-standards.js src/ --fix",
+    
+    "audit:comprehensive": "npm run quality:schema && npm run quality:standards && npm run quality:docs",
+    
+    "setup:quality-gates": "chmod +x pre-commit-quality-gate.sh && chmod +x update-markdown-docs.sh && echo 'Quality gates configured'",
+    
+    "ci:quality-check": "npm run quality:check || (echo '❌ Quality gates failed in CI' && exit 1)"
+  }
+}
