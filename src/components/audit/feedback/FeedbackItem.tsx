@@ -58,7 +58,7 @@ export const FeedbackItem: React.FC<FeedbackItemProps> = ({
     return colors[category] || "bg-gray-100 text-gray-800";
   };
 
-  const renderValue = (value: any) => {
+  const renderValue = (value: unknown) => {
     if (value === null || value === undefined) return "N/A";
     if (typeof value === "boolean") return value ? "Yes" : "No";
     if (typeof value === "number") return value.toFixed(2);
@@ -209,7 +209,9 @@ export const FeedbackItem: React.FC<FeedbackItemProps> = ({
             <Label>Severity</Label>
             <RadioGroup
               value={item.severity}
-              onValueChange={(value: any) => onUpdateItem({ severity: value })}
+              onValueChange={(value: string) =>
+                onUpdateItem({ severity: value })
+              }
               className="flex items-center space-x-4 mt-1"
             >
               <div className="flex items-center space-x-2">

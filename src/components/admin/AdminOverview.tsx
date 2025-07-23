@@ -111,21 +111,21 @@ export const AdminOverview: React.FC<{ className?: string }> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {kpis.aiAccuracy.toFixed(1)}%
+                {(kpis?.aiAccuracy || 0).toFixed(1)}%
               </div>
               <div className="text-sm text-gray-600">AI Accuracy</div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {kpis.avgInspectionTime}min
+                {kpis?.avgInspectionTime || 0}min
               </div>
               <div className="text-sm text-gray-600">Avg Processing Time</div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {kpis.avgPhotosPerInspection}
+                {kpis?.avgPhotosPerInspection || 0}
               </div>
               <div className="text-sm text-gray-600">Photos per Inspection</div>
             </div>

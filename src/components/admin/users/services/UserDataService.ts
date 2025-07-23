@@ -9,9 +9,16 @@ import { logger } from "@/utils/logger";
 import { User, UserFormData } from "../types";
 import type { MutableRefObject } from "react";
 
+interface ToastInstance {
+  success: (message: string) => void;
+  error: (message: string) => void;
+  info?: (message: string) => void;
+  warning?: (message: string) => void;
+}
+
 export class UserDataService {
   constructor(
-    private toast: any,
+    private toast: ToastInstance,
     private mountedRef: MutableRefObject<boolean>,
   ) {}
 

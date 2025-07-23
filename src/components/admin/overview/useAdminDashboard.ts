@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { secureAdminDashboardService } from "@/services/admin/SecureAdminDashboardService";
+import { emergencyAdminDashboardService } from "@/services/emergency/EmergencyAdminDashboardService";
 import {
   BusinessKPIs,
   TrendData,
@@ -43,18 +43,18 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
   };
 
   const loadBusinessMetrics = useCallback(async (): Promise<BusinessKPIs> => {
-    // Use secure service that handles proper RPC functions and security
-    return await secureAdminDashboardService.loadDashboardMetrics(timeRange);
+    // Use emergency service with automatic fallbacks for 503 errors
+    return await emergencyAdminDashboardService.loadDashboardMetrics(timeRange);
   }, [timeRange]);
 
   const loadTrendData = useCallback(async (): Promise<TrendData[]> => {
-    // Use secure service with proper access control
-    return await secureAdminDashboardService.loadTrendData(timeRange);
+    // Use emergency service with fallback data when database fails
+    return await emergencyAdminDashboardService.loadTrendData(timeRange);
   }, [timeRange]);
 
   const loadRegionalData = useCallback(async (): Promise<RegionalData[]> => {
-    // Use secure service with proper RPC function usage
-    return await secureAdminDashboardService.loadRegionalData();
+    // Use emergency service with regional fallback data
+    return await emergencyAdminDashboardService.loadRegionalData();
   }, []);
 
   const loadDashboardData = useCallback(async () => {

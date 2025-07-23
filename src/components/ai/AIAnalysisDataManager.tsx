@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import type { ChecklistItem } from "@/types/database-verified";
 
 // Import AI reliability systems
 import {
@@ -22,10 +23,18 @@ import {
   ExplainabilityResult,
 } from "@/services/AIExplainabilityEngine";
 
+interface AnalysisContext {
+  propertyId: string;
+  inspectionId: string;
+  analysisType: "photo" | "video" | "audio";
+  requirements: string[];
+  referenceData?: Record<string, unknown>;
+}
+
 interface AIAnalysisDataManagerProps {
   photo: File;
-  checklistItem: any;
-  analysisContext: any;
+  checklistItem: ChecklistItem;
+  analysisContext: AnalysisContext;
   onAnalysisComplete: (result: ReliabilityAnalysis) => void;
   children: (data: {
     analysisState: "idle" | "analyzing" | "complete" | "error";
@@ -135,10 +144,12 @@ export const AIAnalysisDataManager: React.FC<AIAnalysisDataManagerProps> = ({
         },
         "AI_ANALYSIS_DATA_MANAGER",
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Analysis failed";
       logger.error("AI analysis failed", error, "AI_ANALYSIS_DATA_MANAGER");
       setAnalysisState("error");
-      setErrorMessage(error.message || "Analysis failed");
+      setErrorMessage(errorMessage);
       toast({
         title: "Analysis Failed",
         description: "AI analysis could not be completed. Please try again.",
