@@ -66,16 +66,18 @@ const SecurityMonitoringDashboard: React.FC<
    * Handle threat investigation - delegates to parent handler
    */
   const handleThreatInvestigate = useCallback(async (threatId: string) => {
-    // Implementation would depend on the threat ID lookup
-    console.log("Investigating threat:", threatId);
+    // TODO: Implement threat investigation workflow
+    // This should trigger threat analysis, gather additional context,
+    // and present investigation results to security team
   }, []);
 
   /**
    * Handle threat resolution - delegates to parent handler
    */
   const handleThreatResolve = useCallback(async (threatId: string) => {
-    // Implementation would depend on the threat ID lookup
-    console.log("Resolving threat:", threatId);
+    // TODO: Implement threat resolution workflow
+    // This should mark threat as resolved, update security logs,
+    // and trigger any necessary follow-up actions
   }, []);
 
   return (

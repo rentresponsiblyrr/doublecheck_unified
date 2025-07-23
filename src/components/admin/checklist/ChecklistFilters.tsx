@@ -66,14 +66,16 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
         <div className="space-y-2">
           <Label>Category</Label>
           <Select
-            value={filters.category}
-            onValueChange={(value) => updateFilter("category", value)}
+            value={filters.category || "all"}
+            onValueChange={(value) =>
+              updateFilter("category", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">
+              <SelectItem value="all">
                 All categories ({itemCounts.total})
               </SelectItem>
               {CHECKLIST_CATEGORIES.map((category) => (
@@ -89,14 +91,18 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
         <div className="space-y-2">
           <Label>Evidence Type</Label>
           <Select
-            value={filters.evidenceType}
-            onValueChange={(value) => updateFilter("evidenceType", value)}
+            value={filters.evidenceType || "all"}
+            onValueChange={(value) =>
+              updateFilter("evidenceType", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types ({itemCounts.total})</SelectItem>
+              <SelectItem value="all">
+                All types ({itemCounts.total})
+              </SelectItem>
               {EVIDENCE_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type.charAt(0).toUpperCase() + type.slice(1)} (
@@ -111,14 +117,18 @@ export const ChecklistFiltersComponent: React.FC<ChecklistFiltersProps> = ({
         <div className="space-y-2">
           <Label>Status</Label>
           <Select
-            value={filters.status}
-            onValueChange={(value) => updateFilter("status", value)}
+            value={filters.status || "all"}
+            onValueChange={(value) =>
+              updateFilter("status", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All items" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All items ({itemCounts.total})</SelectItem>
+              <SelectItem value="all">
+                All items ({itemCounts.total})
+              </SelectItem>
               <SelectItem value="active">
                 Active ({itemCounts.active})
               </SelectItem>

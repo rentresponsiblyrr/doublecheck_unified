@@ -274,13 +274,9 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
 
   const resolveConflict = useCallback(
     (conflictId: string, resolution: "local" | "server" | "merge") => {
-      // Handle conflict resolution logic here
-      console.log(
-        "Resolving conflict:",
-        conflictId,
-        "with resolution:",
-        resolution,
-      );
+      // TODO: Implement proper conflict resolution logic
+      // This should handle merging data based on resolution strategy,
+      // update the appropriate data store, and notify user of outcome
 
       setSyncItems((prev) =>
         prev.map((item) =>

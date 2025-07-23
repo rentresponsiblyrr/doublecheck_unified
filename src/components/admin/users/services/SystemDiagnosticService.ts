@@ -23,7 +23,6 @@ export class SystemDiagnosticService {
     try {
       const diagnosticResults: SystemDiagnostic = {
         usersTableExists: false,
-        profilesTableExists: false,
         authEnabled: false,
         rlsEnabled: false,
         hasPermissions: false,

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, Shield, Users, Eye } from "lucide-react";
+import { Settings, Shield, Users, Eye, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -111,6 +111,22 @@ export const AdminAccessButton: React.FC<AdminAccessButtonProps> = ({
         >
           <Eye className="mr-2 h-4 w-4" />
           <span>Audit Center</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => {
+            // Professional navigation
+            if (window.history && window.history.pushState) {
+              window.history.pushState({}, "", "/admin/checklists");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            } else {
+              // Fallback for navigation
+              window.location.href = "/admin/checklists";
+            }
+          }}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          <span>Checklist Management</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem

@@ -66,7 +66,7 @@ export class VRBOURLValidator {
     url: string,
     options: Partial<URLCleanupOptions> = {},
   ): URLValidationResult {
-    const opts = { ...this.DEFAULT_OPTIONS, ...options };
+    const opts = { ...VRBOURLValidator.DEFAULT_OPTIONS, ...options };
     const result: URLValidationResult = {
       isValid: false,
       cleanedUrl: "",
@@ -79,13 +79,14 @@ export class VRBOURLValidator {
 
     try {
       // Step 1: Basic cleanup
-      let cleanedUrl = this.performBasicCleanup(url, opts);
+      let cleanedUrl = VRBOURLValidator.performBasicCleanup(url, opts);
 
       // Step 2: Handle common user mistakes
-      cleanedUrl = this.fixCommonMistakes(cleanedUrl, result);
+      cleanedUrl = VRBOURLValidator.fixCommonMistakes(cleanedUrl, result);
 
       // Step 3: Validate against patterns
-      const validationResult = this.validateAgainstPatterns(cleanedUrl);
+      const validationResult =
+        VRBOURLValidator.validateAgainstPatterns(cleanedUrl);
 
       if (validationResult.isValid) {
         result.isValid = true;
@@ -94,7 +95,10 @@ export class VRBOURLValidator {
         result.extractedId = validationResult.extractedId;
 
         // Step 4: Final optimization
-        result.cleanedUrl = this.optimizeURL(result.cleanedUrl, opts);
+        result.cleanedUrl = VRBOURLValidator.optimizeURL(
+          result.cleanedUrl,
+          opts,
+        );
 
         // Add warnings for changes made
         if (result.cleanedUrl !== url) {
@@ -104,7 +108,7 @@ export class VRBOURLValidator {
         result.errors.push("URL does not match any valid VRBO pattern");
 
         // Try to provide helpful suggestions
-        const suggestions = this.generateSuggestions(url);
+        const suggestions = VRBOURLValidator.generateSuggestions(url);
         if (suggestions.length > 0) {
           result.errors.push(`Suggestions: ${suggestions.join(", ")}`);
         }
@@ -215,7 +219,7 @@ export class VRBOURLValidator {
     urlType: URLValidationResult["urlType"];
     extractedId: string | null;
   } {
-    for (const pattern of this.VRBO_PATTERNS) {
+    for (const pattern of VRBOURLValidator.VRBO_PATTERNS) {
       const match = url.match(pattern);
       if (match) {
         const propertyId = match[2] || match[1]; // Different capture groups
@@ -295,7 +299,7 @@ export class VRBOURLValidator {
    * Quick validation check
    */
   static isValidVRBOURL(url: string): boolean {
-    const result = this.validateAndCleanURL(url);
+    const result = VRBOURLValidator.validateAndCleanURL(url);
     return result.isValid;
   }
 
@@ -303,7 +307,7 @@ export class VRBOURLValidator {
    * Get cleaned URL or throw error
    */
   static getCleanedURL(url: string): string {
-    const result = this.validateAndCleanURL(url);
+    const result = VRBOURLValidator.validateAndCleanURL(url);
     if (!result.isValid) {
       throw new Error(`Invalid VRBO URL: ${result.errors.join(", ")}`);
     }
@@ -314,7 +318,7 @@ export class VRBOURLValidator {
    * Extract property ID from any VRBO-related URL
    */
   static extractPropertyId(url: string): string | null {
-    const result = this.validateAndCleanURL(url);
+    const result = VRBOURLValidator.validateAndCleanURL(url);
     return result.extractedId;
   }
 }

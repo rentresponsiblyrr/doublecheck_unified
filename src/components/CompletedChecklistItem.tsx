@@ -55,7 +55,7 @@ export const CompletedChecklistItem: React.FC<CompletedChecklistItemProps> = ({
 
   const handleReopen = () => {
     // In a real implementation, this would reset the item status to pending
-    console.log(`Reopening item: ${item.id}`);
+    // TODO: Reset item status to pending in database
     onComplete(); // Trigger refresh
   };
 

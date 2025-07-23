@@ -10,7 +10,7 @@ export const EmptyPropertiesState: React.FC = () => {
   const handleAddProperty = () => {
     // Navigate to property creation or trigger property add dialog
     // For now, we'll just log the action
-    console.log("Add property clicked - implement property creation flow");
+    // TODO: Implement property creation flow
   };
 
   return (

@@ -22,14 +22,12 @@ interface AdminHeaderProps {
     avatar_url?: string;
   } | null;
   className?: string;
-  onMobileMenuClick?: () => void;
   isMobile?: boolean;
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   userProfile,
   className = "",
-  onMobileMenuClick,
   isMobile = false,
 }) => {
   const navigate = useNavigate();
@@ -67,22 +65,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           isMobile ? "px-3 py-3" : "px-6 py-4",
         )}
       >
-        {/* Left Section: Mobile Menu + Title */}
+        {/* Left Section: Title */}
         <div className="flex items-center space-x-3 flex-1 min-w-0">
-          {/* Mobile Menu Button */}
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onMobileMenuClick}
-              className="p-2 -ml-2"
-              id="mobile-menu-button"
-              aria-label="Open sidebar"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-
           {/* Header Content */}
           <div className="flex-1 min-w-0">
             <h2

@@ -141,17 +141,20 @@ export class ProductionLogger {
       // - CloudWatch: cloudWatchLogs.putLogEvents(payload)
       // - LogRocket: LogRocket.captureException(new Error(message))
 
-      fetch("/api/logs/errors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Session-ID": this.sessionId,
-        },
-        body: JSON.stringify(payload),
-      }).catch(() => {
-        // Fail silently if logging service is down
-        // Could implement local storage buffering here
-      });
+      // Only send to external logging service in production
+      if (!this.isDevelopment) {
+        fetch("/api/logs/errors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Session-ID": this.sessionId,
+          },
+          body: JSON.stringify(payload),
+        }).catch(() => {
+          // Fail silently if logging service is down
+          // Could implement local storage buffering here
+        });
+      }
     } catch {
       // Fail silently in production to not break user experience
     }
@@ -178,16 +181,19 @@ export class ProductionLogger {
       // - Amplitude: amplitude.getInstance().logEvent(event_name, properties)
       // - PostHog: posthog.capture(event_name, properties)
 
-      fetch("/api/analytics/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Session-ID": this.sessionId,
-        },
-        body: JSON.stringify(analyticsPayload),
-      }).catch(() => {
-        // Fail silently for analytics
-      });
+      // Only send to external analytics service in production
+      if (!this.isDevelopment) {
+        fetch("/api/analytics/events", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Session-ID": this.sessionId,
+          },
+          body: JSON.stringify(analyticsPayload),
+        }).catch(() => {
+          // Fail silently for analytics
+        });
+      }
     } catch {
       // Fail silently in production
     }

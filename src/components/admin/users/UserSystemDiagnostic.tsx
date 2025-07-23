@@ -32,7 +32,6 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
   const getHealthStatus = () => {
     const allHealthy =
       diagnostic.usersTableExists &&
-      diagnostic.profilesTableExists &&
       diagnostic.authEnabled &&
       diagnostic.hasPermissions;
     return allHealthy ? "healthy" : "warning";
@@ -69,15 +68,15 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
             <div className="flex flex-col">
-              <span className="text-xs text-gray-600">Profiles Table</span>
+              <span className="text-xs text-gray-600">Users Table</span>
               <div className="flex items-center space-x-2 mt-1">
-                {diagnostic.profilesTableExists ? (
+                {diagnostic.usersTableExists ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-xs font-medium">
-                  {diagnostic.profilesTableExists ? "Available" : "Missing"}
+                  {diagnostic.usersTableExists ? "Available" : "Missing"}
                 </span>
               </div>
             </div>
@@ -191,10 +190,9 @@ export const UserSystemDiagnostic: React.FC<UserSystemDiagnosticProps> = ({
                   Recommendations
                 </div>
                 <ul className="text-xs text-blue-600 mt-1 space-y-1">
-                  {!diagnostic.profilesTableExists && (
+                  {!diagnostic.usersTableExists && (
                     <li>
-                      • Ensure the profiles table exists and is properly
-                      configured
+                      • Ensure the users table exists and is properly configured
                     </li>
                   )}
                   {!diagnostic.authEnabled && (

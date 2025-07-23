@@ -452,7 +452,9 @@ export const CacheInvalidationDashboard: React.FC<
             variant="outline"
             size="sm"
             onClick={() => {
-              console.log("Cache Stats:", { invalidationStats, warmingStats });
+              // TODO: Implement cache data export functionality
+              // This should export cache statistics to CSV/JSON format
+              // for performance analysis and reporting
             }}
             className="text-xs"
           >

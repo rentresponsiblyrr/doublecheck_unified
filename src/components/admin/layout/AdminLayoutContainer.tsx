@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger/production-logger";
@@ -25,7 +24,6 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
 }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Mobile-first responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -33,45 +31,6 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
   const isDesktop = useMediaQuery("(min-width: 1025px)");
 
   const location = useLocation();
-
-  // Auto-close sidebar on mobile when route changes
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location.pathname, isMobile]);
-
-  // Close sidebar when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById("admin-sidebar");
-      const menuButton = document.getElementById("mobile-menu-button");
-
-      if (
-        isMobile &&
-        sidebarOpen &&
-        sidebar &&
-        !sidebar.contains(event.target as Node) &&
-        menuButton &&
-        !menuButton.contains(event.target as Node)
-      ) {
-        setSidebarOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isMobile, sidebarOpen]);
-
-  // Prevent body scroll when mobile sidebar is open
-  useEffect(() => {
-    if (isMobile && sidebarOpen) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "unset";
-      };
-    }
-  }, [isMobile, sidebarOpen]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -177,59 +136,30 @@ export const AdminLayoutContainer: React.FC<AdminLayoutContainerProps> = ({
     <AccessibilityProvider>
       <div
         id="admin-layout-container"
-        className="relative flex h-screen bg-gray-100"
+        className="relative flex flex-col h-screen bg-gray-100"
       >
-        {/* Mobile Overlay */}
-        {isMobile && sidebarOpen && (
-          <div
-            id="mobile-sidebar-overlay"
-            className="fixed inset-0 z-40 bg-gray-900/50 transition-opacity lg:hidden"
-            aria-hidden="true"
-          />
-        )}
+        {/* Header */}
+        <AdminHeader userProfile={userProfile} isMobile={isMobile} />
 
-        {/* Sidebar */}
-        <AdminSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          isMobile={isMobile}
-          isTablet={isTablet}
-        />
-
-        {/* Main Content Area */}
-        <div
+        {/* Main Content */}
+        <main
+          id="admin-main-content"
           className={cn(
-            "flex-1 flex flex-col overflow-hidden transition-all duration-300",
-            isMobile ? "w-full" : isTablet ? "ml-16" : "ml-64",
+            "flex-1 overflow-y-auto transition-all duration-300",
+            // Responsive padding
+            isMobile ? "p-3" : isTablet ? "p-4" : "p-6",
           )}
         >
-          {/* Header with Mobile Menu */}
-          <AdminHeader
-            userProfile={userProfile}
-            onMobileMenuClick={() => setSidebarOpen(true)}
-            isMobile={isMobile}
-          />
-
-          {/* Main Content */}
-          <main
-            id="admin-main-content"
+          <div
             className={cn(
-              "flex-1 overflow-y-auto transition-all duration-300",
-              // Responsive padding
-              isMobile ? "p-3" : isTablet ? "p-4" : "p-6",
+              "mx-auto w-full",
+              // Responsive max widths
+              isMobile ? "max-w-full" : isTablet ? "max-w-4xl" : "max-w-7xl",
             )}
           >
-            <div
-              className={cn(
-                "mx-auto w-full",
-                // Responsive max widths
-                isMobile ? "max-w-full" : isTablet ? "max-w-4xl" : "max-w-7xl",
-              )}
-            >
-              {children || <Outlet />}
-            </div>
-          </main>
-        </div>
+            {children || <Outlet />}
+          </div>
+        </main>
       </div>
     </AccessibilityProvider>
   );

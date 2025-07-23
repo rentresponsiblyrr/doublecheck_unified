@@ -56,14 +56,16 @@ export const UserFiltersComponent: React.FC<UserFiltersProps> = ({
         <div className="space-y-2">
           <Label>Role</Label>
           <Select
-            value={filters.role}
-            onValueChange={(value) => updateFilter("role", value)}
+            value={filters.role || "all"}
+            onValueChange={(value) =>
+              updateFilter("role", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All roles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All roles ({stats.total})</SelectItem>
+              <SelectItem value="all">All roles ({stats.total})</SelectItem>
               {USER_ROLES.map((role) => (
                 <SelectItem key={role.value} value={role.value}>
                   {role.label} ({stats.byRole[role.value] || 0})
@@ -77,14 +79,16 @@ export const UserFiltersComponent: React.FC<UserFiltersProps> = ({
         <div className="space-y-2">
           <Label>Status</Label>
           <Select
-            value={filters.status}
-            onValueChange={(value) => updateFilter("status", value)}
+            value={filters.status || "all"}
+            onValueChange={(value) =>
+              updateFilter("status", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger>
               <SelectValue placeholder="All users" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All users ({stats.total})</SelectItem>
+              <SelectItem value="all">All users ({stats.total})</SelectItem>
               <SelectItem value="active">Active ({stats.active})</SelectItem>
               <SelectItem value="inactive">
                 Inactive ({stats.inactive})

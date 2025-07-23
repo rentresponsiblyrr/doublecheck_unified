@@ -39,7 +39,7 @@ import NotFound from "./pages/NotFound";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DomainAwarePWA } from "@/components/DomainAwarePWA";
 import { UniversalErrorBoundary as GlobalErrorBoundary } from "@/components/error/UniversalErrorBoundary";
-// BugReportButton and SimpleBugReportTest components not found - removing for build fix
+import { BugReportButton } from "@/components/bug-report";
 
 // Enhanced Query Client with error handling
 const queryClient = new QueryClient({
@@ -214,11 +214,7 @@ export default function AuthenticatedApp({ user }: AuthenticatedAppProps) {
                   </BrowserRouter>
 
                   {/* Bug Report Button - Available throughout the app */}
-                  {/* <BugReportButton 
-                  position="bottom-right"
-                  size="md"
-                  showInProduction={true}
-                /> */}
+                  <BugReportButton visible={true} className="" />
 
                   {/* Debug Database Status - Development only */}
                   {/* <DebugDatabaseStatus /> */}

@@ -29,27 +29,18 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
     isLoading: true,
   });
 
-  const loadDashboardData = useCallback(async () => {
-    try {
-      setData((prev) => ({ ...prev, isLoading: true }));
+  const getDateRange = (range: TimeRange): string => {
+    const now = new Date();
+    const days = {
+      "7d": 7,
+      "30d": 30,
+      "90d": 90,
+      "1y": 365,
+    }[range];
 
-      const [kpis, trends, regions] = await Promise.all([
-        loadBusinessMetrics(),
-        loadTrendData(),
-        loadRegionalData(),
-      ]);
-
-      setData({
-        kpis,
-        trends,
-        regions,
-        isLoading: false,
-      });
-    } catch (error) {
-      console.error("Failed to load dashboard data:", error);
-      setData((prev) => ({ ...prev, isLoading: false }));
-    }
-  }, [timeRange, loadBusinessMetrics, loadTrendData, loadRegionalData]);
+    const date = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    return date.toISOString();
+  };
 
   const loadBusinessMetrics = useCallback(async (): Promise<BusinessKPIs> => {
     const { data: inspections } = await supabase
@@ -128,22 +119,31 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
     ];
   }, []);
 
-  const getDateRange = (range: TimeRange): string => {
-    const now = new Date();
-    const days = {
-      "7d": 7,
-      "30d": 30,
-      "90d": 90,
-      "1y": 365,
-    }[range];
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setData((prev) => ({ ...prev, isLoading: true }));
 
-    const date = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    return date.toISOString();
-  };
+      const [kpis, trends, regions] = await Promise.all([
+        loadBusinessMetrics(),
+        loadTrendData(),
+        loadRegionalData(),
+      ]);
+
+      setData({
+        kpis,
+        trends,
+        regions,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Failed to load dashboard data:", error);
+      setData((prev) => ({ ...prev, isLoading: false }));
+    }
+  }, [loadBusinessMetrics, loadTrendData, loadRegionalData]);
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData, timeRange]);
+  }, [loadDashboardData]);
 
   return {
     ...data,

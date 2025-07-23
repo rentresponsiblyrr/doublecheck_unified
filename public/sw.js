@@ -885,6 +885,21 @@ self.addEventListener('message', event => {
       });
       break;
       
+    case 'UPDATE_CACHE_STRATEGY':
+      log('info', 'Cache strategy update received', { strategy: data.strategy });
+      // TODO: Implement dynamic cache strategy updates
+      break;
+      
+    case 'INIT_PORT':
+      log('info', 'Port initialization received');
+      // TODO: Initialize message port for enhanced communication
+      break;
+      
+    case 'PRECACHE_RESOURCES':
+      log('info', 'Precache resources request received', { resources: data.resources });
+      // TODO: Implement dynamic resource precaching
+      break;
+      
     default:
       log('warn', 'Unknown message type', { type: data.type });
   }

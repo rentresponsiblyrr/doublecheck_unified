@@ -3,6 +3,7 @@
  * Clean exports for modular bug report architecture
  */
 
+export { BugReportButton } from "./BugReportButton";
 export { BugReportDialog } from "./BugReportDialog";
 export { BugReportForm } from "./BugReportForm";
 export { ScreenshotCapture } from "./ScreenshotCapture";

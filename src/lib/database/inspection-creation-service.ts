@@ -505,9 +505,29 @@ export class EnterpriseInspectionCreationService {
           "INSPECTION_CREATION_SERVICE",
         );
 
+        // Transform snake_case to camelCase for compatibility
+        const transformedData = {
+          inspectionId: rpcData.inspection_id,
+          propertyId: rpcData.property_id,
+          propertyUuid: rpcData.property_uuid,
+          status: rpcData.status,
+          createdAt: rpcData.created_at,
+        };
+
+        logger.info(
+          "Transformed inspection creation response",
+          {
+            original: rpcData,
+            transformed: transformedData,
+            inspectionId: transformedData.inspectionId,
+            inspectionIdType: typeof transformedData.inspectionId,
+          },
+          "INSPECTION_CREATION_SERVICE",
+        );
+
         return {
           success: true,
-          data: rpcData,
+          data: transformedData,
         };
       } catch (networkError) {
         lastError = networkError;

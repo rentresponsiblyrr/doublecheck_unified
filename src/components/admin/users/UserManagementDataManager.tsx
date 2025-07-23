@@ -93,7 +93,6 @@ export const UserManagementDataManager: React.FC<
   });
   const [diagnostic, setDiagnostic] = useState<SystemDiagnostic>({
     usersTableExists: false,
-    profilesTableExists: false,
     authEnabled: false,
     rlsEnabled: false,
     hasPermissions: false,

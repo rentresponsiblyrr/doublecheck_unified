@@ -296,12 +296,14 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
                     Debug Mode
                   </h1>
                   <p className="text-gray-600 mb-4">
-                    Debug inspection route is not implemented yet. 
-                    Use the regular inspection page instead.
+                    Debug inspection route is not implemented yet. Use the
+                    regular inspection page instead.
                   </p>
                   <button
                     onClick={() => {
-                      const inspectionId = window.location.pathname.split('/').pop();
+                      const inspectionId = window.location.pathname
+                        .split("/")
+                        .pop();
                       window.location.href = `/inspection/${inspectionId}`;
                     }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"

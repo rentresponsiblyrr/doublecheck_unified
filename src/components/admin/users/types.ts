@@ -39,7 +39,6 @@ export interface UserStats {
 
 export interface SystemDiagnostic {
   usersTableExists: boolean;
-  profilesTableExists: boolean;
   authEnabled: boolean;
   rlsEnabled: boolean;
   hasPermissions: boolean;
