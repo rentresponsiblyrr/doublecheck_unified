@@ -53,7 +53,7 @@ export interface Property {
 
 export interface ActiveInspection {
   id: string;
-  status: "draft" | "in_progress" | "completed";
+  status: "draft" | "in_progress" | "completed" | "pending_review" | "in_review" | "needs_revision" | "rejected";
   created_at: string;
   updated_at: string;
   completed_items: number;
@@ -118,7 +118,7 @@ export const PropertyCardWithResume = ({
         )
         .eq("property_id", property.id)
         .eq("inspector_id", user.id)
-        .in("status", ["draft", "in_progress"])
+        .not("status", "in", ["cancelled", "approved"])
         .order("created_at", { ascending: false })
         .limit(1);
 
@@ -340,6 +340,36 @@ export const PropertyCardWithResume = ({
             In Progress
           </Badge>
         );
+      case "completed":
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-700">
+            Completed
+          </Badge>
+        );
+      case "pending_review":
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+            Pending Review
+          </Badge>
+        );
+      case "in_review":
+        return (
+          <Badge variant="default" className="bg-yellow-100 text-yellow-700">
+            In Review
+          </Badge>
+        );
+      case "needs_revision":
+        return (
+          <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+            Needs Revision
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive" className="bg-red-100 text-red-700">
+            Rejected
+          </Badge>
+        );
       default:
         return null;
     }
@@ -403,16 +433,42 @@ export const PropertyCardWithResume = ({
 
         {/* Active inspection status */}
         {activeInspection && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+          <div className={`border rounded-lg p-3 mt-2 ${
+            activeInspection.status === "draft" || activeInspection.status === "in_progress" || activeInspection.status === "needs_revision"
+              ? "bg-blue-50 border-blue-200"
+              : activeInspection.status === "completed" || activeInspection.status === "pending_review" || activeInspection.status === "in_review"
+              ? "bg-yellow-50 border-yellow-200"
+              : "bg-red-50 border-red-200"
+          }`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
-                <PlayCircle className="w-4 h-4 text-blue-600 mr-2" />
-                <span className="font-medium text-blue-900">
-                  Inspection In Progress
+                {activeInspection.status === "rejected" ? (
+                  <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
+                ) : activeInspection.status === "completed" || activeInspection.status === "pending_review" || activeInspection.status === "in_review" ? (
+                  <CheckCircle className="w-4 h-4 text-yellow-600 mr-2" />
+                ) : (
+                  <PlayCircle className="w-4 h-4 text-blue-600 mr-2" />
+                )}
+                <span className={`font-medium ${
+                  activeInspection.status === "rejected" ? "text-red-900"
+                  : activeInspection.status === "completed" || activeInspection.status === "pending_review" || activeInspection.status === "in_review" ? "text-yellow-900"
+                  : "text-blue-900"
+                }`}>
+                  {activeInspection.status === "draft" ? "Inspection Draft" :
+                   activeInspection.status === "in_progress" ? "Inspection In Progress" :
+                   activeInspection.status === "completed" ? "Inspection Completed" :
+                   activeInspection.status === "pending_review" ? "Pending Review" :
+                   activeInspection.status === "in_review" ? "Under Review" :
+                   activeInspection.status === "needs_revision" ? "Needs Revision" :
+                   activeInspection.status === "rejected" ? "Inspection Rejected" : "Inspection Status"}
                 </span>
               </div>
               {lastWorkTime && (
-                <div className="flex items-center text-xs text-blue-600">
+                <div className={`flex items-center text-xs ${
+                  activeInspection.status === "rejected" ? "text-red-600"
+                  : activeInspection.status === "completed" || activeInspection.status === "pending_review" || activeInspection.status === "in_review" ? "text-yellow-600"
+                  : "text-blue-600"
+                }`}>
                   <Clock className="w-3 h-3 mr-1" />
                   <span>{formatTimeAgo(lastWorkTime)}</span>
                 </div>
@@ -460,23 +516,51 @@ export const PropertyCardWithResume = ({
           <div className="space-y-2">
             {activeInspection ? (
               <>
-                {/* Continue inspection button */}
-                <Button
-                  onClick={() => handleInspectionAction(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12"
-                >
-                  <ArrowRight className="w-5 h-5 mr-2" />
-                  Continue Inspection ({getProgressPercentage()}% complete)
-                </Button>
+                {/* Show different buttons based on inspection status */}
+                {(activeInspection.status === "draft" || activeInspection.status === "in_progress" || activeInspection.status === "needs_revision") ? (
+                  <>
+                    {/* Continue inspection button for active/revisable inspections */}
+                    <Button
+                      onClick={() => handleInspectionAction(true)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12"
+                    >
+                      <ArrowRight className="w-5 h-5 mr-2" />
+                      {activeInspection.status === "needs_revision" ? "Fix Issues" : "Continue Inspection"} ({getProgressPercentage()}% complete)
+                    </Button>
 
-                {/* Secondary action - start new */}
-                <Button
-                  onClick={() => handleInspectionAction(false)}
-                  variant="outline"
-                  className="w-full h-10 text-sm"
-                >
-                  Start New Inspection Instead
-                </Button>
+                    {/* Secondary action - start new (only for draft/in_progress, not needs_revision) */}
+                    {activeInspection.status !== "needs_revision" && (
+                      <Button
+                        onClick={() => handleInspectionAction(false)}
+                        variant="outline"
+                        className="w-full h-10 text-sm"
+                      >
+                        Start New Inspection Instead
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* For completed/review/rejected inspections - show status and start new option */}
+                    <div className="text-center py-2">
+                      <p className="text-sm text-gray-600 mb-2">
+                        {activeInspection.status === "completed" ? "This inspection is completed and ready for review." :
+                         activeInspection.status === "pending_review" ? "This inspection is waiting for auditor review." :
+                         activeInspection.status === "in_review" ? "This inspection is currently being reviewed." :
+                         activeInspection.status === "rejected" ? "This inspection was rejected. You may need to start a new one." :
+                         "This inspection is in final state."}
+                      </p>
+                    </div>
+                    
+                    <Button
+                      onClick={() => handleInspectionAction(false)}
+                      variant="outline"
+                      className="w-full h-10 text-sm"
+                    >
+                      Start New Inspection
+                    </Button>
+                  </>
+                )}
               </>
             ) : (
               <>

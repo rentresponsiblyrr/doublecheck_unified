@@ -182,12 +182,21 @@ export const usePropertyActions = () => {
         // Use property ID directly as UUID string (post-migration database returns UUIDs)
         const propertyIdForQuery = propertyId;
 
-        // Check if there's already an active inspection
+        // Check if there's already an active inspection (any status except cancelled/approved)
+        logger.info(
+          "Checking for existing inspections before creating new one",
+          {
+            propertyId: propertyIdForQuery,
+            userId: user.id,
+          },
+          "PROPERTY_ACTIONS",
+        );
+
         const { data: existingInspection, error: checkError } = await supabase
           .from("inspections")
-          .select("id")
+          .select("id, status")
           .eq("property_id", propertyIdForQuery)
-          .in("status", ["draft", "in_progress"])
+          .not("status", "in", ["cancelled", "approved"])
           .single();
 
         if (checkError && checkError.code !== "PGRST116") {
@@ -195,9 +204,27 @@ export const usePropertyActions = () => {
         }
 
         if (existingInspection) {
+          logger.info(
+            "Found existing inspection - navigating to resume",
+            {
+              inspectionId: existingInspection.id,
+              status: existingInspection.status,
+              propertyId: propertyIdForQuery,
+            },
+            "PROPERTY_ACTIONS",
+          );
           safeNavigateToInspection(navigate, existingInspection.id);
           return existingInspection.id;
         }
+
+        logger.info(
+          "No existing inspection found - creating new one",
+          {
+            propertyId: propertyIdForQuery,
+            userId: user.id,
+          },
+          "PROPERTY_ACTIONS",
+        );
 
         // Create new inspection using the secure creation service
         const {
