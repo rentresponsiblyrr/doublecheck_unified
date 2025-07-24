@@ -159,15 +159,9 @@ export default defineConfig(({ mode }) => {
               return 'router';
             }
             
-            // Heavy UI libraries (split by usage)
-            if (id.includes('node_modules/@radix-ui/react-dialog') ||
-                id.includes('node_modules/@radix-ui/react-dropdown-menu') ||
-                id.includes('node_modules/@radix-ui/react-tooltip')) {
-              return 'ui-core';
-            }
-            
+            // CRITICAL FIX: Keep ALL Radix UI components together to prevent createPopperScope issues
             if (id.includes('node_modules/@radix-ui')) {
-              return 'ui-extended';
+              return 'ui-radix-complete';
             }
             
             if (id.includes('node_modules/lucide-react')) {
@@ -346,7 +340,15 @@ export default defineConfig(({ mode }) => {
         'react-dom',
         'react-router-dom',
         '@tanstack/react-query',
-        '@supabase/supabase-js'
+        '@supabase/supabase-js',
+        // CRITICAL FIX: Pre-bundle all Radix UI components to prevent scope issues
+        '@radix-ui/react-popper',
+        '@radix-ui/react-context',
+        '@radix-ui/react-select',
+        '@radix-ui/react-tooltip',
+        '@radix-ui/react-dropdown-menu',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-popover'
       ],
       exclude: [
         // Exclude very heavy libraries for lazy loading
