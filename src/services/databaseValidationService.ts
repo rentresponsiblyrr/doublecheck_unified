@@ -97,9 +97,11 @@ export class DatabaseValidationService {
       issues.push(`Inspections table not accessible: ${inspectionsTest.error}`);
     }
 
-    const checklistTest = await this.testTableAccess("checklist");
+    const checklistTest = await this.testTableAccess("checklist_items");
     if (!checklistTest.accessible) {
-      issues.push(`Checklist table not accessible: ${checklistTest.error}`);
+      issues.push(
+        `Checklist items table not accessible: ${checklistTest.error}`,
+      );
     }
 
     const auditTest = await this.testTableAccess("checklist_operations_audit");
@@ -300,7 +302,7 @@ export class DatabaseValidationService {
     }
 
     // Test basic table access
-    const tables = ["properties", "inspections", "checklist"];
+    const tables = ["properties", "inspections", "checklist_items"];
     for (const table of tables) {
       const test = await this.testTableAccess(table);
       checks.push({

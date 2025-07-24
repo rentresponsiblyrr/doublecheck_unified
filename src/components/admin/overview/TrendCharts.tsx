@@ -52,11 +52,11 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({
                   </div>
                 </div>
                 <div className="ml-4 text-right">
-                  <div className="text-sm font-semibold">
-                    ${(item.revenue / 1000).toFixed(1)}k
+                  <div className="text-sm text-gray-400">
+                    Revenue not tracked
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {item.satisfaction.toFixed(1)}/5 ⭐
+                  <div className="text-xs text-gray-400">
+                    Satisfaction not measured
                   </div>
                 </div>
               </div>
@@ -108,14 +108,9 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">
-                      ${(region.revenue / 1000).toFixed(1)}k
-                    </div>
-                    <div
-                      className={`text-sm ${region.growth >= 0 ? "text-green-600" : "text-red-600"}`}
-                    >
-                      {region.growth >= 0 ? "+" : ""}
-                      {region.growth.toFixed(1)}%
+                    <div className="text-gray-400">Revenue not tracked</div>
+                    <div className="text-sm text-gray-400">
+                      Growth not measured
                     </div>
                   </div>
                 </div>

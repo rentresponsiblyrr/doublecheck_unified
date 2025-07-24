@@ -1,9 +1,16 @@
 /**
- * STR CERTIFIED PWA SERVICE WORKER - PHASE 4A COMPLETE IMPLEMENTATION
+ * STR CERTIFIED PWA SERVICE WORKER - DEPRECATED
  * 
- * This is a temporary file with the complete Service Worker implementation.
- * Will replace the main sw.js file once complete.
+ * This file is deprecated and should not be used.
+ * All functionality has been moved to sw.js
  */
+
+// DEPRECATED - This service worker is no longer active
+// All logging has been disabled to prevent console spam
+function log(level, message, context = {}) {
+  // NO LOGGING - This file is deprecated
+  return;
+}
 
 /**
  * Cache First Strategy - For static assets

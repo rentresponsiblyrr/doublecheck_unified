@@ -6,6 +6,7 @@ import {
   ChecklistFilters,
   SystemHealth,
   ChecklistStats,
+  ChecklistFormData,
 } from "./types";
 
 interface ChecklistDataManagerProps {
@@ -22,14 +23,6 @@ interface ChecklistDataManagerProps {
     onItemDelete: (id: string) => Promise<void>;
     onFiltersChange: (filters: ChecklistFilters) => void;
   }) => React.ReactNode;
-}
-
-interface ChecklistFormData {
-  label: string;
-  category: string;
-  required: boolean;
-  evidence_type: string;
-  gpt_prompt?: string;
 }
 
 export const ChecklistDataManager: React.FC<ChecklistDataManagerProps> = ({
@@ -218,9 +211,19 @@ export const ChecklistDataManager: React.FC<ChecklistDataManagerProps> = ({
   const handleItemCreate = useCallback(
     async (formData: ChecklistFormData) => {
       try {
+        // Transform form data to match database schema
+        const insertData = {
+          label: formData.label,
+          category: formData.category,
+          evidence_type: formData.evidence_type,
+          required: formData.required,
+          notes: formData.notes || null,
+          gpt_prompt: formData.gpt_prompt || null,
+        };
+
         const { data, error: createError } = await supabase
           .from("static_safety_items")
-          .insert([formData])
+          .insert([insertData])
           .select();
 
         if (createError) throw createError;
@@ -250,9 +253,19 @@ export const ChecklistDataManager: React.FC<ChecklistDataManagerProps> = ({
   const handleItemUpdate = useCallback(
     async (id: string, formData: ChecklistFormData) => {
       try {
+        // Transform form data to match database schema
+        const updateData = {
+          label: formData.label,
+          category: formData.category,
+          evidence_type: formData.evidence_type,
+          required: formData.required,
+          notes: formData.notes || null,
+          gpt_prompt: formData.gpt_prompt || null,
+        };
+
         const { error: updateError } = await supabase
           .from("static_safety_items")
-          .update(formData)
+          .update(updateData)
           .eq("id", id);
 
         if (updateError) throw updateError;

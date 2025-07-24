@@ -38,7 +38,7 @@ const CRITICAL_TABLES = [
   "users", // Compatibility view for auth.users
   "properties", // Compatibility view for properties table with UUID conversion
   "inspections", // Compatibility view for inspections table with UUID conversion
-  "logs", // Compatibility view for logs table with field mapping
+  "checklist_items", // Fixed: was "logs" - checklist items table
 ];
 
 /**

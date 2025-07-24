@@ -28,7 +28,7 @@ export class ConsoleDebugger {
     const tablesToCheck = [
       "properties",
       "inspections",
-      "logs",
+      "checklist_items", // Fixed: was "logs"
       "static_safety_items",
       "users",
     ];

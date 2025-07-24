@@ -28,6 +28,9 @@ import {
   useCoreWebVitals,
   usePerformanceBudgets,
 } from "@/hooks/useCoreWebVitalsMonitoring";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { CoreWebVitalsGrid } from "./components/CoreWebVitalsGrid";
 import {
   Activity,
   AlertTriangle,
@@ -230,68 +233,12 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
         <div id="detailed-performance-content" className="p-4">
           {/* Core Web Vitals Grid */}
-          <div
-            id="core-web-vitals-grid"
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
-          >
-            {/* LCP */}
-            <div
-              className={`border rounded-lg p-4 ${state.metrics.lcp ? getRatingColor(state.metrics.lcp.rating) : "border-gray-200"}`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">
-                  Largest Contentful Paint
-                </span>
-                <Clock className="h-4 w-4" />
-              </div>
-              <div className="text-2xl font-bold">
-                {state.metrics.lcp
-                  ? formatMetricValue(state.metrics.lcp.value, "ms")
-                  : "N/A"}
-              </div>
-              <div className="text-xs mt-1">
-                Target: &lt;2.5s | {state.metrics.lcp?.rating || "N/A"}
-              </div>
-            </div>
-
-            {/* FID */}
-            <div
-              className={`border rounded-lg p-4 ${state.metrics.fid ? getRatingColor(state.metrics.fid.rating) : "border-gray-200"}`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">First Input Delay</span>
-                <Activity className="h-4 w-4" />
-              </div>
-              <div className="text-2xl font-bold">
-                {state.metrics.fid
-                  ? formatMetricValue(state.metrics.fid.value, "ms")
-                  : "N/A"}
-              </div>
-              <div className="text-xs mt-1">
-                Target: &lt;100ms | {state.metrics.fid?.rating || "N/A"}
-              </div>
-            </div>
-
-            {/* CLS */}
-            <div
-              className={`border rounded-lg p-4 ${state.metrics.cls ? getRatingColor(state.metrics.cls.rating) : "border-gray-200"}`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">
-                  Cumulative Layout Shift
-                </span>
-                <Monitor className="h-4 w-4" />
-              </div>
-              <div className="text-2xl font-bold">
-                {state.metrics.cls
-                  ? formatMetricValue(state.metrics.cls.value, "")
-                  : "N/A"}
-              </div>
-              <div className="text-xs mt-1">
-                Target: &lt;0.1 | {state.metrics.cls?.rating || "N/A"}
-              </div>
-            </div>
-          </div>
+          {/* Extracted Core Web Vitals Grid */}
+          <CoreWebVitalsGrid
+            metrics={state.metrics}
+            formatMetricValue={formatMetricValue}
+            getRatingColor={getRatingColor}
+          />
 
           {/* Supporting Metrics */}
           <div

@@ -64,73 +64,7 @@ import {
   OfflineInspectionWorkflowProps,
 } from "./types/inspection";
 
-// Interfaces for offline inspection workflow
-export interface InspectionItem {
-  id: string;
-  propertyId: string;
-  title: string;
-  description: string;
-  category: string;
-  required: boolean;
-  evidenceType: "photo" | "video" | "text" | "checklist";
-  status: "pending" | "in_progress" | "completed" | "failed" | "not_applicable";
-  evidence?: {
-    photos?: File[];
-    videos?: File[];
-    notes?: string;
-    timestamp?: number;
-  };
-  priority: "critical" | "high" | "medium" | "low";
-  offlineCapable: boolean;
-}
-
-export interface OfflineInspection {
-  id: string;
-  propertyId: string;
-  propertyName: string;
-  inspectorId: string;
-  startTime: number;
-  lastModified: number;
-  status: "draft" | "in_progress" | "completed" | "syncing" | "error";
-  items: InspectionItem[];
-  progress: {
-    total: number;
-    completed: number;
-    percentage: number;
-  };
-  metadata: {
-    version: string;
-    deviceInfo: Record<string, unknown>; // Device information object
-    networkCondition: string;
-    batteryLevel?: number;
-  };
-  syncStatus: {
-    lastSync: number;
-    pendingChanges: boolean;
-    conflictsDetected: boolean;
-    retryCount: number;
-  };
-}
-
-export interface OfflineWorkflowState {
-  inspection: OfflineInspection | null;
-  isOffline: boolean;
-  syncInProgress: boolean;
-  networkQuality: "fast" | "slow" | "offline";
-  batteryLevel: number;
-  emergencyMode: boolean;
-  touchOptimized: boolean;
-}
-
-export interface OfflineInspectionWorkflowProps {
-  propertyId?: string;
-  inspectionId?: string;
-  onComplete?: (inspection: OfflineInspection) => void;
-  onError?: (error: Error) => void;
-  onProgress?: (progress: number) => void;
-  enableEmergencyMode?: boolean;
-  enableConstructionSiteMode?: boolean;
-}
+// All interfaces now imported from types/inspection.ts
 
 /**
  * OFFLINE INSPECTION WORKFLOW COMPONENT
@@ -1441,110 +1375,40 @@ export const OfflineInspectionWorkflow: React.FC<
         id="offline-inspection-workflow-enhanced"
         className="flex flex-col h-screen bg-gray-50"
       >
-        {/* Header with status indicators */}
-        <header
-          id="workflow-header"
-          className="bg-white shadow-sm border-b px-4 py-3"
-        >
-          <div
-            id="inspection-header"
-            className="flex items-center justify-between"
-          >
-            <div id="inspection-info">
-              <h1 className="text-xl font-semibold text-gray-800">
-                {workflowState.inspection?.propertyName || "Inspection"}
-              </h1>
-              <p className="text-sm text-gray-600">
-                Progress: {inspectionProgress}% •{" "}
-                {workflowState.inspection?.progress.completed} of{" "}
-                {workflowState.inspection?.progress.total} items
-              </p>
-            </div>
+        {/* Extracted Header Component */}
+        <InspectionHeader
+          inspectionName={
+            workflowState.inspection?.propertyName || "Inspection"
+          }
+          progress={{
+            completed: workflowState.inspection?.progress.completed || 0,
+            total: workflowState.inspection?.progress.total || 0,
+            percentage: inspectionProgress,
+          }}
+          networkStatus={{
+            isOffline: workflowState.isOffline,
+            quality: workflowState.networkQuality,
+          }}
+          batteryLevel={workflowState.batteryLevel}
+          emergencyMode={workflowState.emergencyMode}
+          syncInProgress={workflowState.syncInProgress}
+        />
 
-            <div id="status-indicators" className="flex items-center space-x-4">
-              {/* Network Status */}
-              <div
-                id="network-status"
-                className={`flex items-center space-x-1 ${networkStatusClass}`}
-              >
-                <span className="text-sm font-medium">
-                  {workflowState.isOffline
-                    ? "📵"
-                    : workflowState.networkQuality === "fast"
-                      ? "📶"
-                      : "📳"}
-                </span>
-                <span className="text-xs capitalize">
-                  {workflowState.networkQuality}
-                </span>
-              </div>
-
-              {/* Battery Status */}
-              <div
-                id="battery-status"
-                className={`flex items-center space-x-1 ${workflowState.batteryLevel < 20 ? "text-red-600" : "text-gray-600"}`}
-              >
-                <span className="text-sm">🔋</span>
-                <span className="text-xs">{workflowState.batteryLevel}%</span>
-              </div>
-
-              {/* Emergency Mode Indicator */}
-              {workflowState.emergencyMode && (
-                <div
-                  id="emergency-mode-indicator"
-                  className="flex items-center space-x-1 text-orange-600"
-                >
-                  <span className="text-sm">🚨</span>
-                  <span className="text-xs">Emergency</span>
-                </div>
-              )}
-
-              {/* Sync Status */}
-              {workflowState.syncInProgress && (
-                <div
-                  id="sync-status"
-                  className="flex items-center space-x-1 text-blue-600"
-                >
-                  <span className="text-sm animate-spin">⟳</span>
-                  <span className="text-xs">Syncing</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div id="progress-bar-container" className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                id="progress-bar"
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${inspectionProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        </header>
-
-        {/* Critical Items Alert */}
-        {criticalItems.length > 0 && (
-          <div
-            id="critical-items-alert"
-            className="bg-red-50 border-l-4 border-red-400 p-4"
-          >
-            <div className="flex items-center">
-              <span className="text-red-400 text-xl mr-2">⚠️</span>
-              <div>
-                <h3 className="text-sm font-medium text-red-800">
-                  Critical Items Pending
-                </h3>
-                <p className="text-sm text-red-700">
-                  {criticalItems.length} critical safety item
-                  {criticalItems.length > 1 ? "s" : ""} require
-                  {criticalItems.length === 1 ? "s" : ""} immediate attention
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Extracted Critical Items Alert */}
+        <CriticalItemsAlert
+          criticalItemsCount={criticalItems.length}
+          onViewCritical={() => {
+            // Scroll to first critical item
+            const firstCritical = criticalItems[0];
+            if (firstCritical) {
+              const element = document.getElementById(
+                `inspection-item-${firstCritical.id}`,
+              );
+              element?.scrollIntoView({ behavior: "smooth" });
+              setActiveItemId(firstCritical.id);
+            }
+          }}
+        />
 
         {/* Inspection Items List */}
         <main id="inspection-items-main" className="flex-1 overflow-auto p-4">

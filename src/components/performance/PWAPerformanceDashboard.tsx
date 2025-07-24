@@ -30,6 +30,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { MetricCard } from "./PWAPerformanceDashboard/components/MetricCard";
+import { CoreVitalsTab } from "./PWAPerformanceDashboard/components/CoreVitalsTab";
 import {
   Activity,
   Wifi,
@@ -350,6 +354,10 @@ export const PWAPerformanceDashboard: React.FC = () => {
 
         {/* Core Web Vitals Tab */}
         <TabsContent value="core-vitals" id="core-vitals-tab">
+          <CoreVitalsTab
+            coreWebVitals={report.metrics?.coreWebVitals || {}}
+            coreWebVitalsStatus={report.coreWebVitalsIntegration || {}}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MetricCard
               title="Largest Contentful Paint"

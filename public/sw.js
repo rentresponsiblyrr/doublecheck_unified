@@ -118,7 +118,11 @@ const SYNC_TAGS = {
 function log(level, message, context = {}) {
   const timestamp = new Date().toISOString();
   const logData = { timestamp, level, message, ...context };
-  console[level](`[SW ${timestamp}] ${message}`, context);
+  
+  // Only log critical errors to reduce console spam - NO INFO OR WARN LOGS
+  if (level === 'error') {
+    console.error(`[SW ${timestamp}] ${message}`, context);
+  }
   
   // Store logs for debugging (optional)
   if (level === 'error') {

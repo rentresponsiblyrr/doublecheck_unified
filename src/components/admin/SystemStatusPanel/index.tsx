@@ -83,6 +83,7 @@ import {
 } from "./systemStatusConstants";
 
 import { SystemStatusErrorBoundary } from "./SystemStatusErrorBoundary";
+import { MetricsGrid } from "./components/MetricsGrid";
 import type {
   SystemStatusPanelProps,
   SystemStatusState,

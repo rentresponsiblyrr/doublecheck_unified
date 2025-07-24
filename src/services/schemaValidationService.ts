@@ -170,9 +170,9 @@ class SchemaValidationService {
     const requiredTables = [
       "properties",
       "inspections",
-      "logs",
+      "checklist_items", // Fixed: was "logs"
       "static_safety_items",
-      "profiles",
+      "users", // Fixed: was "profiles"
     ];
 
     for (const table of requiredTables) {

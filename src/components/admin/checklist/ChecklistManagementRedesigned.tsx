@@ -32,15 +32,27 @@ import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, RefreshCw, CheckSquare, XCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, RefreshCw, CheckSquare, XCircle, Trash2 } from "lucide-react";
 
 // Import decomposed components
 import { ChecklistDataManager } from "./ChecklistDataManager";
 import { ChecklistStatsPanel } from "./ChecklistStatsPanel";
 import { ChecklistFiltersComponent } from "./ChecklistFilters";
 import { ChecklistTable } from "./ChecklistTable";
-import { ChecklistFormDialog } from "./ChecklistFormDialog";
+import { ChecklistItemDialog } from "./ChecklistItemDialog";
 import { ChecklistItem, ChecklistFilters } from "./types";
+import { SafetyItemFormData } from "@/hooks/useFunctionalChecklistManagement";
+import { ProductionSafetyItem } from "@/services/productionDatabaseService";
 
 /**
  * Checklist management props - simplified for orchestration
@@ -61,7 +73,9 @@ const ChecklistManagementRedesigned: React.FC<
 > = ({ showAdvancedOptions = false, enableBulkActions = false }) => {
   // Local state for dialog management only
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
+  const [editingItem, setEditingItem] = useState<ProductionSafetyItem | null>(
+    null,
+  );
   const [filters, setFilters] = useState<ChecklistFilters>({
     search: "",
     category: "",
@@ -69,12 +83,90 @@ const ChecklistManagementRedesigned: React.FC<
     status: "",
   });
 
+  // Form state for the dialog
+  const [formData, setFormData] = useState<SafetyItemFormData>({
+    label: "",
+    category: "Safety",
+    evidence_type: "photo",
+    required: false,
+    notes: "",
+    gpt_prompt: "",
+  });
+  const [submitLoading, setSubmitLoading] = useState(false);
+
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ChecklistItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   /**
    * Handle item editing - opens edit dialog
    */
   const handleEdit = useCallback((item: ChecklistItem) => {
-    setEditingItem(item);
+    // Convert ChecklistItem to ProductionSafetyItem format
+    const productionItem: ProductionSafetyItem = {
+      id: item.id,
+      label: item.label || "",
+      category: item.category || "Safety",
+      evidence_type: item.evidence_type || "photo",
+      required: item.required || false,
+      notes: item.notes || "",
+      gpt_prompt: item.gpt_prompt || "",
+      created_at: item.created_at,
+      checklist_id: 0, // This field may not be needed for editing
+    };
+
+    setEditingItem(productionItem);
+
+    // Populate form data
+    setFormData({
+      label: item.label || "",
+      category: item.category || "Safety",
+      evidence_type: item.evidence_type || "photo",
+      required: item.required || false,
+      notes: item.notes || "",
+      gpt_prompt: item.gpt_prompt || "",
+    });
   }, []);
+
+  /**
+   * Handle delete confirmation - opens delete dialog
+   */
+  const handleDeleteClick = useCallback((item: ChecklistItem) => {
+    setItemToDelete(item);
+    setShowDeleteDialog(true);
+  }, []);
+
+  /**
+   * Handle confirmed delete
+   */
+  const handleConfirmDelete = useCallback(
+    async (onItemDelete: any) => {
+      if (!itemToDelete) return;
+
+      setDeleteLoading(true);
+      try {
+        await onItemDelete(itemToDelete.id);
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      } catch (error) {
+        console.error("Failed to delete item:", error);
+      } finally {
+        setDeleteLoading(false);
+      }
+    },
+    [itemToDelete],
+  );
+
+  /**
+   * Handle delete dialog close
+   */
+  const handleDeleteDialogClose = useCallback(() => {
+    if (!deleteLoading) {
+      setShowDeleteDialog(false);
+      setItemToDelete(null);
+    }
+  }, [deleteLoading]);
 
   /**
    * Handle dialog close - resets edit state
@@ -82,7 +174,53 @@ const ChecklistManagementRedesigned: React.FC<
   const handleDialogClose = useCallback(() => {
     setShowAddDialog(false);
     setEditingItem(null);
+    setFormData({
+      label: "",
+      category: "Safety",
+      evidence_type: "photo",
+      required: false,
+      notes: "",
+      gpt_prompt: "",
+    });
   }, []);
+
+  /**
+   * Handle form submission
+   */
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent, onItemCreate: any, onItemUpdate: any) => {
+      e.preventDefault();
+      setSubmitLoading(true);
+
+      try {
+        if (editingItem) {
+          await onItemUpdate(editingItem.id, formData);
+        } else {
+          await onItemCreate(formData);
+        }
+        handleDialogClose();
+      } catch (error) {
+        console.error("Failed to save item:", error);
+      } finally {
+        setSubmitLoading(false);
+      }
+    },
+    [editingItem, formData, handleDialogClose],
+  );
+
+  // Categories for the dialog
+  const categories = [
+    "Safety",
+    "Compliance",
+    "Cleanliness",
+    "Amenities",
+    "Maintenance",
+    "Accessibility",
+    "Fire Safety",
+    "Security",
+    "Electrical",
+    "Plumbing",
+  ];
 
   return (
     <div
@@ -102,7 +240,19 @@ const ChecklistManagementRedesigned: React.FC<
             requirements
           </p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
+        <Button
+          onClick={() => {
+            setShowAddDialog(true);
+            setFormData({
+              label: "",
+              category: "Safety",
+              evidence_type: "photo",
+              required: false,
+              notes: "",
+              gpt_prompt: "",
+            });
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Item
         </Button>
@@ -204,7 +354,7 @@ const ChecklistManagementRedesigned: React.FC<
                     <ChecklistTable
                       items={filteredItems}
                       onEdit={handleEdit}
-                      onDelete={async (item) => await onItemDelete(item.id)}
+                      onDelete={handleDeleteClick}
                       isLoading={isLoading}
                     />
                   </CardContent>
@@ -213,19 +363,66 @@ const ChecklistManagementRedesigned: React.FC<
             )}
 
             {/* Add/Edit Dialog */}
-            <ChecklistFormDialog
-              open={showAddDialog || !!editingItem}
-              onOpenChange={handleDialogClose}
-              item={editingItem}
-              onSubmit={async (data) => {
-                if (editingItem) {
-                  await onItemUpdate(editingItem.id, data);
-                } else {
-                  await onItemCreate(data);
-                }
-                handleDialogClose();
-              }}
+            <ChecklistItemDialog
+              isOpen={showAddDialog || !!editingItem}
+              onClose={handleDialogClose}
+              editingItem={editingItem}
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={(e) => handleSubmit(e, onItemCreate, onItemUpdate)}
+              submitLoading={submitLoading}
+              categories={categories}
             />
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog
+              open={showDeleteDialog}
+              onOpenChange={handleDeleteDialogClose}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <Trash2 className="h-5 w-5 text-red-600" />
+                    Delete Checklist Item
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{itemToDelete?.label}"?
+                    This action cannot be undone.
+                    {itemToDelete?.deleted && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+                        <strong>Warning:</strong> This item is already marked as
+                        deleted. This will permanently remove it from the
+                        system.
+                      </div>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleteLoading}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleConfirmDelete(onItemDelete)}
+                    disabled={deleteLoading}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  >
+                    {deleteLoading ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {itemToDelete?.deleted
+                          ? "Permanently Delete"
+                          : "Delete"}
+                      </>
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </ChecklistDataManager>

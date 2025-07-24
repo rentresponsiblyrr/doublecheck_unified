@@ -13,6 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { ProfileTab } from "./AdminProfileSettings/components/ProfileTab";
+import { SecurityTab } from "./AdminProfileSettings/components/SecurityTab";
 import {
   User,
   Shield,
@@ -300,6 +304,13 @@ export default function AdminProfileSettings() {
 
         {/* Profile Tab */}
         <TabsContent value="profile">
+          <ProfileTab
+            userProfile={userProfile}
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            onSaveProfile={handleSaveProfile}
+            isSaving={isSaving}
+          />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Picture */}
             <Card>

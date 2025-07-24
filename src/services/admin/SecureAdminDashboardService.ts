@@ -63,30 +63,8 @@ export class SecureAdminDashboardService {
         );
       }
 
-      // Use verified RPC function instead of non-existent get_users_by_role
-      const { data, error } = await supabase.rpc(
-        "get_admin_dashboard_metrics",
-        {
-          _time_range: timeRange,
-        },
-      );
-
-      if (error) {
-        logger.error("Failed to load admin dashboard metrics", {
-          error,
-          timeRange,
-        });
-
-        // If RPC fails, fall back to manual queries with proper security
-        return await this.loadMetricsManually(timeRange);
-      }
-
-      logger.info("Admin dashboard metrics loaded successfully", {
-        timeRange,
-        metricsCount: Object.keys(data || {}).length,
-      });
-
-      return data as AdminDashboardMetrics;
+      // Use direct table queries to avoid RPC 404 errors
+      return await this.loadMetricsManually(timeRange);
     } catch (error) {
       logger.error("Dashboard metrics loading failed", { error, timeRange });
 

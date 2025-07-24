@@ -28,6 +28,9 @@ import { useCoreWebVitalsMonitoring } from "@/hooks/useCoreWebVitalsMonitoring";
 import { usePWA } from "@/hooks/usePWA";
 import { PerformanceDashboard } from "./PerformanceDashboard";
 import { PWAStatusIndicator } from "../pwa/PWAStatusIndicator";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { CompactVariant } from "./UnifiedPerformanceDashboard/components/CompactVariant";
 import {
   Activity,
   Wifi,
@@ -213,58 +216,14 @@ export const UnifiedPerformanceDashboard: React.FC<
 
   if (variant === "compact") {
     return (
-      <div
+      <CompactVariant
         id={id}
-        className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm ${className}`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Gauge className="h-4 w-4 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">System Performance</h3>
-          </div>
-          <div
-            className={`px-2 py-1 rounded-md text-xs font-medium border ${getHealthStatusStyles(healthStatus)}`}
-          >
-            {healthStatus.replace("-", " ")}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* PWA Status */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Smartphone className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">PWA</span>
-            </div>
-            <div className="text-xs text-gray-600">
-              Cache: {Math.round(pwaState.cacheHitRate || 0)}%
-            </div>
-            <div className="text-xs text-gray-600">
-              Network: {pwaState.networkQuality}
-            </div>
-          </div>
-
-          {/* Performance Status */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Gauge className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">Performance</span>
-            </div>
-            <div className="text-xs text-gray-600">
-              LCP:{" "}
-              {cwvState.metrics?.lcp?.value
-                ? `${Math.round(cwvState.metrics.lcp.value)}ms`
-                : "N/A"}
-            </div>
-            <div className="text-xs text-gray-600">
-              FID:{" "}
-              {cwvState.metrics?.fid?.value
-                ? `${Math.round(cwvState.metrics.fid.value)}ms`
-                : "N/A"}
-            </div>
-          </div>
-        </div>
-      </div>
+        className={className}
+        healthStatus={healthStatus}
+        pwaState={pwaState}
+        cwvState={cwvState}
+        getHealthStatusStyles={getHealthStatusStyles}
+      />
     );
   }
 

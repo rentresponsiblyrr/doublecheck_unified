@@ -10,18 +10,15 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import {
-  AlertTriangle,
-  RefreshCw,
-  Home,
-  FileText,
-  ExternalLink,
-  MessageCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { logger } from "@/utils/logger";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { ErrorFallbackUI } from "./GlobalErrorBoundary/components/ErrorFallbackUI";
+import {
+  logErrorToService,
+  determineSeverity,
+  shouldAutoRecover,
+} from "./GlobalErrorBoundary/utils/errorUtils";
 
 export interface ErrorInfo extends Error {
   componentStack?: string;
@@ -400,6 +397,26 @@ export class GlobalErrorBoundary extends Component<
   }
 
   private renderFallbackUI() {
+    const { error, retryCount, isRecovering, userReported } = this.state;
+    const maxRetries = this.props.maxRetries || 3;
+    const canRetry = retryCount < maxRetries;
+
+    return (
+      <ErrorFallbackUI
+        error={error}
+        retryCount={retryCount}
+        maxRetries={maxRetries}
+        isRecovering={isRecovering}
+        userReported={userReported}
+        canRetry={canRetry}
+        onRetry={this.handleRetry}
+        onNavigateHome={this.handleNavigateHome}
+        onReportError={this.handleReportError}
+      />
+    );
+  }
+
+  private renderFallbackUIOriginal() {
     const { error, retryCount, isRecovering, userReported } = this.state;
     const maxRetries = this.props.maxRetries || 3;
     const canRetry = retryCount < maxRetries;

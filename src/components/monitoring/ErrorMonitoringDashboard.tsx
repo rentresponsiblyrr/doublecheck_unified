@@ -13,6 +13,10 @@ import React, { useState, useEffect } from "react";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
 import { memoryLeakDetector } from "@/lib/memory/MemoryLeakDetector";
 import { intelligentCacheInvalidation } from "@/lib/cache/IntelligentCacheInvalidation";
+
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { OverviewTab } from "./ErrorMonitoringDashboard/components/OverviewTab";
+import { OverviewMetricCard } from "./ErrorMonitoringDashboard/components/OverviewMetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -280,6 +284,12 @@ export const ErrorMonitoringDashboard: React.FC<
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
+            <OverviewTab
+              overallHealthScore={overallHealthScore}
+              errorStats={errorStats}
+              systemHealth={systemHealth}
+              getNetworkStatusColor={getNetworkStatusColor}
+            />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <OverviewMetricCard
                 icon={<Shield className="w-4 h-4" />}

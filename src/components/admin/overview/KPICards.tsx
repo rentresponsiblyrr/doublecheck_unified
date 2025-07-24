@@ -88,22 +88,7 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
         </CardContent>
       </Card>
 
-      {/* Revenue KPI */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {formatCurrency(kpis.monthlyRevenue)}
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            {getTrendIcon(kpis.growthRate)}
-            <span>+{formatPercentage(Math.abs(kpis.growthRate))} growth</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Revenue KPI - Hidden (not tracked) */}
 
       {/* Completion Rate KPI */}
       <Card>
@@ -138,19 +123,7 @@ export const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
         </CardContent>
       </Card>
 
-      {/* Customer Satisfaction KPI */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Satisfaction</CardTitle>
-          <CheckCircle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {kpis.customerSatisfaction.toFixed(1)}/5
-          </div>
-          <p className="text-xs text-muted-foreground">Average rating</p>
-        </CardContent>
-      </Card>
+      {/* Customer Satisfaction KPI - Hidden (not measured) */}
 
       {/* Active Inspectors KPI */}
       <Card>

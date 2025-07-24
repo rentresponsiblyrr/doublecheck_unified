@@ -166,30 +166,12 @@ export const useInspectorDashboard = () => {
           fetchPropertiesWithInspections(user.id),
         ]);
       } else {
-        // For admin/auditor: use verified RPC functions
-        try {
-          [inspectionsResult, propertiesResult] = await Promise.all([
-            supabase.rpc("get_admin_dashboard_metrics", { _time_range: "30d" }),
-            supabase.rpc("get_properties_with_inspections_v2", {
-              _user_id: null,
-            }),
-          ]);
-
-          // Transform RPC results to match expected format
-          if (inspectionsResult.data && !inspectionsResult.error) {
-            // Convert dashboard metrics to inspection-like format for compatibility
-            inspectionsResult = {
-              data: [],
-              error: null,
-            };
-          }
-        } catch (error) {
-          // Fallback to limited query for admin/auditor
-          [inspectionsResult, propertiesResult] = await Promise.all([
-            supabase
-              .from("inspections")
-              .select(
-                `
+        // For admin/auditor: use direct table queries (no RPC to avoid 404 errors)
+        [inspectionsResult, propertiesResult] = await Promise.all([
+          supabase
+            .from("inspections")
+            .select(
+              `
                 id,
                 property_id,
                 status,
@@ -202,13 +184,12 @@ export const useInspectorDashboard = () => {
                   address
                 )
               `,
-              )
-              .order("updated_at", { ascending: false })
-              .limit(20), // Limit for performance
+            )
+            .order("updated_at", { ascending: false })
+            .limit(20), // Limit for performance
 
-            fetchPropertiesWithInspections(null),
-          ]);
-        }
+          fetchPropertiesWithInspections(null),
+        ]);
       }
 
       const { data: inspectionsData, error: inspectionsError } =

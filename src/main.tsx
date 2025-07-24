@@ -276,11 +276,11 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
     // Initialize integration bridge with timeout (OPTIONAL - app works without it)
     if (backgroundSyncManager && pushNotificationManager) {
       try {
-        // Reduced timeout and added more robust error handling
+        // Increased timeout for more reliable initialization
         await Promise.race([
           pwaEnhancedBridge.initialize(),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Bridge timeout")), 1000),
+            setTimeout(() => reject(new Error("Bridge timeout")), 5000),
           ),
         ]);
         logger.info(

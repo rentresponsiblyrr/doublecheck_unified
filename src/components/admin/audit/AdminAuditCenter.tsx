@@ -71,25 +71,13 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryKey: ["admin_audit", "audit_ready"],
       queryFn: async () => {
         logger.info("Fetching audit-ready inspections for admin");
-        const { data, error } = await supabase
+
+        // Use simpler query with valid status values
+        const { data: inspections, error } = await supabase
           .from("inspections")
-          .select(
-            `
-          *,
-          properties!inner (
-            id,
-            name,
-            address
-          ),
-          users!inner (
-            id,
-            name,
-            email
-          )
-        `,
-          )
-          .in("status", ["completed", "pending_review"])
-          .order("start_time", { ascending: false })
+          .select("*")
+          .in("status", ["completed"])
+          .order("created_at", { ascending: false })
           .limit(50);
 
         if (error) {
@@ -97,7 +85,33 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
           throw new Error(error.message);
         }
 
-        return transformInspectionData(data || []);
+        // Get related data separately to avoid complex joins
+        const inspectionsWithData = await Promise.all(
+          (inspections || []).map(async (inspection) => {
+            const [propertyData, userData] = await Promise.all([
+              supabase
+                .from("properties")
+                .select("id, name, address")
+                .eq("id", inspection.property_id)
+                .single(),
+              inspection.inspector_id
+                ? supabase
+                    .from("users")
+                    .select("id, name, email")
+                    .eq("id", inspection.inspector_id)
+                    .single()
+                : Promise.resolve({ data: null }),
+            ]);
+
+            return {
+              ...inspection,
+              properties: propertyData.data,
+              users: userData.data,
+            };
+          }),
+        );
+
+        return transformInspectionData(inspectionsWithData);
       },
       refetchInterval: 30000, // Refresh every 30 seconds
     });
@@ -107,25 +121,13 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryKey: ["admin_audit", "in_progress"],
       queryFn: async () => {
         logger.info("Fetching in-progress audit inspections for admin");
-        const { data, error } = await supabase
+
+        // Use valid status value for in-progress inspections
+        const { data: inspections, error } = await supabase
           .from("inspections")
-          .select(
-            `
-          *,
-          properties!inner (
-            id,
-            name,
-            address
-          ),
-          users!inner (
-            id,
-            name,
-            email
-          )
-        `,
-          )
-          .eq("status", "in_review")
-          .order("start_time", { ascending: false })
+          .select("*")
+          .in("status", ["in_progress"])
+          .order("created_at", { ascending: false })
           .limit(50);
 
         if (error) {
@@ -133,7 +135,33 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
           throw new Error(error.message);
         }
 
-        return transformInspectionData(data || []);
+        // Get related data separately to avoid complex joins
+        const inspectionsWithData = await Promise.all(
+          (inspections || []).map(async (inspection) => {
+            const [propertyData, userData] = await Promise.all([
+              supabase
+                .from("properties")
+                .select("id, name, address")
+                .eq("id", inspection.property_id)
+                .single(),
+              inspection.inspector_id
+                ? supabase
+                    .from("users")
+                    .select("id, name, email")
+                    .eq("id", inspection.inspector_id)
+                    .single()
+                : Promise.resolve({ data: null }),
+            ]);
+
+            return {
+              ...inspection,
+              properties: propertyData.data,
+              users: userData.data,
+            };
+          }),
+        );
+
+        return transformInspectionData(inspectionsWithData);
       },
       refetchInterval: 30000,
     });
@@ -143,25 +171,13 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryKey: ["admin_audit", "completed"],
       queryFn: async () => {
         logger.info("Fetching completed audit inspections for admin");
-        const { data, error } = await supabase
+
+        // Use valid status values for completed inspections
+        const { data: inspections, error } = await supabase
           .from("inspections")
-          .select(
-            `
-          *,
-          properties!inner (
-            id,
-            name,
-            address
-          ),
-          users!inner (
-            id,
-            name,
-            email
-          )
-        `,
-          )
-          .in("status", ["approved", "rejected", "needs_revision"])
-          .order("reviewed_at", { ascending: false })
+          .select("*")
+          .in("status", ["approved", "cancelled"])
+          .order("created_at", { ascending: false })
           .limit(100);
 
         if (error) {
@@ -169,7 +185,33 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
           throw new Error(error.message);
         }
 
-        return transformInspectionData(data || []);
+        // Get related data separately to avoid complex joins
+        const inspectionsWithData = await Promise.all(
+          (inspections || []).map(async (inspection) => {
+            const [propertyData, userData] = await Promise.all([
+              supabase
+                .from("properties")
+                .select("id, name, address")
+                .eq("id", inspection.property_id)
+                .single(),
+              inspection.inspector_id
+                ? supabase
+                    .from("users")
+                    .select("id, name, email")
+                    .eq("id", inspection.inspector_id)
+                    .single()
+                : Promise.resolve({ data: null }),
+            ]);
+
+            return {
+              ...inspection,
+              properties: propertyData.data,
+              users: userData.data,
+            };
+          }),
+        );
+
+        return transformInspectionData(inspectionsWithData);
       },
       refetchInterval: 60000, // Refresh every minute for completed items
     });

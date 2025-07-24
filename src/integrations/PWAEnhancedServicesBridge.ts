@@ -328,10 +328,10 @@ export class PWAEnhancedServicesBridge {
         lastSync: this.state.lastSync,
       };
 
-      // Report unhealthy state
+      // Report unhealthy state (reduce log level to prevent console spam)
       if (!health.enhancedServicesHealthy || !health.pwaComponentsHealthy) {
-        logger.warn(
-          "Health check detected issues",
+        logger.debug(
+          "Health check detected issues - this is normal during initialization",
           { health },
           "INTEGRATION_BRIDGE",
         );

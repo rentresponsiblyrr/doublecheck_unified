@@ -45,6 +45,18 @@ import { logger } from '@/utils/logger';
 import { usePWAContext } from '@/contexts/PWAContext';
 import { PWAErrorBoundary } from './PWAErrorBoundary';
 
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { FloatingInstallButton } from './components/FloatingInstallButton';
+import { InstallPromptModal } from './components/InstallPromptModal';
+
+// TYPES
+import { 
+  PWAInstallEvent,
+  InstallPromptState,
+  InstallPromptConfig,
+  PWAInstallPromptProps
+} from './types/install';
+
 // PWA Install Prompt interfaces
 export interface PWAInstallEvent extends Event {
   readonly platforms: string[];
@@ -658,24 +670,7 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
     return null;
   }
 
-  // Floating install button
-  const FloatingInstallButton = () => (
-    <button
-      id="floating-install-button"
-      onClick={showInstallPrompt}
-      className={`fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 ${
-        showFloatingButton ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-      } ${promptConfig.enableConstructionSiteMode ? 'p-6 text-lg' : ''}`}
-      aria-label="Install STR Certified App"
-    >
-      <div className="flex items-center space-x-2">
-        <span className="text-2xl">📱</span>
-        {promptConfig.enableConstructionSiteMode && (
-          <span className="hidden sm:inline font-medium">Install App</span>
-        )}
-      </div>
-    </button>
-  );
+  // Extracted floating install button component
 
   // Main install prompt modal
   const InstallPromptModal = () => (
@@ -883,7 +878,13 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
     <PWAErrorBoundary>
       <div id="pwa-install-prompt-enhanced" className={className}>
       {/* Floating install button */}
-      {enableFloatingButton && <FloatingInstallButton />}
+      {enableFloatingButton && (
+        <FloatingInstallButton
+          showFloatingButton={showFloatingButton}
+          onShowInstallPrompt={showInstallPrompt}
+          enableConstructionSiteMode={promptConfig.enableConstructionSiteMode}
+        />
+      )}
       
       {/* Main install prompt modal */}
       <InstallPromptModal />

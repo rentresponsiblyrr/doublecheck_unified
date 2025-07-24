@@ -28,7 +28,7 @@ export class DatabaseVerification {
     const tablesToCheck = [
       "properties",
       "inspections",
-      "logs",
+      "checklist_items", // Fixed: was "logs"
       "static_safety_items",
       "users",
       "media",
