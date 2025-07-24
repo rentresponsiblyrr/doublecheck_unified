@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMobileInspectionOptimizer } from "@/hooks/useMobileInspectionOptimizer";
+import { useSimpleInspectionFlow } from "@/hooks/useSimpleInspectionFlow";
 import {
   STATUS_GROUPS,
   INSPECTION_STATUS,
@@ -16,12 +16,10 @@ interface Inspection {
 
 export const usePropertySelection = (inspections: Inspection[]) => {
   const {
-    startOrJoinInspection,
-    retryInspection,
+    startOrResumeInspection,
     isLoading: isCreatingInspection,
     error: inspectionError,
-    clearError,
-  } = useMobileInspectionOptimizer();
+  } = useSimpleInspectionFlow();
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
 
   const handleStartInspection = async () => {
@@ -29,7 +27,12 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    await startOrJoinInspection(selectedProperty);
+    console.log("🎯 USING SIMPLE FLOW FROM usePropertySelection", {
+      selectedProperty,
+      timestamp: new Date().toISOString(),
+    });
+
+    await startOrResumeInspection(selectedProperty);
   };
 
   const handleRetryInspection = async () => {
@@ -37,7 +40,12 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    await retryInspection(selectedProperty);
+    console.log("🔄 RETRY USING SIMPLE FLOW", {
+      selectedProperty,
+      timestamp: new Date().toISOString(),
+    });
+
+    await startOrResumeInspection(selectedProperty);
   };
 
   const getPropertyStatus = (propertyId: string) => {
@@ -144,6 +152,6 @@ export const usePropertySelection = (inspections: Inspection[]) => {
     getButtonText,
     isCreatingInspection,
     inspectionError,
-    clearError,
+    clearError: () => {}, // Simple stub - error handling is internal to simple flow
   };
 };

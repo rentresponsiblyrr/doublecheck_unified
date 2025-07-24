@@ -106,6 +106,20 @@ export const useSimpleInspectionFlow = () => {
         completed: false,
       };
 
+      // CRITICAL DEBUG: Log exact payload being sent
+      console.log("🔍 EXACT DATABASE PAYLOAD", {
+        payload: newInspectionData,
+        propertyId,
+        propertyIdType: typeof propertyId,
+        userId,
+        userIdType: typeof userId,
+        propertyIdLength: propertyId?.length,
+        userIdLength: userId?.length,
+        isPropertyIdUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId),
+        isUserIdUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId),
+        timestamp: new Date().toISOString(),
+      });
+
       const { data: newInspection, error: insertError } = await supabase
         .from("inspections")
         .insert([newInspectionData])
@@ -113,7 +127,16 @@ export const useSimpleInspectionFlow = () => {
         .single();
 
       if (insertError) {
-        console.log("❌ Insert error", { insertError });
+        console.log("🚨 CRITICAL DATABASE INSERT ERROR", {
+          error: insertError,
+          errorCode: insertError.code,
+          errorMessage: insertError.message,
+          errorDetails: insertError.details,
+          errorHint: insertError.hint,
+          payload: newInspectionData,
+          fullError: JSON.stringify(insertError, null, 2),
+          timestamp: new Date().toISOString(),
+        });
         
         // Check if it's a duplicate constraint error
         if (insertError.message?.includes("duplicate") || insertError.code === "23505") {
