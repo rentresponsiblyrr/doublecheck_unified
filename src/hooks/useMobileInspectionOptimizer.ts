@@ -20,7 +20,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
   inspectionJoinService,
@@ -88,7 +88,7 @@ interface EliteInspectionHookReturn {
 // ============================================================================
 
 export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
-  const { user, isAuthenticated, authError } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, error: authError } = useMobileAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -125,26 +125,35 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
     const startTime = performance.now();
 
     try {
+      // CRITICAL FIX: Check loading state first - don't fail during auth loading
+      if (authLoading) {
+        log.info("Authentication still loading, preventing inspection join", {
+          component: "useMobileInspectionOptimizer",
+          action: "validateAuthentication", 
+          state: "loading",
+          timestamp: Date.now(),
+        });
+        return false; // Don't show error during loading
+      }
+
       if (!isAuthenticated) {
         log.warn("Inspection join attempted without authentication", {
           component: "useMobileInspectionOptimizer",
           action: "validateAuthentication",
+          user: user?.id || "none",
           timestamp: Date.now(),
         });
 
         toast({
           title: "Authentication Required",
-          description: "Please refresh the page to continue with your inspection",
+          description: "Please sign in to start inspections",
           variant: "destructive",
         });
 
-        // CRITICAL FIX: Don't automatically sign out users
-        // They might be temporarily in an unauthenticated state during loading
-        // Instead, just prevent the inspection join and let them retry
         log.warn("Preventing inspection join due to authentication state", {
           component: "useMobileInspectionOptimizer", 
           action: "validateAuthentication",
-          suggestion: "User should refresh page or retry",
+          suggestion: "User should sign in",
           timestamp: Date.now(),
         });
 
@@ -235,7 +244,7 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
 
       return false;
     }
-  }, [isAuthenticated, authError, user, navigate, toast]);
+  }, [isAuthenticated, authLoading, authError, user, navigate, toast]);
 
   // ============================================================================
   // ELITE INSPECTION JOIN IMPLEMENTATION
