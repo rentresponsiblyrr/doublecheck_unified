@@ -1,18 +1,9 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
-import {
-  inspectionCreationService,
-  InspectionCreationRequest,
-  createFrontendPropertyId,
-  createInspectorId,
-} from "@/lib/database/inspection-creation-service";
-import { safeNavigateToInspection } from "@/utils/inspectionNavigation";
-import { logger } from "@/utils/logger";
-// Enterprise-grade inspection creation service integrated
+import { useSimpleInspectionFlow } from "@/hooks/useSimpleInspectionFlow";
 
 interface PropertyActionError {
   type: "network" | "validation" | "auth" | "system";
@@ -176,257 +167,27 @@ export const usePropertyActions = () => {
     [navigate, toast],
   );
 
+  const { startOrResumeInspection, isLoading: simpleFlowLoading } = useSimpleInspectionFlow();
+
   const startInspection = useCallback(
     async (propertyId: string) => {
-      return executeWithRetry(async () => {
-        // Use property ID directly as UUID string (post-migration database returns UUIDs)
-        const propertyIdForQuery = propertyId;
+      console.log("🚀 USING SIMPLE BULLETPROOF INSPECTION FLOW", {
+        propertyId,
+        timestamp: new Date().toISOString(),
+      });
 
-        logger.info(
-          "🚀 INSPECTION CREATION FLOW STARTED",
-          {
-            propertyId: propertyIdForQuery,
-            userId: user?.id,
-            timestamp: new Date().toISOString(),
-          },
-          "PROPERTY_ACTIONS_DEBUG",
-        );
-
-        // Check if there's already an active inspection (any status except cancelled/approved)
-        logger.info(
-          "Checking for existing inspections before creating new one",
-          {
-            propertyId: propertyIdForQuery,
-            userId: user.id,
-          },
-          "PROPERTY_ACTIONS",
-        );
-
-        const { data: existingInspection, error: checkError } = await supabase
-          .from("inspections")
-          .select("id, status")
-          .eq("property_id", propertyIdForQuery)
-          .not("status", "in", ["cancelled", "approved"])
-          .single();
-
-        if (checkError && checkError.code !== "PGRST116") {
-          logger.error(
-            "🚨 DATABASE CHECK ERROR - NOT THROWING TO AVOID ERROR RECOVERY",
-            { 
-              error: checkError,
-              code: checkError.code,
-              message: checkError.message,
-            },
-            "PROPERTY_ACTIONS_DEBUG",
-          );
-          
-          toast({
-            title: "Database Error",
-            description: "Unable to check existing inspections. Please try again.",
-            variant: "destructive",
-          });
-          
-          return null; // Don't throw - just return null
-        }
-
-        if (existingInspection) {
-          logger.info(
-            "Found existing inspection - navigating to resume",
-            {
-              inspectionId: existingInspection.id,
-              status: existingInspection.status,
-              propertyId: propertyIdForQuery,
-            },
-            "PROPERTY_ACTIONS",
-          );
-          safeNavigateToInspection(navigate, existingInspection.id);
-          return existingInspection.id;
-        }
-
-        logger.info(
-          "No existing inspection found - creating new one",
-          {
-            propertyId: propertyIdForQuery,
-            userId: user.id,
-          },
-          "PROPERTY_ACTIONS",
-        );
-
-        // Create new inspection using the secure creation service
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          logger.error(
-            "🚨 USER NOT AUTHENTICATED - NOT THROWING TO AVOID ERROR RECOVERY",
-            { timestamp: new Date().toISOString() },
-            "PROPERTY_ACTIONS_DEBUG",
-          );
-          
-          toast({
-            title: "Authentication Required",
-            description: "Please sign in to create inspections.",
-            variant: "destructive",
-          });
-          
-          return null; // Don't throw - just return null
-        }
-
-        // Use enterprise-grade inspection creation service
-        const request: InspectionCreationRequest = {
-          propertyId: createFrontendPropertyId(propertyIdForQuery),
-          inspectorId: createInspectorId(user.id),
-          status: "draft",
-        };
-
-        logger.info(
-          "Starting inspection creation with enterprise service",
-          {
-            propertyId: propertyIdForQuery,
-            userId: user.id,
-            request: {
-              ...request,
-              inspectorId: "***",
-            },
-          },
-          "PROPERTY_ACTIONS",
-        );
-
-        logger.info(
-          "🔥 CALLING INSPECTION CREATION SERVICE",
-          {
-            request: {
-              ...request,
-              inspectorId: "***",
-            },
-            timestamp: new Date().toISOString(),
-          },
-          "PROPERTY_ACTIONS_DEBUG",
-        );
-
-        const result =
-          await inspectionCreationService.createInspection(request);
-
-        logger.info(
-          "🎯 ENTERPRISE INSPECTION CREATION SERVICE RESPONSE",
-          {
-            success: result.success,
-            hasData: !!result.data,
-            dataKeys: result.data ? Object.keys(result.data) : [],
-            inspectionId: result.data?.inspectionId,
-            inspectionIdType: typeof result.data?.inspectionId,
-            error: result.error?.code,
-            errorMessage: result.error?.message,
-            fullError: result.error,
-            timestamp: new Date().toISOString(),
-          },
-          "PROPERTY_ACTIONS_DEBUG",
-        );
-
-        if (!result.success || !result.data || !result.data.inspectionId) {
-          const errorMessage =
-            result.error?.userMessage ||
-            result.error?.message ||
-            "Enterprise inspection creation failed";
-          
-          logger.error(
-            "🔥 INSPECTION CREATION FAILED - DETAILED ANALYSIS",
-            {
-              success: result.success,
-              hasData: !!result.data,
-              dataStructure: result.data,
-              inspectionId: result.data?.inspectionId,
-              inspectionIdType: typeof result.data?.inspectionId,
-              error: result.error,
-              fullResult: result,
-              errorMessage,
-              timestamp: new Date().toISOString(),
-            },
-            "PROPERTY_ACTIONS_DEBUG",
-          );
-          
-          // CRITICAL FIX: Don't throw generic Error that triggers ErrorRecoveryService
-          // Instead, handle inspection creation errors gracefully in the UI
-          console.error("🚨 INSPECTION CREATION ERROR - NOT THROWING TO AVOID ERROR RECOVERY", {
-            errorMessage,
-            error: result.error,
-            timestamp: new Date().toISOString(),
-          });
-          
-          // Return a user-friendly error instead of throwing
-          toast({
-            title: "Unable to Start Inspection",
-            description: result.error?.userMessage || "Please try again or contact support if the issue persists.",
-            variant: "destructive",
-          });
-          
-          return null; // Don't throw - just return null to indicate failure
-        }
-
-        const inspectionId = result.data.inspectionId;
-
-        logger.info(
-          "Extracted inspection ID for navigation",
-          {
-            inspectionId,
-            inspectionIdType: typeof inspectionId,
-            isUndefined: inspectionId === undefined,
-            isNull: inspectionId === null,
-            isEmpty: inspectionId === "",
-            stringValue: String(inspectionId),
-          },
-          "PROPERTY_ACTIONS",
-        );
-
-        // Validate inspection ID before navigation
-        if (
-          !inspectionId ||
-          inspectionId === "undefined" ||
-          inspectionId.trim() === ""
-        ) {
-          logger.error(
-            "🚨 INVALID INSPECTION ID - NOT THROWING TO AVOID ERROR RECOVERY",
-            { inspectionId },
-            "PROPERTY_ACTIONS_DEBUG",
-          );
-          
-          toast({
-            title: "Inspection Creation Issue",
-            description: "Inspection was created but navigation failed. Please refresh and try again.",
-            variant: "destructive",
-          });
-          
-          return null; // Don't throw - just return null
-        }
-
-        const navigated = safeNavigateToInspection(navigate, inspectionId);
-
-        if (!navigated) {
-          logger.error(
-            "🚨 NAVIGATION FAILED - NOT THROWING TO AVOID ERROR RECOVERY",
-            { inspectionId },
-            "PROPERTY_ACTIONS_DEBUG",
-          );
-          
-          toast({
-            title: "Navigation Failed",
-            description: "Inspection created but could not navigate. Please check the inspection list.",
-            variant: "destructive",
-          });
-          
-          return null; // Don't throw - just return null
-        }
-
-        toast({
-          title: "Inspection Started",
-          description:
-            "A new inspection has been created successfully with enterprise-grade reliability.",
-        });
-
-        return inspectionId;
-      }, "Start Inspection");
+      // Use the simple flow that bypasses all complex error handling
+      const result = await startOrResumeInspection(propertyId);
+      
+      if (result) {
+        console.log("✅ Simple flow succeeded", { inspectionId: result });
+        return result;
+      } else {
+        console.log("❌ Simple flow failed gracefully (no refresh loops)");
+        return null;
+      }
     },
-    [executeWithRetry, navigate, toast],
+    [startOrResumeInspection],
   );
 
   const clearError = useCallback(() => {
@@ -445,7 +206,10 @@ export const usePropertyActions = () => {
     deleteProperty,
     editProperty,
     startInspection,
-    actionState,
+    actionState: {
+      ...actionState,
+      isLoading: actionState.isLoading || simpleFlowLoading, // Combine loading states
+    },
     clearError,
     retry,
 
