@@ -24,7 +24,7 @@ export interface AuthRecoveryResult {
   recovered: boolean;
   userMessage: string;
   needsReauth: boolean;
-  preservedState?: any;
+  preservedState?: unknown;
 }
 
 export interface SessionState {
@@ -77,7 +77,9 @@ export class AuthenticationGuard {
   /**
    * Setup session guard for active session
    */
-  private async setupSessionGuard(session: any): Promise<void> {
+  private async setupSessionGuard(
+    session: Record<string, unknown>,
+  ): Promise<void> {
     try {
       this.sessionState = {
         userId: session.user.id,
@@ -148,7 +150,7 @@ export class AuthenticationGuard {
    */
   private async handleAuthStateChange(
     event: string,
-    session: any,
+    session: Record<string, unknown> | null,
   ): Promise<void> {
     try {
       switch (event) {
@@ -511,9 +513,11 @@ export class AuthenticationGuard {
         inspectionStore.setChecklist(workflowState.checklist);
         inspectionStore.setCurrentStep(workflowState.currentStep);
 
-        workflowState.photosCaptured.forEach((photo: any) => {
-          inspectionStore.addMedia(photo);
-        });
+        workflowState.photosCaptured.forEach(
+          (photo: Record<string, unknown>) => {
+            inspectionStore.addMedia(photo);
+          },
+        );
 
         logger.info(
           "Inspection state restored after auth recovery",
@@ -557,7 +561,9 @@ export class AuthenticationGuard {
   /**
    * Update session state for user changes
    */
-  private async updateSessionState(session: any): Promise<void> {
+  private async updateSessionState(
+    session: Record<string, unknown>,
+  ): Promise<void> {
     if (this.sessionState) {
       this.sessionState.role =
         session.user.user_metadata?.role || this.sessionState.role;

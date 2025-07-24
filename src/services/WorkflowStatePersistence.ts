@@ -26,10 +26,10 @@ export interface WorkflowState {
   inspectionId?: string;
   currentStep: number;
   totalSteps: number;
-  selectedProperty: any;
-  checklist: any[];
+  selectedProperty: Record<string, unknown> | null;
+  checklist: Record<string, unknown>[];
   checklistGenerated: boolean;
-  photosCaptured: any[];
+  photosCaptured: Record<string, unknown>[];
   photosRequired: number;
   photosCompleted: number;
   startTime?: Date;
@@ -85,8 +85,8 @@ export interface RecoveryResult {
 
 export interface ConflictInfo {
   field: string;
-  localValue: any;
-  serverValue: any;
+  localValue: unknown;
+  serverValue: unknown;
   resolution: "local" | "server" | "merge" | "manual";
 }
 
@@ -326,7 +326,9 @@ export class WorkflowStatePersistence {
       platform: navigator.platform,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
       isOnline: navigator.onLine,
-      batteryLevel: (navigator as any).getBattery ? undefined : undefined, // Will be populated asynchronously
+      batteryLevel: (navigator as Record<string, unknown>).getBattery
+        ? undefined
+        : undefined, // Will be populated asynchronously
     };
 
     return {

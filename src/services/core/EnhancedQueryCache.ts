@@ -426,7 +426,7 @@ export class EnhancedQueryCache {
   /**
    * Calculate entry size without JSON.stringify
    */
-  private calculateEntrySize(data: any): number {
+  private calculateEntrySize(data: unknown): number {
     if (data === null || data === undefined) return 8;
     if (typeof data === "string") return data.length * 2;
     if (typeof data === "number") return 8;
@@ -440,7 +440,7 @@ export class EnhancedQueryCache {
   /**
    * Calculate data checksum for integrity verification
    */
-  private calculateChecksum(data: any): string {
+  private calculateChecksum(data: unknown): string {
     // Simple hash function - in production would use crypto.subtle
     let hash = 0;
     const str = typeof data === "string" ? data : JSON.stringify(data);

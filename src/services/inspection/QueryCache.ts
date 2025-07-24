@@ -489,7 +489,7 @@ export class QueryCache {
   /**
    * Estimate memory size of data (rough approximation)
    */
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     if (typeof data === "string") {
       return data.length * 2; // Unicode characters
     }

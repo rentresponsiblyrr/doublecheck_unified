@@ -14,7 +14,7 @@ export interface BusinessKPIs {
 }
 
 export interface TrendData {
-  name: string;
+  date: string;
   inspections: number;
   revenue: number;
   satisfaction: number;

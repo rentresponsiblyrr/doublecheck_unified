@@ -356,7 +356,8 @@ export class SecureAdminDashboardService {
 
       // Use verified RPC function with correct parameters
       const { data: properties } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
+        { _user_id: null },
       );
 
       if (!properties || properties.length === 0) {
@@ -369,7 +370,7 @@ export class SecureAdminDashboardService {
         { inspections: number; properties: number }
       >();
 
-      properties.forEach((property: any) => {
+      properties.forEach((property: Record<string, unknown>) => {
         const address = property.address || "";
         const addressParts = address.split(",");
         let region = "Unknown";

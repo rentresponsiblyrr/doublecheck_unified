@@ -88,7 +88,9 @@ export class LegacyPropertyServiceWrapper {
   /**
    * Get properties with automatic service selection
    */
-  async getProperties(options: any = {}): Promise<any> {
+  async getProperties(
+    options: Record<string, unknown> = {},
+  ): Promise<Record<string, unknown>[]> {
     if (this.shouldUseNewService) {
       try {
         const result = await this.newService.getProperties(options);
@@ -141,7 +143,9 @@ export class LegacyPropertyServiceWrapper {
     }
   }
 
-  private async getLegacyProperties(options: any): Promise<any> {
+  private async getLegacyProperties(
+    options: Record<string, unknown>,
+  ): Promise<Record<string, unknown>[]> {
     // Legacy implementation
     logger.debug("Using legacy properties service", { options });
 
@@ -191,7 +195,9 @@ export class LegacyPropertyServiceWrapper {
     return Math.random() * 100 < MIGRATION_CONFIG.migrationPercentage;
   }
 
-  private adaptNewServiceResult(result: any): any {
+  private adaptNewServiceResult(
+    result: Record<string, unknown>,
+  ): Record<string, unknown>[] {
     // Adapt new service result format to match legacy expectations
     if (result.success) {
       return result.data;
@@ -434,7 +440,10 @@ export class MigrationManager {
     return report;
   }
 
-  private getRecommendation(serviceName: string, stats: any): string {
+  private getRecommendation(
+    serviceName: string,
+    stats: Record<string, unknown>,
+  ): string {
     if (stats.sampleSize < 10) {
       return "Need more data for reliable recommendation";
     }
@@ -546,7 +555,9 @@ export class MigrationManager {
     ); // Every 5 minutes
   }
 
-  private generatePerformanceSummary(report: Record<string, any>): any {
+  private generatePerformanceSummary(
+    report: Record<string, Record<string, unknown>>,
+  ): Record<string, unknown> {
     const services = Object.keys(report);
     const betterServices = services.filter(
       (s) => report[s].performanceImprovement > 0,

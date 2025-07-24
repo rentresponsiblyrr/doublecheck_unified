@@ -268,7 +268,7 @@ export class DatabaseService {
             queryConfig.timeout,
           ),
         ),
-      ])) as { data: PropertyWithInspections[] | null; error: any };
+      ])) as { data: PropertyWithInspections[] | null; error: unknown };
 
       if (error) {
         throw new DatabaseError("Properties query failed", error, { filters });
@@ -869,8 +869,8 @@ export class DatabaseService {
 export class DatabaseError extends Error {
   constructor(
     message: string,
-    public cause?: any,
-    public context?: Record<string, any>,
+    public cause?: unknown,
+    public context?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "DatabaseError";

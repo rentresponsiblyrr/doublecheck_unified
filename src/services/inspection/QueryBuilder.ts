@@ -696,7 +696,7 @@ export class QueryBuilder<T = Record<string, unknown>> {
   private async executeWithRetry(
     query: unknown,
   ): Promise<DatabaseQueryResult<unknown>> {
-    let lastError: any;
+    let lastError: Error;
     const maxRetries = this.options.maxRetries || 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

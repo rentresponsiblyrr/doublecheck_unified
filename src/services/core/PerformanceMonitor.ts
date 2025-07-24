@@ -370,7 +370,7 @@ export class PerformanceMonitor {
   private sendAlert(
     level: "critical" | "warning" | "info",
     message: string,
-    data: any,
+    data: Record<string, unknown>,
   ): void {
     const alert = {
       level,
@@ -582,7 +582,7 @@ export class PerformanceMonitor {
     return Math.round(serviceMetrics.length * 0.1); // 0.1 MB per query estimate
   }
 
-  private estimateDataSize(metrics: any): number {
+  private estimateDataSize(metrics: Record<string, unknown>): number {
     // Rough estimation of data size - would be more precise in production
     return 1024; // 1KB default estimate
   }
@@ -597,7 +597,9 @@ export class PerformanceMonitor {
 
   private getConnectionType(): string {
     if (typeof navigator !== "undefined" && "connection" in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Record<string, unknown>).connection as
+        | Record<string, unknown>
+        | undefined;
       return connection?.effectiveType || "unknown";
     }
     return "unknown";

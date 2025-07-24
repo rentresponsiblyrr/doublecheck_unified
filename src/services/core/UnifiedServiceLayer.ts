@@ -62,7 +62,7 @@ interface ServiceResult<T> {
 interface ServiceError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   recoverable: boolean;
   userMessage: string;
 }
@@ -101,7 +101,7 @@ abstract class BaseService {
    * Execute query with comprehensive error handling and performance tracking
    */
   protected async executeQuery<T>(
-    queryFn: () => Promise<any>,
+    queryFn: () => Promise<unknown>,
     cacheKey?: string,
     options: QueryOptions = {},
   ): Promise<ServiceResult<T>> {
@@ -188,7 +188,7 @@ abstract class BaseService {
     throw lastError!;
   }
 
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: Record<string, unknown>): boolean {
     // Network errors, timeouts, and temporary server errors are retryable
     const retryableCodes = ["PGRST301", "PGRST302", "502", "503", "504"];
     return retryableCodes.some(
@@ -234,7 +234,7 @@ abstract class BaseService {
     };
   }
 
-  private createServiceError(error: any): ServiceError {
+  private createServiceError(error: Record<string, unknown>): ServiceError {
     return {
       code: error.code || "UNKNOWN_ERROR",
       message: error.message || "An unexpected error occurred",
@@ -244,7 +244,7 @@ abstract class BaseService {
     };
   }
 
-  private getUserFriendlyMessage(error: any): string {
+  private getUserFriendlyMessage(error: Record<string, unknown>): string {
     // Map technical errors to user-friendly messages
     const errorMap: Record<string, string> = {
       PGRST116: "No data found matching your request",
@@ -378,7 +378,8 @@ export class PropertyService extends BaseService {
 
   async getPropertiesWithStats(): Promise<ServiceResult<PropertyWithStats[]>> {
     return this.executeQuery(
-      () => supabase.rpc("get_properties_with_inspections"),
+      () =>
+        supabase.rpc("get_properties_with_inspections_v2", { _user_id: null }),
       "properties:with-stats",
       { cacheTimeout: 5 * 60 * 1000, tags: ["properties", "inspections"] },
     );

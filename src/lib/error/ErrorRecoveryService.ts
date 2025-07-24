@@ -10,6 +10,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface RecoveryStrategy {
   id: string;
@@ -289,7 +290,7 @@ class ErrorRecoveryService {
   private isCriticalPath(): boolean {
     if (typeof window === "undefined") return false;
 
-    const criticalPaths = ["/login", "/dashboard", "/inspection", "/audit"];
+    const criticalPaths = ["/", "/dashboard", "/inspection", "/audit"];
     return criticalPaths.some((path) =>
       window.location.pathname.startsWith(path),
     );
@@ -538,9 +539,11 @@ class ErrorRecoveryService {
         return await this.refreshAuthToken();
       },
       fallback: async () => {
-        // Redirect to login page
+        // Force authentication state update instead of redirecting to non-existent login page
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          // Clear session and reload the page to trigger auth check
+          await supabase.auth.signOut();
+          window.location.href = "/";
         }
         return null;
       },

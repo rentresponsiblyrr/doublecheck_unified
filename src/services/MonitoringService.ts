@@ -302,7 +302,10 @@ export class MonitoringService {
   /**
    * Trigger an alert (can be extended to send notifications)
    */
-  private triggerAlert(alertType: string, context: any): void {
+  private triggerAlert(
+    alertType: string,
+    context: Record<string, unknown>,
+  ): void {
     logger.warn("Service alert triggered", {
       alertType,
       ...context,

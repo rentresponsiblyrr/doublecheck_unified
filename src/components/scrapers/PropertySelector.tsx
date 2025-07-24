@@ -86,7 +86,7 @@ export function PropertySelector({
 
       try {
         const { data, error } = await supabase
-          .rpc("get_properties_with_inspections")
+          .rpc("get_properties_with_inspections_v2", { _user_id: null })
           .order("property_name", { ascending: true });
 
         if (error) {

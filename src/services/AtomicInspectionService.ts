@@ -713,7 +713,7 @@ export class AtomicInspectionService {
    * Create error result
    */
   private createErrorResult(
-    error: any,
+    error: Record<string, unknown>,
     context: TransactionContext,
   ): AtomicInspectionResult {
     const processingTime = Date.now() - context.startTime.getTime();
@@ -758,7 +758,7 @@ export class AtomicInspectionService {
   /**
    * Get user-friendly error message
    */
-  private getUserFriendlyMessage(error: any): string {
+  private getUserFriendlyMessage(error: Record<string, unknown>): string {
     if (error.type === "validation") {
       return "Please check your input and try again.";
     }
@@ -780,7 +780,7 @@ export class AtomicInspectionService {
   /**
    * Check if error is retryable
    */
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: Record<string, unknown>): boolean {
     if (error.type === "validation" || error.type === "authorization") {
       return false;
     }

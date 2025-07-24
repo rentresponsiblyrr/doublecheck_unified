@@ -11,6 +11,7 @@ import { SystemHealthCheck } from "../SystemHealthCheck";
 import UserManagementRedesigned from "./users/UserManagementRedesigned";
 import UnifiedAdminManagement from "./UnifiedAdminManagement";
 import ChecklistManagementRedesigned from "./checklist/ChecklistManagementRedesigned";
+import AdminAuditCenter from "./audit/AdminAuditCenter";
 
 /**
  * NUCLEAR OPTION: Direct routing without React Router
@@ -134,13 +135,18 @@ export default function DirectAdminRouter() {
         case "audit":
           return (
             <div className="p-6">
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  🔍 Audit Center
-                </h1>
-                <p className="text-gray-600">{currentRoute.description}</p>
-              </div>
-              <UnifiedAdminManagement initialTab="reports" />
+              <AdminErrorBoundary
+                onError={(error, errorInfo) => {
+                  logger.error("Audit center error", {
+                    component: "AdminAuditCenter",
+                    error: error.message,
+                    componentStack: errorInfo.componentStack,
+                    path: currentPath,
+                  });
+                }}
+              >
+                <AdminAuditCenter />
+              </AdminErrorBoundary>
             </div>
           );
 

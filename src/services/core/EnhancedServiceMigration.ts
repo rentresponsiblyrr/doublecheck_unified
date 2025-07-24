@@ -424,7 +424,7 @@ export class CompatibleRealTimeSync {
   subscribeEnhanced<T>(
     entityType: string,
     entityId: string,
-    callback: (event: any) => void, // Enhanced callback format
+    callback: (event: Record<string, unknown>) => void, // Enhanced callback format
   ): () => void {
     if (FeatureFlagManager.getFlag("useEnhancedRealTimeSync")) {
       return enhancedRealTimeSync.subscribe(
@@ -455,7 +455,7 @@ export class CompatibleRealTimeSync {
   /**
    * Compatible publish event
    */
-  async publishEvent<T>(event: any): Promise<void> {
+  async publishEvent<T>(event: Record<string, unknown>): Promise<void> {
     if (FeatureFlagManager.getFlag("useEnhancedRealTimeSync")) {
       try {
         await enhancedRealTimeSync.publishEvent(event);
@@ -483,7 +483,7 @@ export class CompatiblePerformanceMonitor {
   /**
    * Compatible trackQuery with automatic field mapping
    */
-  trackQuery(metrics: any): void {
+  trackQuery(metrics: Record<string, unknown>): void {
     if (FeatureFlagManager.getFlag("useEnhancedPerformanceMonitor")) {
       try {
         // Add required fields that Enhanced version needs
@@ -512,7 +512,7 @@ export class CompatiblePerformanceMonitor {
   /**
    * Get metrics with compatibility
    */
-  getRealTimeMetrics(): any {
+  getRealTimeMetrics(): Record<string, unknown> {
     if (FeatureFlagManager.getFlag("useEnhancedPerformanceMonitor")) {
       try {
         return enhancedPerformanceMonitor.getRealTimeMetrics();

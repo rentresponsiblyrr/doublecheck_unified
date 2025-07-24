@@ -192,11 +192,17 @@ const ReportManagementContent = () => (
   <div className="space-y-4">
     <h3 className="text-lg font-semibold">Report Management</h3>
     <Card>
-      <CardContent className="p-4">
-        <p>Report management functionality will be implemented here.</p>
-        <p className="text-sm text-gray-500 mt-2">
-          This consolidates ReportManagement and related components.
-        </p>
+      <CardContent className="p-4 text-center">
+        <div className="py-12">
+          <BarChart3 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <h4 className="text-2xl font-semibold text-gray-700 mb-2">
+            Coming Soon
+          </h4>
+          <p className="text-gray-500">
+            Advanced reporting and analytics features are currently in
+            development.
+          </p>
+        </div>
       </CardContent>
     </Card>
   </div>

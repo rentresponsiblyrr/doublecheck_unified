@@ -233,7 +233,8 @@ export class ProductionDatabaseService {
 
     try {
       const { data, error } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
+        { _user_id: null },
       );
 
       if (error) {
@@ -564,7 +565,9 @@ export class ProductionDatabaseService {
 
       // Test properties RPC
       try {
-        await supabase.rpc("get_properties_with_inspections");
+        await supabase.rpc("get_properties_with_inspections_v2", {
+          _user_id: null,
+        });
         tablesAccessible.properties_rpc = true;
       } catch (error) {
         errors.push(

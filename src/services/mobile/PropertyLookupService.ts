@@ -63,7 +63,9 @@ export class PropertyLookupService {
       // Use optimized RPC function for property lookup
       const { data: propertiesData, error: propertiesError } =
         await Promise.race([
-          supabase.rpc("get_properties_with_inspections"),
+          supabase.rpc("get_properties_with_inspections_v2", {
+            _user_id: null,
+          }),
           new Promise<never>((_, reject) =>
             setTimeout(
               () => reject(new Error("Property lookup timeout")),
@@ -254,7 +256,8 @@ export class PropertyLookupService {
 
       // Get all properties and filter client-side for better performance
       const { data: propertiesData, error } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
+        { _user_id: null },
       );
 
       if (error || !propertiesData) {

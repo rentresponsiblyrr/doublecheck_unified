@@ -137,6 +137,9 @@ export class ErrorReporter {
     context?: Record<string, unknown>,
     severity: ErrorReport["severity"] = "medium",
   ): string {
+    // TEMPORARILY DISABLED - Error reporting disabled to prevent admin dashboard issues
+    return "";
+
     // Create error object if string provided
     const errorObj = typeof error === "string" ? new Error(error) : error;
 

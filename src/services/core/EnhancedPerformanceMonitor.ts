@@ -537,7 +537,7 @@ export class EnhancedPerformanceMonitor {
   // ALERTING SYSTEM
   // ========================================
 
-  private sendAlert(alertType: string, data: any): void {
+  private sendAlert(alertType: string, data: Record<string, unknown>): void {
     const now = Date.now();
     const lastAlert = this.lastAlerts.get(alertType);
 

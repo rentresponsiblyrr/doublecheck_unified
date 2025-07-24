@@ -104,55 +104,77 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
   const loadTrendData = useCallback(async (): Promise<TrendData[]> => {
     logger.info("🔍 DIRECT RPC: Loading trend data directly", { timeRange });
 
-    // For now, generate simple trend data based on current metrics
-    // TODO: Implement proper trend RPC when available
-    const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
-    const data: TrendData[] = [];
-
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-
-      data.push({
-        date: date.toISOString().split("T")[0],
-        inspections: Math.floor(Math.random() * 5) + 1, // Smaller realistic numbers
-        revenue: Math.floor(Math.random() * 500) + 100,
-        satisfaction: 4.0 + Math.random() * 1.0,
+    try {
+      // Call RPC function to get trend data - no mock data
+      const { data, error } = await supabase.rpc("get_admin_dashboard_trends", {
+        _time_range: timeRange,
       });
-    }
 
-    return data;
+      if (error) {
+        logger.warn("Trend data RPC failed, returning empty data", {
+          error: error.message,
+          timeRange,
+        });
+        return [];
+      }
+
+      if (!data || !Array.isArray(data)) {
+        logger.info("No trend data available, returning empty array");
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      logger.error("Exception loading trend data", { error });
+      return [];
+    }
   }, [timeRange]);
 
   const loadRegionalData = useCallback(async (): Promise<RegionalData[]> => {
     logger.info("🔍 DIRECT RPC: Loading regional data directly");
 
-    // Generate realistic regional data based on actual business
-    return [
-      {
-        region: "United States",
-        inspections: 15,
-        revenue: 2250,
-        growth: 12.5,
-      },
-      {
-        region: "Canada",
-        inspections: 3,
-        revenue: 450,
-        growth: 8.2,
-      },
-    ];
+    try {
+      // Call RPC function to get regional data - no mock data
+      const { data, error } = await supabase.rpc(
+        "get_admin_dashboard_regional",
+      );
+
+      if (error) {
+        logger.warn("Regional data RPC failed, returning empty data", {
+          error: error.message,
+        });
+        return [];
+      }
+
+      if (!data || !Array.isArray(data)) {
+        logger.info("No regional data available, returning empty array");
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      logger.error("Exception loading regional data", { error });
+      return [];
+    }
   }, []);
 
   const loadDashboardData = useCallback(async () => {
     try {
       setData((prev) => ({ ...prev, isLoading: true }));
 
+      logger.info("🔍 DIRECT RPC: Starting dashboard data load", { timeRange });
+
       const [kpis, trends, regions] = await Promise.all([
         loadBusinessMetrics(),
         loadTrendData(),
         loadRegionalData(),
       ]);
+
+      logger.info("🔍 DIRECT RPC: Dashboard data loaded successfully", {
+        hasKpis: !!kpis,
+        trendsCount: trends.length,
+        regionsCount: regions.length,
+      });
 
       setData({
         kpis,
@@ -161,10 +183,11 @@ export const useAdminDashboard = (timeRange: TimeRange = "30d") => {
         isLoading: false,
       });
     } catch (error) {
-      console.error("Failed to load dashboard data:", error);
+      logger.error("🔍 DIRECT RPC: Failed to load dashboard data", { error });
+      // Keep current data but stop loading
       setData((prev) => ({ ...prev, isLoading: false }));
     }
-  }, [timeRange]);
+  }, [loadBusinessMetrics, loadTrendData, loadRegionalData]);
 
   useEffect(() => {
     loadDashboardData();

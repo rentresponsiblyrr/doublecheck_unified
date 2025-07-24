@@ -33,8 +33,8 @@ export interface InspectorInspection {
 // Helper function to fetch properties with inspection counts
 async function fetchPropertiesWithInspections(userId: string | null) {
   try {
-    // Try RPC function first
-    const result = await supabase.rpc("get_properties_with_inspections", {
+    // Try RPC function first - FIXED: Use working v2 function
+    const result = await supabase.rpc("get_properties_with_inspections_v2", {
       _user_id: userId,
     });
 
@@ -170,7 +170,9 @@ export const useInspectorDashboard = () => {
         try {
           [inspectionsResult, propertiesResult] = await Promise.all([
             supabase.rpc("get_admin_dashboard_metrics", { _time_range: "30d" }),
-            supabase.rpc("get_properties_with_inspections"),
+            supabase.rpc("get_properties_with_inspections_v2", {
+              _user_id: null,
+            }),
           ]);
 
           // Transform RPC results to match expected format

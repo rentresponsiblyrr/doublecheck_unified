@@ -49,7 +49,7 @@ export interface PushNotification {
   icon?: string;
   badge?: string;
   image?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   actions?: NotificationAction[];
   timestamp: number;
   expiresAt?: number;
@@ -1226,7 +1226,7 @@ export class PushNotificationManager {
   }
 
   // Event system
-  private emit(event: string, data: any): void {
+  private emit(event: string, data: unknown): void {
     const listeners = this.eventListeners.get(event) || [];
     listeners.forEach((listener) => {
       try {
@@ -1356,7 +1356,7 @@ export class PushNotificationManager {
   private notifyPWAContext(
     operation: string,
     status: "started" | "completed" | "failed",
-    data?: any,
+    data?: unknown,
   ): void {
     try {
       // Dispatch PWA context update event

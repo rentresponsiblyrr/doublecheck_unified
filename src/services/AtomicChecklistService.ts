@@ -38,8 +38,8 @@ export interface ChecklistItemState {
 
 export interface ConflictResolution {
   field: string;
-  localValue: any;
-  serverValue: any;
+  localValue: unknown;
+  serverValue: unknown;
   resolution: "local" | "server" | "merge";
   resolvedBy?: string;
   resolvedAt?: Date;
@@ -506,16 +506,18 @@ export class AtomicChecklistService {
   /**
    * Parse conflicts from database response
    */
-  private parseConflicts(conflictsData: any): ConflictResolution[] {
+  private parseConflicts(conflictsData: unknown): ConflictResolution[] {
     if (!conflictsData) return [];
 
     try {
-      return JSON.parse(conflictsData).map((conflict: any) => ({
-        field: conflict.field,
-        localValue: conflict.local_value,
-        serverValue: conflict.server_value,
-        resolution: conflict.resolution || "local",
-      }));
+      return JSON.parse(conflictsData as string).map(
+        (conflict: Record<string, unknown>) => ({
+          field: conflict.field,
+          localValue: conflict.local_value,
+          serverValue: conflict.server_value,
+          resolution: conflict.resolution || "local",
+        }),
+      );
     } catch (error) {
       logger.warn(
         "Failed to parse conflicts",

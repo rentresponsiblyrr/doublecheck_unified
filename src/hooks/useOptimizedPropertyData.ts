@@ -24,7 +24,7 @@ export const useOptimizedPropertyData = (userId?: string) => {
 
       // Use the optimized database function
       const { data, error } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
         {
           _user_id: userId || null,
         },

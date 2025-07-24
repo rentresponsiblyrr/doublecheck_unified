@@ -16,9 +16,9 @@ export interface EmergencyFallbackData {
     email: string;
     role: string;
   } | null;
-  inspections: any[];
-  properties: any[];
-  checklistItems: any[];
+  inspections: Record<string, unknown>[];
+  properties: Record<string, unknown>[];
+  checklistItems: Record<string, unknown>[];
   dashboardMetrics: {
     totalProperties: number;
     totalInspections: number;
@@ -64,7 +64,7 @@ class EmergencyDatabaseFallbackService {
   /**
    * Check if an error is a 503 Service Unavailable error
    */
-  is503Error(error: any): boolean {
+  is503Error(error: unknown): boolean {
     return (
       error?.status === 503 ||
       error?.code === 503 ||
@@ -77,7 +77,7 @@ class EmergencyDatabaseFallbackService {
   /**
    * Check if an error is a 404 RPC function error
    */
-  is404RpcError(error: any): boolean {
+  is404RpcError(error: unknown): boolean {
     return (
       error?.status === 404 ||
       error?.code === 404 ||
@@ -90,7 +90,7 @@ class EmergencyDatabaseFallbackService {
   /**
    * Provide fallback user data when user queries fail
    */
-  getFallbackUser(userId: string): any {
+  getFallbackUser(userId: string): Record<string, unknown> {
     logger.warn(
       "🚨 EMERGENCY: Using fallback user data due to database failure",
       {
@@ -110,7 +110,7 @@ class EmergencyDatabaseFallbackService {
   /**
    * Provide fallback dashboard metrics
    */
-  getFallbackDashboardMetrics(): any {
+  getFallbackDashboardMetrics(): Record<string, unknown> {
     logger.warn(
       "🚨 EMERGENCY: Using fallback dashboard metrics due to database failure",
       {
@@ -124,7 +124,7 @@ class EmergencyDatabaseFallbackService {
   /**
    * Provide empty arrays for list queries that fail
    */
-  getFallbackEmptyList(queryType: string): any[] {
+  getFallbackEmptyList(queryType: string): Record<string, unknown>[] {
     logger.warn(
       `🚨 EMERGENCY: Using empty fallback list for ${queryType} due to database failure`,
       {

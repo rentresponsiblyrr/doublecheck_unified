@@ -34,7 +34,7 @@ export interface ServiceResponse<T> {
 export interface ServiceError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   retryable: boolean;
   userMessage: string;
   category:
@@ -156,8 +156,8 @@ export interface BugReportData {
   severity: "low" | "medium" | "high" | "critical";
   category: "ui" | "functionality" | "performance" | "security" | "other";
   steps: string[];
-  userActions: any[];
-  screenshot?: any;
+  userActions: Record<string, unknown>[];
+  screenshot?: Record<string, unknown>;
   systemInfo: {
     userAgent: string;
     platform: string;
@@ -302,7 +302,7 @@ export abstract class StandardService {
     code: string,
     message: string,
     options: {
-      details?: any;
+      details?: unknown;
       retryable?: boolean;
       userMessage?: string;
       category?: ServiceError["category"];
@@ -377,7 +377,7 @@ export class ValidationUtils {
    * Validate required fields
    */
   static validateRequired(
-    data: any,
+    data: Record<string, unknown>,
     requiredFields: string[],
   ): ServiceError | null {
     const missingFields = requiredFields.filter(
@@ -405,7 +405,7 @@ export class ValidationUtils {
    * Validate field formats
    */
   static validateFormat(
-    value: any,
+    value: unknown,
     format: "email" | "url" | "uuid" | "phone",
     fieldName: string,
   ): ServiceError | null {

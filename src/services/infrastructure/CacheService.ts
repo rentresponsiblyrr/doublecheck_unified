@@ -234,7 +234,7 @@ export class CacheService {
    * Warm cache with frequently accessed data
    */
   async warmCache(
-    entries: Array<{ key: string; data: any; ttl?: number }>,
+    entries: Array<{ key: string; data: unknown; ttl?: number }>,
   ): Promise<void> {
     logger.info("Warming cache", { entries: entries.length });
 
@@ -309,7 +309,7 @@ export class CacheService {
     }
   }
 
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     try {
       return new Blob([JSON.stringify(data)]).size;
     } catch {

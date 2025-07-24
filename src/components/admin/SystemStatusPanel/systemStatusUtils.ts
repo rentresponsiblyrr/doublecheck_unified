@@ -599,7 +599,9 @@ export async function fetchSystemMetricsWithCache(): Promise<SystemMetrics> {
       // Fetch data from multiple sources in parallel
       const [propertiesResult, inspectionsResult, usersResult] =
         await Promise.all([
-          supabase.rpc("get_properties_with_inspections", { _user_id: null }),
+          supabase.rpc("get_properties_with_inspections_v2", {
+            _user_id: null,
+          }),
           supabase
             .from("inspections")
             .select("id, status, start_time, end_time, created_at"),

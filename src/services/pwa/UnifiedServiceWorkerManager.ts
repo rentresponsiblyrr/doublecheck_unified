@@ -781,18 +781,18 @@ export class UnifiedServiceWorkerManager {
   }
 
   // Event handling methods
-  private handleCacheUpdate(data: any): void {
+  private handleCacheUpdate(data: Record<string, unknown>): void {
     logger.info("Cache updated by Service Worker", data, "SW_MANAGER");
     this.emit("cacheUpdated", data);
   }
 
-  private handleSyncCompleted(data: any): void {
+  private handleSyncCompleted(data: Record<string, unknown>): void {
     logger.info("Background sync completed", data, "SW_MANAGER");
     this.metrics.backgroundSyncSuccess++;
     this.emit("syncCompleted", data);
   }
 
-  private handleServiceWorkerError(data: any): void {
+  private handleServiceWorkerError(data: Record<string, unknown>): void {
     logger.error("Service Worker reported error", data, "SW_MANAGER");
     this.emit("error", data);
   }
@@ -875,7 +875,7 @@ export class UnifiedServiceWorkerManager {
     }
   }
 
-  private emit(event: string, data?: any): void {
+  private emit(event: string, data?: unknown): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.forEach((callback) => {

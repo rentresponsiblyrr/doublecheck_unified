@@ -31,6 +31,7 @@ import {
 import { ServiceError } from "@/services/interfaces/ServiceStandards";
 import { analytics } from "@/utils/analytics";
 import { log } from "@/lib/logging/enterprise-logger";
+import { supabase } from "@/integrations/supabase/client";
 
 // ============================================================================
 // ELITE TYPE DEFINITIONS
@@ -137,10 +138,11 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
           variant: "destructive",
         });
 
-        navigate("/login", {
+        // Force authentication state update instead of navigating to non-existent login route
+        supabase.auth.signOut(); // Fire and forget
+        navigate("/", {
           replace: true,
           state: {
-            returnTo: "/dashboard",
             reason: "inspection_auth_required",
             timestamp: Date.now(),
           },
@@ -148,7 +150,7 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
 
         analytics.track("authentication_failure", {
           context: "inspection_join",
-          redirectTo: "/login",
+          redirectTo: "/",
         });
 
         return false;

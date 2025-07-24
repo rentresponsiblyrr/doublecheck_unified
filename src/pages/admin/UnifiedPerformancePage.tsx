@@ -93,7 +93,9 @@ export const UnifiedPerformancePage: React.FC = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+  const [activeAlerts, setActiveAlerts] = useState<Record<string, unknown>[]>(
+    [],
+  );
 
   // Initialize admin system status monitoring
   useEffect(() => {
@@ -106,7 +108,8 @@ export const UnifiedPerformancePage: React.FC = () => {
         );
 
         // Get global unified system status
-        const globalStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
+        const globalStatus = (window as Record<string, unknown>)
+          .__UNIFIED_SYSTEM_STATUS__ as Record<string, unknown> | undefined;
 
         // Initialize all performance services if not already done
         await Promise.allSettled([
@@ -262,7 +265,8 @@ export const UnifiedPerformancePage: React.FC = () => {
 
   // Refresh system status
   const refreshSystemStatus = async () => {
-    const globalStatus = (window as any).__UNIFIED_SYSTEM_STATUS__;
+    const globalStatus = (window as Record<string, unknown>)
+      .__UNIFIED_SYSTEM_STATUS__ as Record<string, unknown> | undefined;
     const status = await collectSystemStatus(globalStatus);
     setSystemStatus(status);
     setLastRefresh(new Date());
@@ -594,7 +598,7 @@ const SystemStatusOverview: React.FC<{
  * Active Alerts Panel Component
  */
 const ActiveAlertsPanel: React.FC<{
-  alerts: any[];
+  alerts: Record<string, unknown>[];
   onDismissAlert: (id: string) => void;
 }> = ({ alerts, onDismissAlert }) => {
   return (

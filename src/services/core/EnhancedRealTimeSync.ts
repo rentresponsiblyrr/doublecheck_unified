@@ -858,7 +858,7 @@ export class EnhancedRealTimeSync {
   }
 
   private generateChangeVector(
-    event: any,
+    event: Record<string, unknown>,
     userId: string,
     timestamp: Date,
   ): string {
@@ -870,7 +870,7 @@ export class EnhancedRealTimeSync {
   }
 
   private generateEventSignature(
-    event: any,
+    event: Record<string, unknown>,
     userId: string,
     timestamp: Date,
     sequenceNumber: number,
@@ -973,7 +973,7 @@ export class EnhancedRealTimeSync {
 
   private handleSupabaseEventSafely(
     entityType: string,
-    payload: any,
+    payload: Record<string, unknown>,
     subscriptionKey: string,
   ): void {
     try {
@@ -987,7 +987,11 @@ export class EnhancedRealTimeSync {
       const event: HardenedRealTimeEvent = {
         id: this.generateSecureEventId(),
         type: this.mapSupabaseEventType(payload.eventType),
-        entityType: entityType as any,
+        entityType: entityType as
+          | "properties"
+          | "inspections"
+          | "checklist_items"
+          | "users",
         entityId: payload.new?.id || payload.old?.id || "unknown",
         data: payload.new || payload.old,
         userId: payload.new?.updated_by || "system",

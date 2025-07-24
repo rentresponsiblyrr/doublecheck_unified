@@ -755,7 +755,7 @@ export class AIService {
  * Professional error handling
  */
 export class AIServiceError extends Error {
-  constructor(message: string, public cause?: any) {
+  constructor(message: string, public cause?: unknown) {
     super(message);
     this.name = 'AIServiceError';
   }

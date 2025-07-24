@@ -227,7 +227,9 @@ export class ChecklistDataService {
               item.evidence_type) as any,
             status: this.mapItemStatusToItemStatus(item),
             result: this.createItemResult(item),
-            media: media.map((m: any) => this.transformMediaItem(m)),
+            media: media.map((m: Record<string, unknown>) =>
+              this.transformMediaItem(m),
+            ),
             notes: item.notes || "",
             estimatedTime: this.estimateItemTime(staticItem || item),
             dependencies: [], // Would be populated from dependencies table
@@ -438,7 +440,7 @@ export class ChecklistDataService {
       this.optimisticallyUpdateItem(itemId, status, result, notes);
 
       // Update database using correct checklist_items table
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         status: status,
         ai_status:
           status === "completed" ? (result?.passed ? "pass" : "fail") : null,
@@ -1029,7 +1031,9 @@ export class ChecklistDataService {
     return filtered;
   }
 
-  private mapItemStatusToItemStatus(item: any): ChecklistItemStatus {
+  private mapItemStatusToItemStatus(
+    item: Record<string, unknown>,
+  ): ChecklistItemStatus {
     if (item.status) return item.status as ChecklistItemStatus;
     if (item.ai_status === "pass") return "completed";
     if (item.ai_status === "fail") return "flagged";
@@ -1037,7 +1041,9 @@ export class ChecklistDataService {
     return "pending";
   }
 
-  private createItemResult(item: any): ChecklistItemResult | null {
+  private createItemResult(
+    item: Record<string, unknown>,
+  ): ChecklistItemResult | null {
     if (!item.ai_status) return null;
 
     const passed = item.ai_status === "pass";
@@ -1052,7 +1058,7 @@ export class ChecklistDataService {
     };
   }
 
-  private transformMediaItem(media: any): MediaItem {
+  private transformMediaItem(media: Record<string, unknown>): MediaItem {
     return {
       mediaId: media.id,
       checklistItemId: media.checklist_item_id,
@@ -1077,7 +1083,7 @@ export class ChecklistDataService {
     };
   }
 
-  private estimateItemTime(staticItem: any): number {
+  private estimateItemTime(staticItem: Record<string, unknown>): number {
     // Simple estimation based on item type - would be enhanced with ML
     const baseTime = 3; // minutes
 
@@ -1269,7 +1275,7 @@ export class ChecklistDataService {
    * Get checklist service performance metrics
    */
   getPerformanceMetrics(): {
-    cacheStats: any;
+    cacheStats: Record<string, unknown>;
     queueSize: number;
     queryMetrics: QueryMetrics[];
   } {

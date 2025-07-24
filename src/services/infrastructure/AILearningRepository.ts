@@ -44,8 +44,8 @@ export interface AIAnalysisRecord {
   id: string;
   provider: "openai" | "claude";
   model: string;
-  request: any;
-  result: any;
+  request: Record<string, unknown>;
+  result: Record<string, unknown>;
   processingTime: number;
   cost: number;
   confidence: number;
@@ -104,8 +104,8 @@ export class AILearningRepository {
    * Record AI analysis for learning
    */
   async recordAnalysis(record: {
-    request: any;
-    result: any;
+    request: Record<string, unknown>;
+    result: Record<string, unknown>;
     provider: "openai" | "claude";
     processingTime: number;
   }): Promise<string> {

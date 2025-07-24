@@ -224,7 +224,8 @@ class SchemaValidationService {
     try {
       // Try to find the property using the RPC function
       const { data: properties, error } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
+        { _user_id: null },
       );
 
       if (error) {
@@ -234,7 +235,7 @@ class SchemaValidationService {
             component: "SchemaValidationService",
             action: "verifyPropertyExists",
             propertyId,
-            rpcFunction: "get_properties_with_inspections",
+            rpcFunction: "get_properties_with_inspections_v2",
             error: error,
           },
           "PROPERTY_VERIFICATION_RPC_FAILED",

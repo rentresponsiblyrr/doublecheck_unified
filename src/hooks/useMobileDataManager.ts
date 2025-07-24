@@ -227,7 +227,7 @@ export const useMobileDataManager = (userId?: string) => {
       try {
         // Use the enhanced RPC function with fallback to direct queries
         const { data, error } = await supabase.rpc(
-          "get_properties_with_inspections",
+          "get_properties_with_inspections_v2",
           {
             _user_id: userId || null,
           },

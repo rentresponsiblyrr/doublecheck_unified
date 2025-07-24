@@ -296,7 +296,7 @@ export interface DatabaseError extends Error {
   hint?: string;
   table?: string;
   column?: string;
-  value?: any;
+  value?: unknown;
   query?: string;
 }
 
@@ -337,11 +337,11 @@ export interface DatabaseAuditLog {
   changes: Record<
     string,
     {
-      old_value: any;
-      new_value: any;
+      old_value: unknown;
+      new_value: unknown;
     }
   >;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   ip_address: string;
   user_agent: string;
   created_at: string;
@@ -354,7 +354,7 @@ export interface DatabaseAuditLog {
 /**
  * Type guard for database errors
  */
-export function isDatabaseError(error: any): error is DatabaseError {
+export function isDatabaseError(error: unknown): error is DatabaseError {
   return (
     error && typeof error.code === "string" && error.code in DatabaseErrorCode
   );

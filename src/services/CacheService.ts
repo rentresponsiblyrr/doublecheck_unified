@@ -314,7 +314,7 @@ export class CacheService {
     });
   }
 
-  private estimateSize(data: any): number {
+  private estimateSize(data: unknown): number {
     if (data === null || data === undefined) return 8;
     if (typeof data === "boolean") return 4;
     if (typeof data === "number") return 8;

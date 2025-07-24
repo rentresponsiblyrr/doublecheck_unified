@@ -48,6 +48,22 @@ import { useNetworkStatus, useOfflineInspection } from "@/hooks/usePWA";
 import { PWAErrorBoundary } from "@/components/pwa/PWAErrorBoundary";
 import { usePWAContext } from "@/contexts/PWAContext";
 
+// EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
+import { InspectionHeader } from "./components/InspectionHeader";
+import { CriticalItemsAlert } from "./components/CriticalItemsAlert";
+import { EmergencyModeHandler } from "./components/EmergencyModeHandler";
+import { InspectionItemsList } from "./components/InspectionItemsList";
+import { MediaCaptureSection } from "./components/MediaCaptureSection";
+import { SyncStatusManager } from "./components/SyncStatusManager";
+
+// TYPES
+import {
+  InspectionItem,
+  OfflineInspection,
+  OfflineWorkflowState,
+  OfflineInspectionWorkflowProps,
+} from "./types/inspection";
+
 // Interfaces for offline inspection workflow
 export interface InspectionItem {
   id: string;

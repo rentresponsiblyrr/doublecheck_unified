@@ -90,8 +90,8 @@ export class ConstructionSiteOptimizer {
   private optimizationInterval: number | null = null;
 
   // Environmental sensors
-  private networkMonitor: any = null;
-  private batteryMonitor: any = null;
+  private networkMonitor: Record<string, unknown> | null = null;
+  private batteryMonitor: Record<string, unknown> | null = null;
   private deviceMotionHandler: ((event: DeviceMotionEvent) => void) | null =
     null;
 

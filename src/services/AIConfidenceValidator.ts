@@ -1041,7 +1041,7 @@ export class AIConfidenceValidator {
   }
 
   // More implementation methods would follow...
-  [key: string]: any; // Placeholder for additional methods
+  [key: string]: unknown; // Placeholder for additional methods
 }
 
 // Supporting interfaces and classes

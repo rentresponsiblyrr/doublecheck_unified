@@ -39,7 +39,7 @@ interface Property {
 }
 
 interface ChecklistData {
-  items: any[];
+  items: Record<string, unknown>[];
   estimatedTime: number;
   totalItems: number;
 }

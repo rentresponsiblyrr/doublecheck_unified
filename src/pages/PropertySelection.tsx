@@ -31,6 +31,7 @@ interface PropertyData {
   rejected_count?: number;
   latest_inspection_id?: string | null;
   latest_inspection_completed?: boolean | null;
+  computed_status?: string; // ADDED: Missing field from RPC function
 }
 
 interface Inspection {
@@ -61,9 +62,9 @@ const PropertySelection = () => {
 
       // REMOVED: Console logging to prevent infinite loops
 
-      // Use the existing get_properties_with_inspections function that works
+      // Use the working get_properties_with_inspections_v2 function (workaround for API cache issue)
       const { data: propertiesData, error: propertiesError } =
-        await supabase.rpc("get_properties_with_inspections", {
+        await supabase.rpc("get_properties_with_inspections_v2", {
           _user_id: user.id,
         });
 

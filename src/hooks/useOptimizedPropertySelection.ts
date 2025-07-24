@@ -43,7 +43,7 @@ export const useOptimizedPropertySelection = () => {
       // Debug log removed to prevent infinite console loops
 
       const { data, error } = await supabase.rpc(
-        "get_properties_with_inspections",
+        "get_properties_with_inspections_v2",
         {
           _user_id: user.id,
         },

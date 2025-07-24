@@ -228,7 +228,7 @@ export class RPCFallbackService {
    */
   public async testRPCFunction(
     functionName: string,
-    params: any = {},
+    params: Record<string, unknown> = {},
   ): Promise<boolean> {
     try {
       const { error } = await supabase.rpc(functionName, params);
@@ -267,7 +267,7 @@ export class RPCFallbackService {
    */
   public async callWithFallback<T>(
     rpcFunction: string,
-    params: any,
+    params: Record<string, unknown>,
     fallbackFunction: () => Promise<T>,
   ): Promise<T | null> {
     try {

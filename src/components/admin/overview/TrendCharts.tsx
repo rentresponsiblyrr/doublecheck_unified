@@ -37,7 +37,9 @@ export const TrendCharts: React.FC<TrendChartsProps> = ({
               <div key={index} className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-sm font-medium">
+                      {new Date(item.date).toLocaleDateString()}
+                    </span>
                     <span className="text-sm text-gray-500">
                       {item.inspections} inspections
                     </span>
