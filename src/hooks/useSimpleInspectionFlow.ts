@@ -100,7 +100,7 @@ export const useSimpleInspectionFlow = () => {
       const newInspectionData = {
         property_id: propertyId,
         inspector_id: userId,
-        status: "draft",
+        status: "available", // Use default database status
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         completed: false,

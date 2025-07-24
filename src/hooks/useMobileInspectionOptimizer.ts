@@ -361,11 +361,10 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
           toast({
             title: `${statusText} inspection for ${inspectionData.propertyDetails.name}`,
             description: `${inspectionData.checklistItemCount} items • Est. ${inspectionData.estimatedDuration}min`,
-            action: {
-              altText: "Start inspection now",
-              onClick: () => navigate(inspectionData.startUrl),
-            },
           });
+          
+          // Navigate automatically instead of using toast action
+          navigate(inspectionData.startUrl);
         }
 
         // 🧭 Elite navigation with validation
@@ -490,14 +489,13 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
           title: "Failed to join inspection",
           description: errorMessage,
           variant: "destructive",
-          action:
-            options.retryOnFailure !== false && operationState.retryCount < 3
-              ? {
-                  altText: "Retry inspection join",
-                  onClick: () => joinInspection(options),
-                }
-              : undefined,
         });
+
+        // Auto-retry if configured and under retry limit
+        if (options.retryOnFailure !== false && operationState.retryCount < 3) {
+          console.log("🔄 Auto-retrying inspection join...");
+          setTimeout(() => joinInspection(options), 2000); // Retry after 2 seconds
+        }
 
         return null;
       }
