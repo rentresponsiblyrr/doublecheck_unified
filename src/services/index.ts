@@ -16,10 +16,10 @@
 
 import { logger } from "@/utils/logger";
 
-// Enhanced Service Imports
-import { enhancedQueryCache } from "./core/EnhancedQueryCache";
+// Service Imports (Updated after cleanup)
+import { queryCache } from "./core/QueryCache";
 import { enhancedRealTimeSync } from "./core/EnhancedRealTimeSync";
-import { enhancedPerformanceMonitor } from "./core/EnhancedPerformanceMonitor";
+import { performanceMonitor } from "./core/PerformanceMonitor";
 import {
   enhancedPropertyService,
   enhancedChecklistService,
@@ -230,7 +230,7 @@ export const performanceMonitor = {
   },
 
   getHealthStatus: (): Record<string, unknown> => {
-    return enhancedPerformanceMonitor.getHealthStatus();
+    return performanceMonitor.getHealthStatus();
   },
 };
 
@@ -306,9 +306,9 @@ export const getServiceStatus = async () => {
     await initializeEnhancedServices();
 
     const migrationStatus = await EnhancedServiceMigration.getStatus();
-    const cacheHealth = enhancedQueryCache.getHealthStatus();
+    const cacheHealth = queryCache.getHealthStatus();
     const syncHealth = enhancedRealTimeSync.getHealthStatus();
-    const performanceHealth = enhancedPerformanceMonitor.getHealthStatus();
+    const performanceHealth = performanceMonitor.getHealthStatus();
 
     return {
       initialized: isInitialized,
