@@ -1,5 +1,5 @@
 import React from "react";
-import { AuthContext } from "@/contexts/AuthContext";
+import { AuthContext, AuthContextType } from "@/contexts/AuthContext";
 import { MobileAuthLoading } from "@/components/MobileAuthLoading";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useAuthInitialization } from "@/hooks/useAuthInitialization";

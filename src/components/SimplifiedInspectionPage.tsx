@@ -20,7 +20,7 @@ export const SimplifiedInspectionPage = () => {
     user,
     loading: authLoading,
     error: authError,
-    refetch: refetchAuth,
+    forceRefresh,
   } = useAuth();
   const isAuthenticated = !!user;
   const [authRetryKey, setAuthRetryKey] = useState(0);
@@ -197,8 +197,8 @@ export const SimplifiedInspectionPage = () => {
                 announceToScreenReader("Retrying authentication...", "polite");
                 // WCAG 2.1 AA: Professional error recovery - trigger auth retry without destroying session
                 setAuthRetryKey((prev) => prev + 1);
-                if (refetchAuth) {
-                  refetchAuth();
+                if (forceRefresh) {
+                  forceRefresh();
                 } else {
                   // Graceful fallback: navigate to sign-in without nuclear reload
                   navigate("/", { replace: true });
