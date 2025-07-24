@@ -521,31 +521,47 @@ class ErrorRecoveryService {
       timeout: 10000,
     });
 
-    // Authentication Error Recovery
+    // FIXED: Authentication Error Recovery - No automatic logout
     this.registerStrategy({
       id: "auth_refresh",
       name: "Authentication Refresh",
       priority: 95,
       condition: (error) => {
         const message = error.message.toLowerCase();
+        // CRITICAL FIX: Only trigger for genuine authentication failures, not database errors
         return (
-          message.includes("auth") ||
-          message.includes("unauthorized") ||
-          message.includes("token")
+          message.includes("jwt expired") ||
+          message.includes("refresh_token_not_found") ||
+          message.includes("invalid_token") ||
+          (message.includes("unauthorized") && message.includes("session"))
         );
       },
       execute: async (error, context) => {
         // Attempt to refresh authentication token
-        return await this.refreshAuthToken();
+        const refreshResult = await this.refreshAuthToken();
+        
+        // If refresh fails, return error without logging out
+        if (!refreshResult) {
+          return {
+            error: "Authentication refresh failed. Please refresh the page.",
+            requiresUserAction: true,
+            preserveWorkflow: true
+          };
+        }
+        
+        return refreshResult;
       },
       fallback: async () => {
-        // Force authentication state update instead of redirecting to non-existent login page
-        if (typeof window !== "undefined") {
-          // Clear session and reload the page to trigger auth check
-          await supabase.auth.signOut();
-          window.location.href = "/";
-        }
-        return null;
+        // CRITICAL FIX: Never automatically sign out users
+        // Instead, provide helpful error message and preserve workflow
+        console.warn("Authentication issue detected - user action may be required");
+        
+        return {
+          error: "Authentication issue detected. Please refresh the page to continue.",
+          requiresUserAction: true,
+          preserveWorkflow: true,
+          // No automatic signOut() or redirect
+        };
       },
       maxRetries: 1,
       retryDelay: 500,

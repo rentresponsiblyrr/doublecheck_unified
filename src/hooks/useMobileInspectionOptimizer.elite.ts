@@ -139,7 +139,7 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
         });
 
         // Force authentication state update instead of navigating to non-existent login route
-        supabase.auth.signOut(); // Fire and forget
+        // CRITICAL FIX: Don't automatically sign out users during inspection workflow
         navigate("/", {
           replace: true,
           state: {

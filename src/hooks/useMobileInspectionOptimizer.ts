@@ -134,19 +134,22 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
 
         toast({
           title: "Authentication Required",
-          description: "Please log in to join inspections",
+          description: "Please refresh the page to continue with your inspection",
           variant: "destructive",
         });
 
-        // Force authentication state update instead of navigating to non-existent login route
-        supabase.auth.signOut(); // Fire and forget
-        navigate("/", {
-          replace: true,
-          state: {
-            reason: "inspection_auth_required",
-            timestamp: Date.now(),
-          },
+        // CRITICAL FIX: Don't automatically sign out users
+        // They might be temporarily in an unauthenticated state during loading
+        // Instead, just prevent the inspection join and let them retry
+        log.warn("Preventing inspection join due to authentication state", {
+          component: "useMobileInspectionOptimizer", 
+          action: "validateAuthentication",
+          suggestion: "User should refresh page or retry",
+          timestamp: Date.now(),
         });
+
+        // Don't navigate away or sign out - let user retry
+        return false;
 
         analytics.track("authentication_failure", {
           context: "inspection_join",
