@@ -93,6 +93,15 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   // Force logout
   const forceLogout = useCallback(
     async (reason: string) => {
+      // CRITICAL DEBUG: Log all forced logouts
+      console.log("🚨 FORCE LOGOUT TRIGGERED", {
+        reason,
+        timestamp: new Date().toISOString(),
+        route: typeof window !== "undefined" ? window.location.pathname : "unknown",
+        sessionDuration: Date.now() - sessionStartRef.current.getTime(),
+        stackTrace: new Error().stack,
+      });
+      
       log.info(
         "Session timeout - forcing logout",
         {
@@ -223,7 +232,12 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
 
   // Manual logout
   const logout = useCallback(async () => {
-    // REMOVED: Manual logout log to prevent console spam
+    // CRITICAL DEBUG: Log all logout attempts
+    console.log("🚪 SESSION MANAGER LOGOUT TRIGGERED", {
+      timestamp: new Date().toISOString(),
+      route: typeof window !== "undefined" ? window.location.pathname : "unknown",
+      stackTrace: new Error().stack,
+    });
     clearWarningTimers();
 
     try {

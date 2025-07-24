@@ -182,6 +182,16 @@ export const usePropertyActions = () => {
         // Use property ID directly as UUID string (post-migration database returns UUIDs)
         const propertyIdForQuery = propertyId;
 
+        logger.info(
+          "🚀 INSPECTION CREATION FLOW STARTED",
+          {
+            propertyId: propertyIdForQuery,
+            userId: user?.id,
+            timestamp: new Date().toISOString(),
+          },
+          "PROPERTY_ACTIONS_DEBUG",
+        );
+
         // Check if there's already an active inspection (any status except cancelled/approved)
         logger.info(
           "Checking for existing inspections before creating new one",
@@ -254,11 +264,23 @@ export const usePropertyActions = () => {
           "PROPERTY_ACTIONS",
         );
 
+        logger.info(
+          "🔥 CALLING INSPECTION CREATION SERVICE",
+          {
+            request: {
+              ...request,
+              inspectorId: "***",
+            },
+            timestamp: new Date().toISOString(),
+          },
+          "PROPERTY_ACTIONS_DEBUG",
+        );
+
         const result =
           await inspectionCreationService.createInspection(request);
 
         logger.info(
-          "Enterprise inspection creation service response",
+          "🎯 ENTERPRISE INSPECTION CREATION SERVICE RESPONSE",
           {
             success: result.success,
             hasData: !!result.data,
@@ -267,8 +289,10 @@ export const usePropertyActions = () => {
             inspectionIdType: typeof result.data?.inspectionId,
             error: result.error?.code,
             errorMessage: result.error?.message,
+            fullError: result.error,
+            timestamp: new Date().toISOString(),
           },
-          "PROPERTY_ACTIONS",
+          "PROPERTY_ACTIONS_DEBUG",
         );
 
         if (!result.success || !result.data || !result.data.inspectionId) {

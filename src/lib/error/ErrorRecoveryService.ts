@@ -111,6 +111,15 @@ class ErrorRecoveryService {
     context: Partial<ErrorContext> = {},
   ): Promise<RecoveryResult> {
     const fullContext: ErrorContext = this.buildErrorContext(error, context);
+    
+    // CRITICAL DEBUG: Log every error recovery attempt
+    console.log("🚨 ERROR RECOVERY SERVICE TRIGGERED", {
+      errorMessage: error.message,
+      operationType: fullContext.operationType,
+      timestamp: new Date().toISOString(),
+      route: typeof window !== "undefined" ? window.location.pathname : "unknown",
+      context: fullContext,
+    });
 
     // Record error in history
     this.recordError(error, fullContext);
@@ -528,13 +537,28 @@ class ErrorRecoveryService {
       priority: 95,
       condition: (error) => {
         const message = error.message.toLowerCase();
-        // CRITICAL FIX: Only trigger for genuine authentication failures, not database errors
-        return (
+        const shouldTrigger = (
           message.includes("jwt expired") ||
           message.includes("refresh_token_not_found") ||
           message.includes("invalid_token") ||
           (message.includes("unauthorized") && message.includes("session"))
         );
+        
+        // CRITICAL DEBUG: Log auth strategy evaluation
+        console.log("🔐 AUTH RECOVERY STRATEGY EVALUATION", {
+          errorMessage: error.message,
+          messageLower: message,
+          shouldTrigger,
+          checks: {
+            jwtExpired: message.includes("jwt expired"),
+            refreshTokenNotFound: message.includes("refresh_token_not_found"),
+            invalidToken: message.includes("invalid_token"),
+            unauthorizedSession: message.includes("unauthorized") && message.includes("session"),
+          },
+          timestamp: new Date().toISOString(),
+        });
+        
+        return shouldTrigger;
       },
       execute: async (error, context) => {
         // Attempt to refresh authentication token
