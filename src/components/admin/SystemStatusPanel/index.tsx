@@ -258,7 +258,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         }, 1000);
       }
     },
-    [onNavigateToHealth, onError],
+    [onNavigateToHealth, onError, announceToScreenReaders],
   );
 
   /**
@@ -460,7 +460,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         }
       }
     },
-    [state.isLoading, state.retryCount, maxRetries, onError],
+    [state.isLoading, state.retryCount, maxRetries, onError, announceToScreenReaders],
   );
 
   /**
@@ -505,7 +505,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         );
       }
     },
-    [fetchMetrics],
+    [fetchMetrics, announceToScreenReaders],
   );
 
   /**

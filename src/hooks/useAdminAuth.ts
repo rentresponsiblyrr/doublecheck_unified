@@ -63,54 +63,6 @@ export const useAdminAuth = (): AdminAuthState & {
         return;
       }
 
-      // Legacy error handling - should not be reached
-      if (false) {
-        logger.error("Failed to get user role - SECURITY VIOLATION", {
-          userId: userId,
-          error: "Legacy error path",
-          timestamp: new Date().toISOString(),
-        });
-
-        // ENHANCED: Implement retry logic for transient 503 errors
-        if (
-          roleError.code === "PGRST503" ||
-          roleError.message?.includes("503")
-        ) {
-          logger.warn(
-            "503 Service Unavailable detected - implementing retry strategy",
-            {
-              userId: userId,
-              retryStrategy: "exponential_backoff",
-            },
-          );
-
-          // Retry after a short delay for 503 errors
-          setTimeout(async () => {
-            try {
-              const { data: retryData, error: retryError } = await supabase.rpc(
-                "get_user_role",
-                { user_id: userId },
-              );
-
-              if (!retryError && retryData) {
-                setUserRole(retryData);
-                setError(null);
-                logger.info("User role retrieved successfully on retry", {
-                  userId,
-                });
-                return;
-              }
-            } catch (retryErr) {
-              logger.warn("Retry attempt failed", { error: retryErr });
-            }
-          }, 2000);
-        }
-
-        // SECURE: Never default to admin - set as null for proper auth flow
-        setUserRole(null);
-        setError("Unable to verify user permissions - please try refreshing");
-        return;
-      }
 
       // SECURE: Only proceed if we have explicit role confirmation
       if (!userData || !["admin", "super_admin"].includes(userData)) {

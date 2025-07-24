@@ -24,6 +24,17 @@ import {
 import { ELEMENT_IDS, FALLBACK_VALUES } from "./systemStatusConstants";
 
 /**
+ * Performance API with memory extension (Chrome-specific)
+ */
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
+/**
  * Error boundary state interface
  * Tracks error state and recovery attempts
  */
@@ -174,11 +185,11 @@ export class SystemStatusErrorBoundary extends Component<
       retryCount: this.state.retryCount,
 
       // Performance context
-      memoryUsage: (performance as any).memory
+      memoryUsage: (performance as PerformanceWithMemory).memory
         ? {
-            used: (performance as any).memory.usedJSHeapSize,
-            total: (performance as any).memory.totalJSHeapSize,
-            limit: (performance as any).memory.jsHeapSizeLimit,
+            used: (performance as PerformanceWithMemory).memory.usedJSHeapSize,
+            total: (performance as PerformanceWithMemory).memory.totalJSHeapSize,
+            limit: (performance as PerformanceWithMemory).memory.jsHeapSizeLimit,
           }
         : null,
 
