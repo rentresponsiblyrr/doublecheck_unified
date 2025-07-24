@@ -210,7 +210,23 @@ export const usePropertyActions = () => {
           .single();
 
         if (checkError && checkError.code !== "PGRST116") {
-          throw checkError;
+          logger.error(
+            "🚨 DATABASE CHECK ERROR - NOT THROWING TO AVOID ERROR RECOVERY",
+            { 
+              error: checkError,
+              code: checkError.code,
+              message: checkError.message,
+            },
+            "PROPERTY_ACTIONS_DEBUG",
+          );
+          
+          toast({
+            title: "Database Error",
+            description: "Unable to check existing inspections. Please try again.",
+            variant: "destructive",
+          });
+          
+          return null; // Don't throw - just return null
         }
 
         if (existingInspection) {
@@ -241,7 +257,19 @@ export const usePropertyActions = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          throw new Error("User must be authenticated to create inspections");
+          logger.error(
+            "🚨 USER NOT AUTHENTICATED - NOT THROWING TO AVOID ERROR RECOVERY",
+            { timestamp: new Date().toISOString() },
+            "PROPERTY_ACTIONS_DEBUG",
+          );
+          
+          toast({
+            title: "Authentication Required",
+            description: "Please sign in to create inspections.",
+            variant: "destructive",
+          });
+          
+          return null; // Don't throw - just return null
         }
 
         // Use enterprise-grade inspection creation service
@@ -300,8 +328,9 @@ export const usePropertyActions = () => {
             result.error?.userMessage ||
             result.error?.message ||
             "Enterprise inspection creation failed";
+          
           logger.error(
-            "Inspection creation failed - detailed analysis",
+            "🔥 INSPECTION CREATION FAILED - DETAILED ANALYSIS",
             {
               success: result.success,
               hasData: !!result.data,
@@ -310,10 +339,28 @@ export const usePropertyActions = () => {
               inspectionIdType: typeof result.data?.inspectionId,
               error: result.error,
               fullResult: result,
+              errorMessage,
+              timestamp: new Date().toISOString(),
             },
-            "PROPERTY_ACTIONS",
+            "PROPERTY_ACTIONS_DEBUG",
           );
-          throw new Error(errorMessage);
+          
+          // CRITICAL FIX: Don't throw generic Error that triggers ErrorRecoveryService
+          // Instead, handle inspection creation errors gracefully in the UI
+          console.error("🚨 INSPECTION CREATION ERROR - NOT THROWING TO AVOID ERROR RECOVERY", {
+            errorMessage,
+            error: result.error,
+            timestamp: new Date().toISOString(),
+          });
+          
+          // Return a user-friendly error instead of throwing
+          toast({
+            title: "Unable to Start Inspection",
+            description: result.error?.userMessage || "Please try again or contact support if the issue persists.",
+            variant: "destructive",
+          });
+          
+          return null; // Don't throw - just return null to indicate failure
         }
 
         const inspectionId = result.data.inspectionId;
@@ -338,19 +385,36 @@ export const usePropertyActions = () => {
           inspectionId.trim() === ""
         ) {
           logger.error(
-            "Invalid inspection ID returned from creation service",
+            "🚨 INVALID INSPECTION ID - NOT THROWING TO AVOID ERROR RECOVERY",
             { inspectionId },
-            "PROPERTY_ACTIONS",
+            "PROPERTY_ACTIONS_DEBUG",
           );
-          throw new Error("Failed to create inspection - invalid ID returned");
+          
+          toast({
+            title: "Inspection Creation Issue",
+            description: "Inspection was created but navigation failed. Please refresh and try again.",
+            variant: "destructive",
+          });
+          
+          return null; // Don't throw - just return null
         }
 
         const navigated = safeNavigateToInspection(navigate, inspectionId);
 
         if (!navigated) {
-          throw new Error(
-            `Failed to navigate to inspection - invalid ID: ${inspectionId}`,
+          logger.error(
+            "🚨 NAVIGATION FAILED - NOT THROWING TO AVOID ERROR RECOVERY",
+            { inspectionId },
+            "PROPERTY_ACTIONS_DEBUG",
           );
+          
+          toast({
+            title: "Navigation Failed",
+            description: "Inspection created but could not navigate. Please check the inspection list.",
+            variant: "destructive",
+          });
+          
+          return null; // Don't throw - just return null
         }
 
         toast({
