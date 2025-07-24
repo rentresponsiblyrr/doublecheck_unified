@@ -358,5 +358,5 @@ export * from "./inspectionCreationService";
 export * from "./inspectionDatabaseService";
 export * from "./mediaRecordService";
 export * from "./mobileInspectionService";
-export * from "./mobileInspectionOptimizer";
+// mobileInspectionOptimizer removed - use services/mobile directly
 export * from "./robustMobileInspectionService";
