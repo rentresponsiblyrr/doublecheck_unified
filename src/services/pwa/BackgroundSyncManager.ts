@@ -39,6 +39,7 @@
 
 import { logger } from "@/utils/logger";
 import { EventEmitter } from "events";
+import { debugLogger } from '@/utils/debugLogger';
 
 // Sync data type definitions
 export interface InspectionSyncData {
@@ -1897,7 +1898,7 @@ export class BackgroundSyncManager extends EventEmitter {
         (window as any).__PWA_STATUS__ = pwaStatus;
       }
     } catch (error) {
-      console.warn("PWA context notification failed:", error);
+      debugLogger.warn("PWA context notification failed:", error);
     }
   }
 
