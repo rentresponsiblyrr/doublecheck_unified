@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Camera, CameraOff, AlertTriangle, Loader2 } from "lucide-react";
 import { useCamera } from "@/hooks/useCamera";
 import { cn } from "@/lib/utils";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface CameraCaptureProps {
   onStreamReady: (stream: MediaStream) => void;
@@ -51,7 +52,9 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   useEffect(() => {
     if (stream && videoRef.current) {
       videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(console.error);
+      videoRef.current.play().catch((error) => 
+        debugLogger.error("CameraCapture", "Video play failed", error)
+      );
       onStreamReady(stream);
     }
   }, [stream, onStreamReady]);
