@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from '@/utils/debugLogger';
 
 // Type definitions for performance monitoring
 type ContextData = Record<string, string | number | boolean | null | undefined>;
@@ -223,7 +224,9 @@ class PerformanceMonitor {
         this.observer.observe({
           entryTypes: ["navigation", "measure", "mark"],
         });
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('PerformanceMonitor', 'Failed to report metrics to external service', { error });
+      }
 
       // Navigation observer for page transitions
       this.navigationObserver = new PerformanceObserver((list) => {
@@ -236,7 +239,9 @@ class PerformanceMonitor {
 
       try {
         this.navigationObserver.observe({ entryTypes: ["navigation"] });
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('PerformanceMonitor', 'Failed to report metrics to external service', { error });
+      }
     }
 
     // Intersection observer for visibility tracking
