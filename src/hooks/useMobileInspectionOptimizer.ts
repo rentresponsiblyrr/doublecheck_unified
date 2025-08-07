@@ -32,6 +32,7 @@ import { ServiceError } from "@/services/interfaces/ServiceStandards";
 import { analytics } from "@/utils/analytics";
 import { log } from "@/lib/logging/enterprise-logger";
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from '@/utils/debugLogger';
 
 // ============================================================================
 // ELITE TYPE DEFINITIONS
@@ -493,7 +494,7 @@ export const useMobileInspectionOptimizer = (): EliteInspectionHookReturn => {
 
         // Auto-retry if configured and under retry limit
         if (options.retryOnFailure !== false && operationState.retryCount < 3) {
-          console.log("🔄 Auto-retrying inspection join...");
+          debugLogger.info("🔄 Auto-retrying inspection join...");
           setTimeout(() => joinInspection(options), 2000); // Retry after 2 seconds
         }
 
