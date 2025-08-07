@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/utils/debugLogger";
 import { useToast } from "@/hooks/use-toast";
 import {
   getCachedRole,
@@ -68,7 +69,9 @@ export const useMobileAuthHooks = () => {
       if (userId) {
         clearCachedRole(userId);
       }
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('useMobileAuthHooks', 'Failed to clear stored authentication data', { error });
+    }
   }, []);
 
   const signIn = useCallback(
