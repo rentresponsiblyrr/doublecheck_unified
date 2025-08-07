@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface OfflinePhoto {
   id: string;
@@ -22,7 +23,9 @@ export const useOfflineStorage = () => {
       try {
         const photos = JSON.parse(stored);
         setOfflinePhotos(photos);
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('useOfflineStorage', 'Failed to parse stored data from localStorage', { error, key: STORAGE_KEY });
+      }
     }
 
     // Set up online/offline event listeners
