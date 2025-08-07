@@ -6,6 +6,7 @@ import { MediaItem } from "@/components/MediaItem";
 import { supabase } from "@/integrations/supabase/client";
 import { useChannelManager } from "@/hooks/useChannelManager";
 import { ApiResponse } from "@/types/payload-types";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface MediaUploadWithAttribution extends MediaUpload {
   user_id?: string;
@@ -157,11 +158,12 @@ export const UploadedEvidence = ({
         await subscribeChannel(channelName, (status: string) => {
           if (status === "CHANNEL_ERROR") {
             // App will continue to work with manual refreshes
-            console.warn(
+            debugLogger.warn(
+              "UploadedEvidence",
               "Channel error, continuing with manual refresh capability",
             );
           } else if (status === "CLOSED") {
-            console.info("Channel closed");
+            debugLogger.info("UploadedEvidence", "Channel closed");
           }
         });
       } catch (error) {
@@ -181,7 +183,7 @@ export const UploadedEvidence = ({
         const channelName = `media-${checklistItemId}`;
         cleanupChannel(channelName);
       } catch (error) {
-        console.warn("Error cleaning up media channel:", error);
+        debugLogger.warn("UploadedEvidence", "Error cleaning up media channel", error);
       }
     };
   }, [checklistItemId, createChannel, subscribeChannel, cleanupChannel]);
@@ -199,7 +201,7 @@ export const UploadedEvidence = ({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.warn("Error downloading media file:", error);
+      debugLogger.warn("UploadedEvidence", "Error downloading media file", error);
     }
   };
 
