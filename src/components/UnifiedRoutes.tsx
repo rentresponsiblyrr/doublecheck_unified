@@ -19,16 +19,8 @@ const PropertySelection = React.lazy(
   () => import("../pages/PropertySelection"),
 );
 const InspectionPage = React.lazy(() => import("../pages/InspectionPage"));
-const InspectionReports = React.lazy(() =>
-  import("../pages/InspectionReports").then((module) => ({
-    default: module.InspectionReports,
-  })),
-);
-const InspectorWorkflow = React.lazy(() =>
-  import("../pages/InspectorWorkflow").then((module) => ({
-    default: module.InspectorWorkflow,
-  })),
-);
+const InspectionReports = React.lazy(() => import("../pages/InspectionReports"));
+const InspectorWorkflow = React.lazy(() => import("../pages/InspectorWorkflow"));
 
 // Admin Components - Lazy loaded for professional chunking
 const DirectAdminRouter = React.lazy(() => import("./admin/DirectAdminRouter"));
