@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { debugLogger } from "@/utils/debugLogger";
 import {
   PhotoComparisonEngine,
   createPhotoComparisonEngine,
@@ -137,7 +138,9 @@ export const usePhotoComparison = (
         try {
           const parsed = JSON.parse(savedHistory);
           setComparisonHistory(parsed.slice(0, maxHistoryItems));
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('usePhotoComparison', 'Failed to parse photo comparison history from localStorage', { error });
+        }
       }
     }
   }, [enableHistory, maxHistoryItems]);
