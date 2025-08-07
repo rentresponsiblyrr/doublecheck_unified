@@ -9,6 +9,8 @@
  * - Resource optimization and compression
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -457,7 +459,9 @@ async function precacheCriticalResources(): Promise<void> {
 
   try {
     await cache.addAll(criticalResources);
-  } catch (error) {}
+  } catch (error) {
+    debugLogger.error('ServiceWorker', 'Service worker operation failed', { error });
+  }
 }
 
 async function cleanupOldCaches(): Promise<void> {
@@ -483,7 +487,9 @@ async function cacheUrls(urls: string[]): Promise<void> {
         if (response.ok) {
           await cache.put(url, response);
         }
-      } catch (error) {}
+      } catch (error) {
+    debugLogger.error('ServiceWorker', 'Service worker operation failed', { error });
+  }
     }),
   );
 }
@@ -523,7 +529,9 @@ async function queueOfflineRequest(request: Request): Promise<void> {
     if ("serviceWorker" in self && "sync" in self.registration) {
       await self.registration.sync.register("offline-sync");
     }
-  } catch (error) {}
+  } catch (error) {
+    debugLogger.error('ServiceWorker', 'Service worker operation failed', { error });
+  }
 }
 
 async function processOfflineQueue(): Promise<void> {
@@ -562,14 +570,18 @@ async function processOfflineQueue(): Promise<void> {
         }
       }
     }
-  } catch (error) {}
+  } catch (error) {
+    debugLogger.error('ServiceWorker', 'Service worker operation failed', { error });
+  }
 }
 
 async function initializeBackgroundSync(): Promise<void> {
   if ("serviceWorker" in self && "sync" in self.registration) {
     try {
       await self.registration.sync.register("offline-sync");
-    } catch (error) {}
+    } catch (error) {
+    debugLogger.error('ServiceWorker', 'Service worker operation failed', { error });
+  }
   }
 }
 
