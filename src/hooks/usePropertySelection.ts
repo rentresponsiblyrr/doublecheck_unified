@@ -5,6 +5,7 @@ import {
   INSPECTION_STATUS,
   type InspectionStatus,
 } from "@/types/inspection-status";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface Inspection {
   id: string;
@@ -27,7 +28,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    console.log("🎯 USING SIMPLE FLOW FROM usePropertySelection", {
+    debugLogger.info("usePropertySelection", "🎯 USING SIMPLE FLOW FROM usePropertySelection", {
       selectedProperty,
       timestamp: new Date().toISOString(),
     });
@@ -40,7 +41,7 @@ export const usePropertySelection = (inspections: Inspection[]) => {
       return;
     }
 
-    console.log("🔄 RETRY USING SIMPLE FLOW", {
+    debugLogger.info("usePropertySelection", "🔄 RETRY USING SIMPLE FLOW", {
       selectedProperty,
       timestamp: new Date().toISOString(),
     });
