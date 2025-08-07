@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowRight, RotateCcw, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 import { CameraManager } from "./CameraManager";
 import { PhotoCapture } from "./PhotoCapture";
@@ -185,7 +186,29 @@ export const PhotoCaptureContainer: React.FC<PhotoCaptureContainerProps> = ({
                   />
 
                   <Button
-                    onClick={() => window.location.reload()}
+                    onClick={async () => {
+                      try {
+                        await errorRecovery.handleError(
+                          new Error('Photo capture camera retry requested'),
+                          {
+                            operation: 'camera_retry',
+                            component: 'PhotoCaptureContainer',
+                            timestamp: new Date(),
+                            data: { 
+                              cameraError,
+                              currentItemId: currentItem?.id,
+                              hasCameraStream: !!cameraStream
+                            }
+                          }
+                        );
+                        // Clear camera error and try to reinitialize
+                        setCameraError(null);
+                        setCameraStream(null);
+                      } catch {
+                        // Fallback only if error recovery completely fails
+                        window.location.reload();
+                      }
+                    }}
                     variant="outline"
                     size="sm"
                     id="retry-camera-button"
