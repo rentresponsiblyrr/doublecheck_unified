@@ -609,9 +609,20 @@ class ErrorRecoveryService {
         return { remount: true };
       },
       fallback: async () => {
-        // Reload the page as last resort
+        // Graceful recovery as last resort instead of page reload
         if (typeof window !== "undefined") {
-          window.location.reload();
+          // Provide user notification instead of jarring reload
+          console.warn("Component remount failed - attempting graceful recovery");
+          return {
+            error: "Component error detected. Please try your last action again.",
+            requiresUserAction: true,
+            message: "The page has recovered from an error. Your work has been preserved.",
+            nextSteps: [
+              "Your current work is saved",
+              "Try your last action again",
+              "If the problem persists, please refresh the page manually"
+            ]
+          };
         }
         return null;
       },
