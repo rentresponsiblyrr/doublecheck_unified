@@ -37,6 +37,7 @@ import { offlineStatusManager } from '@/lib/pwa/OfflineStatusManager';
 import { installPromptHandler } from '@/lib/pwa/InstallPromptHandler';
 import { lazyLoadManager } from '@/lib/pwa/LazyLoadManager';
 import { gestureController } from '@/lib/pwa/GestureController';
+import { errorRecovery } from '@/services/errorRecoveryService';
 import { logger } from '@/utils/logger';
 
 // PHASE 4B: Import new PWA types and managers
@@ -854,9 +855,22 @@ export function usePWAStatus(): [PWAStatus, { refresh: () => void }] {
     lastUpdate: Date.now()
   };
 
-  const refresh = useCallback(() => {
-    // Trigger state refresh
-    window.location.reload();
+  const refresh = useCallback(async () => {
+    // Use graceful error recovery instead of reload
+    try {
+      await errorRecovery.handleError(
+        new Error('PWA status refresh requested'),
+        {
+          operation: 'pwa_status_refresh',
+          component: 'usePWAStatus',
+          timestamp: new Date(),
+          data: { currentStatus: pwaStatus }
+        }
+      );
+    } catch {
+      // Fallback only if error recovery completely fails
+      window.location.reload();
+    }
   }, []);
 
   return [pwaStatus, { refresh }];
