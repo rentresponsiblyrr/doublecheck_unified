@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, AlertTriangle, Clock, TrendingDown } from "lucide-react";
+import { errorRecovery } from '@/services/errorRecoveryService';
 import { logger } from "@/lib/logger/production-logger";
 
 interface MetricErrorBoundaryProps {
@@ -224,11 +225,33 @@ export class MetricErrorBoundary extends Component<
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => window.location.reload()}
+                onClick={async () => {
+                  try {
+                    await errorRecovery.handleError(
+                      new Error('Metric error boundary refresh requested'),
+                      {
+                        operation: 'metric_boundary_refresh',
+                        component: 'MetricErrorBoundary',
+                        timestamp: new Date(),
+                        data: { 
+                          metricName: this.props.metricName,
+                          retryCount: this.state.retryCount,
+                          error: this.state.error?.message
+                        }
+                      }
+                    );
+                    // Try to retry the metric fetch instead of reloading
+                    this.props.onRetry();
+                    this.setState({ hasError: false, error: null, retryCount: 0 });
+                  } catch {
+                    // Fallback only if error recovery completely fails
+                    window.location.reload();
+                  }
+                }}
                 className="text-red-700 hover:bg-red-100"
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
-                Refresh Page
+                Refresh Metric
               </Button>
             )}
           </div>
