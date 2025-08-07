@@ -1,6 +1,8 @@
 // Cache Manager for STR Certified AI Response Optimization
 // Reduces redundant API calls and improves mobile performance
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // Type definitions for compression
 interface CompressionData {
   _compressed: true;
@@ -628,7 +630,9 @@ export class CacheManager {
 
         return true;
       }
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('CacheManager', 'Failed to export cache item', { error });
+    }
 
     return false;
   }
