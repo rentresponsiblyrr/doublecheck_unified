@@ -122,11 +122,9 @@ export const useSimpleInspectionFlow = () => {
         // This should never happen now but kept for safety
         toast({
           title: "Unable to Create Inspection",
-            description: "Database error occurred. Please try again in a moment.",
-            variant: "destructive",
-          });
-        }
-        
+          description: "Database error occurred. Please try again in a moment.",
+          variant: "destructive",
+        });
         setState({ isLoading: false, error: insertError.message });
         return null;
       }
