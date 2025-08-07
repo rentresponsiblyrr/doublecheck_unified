@@ -4,6 +4,8 @@
  * Helps inspectors take better photos on the first try
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 export interface PhotoQualityResult {
   isAcceptable: boolean;
   qualityScore: number; // 0-100
@@ -82,7 +84,7 @@ export class PhotoQualityService {
         suggestions,
       };
     } catch (error) {
-      console.error("Error analyzing photo quality:", error);
+      debugLogger.error("Error analyzing photo quality:", error);
       return {
         isAcceptable: true, // Don't block on error
         qualityScore: 75,
