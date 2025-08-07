@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/utils/debugLogger";
 
 export interface TableInfo {
   name: string;
@@ -123,7 +124,13 @@ export class DatabaseVerification {
           await supabase.from("inspections").delete().eq("id", data.id);
         } else {
         }
-      } catch (err) {}
+      } catch (err) {
+        debugLogger.error('verifyInspectionStatuses', 'Failed to test inspection status validation or cleanup test record', { 
+          error: err, 
+          status, 
+          userId: user.id 
+        });
+      }
     }
 
     return validStatuses;
