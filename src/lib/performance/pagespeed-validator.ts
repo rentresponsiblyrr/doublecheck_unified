@@ -9,6 +9,8 @@
  * - Continuous monitoring and alerting
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -625,7 +627,9 @@ export class PageSpeedValidator {
           if (result.score < this.config.alertThreshold) {
             this.triggerAlert(result);
           }
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('PageSpeedValidator', 'Failed to send pagespeed metrics', { error });
+        }
       },
       this.config.monitoringInterval * 60 * 1000,
     );
