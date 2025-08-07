@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/utils/debugLogger";
 
 export interface CreateInspectionParams {
   propertyId: string;
@@ -49,7 +50,7 @@ export class SimpleInspectionService {
         .single();
 
       if (propertyError || !property) {
-        console.error("Property not found:", propertyError);
+        debugLogger.error("simpleInspectionService", "Property not found", propertyError);
         return {
           success: false,
           error: "Property not found. Please select a valid property.",
@@ -85,7 +86,7 @@ export class SimpleInspectionService {
         .single();
 
       if (inspectionError || !newInspection) {
-        console.error("Failed to create inspection:", inspectionError);
+        debugLogger.error("simpleInspectionService", "Failed to create inspection", inspectionError);
         return {
           success: false,
           error: "Failed to create inspection. Please try again.",
@@ -94,7 +95,7 @@ export class SimpleInspectionService {
 
       // If we have scraped data, generate dynamic checklist
       if (scrapedData && scrapedData.specifications) {
-        console.log("Generating dynamic checklist from scraped data...");
+        debugLogger.info("simpleInspectionService", "Generating dynamic checklist from scraped data");
         const { DynamicChecklistGenerator } = await import("./dynamicChecklistGenerator");
         const checklistResult = await DynamicChecklistGenerator.generateForInspection(
           newInspection.id,
@@ -102,7 +103,7 @@ export class SimpleInspectionService {
         );
         
         if (checklistResult.success) {
-          console.log(`Created ${checklistResult.itemsCreated} dynamic checklist items`);
+          debugLogger.info("simpleInspectionService", `Created ${checklistResult.itemsCreated} dynamic checklist items`);
         }
       } else {
         // Fallback to static checklist items
@@ -113,7 +114,7 @@ export class SimpleInspectionService {
           .order("checklist_id", { ascending: true });
 
         if (itemsError) {
-          console.error("Failed to fetch checklist items:", itemsError);
+          debugLogger.error("simpleInspectionService", "Failed to fetch checklist items", itemsError);
           // Don't fail the inspection creation, just log the error
         }
 
@@ -134,19 +135,19 @@ export class SimpleInspectionService {
             .insert(checklistItems);
 
           if (checklistError) {
-            console.error("Failed to create checklist items:", checklistError);
+            debugLogger.error("simpleInspectionService", "Failed to create checklist items", checklistError);
             // Don't fail, inspection is created
           }
         }
       }
 
-      console.log("Inspection created successfully:", newInspection.id);
+      debugLogger.info("simpleInspectionService", "Inspection created successfully", newInspection.id);
       return {
         success: true,
         inspectionId: newInspection.id,
       };
     } catch (error) {
-      console.error("Unexpected error creating inspection:", error);
+      debugLogger.error("simpleInspectionService", "Unexpected error creating inspection", error);
       return {
         success: false,
         error: "An unexpected error occurred. Please try again.",
@@ -179,7 +180,7 @@ export class SimpleInspectionService {
       // No existing inspection, create a new one
       return await this.createInspection({ propertyId });
     } catch (error) {
-      console.error("Error in getOrCreateInspection:", error);
+      debugLogger.error("simpleInspectionService", "Error in getOrCreateInspection", error);
       return {
         success: false,
         error: "Failed to get or create inspection.",
