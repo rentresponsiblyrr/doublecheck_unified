@@ -30,6 +30,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 // Core interfaces for service worker management
 export interface CacheStrategy {
@@ -213,10 +214,29 @@ export class ServiceWorkerManager {
         this.deferredCacheStrategy = null;
       }
 
-      // Reload the page to ensure all resources are from the new SW
-      if (!window.location.pathname.includes("/inspection/")) {
-        // Only reload if not in middle of inspection
-        window.location.reload();
+      // Use graceful error recovery instead of page reload
+      try {
+        await errorRecovery.handleError(
+          new Error('Service Worker updated - recovering application state'),
+          {
+            operation: 'service_worker_update',
+            component: 'ServiceWorkerManager',
+            timestamp: new Date(),
+            data: { 
+              pathname: window.location.pathname,
+              inspectionInProgress: window.location.pathname.includes("/inspection/")
+            }
+          }
+        );
+      } catch (error) {
+        logger.warn("Error recovery failed for SW update, providing user guidance", { error });
+        // Show user-friendly notification instead of jarring reload
+        window.dispatchEvent(new CustomEvent('sw-update-recovered', {
+          detail: { 
+            message: 'App updated successfully. Some features may require a page refresh.',
+            action: 'manual-refresh-available'
+          }
+        }));
       }
     });
 
