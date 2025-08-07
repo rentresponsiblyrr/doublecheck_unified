@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import type { PropertyFormData } from "@/types/propertySubmission";
 import { ScrapedPropertyData } from "@/types/scraped-data";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface ExtendedPropertyFormData extends PropertyFormData {
   scraped_vrbo_data?: ScrapedPropertyData;
@@ -109,7 +110,7 @@ export const useSimplePropertySubmission = () => {
 
       if (error) {
         // Log detailed error for debugging
-        console.error("Property submission error:", {
+        debugLogger.error("Property submission error:", {
           code: error.code,
           message: error.message,
           details: error.details,
