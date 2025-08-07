@@ -6,6 +6,8 @@
  * @version 1.0.0 - Netflix/Google/Meta Production Standards
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 interface AnalyticsEvent {
   event: string;
   properties?: Record<string, any>;
@@ -68,7 +70,7 @@ class AnalyticsService {
     this.events.push(analyticsEvent);
 
     if (this.config.debug) {
-      console.log("Analytics Event:", analyticsEvent);
+      debugLogger.info("Analytics Event:", analyticsEvent);
     }
 
     // Auto-flush if buffer is full
@@ -114,7 +116,7 @@ class AnalyticsService {
     }
 
     if (this.config.debug) {
-      console.log(`Flushing ${this.events.length} analytics events`);
+      debugLogger.info(`Flushing ${this.events.length} analytics events`);
     }
 
     // In a real implementation, you would send events to your analytics service
