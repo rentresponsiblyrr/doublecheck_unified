@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { debugLogger } from "@/utils/debugLogger";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -182,7 +183,9 @@ export const useMobileErrorRecovery = (
             recoverySuccessful = true;
             break;
           }
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('useMobileErrorRecovery', 'Failed to store error context for recovery', { error, context });
+        }
 
         // Wait between strategies to avoid overwhelming the system
         await new Promise((resolve) => setTimeout(resolve, 1000));
