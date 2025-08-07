@@ -10,6 +10,7 @@
  */
 
 import { logger } from "@/lib/logger/production-logger";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 export interface CacheCleanupResult {
   success: boolean;
@@ -284,20 +285,44 @@ export class CacheManagementService {
   }
 
   /**
-   * Force reload the page with cache bypass
+   * Force reload the page with cache bypass using graceful error recovery
    */
-  public forceReloadWithCacheClear(): void {
-    logger.info("Forcing page reload with cache clear", {
+  public async forceReloadWithCacheClear(): Promise<void> {
+    logger.info("Initiating cache clear and recovery", {
       component: "CacheManagementService",
       action: "forceReloadWithCacheClear",
       url: window.location.href,
     });
 
-    // Use location.reload(true) if available, otherwise use alternative methods
     try {
-      window.location.reload();
+      // First clear all caches
+      const clearResult = await this.clearAllCaches();
+      
+      if (clearResult.success) {
+        // Use error recovery service for graceful recovery instead of reload
+        await errorRecovery.handleError(
+          new Error('Cache cleared - recovering application state'),
+          {
+            operation: 'cache_clear_recovery',
+            component: 'CacheManagementService',
+            timestamp: new Date(),
+            data: { clearResult }
+          }
+        );
+      } else {
+        // If cache clear failed, use fallback recovery
+        await errorRecovery.handleError(
+          new Error('Cache clear failed - attempting fallback recovery'),
+          {
+            operation: 'cache_clear_fallback',
+            component: 'CacheManagementService',
+            timestamp: new Date(),
+            data: { clearResult }
+          }
+        );
+      }
     } catch (error) {
-      // Fallback: redirect to same page with cache-busting parameter
+      // Final fallback - redirect with cache-busting parameter
       const url = new URL(window.location.href);
       url.searchParams.set("_force_reload", Date.now().toString());
       window.location.href = url.toString();
