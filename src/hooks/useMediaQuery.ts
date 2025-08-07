@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { debugLogger } from '@/utils/debugLogger';
 
 /**
  * Hook for responsive media query matching with performance optimization
@@ -24,7 +25,7 @@ export const useMediaQuery = (query: string): boolean => {
     try {
       return window.matchMedia(query).matches;
     } catch (error) {
-      console.warn("useMediaQuery: Invalid media query", { query, error });
+      debugLogger.warn("useMediaQuery: Invalid media query", { query, error });
       return false;
     }
   });
@@ -36,7 +37,7 @@ export const useMediaQuery = (query: string): boolean => {
     try {
       mediaQuery = window.matchMedia(query);
     } catch (error) {
-      console.error("useMediaQuery: Failed to create media query", {
+      debugLogger.error("useMediaQuery: Failed to create media query", {
         query,
         error,
       });
