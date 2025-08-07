@@ -5,6 +5,7 @@
 
 import { toHaveNoViolations } from "jest-axe";
 import { expect } from "vitest";
+import { debugLogger } from "@/utils/debugLogger";
 
 // Extend expect with jest-axe matchers
 expect.extend(toHaveNoViolations);
@@ -48,7 +49,7 @@ export const testComponentAccessibility = async (component: HTMLElement) => {
 
   // Log violations for debugging
   if (results.violations.length > 0) {
-    console.error("Accessibility violations found:", results.violations);
+    debugLogger.error("axe-setup", "Accessibility violations found", results.violations);
   }
 
   return results;
