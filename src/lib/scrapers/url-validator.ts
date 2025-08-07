@@ -21,10 +21,12 @@ export interface URLCleanupOptions {
 
 export class VRBOURLValidator {
   private static readonly VRBO_PATTERNS = [
-    // Standard VRBO patterns
-    /^https?:\/\/(www\.)?vrbo\.com\/(\d+)/,
+    // Standard VRBO patterns - MOST COMMON FIRST
+    /^https?:\/\/(www\.)?vrbo\.com\/(\d{7,10})(?:\?|$|\/)/,  // Direct property ID URLs (most common)
+    /^https?:\/\/(www\.)?vrbo\.com\/(\d+)$/,  // Clean property ID URLs
     /^https?:\/\/(www\.)?vrbo\.com\/vacation-rental\/p(\d+)/,
     /^https?:\/\/(www\.)?vrbo\.com\/en-us\/vacation-rental\/p(\d+)/,
+    /^https?:\/\/(www\.)?vrbo\.com\/[a-z]{2}-[a-z]{2}\/vacation-rental\/p(\d+)/,  // Any locale
 
     // HomeAway patterns (VRBO subsidiary)
     /^https?:\/\/(www\.)?homeaway\.com\/vacation-rental\/p(\d+)/,

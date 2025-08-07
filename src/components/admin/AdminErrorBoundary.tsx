@@ -152,7 +152,14 @@ export class AdminErrorBoundary extends Component<Props, State> {
       errorId: this.state.errorId,
     });
 
-    window.location.reload();
+    // Clear state and retry instead of full reload
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: "",
+      recoveryAttempted: false,
+    });
   };
 
   private handleGoHome = () => {

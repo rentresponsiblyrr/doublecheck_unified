@@ -68,16 +68,31 @@ export const ChecklistItemActions = ({
         );
       });
 
-      const { error: statusError } = await Promise.race([
-        supabase.rpc("update_checklist_item_complete", {
-          item_id: itemId,
-          item_status: newStatus,
-          item_notes: currentNotes || null,
-        }),
-        timeoutPromise,
-      ]);
+      // Direct update to checklist_items table with better error handling
+      let statusError = null;
+      try {
+        const updateResult = await Promise.race([
+          supabase
+            .from('checklist_items')
+            .update({
+              status: newStatus,
+              notes: currentNotes || null,
+              last_modified_by: user?.id,
+              last_modified_at: new Date().toISOString()
+            })
+            .eq('id', itemId)
+            .select()
+            .single(),
+          timeoutPromise,
+        ]);
+        
+        statusError = (updateResult as any)?.error;
+      } catch (error) {
+        statusError = error;
+      }
 
       if (statusError) {
+        console.error('Update error details:', statusError);
         // Enhanced error handling for common mobile issues
         if (
           statusError.message?.includes("timeout") ||
@@ -89,13 +104,17 @@ export const ChecklistItemActions = ({
         }
         if (
           statusError.message?.includes("permission") ||
-          statusError.message?.includes("RLS")
+          statusError.message?.includes("RLS") ||
+          statusError.code === 'PGRST301'
         ) {
           throw new Error(
             "Permission denied. Please refresh the page and try again.",
           );
         }
-        throw statusError;
+        // Provide more specific error message
+        throw new Error(
+          statusError.message || "Failed to update status. Please try again."
+        );
       }
 
       // Optional: Save notes to history (only if notes exist)
@@ -107,16 +126,21 @@ export const ChecklistItemActions = ({
           "Unknown Inspector";
 
         // Non-blocking notes save with error handling
-        supabase
-          .rpc("append_user_note", {
-            item_id: itemId,
-            note_text: currentNotes.trim(),
-            user_id: user.id,
-            user_name: userName,
-          })
-          .catch((notesError) => {
+        const saveNotes = async () => {
+          try {
+            await supabase
+              .rpc("append_user_note", {
+                item_id: itemId,
+                note_text: currentNotes.trim(),
+                user_id: user.id,
+                user_name: userName,
+              });
+          } catch (error) {
             // Log error but don't block UI - notes are secondary
-          });
+            console.log('Note history save failed, but status updated successfully');
+          }
+        };
+        saveNotes();
       }
 
       // Show success immediately

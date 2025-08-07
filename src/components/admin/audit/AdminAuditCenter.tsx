@@ -72,11 +72,12 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryFn: async () => {
         logger.info("Fetching audit-ready inspections for admin");
 
-        // Use simpler query with valid status values
+        // Fetch completed inspections that haven't been reviewed yet
         const { data: inspections, error } = await supabase
           .from("inspections")
           .select("*")
-          .in("status", ["completed"])
+          .eq("status", "completed")
+          .is("reviewed_at", null)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -122,11 +123,12 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryFn: async () => {
         logger.info("Fetching in-progress audit inspections for admin");
 
-        // Use valid status value for in-progress inspections
+        // Fetch inspections that are being reviewed (have a reviewer assigned)
         const { data: inspections, error } = await supabase
           .from("inspections")
           .select("*")
-          .in("status", ["in_progress"])
+          .eq("status", "in_progress")
+          .not("inspector_id", "is", null)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -172,12 +174,13 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       queryFn: async () => {
         logger.info("Fetching completed audit inspections for admin");
 
-        // Use valid status values for completed inspections
+        // Fetch inspections that have been reviewed
         const { data: inspections, error } = await supabase
           .from("inspections")
           .select("*")
-          .in("status", ["approved", "cancelled"])
-          .order("created_at", { ascending: false })
+          .eq("status", "completed")
+          .not("reviewed_at", "is", null)
+          .order("reviewed_at", { ascending: false })
           .limit(100);
 
         if (error) {
@@ -239,7 +242,7 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
       issuesFound: 0, // Would need to count from checklist_items
       estimatedReviewTime: 15, // Default estimate
       auditorFeedback: inspection.auditor_feedback,
-      finalDecision: mapStatusToDecision(inspection.status),
+      finalDecision: mapStatusToDecision(inspection.status, inspection.certification_status),
     }));
   };
 
@@ -262,10 +265,16 @@ export const AdminAuditCenter: React.FC<AdminAuditCenterProps> = ({
 
   const mapStatusToDecision = (
     status: string,
+    certificationStatus?: string | null,
   ): "approved" | "rejected" | "needs_revision" | undefined => {
-    if (status === "approved") return "approved";
-    if (status === "rejected") return "rejected";
-    if (status === "needs_revision") return "needs_revision";
+    // Check certification_status field for approval/rejection decision
+    if (certificationStatus === "approved") return "approved";
+    if (certificationStatus === "rejected") return "rejected";
+    if (certificationStatus === "needs_revision") return "needs_revision";
+    
+    // Default based on inspection status
+    if (status === "completed") return undefined; // Not yet reviewed
+    if (status === "cancelled") return "rejected";
     return undefined;
   };
 

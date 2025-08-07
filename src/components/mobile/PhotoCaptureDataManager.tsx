@@ -129,6 +129,21 @@ export const PhotoCaptureDataManager: React.FC<
         },
       );
 
+      // Validate photo quality
+      const { PhotoQualityService } = await import("@/services/photoQualityService");
+      const qualityResult = await PhotoQualityService.validatePhoto(photoFile);
+      
+      // Show feedback if quality issues detected
+      if (!qualityResult.isAcceptable) {
+        const feedback = PhotoQualityService.getFeedbackMessage(qualityResult);
+        console.warn("Photo quality issues:", qualityResult.issues);
+        
+        // Show user feedback (non-blocking)
+        if (qualityResult.suggestions.length > 0) {
+          alert(`${feedback}\n\nSuggestions:\n${qualityResult.suggestions.join('\n')}`);
+        }
+      }
+
       // Create capture metadata
       const metadata: PhotoCaptureMetadata = {
         checklistItemId: checklistItem.id,
@@ -140,10 +155,8 @@ export const PhotoCaptureDataManager: React.FC<
           cameraCapabilities:
             videoStream.getVideoTracks()[0]?.getCapabilities() || null,
         },
-        qualityScore: currentQuality
-          ? calculateQualityScore(currentQuality)
-          : 0,
-        guidanceFollowed: qualityIssues.length === 0,
+        qualityScore: qualityResult.qualityScore,
+        guidanceFollowed: qualityResult.isAcceptable,
       };
 
       // Create preview URL

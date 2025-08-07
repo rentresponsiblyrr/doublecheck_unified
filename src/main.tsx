@@ -544,7 +544,8 @@ async function initializeApp() {
         <h1>🚨 Application Error</h1>
         <p>Failed to initialize the application.</p>
         <p>Error: ${error instanceof Error ? error.message : "Unknown error"}</p>
-        <button onclick="window.location.reload()">Reload Page</button>
+        <button onclick="setTimeout(() => location.href = '/', 100)">Go to Home</button>
+        <button onclick="localStorage.clear(); sessionStorage.clear(); setTimeout(() => location.href = '/', 100)">Clear Cache & Retry</button>
       </div>
     `;
   }

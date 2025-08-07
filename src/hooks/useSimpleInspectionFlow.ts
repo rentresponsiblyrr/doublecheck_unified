@@ -94,60 +94,34 @@ export const useSimpleInspectionFlow = () => {
         console.log("⚠️ Existing inspection is in final state, will create new one");
       }
 
-      // Step 4: Create new inspection using DIRECT database insert (bypass RPC)
-      console.log("🆕 Creating new inspection directly...");
+      // Step 4: Create new inspection using our simple service
+      console.log("🆕 Creating new inspection using SimpleInspectionService...");
       
-      const newInspectionData = {
-        property_id: propertyId,
-        inspector_id: userId,
-        status: "available", // Use default database status
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        completed: false,
-      };
-
-      // CRITICAL DEBUG: Log exact payload being sent
-      console.log("🔍 EXACT DATABASE PAYLOAD", {
-        payload: newInspectionData,
+      const { SimpleInspectionService } = await import("@/services/simpleInspectionService");
+      const result = await SimpleInspectionService.createInspection({
         propertyId,
-        propertyIdType: typeof propertyId,
-        userId,
-        userIdType: typeof userId,
-        propertyIdLength: propertyId?.length,
-        userIdLength: userId?.length,
-        isPropertyIdUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId),
-        isUserIdUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId),
-        timestamp: new Date().toISOString(),
+        inspectorId: userId,
       });
 
-      const { data: newInspection, error: insertError } = await supabase
-        .from("inspections")
-        .insert([newInspectionData])
-        .select("id")
-        .single();
-
-      if (insertError) {
-        console.log("🚨 CRITICAL DATABASE INSERT ERROR", {
-          error: insertError,
-          errorCode: insertError.code,
-          errorMessage: insertError.message,
-          errorDetails: insertError.details,
-          errorHint: insertError.hint,
-          payload: newInspectionData,
-          fullError: JSON.stringify(insertError, null, 2),
-          timestamp: new Date().toISOString(),
+      if (!result.success) {
+        console.log("🚨 Failed to create inspection", { error: result.error });
+        toast({
+          title: "Unable to Create Inspection",
+          description: result.error || "Please try again.",
+          variant: "destructive",
         });
-        
-        // Check if it's a duplicate constraint error
-        if (insertError.message?.includes("duplicate") || insertError.code === "23505") {
-          toast({
-            title: "Inspection Already Exists",
-            description: "An inspection for this property already exists. Please refresh and try again.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Unable to Create Inspection",
+        setState({ isLoading: false, error: result.error || "Failed to create inspection" });
+        return null;
+      }
+
+      const newInspection = { id: result.inspectionId };
+      const insertError = null;
+
+      // Error handling is done above in the service result check
+      if (insertError) {
+        // This should never happen now but kept for safety
+        toast({
+          title: "Unable to Create Inspection",
             description: "Database error occurred. Please try again in a moment.",
             variant: "destructive",
           });
