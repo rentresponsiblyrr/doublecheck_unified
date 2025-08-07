@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface QuickDebugResult {
   timestamp: string;
@@ -84,7 +85,13 @@ export class ConsoleDebugger {
             await supabase.from("inspections").delete().eq("id", data.id);
           } else {
           }
-        } catch (err) {}
+        } catch (err) {
+          debugLogger.error('ConsoleDebugger.quickDatabaseCheck', 'Failed to test inspection status or cleanup test record', { 
+            error: err, 
+            status, 
+            userId: user.id 
+          });
+        }
       }
     }
 
