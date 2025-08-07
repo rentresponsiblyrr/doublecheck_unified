@@ -15,6 +15,8 @@
  * @phase Phase 2 - Query Standardization & Architectural Excellence
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ========================================
 // CORE SERVICES - Singleton Instances
 // ========================================
@@ -255,7 +257,7 @@ export const LegacyCompatibility = {
    * @deprecated Use inspectionDataService.getActiveInspections()
    */
   async getActiveInspections(inspectorId?: string) {
-    console.warn(
+    debugLogger.warn(
       "LegacyCompatibility.getActiveInspections is deprecated. Use inspectionDataService.getActiveInspections()",
     );
     return inspectionDataService.getActiveInspections({ inspectorId });
@@ -265,7 +267,7 @@ export const LegacyCompatibility = {
    * @deprecated Use propertyDataService.searchProperties()
    */
   async searchProperties(query: string) {
-    console.warn(
+    debugLogger.warn(
       "LegacyCompatibility.searchProperties is deprecated. Use propertyDataService.searchProperties()",
     );
     return propertyDataService.searchProperties(query);
@@ -275,7 +277,7 @@ export const LegacyCompatibility = {
    * @deprecated Use checklistDataService.getInspectionProgress()
    */
   async getInspectionProgress(inspectionId: string) {
-    console.warn(
+    debugLogger.warn(
       "LegacyCompatibility.getInspectionProgress is deprecated. Use checklistDataService.getInspectionProgress()",
     );
     return checklistDataService.getInspectionProgress(inspectionId);
@@ -338,7 +340,7 @@ export const ServiceLayerInfo = {
  * const stats = InspectionServiceLayer.monitoring.getCacheStatistics();
  *
  * // Check version
- * console.log(InspectionServiceLayer.info.version);
+ * debugLogger.info(InspectionServiceLayer.info.version);
  * ```
  */
 const InspectionServiceLayer = {
