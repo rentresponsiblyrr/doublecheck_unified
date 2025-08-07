@@ -4,6 +4,7 @@ import { PWAErrorBoundary } from "./PWAErrorBoundary";
 import { PWAPerformanceMonitor } from "./PWAPerformanceMonitor";
 import { PWAInstallPrompt } from "./PWAInstallPrompt";
 import { OfflineInspectionWorkflow } from "@/components/inspection/OfflineInspectionWorkflow";
+import { errorRecovery } from '@/services/errorRecoveryService';
 import { logger } from "@/utils/logger";
 
 interface PWAOrchestrationState {
@@ -416,10 +417,36 @@ export const PWAIntegrationOrchestrator: React.FC<{
             ))}
           </div>
           <button
-            onClick={() => window.location.reload()}
+            onClick={async () => {
+              try {
+                await errorRecovery.handleError(
+                  new Error('PWA integration orchestrator recovery requested'),
+                  {
+                    operation: 'pwa_orchestrator_recovery',
+                    component: 'PWAIntegrationOrchestrator',
+                    timestamp: new Date(),
+                    data: { 
+                      orchestrationState,
+                      errors: orchestrationState.errors,
+                      performanceScore: orchestrationState.performanceScore
+                    }
+                  }
+                );
+                // Try to reinitialize PWA systems instead of reloading
+                setOrchestrationState(prev => ({
+                  ...prev,
+                  isInitializing: true,
+                  errors: []
+                }));
+                initializePWAComponents();
+              } catch {
+                // Fallback only if error recovery completely fails
+                window.location.reload();
+              }
+            }}
             className="bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
           >
-            Reload App
+            Recover App
           </button>
         </div>
       </div>
