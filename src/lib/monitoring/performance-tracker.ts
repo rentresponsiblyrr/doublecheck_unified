@@ -1,4 +1,5 @@
 import { errorReporter } from "./error-reporter";
+import { debugLogger } from '@/utils/debugLogger';
 // TEMPORARILY DISABLE TO FIX CRASH
 // import { env } from '../config/environment';
 
@@ -238,7 +239,9 @@ export class PerformanceTracker {
         this.trackMetric("cls", clsValue, "count", { category: "web_vitals" });
       });
       clsObserver.observe({ entryTypes: ["layout-shift"] });
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('PerformanceTracker', 'Failed to track metric', { error });
+    }
   }
 
   /**
@@ -275,7 +278,9 @@ export class PerformanceTracker {
 
       observer.observe({ entryTypes: ["resource"] });
       this.observer = observer;
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('PerformanceTracker', 'Failed to track metric', { error });
+    }
   }
 
   /**
@@ -299,7 +304,9 @@ export class PerformanceTracker {
       });
 
       observer.observe({ entryTypes: ["measure"] });
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('PerformanceTracker', 'Failed to track metric', { error });
+    }
   }
 
   /**
@@ -423,7 +430,9 @@ export class PerformanceTracker {
     if (window.performance && window.performance.measure) {
       try {
         window.performance.measure(name, startMark, endMark);
-      } catch (error) {}
+      } catch (error) {
+      debugLogger.error('PerformanceTracker', 'Failed to track metric', { error });
+    }
     }
   }
 
@@ -539,7 +548,9 @@ export class PerformanceTracker {
       // Log summary in development
       if (import.meta.env.DEV) {
       }
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('PerformanceTracker', 'Failed to track metric', { error });
+    }
   }
 
   /**
