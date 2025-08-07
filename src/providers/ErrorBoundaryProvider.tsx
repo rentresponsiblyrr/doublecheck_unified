@@ -20,6 +20,7 @@ import { GlobalErrorBoundary } from "@/components/common/GlobalErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/common/AsyncErrorBoundary";
 import { ErrorMonitoringDashboard } from "@/components/monitoring/ErrorMonitoringDashboard";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
+import { errorRecovery } from '@/services/errorRecoveryService';
 import { logger } from "@/utils/logger";
 
 interface ErrorBoundaryContextValue {
@@ -352,10 +353,26 @@ const DevelopmentErrorOverlay: React.FC<{
               Dismiss
             </button>
             <button
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                try {
+                  await errorRecovery.handleError(
+                    new Error('Development error overlay - user requested recovery'),
+                    {
+                      operation: 'development_recovery',
+                      component: 'ErrorBoundaryProvider',
+                      timestamp: new Date(),
+                      data: { errorMessage: error.message }
+                    }
+                  );
+                  onDismiss();
+                } catch {
+                  // Fallback only if error recovery completely fails
+                  window.location.reload();
+                }
+              }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
             >
-              Reload Page
+              Recover App
             </button>
             <button
               onClick={() => {
