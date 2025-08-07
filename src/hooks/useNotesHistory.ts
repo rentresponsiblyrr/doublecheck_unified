@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { debugLogger } from "@/utils/debugLogger";
 
 export interface NotesHistoryEntry {
   text: string;
@@ -113,7 +114,9 @@ export const useNotesHistory = (itemId: string) => {
       if (channel) {
         try {
           supabase.removeChannel(channel);
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('useNotesHistory', 'Failed to remove realtime channel subscription', { error, itemId });
+        }
       }
     };
   }, [itemId]);
