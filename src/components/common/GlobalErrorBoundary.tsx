@@ -11,6 +11,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { logger } from "@/utils/logger";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 // EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
 import { ErrorFallbackUI } from "./GlobalErrorBoundary/components/ErrorFallbackUI";
@@ -371,6 +372,10 @@ export class GlobalErrorBoundary extends Component<
     window.location.href = "/";
   };
 
+  private handleNavigateHome = (): void => {
+    window.location.href = "/";
+  };
+
   componentWillUnmount() {
     if (this.retryTimeout) {
       clearTimeout(this.retryTimeout);
@@ -551,11 +556,27 @@ export class GlobalErrorBoundary extends Component<
                 {/* Reload Page */}
                 <Button
                   variant="outline"
-                  onClick={() => window.location.reload()}
+                  onClick={async () => {
+                    try {
+                      await errorRecovery.handleError(
+                        new Error('Global error boundary - user requested recovery'),
+                        {
+                          operation: 'global_error_recovery',
+                          component: 'GlobalErrorBoundary',
+                          timestamp: new Date(),
+                          data: { errorSeverity: error?.severity, retryCount }
+                        }
+                      );
+                      this.handleManualRetry();
+                    } catch {
+                      // Fallback only if error recovery completely fails
+                      window.location.reload();
+                    }
+                  }}
                   className="flex items-center justify-center"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Reload Page
+                  Recover App
                 </Button>
 
                 {/* Report Error */}
