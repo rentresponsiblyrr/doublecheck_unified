@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { debugLogger } from "@/utils/debugLogger";
 import type { ChecklistItem } from "@/types/photo";
 
 // Type for cached guidance progress data
@@ -437,7 +438,9 @@ export const usePhotoGuidance = (
         setCurrentStep(progressData.currentStep);
         setGuidanceState(progressData.guidanceState);
       }
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('usePhotoGuidance', 'Failed to save guidance history to localStorage', { error, guidance });
+    }
   }, [checklistItem.id, enableOfflineMode]);
 
   // Cleanup on unmount
