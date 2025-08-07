@@ -3,6 +3,8 @@
  * Prevents cascade failures and provides graceful degradation
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 export enum CircuitState {
   CLOSED = "closed",
   OPEN = "open",
@@ -158,7 +160,9 @@ export class CircuitBreaker {
     this.listeners.forEach((listener) => {
       try {
         listener(metrics);
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('CircuitBreaker', 'Error in circuit breaker listener', { error });
+      }
     });
   }
 
