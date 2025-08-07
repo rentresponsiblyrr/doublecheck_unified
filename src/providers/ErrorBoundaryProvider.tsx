@@ -16,6 +16,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import { debugLogger } from '@/utils/debugLogger';
 import { GlobalErrorBoundary } from "@/components/common/GlobalErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/common/AsyncErrorBoundary";
 import { ErrorMonitoringDashboard } from "@/components/monitoring/ErrorMonitoringDashboard";
@@ -376,7 +377,7 @@ const DevelopmentErrorOverlay: React.FC<{
             </button>
             <button
               onClick={() => {
-                console.error("Development Error Details:", error);
+                debugLogger.error("Development Error Details:", error);
                 alert("Error details logged to console");
               }}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
