@@ -34,13 +34,14 @@
  * });
  *
  * if (!result.success) {
- *   console.error(`Error: ${result.error?.code} - ${result.error?.userMessage}`);
+ *   debugLogger.error("InspectionCreationService", `Error: ${result.error?.code} - ${result.error?.userMessage}`);
  * }
  * ```
  */
 
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { debugLogger } from "@/utils/debugLogger";
 import {
   PropertyIdConverter,
   DatabasePropertyId,
