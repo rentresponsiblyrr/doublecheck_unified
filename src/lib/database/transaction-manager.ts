@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
+import { debugLogger } from "@/utils/debugLogger";
 
 // Type definitions for database operations
 type DatabaseRecord = Record<string, unknown>;
@@ -445,7 +446,9 @@ class DatabaseTransactionManager {
         .delete()
         .eq("lock_key", lockKey)
         .eq("lock_id", lockId);
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('TransactionManager', 'Failed to cleanup distributed lock', { error, lockKey, lockId });
+    }
   }
 
   private async logCriticalError(
@@ -459,7 +462,9 @@ class DatabaseTransactionManager {
         timestamp: new Date().toISOString(),
         severity: "critical",
       });
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('TransactionManager', 'Failed to log critical error', { error, errorType, details });
+    }
   }
 }
 
