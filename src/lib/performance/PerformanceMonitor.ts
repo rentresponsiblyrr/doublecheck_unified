@@ -4,6 +4,8 @@
  * Implements Core Web Vitals tracking and component-level profiling
  */
 
+import { debugLogger } from "@/utils/debugLogger";
+
 interface PerformanceMetric {
   name: string;
   value: number;
@@ -99,7 +101,7 @@ export class PerformanceMonitor {
    */
   private initializeObserver(): void {
     if (!window.PerformanceObserver) {
-      console.warn("PerformanceObserver not supported");
+      debugLogger.warn("PerformanceMonitor", "PerformanceObserver not supported");
       return;
     }
 
@@ -123,9 +125,9 @@ export class PerformanceMonitor {
         ],
       });
 
-      console.log("Performance Monitor initialized successfully");
+      debugLogger.info("PerformanceMonitor", "Performance Monitor initialized successfully");
     } catch (error) {
-      console.warn("Failed to initialize PerformanceObserver:", error);
+      debugLogger.warn("PerformanceMonitor", "Failed to initialize PerformanceObserver", error);
     }
   }
 
@@ -330,7 +332,8 @@ export class PerformanceMonitor {
 
       // Log slow API calls
       if (duration > this.performanceBudget.apiResponse) {
-        console.warn(
+        debugLogger.warn(
+          "PerformanceMonitor",
           `Slow API call detected: ${endpoint} took ${duration.toFixed(2)}ms`,
         );
         this.reportMetric({
@@ -385,7 +388,7 @@ export class PerformanceMonitor {
     if ("PerformanceLongTaskTiming" in window) {
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          console.warn(`Long task detected: ${entry.duration.toFixed(2)}ms`);
+          debugLogger.warn("PerformanceMonitor", `Long task detected: ${entry.duration.toFixed(2)}ms`);
           this.reportMetric({
             name: "long-task",
             value: entry.duration,
@@ -430,7 +433,7 @@ export class PerformanceMonitor {
 
       // Alert on high memory usage
       if (used / limit > 0.8) {
-        console.warn(`High memory usage: ${(used / 1024 / 1024).toFixed(2)}MB`);
+        debugLogger.warn("PerformanceMonitor", `High memory usage: ${(used / 1024 / 1024).toFixed(2)}MB`);
         this.reportMetric({
           name: "memory-usage-high",
           value: used,
@@ -485,7 +488,7 @@ export class PerformanceMonitor {
     }
 
     if (violations.length > 0) {
-      console.warn("Performance budget violations:", violations);
+      debugLogger.warn("PerformanceMonitor", "Performance budget violations", violations);
       this.triggerAlerts({
         ...metric,
         name: "performance-budget-violation",
@@ -508,7 +511,7 @@ export class PerformanceMonitor {
     if (process.env.NODE_ENV === "development") {
       if (metric.value > 1000) {
         // >1s operations
-        console.warn(`Performance issue detected:`, metric);
+        debugLogger.warn("PerformanceMonitor", "Performance issue detected", metric);
       }
     }
   }
@@ -521,7 +524,8 @@ export class PerformanceMonitor {
     renderTime: number,
     props?: Record<string, unknown>,
   ): void {
-    console.warn(
+    debugLogger.warn(
+      "PerformanceMonitor",
       `Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms`,
       {
         component: componentName,
@@ -548,7 +552,7 @@ export class PerformanceMonitor {
       try {
         callback(metric);
       } catch (error) {
-        console.error("Alert callback error:", error);
+        debugLogger.error("PerformanceMonitor", "Alert callback error", error);
       }
     });
   }
@@ -565,7 +569,7 @@ export class PerformanceMonitor {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(metric),
       }).catch((error) => {
-        console.warn("Failed to send metric to monitoring service:", error);
+        debugLogger.warn("PerformanceMonitor", "Failed to send metric to monitoring service", error);
       });
     }
   }
