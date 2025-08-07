@@ -259,6 +259,9 @@ export const InspectionPage = () => {
   );
 };
 
+// Default export for lazy loading
+export default InspectionPage;
+
 const InspectionDataLoader = ({ inspectionId }: { inspectionId: string }) => {
   const navigate = useNavigate();
   const { checklistItems, isLoading, refetch, error } =

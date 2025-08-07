@@ -17,11 +17,7 @@ const InspectionComplete = React.lazy(
 const PropertySelection = React.lazy(
   () => import("../pages/PropertySelection"),
 );
-const InspectionPage = React.lazy(() =>
-  import("../pages/InspectionPage").then((module) => ({
-    default: module.InspectionPage,
-  })),
-);
+const InspectionPage = React.lazy(() => import("../pages/InspectionPage"));
 const InspectionReports = React.lazy(() =>
   import("../pages/InspectionReports").then((module) => ({
     default: module.InspectionReports,
