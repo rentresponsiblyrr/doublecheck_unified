@@ -7,6 +7,7 @@ import {
   useRef,
   MutableRefObject,
 } from "react";
+import { debugLogger } from "@/utils/debugLogger";
 
 export interface CameraOptions {
   videoRef: MutableRefObject<HTMLVideoElement | null>;
@@ -372,7 +373,9 @@ export const useCamera = (options: CameraOptions): UseCameraReturn => {
         if (videoTrack && "getCapabilities" in videoTrack) {
           return videoTrack.getCapabilities();
         }
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('useCamera', 'Failed to get video track capabilities', { error });
+      }
 
       return null;
     }, [state.stream]);
