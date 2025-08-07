@@ -1,6 +1,8 @@
 // Image Optimizer for STR Certified
 // Compresses images while maintaining AI analysis quality
 
+import { debugLogger } from '@/utils/debugLogger';
+
 export class ImageOptimizer {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -789,13 +791,17 @@ export class ImageOptimizer {
       try {
         canvas.toDataURL("image/webp");
         formats.push("webp");
-      } catch {}
+      } catch (error) {
+        debugLogger.error('ImageOptimizer', 'WebP support detection failed', { error });
+      }
 
       // Check AVIF support
       try {
         canvas.toDataURL("image/avif");
         formats.push("avif");
-      } catch {}
+      } catch (error) {
+        debugLogger.error('ImageOptimizer', 'AVIF support detection failed', { error });
+      }
     }
 
     return formats;
