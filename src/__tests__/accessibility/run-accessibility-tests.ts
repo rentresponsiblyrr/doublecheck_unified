@@ -6,6 +6,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { axe } from "jest-axe";
+import { debugLogger } from "@/utils/debugLogger";
 
 // Component test results interface
 interface AccessibilityTestResult {
@@ -99,7 +100,8 @@ export const validateTouchTargets = (container: HTMLElement): boolean => {
   for (const element of interactiveElements) {
     const rect = element.getBoundingClientRect();
     if (rect.width < 44 || rect.height < 44) {
-      console.error(
+      debugLogger.error(
+        "accessibility-runner",
         `Touch target too small: ${element.tagName} (${rect.width}x${rect.height}px)`,
       );
       return false;
@@ -123,7 +125,7 @@ export const validateKeyboardNavigation = async (
     // Check if element can receive focus
     (element as HTMLElement).focus();
     if (document.activeElement !== element) {
-      console.error(`Element cannot receive focus: ${element.tagName}`);
+      debugLogger.error("accessibility-runner", `Element cannot receive focus: ${element.tagName}`);
       return false;
     }
 
@@ -135,7 +137,8 @@ export const validateKeyboardNavigation = async (
       styles.borderWidth !== "0px" && styles.borderStyle !== "none";
 
     if (!hasOutline && !hasBoxShadow && !hasBorder) {
-      console.error(
+      debugLogger.error(
+        "accessibility-runner",
         `Element lacks visible focus indicator: ${element.tagName}`,
       );
       return false;
@@ -233,23 +236,24 @@ All components meet WCAG 2.1 AA standards. Continue monitoring with automated te
  * Main accessibility test suite
  */
 export const runAccessibilityTestSuite = async (): Promise<void> => {
-  console.log("🔍 Running STR Certified Accessibility Test Suite...\n");
+  debugLogger.info("accessibility-runner", "🔍 Running STR Certified Accessibility Test Suite");
 
   const results: AccessibilityTestResult[] = [];
 
   // This would be expanded to test all components
   // For now, we run the specific tests we've created
 
-  console.log("📊 Accessibility Test Results:");
+  debugLogger.info("accessibility-runner", "📊 Accessibility Test Results");
   results.forEach((result) => {
     const status = result.status === "PASS" ? "✅" : "❌";
-    console.log(
+    debugLogger.info(
+      "accessibility-runner",
       `${status} ${result.component}: ${result.score}% (${result.violations} violations)`,
     );
   });
 
   const report = generateAccessibilityReport(results);
-  console.log("\n" + report);
+  debugLogger.info("accessibility-runner", report);
 
   // Fail if any component fails
   const hasFailures = results.some((r) => r.status === "FAIL");
@@ -259,5 +263,5 @@ export const runAccessibilityTestSuite = async (): Promise<void> => {
     );
   }
 
-  console.log("\n🎉 All accessibility tests passed!");
+  debugLogger.info("accessibility-runner", "🎉 All accessibility tests passed!");
 };
