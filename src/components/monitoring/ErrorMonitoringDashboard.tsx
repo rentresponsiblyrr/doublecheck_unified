@@ -13,6 +13,7 @@ import React, { useState, useEffect } from "react";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
 import { memoryLeakDetector } from "@/lib/memory/MemoryLeakDetector";
 import { intelligentCacheInvalidation } from "@/lib/cache/IntelligentCacheInvalidation";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 // EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
 import { OverviewTab } from "./ErrorMonitoringDashboard/components/OverviewTab";
@@ -247,7 +248,28 @@ export const ErrorMonitoringDashboard: React.FC<
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                try {
+                  await errorRecovery.handleError(
+                    new Error('Error monitoring dashboard refresh requested'),
+                    {
+                      operation: 'monitoring_dashboard_refresh',
+                      component: 'ErrorMonitoringDashboard',
+                      timestamp: new Date(),
+                      data: { 
+                        errorStats,
+                        systemHealth,
+                        position
+                      }
+                    }
+                  );
+                  // Refresh monitoring data instead of reloading
+                  refreshMetrics();
+                } catch {
+                  // Fallback only if error recovery completely fails
+                  window.location.reload();
+                }
+              }}
             >
               <RefreshCw className="w-4 h-4" />
             </Button>
