@@ -6,6 +6,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ScrapedPropertyData } from "@/types/scraped-data";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface ChecklistTemplate {
   label: string;
@@ -23,7 +24,7 @@ export class DynamicChecklistGenerator {
     scrapedData: ScrapedPropertyData
   ): Promise<{ success: boolean; itemsCreated: number; error?: string }> {
     try {
-      console.log("🏠 Generating dynamic checklist for inspection", {
+      debugLogger.info("🏠 Generating dynamic checklist for inspection", {
         inspectionId,
         bedrooms: scrapedData.specifications?.bedrooms,
         bathrooms: scrapedData.specifications?.bathrooms,
@@ -234,7 +235,7 @@ export class DynamicChecklistGenerator {
           .insert(checklistItems);
 
         if (error) {
-          console.error("Failed to insert dynamic checklist items:", error);
+          debugLogger.error("Failed to insert dynamic checklist items:", error);
           return {
             success: false,
             itemsCreated: 0,
@@ -243,13 +244,13 @@ export class DynamicChecklistGenerator {
         }
       }
 
-      console.log(`✅ Created ${checklistItems.length} dynamic checklist items`);
+      debugLogger.info(`✅ Created ${checklistItems.length} dynamic checklist items`);
       return {
         success: true,
         itemsCreated: checklistItems.length,
       };
     } catch (error) {
-      console.error("Error generating dynamic checklist:", error);
+      debugLogger.error("Error generating dynamic checklist:", error);
       return {
         success: false,
         itemsCreated: 0,
@@ -274,7 +275,7 @@ export class DynamicChecklistGenerator {
         .limit(1);
 
       if (existingItems && existingItems.length > 0) {
-        console.log("Inspection already has checklist items, skipping generation");
+        debugLogger.info("Inspection already has checklist items, skipping generation");
         return { success: true };
       }
 
@@ -282,7 +283,7 @@ export class DynamicChecklistGenerator {
       const result = await this.generateForInspection(inspectionId, scrapedData);
       return result;
     } catch (error) {
-      console.error("Error updating inspection checklist:", error);
+      debugLogger.error("Error updating inspection checklist:", error);
       return {
         success: false,
         error: "Failed to update checklist",
