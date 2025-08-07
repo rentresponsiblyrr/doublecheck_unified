@@ -35,6 +35,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { debugLogger } from '@/utils/debugLogger';
 import {
   inspectionErrorMonitor,
   trackInspectionError,
@@ -200,7 +201,7 @@ export const useInspectionMonitoring = (
         // Update local state
         setLastError(error instanceof Error ? error : new Error(error.message));
       } catch (trackingError) {
-        console.error("Failed to track inspection error:", trackingError);
+        debugLogger.error("Failed to track inspection error:", trackingError);
         setLastError(
           trackingError instanceof Error
             ? trackingError
@@ -239,7 +240,7 @@ export const useInspectionMonitoring = (
         // Clear last error on successful operation
         setLastError(null);
       } catch (trackingError) {
-        console.error("Failed to track inspection success:", trackingError);
+        debugLogger.error("Failed to track inspection success:", trackingError);
       }
     },
     [userContext, performanceThreshold, trackError],
@@ -258,7 +259,7 @@ export const useInspectionMonitoring = (
       setMetrics(currentMetrics);
       setAlerts(currentAlerts);
     } catch (error) {
-      console.error("Failed to refresh monitoring metrics:", error);
+      debugLogger.error("Failed to refresh monitoring metrics:", error);
       trackError(
         error instanceof Error ? error : new Error("Metrics refresh failed"),
       );
@@ -334,7 +335,7 @@ export const useInspectionMonitoring = (
 
       URL.revokeObjectURL(link.href);
     } catch (error) {
-      console.error("Failed to export monitoring data:", error);
+      debugLogger.error("Failed to export monitoring data:", error);
       trackError(error instanceof Error ? error : new Error("Export failed"));
     }
   }, [componentName, getComponentMetrics, trackError]);
