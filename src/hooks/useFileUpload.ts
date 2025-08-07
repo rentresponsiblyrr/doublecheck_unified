@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOfflineStorage } from "@/hooks/useOfflineStorage";
 import { useFileValidation } from "@/utils/fileValidation";
 import { useMediaRecordService } from "@/services/mediaRecordService";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface UseFileUploadProps {
   evidenceType: "photo" | "video";
@@ -113,7 +114,14 @@ export const useFileUpload = ({
           });
           onComplete();
           return;
-        } catch (offlineError) {}
+        } catch (offlineError) {
+          debugLogger.error('useFileUpload', 'Failed to save photo offline as fallback after upload failure', { 
+            error: offlineError, 
+            checklistItemId, 
+            inspectionId,
+            originalError: error 
+          });
+        }
       }
 
       toast({
