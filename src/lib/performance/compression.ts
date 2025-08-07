@@ -9,6 +9,8 @@
  * - Resource priority management for HTTP/2 push
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -498,7 +500,9 @@ export class AdvancedCompressionManager {
       try {
         new CompressionStream("deflate");
         this.supportedAlgorithms.add("deflate");
-      } catch {}
+      } catch (error) {
+        debugLogger.error('Compression', 'Failed to test compression algorithm support', { error });
+      }
     }
   }
 

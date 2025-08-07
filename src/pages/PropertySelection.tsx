@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { debugLogger } from "@/utils/debugLogger";
 import { supabase } from "@/integrations/supabase/client";
 import { usePropertySelection } from "@/hooks/usePropertySelection";
 import { useRobustInspectionCreation } from "@/hooks/useRobustInspectionCreation";
@@ -160,7 +161,9 @@ const PropertySelection = () => {
   const handleRetry = async () => {
     try {
       await Promise.all([refetchProperties(), refetchInspections()]);
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('PropertySelection', 'Failed to save property selection state to localStorage', { error });
+    }
   };
 
   // Handle errors

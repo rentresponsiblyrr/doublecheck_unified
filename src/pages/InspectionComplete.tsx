@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { debugLogger } from "@/utils/debugLogger";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -121,7 +122,9 @@ const InspectionComplete = () => {
         );
 
         setSummary({ total, completed, categories });
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('InspectionComplete', 'Failed to parse inspection data from URL params', { error });
+      }
     };
 
     fetchChecklistSummary();

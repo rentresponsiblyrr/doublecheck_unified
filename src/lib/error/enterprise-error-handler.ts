@@ -15,6 +15,7 @@
 
 import { log } from "../logging/enterprise-logger";
 import { v4 as uuidv4 } from "uuid";
+import { debugLogger } from '@/utils/debugLogger';
 
 // ============================================================================
 // ENTERPRISE ERROR TYPES
@@ -795,7 +796,9 @@ export class EnterpriseErrorHandler {
           },
           "ERROR_ALERT",
         );
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('EnterpriseErrorHandler', 'Failed to report error to external service', { error });
+      }
     }
   }
 

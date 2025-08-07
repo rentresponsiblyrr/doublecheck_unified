@@ -392,7 +392,9 @@ export class AIMetricsCollector {
           // 5 second threshold
           await this.triggerAlert("slow_p95_response", { p95 });
         }
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('AIMetricsCollector', 'Failed to flush metrics during cleanup', { error });
+      }
     }, 60 * 1000);
     this.intervalIds.add(performanceInterval);
   }
