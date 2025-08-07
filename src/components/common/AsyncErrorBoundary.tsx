@@ -13,6 +13,7 @@ import React, { Component, ReactNode } from "react";
 import { GlobalErrorBoundary, ErrorInfo } from "./GlobalErrorBoundary";
 import { Loader2, Wifi, WifiOff, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { debugLogger } from "@/utils/debugLogger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { errorRecovery } from '@/services/errorRecoveryService';
@@ -613,8 +614,8 @@ export function useAsyncErrorHandler() {
       if (asyncErrorBoundary) {
         asyncErrorBoundary.handleAsyncError(error, context);
       } else {
-        // Fallback to console error if no boundary is available
-        console.error("Async error occurred:", error, context);
+        // Fallback to debugLogger if no boundary is available
+        debugLogger.error("AsyncErrorBoundary", "Async error occurred", { error, context });
       }
     },
     [asyncErrorBoundary],
