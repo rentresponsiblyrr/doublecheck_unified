@@ -39,6 +39,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { debugLogger } from '@/utils/debugLogger';
 
 // Push notification interfaces
 export interface PushNotification {
@@ -1385,7 +1386,7 @@ export class PushNotificationManager {
         (window as any).__PWA_STATUS__ = pwaStatus;
       }
     } catch (error) {
-      console.warn("PWA context notification failed:", error);
+      debugLogger.warn("PWA context notification failed:", error);
     }
   }
 
