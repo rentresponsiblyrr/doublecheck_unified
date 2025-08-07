@@ -13,6 +13,7 @@ import { serviceWorkerManager } from "@/lib/pwa/ServiceWorkerManager";
 import { offlineStatusManager } from "@/lib/pwa/OfflineStatusManager";
 import { installPromptHandler } from "@/lib/pwa/InstallPromptHandler";
 import { logger } from "@/utils/logger";
+import { debugLogger } from "@/utils/debugLogger";
 
 // PHASE 4B: Import new PWA component managers
 import { BackgroundSyncManager } from "@/services/pwa/BackgroundSyncManager";
@@ -537,7 +538,7 @@ async function initializeApp() {
 
     // Only log in development
     if (import.meta.env.DEV) {
-      console.error("App initialization failed:", error);
+      debugLogger.error("main", "App initialization failed", error);
     }
     document.body.innerHTML = `
       <div style="padding: 20px; color: red; font-family: Arial;">
