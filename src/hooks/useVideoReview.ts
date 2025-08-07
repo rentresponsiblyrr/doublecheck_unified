@@ -8,6 +8,7 @@ import {
   MutableRefObject,
 } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { debugLogger } from "@/utils/debugLogger";
 import type { VideoRecording, VideoTimestamp, SceneType } from "@/types/video";
 import type { VideoAnnotation } from "@/components/audit/VideoAnnotationTools";
 
@@ -506,7 +507,9 @@ export const useVideoReviewSession = (videoId: string, auditorId: string) => {
           if (session.videoId === videoId) {
             sessions.push(session);
           }
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('useVideoReview', 'Failed to parse video progress from localStorage', { error });
+        }
       }
     }
     return sessions.sort(
