@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/utils/debugLogger";
 
 export const debugDashboardData = async (userId?: string) => {
   try {
@@ -103,5 +104,7 @@ export const debugDashboardData = async (userId?: string) => {
     } else {
       const uniqueStatuses = [...new Set(statusData?.map((i) => i.status))];
     }
-  } catch (error) {}
+  } catch (error) {
+    debugLogger.error('debugDashboardData', 'Failed to retrieve debug dashboard data', { error, userId });
+  }
 };
