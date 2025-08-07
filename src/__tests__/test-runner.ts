@@ -20,6 +20,7 @@ import {
   performanceMetrics,
   PerformanceProfiler,
 } from "@/utils/performance-testing";
+import { debugLogger } from "@/utils/debugLogger";
 
 // Test suite imports
 import "./stores/appStore.test";
@@ -111,7 +112,7 @@ class ProfessionalTestRunner {
       this.generateDetailedReport(results);
       return results;
     } catch (error) {
-      console.error("Test suite execution failed:", error);
+      debugLogger.error("ProfessionalTestRunner", "Test suite execution failed", error);
       throw error;
     }
   }
@@ -242,13 +243,13 @@ class ProfessionalTestRunner {
 
     const profileReport = this.profiler.getReport();
     profileReport.slice(0, 5).forEach((profile) => {
-      console.debug(`Profile: ${profile.name} - ${profile.executionTime}ms`);
+      debugLogger.debug("ProfessionalTestRunner", `Profile: ${profile.name} - ${profile.executionTime}ms`);
     });
 
     if (results.overallQuality.productionReady) {
-      console.log("✅ System is production ready");
+      debugLogger.info("ProfessionalTestRunner", "✅ System is production ready");
     } else {
-      console.warn("⚠️ System has quality issues that need attention");
+      debugLogger.warn("ProfessionalTestRunner", "⚠️ System has quality issues that need attention");
     }
   }
 }
