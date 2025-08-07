@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useCallback } from "react";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface CleanupFunction {
   (): void;
@@ -41,7 +42,9 @@ export function useMemoryCleanup(): ResourceManager {
     cleanupFunctions.current.forEach((cleanupFn) => {
       try {
         cleanupFn();
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('useMemoryCleanup', 'Failed to execute cleanup function', { error });
+      }
     });
 
     // Clear all timers
@@ -56,7 +59,9 @@ export function useMemoryCleanup(): ResourceManager {
     eventListeners.current.forEach(({ element, event, handler }) => {
       try {
         element.removeEventListener(event, handler);
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('useMemoryCleanup', 'Failed to remove event listener during cleanup', { error, event });
+      }
     });
     eventListeners.current.length = 0;
 
