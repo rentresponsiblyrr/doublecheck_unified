@@ -1,6 +1,8 @@
 // AI Metrics Collection System for STR Certified
 // Tracks performance, accuracy, costs, and usage patterns
 
+import { debugLogger } from '@/utils/debugLogger';
+
 export class AIMetricsCollector {
   private metrics: MetricsStore;
   private apiUsageTracker: APIUsageTracker;
@@ -355,7 +357,9 @@ export class AIMetricsCollector {
           if (accuracy < 0.75) {
             await this.triggerAlert("low_accuracy", { accuracy });
           }
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('AIMetricsCollector', 'Failed to persist metrics batch', { error });
+        }
       },
       5 * 60 * 1000,
     );
@@ -371,7 +375,9 @@ export class AIMetricsCollector {
             // $10/hour threshold
             await this.triggerAlert("high_hourly_cost", { cost: hourlyCost });
           }
-        } catch (error) {}
+        } catch (error) {
+          debugLogger.error('AIMetricsCollector', 'Failed to persist metrics batch', { error });
+        }
       },
       60 * 60 * 1000,
     );
