@@ -7,6 +7,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { intelligentCache } from "@/lib/cache/IntelligentCacheManager";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface CacheOptions {
   store?: string;
@@ -72,7 +73,7 @@ export function useIntelligentQuery<T>(
               // Update TanStack Query cache
               queryClient.setQueryData(queryKey, freshData);
             } catch (error) {
-              console.warn("Background refresh failed:", error);
+              debugLogger.warn("Background refresh failed:", error);
             }
           }, 0);
         }
@@ -95,7 +96,7 @@ export function useIntelligentQuery<T>(
       // Fallback to cached data even if expired for offline support
       const expiredCachedData = await intelligentCache.get<T>(store, cacheKey);
       if (expiredCachedData) {
-        console.warn("Using expired cache data due to network error:", error);
+        debugLogger.warn("Using expired cache data due to network error:", error);
         return expiredCachedData;
       }
 
@@ -176,7 +177,7 @@ export function useCacheMetrics() {
       const cacheStats = await intelligentCache.getStats();
       setStats(cacheStats);
     } catch (error) {
-      console.warn("Failed to get cache stats:", error);
+      debugLogger.warn("Failed to get cache stats:", error);
     }
   }, []);
 
