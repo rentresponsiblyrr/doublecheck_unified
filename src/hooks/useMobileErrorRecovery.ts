@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 interface ErrorRecoveryState {
   errorCount: number;
@@ -261,11 +262,24 @@ export const useMobileErrorRecovery = (
       id: "refresh-page",
       title: "Refresh Page",
       description: "Reload the current page to clear temporary issues",
-      action: () => {
+      action: async () => {
         if (onRetry) {
           onRetry();
         } else {
-          window.location.reload();
+          try {
+            await errorRecovery.handleError(
+              new Error('Mobile error recovery - user requested refresh'),
+              {
+                operation: 'mobile_page_refresh',
+                component: 'useMobileErrorRecovery',
+                timestamp: new Date(),
+                data: { context: 'recovery_action' }
+              }
+            );
+          } catch {
+            // Fallback only if error recovery completely fails
+            window.location.reload();
+          }
         }
       },
       status: "pending",
