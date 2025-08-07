@@ -40,6 +40,7 @@ import React, {
 } from "react";
 import { logger } from "@/utils/logger";
 import { pwaIntegrator } from "@/lib/pwa/pwa-integration";
+import { errorRecovery } from '@/services/errorRecoveryService';
 
 // PHASE 4B: Import required hooks and types for verification
 import { useNetworkStatus, useOfflineInspection } from "@/hooks/usePWA";
@@ -1350,7 +1351,29 @@ export const OfflineInspectionWorkflow: React.FC<
         <p className="text-red-600 text-center mb-4">{errorMessage}</p>
         <button
           id="retry-initialization-button"
-          onClick={() => window.location.reload()}
+          onClick={async () => {
+            try {
+              await errorRecovery.handleError(
+                new Error('Offline inspection workflow retry requested'),
+                {
+                  operation: 'offline_workflow_retry',
+                  component: 'OfflineInspectionWorkflow',
+                  timestamp: new Date(),
+                  data: { 
+                    propertyId,
+                    inspectionId,
+                    errorMessage,
+                    workflowState
+                  }
+                }
+              );
+              // Try to reinitialize the workflow instead of reloading
+              window.location.href = `/inspection/${propertyId}`;
+            } catch {
+              // Fallback only if error recovery completely fails
+              window.location.reload();
+            }
+          }}
           className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           Retry Initialization
