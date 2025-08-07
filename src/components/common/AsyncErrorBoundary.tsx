@@ -15,6 +15,7 @@ import { Loader2, Wifi, WifiOff, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { errorRecovery } from '@/services/errorRecoveryService';
 import { logger } from "@/utils/logger";
 
 interface AsyncErrorBoundaryState {
@@ -452,11 +453,27 @@ export class AsyncErrorBoundary extends Component<
               {networkStatus === "offline" && (
                 <Button
                   variant="ghost"
-                  onClick={() => window.location.reload()}
+                  onClick={async () => {
+                    try {
+                      await errorRecovery.handleError(
+                        new Error('Async error boundary - offline recovery requested'),
+                        {
+                          operation: 'async_offline_recovery',
+                          component: 'AsyncErrorBoundary',
+                          timestamp: new Date(),
+                          data: { networkStatus, operationType }
+                        }
+                      );
+                      this.clearError();
+                    } catch {
+                      // Fallback only if error recovery completely fails
+                      window.location.reload();
+                    }
+                  }}
                   size="sm"
                   className="w-full"
                 >
-                  Reload when online
+                  Recover when online
                 </Button>
               )}
             </div>
@@ -509,7 +526,23 @@ export class AsyncErrorBoundary extends Component<
 
             <Button
               variant="outline"
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                try {
+                  await errorRecovery.handleError(
+                    new Error('Async error boundary - offline connection check requested'),
+                    {
+                      operation: 'async_connection_check',
+                      component: 'AsyncErrorBoundary',
+                      timestamp: new Date(),
+                      data: { networkStatus: this.state.networkStatus }
+                    }
+                  );
+                  this.updateNetworkStatus();
+                } catch {
+                  // Fallback only if error recovery completely fails
+                  window.location.reload();
+                }
+              }}
               size="sm"
             >
               <Wifi className="w-4 h-4 mr-2" />
