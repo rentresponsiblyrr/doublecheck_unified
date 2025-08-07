@@ -9,6 +9,8 @@
  * - Performance optimization
  */
 
+import { debugLogger } from "@/utils/debugLogger";
+
 export interface ClaudeServiceConfig {
   apiKey: string;
   model?: string;
@@ -171,7 +173,7 @@ export class ClaudeService {
         },
       };
 
-      console.log("Claude photo analysis completed", {
+      debugLogger.info("ClaudeService", "Claude photo analysis completed", {
         inspectionId: request.inspectionId,
         confidence: result.analysis.confidence,
         processingTime,
@@ -180,7 +182,7 @@ export class ClaudeService {
 
       return result;
     } catch (error) {
-      console.error("Claude photo analysis failed", error);
+      debugLogger.error("ClaudeService", "Claude photo analysis failed", error);
       throw error;
     }
   }
@@ -214,7 +216,7 @@ export class ClaudeService {
         },
       };
 
-      console.log("Claude text generation completed", {
+      debugLogger.info("ClaudeService", "Claude text generation completed", {
         processingTime,
         cost: result.usage.cost,
         outputLength: result.content.length,
@@ -222,7 +224,7 @@ export class ClaudeService {
 
       return result;
     } catch (error) {
-      console.error("Claude text generation failed", error);
+      debugLogger.error("ClaudeService", "Claude text generation failed", error);
       throw error;
     }
   }
@@ -273,7 +275,7 @@ export class ClaudeService {
         },
       };
 
-      console.log("Claude code review completed", {
+      debugLogger.info("ClaudeService", "Claude code review completed", {
         filePath: request.filePath,
         score: result.review.score,
         issuesCount: result.review.issues.length,
@@ -283,7 +285,7 @@ export class ClaudeService {
 
       return result;
     } catch (error) {
-      console.error("Claude code review failed", error);
+      debugLogger.error("ClaudeService", "Claude code review failed", error);
       throw error;
     }
   }
