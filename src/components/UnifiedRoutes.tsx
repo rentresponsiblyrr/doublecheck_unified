@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/lib/error/error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import { debugLogger } from "@/utils/debugLogger";
 
 // PROFESSIONAL LAZY LOADING - META/NETFLIX/STRIPE STANDARDS
 // Only import critical components immediately
@@ -65,7 +66,7 @@ export default function UnifiedRoutes({ user }: UnifiedRoutesProps) {
     try {
       navigate("/admin");
     } catch (error) {
-      console.error("Navigation to admin failed:", error);
+      debugLogger.error("UnifiedRoutes", "Navigation to admin failed", error);
       // Graceful fallback - stay on current page and show error
     }
   }, [navigate]);
