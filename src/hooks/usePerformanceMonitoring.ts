@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface PerformanceMetrics {
   renderTime: number;
@@ -115,7 +116,9 @@ export const usePerformanceMonitoring = (
         observer.observe({ entryTypes: ["measure", "navigation"] });
 
         return () => observer.disconnect();
-      } catch (error) {}
+      } catch (error) {
+        debugLogger.error('usePerformanceMonitoring', 'Failed to setup performance observer', { error });
+      }
     }
   }, [thresholds.renderTime]);
 
