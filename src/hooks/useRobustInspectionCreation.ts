@@ -6,12 +6,13 @@
  */
 
 import { useSimpleInspectionFlow } from "@/hooks/useSimpleInspectionFlow";
+import { debugLogger } from "@/utils/debugLogger";
 
 export const useRobustInspectionCreation = () => {
   const { startOrResumeInspection, isLoading, error } = useSimpleInspectionFlow();
 
   const createInspection = async (propertyId: string) => {
-    console.log("🔄 ROBUST INSPECTION CREATION - USING SIMPLE FLOW", {
+    debugLogger.info("useRobustInspectionCreation", "🔄 ROBUST INSPECTION CREATION - USING SIMPLE FLOW", {
       propertyId,
       timestamp: new Date().toISOString(),
     });
@@ -20,10 +21,10 @@ export const useRobustInspectionCreation = () => {
     const result = await startOrResumeInspection(propertyId);
     
     if (result) {
-      console.log("✅ Robust creation succeeded via simple flow", { inspectionId: result });
+      debugLogger.info("useRobustInspectionCreation", "✅ Robust creation succeeded via simple flow", { inspectionId: result });
       return result;
     } else {
-      console.log("❌ Robust creation failed gracefully (no loops)");
+      debugLogger.warn("useRobustInspectionCreation", "❌ Robust creation failed gracefully (no loops)");
       return null;
     }
   };
