@@ -10,6 +10,7 @@
  */
 
 import { createLogger, getGlobalLogger } from "../logging/enterprise-logger";
+import { debugLogger } from '@/utils/debugLogger';
 import DistributedTracer from "../tracing/distributed-tracer";
 import APMIntegration from "../monitoring/apm-integration";
 import { enterpriseServiceTracer } from "../services/enterprise-service-tracer";
@@ -508,7 +509,9 @@ class EnterpriseInitializer {
       // Export remaining APM metrics
       const apm = APMIntegration.getInstance();
       await apm.exportToAPM();
-    } catch (error) {}
+    } catch (error) {
+      debugLogger.error('EnterpriseInitialization', 'Failed during enterprise initialization', { error, stage: 'initialization' });
+    }
   }
 
   /**
