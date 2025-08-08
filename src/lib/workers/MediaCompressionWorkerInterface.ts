@@ -3,6 +3,8 @@
  * Provides type-safe communication with worker for video/photo compression
  */
 
+import { debugLogger } from "@/lib/logger/debug-logger";
+
 // Type definitions for worker interface
 type ResolverFunction<T> = (value: T | PromiseLike<T>) => void;
 type RejectorFunction = (reason?: unknown) => void;
@@ -87,11 +89,11 @@ export class MediaCompressionWorkerInterface {
         this.worker.onmessage = this.handleWorkerMessage.bind(this);
         this.worker.onerror = this.handleWorkerError.bind(this);
         this.isReady = true;
-        console.log(
+        debugLogger.info(
           "MediaCompressionWorker: Web Worker initialized successfully",
         );
       } catch (error) {
-        console.warn(
+        debugLogger.warn(
           "MediaCompressionWorker: Failed to initialize Web Worker, falling back to main thread:",
           error,
         );
@@ -100,7 +102,7 @@ export class MediaCompressionWorkerInterface {
         this.workerSupported = false;
       }
     } else {
-      console.log(
+      debugLogger.info(
         "MediaCompressionWorker: Web Workers not supported, using fallback processing",
       );
       this.isReady = false;
@@ -112,7 +114,7 @@ export class MediaCompressionWorkerInterface {
     const promise = this.pendingPromises.get(id);
 
     if (!promise) {
-      console.warn(`No pending promise found for worker response ID: ${id}`);
+      debugLogger.warn(`No pending promise found for worker response ID: ${id}`);
       return;
     }
 
@@ -126,7 +128,7 @@ export class MediaCompressionWorkerInterface {
   }
 
   private handleWorkerError(error: ErrorEvent) {
-    console.error("Media Compression Worker error:", error);
+    debugLogger.error("Media Compression Worker error:", error);
     // Reject all pending promises
     this.pendingPromises.forEach(({ reject }) => {
       reject(new Error(`Worker error: ${error.message}`));
@@ -183,7 +185,7 @@ export class MediaCompressionWorkerInterface {
     file: File,
     options: WorkerOptions,
   ): Promise<T> {
-    console.log(
+    debugLogger.info(
       `MediaCompressionWorker: Using fallback processing for ${type}`,
     );
 
