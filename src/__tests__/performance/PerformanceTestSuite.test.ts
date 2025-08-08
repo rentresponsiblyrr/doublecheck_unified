@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { globalPerformanceMonitor } from "@/lib/performance/PerformanceMonitor";
 import { globalCodeSplittingManager } from "@/lib/performance/CodeSplittingManager";
 import { globalCacheManager } from "@/lib/caching/IntelligentCacheManager";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface PerformanceTestResult {
   category: string;

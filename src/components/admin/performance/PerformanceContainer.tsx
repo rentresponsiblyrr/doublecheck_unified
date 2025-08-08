@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Settings } from "lucide-react";
 import {
@@ -95,7 +96,7 @@ export const PerformanceContainer: React.FC<PerformanceContainerProps> = ({
         { timestamp, value: mockAppMetrics.responseTime },
       ]);
     } catch (error) {
-      console.error("Failed to fetch metrics:", error);
+      debugLogger.error("Failed to fetch metrics:", error);
     } finally {
       setIsLoading(false);
     }

@@ -29,6 +29,7 @@
  */
 
 import React, { useState, useCallback } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -150,7 +151,7 @@ const ChecklistManagementRedesigned: React.FC<
         setShowDeleteDialog(false);
         setItemToDelete(null);
       } catch (error) {
-        console.error("Failed to delete item:", error);
+        debugLogger.error("Failed to delete item:", error);
       } finally {
         setDeleteLoading(false);
       }
@@ -200,7 +201,7 @@ const ChecklistManagementRedesigned: React.FC<
         }
         handleDialogClose();
       } catch (error) {
-        console.error("Failed to save item:", error);
+        debugLogger.error("Failed to save item:", error);
       } finally {
         setSubmitLoading(false);
       }

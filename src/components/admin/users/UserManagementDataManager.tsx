@@ -35,6 +35,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { useToast } from "@/hooks/use-toast";
 import {
   User,
@@ -156,7 +157,7 @@ export const UserManagementDataManager: React.FC<
         setDiagnostic(diagnosticResults);
       }
     } catch (error) {
-      console.warn("Diagnostics failed:", error);
+      debugLogger.warn("Diagnostics failed:", error);
     }
   }, [systemDiagnosticService]);
 
