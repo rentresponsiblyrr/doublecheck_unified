@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, AlertTriangle, Clock, TrendingDown } from "lucide-react";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 import { logger } from "@/lib/logger/production-logger";
 
 interface MetricErrorBoundaryProps {

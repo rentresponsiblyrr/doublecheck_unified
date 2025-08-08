@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedRole } from "@/utils/mobileCacheUtils";
+import { debugLogger } from "@/utils/debugLogger";
 
 interface UseAuthInitializationProps {
   setSession: (session: unknown) => void;
@@ -55,7 +56,9 @@ export const useAuthInitialization = ({
               .then((role) => {
                 setUserRole(role);
               })
-              .catch(() => {});
+              .catch((error) => {
+                debugLogger.error('useAuthInitialization', 'Role fetch failed during initialization', { error, userId: session.user.id });
+              });
           }
         } else {
           setUserRole(null);

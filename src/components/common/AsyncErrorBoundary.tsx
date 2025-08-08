@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { debugLogger } from "@/utils/debugLogger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 import { logger } from "@/utils/logger";
 
 interface AsyncErrorBoundaryState {

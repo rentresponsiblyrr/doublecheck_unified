@@ -11,7 +11,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { logger } from "@/utils/logger";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 // EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
 import { ErrorFallbackUI } from "./GlobalErrorBoundary/components/ErrorFallbackUI";

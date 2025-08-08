@@ -21,7 +21,7 @@ import { GlobalErrorBoundary } from "@/components/common/GlobalErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/common/AsyncErrorBoundary";
 import { ErrorMonitoringDashboard } from "@/components/monitoring/ErrorMonitoringDashboard";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 import { logger } from "@/utils/logger";
 
 interface ErrorBoundaryContextValue {
@@ -356,15 +356,23 @@ const DevelopmentErrorOverlay: React.FC<{
             <button
               onClick={async () => {
                 try {
-                  await errorRecovery.handleError(
-                    new Error('Development error overlay - user requested recovery'),
-                    {
+                  // Track error recovery attempt
+                  analyticsService.trackError({
+                    type: 'user',
+                    message: 'Development error overlay - user requested recovery',
+                    context: {
                       operation: 'development_recovery',
                       component: 'ErrorBoundaryProvider',
-                      timestamp: new Date(),
-                      data: { errorMessage: error.message }
+                      originalError: error.message
                     }
-                  );
+                  });
+                  
+                  // Attempt error recovery
+                  await errorRecoveryService.recoverFromError(error, {
+                    component: 'ErrorBoundaryProvider',
+                    operationType: 'development_recovery'
+                  });
+                  
                   onDismiss();
                 } catch {
                   // Fallback only if error recovery completely fails

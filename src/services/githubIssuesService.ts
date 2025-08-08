@@ -222,7 +222,10 @@ class GitHubIssuesService {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch((error) => {
+          logger.warn('GitHubIssuesService', 'Failed to parse error response JSON', { error, status: response.status });
+          return {};
+        });
         throw new Error(
           `GitHub API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`,
         );
