@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface InspectionFlowState {
   isLoading: boolean;
@@ -29,7 +30,7 @@ export const useSimpleInspectionFlow = () => {
     setState({ isLoading: true, error: null });
 
     try {
-      console.log("🚀 SIMPLE INSPECTION FLOW STARTED", {
+      debugLogger.info("Simple inspection flow started", {
         propertyId,
         timestamp: new Date().toISOString(),
       });
@@ -38,7 +39,7 @@ export const useSimpleInspectionFlow = () => {
       const { data: authData, error: authError } = await supabase.auth.getUser();
       
       if (authError || !authData.user) {
-        console.log("❌ Auth check failed", { authError });
+        debugLogger.error("Auth check failed", { authError });
         toast({
           title: "Authentication Required",
           description: "Please sign in to start inspections.",
@@ -49,10 +50,10 @@ export const useSimpleInspectionFlow = () => {
       }
 
       const userId = authData.user.id;
-      console.log("✅ User authenticated", { userId });
+      debugLogger.info("User authenticated", { userId });
 
       // Step 2: Check for ANY existing inspection for this property by this user
-      console.log("🔍 Checking for existing inspections...");
+      debugLogger.info("Checking for existing inspections");
       
       const { data: existingInspections, error: queryError } = await supabase
         .from("inspections")
@@ -62,7 +63,7 @@ export const useSimpleInspectionFlow = () => {
         .order("created_at", { ascending: false });
 
       if (queryError) {
-        console.log("❌ Query error (non-fatal)", { queryError });
+        debugLogger.warn("Query error (non-fatal)", { queryError });
         // Don't fail here - continue to create new inspection
       }
 
@@ -70,14 +71,14 @@ export const useSimpleInspectionFlow = () => {
       if (existingInspections && existingInspections.length > 0) {
         const latestInspection = existingInspections[0];
         
-        console.log("🔄 Found existing inspection", {
+        debugLogger.info("Found existing inspection", {
           inspectionId: latestInspection.id,
           status: latestInspection.status,
         });
 
         // Only resume if it's not in final states
         if (!["cancelled", "approved"].includes(latestInspection.status)) {
-          console.log("✅ Resuming existing inspection");
+          debugLogger.info("Resuming existing inspection");
           
           const inspectionUrl = `/inspection/${latestInspection.id}`;
           navigate(inspectionUrl);
@@ -91,11 +92,11 @@ export const useSimpleInspectionFlow = () => {
           return latestInspection.id;
         }
         
-        console.log("⚠️ Existing inspection is in final state, will create new one");
+        debugLogger.info("Existing inspection is in final state, will create new one");
       }
 
       // Step 4: Create new inspection using our simple service
-      console.log("🆕 Creating new inspection using SimpleInspectionService...");
+      debugLogger.info("Creating new inspection using SimpleInspectionService");
       
       const { SimpleInspectionService } = await import("@/services/simpleInspectionService");
       const result = await SimpleInspectionService.createInspection({
@@ -104,7 +105,7 @@ export const useSimpleInspectionFlow = () => {
       });
 
       if (!result.success) {
-        console.log("🚨 Failed to create inspection", { error: result.error });
+        debugLogger.error("Failed to create inspection", { error: result.error });
         toast({
           title: "Unable to Create Inspection",
           description: result.error || "Please try again.",
@@ -130,7 +131,7 @@ export const useSimpleInspectionFlow = () => {
       }
 
       if (!newInspection?.id) {
-        console.log("❌ No inspection ID returned");
+        debugLogger.error("No inspection ID returned");
         toast({
           title: "Creation Failed",
           description: "No inspection ID was returned. Please try again.",
@@ -140,7 +141,7 @@ export const useSimpleInspectionFlow = () => {
         return null;
       }
 
-      console.log("✅ New inspection created", { inspectionId: newInspection.id });
+      debugLogger.info("New inspection created", { inspectionId: newInspection.id });
 
       // Step 5: Navigate to the new inspection
       const inspectionUrl = `/inspection/${newInspection.id}`;
@@ -156,7 +157,7 @@ export const useSimpleInspectionFlow = () => {
 
     } catch (error) {
       // CRITICAL: Never throw errors - always handle gracefully
-      console.log("🚨 SIMPLE FLOW ERROR (HANDLED)", {
+      debugLogger.error("Simple flow error (handled)", {
         error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       });
