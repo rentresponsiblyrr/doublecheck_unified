@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   InspectionItemData,
   InspectionEvidence,
@@ -268,7 +269,7 @@ export const useOfflineInspectionWorkflow = (
       switch (action) {
         case "capture_photo":
           // Trigger photo capture - implementation would go here
-          console.log(`Capturing photo for item ${itemId}`);
+          debugLogger.info(`Capturing photo for item ${itemId}`);
           break;
         case "mark_complete":
           updateItemStatus(itemId, "completed");
@@ -278,10 +279,10 @@ export const useOfflineInspectionWorkflow = (
           break;
         case "add_note":
           // Trigger note dialog - implementation would go here
-          console.log(`Adding note for item ${itemId}`);
+          debugLogger.info(`Adding note for item ${itemId}`);
           break;
         default:
-          console.warn(`Unknown action: ${action}`);
+          debugLogger.warn(`Unknown action: ${action}`);
       }
     },
     [updateItemStatus],
