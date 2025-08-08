@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import type { PropertyFormData } from "@/types/propertySubmission";
 import { ScrapedPropertyData } from "@/types/scraped-data";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 export const SimplePropertyForm = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();
@@ -64,7 +65,7 @@ export const SimplePropertyForm = () => {
           });
         }
       } catch (error) {
-        console.warn("Failed to load property for editing:", error);
+        debugLogger.warn("Failed to load property for editing:", error);
       } finally {
         setIsLoadingProperty(false);
       }
@@ -99,7 +100,7 @@ export const SimplePropertyForm = () => {
 
     const success = await submitProperty(submissionData);
     if (!success) {
-      console.warn("Property submission failed");
+      debugLogger.warn("Property submission failed");
     }
   };
 
