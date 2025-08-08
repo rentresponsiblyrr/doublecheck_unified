@@ -9,6 +9,8 @@
  * - Advanced performance budgets and alerts
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
@@ -152,7 +154,7 @@ export class CoreWebVitalsOptimizer {
           ],
         });
       } catch (error) {
-        console.warn("Failed to observe performance entries:", error);
+        debugLogger.warn("Failed to observe performance entries", { error });
       }
     }
 
@@ -246,7 +248,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: "largest-contentful-paint", buffered: true });
     } catch (error) {
-      console.warn("Failed to observe LCP:", error);
+      debugLogger.warn("Failed to observe LCP", { error });
     }
   }
 
@@ -265,7 +267,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: "first-input", buffered: true });
     } catch (error) {
-      console.warn("Failed to observe FID:", error);
+      debugLogger.warn("Failed to observe FID", { error });
     }
   }
 
@@ -289,7 +291,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: "layout-shift", buffered: true });
     } catch (error) {
-      console.warn("Failed to observe CLS:", error);
+      debugLogger.warn("Failed to observe CLS", { error });
     }
   }
 
@@ -312,7 +314,7 @@ export class CoreWebVitalsOptimizer {
     try {
       observer.observe({ type: "event", buffered: true });
     } catch (error) {
-      console.warn("Failed to observe INP:", error);
+      debugLogger.warn("Failed to observe INP", { error });
     }
   }
 
@@ -464,7 +466,7 @@ export class CoreWebVitalsOptimizer {
             break;
           }
         } catch (error) {
-          console.warn("Optimization failed, rolling back:", error);
+          debugLogger.warn("Optimization failed, rolling back", { error });
           await optimization.rollback();
         }
       }
@@ -923,7 +925,7 @@ export class CoreWebVitalsOptimizer {
       try {
         await optimization.implementation();
       } catch (error) {
-        console.warn("Force optimization failed:", error);
+        debugLogger.warn("Force optimization failed", { error });
       }
     }
   }
