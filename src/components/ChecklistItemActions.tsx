@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface ChecklistItemActionsProps {
   itemId: string;
@@ -92,7 +93,7 @@ export const ChecklistItemActions = ({
       }
 
       if (statusError) {
-        console.error('Update error details:', statusError);
+        debugLogger.error('Update error details', { error: statusError });
         // Enhanced error handling for common mobile issues
         if (
           statusError.message?.includes("timeout") ||
@@ -137,7 +138,7 @@ export const ChecklistItemActions = ({
               });
           } catch (error) {
             // Log error but don't block UI - notes are secondary
-            console.log('Note history save failed, but status updated successfully');
+            debugLogger.info('Note history save failed, but status updated successfully');
           }
         };
         saveNotes();
