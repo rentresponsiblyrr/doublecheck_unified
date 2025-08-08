@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useRef, useCallback } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import type { PhotoGuidance, ChecklistItem } from "@/types/photo";
 
 export interface PhotoCaptureMetadata {
@@ -74,7 +75,7 @@ export const PhotoCaptureDataManager: React.FC<
       .map((m) => m.message);
 
     if (qualityIssues.length > 0) {
-      console.warn("Quality issues detected:", qualityIssues);
+      debugLogger.warn("Quality issues detected:", qualityIssues);
     }
 
     setIsProcessing(true);
@@ -136,7 +137,7 @@ export const PhotoCaptureDataManager: React.FC<
       // Show feedback if quality issues detected
       if (!qualityResult.isAcceptable) {
         const feedback = PhotoQualityService.getFeedbackMessage(qualityResult);
-        console.warn("Photo quality issues:", qualityResult.issues);
+        debugLogger.warn("Photo quality issues:", qualityResult.issues);
         
         // Show user feedback (non-blocking)
         if (qualityResult.suggestions.length > 0) {
@@ -166,7 +167,7 @@ export const PhotoCaptureDataManager: React.FC<
       // Call the onPhotoCapture callback
       onPhotoCapture(photoFile, metadata);
     } catch (error) {
-      console.error("Photo capture failed:", error);
+      debugLogger.error("Photo capture failed:", error);
       alert("Failed to capture photo. Please try again.");
     } finally {
       setIsProcessing(false);
