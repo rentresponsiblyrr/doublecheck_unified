@@ -21,9 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bug } from "lucide-react";
 
-import { userActivityService } from "@/services/userActivityService";
+import { analyticsService } from "@/services/core/AnalyticsService";
 import { screenshotCaptureService } from "@/utils/screenshotCapture";
-import { githubIssuesService } from "@/services/githubIssuesService";
+import { notificationService } from "@/services/core/NotificationService";
 import { intelligentBugReportService } from "@/services/intelligentBugReportService";
 import { useAuthState } from "@/hooks/useAuthState";
 import { logger } from "@/utils/logger";

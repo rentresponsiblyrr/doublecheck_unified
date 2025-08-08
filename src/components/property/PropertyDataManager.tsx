@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { supabase } from "@/integrations/supabase/client";
 import type { ChecklistItem } from "@/types/database-verified";
-import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
+import { syncService } from "@/services/core/SyncService";
 import { logger } from "@/utils/logger";
 
 /**

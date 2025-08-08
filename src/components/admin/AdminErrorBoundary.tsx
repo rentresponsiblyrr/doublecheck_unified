@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, RefreshCw, Home, Bug, Trash2 } from "lucide-react";
 import { logger } from "@/lib/logger/production-logger";
-import { cacheManager } from "@/services/cacheManagementService";
+import { configService } from "@/services/core/ConfigService";
 import { debugLogger } from '@/utils/debugLogger';
 
 interface Props {

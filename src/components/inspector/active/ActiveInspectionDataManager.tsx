@@ -15,7 +15,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { workflowStatePersistence } from "@/services/WorkflowStatePersistence";
+import { syncService } from "@/services/core/SyncService";
 import { logger } from "@/utils/logger";
 import { useAuth } from "@/hooks/useAuth";
 import type { ChecklistItem } from "@/types/database-verified";
