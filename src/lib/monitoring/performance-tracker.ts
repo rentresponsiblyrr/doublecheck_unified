@@ -471,9 +471,9 @@ export class PerformanceTracker {
       data: details,
     });
 
-    // Log to console in development
+    // Log to debug logger in development
     if (import.meta.env.DEV) {
-      console.warn(`Slow ${type} operation:`, {
+      debugLogger.warn(`Slow ${type} operation:`, {
         duration,
         details,
       });
