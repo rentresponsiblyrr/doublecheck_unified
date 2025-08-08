@@ -10,6 +10,7 @@
  */
 
 import { logger } from "@/lib/logger/production-logger";
+import { debugLogger } from '@/utils/debugLogger';
 
 /**
  * Comprehensive DOM safety utilities with bulletproof error handling
@@ -31,7 +32,7 @@ export class DOMSafetyUtils {
    * @example
    * ```typescript
    * const classes = DOMSafetyUtils.getElementClasses(element);
-   * console.log(classes); // ['class1', 'class2'] or []
+   * debugLogger.info('Element classes extracted', { classes }); // ['class1', 'class2'] or []
    * ```
    */
   static getElementClasses(element: Element | null): string[] {
