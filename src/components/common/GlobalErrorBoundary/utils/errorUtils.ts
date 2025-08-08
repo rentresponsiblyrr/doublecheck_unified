@@ -8,6 +8,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 export interface ErrorInfo extends Error {
   componentStack?: string;
@@ -42,11 +43,11 @@ export const logErrorToService = (
 
   // Log to console in development
   if (process.env.NODE_ENV === "development") {
-    console.group("🚨 Error Boundary Caught Error");
-    console.error("Error:", error);
-    console.error("Error Info:", errorInfo);
-    console.error("Context:", errorPayload.context);
-    console.groupEnd();
+    debugLogger.startGroup("🚨 Error Boundary Caught Error");
+    debugLogger.error("Error:", error);
+    debugLogger.error("Error Info:", errorInfo);
+    debugLogger.error("Context:", errorPayload.context);
+    debugLogger.endGroup();
   }
 
   // Log to production service
