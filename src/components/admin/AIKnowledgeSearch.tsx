@@ -27,6 +27,7 @@ import {
   Activity,
 } from "lucide-react";
 import { sanitizeSearchQuery, validateAndSanitize } from "@/utils/validation";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import type {
   LearningInsight,
   KnowledgeSearchResult,
@@ -62,7 +63,7 @@ export const AIKnowledgeSearch: React.FC<AIKnowledgeSearchProps> = ({
         setHasSearched(true);
       }
     } catch (error) {
-      console.error("Search validation failed:", error);
+      debugLogger.error("Search validation failed:", error);
     }
   };
 
