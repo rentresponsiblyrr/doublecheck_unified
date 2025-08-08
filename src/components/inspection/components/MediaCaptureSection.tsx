@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useRef } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 export interface MediaCaptureProps {
   activeItemId: string | null;
@@ -94,7 +95,7 @@ export const MediaCaptureSection: React.FC<MediaCaptureProps> = ({
         fileInputRef.current?.click();
       }
     } catch (error) {
-      console.error("Photo capture failed:", error);
+      debugLogger.error("Photo capture failed:", error);
       // Fallback to file input
       fileInputRef.current?.click();
     } finally {
