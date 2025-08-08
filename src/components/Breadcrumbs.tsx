@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Home } from "lucide-react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 interface BreadcrumbItem {
   label: string;
@@ -26,7 +27,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
         navigate(path);
       } catch (error) {
         // Professional fallback without nuclear navigation
-        console.warn(
+        debugLogger.warn(
           "Navigation error, attempting window.history fallback:",
           error,
         );
