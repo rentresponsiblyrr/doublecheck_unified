@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, RefreshCw, Home, Bug, Trash2 } from "lucide-react";
 import { logger } from "@/lib/logger/production-logger";
 import { cacheManager } from "@/services/cacheManagementService";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface Props {
   children: ReactNode;
@@ -312,7 +313,7 @@ export class AdminErrorBoundary extends Component<Props, State> {
               {process.env.NODE_ENV === "development" && (
                 <Button
                   onClick={() => {
-                    console.error("Admin Error Details:", {
+                    debugLogger.error("Admin Error Details", {
                       error: this.state.error,
                       errorInfo: this.state.errorInfo,
                       errorId: this.state.errorId,
