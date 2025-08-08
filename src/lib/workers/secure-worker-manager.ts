@@ -14,6 +14,7 @@
 
 import { z } from "zod";
 import { PIIProtectionService } from "../security/pii-protection";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 // Worker security configuration
 const WORKER_CONFIG = {
@@ -146,7 +147,7 @@ export class SecureWorkerManager {
       // Find pending task
       const task = this.pendingTasks.get(response.id);
       if (!task) {
-        console.warn("Received response for unknown task:", response.id);
+        debugLogger.warn("Received response for unknown task:", response.id);
         return;
       }
 
@@ -166,7 +167,7 @@ export class SecureWorkerManager {
         );
       }
     } catch (error) {
-      console.error("Error handling worker message:", error);
+      debugLogger.error("Error handling worker message:", error);
     }
   }
 
@@ -174,7 +175,7 @@ export class SecureWorkerManager {
    * Handles worker errors
    */
   private handleWorkerError(error: ErrorEvent): void {
-    console.error("Worker error:", error);
+    debugLogger.error("Worker error:", error);
     this.rejectAllPendingTasks(
       new WorkerSecurityError("Worker encountered an error", "WORKER_ERROR", {
         error: error.message,
@@ -187,7 +188,7 @@ export class SecureWorkerManager {
    * Handles worker message errors
    */
   private handleWorkerMessageError(error: MessageEvent): void {
-    console.error("Worker message error:", error);
+    debugLogger.error("Worker message error:", error);
     this.rejectAllPendingTasks(
       new WorkerSecurityError(
         "Worker message parsing failed",
@@ -369,7 +370,7 @@ export class SecureWorkerManager {
         try {
           this.worker.postMessage(heartbeatMessage);
         } catch (error) {
-          console.error("Heartbeat failed:", error);
+          debugLogger.error("Heartbeat failed:", error);
           this.restartWorker();
         }
       }
@@ -392,7 +393,7 @@ export class SecureWorkerManager {
   private restartWorker(): void {
     if (this.isTerminating) return;
 
-    console.log("Restarting worker...");
+    debugLogger.info("Restarting worker...");
 
     // Reject all pending tasks
     this.rejectAllPendingTasks(
