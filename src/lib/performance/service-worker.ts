@@ -254,7 +254,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
         !type.includes("BRIDGE") &&
         !type.includes("INTEGRATION")
       ) {
-        console.warn("[ServiceWorker] Unknown message type:", type);
+        debugLogger.warn("[ServiceWorker] Unknown message type:", type);
       }
 
       // Send acknowledgment only if there's a port available
@@ -616,7 +616,7 @@ function getOfflineFallback(request: Request): Response {
           <div class="icon">📡</div>
           <h1>You're Offline</h1>
           <p>No internet connection detected. Please check your network and try again.</p>
-          <button class="retry" onclick="window.navigator.onLine && fetch('/').then(() => self.clients.claim()).catch(() => console.log('Retry failed'))">Try Again</button>
+          <button class="retry" onclick="window.navigator.onLine && fetch('/').then(() => self.clients.claim()).catch(() => debugLogger.info('Retry failed'))">Try Again</button>
         </div>
       </body>
       </html>
