@@ -21,6 +21,7 @@ import {
   type InspectionId,
   type UserId,
 } from "./systemStatusConstants";
+import { debugLogger } from '@/utils/debugLogger';
 
 /**
  * Comprehensive system metrics interface with strict typing
@@ -99,7 +100,7 @@ class SmartCache {
    * ```typescript
    * const metrics = await smartCache.get<SystemMetrics>('system-metrics-v1');
    * if (metrics) {
-   *   console.log('Using cached metrics:', metrics);
+   *   debugLogger.info('Using cached metrics', { metrics });
    * }
    * ```
    *
@@ -124,7 +125,7 @@ class SmartCache {
 
       return entry.data as T;
     } catch (error) {
-      console.warn("Cache get operation failed:", error);
+      debugLogger.warn("Cache get operation failed", { error });
       return null;
     }
   }
@@ -169,7 +170,7 @@ class SmartCache {
 
       this.cache.set(key, entry);
     } catch (error) {
-      console.warn("Cache set operation failed:", error);
+      debugLogger.warn("Cache set operation failed", { error });
     }
   }
 
@@ -264,7 +265,7 @@ export function validateAndProcessMetrics(rawData: unknown): SystemMetrics {
   try {
     // Handle null/undefined data gracefully
     if (!rawData || typeof rawData !== "object") {
-      console.warn("Invalid metrics data received, using fallback values");
+      debugLogger.warn("Invalid metrics data received, using fallback values");
       return {
         ...FALLBACK_VALUES.systemMetrics,
         lastUpdated: new Date().toISOString(),
@@ -346,7 +347,7 @@ export function validateAndProcessMetrics(rawData: unknown): SystemMetrics {
 
     return validatedMetrics;
   } catch (error) {
-    console.error("Error validating metrics data:", error);
+    debugLogger.error("Error validating metrics data", { error });
 
     // Return safe fallback data on any validation error
     return {
@@ -629,7 +630,7 @@ export async function fetchSystemMetricsWithCache(): Promise<SystemMetrics> {
 
     return processedMetrics;
   } catch (error) {
-    console.error("System metrics fetch failed:", error);
+    debugLogger.error("System metrics fetch failed", { error });
 
     // Return graceful fallback - never throw errors to UI
     const fallbackMetrics: SystemMetrics = {
@@ -796,7 +797,7 @@ export function cleanupSystemStatusResources(): number {
 
     return cleanedCount;
   } catch (error) {
-    console.warn("Error during system status cleanup:", error);
+    debugLogger.warn("Error during system status cleanup", { error });
     return 0;
   }
 }
