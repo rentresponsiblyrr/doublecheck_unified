@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePWAStatus } from "@/hooks/usePWAStatus";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   Smartphone,
   Download,
@@ -190,7 +191,7 @@ export const MobileInstallPrompt: React.FC<MobileInstallPromptProps> = ({
         setShowPrompt(true); // Keep prompt open to show instructions
       }
     } catch (error) {
-      console.error("Install failed:", error);
+      debugLogger.error("Install failed:", error);
     } finally {
       setIsInstalling(false);
     }
