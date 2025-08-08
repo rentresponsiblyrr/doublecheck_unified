@@ -14,7 +14,7 @@ import { debugLogger } from "@/lib/logger/debug-logger";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
 import { memoryLeakDetector } from "@/lib/memory/MemoryLeakDetector";
 import { intelligentCacheInvalidation } from "@/lib/cache/IntelligentCacheInvalidation";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 // EXTRACTED COMPONENTS - ARCHITECTURAL EXCELLENCE
 import { OverviewTab } from "./ErrorMonitoringDashboard/components/OverviewTab";

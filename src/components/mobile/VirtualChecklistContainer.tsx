@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { mobileOptimization } from '@/services/mobileOptimizationService';
+import { configService } from '@/services/core/ConfigService';
 import { useOfflineInspection } from '@/hooks/useOfflineInspection';
 import { cn } from '@/lib/utils';
 

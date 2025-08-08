@@ -4,7 +4,7 @@ import { debugLogger } from "@/utils/debugLogger";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileAuth } from "@/hooks/useMobileAuth";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 interface ErrorRecoveryState {
   errorCount: number;

@@ -20,8 +20,8 @@ import { logger } from "@/utils/logger";
 import { useAuth } from "@/hooks/useAuth";
 import type { ChecklistItem } from "@/types/database-verified";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { emergencyAuthService } from "@/services/emergency/EmergencyAuthService";
-import { emergencyDatabaseFallback } from "@/services/emergency/EmergencyDatabaseFallback";
+import { authService } from "@/services/core/AuthService";
+import { syncService } from "@/services/core/SyncService";
 
 export interface ActiveInspectionSummary {
   inspectionId: string;
@@ -88,8 +88,8 @@ class ActiveInspectionService {
         "ACTIVE_INSPECTIONS",
       );
 
-      // EMERGENCY: Use emergency fallback for RPC function that returns 404
-      const inspections = await emergencyDatabaseFallback.executeWithFallback(
+      // Use sync service for fallback execution
+      const inspections = await syncService.executeWithRetry(
         async () => {
           // Try RPC function first (will fail with 404)
           const { data: rpcInspections, error: inspectionsError } =

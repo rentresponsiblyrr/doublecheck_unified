@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, RefreshCw, Home, Bug } from 'lucide-react';
 import { logger } from '@/utils/logger';
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 interface Props {
   children: ReactNode;

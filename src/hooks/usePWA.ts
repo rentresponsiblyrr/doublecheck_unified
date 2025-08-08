@@ -37,7 +37,7 @@ import { offlineStatusManager } from '@/lib/pwa/OfflineStatusManager';
 import { installPromptHandler } from '@/lib/pwa/InstallPromptHandler';
 import { lazyLoadManager } from '@/lib/pwa/LazyLoadManager';
 import { gestureController } from '@/lib/pwa/GestureController';
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 import { logger } from '@/utils/logger';
 
 // PHASE 4B: Import new PWA types and managers

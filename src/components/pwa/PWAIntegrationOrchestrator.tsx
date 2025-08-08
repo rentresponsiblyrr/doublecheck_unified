@@ -4,7 +4,7 @@ import { PWAErrorBoundary } from "./PWAErrorBoundary";
 import { PWAPerformanceMonitor } from "./PWAPerformanceMonitor";
 import { PWAInstallPrompt } from "./PWAInstallPrompt";
 import { OfflineInspectionWorkflow } from "@/components/inspection/OfflineInspectionWorkflow";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 import { logger } from "@/utils/logger";
 
 interface PWAOrchestrationState {

@@ -30,7 +30,7 @@
  */
 
 import { logger } from "@/utils/logger";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 // Core interfaces for service worker management
 export interface CacheStrategy {

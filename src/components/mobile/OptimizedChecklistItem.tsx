@@ -8,8 +8,8 @@ import { debugLogger } from '@/lib/logger/debug-logger';
 import { Check, X, AlertCircle, Camera, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { mobileOptimization } from '@/services/mobileOptimizationService';
-import { reliableSubmission } from '@/services/reliableSubmissionService';
+import { configService } from '@/services/core/ConfigService';
+import { syncService } from '@/services/core/SyncService';
 import { useOfflineInspection } from '@/hooks/useOfflineInspection';
 
 interface OptimizedChecklistItemProps {

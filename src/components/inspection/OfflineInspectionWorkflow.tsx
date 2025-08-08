@@ -40,7 +40,7 @@ import React, {
 } from "react";
 import { logger } from "@/utils/logger";
 import { pwaIntegrator } from "@/lib/pwa/pwa-integration";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 // PHASE 4B: Import required hooks and types for verification
 import { useNetworkStatus, useOfflineInspection } from "@/hooks/usePWA";

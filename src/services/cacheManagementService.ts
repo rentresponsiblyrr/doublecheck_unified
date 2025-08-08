@@ -10,7 +10,7 @@
  */
 
 import { logger } from "@/lib/logger/production-logger";
-import { errorRecovery } from '@/services/errorRecoveryService';
+import { analyticsService } from '@/services/core/AnalyticsService';
 
 export interface CacheCleanupResult {
   success: boolean;
