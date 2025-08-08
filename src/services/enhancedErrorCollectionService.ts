@@ -8,6 +8,7 @@
 
 import { logger } from "@/utils/logger";
 import { userActivityService } from "./userActivityService";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 export interface ConsoleError {
   id: string;
@@ -145,41 +146,10 @@ class EnhancedErrorCollectionService {
    * Intercept console methods to capture all console output
    */
   private interceptConsole() {
-    ["error", "warn", "info"].forEach((level) => {
-      this.originalConsole[level] = console[level as keyof Console];
-
-      (console as Record<string, (...args: unknown[]) => void>)[level] = (
-        ...args: unknown[]
-      ) => {
-        // Call original console method
-        this.originalConsole[level].apply(console, args);
-
-        // Prevent infinite recursion during error collection
-        if (this.isCollectingConsoleError) return;
-
-        // Capture for our monitoring
-        try {
-          this.collectConsoleError({
-            level: level as "error" | "warn" | "info",
-            message: args
-              .map((arg) => {
-                if (typeof arg === "object") {
-                  try {
-                    return JSON.stringify(arg);
-                  } catch (stringifyError) {
-                    return "[Object - JSON.stringify failed]";
-                  }
-                }
-                return String(arg);
-              })
-              .join(" "),
-            source: "javascript",
-          });
-        } catch (error) {
-          // Silently fail to prevent further loops
-        }
-      };
-    });
+    // DISABLED: Console interception for security compliance
+    // Error collection should use proper error handling patterns
+    // rather than console interception to prevent infinite loops
+    // and maintain production security standards
   }
 
   /**
@@ -366,16 +336,9 @@ class EnhancedErrorCollectionService {
    * Initialize database error detection for compatibility layer issues
    */
   private initializeDatabaseErrorDetection() {
-    // Monitor for specific Supabase/database errors
-    const originalConsoleError = console.error;
-    console.error = (...args: unknown[]) => {
-      originalConsoleError.apply(console, args);
-
-      const message = args.join(" ");
-      if (this.isDatabaseError(message)) {
-        this.collectDatabaseError(message);
-      }
-    };
+    // DISABLED: Database error detection to prevent console interception
+    // Database errors should be collected through proper error handling patterns
+    // rather than console interception for security compliance
   }
 
   /**
