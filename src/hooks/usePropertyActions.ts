@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { deletePropertyData } from "@/utils/propertyDeletion";
 import { useSmartCache } from "@/hooks/useSmartCache";
 import { useSimpleInspectionFlow } from "@/hooks/useSimpleInspectionFlow";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface PropertyActionError {
   type: "network" | "validation" | "auth" | "system";
@@ -171,7 +172,7 @@ export const usePropertyActions = () => {
 
   const startInspection = useCallback(
     async (propertyId: string) => {
-      console.log("🚀 USING SIMPLE BULLETPROOF INSPECTION FLOW", {
+      debugLogger.info("Using simple bulletproof inspection flow", {
         propertyId,
         timestamp: new Date().toISOString(),
       });
@@ -180,10 +181,10 @@ export const usePropertyActions = () => {
       const result = await startOrResumeInspection(propertyId);
       
       if (result) {
-        console.log("✅ Simple flow succeeded", { inspectionId: result });
+        debugLogger.info("Simple flow succeeded", { inspectionId: result });
         return result;
       } else {
-        console.log("❌ Simple flow failed gracefully (no refresh loops)");
+        debugLogger.warn("Simple flow failed gracefully (no refresh loops)");
         return null;
       }
     },
