@@ -16,6 +16,8 @@
  * @phase Phase 4A - PWA Core Implementation
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 // ========================================
 // TYPE DEFINITIONS
 // ========================================
@@ -172,7 +174,7 @@ export class ServiceWorkerManager {
     // Check for Service Worker support
     if (!this.isSupported()) {
       this.setState("unsupported");
-      console.warn("Service Workers are not supported in this browser");
+      debugLogger.warn("Service Workers are not supported in this browser");
       return;
     }
 
@@ -226,7 +228,7 @@ export class ServiceWorkerManager {
       }
 
       this.setState("registered");
-      console.log("Service Worker registered successfully", {
+      debugLogger.info("Service Worker registered successfully", {
         scope: registration.scope,
       });
 
@@ -256,7 +258,7 @@ export class ServiceWorkerManager {
         this.registration = null;
         this.setState("unsupported");
         this.stopUpdateChecker();
-        console.log("Service Worker unregistered successfully");
+        debugLogger.info("Service Worker unregistered successfully");
       }
 
       return result;
@@ -279,9 +281,9 @@ export class ServiceWorkerManager {
 
     try {
       await this.registration.update();
-      console.log("Checked for Service Worker updates");
+      debugLogger.info("Checked for Service Worker updates");
     } catch (error) {
-      console.warn("Failed to check for updates:", error);
+      debugLogger.warn("Failed to check for updates", { error });
     }
   }
 
@@ -295,7 +297,7 @@ export class ServiceWorkerManager {
 
     try {
       await this.postMessage({ type: "SKIP_WAITING", timestamp: Date.now() });
-      console.log("Requested Service Worker to skip waiting");
+      debugLogger.info("Requested Service Worker to skip waiting");
     } catch (error) {
       const swError = new Error(
         `Failed to skip waiting: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -316,7 +318,7 @@ export class ServiceWorkerManager {
       });
       return response?.version || null;
     } catch (error) {
-      console.warn("Failed to get Service Worker version:", error);
+      debugLogger.warn("Failed to get Service Worker version", { error });
       return null;
     }
   }
@@ -332,7 +334,7 @@ export class ServiceWorkerManager {
       });
       return response?.success || false;
     } catch (error) {
-      console.warn("Failed to clear caches:", error);
+      debugLogger.warn("Failed to clear caches", { error });
       return false;
     }
   }
@@ -358,12 +360,12 @@ export class ServiceWorkerManager {
       const success = response?.success || false;
 
       if (success) {
-        console.log(`Background sync registered: ${tag}`);
+        debugLogger.info("Background sync registered", { tag });
       }
 
       return success;
     } catch (error) {
-      console.warn(`Failed to register background sync for ${tag}:`, error);
+      debugLogger.warn("Failed to register background sync", { tag, error });
       return false;
     }
   }
@@ -394,7 +396,7 @@ export class ServiceWorkerManager {
         ),
       });
 
-      console.log("Push notification subscription created");
+      debugLogger.info("Push notification subscription created");
       return subscription;
     } catch (error) {
       const pushError = new Error(
@@ -416,7 +418,7 @@ export class ServiceWorkerManager {
     try {
       return await this.registration.pushManager.getSubscription();
     } catch (error) {
-      console.warn("Failed to get push subscription:", error);
+      debugLogger.warn("Failed to get push subscription", { error });
       return null;
     }
   }
@@ -435,12 +437,12 @@ export class ServiceWorkerManager {
       const result = await subscription.unsubscribe();
 
       if (result) {
-        console.log("Unsubscribed from push notifications");
+        debugLogger.info("Unsubscribed from push notifications");
       }
 
       return result;
     } catch (error) {
-      console.warn("Failed to unsubscribe from push:", error);
+      debugLogger.warn("Failed to unsubscribe from push", { error });
       return false;
     }
   }
@@ -498,7 +500,7 @@ export class ServiceWorkerManager {
         lastCleanup: new Date(), // Would be tracked separately in production
       };
     } catch (error) {
-      console.warn("Failed to get cache stats:", error);
+      debugLogger.warn("Failed to get cache stats", { error });
       return null;
     }
   }
@@ -558,7 +560,7 @@ export class ServiceWorkerManager {
         await this.register();
       }
     } catch (error) {
-      console.warn("Service Worker setup failed:", error);
+      debugLogger.warn("Service Worker setup failed", { error });
       this.setState("error");
     }
   }
@@ -630,7 +632,7 @@ export class ServiceWorkerManager {
   private handleServiceWorkerMessage(event: MessageEvent): void {
     const message: ServiceWorkerMessage = event.data;
 
-    console.log("Message from Service Worker:", message);
+    debugLogger.info("Message from Service Worker", { message });
 
     switch (message.type) {
       case "SYNC_REQUEST":
@@ -649,7 +651,7 @@ export class ServiceWorkerManager {
         break;
 
       default:
-        console.log("Unknown message from Service Worker:", message);
+        debugLogger.info("Unknown message from Service Worker", { message });
     }
   }
 
@@ -694,7 +696,7 @@ export class ServiceWorkerManager {
 
     this.updateCheckTimer = setInterval(() => {
       this.checkForUpdates().catch((error) => {
-        console.warn("Automatic update check failed:", error);
+        debugLogger.warn("Automatic update check failed", { error });
       });
     }, this.config.updateCheckInterval);
   }
@@ -711,7 +713,7 @@ export class ServiceWorkerManager {
       const oldState = this.state;
       this.state = newState;
 
-      console.log(`Service Worker state changed: ${oldState} -> ${newState}`);
+      debugLogger.info("Service Worker state changed", { oldState, newState });
       this.emitEvent("stateChange", newState);
     }
   }
@@ -725,9 +727,9 @@ export class ServiceWorkerManager {
       try {
         (listener as any)(...args);
       } catch (error) {
-        console.error(
-          `Error in Service Worker event listener for ${event}:`,
-          error,
+        debugLogger.error(
+          "Error in Service Worker event listener",
+          { event, error },
         );
       }
     }
@@ -766,7 +768,7 @@ export class ServiceWorkerManager {
       this.messageChannel = null;
     }
 
-    console.log("Service Worker Manager destroyed");
+    debugLogger.info("Service Worker Manager destroyed");
   }
 }
 
@@ -792,7 +794,7 @@ export async function getCurrentRegistration(): Promise<ServiceWorkerRegistratio
   try {
     return await navigator.serviceWorker.getRegistration();
   } catch (error) {
-    console.warn("Failed to get Service Worker registration:", error);
+    debugLogger.warn("Failed to get Service Worker registration", { error });
     return null;
   }
 }
@@ -870,8 +872,8 @@ export async function initializeServiceWorker(
       await serviceWorkerManager.register();
     }
 
-    console.log("Service Worker Manager initialized successfully");
+    debugLogger.info("Service Worker Manager initialized successfully");
   } catch (error) {
-    console.error("Service Worker Manager initialization failed:", error);
+    debugLogger.error("Service Worker Manager initialization failed", { error });
   }
 }
