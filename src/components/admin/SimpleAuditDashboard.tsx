@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,13 +84,13 @@ export const SimpleAuditDashboard: React.FC = () => {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Failed to load inspections:", error);
+        debugLogger.error("Failed to load inspections:", error);
         return;
       }
 
       setInspections(data || []);
     } catch (error) {
-      console.error("Error loading inspections:", error);
+      debugLogger.error("Error loading inspections:", error);
     } finally {
       setLoading(false);
     }
@@ -106,14 +107,14 @@ export const SimpleAuditDashboard: React.FC = () => {
         .eq("id", inspectionId);
 
       if (error) {
-        console.error("Failed to update inspection:", error);
+        debugLogger.error("Failed to update inspection:", error);
         return;
       }
 
       // Reload inspections
       loadInspections();
     } catch (error) {
-      console.error("Error updating inspection:", error);
+      debugLogger.error("Error updating inspection:", error);
     }
   };
 
