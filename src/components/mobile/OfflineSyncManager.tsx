@@ -7,6 +7,7 @@ import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { OfflineData } from "@/types/payload-types";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 // Sub-components
 import { SyncStatusCard } from "./sync/SyncStatusCard";
@@ -138,7 +139,7 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
           });
         }
       } catch (error) {
-        console.error("Failed to get storage estimate:", error);
+        debugLogger.error("Failed to get storage estimate:", error);
       }
     };
 
@@ -253,7 +254,7 @@ export const OfflineSyncManager: React.FC<OfflineSyncManagerProps> = ({
           .length,
       }));
     } catch (error) {
-      console.error("Sync failed:", error);
+      debugLogger.error("Sync failed:", error);
       setSyncStatus((prev) => ({ ...prev, isSyncing: false }));
     }
   }, [syncStatus.isOnline, syncStatus.isSyncing, syncItems]);
