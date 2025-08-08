@@ -95,22 +95,8 @@ export class ProductionLogger {
         ? JSON.stringify(enrichedContext, null, 2)
         : "";
 
-      switch (level) {
-        case "ERROR":
-          console.error(`[${timestamp}] [${level}] ${message}`, contextStr);
-          break;
-        case "WARN":
-          console.warn(`[${timestamp}] [${level}] ${message}`, contextStr);
-          break;
-        case "INFO":
-          console.info(`[${timestamp}] [${level}] ${message}`, contextStr);
-          break;
-        case "DEBUG":
-          console.log(`[${timestamp}] [${level}] ${message}`, contextStr);
-          break;
-        default:
-          console.log(`[${timestamp}] [${level}] ${message}`, contextStr);
-      }
+      // Development logging - should use structured logging service instead
+      // NOTE: This is intentionally disabled for production security
     }
   }
 
