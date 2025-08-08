@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { log } from "@/lib/logging/enterprise-logger";
+import { debugLogger } from '@/utils/debugLogger';
 
 export interface SessionConfig {
   inactivityTimeoutMs: number; // Time before warning (default: 110 minutes)
@@ -94,7 +95,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   const forceLogout = useCallback(
     async (reason: string) => {
       // CRITICAL DEBUG: Log all forced logouts
-      console.log("🚨 FORCE LOGOUT TRIGGERED", {
+      debugLogger.error("Force logout triggered", {
         reason,
         timestamp: new Date().toISOString(),
         route: typeof window !== "undefined" ? window.location.pathname : "unknown",
@@ -233,7 +234,7 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   // Manual logout
   const logout = useCallback(async () => {
     // CRITICAL DEBUG: Log all logout attempts
-    console.log("🚪 SESSION MANAGER LOGOUT TRIGGERED", {
+    debugLogger.info("Session manager logout triggered", {
       timestamp: new Date().toISOString(),
       route: typeof window !== "undefined" ? window.location.pathname : "unknown",
       stackTrace: new Error().stack,
