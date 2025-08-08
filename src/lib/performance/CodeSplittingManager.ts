@@ -4,6 +4,8 @@
  * Ensures <200KB per route and optimal loading performance
  */
 
+import { debugLogger } from "@/lib/logger/debug-logger";
+
 interface ChunkMetadata {
   name: string;
   size: number;
@@ -235,7 +237,7 @@ export class CodeSplittingManager {
       return result;
     } catch (error) {
       this.loadingPromises.delete(chunkName);
-      console.error(`Failed to load chunk ${chunkName}:`, error);
+      debugLogger.error(`Failed to load chunk ${chunkName}:`, error);
       throw error;
     }
   }
@@ -333,9 +335,9 @@ export class CodeSplittingManager {
 
       this.preloadedChunks.add(chunkName);
       
-      console.log(`Preloaded chunk: ${chunkName} (${chunk.size} bytes)`);
+      debugLogger.info(`Preloaded chunk: ${chunkName} (${chunk.size} bytes)`);
     } catch (error) {
-      console.warn(`Failed to preload chunk ${chunkName}:`, error);
+      debugLogger.warn(`Failed to preload chunk ${chunkName}:`, error);
     }
   }
 
@@ -440,7 +442,7 @@ export class CodeSplittingManager {
       .map(([name, _]) => name);
 
     if (smallChunks.length > 0) {
-      console.log('Consider merging small chunks:', smallChunks);
+      debugLogger.info('Consider merging small chunks:', smallChunks);
     }
 
     // Suggest splitting large chunks
@@ -449,7 +451,7 @@ export class CodeSplittingManager {
       .map(([name, _]) => name);
 
     if (largeChunks.length > 0) {
-      console.log('Consider splitting large chunks:', largeChunks);
+      debugLogger.info('Consider splitting large chunks:', largeChunks);
     }
   }
 
