@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Edit } from "lucide-react";
-import { ProductionUser } from "@/services/productionDatabaseService";
+import { ProductionUser } from "@/services/core/DataService";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserFormData {

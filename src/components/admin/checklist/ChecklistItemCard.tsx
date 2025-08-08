@@ -15,7 +15,7 @@ import {
   Video,
   FileText,
 } from "lucide-react";
-import { ProductionSafetyItem } from "@/services/productionDatabaseService";
+import { ProductionSafetyItem } from "@/services/core/DataService";
 
 interface ChecklistItemCardProps {
   item: ProductionSafetyItem;

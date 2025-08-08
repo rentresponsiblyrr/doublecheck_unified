@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building, MapPin, RefreshCw, PlayCircle } from "lucide-react";
-import { ProductionProperty } from "@/services/productionDatabaseService";
+import { ProductionProperty } from "@/services/core/DataService";
 
 interface PropertySelectionPanelProps {
   properties: ProductionProperty[];

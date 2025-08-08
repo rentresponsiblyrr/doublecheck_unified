@@ -21,7 +21,7 @@ import {
 import {
   ProductionProperty,
   ProductionSafetyItem,
-} from "@/services/productionDatabaseService";
+} from "@/services/core/DataService";
 
 interface ActiveInspectionPanelProps {
   selectedProperty: ProductionProperty;

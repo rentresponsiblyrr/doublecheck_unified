@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { RefreshCw, Camera, Video, CheckSquare, FileText } from "lucide-react";
-import { ProductionSafetyItem } from "@/services/productionDatabaseService";
+import { ProductionSafetyItem } from "@/services/core/DataService";
 import { SafetyItemFormData } from "@/hooks/useFunctionalChecklistManagement";
 
 interface ChecklistItemDialogProps {

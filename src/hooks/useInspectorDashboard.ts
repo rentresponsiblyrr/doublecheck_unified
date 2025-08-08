@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { statusCountService } from "@/services/statusCountService";
+import { analyticsService } from "@/services/core/AnalyticsService";
 import { normalizeStatus } from "@/types/inspection-status";
 
 export interface InspectorInspection {
@@ -317,7 +317,7 @@ export const useInspectorDashboard = () => {
   };
 
   try {
-    propertyStats = statusCountService.calculatePropertyStats(properties);
+    propertyStats = analyticsService.calculatePropertyStats(properties);
   } catch (error) {
     // Fallback calculation
     propertyStats = properties.reduce(

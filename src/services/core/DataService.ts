@@ -20,6 +20,18 @@ export interface Property {
   updated_at: string;
 }
 
+// Legacy ProductionProperty type for compatibility
+export interface ProductionProperty {
+  property_id: string;
+  name: string;
+  property_address: string;
+  property_vrbo_url?: string;
+  property_airbnb_url?: string;
+  property_status: string;
+  property_created_at: string;
+  inspection_count: number;
+}
+
 export interface Inspection {
   id: string;
   property_id: string;
@@ -45,6 +57,31 @@ export interface ChecklistItem {
   ai_status?: string;
   static_item_id?: string;
   created_at: string;
+}
+
+// Legacy ProductionUser type for compatibility
+export interface ProductionUser {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  last_login_at?: string;
+  phone?: string;
+}
+
+// Legacy ProductionSafetyItem type for compatibility
+export interface ProductionSafetyItem {
+  id: string;
+  checklist_id?: number;
+  label?: string;
+  category: string;
+  evidence_type?: string;
+  gpt_prompt?: string;
+  notes?: string;
+  required: boolean;
 }
 
 export interface User {

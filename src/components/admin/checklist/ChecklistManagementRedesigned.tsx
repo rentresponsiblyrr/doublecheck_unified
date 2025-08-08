@@ -53,7 +53,7 @@ import { ChecklistTable } from "./ChecklistTable";
 import { ChecklistItemDialog } from "./ChecklistItemDialog";
 import { ChecklistItem, ChecklistFilters } from "./types";
 import { SafetyItemFormData } from "@/hooks/useFunctionalChecklistManagement";
-import { ProductionSafetyItem } from "@/services/productionDatabaseService";
+import { ProductionSafetyItem } from "@/services/core/DataService";
 
 /**
  * Checklist management props - simplified for orchestration

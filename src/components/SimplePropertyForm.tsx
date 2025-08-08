@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import type { PropertyFormData } from "@/types/propertySubmission";
 import { ScrapedPropertyData } from "@/types/scraped-data";
-import { debugLogger } from "@/lib/logger/debug-logger";
+import { debugLogger } from "@/utils/debugLogger";
 
 export const SimplePropertyForm = () => {
   const { user, isAuthenticated, loading: authLoading } = useMobileAuth();

@@ -7,7 +7,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { ProductionProperty } from "@/services/productionDatabaseService";
+import { ProductionProperty } from "@/services/core/DataService";
 
 interface SubmissionCompletePanelProps {
   selectedProperty: ProductionProperty | null;

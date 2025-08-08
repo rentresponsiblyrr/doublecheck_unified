@@ -24,7 +24,6 @@ import { Send, Bug } from "lucide-react";
 import { analyticsService } from "@/services/core/AnalyticsService";
 import { screenshotCaptureService } from "@/utils/screenshotCapture";
 import { notificationService } from "@/services/core/NotificationService";
-import { intelligentBugReportService } from "@/services/intelligentBugReportService";
 import { useAuthState } from "@/hooks/useAuthState";
 import { logger } from "@/utils/logger";
 
@@ -129,7 +128,7 @@ export const BugReportDialog: React.FC<BugReportDialogProps> = ({
       }, 200);
 
       // Create GitHub issue using standardized interface
-      const response = await intelligentBugReportService.createReport({
+      const response = await notificationService.createBugReport({
         title: formData.title,
         description: formData.description,
         severity: formData.severity,
