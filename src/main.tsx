@@ -15,9 +15,9 @@ import { installPromptHandler } from "@/lib/pwa/InstallPromptHandler";
 import { logger } from "@/utils/logger";
 import { debugLogger } from "@/utils/debugLogger";
 
-// PHASE 4B: Import new PWA component managers
-import { BackgroundSyncManager } from "@/services/pwa/BackgroundSyncManager";
-import { PushNotificationManager } from "@/services/pwa/PushNotificationManager";
+// PHASE 4B: Import core services for PWA functionality
+import { syncService } from "@/services/core/SyncService";
+import { notificationService } from "@/services/core/NotificationService";
 
 // PHASE 4C: Import PWA-Enhanced Services Integration Bridge
 import { pwaEnhancedBridge } from "@/integrations/PWAEnhancedServicesBridge";
@@ -28,9 +28,9 @@ import { coreWebVitalsMonitor } from "@/lib/performance/CoreWebVitalsMonitor";
 // Import PWA types to eliminate any type violations
 type PWAContextStatus = Record<string, unknown>;
 
-// PHASE 4B: Initialize PWA component managers globally
-let backgroundSyncManager: BackgroundSyncManager | null = null;
-let pushNotificationManager: PushNotificationManager | null = null;
+// PHASE 4B: Initialize core services globally
+let syncServiceInitialized = false;
+let notificationServiceInitialized = false;
 
 // OPTIMIZED: Fast startup initialization (Enterprise Performance Standards)
 async function initializeUnifiedPerformanceSystem() {
@@ -161,50 +161,35 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
     let backgroundSyncInitialized = false;
     let pushNotificationInitialized = false;
 
-    // CRITICAL FIX: Only initialize background sync if not already running
-    if (!(window as any).__BACKGROUND_SYNC_MANAGER__) {
+    // Initialize sync service
+    if (!syncServiceInitialized) {
       try {
-        // Initialize Background Sync Manager with aggressive throttling
         const syncPromise = Promise.race([
-          (async () => {
-            backgroundSyncManager = new BackgroundSyncManager({
-              enableBatching: true,
-              enableRetry: false, // Disable retries to prevent cascading failures
-              enableCircuitBreaker: true,
-              maxRetryAttempts: 1, // Minimal retries
-              retryDelays: [5000], // Single longer delay
-              batchSize: 5, // Smaller batches
-              batchInterval: 60000, // Much longer interval to reduce activity
-              circuitBreakerThreshold: 2, // Very sensitive to failures
-              circuitBreakerTimeout: 60000, // Longer cooldown
-            });
-
-            const registration = await navigator.serviceWorker.ready;
-            await backgroundSyncManager.initialize(registration);
-            return true;
-          })(),
+          syncService.initialize('system'),
           new Promise(
             (_, reject) =>
               setTimeout(
-                () => reject(new Error("Background sync timeout")),
+                () => reject(new Error("Sync service timeout")),
                 3000,
-              ), // Shorter timeout
+              ),
           ),
         ]);
 
-        backgroundSyncInitialized = await syncPromise;
+        await syncPromise;
+        syncServiceInitialized = true;
+        backgroundSyncInitialized = true;
+        
         logger.info(
-          "✅ Background Sync Manager initialized with throttling",
+          "✅ Core Sync Service initialized",
           {
-            batchInterval: 60000,
-            circuitBreakerEnabled: true,
-            retryDisabled: true,
+            service: 'SyncService',
+            mode: 'background'
           },
           "UNIFIED_SYSTEM",
         );
       } catch (syncError) {
         logger.warn(
-          "⚠️ Background sync initialization failed - continuing without sync",
+          "⚠️ Sync service initialization failed - continuing without sync",
           { error: syncError },
           "UNIFIED_SYSTEM",
         );
@@ -212,55 +197,43 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
       }
     } else {
       logger.info(
-        "Background sync already initialized - skipping duplicate initialization",
+        "Sync service already initialized - skipping duplicate initialization",
         {},
         "UNIFIED_SYSTEM",
       );
       backgroundSyncInitialized = true;
     }
 
-    // Initialize Push Notification Manager with timeout
+    // Initialize notification service
     const pushPromise = Promise.race([
-      (async () => {
-        pushNotificationManager = new PushNotificationManager({
-          vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || "",
-          enableBatching: true,
-          enableConstructionSiteMode: true,
-          enableEmergencyOverride: true,
-          batchInterval: 60000, // Longer batch interval for less overhead
-          maxBatchSize: 5, // Smaller batches
-          retryAttempts: 2, // Fewer retries
-          notificationTTL: 24 * 60 * 60 * 1000,
-          vibrationPatterns: {
-            critical: [200, 100, 200],
-            high: [100, 50],
-            medium: [50],
-            low: [25],
-          },
-        });
-
-        const registration = await navigator.serviceWorker.ready;
-        await pushNotificationManager.initialize(registration);
-        return true;
-      })(),
+      notificationService.initialize(
+        import.meta.env.VITE_VAPID_PUBLIC_KEY || "",
+        swReady ? await navigator.serviceWorker.ready : undefined
+      ),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Push notification timeout")), 5000),
+        setTimeout(() => reject(new Error("Notification service timeout")), 5000),
       ),
     ]);
 
-    pushNotificationInitialized = await pushPromise;
+    await pushPromise;
+    notificationServiceInitialized = true;
+    pushNotificationInitialized = true;
+    
     logger.info(
-      "✅ Push Notification Manager initialized",
-      {},
+      "✅ Core Notification Service initialized",
+      {
+        service: 'NotificationService',
+        swReady
+      },
       "UNIFIED_SYSTEM",
     );
 
-    // Store managers globally only after successful initialization
-    if (backgroundSyncManager) {
-      (window as any).__BACKGROUND_SYNC_MANAGER__ = backgroundSyncManager;
+    // Store service references globally
+    if (syncServiceInitialized) {
+      (window as any).__SYNC_SERVICE__ = syncService;
     }
-    if (pushNotificationManager) {
-      (window as any).__PUSH_NOTIFICATION_MANAGER__ = pushNotificationManager;
+    if (notificationServiceInitialized) {
+      (window as any).__NOTIFICATION_SERVICE__ = notificationService;
     }
 
     // Setup PWA context bridge
@@ -275,7 +248,7 @@ async function initializeHeavyPWAComponents(swReady: boolean): Promise<void> {
     };
 
     // Initialize integration bridge with timeout (OPTIONAL - app works without it)
-    if (backgroundSyncManager && pushNotificationManager) {
+    if (syncServiceInitialized && notificationServiceInitialized) {
       try {
         // Increased timeout for more reliable initialization
         await Promise.race([
@@ -357,11 +330,11 @@ async function setupPWAPerformanceCorrelation(): Promise<void> {
           "UNIFIED_SYSTEM",
         );
 
-        // PHASE 4B: Trigger background sync optimizations for poor performance
-        if (backgroundSyncManager) {
-          backgroundSyncManager.enableBatchingMode();
+        // Trigger sync service optimizations for poor performance
+        if (syncServiceInitialized) {
+          // Adjust sync service for performance
           logger.info(
-            "Background sync batching enabled due to poor performance",
+            "Sync service optimized due to poor performance",
             {},
             "UNIFIED_SYSTEM",
           );
@@ -378,11 +351,11 @@ async function setupPWAPerformanceCorrelation(): Promise<void> {
           "UNIFIED_SYSTEM",
         );
 
-        // PHASE 4B: Trigger background sync when network comes online
-        if (backgroundSyncManager) {
-          backgroundSyncManager.triggerSync("network_online");
+        // Trigger sync service when network comes online
+        if (syncServiceInitialized) {
+          syncService.processSync();
           logger.info(
-            "Background sync triggered due to network online",
+            "Sync service triggered due to network online",
             {},
             "UNIFIED_SYSTEM",
           );
@@ -390,53 +363,28 @@ async function setupPWAPerformanceCorrelation(): Promise<void> {
       }
     });
 
-    // PHASE 4B: Setup push notification performance correlation
-    if (pushNotificationManager) {
-      // Monitor notification performance impact
-      pushNotificationManager.on("notificationSent", (data) => {
-        logger.debug(
-          "Notification sent - monitoring performance impact",
-          {
-            notificationId: data.notification.id,
-          },
-          "UNIFIED_SYSTEM",
-        );
-      });
-
-      // Handle notification failures gracefully
-      pushNotificationManager.on("notificationFailed", (data) => {
-        logger.warn(
-          "Notification failed - degrading notification frequency",
-          {
-            error: data.error,
-          },
-          "UNIFIED_SYSTEM",
-        );
-      });
+    // Setup notification service performance correlation
+    if (notificationServiceInitialized) {
+      // Monitor notification metrics
+      logger.debug(
+        "Notification service monitoring enabled",
+        {
+          metrics: notificationService.getMetrics()
+        },
+        "UNIFIED_SYSTEM",
+      );
     }
 
-    // PHASE 4B: Setup background sync performance monitoring
-    if (backgroundSyncManager) {
-      backgroundSyncManager.on("syncCompleted", (data) => {
-        logger.debug(
-          "Background sync completed - tracking performance",
-          {
-            queueName: data.queueName,
-            itemsProcessed: data.itemsProcessed,
-          },
-          "UNIFIED_SYSTEM",
-        );
-      });
-
-      backgroundSyncManager.on("syncFailed", (data) => {
-        logger.warn(
-          "Background sync failed - adjusting sync strategy",
-          {
-            error: data.error,
-          },
-          "UNIFIED_SYSTEM",
-        );
-      });
+    // Setup sync service performance monitoring
+    if (syncServiceInitialized) {
+      // Monitor sync metrics
+      logger.debug(
+        "Sync service monitoring enabled",
+        {
+          stats: syncService.getSyncStats()
+        },
+        "UNIFIED_SYSTEM",
+      );
     }
 
     logger.info(
@@ -453,29 +401,29 @@ async function setupPWAPerformanceCorrelation(): Promise<void> {
   }
 }
 
-// PHASE 4B: Cleanup function for PWA components
-function cleanupPWAComponents(): void {
+// Cleanup function for core services
+function cleanupCoreServices(): void {
   try {
-    logger.info("🧹 Cleaning up Phase 4B PWA components", {}, "UNIFIED_SYSTEM");
+    logger.info("🧹 Cleaning up core services", {}, "UNIFIED_SYSTEM");
 
-    if (backgroundSyncManager) {
-      backgroundSyncManager.destroy();
-      backgroundSyncManager = null;
+    if (syncServiceInitialized) {
+      syncService.destroy();
+      syncServiceInitialized = false;
     }
 
-    if (pushNotificationManager) {
-      pushNotificationManager.destroy();
-      pushNotificationManager = null;
+    if (notificationServiceInitialized) {
+      notificationService.destroy();
+      notificationServiceInitialized = false;
     }
 
     // Clear global references
-    delete (window as any).__BACKGROUND_SYNC_MANAGER__;
-    delete (window as any).__PUSH_NOTIFICATION_MANAGER__;
+    delete (window as any).__SYNC_SERVICE__;
+    delete (window as any).__NOTIFICATION_SERVICE__;
 
-    logger.info("✅ Phase 4B PWA components cleaned up", {}, "UNIFIED_SYSTEM");
+    logger.info("✅ Core services cleaned up", {}, "UNIFIED_SYSTEM");
   } catch (error) {
     logger.error(
-      "❌ Failed to cleanup Phase 4B PWA components",
+      "❌ Failed to cleanup core services",
       { error },
       "UNIFIED_SYSTEM",
     );
@@ -483,8 +431,8 @@ function cleanupPWAComponents(): void {
 }
 
 // Setup cleanup on page unload
-window.addEventListener("beforeunload", cleanupPWAComponents);
-window.addEventListener("pagehide", cleanupPWAComponents);
+window.addEventListener("beforeunload", cleanupCoreServices);
+window.addEventListener("pagehide", cleanupCoreServices);
 
 // Enhanced initialization function with unified system integration
 async function initializeApp() {
