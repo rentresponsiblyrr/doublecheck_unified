@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MobilePropertyData {
@@ -50,7 +51,7 @@ export const useMobilePropertyData = (userId?: string) => {
         throw new Error(`Failed to load properties: ${error.message}`);
       }
 
-      console.debug("Mobile property fetch completed", {
+      debugLogger.debug("Mobile property fetch completed", {
         count: data?.length || 0,
         fetchDuration,
         timestamp: new Date().toISOString(),

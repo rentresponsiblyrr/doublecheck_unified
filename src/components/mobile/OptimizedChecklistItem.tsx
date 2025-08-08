@@ -4,6 +4,7 @@
  */
 
 import React, { memo, useCallback, useState, useRef, useEffect } from 'react';
+import { debugLogger } from '@/lib/logger/debug-logger';
 import { Check, X, AlertCircle, Camera, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -65,7 +66,7 @@ export const OptimizedChecklistItem = memo(({
     } catch (error) {
       // Revert on error
       setLocalStatus(item.status);
-      console.error('Failed to update status', error);
+      debugLogger.error('Failed to update status', error);
     } finally {
       setIsSubmitting(false);
     }

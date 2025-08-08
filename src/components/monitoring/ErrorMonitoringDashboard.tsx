@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { errorRecoveryService } from "@/lib/error/ErrorRecoveryService";
 import { memoryLeakDetector } from "@/lib/memory/MemoryLeakDetector";
 import { intelligentCacheInvalidation } from "@/lib/cache/IntelligentCacheInvalidation";
@@ -137,7 +138,7 @@ export const ErrorMonitoringDashboard: React.FC<
         // Update recent errors (mock data for demo)
         setRecentErrors(generateRecentErrorsData());
       } catch (error) {
-        console.error("Failed to update monitoring stats:", error);
+        debugLogger.error("Failed to update monitoring stats:", error);
       }
     };
 

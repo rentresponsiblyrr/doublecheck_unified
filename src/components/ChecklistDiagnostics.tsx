@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ export const ChecklistDiagnostics = ({
 
         setAuditEntries(data || []);
       } catch (error) {
-        console.error("Failed to load audit entries:", error);
+        debugLogger.error("Failed to load audit entries:", error);
       } finally {
         setIsLoading(false);
       }

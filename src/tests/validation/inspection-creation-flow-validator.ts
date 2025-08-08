@@ -20,7 +20,7 @@
  * ```typescript
  * const validator = new InspectionCreationFlowValidator();
  * const results = await validator.validateAllFlows();
- * console.log('Validation Results:', results);
+ * debugLogger.info('Validation Results:', results);
  * ```
  */
 
@@ -31,6 +31,7 @@ import {
   createFrontendPropertyId,
   createInspectorId,
 } from "@/lib/database/inspection-creation-service";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   inspectionErrorMonitor,
   getInspectionMetrics,
@@ -763,7 +764,7 @@ export const exportValidationResults = async (
 
   if (filePath) {
     // In a real environment, write to file system
-    console.log("Would write to file:", filePath);
+    debugLogger.info("Would write to file:", filePath);
   }
 
   return jsonReport;

@@ -23,6 +23,7 @@
  */
 
 import React, { useState, useCallback } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   useCoreWebVitalsMonitoring,
   useCoreWebVitals,
@@ -121,7 +122,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         URL.revokeObjectURL(url);
         setShowExportOptions(false);
       } catch (error) {
-        console.error("Export failed:", error);
+        debugLogger.error("Export failed:", error);
       }
     },
     [actions],
