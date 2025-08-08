@@ -22,6 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ELEMENT_IDS, FALLBACK_VALUES } from "./systemStatusConstants";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 /**
  * Performance API with memory extension (Chrome-specific)
@@ -199,15 +200,15 @@ export class SystemStatusErrorBoundary extends Component<
       hasError: true,
     };
 
-    // Log to console for development
-    console.error("SystemStatus Error Boundary caught error:", errorContext);
+    // Log to debug logger for development
+    debugLogger.error("SystemStatus Error Boundary caught error:", errorContext);
 
     // Call external error handler if provided
     if (this.props.onError) {
       try {
         this.props.onError(error, errorInfo);
       } catch (handlerError) {
-        console.error("Error handler itself threw an error:", handlerError);
+        debugLogger.error("Error handler itself threw an error:", handlerError);
       }
     }
 
@@ -242,7 +243,7 @@ export class SystemStatusErrorBoundary extends Component<
         document.body.removeChild(announcement);
       }, 1000);
     } catch (announcementError) {
-      console.warn(
+      debugLogger.warn(
         "Could not announce error to screen readers:",
         announcementError,
       );
@@ -271,7 +272,7 @@ export class SystemStatusErrorBoundary extends Component<
 
     // Prevent excessive retries
     if (retryCount >= maxRetries) {
-      console.warn(
+      debugLogger.warn(
         `Max retries (${maxRetries}) exceeded for SystemStatus error boundary`,
       );
       return;
