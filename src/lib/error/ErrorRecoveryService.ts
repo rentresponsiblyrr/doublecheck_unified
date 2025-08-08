@@ -11,6 +11,7 @@
 
 import { logger } from "@/utils/logger";
 import { supabase } from "@/integrations/supabase/client";
+import { debugLogger } from "@/lib/logger/debug-logger";
 
 export interface RecoveryStrategy {
   id: string;
@@ -113,7 +114,7 @@ class ErrorRecoveryService {
     const fullContext: ErrorContext = this.buildErrorContext(error, context);
     
     // CRITICAL DEBUG: Log every error recovery attempt
-    console.log("🚨 ERROR RECOVERY SERVICE TRIGGERED", {
+    debugLogger.info("🚨 ERROR RECOVERY SERVICE TRIGGERED", {
       errorMessage: error.message,
       operationType: fullContext.operationType,
       timestamp: new Date().toISOString(),
@@ -545,7 +546,7 @@ class ErrorRecoveryService {
         );
         
         // CRITICAL DEBUG: Log auth strategy evaluation
-        console.log("🔐 AUTH RECOVERY STRATEGY EVALUATION", {
+        debugLogger.info("🔐 AUTH RECOVERY STRATEGY EVALUATION", {
           errorMessage: error.message,
           messageLower: message,
           shouldTrigger,
@@ -578,7 +579,7 @@ class ErrorRecoveryService {
       fallback: async () => {
         // CRITICAL FIX: Never automatically sign out users
         // Instead, provide helpful error message and preserve workflow
-        console.warn("Authentication issue detected - user action may be required");
+        debugLogger.warn("Authentication issue detected - user action may be required");
         
         return {
           error: "Authentication issue detected. Please refresh the page to continue.",
@@ -612,7 +613,7 @@ class ErrorRecoveryService {
         // Graceful recovery as last resort instead of page reload
         if (typeof window !== "undefined") {
           // Provide user notification instead of jarring reload
-          console.warn("Component remount failed - attempting graceful recovery");
+          debugLogger.warn("Component remount failed - attempting graceful recovery");
           return {
             error: "Component error detected. Please try your last action again.",
             requiresUserAction: true,
