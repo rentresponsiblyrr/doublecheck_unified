@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   memoryLeakDetector,
   MemoryStats,
@@ -70,7 +71,7 @@ export const MemoryAuditor: React.FC<MemoryAuditorProps> = ({
       const report = await circularDependencyDetector.analyzeDependencies();
       setCircularReport(report);
     } catch (error) {
-      console.error("Circular dependency analysis failed:", error);
+      debugLogger.error("Circular dependency analysis failed:", error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -364,7 +365,7 @@ export const MemoryAuditor: React.FC<MemoryAuditorProps> = ({
                     size="sm"
                     onClick={() => {
                       const report = memoryLeakDetector.getMemoryStats();
-                      console.log("Memory Report:", report);
+                      debugLogger.info("Memory Report:", report);
                       alert("Memory report logged to console");
                     }}
                   >
