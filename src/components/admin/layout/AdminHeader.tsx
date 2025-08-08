@@ -14,6 +14,7 @@ import { LogOut, UserCheck, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SystemStatusPanel } from "../SystemStatusPanel";
 import { cn } from "@/lib/utils";
+import { debugLogger } from '@/utils/debugLogger';
 
 interface AdminHeaderProps {
   userProfile: {
@@ -37,7 +38,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       await supabase.auth.signOut();
       navigate("/auth");
     } catch (error) {
-      console.error("Sign out error:", error);
+      debugLogger.error("Sign out error", { error });
     }
   };
 
