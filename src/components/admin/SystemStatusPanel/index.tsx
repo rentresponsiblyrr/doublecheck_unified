@@ -70,6 +70,7 @@ import {
   type SystemMetrics,
   type InspectorWorkload,
 } from "./systemStatusUtils";
+import { debugLogger } from '@/utils/debugLogger';
 
 import {
   POLLING_CONFIG,
@@ -226,15 +227,15 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
           // Direct location change as final fallback
           window.location.href = healthPath;
         } catch (navigationError) {
-          console.warn(
-            "Navigation failed, using direct location change:",
-            navigationError,
+          debugLogger.warn(
+            "Navigation failed, using direct location change",
+            { error: navigationError },
           );
           window.location.href = healthPath;
         }
       } catch (error) {
         const navigationError = error as Error;
-        console.error("System health navigation failed:", navigationError);
+        debugLogger.error("System health navigation failed", { error: navigationError });
 
         // Report error if handler provided
         if (onError) {
@@ -298,14 +299,14 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
               document.body.removeChild(announcement);
             }
           } catch (cleanupError) {
-            console.warn(
-              "Screen reader announcement cleanup failed:",
-              cleanupError,
+            debugLogger.warn(
+              "Screen reader announcement cleanup failed",
+              { error: cleanupError },
             );
           }
         }, 1000);
       } catch (error) {
-        console.warn("Screen reader announcement failed:", error);
+        debugLogger.warn("Screen reader announcement failed", { error });
       }
     },
     [],
@@ -418,8 +419,9 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
             }
           }, retryDelay);
 
-          console.warn(
-            `System metrics fetch failed, retrying in ${retryDelay}ms (attempt ${newRetryCount}/${maxRetries})`,
+          debugLogger.warn(
+            "System metrics fetch failed, retrying",
+            { retryDelay, attempt: newRetryCount, maxRetries },
           );
         } else {
           // Max retries exceeded - update error state
@@ -453,9 +455,9 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
             });
           }
 
-          console.error(
-            "System metrics fetch failed after max retries:",
-            fetchError,
+          debugLogger.error(
+            "System metrics fetch failed after max retries",
+            { error: fetchError },
           );
         }
       }
@@ -498,7 +500,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
         // Perform manual refresh
         await fetchMetrics(true);
       } catch (error) {
-        console.error("Manual refresh failed:", error);
+        debugLogger.error("Manual refresh failed", { error });
         announceToScreenReaders(
           "Refresh failed. Please try again.",
           "assertive",
@@ -534,8 +536,8 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (prefersReducedMotion) {
-      console.info(
-        "Polling disabled due to user preference for reduced motion",
+      debugLogger.info(
+        "Polling disabled due to user preference for reduced motion"
       );
       return;
     }
@@ -554,8 +556,9 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
       }
     }, adaptiveInterval);
 
-    console.info(
-      `System status polling started with ${adaptiveInterval}ms interval`,
+    debugLogger.info(
+      "System status polling started",
+      { interval: adaptiveInterval }
     );
   }, [
     enableRealTimeUpdates,
@@ -622,7 +625,7 @@ export const SystemStatusPanel: React.FC<SystemStatusPanelProps> = ({
 
         performanceObserverRef.current.observe({ entryTypes: ["measure"] });
       } catch (error) {
-        console.warn("Performance monitoring setup failed:", error);
+        debugLogger.warn("Performance monitoring setup failed", { error });
       }
     }
 
