@@ -8,6 +8,8 @@
  * @fileoverview Production-ready system health monitoring with automated alerts
  */
 
+import { debugLogger } from "@/lib/logger/debug-logger";
+
 interface SystemHealthMetrics {
   timestamp: string;
   uptime: number;
@@ -160,7 +162,7 @@ export class SystemHealthMonitor {
 
       return healthStatus;
     } catch (error) {
-      console.error("System health check failed:", error);
+      debugLogger.error("System health check failed:", error);
 
       // Return critical status on failure
       return {
@@ -530,11 +532,11 @@ export class SystemHealthMonitor {
       try {
         await this.getSystemHealth();
       } catch (error) {
-        console.error("Health monitoring error:", error);
+        debugLogger.error("Health monitoring error:", error);
       }
     }, interval);
 
-    console.log(`System health monitoring started with ${interval}ms interval`);
+    debugLogger.info(`System health monitoring started with ${interval}ms interval`);
   }
 
   /**
@@ -547,7 +549,7 @@ export class SystemHealthMonitor {
     }
 
     this.isMonitoring = false;
-    console.log("System health monitoring stopped");
+    debugLogger.info("System health monitoring stopped");
   }
 
   /**
@@ -608,7 +610,7 @@ export class SystemHealthMonitor {
         try {
           callback(alert);
         } catch (error) {
-          console.error("Alert callback error:", error);
+          debugLogger.error("Alert callback error:", error);
         }
       });
     });
