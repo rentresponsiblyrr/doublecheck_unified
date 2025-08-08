@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import {
   inspectionErrorMonitor,
   ErrorMetrics,
@@ -61,7 +62,7 @@ export const MonitoringDataManager: React.FC<MonitoringDataManagerProps> = ({
         setLastUpdate(new Date());
       }
     } catch (err) {
-      console.error("Failed to refresh monitoring data:", err);
+      debugLogger.error("Failed to refresh monitoring data:", err);
       if (mountedRef.current) {
         setError(
           err instanceof Error
@@ -89,7 +90,7 @@ export const MonitoringDataManager: React.FC<MonitoringDataManagerProps> = ({
 
       URL.revokeObjectURL(link.href);
     } catch (err) {
-      console.error("Failed to export monitoring data:", err);
+      debugLogger.error("Failed to export monitoring data:", err);
       setError(
         err instanceof Error ? err.message : "Failed to export monitoring data",
       );
