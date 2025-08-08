@@ -37,6 +37,7 @@
  */
 
 import { logger } from "@/utils/logger";
+import { debugLogger } from "@/lib/logger/debug-logger";
 import { serviceWorkerManager } from "@/lib/pwa/ServiceWorkerManager";
 import { offlineStatusManager } from "@/lib/pwa/OfflineStatusManager";
 import { installPromptHandler } from "@/lib/pwa/InstallPromptHandler";
@@ -428,7 +429,7 @@ export class PWAPerformanceMonitor {
         },
         "PWA_PERFORMANCE",
       );
-      console.error("PWA Performance Monitor initialization error:", error);
+      debugLogger.error("PWA Performance Monitor initialization error:", error);
       return false;
     }
   }
