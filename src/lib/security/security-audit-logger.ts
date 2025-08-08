@@ -13,6 +13,7 @@
  */
 
 import { PIIProtectionService } from "./pii-protection";
+import { debugLogger } from '@/utils/debugLogger';
 
 // Security event types for comprehensive coverage
 export type SecurityEventType =
@@ -141,7 +142,7 @@ export class SecurityAuditLogger {
       // Log to console for immediate visibility (PII-scrubbed)
       this.logToConsole(event);
     } catch (error) {
-      console.error("Failed to log security event:", error);
+      debugLogger.error("Failed to log security event", { error });
     }
   }
 
@@ -337,7 +338,7 @@ export class SecurityAuditLogger {
     this.alerts.push(alert);
 
     // Log alert to console
-    console.warn(`🚨 SECURITY ALERT [${riskLevel.toUpperCase()}]: ${title}`, {
+    debugLogger.warn(`Security alert [${riskLevel.toUpperCase()}]: ${title}`, {
       description,
       eventCount: events.length,
       alertId: alert.id,
@@ -354,7 +355,7 @@ export class SecurityAuditLogger {
     // This would integrate with your notification system
     // For now, just log to console
     if (alert.riskLevel === "critical") {
-      console.error("🚨 CRITICAL SECURITY ALERT:", alert);
+      debugLogger.error("Critical security alert", { alert });
     }
   }
 
@@ -375,16 +376,16 @@ export class SecurityAuditLogger {
 
     switch (logLevel) {
       case "error":
-        console.error(message, logData);
+        debugLogger.error(message, logData);
         break;
       case "warn":
-        console.warn(message, logData);
+        debugLogger.warn(message, logData);
         break;
       case "info":
-        console.info(message, logData);
+        debugLogger.info(message, logData);
         break;
       default:
-        console.log(message, logData);
+        debugLogger.info(message, logData);
     }
   }
 
