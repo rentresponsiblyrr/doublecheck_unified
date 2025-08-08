@@ -4,6 +4,8 @@
  * Implements intelligent background refresh and predictive preloading
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 interface CacheEntry<T = any> {
   key: string;
   data: T;
@@ -73,7 +75,7 @@ export class IntelligentCacheManager {
 
         // Setup error handling
         this.db.onerror = (event) => {
-          console.error("IndexedDB error:", event);
+          debugLogger.error("IndexedDB error", { event });
         };
 
         // Initialize background processes
