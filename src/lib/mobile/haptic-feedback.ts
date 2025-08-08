@@ -3,6 +3,8 @@
  * Professional haptic feedback for mobile workflow interactions
  */
 
+import { debugLogger } from '@/utils/debugLogger';
+
 type HapticIntensity = "light" | "medium" | "heavy";
 type HapticPattern = "success" | "warning" | "error" | "impact" | "selection";
 
@@ -85,7 +87,7 @@ class HapticFeedbackService {
         this.vibrationAPI(pattern);
       }
     } catch (error) {
-      console.warn("Haptic feedback failed:", error);
+      debugLogger.warn("Haptic feedback failed", { error });
     }
   }
 
@@ -97,7 +99,7 @@ class HapticFeedbackService {
       const pattern = this.getVibrationPattern("success", "medium");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn("Workflow success haptic failed:", error);
+      debugLogger.warn("Workflow success haptic failed", { error });
     }
   }
 
@@ -108,7 +110,7 @@ class HapticFeedbackService {
       const pattern = this.getVibrationPattern("error", "heavy");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn("Workflow error haptic failed:", error);
+      debugLogger.warn("Workflow error haptic failed", { error });
     }
   }
 
@@ -119,7 +121,7 @@ class HapticFeedbackService {
       const pattern = this.getVibrationPattern("selection", "light");
       this.vibrationAPI?.(pattern);
     } catch (error) {
-      console.warn("Workflow progress haptic failed:", error);
+      debugLogger.warn("Workflow progress haptic failed", { error });
     }
   }
 
@@ -143,7 +145,7 @@ class HapticFeedbackService {
     try {
       this.vibrationAPI(pattern);
     } catch (error) {
-      console.warn("Custom haptic pattern failed:", error);
+      debugLogger.warn("Custom haptic pattern failed", { error });
     }
   }
 
